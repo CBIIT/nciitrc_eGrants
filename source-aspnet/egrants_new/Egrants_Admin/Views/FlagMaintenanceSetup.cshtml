@@ -1,0 +1,354 @@
+﻿
+@{
+    ViewBag.Title = "eGrants [Flag Maintenance Administration]";
+    Layout = "~/Shared/Views/_egrants_header.cshtml";
+}
+
+<script language="JavaScript">
+        var currenturl = window.document.location.href;
+        var flag_type;
+        var flag_application;
+        var selectall = 0;
+
+        $(document).ready(function () {
+            set_default();
+        });
+
+        function set_default() {
+            if (document.getElementById("hidFlagType").value != '') {
+                show_notice();
+            }
+
+            if (document.getElementById("hidAct").value == "show_appls") {
+                var count = 0;
+                for (var i = 0; i < window.frmFlags.length; i++) {
+                    var control = window.frmFlags.elements[i]
+                    if (control.type != 'checkbox') {
+                        continue
+                    } else count = count + 1;
+                }
+
+                if (count > 0) {
+                    document.getElementById("ShowSelect").style.display = "inline";
+                } else  document.getElementById("ShowSelect").style.display = "none";
+            }
+        }
+
+        function get_flagtype() {
+            if (document.getElementById("ddlFlagTypes").selectedIndex == 0) {
+                alert("Please select flag type");
+                return false;
+            } else return document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+        }
+
+        function get_admincode() {
+            return document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+        }
+
+        function get_serialnum() {
+            if (document.getElementById("txtSerialnum").value == '') {
+                alert("Please insert the serial number to search");
+                document.getElementById("txtSerialnum").focus();
+                return '';
+            } else var result = isInteger(document.getElementById("txtSerialnum").value);
+            if (result == false || result == 'false') {
+                alert("Please inset correct serial number");
+                document.getElementById("txtSerialnum").value = '';
+                document.getElementById("txtSerialnum").focus();
+                return '';
+            } else return document.getElementById("txtSerialnum").value;
+        }
+
+        function show_flags() {
+            if (document.getElementById("ddlFlagTypes").selectedIndex == 0) {
+                alert("Please select flag type");
+                return false;
+            } else flagtype = document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+
+            var url="@Url.Action("To_Setup", "FlagMaintenance")?flag_type=" + flagtype;
+            window.document.location.href = url;
+        }
+
+        function show_notice(){
+            flag_type = document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+            flag_application = document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].value;
+
+            show_button(flag_application);
+
+            if (flag_application == 'A') {
+                document.getElementById("textDiv").innerHTML = "STEP 2: " + flag_type + " FLAG IS APPL LEVEL ONLY. PLEASE INSERT SERAL NUMBER TO SEARCH AVAILBLE APPLS";
+            }
+
+            if (flag_application == 'B') {
+                document.getElementById("textDiv").innerHTML = "STEP 2: " + flag_type + " FLAG IS BOTH FOR APPL AND GRANT LEVEL, PLEASE INSERT SERIAL NUMBER TO SEARCH AVAILBLE APPLS";
+            }
+
+            if (flag_application == 'G') {
+                document.getElementById("textDiv").innerHTML = "STEP 2: " + flag_type + " FLAG IS GRANT LEVEL ONLY. PLEASE INSERT SERAL NUMBER AND CLICK SETUP";
+            }
+        }
+
+        function show_button(flag_application) {
+            if (flag_application == 'A' || flag_application == 'B') {
+                document.getElementById("ShowSearch").style.display = "inline";
+                document.getElementById("ShowSetup").style.display = "none";
+            }
+
+            if (flag_application == 'G') {
+                document.getElementById("ShowSetup").style.display = "inline";
+                document.getElementById("ShowSearch").style.display = "none";
+            }
+        }
+
+        function to_search() {
+            if (document.getElementById("ddlFlagTypes").selectedIndex == 0) {
+                alert("Please select flag type");
+                return false;
+            } else flagtype= document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+
+            var admincode=document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+
+            if (document.getElementById("txtSerialnum").value == '') {
+                alert("Please insert the serial number to search");
+                document.getElementById("txtSerialnum").focus();
+                return '';
+            } else var result = isInteger(document.getElementById("txtSerialnum").value);
+            if (result == false || result == 'false') {
+                alert("Please inset correct serial number");
+                document.getElementById("txtSerialnum").value = '';
+                document.getElementById("txtSerialnum").focus();
+                return '';
+            } else serialnum=document.getElementById("txtSerialnum").value;
+
+            if (admincode != '' && serialnum != '' && flagtype != '') {
+                var url="@Url.Action("Show_Appls", "FlagMaintenance")?act=show_appls&serial_number=" + serialnum + "&admin_code=" + admincode + "&flag_type=" + flagtype;
+                window.document.location.href = url;
+            }
+        }
+
+        function GetIDCount() {
+            var IDCount = 0;
+            for (var i = 0; i < window.document.frmFlags.length; i++) {
+                var control = window.document.frmFlags.elements[i];
+                if (control.type != 'checkbox') {
+                    continue
+                }
+                if (control.checked) {
+                    IDCount = IDCount + 1;
+                }
+            }
+            return IDCount;
+        }
+
+        function GetIDString() {
+            var IDString = "";
+            for (var i = 0; i < window.document.frmFlags.length; i++) {
+                var control = window.document.frmFlags.elements[i];
+                if (control.type != 'checkbox') {
+                    continue
+                }
+                if (control.checked) {
+                    IDString = IDString + control.value + ',';
+                }
+            }
+            IDString = IDString.substring(0, IDString.length - 1);
+            return IDString;
+        }
+
+        function setup_flags() {
+            if (document.getElementById("ddlFlagTypes").selectedIndex == 0) {
+                alert("Please select flag type");
+                return false;
+            } else flagtype = document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+
+            if (flagtype != '') {
+                var IDCount = GetIDCount();
+
+                if (IDCount == 0) {
+                    alert("Please select grant year to setup flag(s)");
+                    return false;
+                } else if (confirm('Are you sure that you want to set up ' + flagtype + ' flag for ' + IDCount + ' selected grants year?')) {
+                        var idstring = GetIDString();
+                        var url="@Url.Action("Setup_Flags", "FlagMaintenance")?act=setup_flags&flag_type=" + flagtype + "&id_string=" + idstring;
+                        window.self.location.href = url;
+                }
+            }
+        }
+
+        function setup_flag() {
+            if (document.getElementById("ddlFlagTypes").selectedIndex == 0) {
+                alert("Please select flag type");
+                return false;
+            } else flagtype = document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+
+            var admincode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+
+            if (document.getElementById("txtSerialnum").value == '') {
+                alert("Please insert the serial number to search");
+                document.getElementById("txtSerialnum").focus();
+                return '';
+            } else var result = isInteger(document.getElementById("txtSerialnum").value);
+            if (result == false || result == 'false') {
+                alert("Please inset correct serial number");
+                document.getElementById("txtSerialnum").value = '';
+                document.getElementById("txtSerialnum").focus();
+                return '';
+            } else serialnum = document.getElementById("txtSerialnum").value;
+
+            if (flagtype != '' && admincode != '' && serialnum != '') {
+                if (confirm('Are you sure that you want to set up ' + flagtype + ' flag for ' + admincode + serialnum + ' ?')) {
+                    var url = "@Url.Action("Setup_Flag", "FlagMaintenance")?act=setup_flag&flag_type=" + flagtype + "&admin_code=" + admincode + "&serial_num=" + serialnum;
+                    window.self.location.href = url;
+                }
+            }
+        }
+
+        function select_all() {
+            if (selectall == 0) {
+                selectall = 1;
+                for (var i = 0; i < window.document.frmFlags.length; i++) {
+                    var control = window.document.frmFlags.elements[i];
+                    if (control.type != 'checkbox') {
+                        continue
+                    } else control.checked = true;
+                }
+            } else unselect_all();
+        }
+
+        function unselect_all() {
+            if (selectall == 1) {
+                selectall = 0;
+                for (var i = 0; i < window.document.frmFlags.length; i++) {
+                    var control = window.document.frmFlags.elements[i];
+                    if (control.type != 'checkbox') {
+                        continue
+                    } else control.checked = false;
+                }
+            }
+        }
+</script>
+
+<form name="frmGetInfo">
+    <input type="hidden" id="hidFlagType" name="FlagType" value="@ViewBag.FlagType" />
+    <input type="hidden" id="hidAct" name="Act" value="@ViewBag.Act" />
+</form>
+<div id="main">
+    <!--start main-->
+    <div>
+        @Html.Partial("~/Egrants_Admin/Views/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">Flag Maintenance--Setup Flag(s)</b><br />
+        <a href=@Url.Action("Index","FlagMaintenance")>Browse or Remove Flag(s)</a>  | @Html.ActionLink("QVR Exclusion", "Show_Grant_Destructed", "FlagMaintenance", new { area = "Egrants_Admin" }, null)
+    </div>
+    <div id="modify" class="form-inline">
+        <table>
+            <thead>
+                <tr><td width="80"></td><td width="120"></td><td width="600"></td></tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="3" height="20px">STEP 1:SELECT A FLAG TYPE IN THE DROPDOWN LIST</td></tr>
+                <tr>
+                    <td><lable for="type"><b>Flag Type:</b></lable></td>
+                    <td>
+                        <select id="ddlFlagTypes" name="flagtype" class="form-control" style="height:30px; width:100px;" title="Select flag type to view or edit" onchange="show_flags()">
+                            <option></option>
+                            @foreach (var flagtypes in ViewBag.FlagTypes)
+                            {
+                                if (ViewBag.FlagType != null && ViewBag.FlagType == flagtypes.flag_type)
+                                {
+                                    <option value="@flagtypes.flag_application" selected="selected">@flagtypes.flag_type</option>
+                                }
+                                else
+                                {
+                                    <option value="@flagtypes.flag_application">@flagtypes.flag_type</option>
+                                }
+                            }
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr><td colspan="3" height="20px"><div id="textDiv"></div></td></tr>
+                <tr>
+                    <td><lable for="ic"><b>Institute:</b></lable></td>
+                    <td>
+                        <select name="admincode" id="ddlAdmincodes" class="form-control" style="height:30px; width:100px;" title="Select admin phs org code">
+                            @foreach (var AdminCode in ViewBag.AdminCodes)
+                            {
+                                if (AdminCode.profile != null && Convert.ToString(AdminCode.profile) == Convert.ToString(Session["ic"]))
+                                {
+                                    <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option>
+                                }
+                                else
+                                {
+                                    <option value="@AdminCode.admin_phs_org_code">@AdminCode.admin_phs_org_code</option>
+                                }
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <lable for="Serial Number"><b>Serial Number:</b></lable>&#0160;
+                        <input name="serialnum" type="text" id="txtSerialnum" class="form-control" style="height:30px; width:100px;" title="Insert serial number" value="@ViewBag.SerialNumber" />&#0160;
+
+                        <div class="menu" id="ShowSearch" style="display:none">
+                            <button class="btn btn-primary btn-sm" accesskey="E" title="Click here to load available appls [shift + alt + S]" onclick="return to_search();">
+                                <u>S</u>earch
+                            </button>
+                        </div>
+                        &#0160;
+                        <div class="menu" id="ShowSetup" style="display:none">
+                            <button class="btn btn-primary btn-sm" accesskey="U" title="Click here to set up flag appls [shift + alt + U]" onclick="return setup_flag();">
+                                Set<u>u</u>p Flag
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div class="menu" id="ShowSelect" style="display:none">
+        <a href="JavaScript:select_all()"><img height="12" src="~/Content/images/box_checked.jpg" />&#0160;&#0160;Select All or Unselect All</a> &#0160;&#0160;
+        &#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;
+        <button class="btn btn-primary btn-sm" accesskey="U" title="Click here to set up flag appls [shift + alt + U]" onclick="return setup_flags();">
+            Set<u>u</u>p Flags
+        </button>
+    </div>
+    <br />
+
+    <form name="frmFlags">
+        <table>
+            <thead>
+                <tr><td width="20"></td><td width="200"></td><td width="200"></td></tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.Appls != null && ViewBag.Appls.Count > 0)
+            {
+                foreach (var appls in ViewBag.Appls)
+                {
+                        <tr>
+                            <td>
+                                @if (Convert.ToChar(appls.flag) == 'y')
+                                {
+                                    @Html.Raw(string.Format("<img height=\'12\' src=\'../Content/images/flag_" + ViewBag.FlagType + ".jpg' />"))
+                                }
+                                else
+                                {
+                                    <input type="checkbox" id="@appls.appl_id" value="@appls.appl_id" title="check it to setup flag" />
+                                }
+                            </td>
+                            <td>@appls.full_grant_num</td>
+                            <td></td>
+                        </tr>
+                    }
+                }
+                else if (ViewBag.Appls != null && ViewBag.Appls.Count == 0)
+                {
+                    <tr><td colspan="3"><b>No data found</b></td></tr>
+                }
+            </tbody>
+        </table>
+    </form>
+</div><!--end main-->
+
+

@@ -1,0 +1,140 @@
+﻿@{
+    ViewBag.Title = "Docman [CFT Edit Accession]";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel='stylesheet' type='text/css' href='~/Content/egrants.css' />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    <script src="~/scripts/validation.js"></script>
+
+    <script language="JavaScript">
+        var currenturl = window.document.location.href;
+
+        function add_accession() {
+            //find accession_number
+            if (document.getElementById("txtAccessionNum").value == '') {
+                alert("Please insert accession number to create");
+                document.getElementById("txtAccessionNum").focus();
+                return false;
+            } else var test = isInteger(document.getElementById("txtAccessionNum").value);
+
+            if (test == false) {
+                alert("Please insert correct accession number");
+                document.getElementById("txtAccessionNum").value = "";
+                document.getElementById("txtAccessionNum").focus();
+                return false;
+            }else var accession_number=document.getElementById("txtAccessionNum").value;
+
+            if (confirm("Are you sure that you want to create new accession as " + accession_number + " ?")) {
+                var url = "@Url.Action("To_Add_Accession", "CFTEdit")?accession_num=" + accession_number;
+                //alert(url);
+                window.self.location = url;
+            }else return false;
+        }
+
+        function destroy_accession() {
+            //find accession_id and destroy date
+            var index = document.getElementById("ddlAccessions").selectedIndex;
+            if (index == 0) {
+                alert("Please select accession number to destroy ")
+                return false;
+            } else var accession_number = document.getElementById("ddlAccessions").options[index].value;
+                    var accession_id=document.getElementById("ddlAccessions").options[index].id
+
+            if (document.getElementById("txtDate").value == '') {
+                alert("Please insert destroy date");
+                document.getElementById("txtDate").focus();
+                return false;
+            } else var test = isDate(document.getElementById("txtDate").value);
+
+            if (test == false) {
+                document.getElementById("txtDate").value = "";
+                document.getElementById("txtDate").focus();
+                return false;
+            } else var destroy_date = document.getElementById("txtDate").value;
+
+            if (confirm("Are you sure that you want to destroy " + accession_number + " ?")) {
+                var url = "@Url.Action("To_Delete_Accession", "CFTEdit")?accession_id=" + accession_id + "&destroy_date=" + destroy_date;
+                //alert(url);
+                window.self.location = url;
+            } else return false;
+        }
+
+        function get_page_name() {
+            var page_name = "CFTEditAccession";
+            return page_name;
+        }
+    </script>
+</head>
+<body>
+    <div class="container-fluid">
+        <!--start container-->
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+                <div id="main">
+                    <div id="caption">
+                        <b id="page_title">Edit Accession</b>
+                    </div>
+
+                    &#0160;&#0160;@ViewBag.Message
+                    @*<form class="form-inline">*@
+                    <div class="form-inline">
+                        <table id="modify" width="750">
+                            <thead>
+                                <tr><td height="10"></td></tr>
+                                <tr><td colspan="4">&#0160;* To Add New Access, insert accession number and click Create New</td></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td width="10"></td>
+                                    <td width="50"><lable for="accession number"><b>Accession:</b></lable></td>
+                                    <td width="100"><input type="text" id="txtAccessionNum" class="form-control" style="height:30px; width:120px" /></td>
+                                    <td width="300">
+                                        <button type="button" class="btn btn-primary btn-sm" AccessKey="N" onClick="add_accession();" title="Click here to add new accession [shift + alt + N">
+                                            Create <U>N</U>ew
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr><td></td><td colspan="3">------------------------------------------------------------------------------------------------------</td></tr>
+                                <tr><td colspan="4">&#0160;* To destory Access, select an accession number from look up, insert date, and click Destory</td></tr>
+                                <tr>
+                                    <td></td>
+                                    <td><lable for="look up"><b>Look Up:</b></lable></td>
+                                    <td>
+                                        <select id="ddlAccessions" class="form-control" style="width:120px; height:30px;">
+                                            <option></option>
+                                            @foreach (var item in ViewBag.Accessions)
+                                            {
+                                                <option value=@item.accession_number id=@item.accession_id>
+                                                    @item.accession_number
+                                                </option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <lable for="destroy date"><b>Date:</b></lable>&#0160;&#0160;<input type="text" id="txtDate" class="form-control" style="height:30px; width:100px" />&#0160;(dd/mm/yy)&#0160;&#0160;
+                                            <button type="button" class="btn btn-primary btn-sm" AccessKey="S" onClick="destroy_accession();" title="Click here to destroy an accession [shift + alt + S]">
+                                                De<u>s</u>troy
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr><td height="15"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    @*</form>*@
+                </div><!--end main-->
+            </div><!--end col_lg-8-->
+            <div class="col-lg-2"></div>
+        </div><!--end row-->
+    </div><!--end container-->
+    <br /><br /><br />
+</body>
+</html>

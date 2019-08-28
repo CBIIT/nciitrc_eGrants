@@ -1,0 +1,407 @@
+﻿<!--this parallel file to return document data for EgrantsDocCreate.cshtml and EgrantsDocModify.cshtml-->
+
+@*<link rel="stylesheet" type="text/css" href="~/Content/jquery.datetimepicker.min.css" />
+<script src="~/scripts/jquery.datetimepicker.full.js"></script>
+<script src="~/scripts/jquery-ui 1.12.1 datepicker.js"></script>
+<link href="~/Content/jquery-ui 1.12.1. date.css" rel="stylesheet" />*@
+
+@*<script src="~/scripts/jquery-1.9.1.js"></script> this references has already been _egrants_header.cshtml*@
+
+@*<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />*@
+
+<link href="~/Content/jquery-uiAyu.css" rel="stylesheet" />
+<script src="~/scripts/jquery-1.11.2ayu.js"></script>
+<script src="~/scripts/jquery-uiAyu.js"></script>
+
+<script language="javascript" type="text/javascript">
+    var AdminCode = "";
+    var SerialNum = "";
+    var Applid = "";
+    var Categoryid = "";
+    var CategoryName = "";
+    var SubCategory = "";
+    var DocDate = "";
+    var appls_count = 0;
+
+    function create_new_appl(object) {
+        if (object.options[object.selectedIndex].value == 'CreateGrantYear') {         
+            //check admin_code
+            get_admin_code();
+
+            //check serial number
+            if (get_serial_num() == false) {
+                return false
+            }
+
+            var url = "@Url.Action("appl_create_default", "EgrantsDoc")?admin_code=" + AdminCode + "&serial_num=" + SerialNum;
+            window.open(url, "NewAPPL", "toolbar=0,menubar=0,location=0,status=0,width=850,height=400,scrollbars=yes,left=200,top=200");
+        }
+    }
+
+    function load_appls() {
+        //alert("load_appls");
+        //var act = document.getElementById("hidAct").value;
+       
+        //check admin_code
+        get_admin_code();
+
+        //check serial number
+        if (get_serial_num() == false) {
+            return false
+        }
+     
+        $.ajax(
+        {
+            type: 'POST',
+            url: "/Egrants/GetAllApplsList",
+            data: { admin_code: AdminCode, serial_num: SerialNum },  //fy: fy, mechan: mechan,
+            success: function (resp) {
+                //sessionStorage.year = resp;
+                var jsonobj = JSON.parse(resp);
+                //alert(jsonobj);
+                $('#ddlAppls').empty();
+                $('#ddlAppls').append('<option value=' + -1 + '>' + 'Select grant year' + '</option>');
+                $.each(jsonobj, function (index, element) {
+                    var SplitPoint = element.indexOf(":");
+                    var full_grant_num = element.substring(0, SplitPoint);
+                    var appl_id = element.substring(SplitPoint + 1, element.length);
+                    //alert(element);
+                    $('#ddlAppls').append('<option value=' + appl_id + ' id=' + appl_id + '>' + full_grant_num + '</option>');
+                });
+
+                //add create appl option for PossionID>=5
+                if (document.getElementById("hidPossionID").value>=5){
+                    $('#ddlAppls').append('<option value=CreateGrantYear>Create grant year</option>');
+                }
+            }
+        });
+    }
+
+    function check_sub_category_length(category_id) {
+        //alert("on change");
+        var el = "T_" + category_id;
+        if (document.getElementById(el).value != "") {
+            var sub_cat = document.getElementById(el).value;
+            if (sub_cat.length > 35) {
+                alert("The maximum value for sub category should be less than 35 characters");
+                document.getElementById(el).value = "";
+                document.getElementById(el).onfocus;
+                return false;
+            }
+        }
+    }
+
+    function show_sub_category() {
+        //enable btnFileUpload button and file
+        if (document.getElementById("btnFileUpload")!=null && document.getElementById("btnFileUpload").disabled == true) {
+            document.getElementById("btnFileUpload").disabled = false;
+            //document.getElementById("UploadFile").value = "";
+        }
+
+        var MaxCategoryid = document.getElementById("hidMax_Categoryid").value;
+        //hide all
+        for (var i = 1; i <= MaxCategoryid; i++) {
+            var el = "sub_category_" + i;
+            if (document.getElementById(el) != null) {
+                document.getElementById(el).style.display = "none";
+            }
+        }
+
+        var category_id = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
+        var inputstring = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        var inputtype = inputstring.charAt(0);
+
+        //display one 
+        var el = "sub_category_" + category_id;
+        if (document.getElementById(el) != null) {
+            document.getElementById(el).style.display = "inline";
+        }
+
+        //clear value for sub category
+        if (inputtype == "T") {
+            var el = "T_" + category_id;
+            document.getElementById(el).value = "";
+        } else if (inputtype == "D") {
+            var el = "D_" + category_id;
+            var el = "D_" + category_id;
+            document.getElementById(el).selectedIndex = 0;
+        }
+    }
+
+    function get_admin_code() {       
+        //document.getElementById("hidAdminCode").value = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+        //AdminCode = document.getElementById("hidAdminCode").value;
+        AdminCode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+        return true;
+    }
+
+    function get_serial_num() {
+        if (document.getElementById("txtSerialnum").value == "") {
+            alert("Please insert the serial number");
+            document.getElementById("txtSerialnum").focus();
+            document.getElementById("ddlAppls").options[0].selected = "selected";
+            return false;
+        } else if (isInteger(document.getElementById("txtSerialnum").value) == false) {
+            alert("Please insert correct serial number");
+            document.getElementById("txtSerialnum").value = "";
+            document.getElementById("txtSerialnum").focus();
+            document.getElementById("ddlAppls").options[0].selected = "selected";
+            return false;
+        } else SerialNum = document.getElementById("txtSerialnum").value;
+        return true;
+    }
+
+    function get_appl() {
+        if (document.getElementById("ddlAppls").selectedIndex == 0) {
+            alert("Please select grant year");
+            document.getElementById("ddlAppls").options[0].selected = "yes";
+            return false;
+        } else Applid = document.getElementById("ddlAppls").options[document.getElementById("ddlAppls").selectedIndex].id;
+                //document.getElementById("hidApplid").value = document.getElementById("ddlAppls").options[document.getElementById("ddlAppls").selectedIndex].id;
+                //Applid = document.getElementById("hidApplid").value;
+                //alert("Applid="+Applid);
+                return true;
+    }
+
+    function get_category_id() {
+        if (document.getElementById("ddlCategories").selectedIndex == 0) {
+            alert("Please select category");
+            return false;
+        } else  Categoryid = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
+                CategoryName = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].text;         
+        return true;
+    }
+
+    function get_sub_category(input_type, input_constraint, Categoryid, CategoryName) {     
+        if (input_type == "T") {
+            var el = "T_" + Categoryid;
+            if (input_constraint == "1" && document.getElementById(el).value == '') {
+                alert("Please insert sub category for " + CategoryName);
+                document.getElementById(el).focus();
+                return false;
+            }
+         
+            if (document.getElementById(el).value != '') {
+                var result = CheckCharacters(document.getElementById(el).value, 'sub category');
+                //check special characters
+                if (result == false || result == 'false') {
+                    document.getElementById(el).value = "";
+                    document.getElementById(el).focus();
+                    return false;
+                } else SubCategory = document.getElementById(el).value;
+            }       
+            //return true;
+        }
+
+        if (input_type == "D") {
+            var el = "D_" + Categoryid;
+            var SelectedIndex = document.getElementById(el).selectedIndex;
+            if (input_constraint == "1" && SelectedIndex == 0) {
+                alert("Please select sub category for " + CategoryName);
+                return false;
+            } else SubCategory = document.getElementById(el).options[SelectedIndex].value; 
+            return true;
+        }
+    }
+
+    function get_document_date() {
+        if (document.getElementById("txtDocumentdate").value == "") {
+            alert("Please insert document date");
+            document.getElementById("txtDocumentdate").focus();
+            return false;
+        } else if (document.getElementById("txtDocumentdate").value.charAt(4) == '/') {
+            var year = document.getElementById("txtDocumentdate").value.substring(0, 4);
+            var month = document.getElementById("txtDocumentdate").value.substring(5, 7);
+            var day = document.getElementById("txtDocumentdate").value.substring(8, 10);
+            doc_date = month + "/" + day + "/" + year;
+        } else doc_date = document.getElementById("txtDocumentdate").value;
+         
+        //check date format
+        if (isDate(doc_date) == false) {
+            document.getElementById("txtDocumentdate").value = "";
+            document.getElementById("txtDocumentdate").focus();
+            return false;
+        } else  DocDate = doc_date;
+        return true;
+    }
+
+    //trig search button by click enter key
+    $(document).ready(function () {
+        $("#txtSerialnum").keyup(function (event) {
+            //alert(event.keyCode);
+            if (event.keyCode == 13) {
+                $("#btnSearch").click();
+            }
+        });
+    })
+</script>
+
+<div class="form-inline" style="margin:0; padding:0;">
+    <table width="800">
+        <thead>
+            <tr>
+                <td colspan="2" class="bg_grey">&#0160;&#0160; Confirm Institute and enter grant serial number before clicking Search.<br /></td>
+            </tr>
+        </thead>
+        <tbody>               
+            <tr style="height:80px">
+                <td width="80"><lable for="Institute"><b>Institute:</b></lable></td>
+                <td width="700">
+                    <select name="admin_code" id="ddlAdmincodes" class="form-control" style="width:80px; height:32px;" size="1" title="Select admin phs org code">                   
+                        @foreach (var AdminCode in ViewBag.AdminCodeList)
+                        {                         
+                            if (ViewBag.admincode != null && Convert.ToString(ViewBag.admincode) == AdminCode.admin_phs_org_code)
+                            {
+                                <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option>
+                            }
+                            else if (ViewBag.admincode == null && AdminCode.profile != null && Convert.ToString(AdminCode.profile) == Session["ic"].ToString().ToUpper())
+                            {
+                                <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option>
+                            }
+                        }
+                    </select>&#0160;
+                    <lable for="Serial Number"><b>Serial Number:</b></lable>&#0160;
+                    <input type="text" id="txtSerialnum" name="serial_num" class="form-control" style="width:80px; height:32px;" title="Insert serial number" value="@ViewBag.serialnum" />&#0160;
+                    <button type="button" id="btnSearch" name="search" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="S" OnClick="return load_appls();" title="Click here to load grant years [shift + alt + S]"><u>S</u>earch</button>                 
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="bg_grey">&#0160;&#0160; Confirm/Select Grant Year, select applicable Category and Date before clicking @ViewBag.Act.<br /></td>
+            </tr>
+            <tr style="height:40px">
+                <td><lable for="Full Grant Number"><b>Grant:</b></lable></td>
+                <td>
+                    @Html.DropDownList("ddlAppls", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:250px;height=32px", onchange = "create_new_appl(this)", title = "Select a grant year" })         
+
+                     @*<select name="appl_id" id="ddlAppls" class="form-control" style="width:200px; height:32px;" size="1" onChange="create_new_appl(this)" title="Select here to create new grant year">
+                        <option value="select grant year">Select grant year</option>
+                            @if (ViewBag.GrantYearList != null)
+                            {
+                                foreach (var appls in ViewBag.GrantYearList)
+                                {
+                                    if (Convert.ToInt32(ViewBag.applid) == Convert.ToInt32(appls.appl_id))
+                                    {
+                                        <option value="@appls.appl_id" id="@appls.appl_id" selected>@appls.full_grant_num</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@appls.appl_id" id="@appls.appl_id">@appls.full_grant_num</option>
+                                    }
+                                }
+                            }
+                       <option value="CreateGrantYear">Create grant year</option>
+                    </select>*@
+                </td>
+            </tr>
+            <tr style="height:40px">
+                <td><lable for="Category Name"><b>Category:</b></lable></td>
+                <td>
+                    <select name="category_id" id="ddlCategories" class="form-control" style="width:250px; height:32px;" size="1" title="select category" onchange="show_sub_category()">
+                        <option>Select a category</option>
+                        @foreach (var main_category in ViewBag.CategoryList)
+                        {
+                            <option id="@main_category.category_id" value="@main_category.input_type@main_category.input_constraint" >@main_category.category_name</option>
+                        }
+                    </select>
+
+                    @foreach (var maincategory in ViewBag.CategoryList)
+                    {
+                        if (maincategory.input_type == "D" || maincategory.input_type == "T")
+                        {
+                            <div id="sub_category_@maincategory.category_id" class="sub_category" style="display:none">                                          
+                            @if (maincategory.input_type == "D")
+                            {
+                                <select name="sub_category" id="D_@maincategory.category_id" class="form-control" style="width:200px; height:32px;" title="select sub category">
+                                    <option></option>
+                                    @foreach (var SubCategory in ViewBag.SubCategoryList)
+                                    {
+                                        if (SubCategory.parent_category_id == maincategory.category_id)
+                                        {
+                                            <option value="@SubCategory.sub_category_name">@SubCategory.sub_category_name</option>}
+                                        }
+                                    }
+                                </select>
+                            }
+
+                            @if (maincategory.input_type == "T")
+                            {
+                                <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control" style="height:32px; width:250px;" title="Insert sub category" oninput="JavaScript:return check_sub_category_length(@maincategory.category_id)" />
+                                if (Convert.ToInt16(maincategory.input_constraint) == 0)
+                                {
+                                    <span>&#0160;&#0160;(35 char max)<b> Optional</b></span>
+                                }
+                                else
+                                {
+                                    <span>&#0160;&#0160;(35 char max)</span>
+                                }
+                            }
+
+                            @*@if (maincategory.input_type == "T")
+                            {
+                                if (Convert.ToInt16(maincategory.input_constraint) == 1)
+                                { 
+                                    <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control" style="height:32px; width:250px;" title="Insert sub category" /><span>&#0160;&#0160;(35 char max)</span>
+                                }
+
+                                if (Convert.ToInt16(maincategory.input_constraint) == 0)
+                                {
+                                    <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control" style="height:32px; width:250px;" title="Insert sub category optional" /><span>&#0160;&#0160;(35 char max)<b> Optional</b></span>
+                                }
+                            }*@
+                            </div>
+                        }
+                    }
+                </td>
+            </tr>
+            <tr style="height:40px">
+                <td><lable for="Document Date"><b>Date:</b></lable></td>
+                <td>@*value="@System.DateTime.Today.ToString("MM/dd/yyyy")"  class="datepicker"*@ 
+                    <input type="text" class="form-control" name="docdate" id="txtDocumentdate" style="height:32px; width:100px;" title="Insert document date" />  @*onchange="DateFormat()"*@
+                    @*<span class="glyphicon glyphicon-calendar"></span>*@     
+                    <div style="float:right"><a target="_new" href="~/Content/eGrants Category Glossary.docx" title="show eGrants Category Glossary">eGrants Category Glossary</a></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>  
+ 
+<script type="text/javascript">
+
+    $('#txtDocumentdate').datepicker({
+        showOn: 'both',      
+        buttonImage: '../Content/images/calendar.png'
+        //border: '0',
+        //border-color: 'white''
+    });
+
+
+        //$("#txtDocumentdate").datetimepicker({
+        //    timepicker: false
+        //});
+
+        //function DateFormat() {
+        //    //alert(document.getElementById("txtDocumentdate").value);
+        //    if (document.getElementById("txtDocumentdate").value !="" && (document.getElementById("txtDocumentdate").value).length > 10){               
+        //        var original_date = (document.getElementById("txtDocumentdate").value).substring(0, 10);
+        //        var yyyy = original_date.substring(0, 4);
+        //        var mm = original_date.substring(5, 7);
+        //        var dd = original_date.substring(8, 10);
+        //        var formated_date = mm + "/" + dd + "/" + yyyy;
+        //        //document.getElementById("txtDocumentdate").value = original_date;
+        //        document.getElementById("txtDocumentdate").value = formated_date;
+        //        return false;              
+        //    }
+        //}
+</script>
+
+
+
+
+
+          
+
+
+
+
+
+

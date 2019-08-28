@@ -1,0 +1,68 @@
+﻿<!--start link_list template-->
+<div class="dashboardItem"><!--start dashboardItem-->              
+     <div class="panel panel-primary"><!--start panel-primary-->   
+     <div class="panel-heading"><!--start panel-heading-->   
+		<table width="100%">
+			<tr>
+			<td width="99%"><center>Links</center></td>
+			<td width="1%">
+				<img width="14" height="14" border="0" hspace="2" src="~/Content/images/question_mark_40.jpg" title="help notice" onClick="JavaScript:help_me('widget_links')"/>
+			</td>
+			</tr>
+		</table>
+	</div><!--end panel-heading--> 	
+    <div class="panel-body"><!--start panel-body-->                                               
+	<div class="panel-group" id="accordion"><!--start panel-group-->  
+
+    @foreach (var categories in ViewBag.LinkLists) {
+        if (Convert.ToInt16(categories.tag) == 1)
+        {
+        <div class="panel panel-default"><!--start panel-default-->
+        <div class="panel-heading"><!--start panel-heading-->
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#collapse_@Convert.ToString(categories.category_id)">@Convert.ToString(categories.category_name)</a>
+            </h4>     
+        </div><!--end panel-heading-->
+        </div>
+            if (Convert.ToString(categories.category_name) == "Quick Links")
+            {
+                <div class="panel-collapse collapse in" id="collapse_@Convert.ToInt16(categories.category_id)">
+                    <div class="panel-body">
+                        @foreach (var link in ViewBag.LinkLists)
+                        {
+                            if (Convert.ToInt16(link.tag) == 2 && Convert.ToString(link.category_name) == "Quick Links")
+                            {
+                                if (Convert.ToString(link.icon_name)!="")
+                                {
+                                    <a target="_new" href="@link.link_url"><img width="200" height="40" border="0" hspace="2" src="~/Content/images/@link.icon_name" /></a><br /><br />
+                                }
+                                else
+                                {
+                                    <a target="_new" href="@link.link_url">@link.link_title</a><br/><br/>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="panel-collapse collapse" id="collapse_@Convert.ToString(categories.category_id)">
+                    <div class="panel-body">
+                        @foreach (var link in ViewBag.LinkLists)
+                        {
+                            if (Convert.ToInt16(link.tag) == 2 && Convert.ToString(link.category_name) != "Quick Links")
+                            {
+                                <a target="_new" href="@link.link_url">@link.link_title</a><br/><br/>
+                            }
+                        }
+                    </div>
+                </div>          
+            }
+        }
+    }
+    </div><!--end panel-group-->  
+    </div><!--end panel-body-->  
+    </div><!--end panel-primary-->
+</div><!--end dashboardItem-->
+<!--end link_list template-->

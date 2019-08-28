@@ -1,0 +1,135 @@
+﻿<!--start showing 
+    documents-->
+<div style=margin-left:10px; >
+    <form name="frmUnidentifiedDocs">
+        <table width="900">
+            <thead>
+                <tr><td colspan="3" height="20">
+                    
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img style="height:24px;" src="~/Content/images/Folder-icon.png" title="grant folder" />
+                        @*<img class="img_16_16" src="~/Content/images/folder_closed.gif" title="grant folder" />*@
+                    </td>
+                    <td colspan="2"><b style="font-size:medium;">Unidentified Documents</b></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td width="60">
+
+                    </td>
+                    <td width="450"><b>Document Name</b></td>
+                    <td width="300"><b>Date</b></td>
+                </tr>
+                @foreach (var docs in ViewBag.UnidentifiedDocs)
+                {              
+                    <tr bgcolor="#AED6F1">
+                        <td>
+                            <div id="@docs.document_id" name="show_checkbox" class="show_checkbox" style="margin-left:35px;">
+                                <input type="checkbox" id="@docs.document_id" value="@docs.document_id" title="Check here to store or delete this document" />
+                            </div>
+                        </td>
+                        <td>
+                            <a target="_new" href="@docs.url">@docs.document_name</a>
+                        </td>
+                        <td>@docs.document_date</td>
+                    </tr>
+                    <tr bgcolor="#AED6F1">
+                        @*<td></td>*@
+                        <td></td>
+                        <td>Created on @docs.created_date by @docs.created_by, In QC from @docs.qc_date</td>
+                        <td></td>
+                    </tr>
+                    <tr bgcolor="#AED6F1"><td colspan="3"></td></tr>
+                    <tr bgcolor="#AED6F1">
+                        @*<td></td>*@
+                        <td></td>
+                        <td>
+                            <a href="javascript:unidentified_doc_index_modify('@docs.document_id', '@docs.document_date', '@docs.category_id')" title="Update document index">Update</a><span>&nbsp;/&nbsp;</span>
+                            <a href="JavaScript:doc_modify('to delete', @docs.document_id)">Delete</a>
+                        </td>
+                        <td></td>
+                    </tr>
+                    }
+                    <tr bgcolor="#AED6F1">
+                        <td ></td>
+                        <td  colspan="2"><a href="#" onclick="JavaScript:return delete_selected()" title="Check here to delete all selected documents"><b>Delete All Selected Unidentified Docs</b></a></td>
+                    </tr>                
+            </tbody>
+        </table>
+    </form>
+    <div style="height:30px"></div>
+</div>
+
+<script language="JavaScript" type="text/javascript">
+    var selected = 0;
+    var selectedDocid = "";
+
+    function delete_selected() {
+        var countDocs = get_selected();
+
+        if (countDocs == 0) {
+            alert("Please selecte unidentified document to delete");
+            return false;
+        } else selectedIdstring = get_idstring();
+
+        act = "to delete all";
+        doc_modify(act, selectedIdstring);
+    }
+
+    function get_selected() {
+        for (var i = 0; i < window.document.frmUnidentifiedDocs.length; i++) {
+            var control = window.document.frmUnidentifiedDocs.elements[i];
+            if (control.type != 'checkbox') {
+                continue;
+            } else if (control.checked) {
+                selected = selected + 1;
+            }
+        }
+
+        return selected;
+    }
+
+    function get_idstring() {
+        for (var i = 0; i < window.document.frmUnidentifiedDocs.length; i++) {
+            var control = window.document.frmUnidentifiedDocs.elements[i];
+            if (control.type != 'checkbox') {
+                continue
+            }
+
+            if (control.checked) {
+                selectedDocid = selectedDocid + control.value + ',';
+            }
+
+        }
+        selectedDocid = selectedDocid.substring(0, selectedDocid.length - 1);
+        return selectedDocid;
+    }
+
+    //modify index for Unidentified documents
+    function unidentified_doc_index_modify(document_id, document_date, category_id) {
+        var current_url = encodeURIComponent(currenturl);
+        var url = "@Url.Action("unidentified_doc_modify", "EgrantsDoc")?document_id=" + document_id + "&category_id=" + category_id + "&document_date=" + document_date + "&previous_url=" + current_url;
+        window.document.location.href = url;
+    }
+
+</script>
+<!--end showing unidentified documents-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

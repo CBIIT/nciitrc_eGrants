@@ -1,0 +1,288 @@
+﻿<html>
+<head>
+<title>eGrants [Reminder]</title>
+<link rel="stylesheet" type="text/css" href="~/Content/egrants.css"/>
+<link rel="stylesheet" type="text/css" href="~/Content/dashboard.css" />
+<link rel="stylesheet" type="text/css" href="~/Content/bootstrap.min.css" />
+
+<script language="JavaScript" type="text/javascript" src="~/scripts/validation.js"></script>
+
+<script language="JavaScript">
+var currenturl = window.document.location.href;
+
+//var serialnum=document.frmGetInfo.serial_num.value;
+//var appl_id=document.frmGetInfo.appl_id.value;
+//var assign_date=document.frmGetInfo.AssignDate.value;
+//var due_date=document.frmGetInfo.DueDate.value;
+//var act=document.frmGetInfo.act.value;
+
+function show_default(){
+	//window.focus();
+	//window.document.self.focus();
+    document.getElementById("txtSerialNum").focus();
+    document.getElementById("main").style.marginLeft = "80px";
+	//onBlur="self.focus();"
+
+	//show calculate days option
+	if (document.frmGetInfo.act.value == 'select' && document.frmGetInfo.AssignDate.value.length > 0) {
+		if (document.getElementById('calculate_days').style.display=="none"){
+			document.getElementById('calculate_days').style.display="inline";
+		}
+	}
+
+	//close popup window
+	if (document.frmGetInfo.act.value == 'save') {
+		if (document.getElementById('close_popup').style.display=="none"){
+			document.getElementById('close_popup').style.display="inline";
+
+			//disable all other objects
+			document.getElementById("txtSerialNum").disabled=true;
+			document.getElementById("btnSearch").disabled=true;			
+			document.getElementById("txtReminderDate").disabled=true;
+			document.getElementById("txtNotice").disabled=true;
+			document.getElementById("chbEmail").disabled=true;
+			document.getElementById("chbWeb").disabled=true;
+			document.getElementById("btnSave").disabled=true;
+		}
+	}
+}
+
+//function search(){	
+//	if (document.getElementById("txtSerialNum").value==''){
+//		alert("Please insert serial number to search");
+//		document.getElementById("txtSerialNum").focus();
+//		return false;		
+//	}else var SerialNum=document.getElementById("txtSerialNum").value;
+//	var result=isInteger(SerialNum);
+//	if (result == false || result == 'false') {
+//	    alert("Please insert correct serial number to search");
+//	    document.getElementById("txtSerialNum").value = '';
+//	    document.getElementById("txtSerialNum").focus();
+//	    return false;
+//	} else
+
+//	    if (currenturl.indexOf("Reminder/") > 0) {
+//	        url = "Reminder_Search?act=search&serial_num=" + SerialNum;
+//	    } else url = "Reminder/Reminder_Search?act=search&serial_num=" + SerialNum;
+//	    //alert(url);   
+//	    window.self.location.href=url;	
+//}
+
+//function select_appl() {
+//    var SerialNum = document.getElementById("txtSerialNum").value;
+//	if (document.getElementById("ddlAppl").selectedIndex==0){
+//		alert("Please select a grant year");
+//		return false;
+//	}else appl_id=document.getElementById("ddlAppl").options[document.getElementById("ddlAppl").selectedIndex].value;
+
+//	if (currenturl.indexOf("Reminder/") > 0) {
+//	    url = "Reminder_Select?act=select&appl_id=" + appl_id + "&serial_num=" + SerialNum;
+//	} else url = "Reminder/Reminder_Select?act=select&appl_id=" + appl_id + "&serial_num=" + SerialNum;
+//    //alert(url);   
+//	window.self.location.href = url;	
+//}
+
+//function set_days(){
+//	document.getElementById('txtReminderDate').value='';
+//	var new_date='';
+//	var reminder_day='';
+//	var reminder_date='';
+
+//	if (document.getElementById("txtDays").value==''){
+//		alert("Please insert days");
+//		document.getElementById("txtDays").focus();
+//		document.getElementById('ddlDaysType').selectedIndex=0;		
+//		return false;	
+//	}else var Days=document.getElementById("txtDays").value;
+//		var result=isInteger(Days);
+//		if (result==false || result=='false'){
+//			alert("Please inset correct number for days");
+//			document.getElementById("txtDays").value='';
+//			document.getElementById("txtDays").focus();
+//			return false;
+//		}
+
+//	if (document.getElementById('ddlDaysType').selectedIndex==0){
+//		alert("Please select type of days");
+//		return false;
+//	}else var DaysType=document.getElementById('ddlDaysType').options[document.getElementById('ddlDaysType').selectedIndex].value;
+	
+//	//1=after assignment
+//	//2=before due date
+//	if (DaysType==1){
+//	    new_date = new Date(document.frmGetInfo.AssignDate.value).getTime() + (86400000 * Days);
+//	} else new_date = new Date(document.frmGetInfo.DueDate.value).getTime() - (86400000 * Days);
+			
+//	reminder_day= new Date(new_date);
+//	reminder_date = reminder_day.getMonth() + 1 + '/' + reminder_day.getDate() + '/' + reminder_day.getFullYear();
+//	document.getElementById("txtReminderDate").value=reminder_date;
+//}
+
+//function save(){	
+	
+//	//get appl_id
+//	if (document.getElementById("ddlAppl").selectedIndex==0){
+//		alert("Please select a grant year");
+//		return false;
+//	}else var appl_id=document.getElementById("ddlAppl").options[document.getElementById("ddlAppl").selectedIndex].value;
+	
+//	//get ReminderDate
+//	if (document.getElementById("txtReminderDate").value==''){
+//		alert("Please insert reminder date");
+//		document.getElementById("txtReminderDate").value='';
+//		document.getElementById("txtReminderDate").focus();
+//		return false;
+//	}else if (isAnyDate(document.getElementById("txtReminderDate").value)==false){
+//		document.getElementById("txtReminderDate").value='';
+//		document.getElementById("txtReminderDate").focus();
+//		return false;
+//	}else var effective_date=document.getElementById("txtReminderDate").value;
+		
+//	//get reminder text
+//	if (document.getElementById("txtNotice").value==''){
+//		alert("Please insert note or reminder text");
+//		document.getElementById("txtNotice").focus();
+//		return false;	
+//	}else var reminder_text=document.getElementById("txtNotice").value;
+	
+//	//get reminder type
+//	if (document.getElementById("chbEmail").checked!=true && document.getElementById("chbWeb").checked!=true){	
+//		alert("Please set reminder type");
+//		return false;
+//	}
+
+//	if (document.getElementById("chbEmail").checked == true) {
+//	    var by_email = "y";
+//	} else var by_email = "n";
+
+//	if (document.getElementById("chbWeb").checked==true){
+//	    var by_display="y";
+//	}else var by_display="n"
+
+//	if (currenturl.indexOf("Reminder/") > 0) {
+//	    url = "Save_Data?act=save&event_type=reminder&appl_id=" + appl_id+"&effective_date="+effective_date+"&reminder_text="+reminder_text+"&by_email="+by_email+"&by_display="+by_display;
+//	} else url = "Reminder/Save_Data?act=save&event_type=reminder&appl_id=" + appl_id+"&effective_date="+effective_date+"&reminder_text="+reminder_text+"&by_email="+by_email+"&by_display="+by_display;
+//	//alert(url);
+//	window.self.location.href=url;	
+//}
+
+function close_window(){
+	window.close();
+}
+
+</script>
+</head>
+<body onload="show_default();">
+
+<form name="frmGetInfo">
+    <input type="hidden" id="hidAct" name="act" value="@ViewBag.Act" />
+    @if (@ViewBag.Appl != null)
+    {
+        foreach (var appl in ViewBag.Appl)
+        {
+            <input type="hidden" id="hidAssignDate" name="AssignDate" value="@appl.assign_date"/>
+            <input type="hidden" id="hidDueDate" name="DueDate" value="@appl.due_date" />
+        }
+    }
+</form>
+<br/><br/><br/>
+<div id="main">
+<table width="300" >
+<tr>
+<td width="300">
+<div class="dashboardItem">
+	<div class="panel panel-primary">
+        <div class="panel-heading"><center>Create a Reminder</center></div>
+        <div class="panel-body">
+
+	<table width="300px" class="table table-hover"> 
+	<tr>
+		<td width="100"><label for="textfield"><b>Serial Number:</b></label></td>
+  		<td width="200">
+			<input type="text" id="txtSerialNum" size="6" value="@ViewBag.SerialNum"/>
+			&#0160;&#0160;
+			<button id="btnSearch" onClick="search();" AccessKey="S" class="btn btn-primary btn-xs" title="Click here to search [alt + shift + S]">
+			   &#0160;<u>S</u>earch&#0160;
+			</button>
+		</td>          	
+	</tr> 
+	<tr>
+		<td><label for="textappl"><b>Grant Year:</b></label></td>
+  		<td>
+			<select name="appl" id="ddlAppl" class="smallfont" onChange="select_appl()">
+			<option></option>
+			@if (ViewBag.Appls != null)
+            {
+                foreach (var appls in ViewBag.Appls)
+                {                
+                    <option value="@appls.appl_id">@appls.full_grant_num</option>
+                }
+            }
+
+            @if (ViewBag.Appl != null)
+            {
+                foreach (var appl in ViewBag.Appl)
+                {                
+                    <option value="@appl.appl_id" selected="selected">@appl.full_grant_num</option>
+                }
+            }			
+       		</select>
+		</td>          	
+	</tr>
+	<tr>
+		<td colspan="2">
+		<div id="calculate_days" style="display:none">						
+			<input type="text" id="txtDays" size="1" title="insert days"/>&#0160;<b>days</b>
+            &#0160;&#0160;&#0160;&#0160;						
+			<select name="select" id="ddlDaysType" class="smallfont" size="1" onChange="set_days()">
+				<option></option>
+		        <option value="1">after assignment</option>
+                <option value="2">before due date</option>
+            </select>
+		</div>
+		</td>
+	</tr>		  
+	<tr>
+		<td><b>On:</b></td>
+		<td>
+			<input type="text" id="txtReminderDate" size="10"/>&#0160;(mm/dd/yyyy)
+		</td>
+	</tr>  
+	<tr>
+		<td><label for="textarea"><b>Text:</b></label></td>
+		<td>Type Note or Reminder text<br/>
+			<textarea name="textarea" rows="10" wrap="soft" id="txtNotice"></textarea>
+		</td>
+	</tr>   
+	<tr>
+		<td colspan="2"><input type="checkbox" name="by_email" id="chbEmail"/>&#0160;&#0160;<b>to be emailed</b></td>
+	</tr>   
+	<tr>
+		<td colspan="2"><input type="checkbox" name="by_display" id="chbWeb"/>&#0160;&#0160;<b>to be displayed</b></td>
+	</tr> 
+	<tr>
+		<td>
+			<button id="btnSave" onClick="save();" AccessKey="A" class="smallfont" title="Click here to save [alt + shift + A]">
+			   &#0160;S<u>a</u>ve&#0160;
+			</button>
+		</td>
+		<td>
+		<div valign="bottom" id="close_popup" style="display:none">	
+			<b>Data Saved!</b>&#0160;&#0160;
+			<button id="bunDSave" onClick="close_window();" AccessKey="C" class="smallfont" title="Click here to close popup window [alt + shift + C]">
+			   &#0160;<u>C</u>lose&#0160;
+			</button>	
+		</div>
+		</td>
+	</tr>                 	
+	</table>
+	</div>
+	</div>
+	</div>		  
+</td>
+</tr>
+</table>
+<br/><br/><br/>
+</div>
+</body>
+</html>

@@ -1,0 +1,129 @@
+﻿<form name="frmGetInfo">
+    <input name="ic" type="hidden" />
+    <input name="admincode" id="admincode" value=@ViewBag.admincode type="hidden" />
+    <input name="serialnum" id="serialnum" value=@ViewBag.serialnum type="hidden" />
+</form>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>eGrants [Create an Appl]</title>
+
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+    <script src="~/scripts/validation.js"></script>
+
+    <script language="javascript">
+        var admincode = document.getElementById("admincode").value;
+        var serialnum = document.getElementById("serialnum").value;
+        var suffixcode = '';
+
+        function add_new() {
+            if (document.getElementById("ddlAppltype").selectedIndex == '0') {
+                alert("Please select Appl type Code");
+                return false;
+            } else var appltype = document.getElementById("ddlAppltype").options[document.getElementById("ddlAppltype").selectedIndex].value;
+
+            if (document.getElementById("ddlActivitycode").selectedIndex == '0') {
+                alert("Please select Activity Code");
+                return false;
+            } else var activitycode = document.getElementById("ddlActivitycode").options[document.getElementById("ddlActivitycode").selectedIndex].value;
+
+            if (document.getElementById("txtSupportyear").value == '') {
+                alert("Please insert Support year");
+                document.getElementById("txtSupportyear").focus();
+                return false;
+            } else var supportyear = document.getElementById("txtSupportyear").value;
+                var result = isInteger(supportyear);
+                if (result == false || result == 'false') {
+                    alert("Please inset correct number for Support year");
+                    document.getElementById("txtSupportyear").value = '';
+                    document.getElementById("txtSupportyear").focus();
+                    return false;
+                }
+
+            if (document.getElementById("txtSuffixcode").value != '') {
+                suffixcode = document.getElementById("txtSuffixcode").value;
+                if (suffixcode.length > 4) {
+                    alert("Suffix code shouldn't be more than 4 digits");
+                    document.getElementById("txtSuffixcode").value = '';
+                    document.getElementById("txtSuffixcode").focus();
+                    return false;
+                }
+            }
+            var url = "@Url.Action("create_new_appl","EgrantsDoc")?admin_code=" + admincode + "&serial_num=" + serialnum + "&appl_type=" + appltype + "&activity_code=" + activitycode + "&support_year=" + supportyear + "&suffix_code=" + suffixcode;
+            //alert(url);
+            window.self.location.href = url;
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div id="main">
+        <div id="caption">
+            <b id="page_title">&#0160;&#0160;&#0160;&#0160;Create Grant Year</b>
+        </div>
+
+        <div id="popup">
+            <!--start appl add-->
+            <form class="form-group" action="create_new_appl" method="post">
+                <div class="form-inline" style="background-color:lightgray">
+                    <fieldset>
+                        <legend style="font-size:medium">&#0160;&#0160;* This page is designed to force entry of appls that can not be found in IMPAC.</legend>
+                        <div class="form-group">
+                            <lable for="appltype">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable>
+                            <select name="appl_type" id="ddlAppltype" class="form-control" style="width:60px; height:30px;" title="select appl type">
+                                <option></option>
+                                @foreach (var ApplType in ViewBag.ApplTypeList)
+                                {
+                                    <option value="@ApplType.appl_type_code">@ApplType.appl_type_code</option>
+                                }
+                            </select>
+                            &#0160;&#0160;
+                            <lable for="activitycode"><b>Activity Code:</b></lable>
+                            <select name="activity_code" id="ddlActivitycode" class="form-control" style="width:80px; height:30px;" title="select activity code">
+                                <option></option>
+                                @foreach (var ActivityCode in ViewBag.ActivityCodeList)
+                                {
+                                    <option value="@ActivityCode.activity_code">@ActivityCode.activity_code</option>
+                                }
+                            </select>
+                            &#0160;&#0160;
+                            <lable for="serialnum"><b>@ViewBag.admincode@ViewBag.serialnum</b></lable>
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <lable for="supportyear">&#0160;&#0160;&#0160;&#0160;<b>Year:</b></lable>
+                            <input type="text" id="txtSupportyear" name="support_year" class="form-control" style="height:30px; width:50px;" title="Insert Grant Year" />
+                            &#0160;&#0160;&#0160;&#0160;&#0160;
+                            <lable for="suffix_code" class="control-label"><b>Suffix Code:</b></lable>
+                            &#0160;&#0160;
+                            <input type="text" id="txtSuffixcode" name="suffix_code" class="form-control" style="height:30px; width:80px;" title="Insert Suffix Code" />
+                            &#0160;&#0160;
+                            <input type="button" name="Show_Progress_Bar" id="btnProgressBar" class="upload-span" style="display:none" />
+                            <button type="button" name="submit" accesskey="C" class="btn btn-primary btn-sm" onclick="return add_new();" title="Click here to create new grant year [shift + alt + C]"><u>C</u>reate New</button>
+                            <br /><br />
+                        </div>
+                    </fieldset>
+                </div>
+            </form>
+            <!--end appl create-->
+            <!--show return notice-->
+            <b id="notice">@ViewBag.Message</b><br />
+
+            <!--start appl loop-->
+            @if (ViewBag.GrantYearList != null)
+            {
+                <b>Following grant years are already created for @ViewBag.admincode@ViewBag.serialnum:</b><br />
+                foreach (var appls in ViewBag.GrantYearList)
+                {
+                    <span>@appls.full_grant_num</span><br />
+                }
+            }
+            <!--end appl loop-->
+            <br /><br /><br />
+        </div>
+    </div><!--end main-->
+</body>
+</html>

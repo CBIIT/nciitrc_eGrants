@@ -1,0 +1,194 @@
+﻿@{
+    ViewBag.Title = "eGrants [Show Popup Modal]";
+}
+
+@*<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>*@
+@*<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>*@
+@*<script src="~/scripts/bootstrap-3.3.7.min.js"></script>*@
+
+<style>
+     .modal {
+  	    text-align: center;
+  	    padding: 0!important;	
+    }
+
+    #NormalModal .modal-dialog {  
+        width: 600px !important;
+        height:300px !important;
+    }
+
+    #NormalModal .modal-content {
+        width: 600px !important;
+        height:300px !important;
+    }
+
+    #MediumModal .modal-dialog {  
+        width: 700px !important;
+        height:500px !important;
+    }
+
+    #MediumModal .modal-content {
+        width: 700px !important;
+        height:500px !important;
+    }
+
+    /*#LargeModal .modal-dialog {       
+        height: 60%;
+        width:  90%;
+    }
+
+    #LargeModal .modal-content {
+        width: 1000px !important;
+        height:600px !important;
+        height: 60%;
+        width:  90%;
+        overflow-y: auto;
+    }
+
+     #LargeModal .modal-body{
+         overflow-y: auto;
+     }*/
+
+</style>
+
+<script type="text/javascript">
+    var modal_title = "";
+
+    $(".modal-wide").on("show.bs.modal", function () {
+        var height = $(window).height() - 200;
+        $(this).find(".modal-body").css("max-height", height);
+    });
+
+    $(function () {
+        $('.NormalModal').click(function () {
+            var act = $(this).data('id');
+
+            //show all FFRs or closeout notification for this appl
+            if (act == "fsr" || act=="closeout") {
+                var appl_id = $(this).data('assigned-id');
+                var route = '@Url.Action("impac_docs", "EgrantsDoc")?act=' + act + '&appl_id=' + appl_id;
+
+                if (act == "closeout") {
+                    modal_title = "Closeout Notification";
+                } else modal_title = "Show All FFR(s)";
+            }
+
+            //show doc attachment
+            if (act == "attachments") {
+                var document_id = $(this).data('assigned-id');
+                var route = '@Url.Action("doc_attachments", "EgrantsDoc")?document_id=' + document_id;
+                modal_title = "Attachments";
+            }
+
+            //show stop notice
+            if (act == "stop") {
+                var grant_id = $(this).data('assigned-id');
+                var route = '@Url.Action("stop_notice", "Egrants")?grant_id=' + grant_id;
+                modal_title = "Stop Notice";
+            }
+
+            //report error
+            if (act == "error") {
+                var document_id = $(this).data('assigned-id');
+                var route = '@Url.Action("ReportErrorIndex", "EgrantsDoc")?document_id=' + document_id;
+                modal_title = "Report Error";
+            }
+
+            $('#NormalModalTitle').html(modal_title);
+            $('#NormalModalPartial').load(route);
+        });
+
+
+        $('.MediumModal').click(function () {
+            var act = $(this).data('id');
+
+            //replace document
+            if (act == "upload") {
+                var document_id = $(this).data('assigned-id');
+                var route = '@Url.Action("doc_upload_modal", "EgrantsDoc")?doc_id=' + document_id;
+                modal_title = "Replace Document";
+            }
+
+            $('#MediumModalTitle').html(modal_title);
+            $('#MediumModalPartial').load(route);
+        });
+
+        @*$('.LargeModal').click(function () {
+            var act = $(this).data('id');
+
+            //replace supplement
+            if (act == "supplement") {
+                var grant_id = $(this).data('assigned-id');
+                var route = '@Url.Action("LoadSupplementDoc", "EgrantsDoc")?act=to_view&grant_id=' + grant_id;
+                modal_title = "Supplement Requests";
+            }
+
+            $('#LargeModalTitle').html(modal_title);
+            $('#LargeModalPartial').load(route);
+        });*@
+
+    });
+
+    //$(".modal-wide").on("show.bs.modal", function () {
+    //    var height = $(window).height() - 200;
+    //    $(this).find(".modal-body").css("max-height", height);
+    //});
+</script>
+
+@*<div class="container">*@
+    <!--display normal modal-->
+    <div id="NormalModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            @*modal-lg*@
+            @*<div class="vertical-alignment-helper">
+                <div class="modal-dialog modal-lg vertical-align-center">*@
+
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h3 class="modal-title" id="NormalModalTitle"></h3>
+                        </div>
+                        <div class="modal-body">
+                            <div id="NormalModalPartial"></div>
+                        </div>
+                        @*<div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>*@
+                    </div>
+                @*</div>
+            </div>*@
+        </div>
+    </div>
+            <!--display medium modal-->
+            <div id="MediumModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h3 class="modal-title" id="MediumModalTitle"></h3>
+                        </div>
+                        <div class="modal-body">
+                            <div id="MediumModalPartial"></div>
+                        </div>
+                        @*<div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>*@
+                    </div>
+                </div>
+            </div>
+
+            <!--display large modal-->
+            @*<div id="LargeModal" class="modal modal-wide fade" data-keyboard="false" data-backdrop="static" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h3 class="modal-title" id="LargeModalTitle"></h3>
+                        </div>
+                        <div class="modal-body">
+                            <div id="LargeModalPartial"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+            @*</div>*@

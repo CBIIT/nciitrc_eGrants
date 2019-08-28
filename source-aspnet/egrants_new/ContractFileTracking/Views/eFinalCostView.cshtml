@@ -1,0 +1,216 @@
+﻿@{
+    ViewBag.Title = "docman [eFinal Cost View]";
+}
+
+<html>
+<head>
+    <style>
+        td {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16px;
+        }
+
+        td b {
+            font-family: Univers;
+            font-size: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <center>
+        @if (ViewBag.ContractEfinal != null)
+        {
+            foreach (var item in ViewBag.ContractEfinal)
+            {
+                <table width="650" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td width="650" align="left" valign="top">
+                            Expired:&#0160;&#0160; @item.expired_date
+                        </td>
+                    </tr>
+                    <tr><td width="650" align="left" valign="top"></td></tr>
+                    <tr>
+                        <td width="650" height="1" colspan="3">
+                            <img width="650" height="1" SRC="~/Content/images/horizontal_line.jpg" alt="horizontal line" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="400" height="90" align="center" valign="top">
+                            <br />
+                            Department of Health and Human Service <br />National Institution of Health
+                        </td>
+                        <td width="1" height="90">
+                            <img width="1" height="90" SRC="~/Content/images/vertical_line.jpg" alt="horizontal line" />
+                        </td>
+                        <td width="249" height="90" align="left" valign="top">
+                            &#0160; <font face="arial" size="2">CONTRACTOR &#39;S NAME</font><br /><br />
+                            &#0160; @item.org_name
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="400" height="1"></td>
+                        <td width="1" height="1"></td>
+                        <td width="249" height="1">
+                            <img width="250" height="1" SRC="~/Content/images/horizontal_line.jpg" alt="horizontal line" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="400" height="40" align="center" valign="top">
+                            <b><font face="arial" size="2">Final Certification of<br />Acceptable Costs</font></b>
+                        </td>
+                        <td width="1" height="40">
+                            <img width="1" height="60" SRC="~/Content/images/vertical_line.jpg " alt="vertical line" />
+                        </td>
+                        <td width="249" height="40" align="left" valign="top">
+                            &#0160; <font face="arial" size="2">CONTRACT NO.</font><br /><br />
+                            &#0160; @item.full_contract_number
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="650" height="1" colspan="3">
+                            <img width="650" height="1" SRC="~/Content/images/horizontal_line.jpg" alt="horizontal line" />
+                        </td>
+                    </tr>
+                </table>
+
+                <table width="750" cellspacing="2" cellpadding="8" border="0">
+                    <tr>
+                        <td width="750" height="30" align="left" valign="bottom" colspan="4"></td>
+                    </tr>
+                    <tr>
+                        <td width="25" height="20" align="left" valign="bottom"></td>
+                        <td width="725" height="20" align="left" valign="bottom" colspan="3">
+                            I hereby certify that I have examined the Contractor's invoice representing final
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">
+                            costs under the referenced contract. To the best of my knowledge and belief the items
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">
+                            for which reimbursement is to be made, together with all costs previously claimed and
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">
+                            reimbursed for a total amount of $<u>@Convert.ToDecimal(item.total_amount).ToString("#,##0.00")&#0160;&#0160;&#0160;</u>
+                            under this contract are in agreement with
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">
+                            the Contractor's Release(where required) and were necessarily incurred in the
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">
+                            performance of the  work under said contract.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="25" height="20" align="left" valign="bottom"></td>
+                        <td width="725" height="20" align="left" valign="bottom" colspan="3">
+                            The Contractor has performed acceptable services as stated in the contract and
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">
+                            is not now in default under said contract in furnishing reports, disclosures, licenses,
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">
+                            equipment or any other tangible articles required under the terms of the contract;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">
+                            therefore, final payment in the amount of $<u>@Convert.ToDecimal(item.final_payment).ToString("#,##0.00")&#0160;&#0160;&#0160;</u> is hereby approved.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="25" height="20" align="left" valign="bottom"></td>
+                        <td width="725" height="20" align="left" valign="bottom" colspan="3">
+                            Pursuant to FAR 4.804-5(a)(12) and HHSAR 304.804-70, the required audit has
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4">been performed. </td>
+                    </tr>
+                    <tr>
+                        <td width="50" height="20" align="left" valign="bottom" colspan="2"></td>
+                        <td width="700" height="20" align="left" valign="bottom" colspan="2">
+                            &#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;
+                            <i><font size="2">The following shall be completed when applicable: </font></i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="50" height="22" align="left" valign="bottom" colspan="2"></td>
+                        <td width="25" height="22" align="left" valign="bottom">&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;1.</td>
+                        <td width="675" height="22" align="left" valign="bottom">
+                            Deobligation of funds in the amount of $<u>@Convert.ToDecimal(item.deobligation).ToString("#,##0.00")&#0160;&#0160;&#0160;</u>
+                            is authorized.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="50" height="20" align="left" valign="bottom" colspan="2"></td>
+                        <td width="25" height="20" align="left" valign="bottom">&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;2.</td>
+                        <td width="675" height="20" align="left" valign="bottom">
+                            A refund in the amount of $<u>@Convert.ToDecimal(item.refund).ToString("#,##0.00")&#0160;&#0160;&#0160;</u>
+                            due to U.S. Government should
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="75" height="20" align="left" valign="bottom" colspan="3"></td>
+                        <td width="675" height="20" align="left" valign="bottom">be collected if not previously refunded.</td>
+                    </tr>
+                    <tr>
+                        <td width="750" height="20" align="left" valign="bottom" colspan="4"></td>
+                    </tr>
+                </table>
+
+                <table width="650" height="30" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td width="650" height="1" colspan="3" valign="bottom">
+                            <img width="650" height="1" SRC="~/Content/images/horizontal_line.jpg" alt="horizontal line" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="500" height="30" align="left" valign="top">
+                            <font face="arial" size="2">CONTRACTING OFFICER</font><br />
+                            &#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;
+                            <img width="250" height="35" valign="bottom" border="0" alt="signature" SRC="~/Content/images/@Convert.ToString(item.signed_by)" />
+                        </td>
+                        <td width="1" height="30">
+                            <img width="1" height="50" SRC="~/Content/images/vertical_line.jpg" alt="vertical line" />
+                        </td>
+                        <td width="149" height="30" align="left" valign="top">
+                            &#0160;&#0160;&#0160;&#0160;
+                            <font face="arial" size="2">DATE</font>
+                            <br /><br />&#0160;&#0160;&#0160;&#0160;
+                            <font face="Times New Roman" size="3">@item.signed_date</font>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="650" height="1" colspan="3" valign="top">
+                            <img width="650" height="1" SRC="~/Content/images/horizontal_line.jpg" alt="horizontal line" />
+                        </td>
+                    </tr>
+                </table>
+
+                <table>
+                    <tr>
+                        <td width="650" align="left" valign="top">
+                            <br /><font face="arial" size="2">NIH 1154-3 (Rev. 1/07)</font>
+                        </td>
+                    </tr>
+                </table>
+            }
+        }
+    </center>
+
+</body>
+</html>

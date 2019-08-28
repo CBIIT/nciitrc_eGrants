@@ -1,0 +1,156 @@
+﻿@{
+    ViewBag.Title = "egrants [Edit Exception]";
+    Layout = "~/Shared/Views/_egrants_header.cshtml";
+}
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+
+    function create_exception_code() {
+        if (document.getElementById("txtCode").value == "") {
+            alert("Please insert exception code");
+            document.getElementById("txtCode").focus();
+            return false;
+        } else var code = document.getElementById("txtCode").value;
+
+        if (document.getElementById("txtDetail").value == "") {
+            alert("Please insert exception detail");
+            document.getElementById("txtDetail").focus();
+            return false;
+        } else var detail = document.getElementById("txtDetail").value;
+
+        if (confirm("Are you sure that you want to add new execption code '" + code + "' ?")) {
+            if (currenturl.indexOf("ApplDestructed/") > 0) {
+                var url = "Edit_Exception_Code?act=add&detail=" + detail + "&code=" + code + "&id=0";
+            } else var url = "ApplDestructed/Edit_Exception_Code?act=add&detail=" + detail + "&code=" + code + "&id=0";
+            //alert(url);
+            window.document.location.href = url;
+        } else return false;
+    }
+
+    function show_edit(id) {
+        for (var i = 1; i < 15; i++) {
+            var el = "edit_" + i;          
+            if (document.getElementById(el) != null) {
+                if (id==i && document.getElementById(el).style.display == "none") {
+                    document.getElementById(el).style.display = "inline";
+                } else document.getElementById(el).style.display = "none";
+            } 
+        }
+    }
+
+    function edit_exception_code(id, code) {
+        var el = "txtDetail_" + id;
+        if (document.getElementById(el).value == "") {
+            alert("Please insert detail for " + code);
+            document.getElementById(el).focus();
+            return false;
+        } else var detail = document.getElementById(el).value;
+
+        if (confirm("Are you sure that you want to edit detail as '" + detail + "' for execption code '" + code + "'?")) {
+                if (currenturl.indexOf("ApplDestructed/") > 0) {
+                    var url = "Edit_Exception_Code?act=edit&id=" + id + "&detail=" + detail + "&code=";
+                } else var url = "ApplDestructed/Edit_Exception_Code?act=edit&id=" + id + "&detail=" + detail + "&code=";
+                //alert(url);
+                window.document.location.href = url;
+        } else return false;
+    }
+
+    function delete_exception_code(id, code) {
+        if (confirm("Are you sure that you want to delete execption code for '" + code + "'?")) {
+            if (currenturl.indexOf("ApplDestructed/") > 0) {
+                var url = "Edit_Exception_Code?act=delete&id=" + id + "&detail=&code=";
+            } else var url = "ApplDestructed/Edit_Exception_Code?act=delete&id=" + id + "&detail=&code=";
+            //alert(url);
+            window.document.location.href = url;
+        } else return false;
+    }
+</script>            
+
+<div id="main">
+    <div>
+        @Html.Partial("~/Egrants_Admin/Views/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">Grant Destructed at Impac II</b><br/>
+            @Html.ActionLink("New Exception Code", "Show_Exception_Code", "ApplDestructed", new { area = "Egrants_Admin" }, null)&#0160;|&#0160;
+            @Html.ActionLink("Grant Excluded in QVR", "Show_Grant_Destructed", "FlagMaintenance", new { area = "Egrants_Admin" }, null)
+    </div>
+    <!--start search-->
+        <div style="width:780px">
+            <table>
+                <thead>
+                    <tr class="bg_grey">
+                        <td width="120"></td>
+                        <td width="180"></td>
+                        <td width="150"></td>
+                        <td width="100"></td>
+                        <td width="200"></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="bg_grey">
+                        <td colspan="5" height="30"><center><b>Manage OGA Document's Reteantion Exceptions</b></center></td>
+                    </tr>
+                    <tr class="bg_grey">
+                        <td colspan="5" height="30">
+                            <center><b>Create New Exceptions</b></center>
+                        </td>
+                    </tr>
+                    <tr class="bg_grey" height="30">
+                        <td colspan="2">
+                            <lable for="Code"><b>Execption Code:</b></lable>&#0160;
+                            <input type="text" name="Code" size="20" title="Execption Code" id="txtCode" />
+                        </td>
+                        <td colspan="3">
+                            <lable for="Detail"><b>Detail:</b></lable>&#0160;
+                            <input type="text" name="CodeDetail" size="25" title="Execption Code Detail" id="txtDetail" />&#0160;
+                            <button class="btn btn-primary btn-xs" id="txtCreate" AccessKey="C" title="Create Execption Code [shift + alt + C]" onClick="Javascript:return create_exception_code()">
+                                <U>C</U>reate New Exception Code
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="bg_grey">
+                        <td colspan="5" height="20"></td>
+                    </tr>
+                    <tr height="50">
+                        <td><b>Execption Code</b></td>
+                        <td><b>Detail</b></td>
+                        <td><b>Created By</b></td>
+                        <td><b>Created Date</b></td>
+                        <td><b>Action</b></td>
+                    </tr>
+                    @foreach (var item in ViewBag.ExceptionCodes)
+                    {
+                        <tr>
+                            <td>@item.exception_code</td>
+                            <td>@item.detail</td>
+                            <td>@item.created_by</td>
+                            <td>@item.created_date</td>
+                            <td>
+                                <a href="Javascript:show_edit(@item.id)">Edit</a>
+                                &#0160;|&#0160;
+                                <button id="btnDelete" AccessKey="D" class="btn btn-primary btn-xs" onClick="Javascript:return delete_exception_code('@item.id','@item.exception_code')" title="Delete Execption Code[shift + alt + D]">
+                                    <U>D</U>elete Exception Code
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5">
+                                <div class="menu" id="edit_@item.id" style="display:none">
+                                    <lable for="detail"><b>New Detail:</b></lable>&#0160;&#0160;&#0160;&#0160;&#0160;
+                                    <input type="text" name="edit" id="txtDetail_@item.id" size="25" title="insert new detail" />&#0160;
+                                    <button id="btnEdit" AccessKey="E" class="btn btn-primary btn-xs" onClick="Javascript:return edit_exception_code('@item.id','@item.exception_code')" title="Edit Execption Detail [shift + alt + E]">
+                                        <U>E</U>dit Exception Detail
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div><!--end main-->
+
+
+

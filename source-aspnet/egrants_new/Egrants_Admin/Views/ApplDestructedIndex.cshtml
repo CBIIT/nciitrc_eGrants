@@ -1,0 +1,391 @@
+﻿@{
+    ViewBag.Title = "egrants [Appl Destructed Index]";
+    Layout = "~/Shared/Views/_egrants_header.cshtml";
+}
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+    var currenturl_length = currenturl.length;
+    var selectall = 0;
+
+    function get_search_year() {
+        if (document.getElementById("ddlYears").selectedIndex == 0) {
+            alert("Please select year to search");
+            return false;
+        } else var search_year = document.getElementById("ddlYears").options[document.getElementById("ddlYears").selectedIndex].value;
+        return search_year;
+    }
+
+    function search_by_year(){
+        var search_year=get_search_year();
+        if (search_year == "") {
+            return false;
+        }
+        var url="@Url.Action("Search", "ApplDestructed")?year=" + search_year + "&status=&exception=&str=";
+        window.document.location.href=url;		
+    }
+
+    function search_by_status() {
+        var search_year = get_search_year();
+        if (search_year == "") {
+            return false;
+        }
+
+        if (document.getElementById("ddlStatus").selectedIndex == 0) {
+            var status_code = "";
+        } else var status_code = document.getElementById("ddlStatus").options[document.getElementById("ddlStatus").selectedIndex].value;
+
+        var url = "@Url.Action("Search", "ApplDestructed")?year=" + search_year + "&status=" + status_code + "&exception=&str=";
+        window.document.location.href=url;		   
+    }
+
+    function search_by_exception() {
+        var search_year = get_search_year();
+        if (search_year == "") {
+            return false;
+        }
+
+        if (document.getElementById("ddlExceptions").selectedIndex == 0) {
+            var exception_code = "";
+        } else var exception_code = document.getElementById("ddlExceptions").options[document.getElementById("ddlExceptions").selectedIndex].value;
+     
+        var url = "@Url.Action("Search", "ApplDestructed")?year=" + search_year + "&status=&exception=" + exception_code + "&str=";
+        window.document.location.href = url;
+    }
+
+    function search_by_str() {
+        var search_year = get_search_year();
+        if (search_year == "") {
+            return false;
+        }
+
+        if (document.getElementById("txtSearch").value == "") {
+            alert("Please insert string to search");
+            return false;
+        } else var str = document.getElementById("txtSearch").value;
+            
+        var url="@Url.Action("Search", "ApplDestructed")?year=" + search_year + "&status=&exception=&str=" + str;
+        window.document.location.href = url;
+    }
+
+    function show_create_button() {
+        if (document.getElementById("ddlExceptionTypes").selectedIndex == 0) {
+            if (document.getElementById("create_button").style.display == 'inline') {
+                document.getElementById("create_button").style.display = "none";
+            }
+        } else if (document.getElementById("create_button").style.display == 'none') {
+            document.getElementById("create_button").style.display = "inline";
+        }
+    }
+
+    function edit_exception(act) {
+        if (act == 'create') {
+            var act_type = "create or change";
+        } else var act_type = act;
+
+        if (act == 'release') {
+            var exception_type = "";
+        } 
+
+        if (act == 'create' && document.getElementById("ddlExceptionTypes").selectedIndex == 0) {
+            alert("Please select exception")
+            return false;
+        } else var exception_type = document.getElementById("ddlExceptionTypes").options[document.getElementById("ddlExceptionTypes").selectedIndex].value;
+            
+        var IDCount = GetIDCount();
+        if (IDCount == 0) {
+            alert("Please select grants year to " + act_type + " exception");
+            return false;
+        } else var idstring = GetIDString();
+
+        if (confirm("Are you sure that you want to " + act_type + " exception for " + IDCount + " grants year?")) {
+            var question_mark = currenturl.indexOf("?");
+            var search_str = currenturl.substring(question_mark + 1, currenturl_length);     
+            var url="@Url.Action("Modify", "ApplDestructed")?act=" + act + "&id_string=" + idstring + "&exception_type=" + exception_type + "&" + search_str;
+            window.document.location.href = url;
+        } else return false;
+    }
+
+    function change_status() {
+        if (document.getElementById("ddlProcessStep").selectedIndex == 0) {
+            alert("Please select a proceed step from list");
+            return false;
+        } else var step_type = document.getElementById("ddlProcessStep").options[document.getElementById("ddlProcessStep").selectedIndex].value;
+
+        if (step_type == 'proceed to next step') {
+            var act = 'approve_next';
+        } else var act = 'approve_previous';
+
+        if (confirm("Are you sure that you want to " + step_type + " ?")) {
+            var question_mark = currenturl.indexOf("?");
+            var search_str = currenturl.substring(question_mark + 1, currenturl_length);
+            var url="@Url.Action("Modify", "ApplDestructed")?act=" + act + "&idstring=&type=&" + search_str;
+            window.document.location.href = url;
+        } else return false;
+    }
+
+    function GetIDCount() {
+        var IDCount = 0;
+        for (var i = 0; i < window.document.frmAppls.length; i++) {
+            var control = window.document.frmAppls.elements[i];
+            if (control.type != 'checkbox') {
+                continue
+            }
+            if (control.checked) {
+                IDCount = IDCount + 1;
+            }
+        }
+        return IDCount;
+    }
+
+    function GetIDString() {
+        var IDString = "";
+        for (var i = 0; i < window.document.frmAppls.length; i++) {
+            var control = window.document.frmAppls.elements[i];
+            if (control.type != 'checkbox') {
+                continue
+            }
+            if (control.checked) {
+                IDString = IDString + control.value + ',';
+            }
+        }
+        IDString = IDString.substring(0, IDString.length - 1);
+        return IDString;
+    }
+
+    function select_all() {
+        if (selectall == 0) {
+            selectall = 1;
+            //document.getElementById("cheSelect").checked = true;
+            for (var i = 0; i < window.document.frmAppls.length; i++) {
+                var control = window.document.frmAppls.elements[i];
+                if (control.type != 'checkbox') {
+                    continue
+                } else if (control.disabled != true) {
+                    control.checked = true;
+                }
+            } return false;
+        } else unselect_all();
+        return false;
+    }
+
+    function unselect_all() {
+        if (selectall == 1) {
+            selectall = 0;
+            //document.getElementById("cheSelect").checked = false;
+            for (var i = 0; i < window.document.frmAppls.length; i++) {
+                var control = window.document.frmAppls.elements[i];
+                if (control.type != 'checkbox') {
+                    continue
+                } else if (control.disabled != true) {
+                    control.checked = false;
+                }
+            }
+        }
+        return false;
+    }
+
+</script>            
+
+<div id="main">
+    <div>
+        @Html.Partial("~/Egrants_Admin/Views/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">Grant Destructed at Impac II</b>
+    </div>
+    @Html.ActionLink("Refresh", "Index", "ApplDestructed", new { area = "Egrants_Admin" }, null)&#0160;|&#0160;
+    @Html.ActionLink("New Exception Code", "Show_Exception_Code", "ApplDestructed", new { area = "Egrants_Admin" }, null)&#0160;|&#0160;
+    @Html.ActionLink("Grant Excluded in QVR", "Show_Grant_Destructed", "FlagMaintenance", new { area = "Egrants_Admin" }, null)
+    <br /><br />
+    <!--end caption-->
+    <!--start search-->
+    <div id="modify" style="width:780px">
+        <table width="780">
+            <thead>
+                <tr><td width="220"></td><td width="200"></td><td width="280"></td></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="2" height="30">
+                        STEP 1:&#0160;Search and exclude Grants/s from  destruction year:
+                    </td>
+                    <td>
+                        <select id="ddlYears" name="date" size="1" class="smallfont" title="Select destruction date" onchange="return search_by_year();">
+                            <option></option>
+                            @foreach (var item in ViewBag.Years)
+                            {
+                                if (Convert.ToInt16(item.year) == Convert.ToInt16(ViewBag.SearchYear))
+                                {
+                                    <option value="@item.year" selected="selected">@item.year</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.year">@item.year</option>
+                                }
+                            }
+                        </select>
+                    </td>
+                </tr>
+                @if (ViewBag.SearchYear != null)
+                {
+                    <tr>
+                        <td>
+                            <!--show status-->
+                            <lable for="status"><b>Appl Status:</b></lable>&#0160;
+                            <select id="ddlStatus" name="code" size="1" class="smallfont" title="Select descrip code" onchange="return search_by_status();">
+                                <option></option>
+                                @foreach (var DescripCodes in ViewBag.DescripCodes)
+                                {
+                                    if (ViewBag.StatusCode == DescripCodes.descrip_code)
+                                    {
+                                        <option value="@DescripCodes.descrip_code" selected="selected">@DescripCodes.descrip_code</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@DescripCodes.descrip_code">@DescripCodes.descrip_code</option>
+                                    }
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <!--show Exceptions-->
+                            <lable for="exception"><b>Exception:</b></lable>&#0160;
+                            <select id="ddlExceptions" name="Exceptions" size="1" class="smallfont" title="Select Exception" onchange="return search_by_exception();">
+                                <option></option>
+                                @foreach (var ExceptionCodes in ViewBag.ExceptionCodes)
+                                {
+                                    if (ViewBag.ExceptionCode == ExceptionCodes.exception_code)
+                                    {
+                                        <option value="@ExceptionCodes.exception_code" selected="selected">@ExceptionCodes.exception_code</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@ExceptionCodes.exception_code">@ExceptionCodes.exception_code</option>
+                                    }
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <!--show search-->
+                            <input type="text" name="Search" id="txtSearch" size="10" value="@ViewBag.Str" title="search by serial numer" />&#0160;
+                            <button AccessKey="S" id="btnSearch" class="btn btn-primary btn-xs" title="Click here to search [shift + alt + S]" onClick="return search_by_str()">
+                                <U>S</U>earch
+                            </button>
+                        </td>
+                    </tr>
+                    //if (ViewBag.Appls.Count > 0 && Convert.ToString(ViewBag.Processable) == "y") {
+                    <tr><td colspan="3">-------------------------------------------------------------------------------------------------</td></tr>
+                        <tr><td colspan="3">STEP 2:(Exclude from Archival):&#0160;Select Grants using check box, Assign an exception code from the Exception drop down and click Create Exception button. </td></tr>
+                        <tr>
+                            <td>
+                                <lable for="Exception"><b>Exception:</b></lable>&#0160;&#0160;&#0160;
+                                <select id="ddlExceptionTypes" name="ExceptionTypes" size="1" class="smallfont" title="Select Exception" onchange="show_create_button();">
+                                    <option></option>
+                                    @foreach (var ExceptionCodes in ViewBag.ExceptionCodes)
+                                    {
+                                        <option value="@ExceptionCodes.exception_code">@ExceptionCodes.exception_code</option>
+                                    }
+                                </select>
+                            </td>
+                            <td colspan="2">
+                                <!--start for create button-->
+                                <div class="menu" id="create_button" style="display:none">
+                                    <button id="btnCreate" AccessKey="C" class="btn btn-primary btn-xs" onClick="return edit_exception('create')" title="Create or change exception for selected grants year [shift + alt + C]">
+                                        <U>C</U>reate or Change Exception
+                                    </button>
+                                </div>
+                                &#0160;
+                                @if (ViewBag.ExceptionCode != null && ViewBag.Appls.Count > 0)
+                                {
+                                    <button id="btnRelease" AccessKey="R" class="btn btn-primary btn-xs" onClick="return edit_exception('release')" title="Release exception for selected grants year [shift + alt + R]">
+                                        <U>R</U>elease Exception
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                        <tr><td colspan="3">-------------------------------------------------------------------------------------------------</td></tr>
+                        <tr>
+                            <td>STEP 3:&#0160;Done with retention.</td>
+                            <td>
+                                <select id="ddlProcessStep" name="Steps" size="1" class="smallfont" title="Select step to approve">
+                                    <option></option>
+                                    <option value="proceed to next step">Proceed to next step</option>
+                                    <option value="go back to previous step">Go back to previous step</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button id="btnApprove" AccessKey="A" class="btn btn-primary btn-xs" onclick="return change_status();" title="Click here to approve [shift + alt + A]">
+                                    I <u>A</u>pprove
+                                </button>
+                            </td>
+                        </tr>
+                    //}
+                }
+            </tbody>
+        </table>
+    </div>
+    <!--end search-->
+    <br />
+    <!--dsiplay search info-->
+    @if (ViewBag.Appls != null)
+    {
+        if (ViewBag.Appls.Count > 1)
+        {
+            foreach (var info in ViewBag.SearchInfo)
+            {
+                var total_appls = info.total_appls;
+                var total_pages = info.total_pages;
+                var per_page = info.per_page;
+                <b>Found @total_appls appls, @per_page appls in each page and total @total_pages page/s</b>
+            }
+            <br /><br />
+            if (Convert.ToString(ViewBag.Processable) == "y")
+            {
+                <table><tr height="20"><td width="20"><input type="image" class="img_12_12" style="vertical-align:top" src="~/Content/images/box_checked.jpg" onclick="return select_all()" /></td><td><b>Select All or Unselecte All</b></td></tr></table>
+            }
+        }
+    }
+    <!--start show appls-->
+    <form name="frmAppls">
+        @if (ViewBag.Appls != null)
+            {
+                if (ViewBag.Appls.Count > 1)
+                {
+                    var ApplsGrid = new WebGrid(ViewBag.Appls, rowsPerPage: 50);
+                @ApplsGrid.Pager(WebGridPagerModes.Numeric)
+                @ApplsGrid.GetHtml(
+                  tableStyle: "webgrid-table",
+                  headerStyle: "webgrid-header",
+                  footerStyle: "webgrid-footer",
+                  rowStyle: "webgrid-odd-row-style",
+                  alternatingRowStyle: "webgrid-even-row-style",
+                  selectedRowStyle: "webgrid-selected-row",
+                  numericLinksCount: 10,
+
+                  columns: ApplsGrid.Columns(
+                      ApplsGrid.Column("", "", format: (item) =>
+                      {
+                          if (Convert.ToString(item.appl_editable) == "y" && Convert.ToString(ViewBag.Processable) == "y")
+                          {
+                              return Html.Raw(string.Format("<input type=\"checkbox\" value=" + @item.appl_id + ">"));
+                          }
+                          else
+                          {
+                              return Html.Raw(string.Format("<img height=\"12\" src=\"../Content/images/clear.jpg\"'>"));
+                          }
+                      }, style: "col-sma", canSort: true),
+                      ApplsGrid.Column("appl_id", " Appl ID", null, style: "col-med", canSort: true),
+                      ApplsGrid.Column("full_grant_num", " Grant Number", null, style: "col-larg", canSort: true),
+                      ApplsGrid.Column("status_code", " Grant Status", null, style: "col-larg", canSort: true),
+                      ApplsGrid.Column("exception_code", " Exception Code", null, style: "col-larg", canSort: true),
+                      ApplsGrid.Column("step_code", " Data Status", null, style: "col-larg", canSort: true)
+                      )
+                  )
+            }
+        }
+    </form><!--end show appls-->
+</div><!--end main-->
+
+
+

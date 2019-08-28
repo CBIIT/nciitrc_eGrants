@@ -1,0 +1,225 @@
+﻿@using System.Web.Mvc.Html;
+@using egrants_new.Models;
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    <script src="~/scripts/jquery-1.9.1.js"></script>
+    <script src="~/scripts/bootstrap.js"></script>
+    <script src="~/scripts/validation.js"></script>
+    @*<script src="~/scripts/bootstrap.min.js"></script>*@
+    <script>
+        var user_position_id=@Convert.ToInt16(Session["position_id"]);
+        var QuickLinkType=[];
+
+        $(document).ready(function () {
+            //check Session["position_id"]
+            if (user_position_id >=2){
+                QuickLink = document.getElementById("leftpanelS");
+            }
+            else{
+                QuickLink = document.getElementById("leftpanelP");
+            } 
+       
+            //set
+            if (user_position_id >=1){
+                if (sessionStorage.getItem("QuickLinks") == null ) {
+                    sessionStorage.setItem("QuickLinks", "1");
+                }
+
+                //get
+                if (sessionStorage.getItem("QuickLinks") == "1") {
+                    QuickLink.style.display = "block";
+                } else QuickLink.style.display = "none";
+            }
+        });
+
+        function toggleleftpanel() {         
+            if (QuickLink.style.display === "none") {
+                QuickLink.style.display = "block";
+                sessionStorage.removeItem("QuickLinks");
+                sessionStorage.setItem("QuickLinks", "1");
+                //alert(sessionStorage.getItem("QuickLinks"));
+            } else {
+                QuickLink.style.display = "none";
+                sessionStorage.removeItem("QuickLinks");
+                sessionStorage.setItem("QuickLinks", "0");
+                //alert(sessionStorage.getItem("QuickLinks"));
+            }
+        }
+
+    </script>
+    <style>
+        .navbar-default {
+            border-bottom: none !important;         
+        }
+
+        .navbar {
+            background-color: #808080 !important;
+        }
+
+        .navbar .nav li span {
+            color: #ffffff !important;
+            font: Arial !important;
+            font-size: large !important;
+        }
+
+        #loginas {
+            color: dimgray !important;
+            font: arial !important;
+            font-size: large !important;
+            vertical-align: auto !important;
+            text-align: right !important;
+        }
+
+        #loginas a {
+            color: blue !important;
+        }
+
+        .eGrantsWhiteTxt {
+            border-top: 4px solid white !important;
+        }
+
+        .eGrantsDDbkgrnd {
+            background-color: #808080 !important;
+        }
+
+        .eGrantsUpldBtnColor {       
+            background-color: #1D8215 !important;  
+        }
+
+        .eGrantsReturnBtn {
+	        font-size:medium;
+            border:none;
+            color:white;
+            background-color:#808080; 
+        }
+
+        .eGrantsDocBtn {
+            font-size:medium;
+            background-color:#4169e1;
+        }
+
+        /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+        #myBtn {/*--Ayu*/
+            display: none; /* Hidden by default */
+            position: fixed; /* Fixed/sticky position */
+            bottom: 20px; /* Place the button at the bottom of the page */
+            right: 30px; /* Place the button 30px from the right */
+            z-index: 99; /* Make sure it does not overlap */
+            border: none; /* Remove borders */
+            outline: none; /* Remove outline */
+            background-color: darkcyan; /* Set a background color */
+            color: white; /* Text color */
+            cursor: pointer; /* Add a mouse pointer on hover */
+            padding: 15px; /* Some padding */
+            border-radius: 10px; /* Rounded corners */
+            font-size: 18px; /* Increase font size */
+        }
+
+        #myBtn:hover { /*--Ayu*/
+            background-color: #555; /* Add a dark-grey background on hover */
+        }   
+    </style>
+</head>
+<body>
+    <div class="row">
+        <div class="col-lg-2" id="logo">
+            <a title="Skip Header" href="#skip header">Skip Repetitive Navigation Links</a>
+            <a href="@Url.Action("Index","Egrants")">
+                <img alt="alt tag" src="../Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E" />
+            </a>
+        </div>
+        <div class="col-lg-10" id="loginas"><p>Logged in as:@Session["UserName"]</p></div>
+        <!--- <p>Need help? Email to:<a href="mailto:egrantsissues@mail.nih.gov" title="Send email for asking help">egrantsissues@mail.nih.gov</a></p> -->
+
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <nav class="navbar navbar-default">
+                <div class="navbar-collapse" id="mainNavBar">
+                    <ul class="nav navbar-nav">                     
+                        <li>
+                            @if (Convert.ToInt16(Session["position_id"])>=1) {
+                                <a href="#" title="Quick Links [shift + alt + L]" accesskey="L" Onclick="toggleleftpanel()" id="QuickLinksS"><span>Quick Links</span><span class="caret eGrantsWhiteTxt"></span></a>
+                            }
+                        </li>
+                        @{
+                            if (Session["Menus"] != null)
+                            {
+                                foreach (String s in Session["Menus"].ToString().Split(','))
+                                {
+                                    foreach (String c in s.ToString().Split('|'))
+                                    {
+                                        string[] str = s.ToString().Split('|');
+                                        if (c.Length > 1)
+                                        {
+                                            <li><a title="@str[0] [shift + alt + @str[1]]" accesskey="@str[1]" target="_top" href="@Url.Action("Index",c.ToString().Replace(" ",""))"><span>@c</span></a></li>
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        <li><a title="Institutional Files [shift + alt + F]" accesskey="F" target="_top" href="@Url.Action("Index", "InstitutionalFiles")"><span>Institutional Files</span></a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle eGrantsDDbkgrnd" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Resources [shift + alt + R]"><span>Resources</span><span class="caret eGrantsWhiteTxt"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a target="_new" href="../Content/eGrants Category Glossary.docx" title="eGrants Glossary">eGrants Glossary</a></li>
+                                <li><a target="_new" href="../Content/access_number2.pdf" title="Accession">Accession</a></li>
+                                <li><a target="_self" href="../EgrantsFunding/funding_index" title="Funding Files">Funding Files</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle eGrantsDDbkgrnd" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="H" title="Help [shift + alt + H]"><span>Help</span><span class="caret eGrantsWhiteTxt"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="mailto:egrantsissues@mail.nih.gov" title="Send email to Technical Support Team">Technical Support</a></li>
+                                <li><a target="_new" href="../Content/eGrants Help Guide.pdf" title="Help Guide">Help Guide</a></li>
+                                <li><a target="_new" href="../Content/explanation.htm" title="Icon Guide">Icon Guide</a></li>
+                                <li class="divider"></li>
+                                <li><a target="_new" href="../Content/privacy.htm" title="Privacy Policy">Privacy Policy</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-2" id="leftpanel" style="margin-left:20px">  		
+            @if (Convert.ToInt16(Session["position_id"]) >=2)
+            {
+                <ul class="nav nav-pills nav-stacked" id="leftpanelS">
+                    <li><a target="_blank" href="https://nciconnect.nci.nih.gov/sites/oga/SitePages/Home.aspx" title="my OGA">myOGA</a></li>
+                   
+                    <li><a target="_blank" href="https://apps.era.nih.gov/gm/jsp/search/search.jsp" title="eRA GM">eRA GM</a></li>
+                 
+                    <li><a target="_blank" href="https://pms.psc.gov/" title="PMS">PMS</a></li>                
+                </ul>
+            }
+
+            @if (Convert.ToInt16(Session["position_id"]) == 1)
+            {
+                <ul class="nav nav-pills nav-stacked" id="leftpanelP">
+                    <li><a target="_blank" href="https://apps.era.nih.gov/pmm/search.era" title="PMM">PMM</a></li>
+                  
+                    <li><a target="_blank" href="https://apps.era.nih.gov/qvr/web/home_main.cfm" title="QVR">QVR</a></li>
+                
+                    @*<li class="divider"></li>*@
+                </ul>
+            }
+        </div>
+        <div class="col-lg-9" id="mainbody"><br />@RenderBody()</div><!--end container body-content-->
+    </div>
+</body>
+</html>
