@@ -1,0 +1,1357 @@
+
+
+8/26/2019 9:56:29 AM  -	.........Task Started!........
+.......................................................................................
+8/26/2019 9:56:29 AM  -	 File to be processed => C:\eGrants\PFR\PFR_082619081502.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9667962
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = PKG_9667962_24936.PDF
+		      fieldNode = filename, Value = PKG_9667962_24936.PDF
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 9:56:29 AM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 9:56:31 AM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 9:56:31 AM  -> Return Value From Proc Create_PFR => 40016891
+8/26/2019 9:56:31 AM  -> XML Moved  FROM: C:\eGrants\PFR\PFR_082619081502.xml TO: C:\egrants\PFR\BAK\PFR_082619081502.xml
+8/26/2019 9:56:31 AM  -> BackUp PDF file FROM: C:\egrants\PFR\PKG_9667962_24936.PDF  TO: C:\egrants\PFR\BAK\PKG_9667962_24936.PDF
+8/26/2019 9:56:31 AM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\PKG_9667962_24936.PDF TO: C:\egrants\watch\out\40016891.pdf
+.......................................................................................
+.......................................................................................
+		      ===== 1 files have been processed!  ===== 
+8/26/2019 9:56:31 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:00:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:00:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:15:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:15:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:30:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:30:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:45:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:45:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:50:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:50:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:00:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:00:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:15:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:15:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:30:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:30:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:45:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:45:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:50:00 AM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:50:00 AM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 12:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 12:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 12:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 12:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 12:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 12:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 12:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 12:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 12:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 12:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 1:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 1:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 1:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 1:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 1:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 1:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 1:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 1:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 1:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 1:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 2:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 2:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 2:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 2:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 2:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 2:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 2:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 2:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 2:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 2:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 3:00:01 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 3:00:01 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 3:15:01 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 3:15:01 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 3:30:16 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 3:30:16 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 3:45:00 PM  -	.........Task Started!........
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9837273_409.pdf
+ Could Not Load File : C:\eGrants\PFR\9837273_409.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9837273_409.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9837273
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9837273_409.pdf
+		      fieldNode = filename, Value = 9837273_409.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017072
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9837273_409.xml TO: C:\egrants\PFR\BAK\9837273_409.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9837273_409.pdf  TO: C:\egrants\PFR\BAK\9837273_409.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9837273_409.pdf TO: C:\egrants\watch\out\40017072.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9845571_410.pdf
+ Could Not Load File : C:\eGrants\PFR\9845571_410.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9845571_410.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9845571
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9845571_410.pdf
+		      fieldNode = filename, Value = 9845571_410.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017073
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9845571_410.xml TO: C:\egrants\PFR\BAK\9845571_410.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9845571_410.pdf  TO: C:\egrants\PFR\BAK\9845571_410.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9845571_410.pdf TO: C:\egrants\watch\out\40017073.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9846877_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9846877_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9846877_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9846877
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9846877_400.pdf
+		      fieldNode = filename, Value = 9846877_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017074
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9846877_400.xml TO: C:\egrants\PFR\BAK\9846877_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9846877_400.pdf  TO: C:\egrants\PFR\BAK\9846877_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9846877_400.pdf TO: C:\egrants\watch\out\40017074.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848671_410.pdf
+ Could Not Load File : C:\eGrants\PFR\9848671_410.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848671_410.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9848671
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9848671_410.pdf
+		      fieldNode = filename, Value = 9848671_410.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017075
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9848671_410.xml TO: C:\egrants\PFR\BAK\9848671_410.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9848671_410.pdf  TO: C:\egrants\PFR\BAK\9848671_410.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9848671_410.pdf TO: C:\egrants\watch\out\40017075.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848757_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9848757_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848757_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9848757
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9848757_400.pdf
+		      fieldNode = filename, Value = 9848757_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017076
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9848757_400.xml TO: C:\egrants\PFR\BAK\9848757_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9848757_400.pdf  TO: C:\egrants\PFR\BAK\9848757_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9848757_400.pdf TO: C:\egrants\watch\out\40017076.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848782_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9848782_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848782_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9848782
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9848782_400.pdf
+		      fieldNode = filename, Value = 9848782_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017077
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9848782_400.xml TO: C:\egrants\PFR\BAK\9848782_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9848782_400.pdf  TO: C:\egrants\PFR\BAK\9848782_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9848782_400.pdf TO: C:\egrants\watch\out\40017077.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848802_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9848802_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848802_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9848802
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9848802_400.pdf
+		      fieldNode = filename, Value = 9848802_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017078
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9848802_400.xml TO: C:\egrants\PFR\BAK\9848802_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9848802_400.pdf  TO: C:\egrants\PFR\BAK\9848802_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9848802_400.pdf TO: C:\egrants\watch\out\40017078.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848961_410.pdf
+ Could Not Load File : C:\eGrants\PFR\9848961_410.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848961_410.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9848961
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9848961_410.pdf
+		      fieldNode = filename, Value = 9848961_410.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017079
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9848961_410.xml TO: C:\egrants\PFR\BAK\9848961_410.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9848961_410.pdf  TO: C:\egrants\PFR\BAK\9848961_410.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9848961_410.pdf TO: C:\egrants\watch\out\40017079.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848986_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9848986_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9848986_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9848986
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9848986_400.pdf
+		      fieldNode = filename, Value = 9848986_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017080
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9848986_400.xml TO: C:\egrants\PFR\BAK\9848986_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9848986_400.pdf  TO: C:\egrants\PFR\BAK\9848986_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9848986_400.pdf TO: C:\egrants\watch\out\40017080.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849366_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849366_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849366_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849366
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849366_400.pdf
+		      fieldNode = filename, Value = 9849366_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017081
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849366_400.xml TO: C:\egrants\PFR\BAK\9849366_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849366_400.pdf  TO: C:\egrants\PFR\BAK\9849366_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849366_400.pdf TO: C:\egrants\watch\out\40017081.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849387_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849387_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849387_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849387
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849387_400.pdf
+		      fieldNode = filename, Value = 9849387_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017082
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849387_400.xml TO: C:\egrants\PFR\BAK\9849387_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849387_400.pdf  TO: C:\egrants\PFR\BAK\9849387_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849387_400.pdf TO: C:\egrants\watch\out\40017082.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849489_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849489_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849489_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849489
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849489_400.pdf
+		      fieldNode = filename, Value = 9849489_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017083
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849489_400.xml TO: C:\egrants\PFR\BAK\9849489_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849489_400.pdf  TO: C:\egrants\PFR\BAK\9849489_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849489_400.pdf TO: C:\egrants\watch\out\40017083.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849570_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849570_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849570_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849570
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849570_400.pdf
+		      fieldNode = filename, Value = 9849570_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017084
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849570_400.xml TO: C:\egrants\PFR\BAK\9849570_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849570_400.pdf  TO: C:\egrants\PFR\BAK\9849570_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849570_400.pdf TO: C:\egrants\watch\out\40017084.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849588_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849588_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849588_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849588
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849588_400.pdf
+		      fieldNode = filename, Value = 9849588_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017085
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849588_400.xml TO: C:\egrants\PFR\BAK\9849588_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849588_400.pdf  TO: C:\egrants\PFR\BAK\9849588_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849588_400.pdf TO: C:\egrants\watch\out\40017085.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849608_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849608_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849608_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849608
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849608_400.pdf
+		      fieldNode = filename, Value = 9849608_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017086
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849608_400.xml TO: C:\egrants\PFR\BAK\9849608_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849608_400.pdf  TO: C:\egrants\PFR\BAK\9849608_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849608_400.pdf TO: C:\egrants\watch\out\40017086.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849918_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849918_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849918_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849918
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849918_400.pdf
+		      fieldNode = filename, Value = 9849918_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017087
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849918_400.xml TO: C:\egrants\PFR\BAK\9849918_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849918_400.pdf  TO: C:\egrants\PFR\BAK\9849918_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849918_400.pdf TO: C:\egrants\watch\out\40017087.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849943_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849943_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849943_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849943
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849943_400.pdf
+		      fieldNode = filename, Value = 9849943_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017088
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849943_400.xml TO: C:\egrants\PFR\BAK\9849943_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849943_400.pdf  TO: C:\egrants\PFR\BAK\9849943_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849943_400.pdf TO: C:\egrants\watch\out\40017088.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849989_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9849989_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9849989_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9849989
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9849989_400.pdf
+		      fieldNode = filename, Value = 9849989_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017089
+8/26/2019 3:45:00 PM  -> XML Moved  FROM: C:\eGrants\PFR\9849989_400.xml TO: C:\egrants\PFR\BAK\9849989_400.xml
+8/26/2019 3:45:00 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9849989_400.pdf  TO: C:\egrants\PFR\BAK\9849989_400.pdf
+8/26/2019 3:45:00 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9849989_400.pdf TO: C:\egrants\watch\out\40017089.pdf
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9850009_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9850009_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:00 PM  -	 File to be processed => C:\eGrants\PFR\9850009_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9850009
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9850009_400.pdf
+		      fieldNode = filename, Value = 9850009_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:00 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:00 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:00 PM  -> Return Value From Proc Create_PFR => 40017090
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9850009_400.xml TO: C:\egrants\PFR\BAK\9850009_400.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9850009_400.pdf  TO: C:\egrants\PFR\BAK\9850009_400.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9850009_400.pdf TO: C:\egrants\watch\out\40017090.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850024_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9850024_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850024_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9850024
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9850024_400.pdf
+		      fieldNode = filename, Value = 9850024_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017091
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9850024_400.xml TO: C:\egrants\PFR\BAK\9850024_400.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9850024_400.pdf  TO: C:\egrants\PFR\BAK\9850024_400.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9850024_400.pdf TO: C:\egrants\watch\out\40017091.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850031_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9850031_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850031_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9850031
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9850031_400.pdf
+		      fieldNode = filename, Value = 9850031_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017092
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9850031_400.xml TO: C:\egrants\PFR\BAK\9850031_400.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9850031_400.pdf  TO: C:\egrants\PFR\BAK\9850031_400.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9850031_400.pdf TO: C:\egrants\watch\out\40017092.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850054_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9850054_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850054_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9850054
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9850054_400.pdf
+		      fieldNode = filename, Value = 9850054_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017093
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9850054_400.xml TO: C:\egrants\PFR\BAK\9850054_400.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9850054_400.pdf  TO: C:\egrants\PFR\BAK\9850054_400.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9850054_400.pdf TO: C:\egrants\watch\out\40017093.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850070_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9850070_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850070_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9850070
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9850070_400.pdf
+		      fieldNode = filename, Value = 9850070_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017094
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9850070_400.xml TO: C:\egrants\PFR\BAK\9850070_400.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9850070_400.pdf  TO: C:\egrants\PFR\BAK\9850070_400.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9850070_400.pdf TO: C:\egrants\watch\out\40017094.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850073_400.pdf
+ Could Not Load File : C:\eGrants\PFR\9850073_400.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9850073_400.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9850073
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9850073_400.pdf
+		      fieldNode = filename, Value = 9850073_400.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017095
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9850073_400.xml TO: C:\egrants\PFR\BAK\9850073_400.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9850073_400.pdf  TO: C:\egrants\PFR\BAK\9850073_400.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9850073_400.pdf TO: C:\egrants\watch\out\40017095.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9868743_404.pdf
+ Could Not Load File : C:\eGrants\PFR\9868743_404.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9868743_404.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9868743
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9868743_404.pdf
+		      fieldNode = filename, Value = 9868743_404.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017096
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9868743_404.xml TO: C:\egrants\PFR\BAK\9868743_404.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9868743_404.pdf  TO: C:\egrants\PFR\BAK\9868743_404.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9868743_404.pdf TO: C:\egrants\watch\out\40017096.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9868790_411.pdf
+ Could Not Load File : C:\eGrants\PFR\9868790_411.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9868790_411.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9868790
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9868790_411.pdf
+		      fieldNode = filename, Value = 9868790_411.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017097
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9868790_411.xml TO: C:\egrants\PFR\BAK\9868790_411.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9868790_411.pdf  TO: C:\egrants\PFR\BAK\9868790_411.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9868790_411.pdf TO: C:\egrants\watch\out\40017097.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9869208_411.pdf
+ Could Not Load File : C:\eGrants\PFR\9869208_411.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9869208_411.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9869208
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9869208_411.pdf
+		      fieldNode = filename, Value = 9869208_411.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017098
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9869208_411.xml TO: C:\egrants\PFR\BAK\9869208_411.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9869208_411.pdf  TO: C:\egrants\PFR\BAK\9869208_411.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9869208_411.pdf TO: C:\egrants\watch\out\40017098.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9869213_411.pdf
+ Could Not Load File : C:\eGrants\PFR\9869213_411.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9869213_411.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9869213
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9869213_411.pdf
+		      fieldNode = filename, Value = 9869213_411.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017099
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9869213_411.xml TO: C:\egrants\PFR\BAK\9869213_411.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9869213_411.pdf  TO: C:\egrants\PFR\BAK\9869213_411.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9869213_411.pdf TO: C:\egrants\watch\out\40017099.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9869339_411.pdf
+ Could Not Load File : C:\eGrants\PFR\9869339_411.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9869339_411.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9869339
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9869339_411.pdf
+		      fieldNode = filename, Value = 9869339_411.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017100
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9869339_411.xml TO: C:\egrants\PFR\BAK\9869339_411.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9869339_411.pdf  TO: C:\egrants\PFR\BAK\9869339_411.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9869339_411.pdf TO: C:\egrants\watch\out\40017100.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9870154_411.pdf
+ Could Not Load File : C:\eGrants\PFR\9870154_411.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9870154_411.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9870154
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9870154_411.pdf
+		      fieldNode = filename, Value = 9870154_411.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017101
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9870154_411.xml TO: C:\egrants\PFR\BAK\9870154_411.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9870154_411.pdf  TO: C:\egrants\PFR\BAK\9870154_411.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9870154_411.pdf TO: C:\egrants\watch\out\40017101.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9870337_411.pdf
+ Could Not Load File : C:\eGrants\PFR\9870337_411.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9870337_411.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9870337
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9870337_411.pdf
+		      fieldNode = filename, Value = 9870337_411.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017102
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9870337_411.xml TO: C:\egrants\PFR\BAK\9870337_411.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9870337_411.pdf  TO: C:\egrants\PFR\BAK\9870337_411.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9870337_411.pdf TO: C:\egrants\watch\out\40017102.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9870730_404.pdf
+ Could Not Load File : C:\eGrants\PFR\9870730_404.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9870730_404.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9870730
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9870730_404.pdf
+		      fieldNode = filename, Value = 9870730_404.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017103
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9870730_404.xml TO: C:\egrants\PFR\BAK\9870730_404.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9870730_404.pdf  TO: C:\egrants\PFR\BAK\9870730_404.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9870730_404.pdf TO: C:\egrants\watch\out\40017103.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9892593_408.pdf
+ Could Not Load File : C:\eGrants\PFR\9892593_408.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9892593_408.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9892593
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9892593_408.pdf
+		      fieldNode = filename, Value = 9892593_408.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017104
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9892593_408.xml TO: C:\egrants\PFR\BAK\9892593_408.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9892593_408.pdf  TO: C:\egrants\PFR\BAK\9892593_408.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9892593_408.pdf TO: C:\egrants\watch\out\40017104.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9893629_408.pdf
+ Could Not Load File : C:\eGrants\PFR\9893629_408.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9893629_408.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9893629
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9893629_408.pdf
+		      fieldNode = filename, Value = 9893629_408.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017105
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9893629_408.xml TO: C:\egrants\PFR\BAK\9893629_408.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9893629_408.pdf  TO: C:\egrants\PFR\BAK\9893629_408.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9893629_408.pdf TO: C:\egrants\watch\out\40017105.pdf
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9895223_408.pdf
+ Could Not Load File : C:\eGrants\PFR\9895223_408.pdf
+ Going to Next ObjFile
+.......................................................................................
+8/26/2019 3:45:01 PM  -	 File to be processed => C:\eGrants\PFR\9895223_408.xml
+		      -> List Node = document
+			-----------------------------
+		      fieldNode = applid, Value = 9895223
+		      fieldNode = folderid, Value = 19
+		      fieldNode = uploadid, Value = 
+		      fieldNode = alias, Value = 9895223_408.pdf
+		      fieldNode = filename, Value = 9895223_408.pdf
+		      fieldNode = subject, Value = 
+		      fieldNode = date, Value = 08/26/2019
+		      fieldNode = uid, Value = nciogastage
+		      fieldNode = file_type, Value = pdf
+			-----------------------------
+8/26/2019 3:45:01 PM  -> Calling DB Procedure 'Create_PFR' 
+8/26/2019 3:45:01 PM  -> Finished executing DB Procedure 'Create_PFR'
+8/26/2019 3:45:01 PM  -> Return Value From Proc Create_PFR => 40017106
+8/26/2019 3:45:01 PM  -> XML Moved  FROM: C:\eGrants\PFR\9895223_408.xml TO: C:\egrants\PFR\BAK\9895223_408.xml
+8/26/2019 3:45:01 PM  -> BackUp PDF file FROM: C:\egrants\PFR\9895223_408.pdf  TO: C:\egrants\PFR\BAK\9895223_408.pdf
+8/26/2019 3:45:01 PM  -> PDF moved to 'watch Out' FROM : C:\egrants\PFR\9895223_408.pdf TO: C:\egrants\watch\out\40017106.pdf
+.......................................................................................
+.......................................................................................
+		      ===== 70 files have been processed!  ===== 
+8/26/2019 3:45:01 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 3:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 3:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 4:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 4:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 4:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 4:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 4:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 4:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 4:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 4:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 4:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 4:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 5:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 5:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 5:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 5:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 5:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 5:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 5:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 5:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 5:50:02 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 5:50:02 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 6:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 6:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 6:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 6:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 6:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 6:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 6:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 6:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 6:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 6:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 7:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 7:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 7:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 7:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 7:30:01 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 7:30:01 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 7:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 7:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 7:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 7:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 8:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 8:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 8:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 8:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 8:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 8:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 8:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 8:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 8:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 8:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 9:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 9:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 9:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 9:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 9:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 9:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 9:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 9:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 9:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 9:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 10:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 10:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:00:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:00:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:15:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:15:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:30:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:30:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:45:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:45:00 PM  =====Task Completed  Load_Supp_PFR :: 
+
+
+8/26/2019 11:50:00 PM  -	.........Task Started!........
+.......................................................................................
+.......................................................................................
+		      ===== 0 files have been processed!  ===== 
+8/26/2019 11:50:00 PM  =====Task Completed  Load_Supp_PFR :: 
