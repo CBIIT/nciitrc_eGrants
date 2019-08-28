@@ -1,0 +1,43 @@
+﻿@{
+    ViewBag.Title = "eGrants [Stop Notice]";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div id="main">
+        <img class="img_20_20" src="~/Content/images/stop_3.jpg" />&#0160;&#0160;
+        The grants listed below are delinquent in submitting final reports. <br />
+        These reports must be received and approved before the Stop Notice can be lifted.
+        <br />
+        <table>
+            <thead>
+                <tr>
+                    <td scope="col" width="150" align="center"><b>Full Grant Number</b></td>
+                    <td scope="col" width="120" align="center"><b>FSR Received</b></td>
+                    <td scope="col" width="120" align="center"><b>Final Invention Received</b></td>
+                    <td scope="col" width="120" align="center"><b>Final Report Received</b></td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.StopNotice)
+                {
+                    <tr>
+                        <td>@item.full_grant_num</td>
+                        <td align="center">@item.closeout_fsr_code</td>
+                        <td align="center">@item.final_invention_stmnt_code</td>
+                        <td align="center">@item.final_report_date</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+
+
+

@@ -1,0 +1,128 @@
+﻿@{
+    ViewBag.Title = "eGrants [System Report]";
+    Layout = "~/Shared/Views/_egrants_header.cshtml";
+}
+
+<script language="javascript">
+
+    var currenturl = window.document.location.href;
+
+    function show_accession() {
+        //get accession id
+        var index = document.getElementById("ddlAccessions").selectedIndex;
+        if (index > 0) {
+            var accession_id = document.getElementById("ddlAccessions").options[index].value;
+            var url = "@Url.Action("by_Accessionid", "SystemReport")?accession_id=" + accession_id;
+            window.self.location.href = url;
+        }
+    }
+
+    function search() {
+         //get serial number
+        if (document.getElementById("txtSerialNum").value == '') {
+            alert("Please insert serial number to search");
+            document.getElementById("txtSerialNum").focus();
+            return false
+        } else var result = isInteger(document.getElementById("txtSerialNum").value);
+
+        if (result == false || result == 'false') {
+            alert("Please insert correct serial number to search");
+            document.getElementById("txtSerialNum").value = '';
+            document.getElementById("txtSerialNum").focus();
+            return false
+        } else var serialnumber = document.getElementById("txtSerialNum").value;
+
+        var url = "@Url.Action("by_Serialnum", "SystemReport")?serial_number=" + serialnumber;
+        window.self.location.href = url;
+    }
+</script>
+
+<div id="main">
+    <div style="text-align:left">
+        <!--start sub link-->
+        @Html.ActionLink("QC Assignment Report", "index", "Management", new { area = "Management" }, null)&#0160;&#47;
+        @Html.ActionLink("Document Transaction Report", "index", "DocTransactionReport", new { area = "Management" }, null)&#0160;&#47;
+        @Html.ActionLink("System Report", "index", "SystemReport", new { area = "Management" }, null)
+    </div>
+    <!--start main-->
+    <div id="caption"><b id="page_title">System Report</b></div>
+    <br />
+    @*<form class="form-inline" action="by_Serialnum">*@
+    <div id="report" class="form-inline">
+        <!--start report-->
+        <table id="modify">
+            <thead>
+                <tr><td colspan="3"></td></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="3" height="30px">* To search status for particular file folder, insert serial number to search</td>
+                </tr>
+                <tr>
+                    <td width="150px">
+                        <Label ID="lblSerialNum"><b>Serial Number:</b></Label>
+                    </td>
+                    <td width="400px">
+                        <div class="form-group"><input type="text" ID="txtSerialNum" name="serial_number" class="form-control" style="width:80px;height:30px;" value="@ViewBag.SerialNumber" />&nbsp;&nbsp;* Serial Number Only</div>
+                    </td>
+                    <td width="100px">
+                        <button AccessKey="S" id="btnSearch" class="btn btn-primary btn-sm" title="Click to search [shift + alt + S]" onclick="JavaScript:return search()">
+                            <U>S</U>earch
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">---------------------------------------------------------------------------------------------------------</td>
+                </tr>
+                <tr><td colspan="3" height="20px">* To search content for particular accession, select an accession number from list</td></tr>
+                <tr>
+                    <td><Label ID="lblAccessionNum"><b>Accession Number:</b></Label></td>
+                    <td>
+                        <select id="ddlAccessions" class="form-control" style="width:150px; height:30px;" onchange="show_accession();">
+                            <option></option>
+                            @foreach (var item in ViewBag.Accessions)
+                            {
+                                if (Convert.ToString(ViewBag.AccessionID) == item.accession_id)
+                                {
+                                    <option value=@item.accession_id selected="selected">@item.accession_number</option>
+                                }
+                                else
+                                {
+                                    <option value=@item.accession_id>@item.accession_number</option>
+                                }
+                            }
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr><td colspan="3" height="15px"></td></tr>
+            </tbody>
+        </table>
+    </div>
+    @*</form>*@<!--end report-->
+    <br /><br />
+
+    @if (ViewBag.EgrantsFolders != null && ViewBag.EgrantsFolders.Count > 0)
+    {
+        var FoldersGrid = new WebGrid(ViewBag.EgrantsFolders, null, null, 20);
+
+        <div id="grid">
+            @FoldersGrid.GetHtml(
+                headerStyle: "webgrid-header",
+                footerStyle: "webgrid-footer",
+                rowStyle: "webgrid-odd-row-style",
+                alternatingRowStyle: "webgrid-even-row-style",
+                selectedRowStyle: "webgrid-selected-row",
+
+                columns: FoldersGrid.Columns(
+                    FoldersGrid.Column("bar_code", "Folder", null, style: "col-med", canSort: true),
+                    FoldersGrid.Column("id_string", "Grand Year", null, style: "col-med", canSort: true),
+                    //FoldersGrid.Column("former_grant_num", "Formerly", null, style: "col-larg", canSort: true),
+                    FoldersGrid.Column("current_status", "Location/Box", null, style: "col-larg", canSort: true),
+                    FoldersGrid.Column("latest_move_date", "Last Moved in Date", null, style: "col-larg", canSort: true),
+                    FoldersGrid.Column("accession_destroyed_date", "Accession Destroyed Date", null, style: "col-larg", canSort: true)
+                )
+            )
+        </div>
+    }
+</div><!--end main-->

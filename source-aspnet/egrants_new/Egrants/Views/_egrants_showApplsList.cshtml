@@ -1,0 +1,75 @@
+﻿<script> 
+    function show_appls_list(grant_id, type) {      
+        if (type == "all") {              
+            var el = "appls_all_" + grant_id;
+            document.getElementById(el).style.display = "inline";
+            var el = "appls_10_" + grant_id;
+            document.getElementById(el).style.display = "none";
+        }
+        else
+        {
+            var el = "appls_all_" + grant_id;
+            document.getElementById(el).style.display = "none";
+            var el = "appls_10_" + grant_id;
+            document.getElementById(el).style.display = "inline";
+        }
+    }
+
+</script>
+@{
+    var grant_id = Model;
+    int appls_count = 0;
+
+    //check appls copunt for each grant
+    foreach (var appl in ViewBag.appllayer_All)
+    {
+        if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) && Convert.ToInt16(appl.doc_count) > 0)
+        {
+            appls_count = appls_count + 1;
+        }
+    }
+
+    //show all appls if appls count <= 12
+    if (appls_count <= 12)
+    {
+        foreach (var appl in ViewBag.appllayer_All)
+        {
+            if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) && Convert.ToInt16(appl.doc_count) > 0)
+            {
+                <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.support_year</a>
+            }
+        }
+    }
+    else
+    {
+        int show_appls = 0;
+        <div id="appls_10_@grant_id" style="display:inline;">    
+            @foreach (var appl in ViewBag.appllayer_All)
+            {
+                if (show_appls < 12) { 
+                    if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) && Convert.ToInt16(appl.doc_count) > 0)
+                    {
+                        <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.support_year</a>
+                        show_appls = show_appls + 1;
+                    }
+                }
+            }          
+            <a href="Javascript:show_appls_list(@grant_id,'all')">
+                <img src="~/Content/images/plus.png" style="height:20px; margin-left:20px;"  title="View All Grant Years" />
+            </a>
+        </div>
+
+        <div id="appls_all_@grant_id" style="display:none;">
+            @foreach (var appl in ViewBag.appllayer_All)
+            {
+                if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) && Convert.ToInt16(appl.doc_count) > 0)
+                {
+                    <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.support_year</a>         
+                }
+            }          
+            <a href="Javascript:show_appls_list(@grant_id,'less')">
+                <img src="~/Content/images/minus.png" style="height:20px; margin-left:20px;" title="Only View 12 Grant Years" />
+            </a>
+        </div>
+    }
+}

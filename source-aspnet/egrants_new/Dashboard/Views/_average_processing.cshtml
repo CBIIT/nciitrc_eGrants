@@ -1,0 +1,86 @@
+﻿<!--start average_processing template-->
+@if (ViewBag.Avgtime != null)
+{
+    <form name="frmAverage">
+        @foreach (var Avgtime in ViewBag.Avgtime)
+        {
+            if (Convert.ToString(Avgtime.ALLOWED_RELEASE_DAYS) == "TYPE 1,2")
+            {
+                <input type="hidden" name="type1_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" />
+                <input type="hidden" name="type1_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)"/>
+            }
+
+            if (Convert.ToString(Avgtime.ALLOWED_RELEASE_DAYS) == "TYPE 5")
+            {
+                <input type="hidden" name="type5_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" />
+                <input type="hidden" name="type5_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)" />
+            }
+
+            if (Convert.ToString(Avgtime.ALLOWED_RELEASE_DAYS) == "OTHERS")
+            {
+                <input type="hidden" name="others_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" />
+                <input type="hidden" name="others_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)" />
+            }
+
+        }
+    </form>
+}
+
+    <div class="dashboardItem">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <table width="100%">
+                    <tr>
+                        <td width="99%"><center>Grants Processing (Average Time in days)</center></td>
+                        <td width="1%">
+                            <img width="14" height="14" border="0" hspace="2" src="~/Content/images/question_mark_40.jpg" title="help notice" onClick="JavaScript:help_me('avg_time')"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel-body">
+                @if (Convert.ToInt16(ViewBag.Avgtime.Count) == 0)
+                {
+                    <center>There is no data</center>
+                }
+                else
+                {
+                    <canvas id="average_processing" width="200" height="100"></canvas> 
+                    <script language="JavaScript">
+	                    var type1_avg=document.frmAverage.type1_avg.value;
+		                var type1_count=document.frmAverage.type1_count.value;
+		                var type5_avg=document.frmAverage.type5_avg.value;		
+		                var type5_count=document.frmAverage.type5_count.value;
+		                var others_avg=document.frmAverage.others_avg.value;
+		                var others_count=document.frmAverage.others_count.value;
+                                       
+		                var ctx = document.getElementById("average_processing");
+		                var myChart = new Chart(ctx, {type: 'pie',
+    		            data: {
+        		            labels: ["TYPE 5(" + type5_count + ")", "TYPE 1,2(" + type1_count + ")", "OTHERS(" + others_count + ")"],
+        		            datasets: [{
+            	            label: 'Average Time taken in releasing Grants',
+            	            data: [type5_avg,type1_avg,others_avg],
+            	            backgroundColor: [
+                    	        'rgba(255, 99, 132, 0.2)',
+                    	        'rgba(54, 162, 235, 0.2)',
+                    	        'rgba(255, 206, 86, 0.2)'
+            	            ],
+            	            borderColor: [
+                    	        'rgba(255,99,132,1)',
+                    	        'rgba(54, 162, 235, 1)',
+                    	        'rgba(255, 206, 86, 1)'
+            	            ],
+            	            borderWidth: 1
+        		        }]
+    		        },
+    		        options: {
+        
+    			        }
+		         });			
+		        </script>
+                }
+            </div>
+        </div>
+    </div>
+<!--end average_processing template-->

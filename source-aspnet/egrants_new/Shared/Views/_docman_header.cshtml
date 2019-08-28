@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width" />   
+    <title></title>
+
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    <script src="~/scripts/validation.js"></script>
+    <script src="~/scripts/jquery-1.9.1.js"></script>
+    <script src="~/scripts/bootstrap.js"></script>
+    <script src="~/scripts/bootstrap.min.js"></script>  
+</head>
+<body>
+<div class="container-fluid"><!--start container-->
+    <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8"><!--start col-lg-8-->
+            <div id="header">
+                <A title="Skip Header" href="#skip header">@*Skip Repetitive Navigation Links*@</A>
+                <B id=web_title><I>DocMan</I></B>
+            </div><!--end header-->
+            <div id="tabsJ">
+                <ul>
+                    <li>
+                        @{
+                            if (Session["Menus"] != null)
+                            {
+                                foreach (String s in Session["Menus"].ToString().Split(','))
+                                {
+                                    foreach (String c in s.ToString().Split('|'))
+                                    {
+                                        string[] str = s.ToString().Split('|');
+                                        if (c.Length > 1)
+                                        {
+                                            <a title="docman [shift + alt + @str[1]]" accesskey="@str[1]" target="_top" href="@Url.Action("Index",c.ToString().Replace(" ",""))"><span>@c</span></a>
+                                        }
+                                    }
+                                }
+                            }
+                        }                                                                                
+                    </li>
+                </ul>
+            </div><!--end tabs-->
+            <div id="doc">
+                <table>
+                    <tr>
+                        <td width="100"><a target="_new" href="~/Content/DocManUser_Guide_11_14_2014.docx">User's guide</a></td>
+                        <td width="300"></td>
+                        <td align="right" width="350"><b>Need help? Email to:</b><a title="Send email for asking help" href=mailto:docmanissue@mail.nih.gov>docmanissues@mail.nih.gov</a></td>
+                    </tr>
+                </table>             
+            </div>
+            </div><!--end col_lg-8-->      
+        </div><!--end row and end header-->
+
+        <!--start body-->
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8"><br />@RenderBody()</div><!--container body-content-->
+            <div class="col-lg-2"></div>
+        </div>
+        <!--end body-->     
+</div><!--end container-->
+</body>
+</html>

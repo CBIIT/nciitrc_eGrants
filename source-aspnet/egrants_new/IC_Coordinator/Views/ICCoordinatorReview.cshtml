@@ -1,0 +1,127 @@
+﻿@{
+    ViewBag.Title = "eGrants [IC Coordinator Review Request]";
+    Layout = "~/Shared/Views/_egrants_header.cshtml";
+}
+
+<script language="Javascript">
+    var currenturl = window.document.location.href;
+
+    function to_select() {
+        if (document.getElementById("show_button").style.display == "none") {
+            document.getElementById("show_button").style.display = "inline";
+        } else document.getElementById("show_button").style.display = "none";
+    }
+
+    function to_accept(id) {
+        var url = "@Url.Action("To_LoadAccept", "EgrantsAccess")?accept_user_id=" + id;
+        //alert(url);
+        window.document.location.href = url;
+    }
+
+    function to_reject(id) {
+        alert("reject request for user_id " + id);
+        return false;
+    }
+</script>
+
+<!--start main-->
+<div id="main">
+    <div id="caption">
+        <center>
+            <b id="page_title">Access New User Review</b>
+            &#0160;&#0160;
+            @Html.ActionLink("Coordinators Requested", "Index", "ICCoordinator", new { area = "IC_Coordinator" }, null)
+        </center>
+    </div>
+    <div class="form-inline"></div>
+    <table valign="top" width="750">
+        <thead>
+            <tr>
+                <td width="150"></td>
+                <td width="350"></td>
+                <td width="250"></td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="3" class="bg_grey"><center>eGrants Access New User Request (Field indicated * are mandetory fields)</center></td>
+            </tr>
+            @foreach (var user in ViewBag.User)
+            {
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="First Name">&#0160;<b>First Name*</b></lable></td>
+                    <td colspan="2">&#0160;@user.first_name</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Moddle Name">&#0160;<b>Middle Initial</b></lable></td>
+                    <td colspan="2">&#0160;@user.middle_name</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Last Name">&#0160;<b>Last Name*</b></lable></td>
+                    <td colspan="2">&#0160;@user.last_name</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Login">&#0160;<b>Login*</b></lable></td>
+                    <td colspan="2">&#0160;@user.userid</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="email">&#0160;<b>Email*</b></lable></td>
+                    <td colspan="2">&#0160;@user.email_address</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="phone number">&#0160;<b>Phone Number</b></lable></td>
+                    <td colspan="2">&#0160;@user.phone_number</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Access type">&#0160;<b>Access type*</b></lable></td>
+                    <td colspan="2">&#0160;@user.access_type</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Division">&#0160;<b>Office/Division*</b></lable></td>
+                    <td colspan="2">&#0160;@user.division</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Coordinator">&#0160;<b>IC Coordinator*</b></lable></td>
+                    <td colspan="2">&#0160;@user.coordinator_name</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Status">&#0160;<b>Status*</b></lable></td>
+                    <td colspan="2">&#0160;@user.status</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Status Date">&#0160;<b>Status Date*</b></lable></td>
+                    <td colspan="2">&#0160;@user.status_date</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="Requested Date">&#0160;<b>Requested Date*</b></lable></td>
+                    <td colspan="2">&#0160;@user.requested_date</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="start date">&#0160;<b>Start Date*</b></lable></td>
+                    <td colspan="2">&#0160;@user.start_date</td>
+                </tr>
+                <tr>
+                    <td align="right" class="bg_grey"><lable for="comments">&#0160;<b>Comments</b></lable></td>
+                    <td colspan="2">@user.comments</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td align="right" colspan="2">
+                        <b>Finished AD Entry:</b>&#0160;
+                        <input type="checkbox" id="action" title="Check here to accecpt or reject" onchange="to_select();" />
+                        &#0160;
+                        <div id="show_button" style="display:none">
+                            <button AccessKey="A" class="btn btn-primary btn-sm" id="btnAccecpt" title="Click here to accept and process [shift + alt + A]" onClick="return to_accept('@user.id')">
+                                <u>A</u>ccept to Process
+                            </button>
+                            &#0160;
+                            <button AccessKey="R" class="btn btn-primary btn-sm" id="btnReject" title="Click here to reject [shift + alt + R]" onClick="return to_reject('@user.id')">
+                                <u>R</u>eject
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div><!--end mian-->

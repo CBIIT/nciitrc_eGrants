@@ -1,0 +1,373 @@
+﻿@{
+    ViewBag.Title = "Docman [Contract File Tracking]";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    @*<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">*@
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script src="~/scripts/validation.js"></script>
+
+    <style>
+        .modal {
+            /*background: #b5b5b5;
+                border: black dashed 1px;
+                width:  600px;
+                height: 50px;
+                text-align: center;
+                color: #fff;*/
+            text-align: center;
+            margin: 5px;
+            padding-top: 12px;
+            padding-bottom: 5%;
+        }
+
+        #MediumModal .modal-dialog {
+            width: 700px !important;
+            height: 300px !important;
+        }
+
+        #MediumModal .modal-content {
+            width: 700px !important;
+            height: 300px !important;
+        }
+    </style>
+
+    <script language="JavaScript">
+    var currenturl = window.document.location.href;
+    var pagename = "contract_tracking";
+
+    function serialnum_search() {
+        if (document.getElementById("txtSerialnum").value == '') {
+            alert("Please insert serial number to search");
+            document.getElementById("txtSerialnum").value = '';
+            document.getElementById("txtSerialnum").focus();
+            return false;
+        } else serialnum = document.getElementById("txtSerialnum").value;
+
+        var result=check_value("serial_number", serialnum);
+        if (result == false || result == 'false ') {
+            return false;
+        } else var url = "@Url.Action("By_Serial_Num", "CFTTracking")?serial_num=" + serialnum;
+        window.self.location = url;
+    }
+
+    function barcode_search() {
+        if (document.getElementById("txtBarcode").value == '') {
+            alert("Please insert bar code to search");
+            document.getElementById("txtBarcode").value = '';
+            document.getElementById("txtBarcode").focus();
+            return false;
+        } else var barcode = document.getElementById("txtBarcode").value;
+
+        var result=check_value("bar_code", barcode);
+        if (result == false || result == 'false ') {
+            return false;
+        } else var url = "@Url.Action("By_Bar_Code", "CFTTracking")?bar_code=" + barcode;
+            window.self.location = url;
+    }
+
+    function check_value(SearchType, SearchValue) {
+        var result = isInteger(SearchValue);
+        if (result == false || result == 'false ') {
+            if (SearchType == "serial_number") {
+                alert("Please insert digit serial number to search");
+                document.getElementById("txtSerialnum").value = '';
+                document.getElementById("txtSerialnum").focus();
+            }
+
+            if (SearchType == "bar_code") {
+                alert("Please insert digit bar code to search");
+                document.getElementById("txtBarcode").value = '';
+                document.getElementById("txtBarcode").focus();
+            }
+        }
+        return result;
+    }
+
+    function chargedout_search() {
+        var url = "@Url.Action("By_Charged_Out", "CFTTracking")";
+        window.self.location = url;
+    }
+
+    function accession_search() {
+        if (document.getElementById("ddlAccession").selectedIndex == 0) {
+            alert("Please select accession number");
+            return false
+        } else  var accession_id = document.getElementById("ddlAccession").options[document.getElementById("ddlAccession").selectedIndex].value;
+                var url = "@Url.Action("By_Accession", "CFTTracking")?accession_id=" + accession_id;
+                window.self.location = url;
+    }
+
+    function institution_search() {
+        if (document.getElementById("ddlInstitution").selectedIndex == 0) {
+            alert("Please select institution");
+            return false
+        } else  var institution = document.getElementById("ddlInstitution").options[document.getElementById("ddlInstitution").selectedIndex].text;
+                var url = "@Url.Action("By_Institution", "CFTTracking")?institution=" + institution;
+                window.self.location = url;
+    }
+
+    function add_docman_contract(full_contract_number, combined_piid) {
+        if (confirm('Are you sure that you wnat to add ' + full_contract_number + ' to Contract File Management system?')) {
+            var serialnum = document.getElementById("txtSerialnum").value;
+            var url = "@Url.Action("By_Add", "CFTTracking")?serial_num=" + serialnum + "&combined_piid=" + combined_piid;
+            window.location.href = url;
+        }
+    }
+
+    function GetCount() {
+        var Count = 0;
+        for (var i = 0; i < window.frmReport.length; i++) {
+            var control = window.frmReport.elements[i]
+            if (control.type != 'checkbox') {
+                    continue
+            }
+            if (control.checked) {
+                Count = Count + 1;
+            }
+        }
+        return Count;
+    }
+
+    function Getids() {
+        var idString = "";
+        for (var i = 0; i < window.frmReport.length; i++) {
+            var control = window.frmReport.elements[i]
+            if (control.type != 'checkbox') {
+                continue
+            }
+            if (control.checked) {
+                idString = idString + control.id+ ','
+            }
+        }
+        idString = idString.substring(0, idString.length - 1);
+        return idString
+    }
+
+    function GetSearchStr() {
+        return window.document.getElementById("hidSearchStr").value;
+
+    }
+    function GetSearchType() {
+        return window.document.getElementById("hidSearchType").value;
+    }
+
+    function edit_final_cost(contract_id) {
+        var url = "@Url.Action("Edit", "CFTEfinal")?contract_id=" + contract_id;
+        window.open(url, "final_edit", "toolbar=0,menubar=0,location=0,status=0,width=400,height=200,scrollbars=yes,left=400,top=400");
+    }
+
+    function show_doc(docurl) {
+        var ImageServer = document.getElementById("hidImageServer").value;
+        var url = ImageServer + docurl;
+        //alert(url);
+        window.open(url);
+    }
+    </script>
+</head>
+<body>
+    <div class="container-fluid">
+        <!--start container-->
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+                <br /><br />
+                <div id="main">
+                    <div id="searching" class="form-group">
+                        <table id="modify" width="900">
+                            <thead>
+                                <tr height="10">
+                                    <td width="20"></td>
+                                    <td width="100"><input type="hidden" id="hidSearchType" value="@ViewBag.SearchType" /></td>
+                                    <td width="150"><input type="hidden" id="hidSearchStr" value="@ViewBag.SearchStr" /></td>
+                                    <td width="500"><input type="hidden" id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" /></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr height="35">
+                                    <td></td>
+                                    <td><label for="lblInstitution"><b>Institution:</b></label></td>
+                                    <td colspan="2">
+                                        <select ID="ddlInstitution" class="form-control" -style="width:600px; height:30px;" Enabled="true" OnChange="institution_search();">
+                                            <option></option>
+                                            @foreach (var item in ViewBag.Institutions)
+                                            {
+                                                if (item.institution == ViewBag.InstitutionName)
+                                                {
+                                                    <option value=@item.institution selected="selected">@item.institution</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value=@item.institution>@item.institution</option>
+                                                }
+                                            }
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr height="35">
+                                    <td></td>
+                                    <td><label for="bar code"><b>Bar Code:</b></label></td>
+                                    <td><input type="text" id="txtBarcode" placeholder="Barcode" class="form-control" style="width:100px;height:30px;" value="@ViewBag.BarCode" /></td>
+                                    <td><button type="button" accesskey="B" class="btn btn-primary btn-sm" title="Click here to search by barcode [shift + alt + B]" onclick="barcode_search()"><u>B</u>arcode Search</button></td>
+                                </tr>
+                                <tr height="35">
+                                    <td></td>
+                                    <td><label for="serial number"><b>Serial Num:</b></label></td>
+                                    <td><input type="text" id="txtSerialnum" placeholder="Serial Num" class="form-control" style="width:100px;height:30px;" value="@ViewBag.SerialNum" /></td>
+                                    <td><button type="button" accesskey="S" class="btn btn-primary btn-sm" title="Click here to search by serial number [shift + alt + S]" onclick="serialnum_search()"><u>S</u>erial Number Search</button></td>
+                                </tr>
+                                <tr height="35">
+                                    <td></td>
+                                    <td><label for="accession number"><b>Accession:</b></label></td>
+                                    <td>
+                                        <select id="ddlAccession" class="form-control" style="width:120px; height:30px;" OnChange="accession_search();">
+                                            <option value=0></option>
+                                            @foreach (var item in ViewBag.Accessions)
+                                            {
+                                                if (item.accession_id == ViewBag.AccessionId)
+                                                {
+                                                    <option value=@item.accession_id selected="selected">@item.accession_number</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value=@item.accession_id>@item.accession_number</option>
+                                                }
+                                            }
+                                        </select>
+                                    </td>
+                                    <td><a href="JavaScript:chargedout_search();">All Charged Out Folders</a></td>
+                                </tr>
+                                <tr><td colspan="4" height="20px"></td></tr>
+                            </tbody>
+                        </table>
+                        <div>
+                            <form id="frmReport">
+
+                                @if (ViewBag.ContractFolders != null)
+                                {
+                                    <table width="900">
+                                        <thead>
+                                            <tr>
+                                                <tb width="20"></tb>
+                                                <tb width="200"></tb>
+                                                <tb width="200"></tb>
+                                                <tb width="200"></tb>
+                                                <tb width="200"></tb>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in ViewBag.ContractFolders)
+                                            {
+                                                if (Convert.ToChar(item.tag) == '1')
+                                                {
+                                                    <tr><td colspan="5" hight="50"></td></tr>
+                                                    <tr>
+                                                        <td colspan="5"><h4>@item.location</h4></td>
+                                                    </tr>
+                                                }
+
+                                                if (Convert.ToChar(item.tag) == '2')//return contract information
+                                                {
+                                                    <tr>
+                                                        <td valign="top"><img class="img_14_14" src="~/Content/images/folder_closed.gif" /></td>
+                                                        <td valign="bottom" colspan="4">
+                                                            <b>@item.full_contract_number, &#0160;@item.org_name</b>
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                                if (Convert.ToChar(item.tag) >= '2')//return contract final cost
+                                                {
+                                                    <tr>
+                                                        <td colspan="5">
+                                                            @if (Convert.ToChar(item.tag) == '3')
+                                                            {
+                                                                if (Convert.ToString(item.url).Length > 10)
+                                                                {
+                                                                    <a href="Javascript:show_doc('@item.url')">View Final Cost</a><span>&#0160;&#0160;</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <a href="#" class="EditFinal" data-toggle="modal" data-target="#MediumModal" data-assigned-id="@item.contract_id">Edit Final Cost</a><span>&#0160;&#0160;</span>
+                                                                }
+
+                                                                if (Convert.ToString(item.signed_by).Length > 0)
+                                                                {
+                                                                    <a href="~/CFTEfinal?Index&contract_id=@item.contract_id" target="_new">View Final Cost</a>
+                                                                }
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                                if (Convert.ToChar(item.tag) == '4')//return contract folders
+                                                {
+                                                    <tr>
+                                                        <td class="bg_grey">&#0160;<input type="checkbox" id="@item.folder_id" /></td>
+                                                        <td class="bg_grey">@item.bar_code</td>
+                                                        <td class="bg_grey">@item.id_string</td>
+                                                        <td class="bg_grey">@item.status</td>
+                                                        <td class="bg_grey">@item.latest_move</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            <tr><td colspan="5" height="50px"></td></tr>
+                                        </tbody>
+                                    </table>
+                                }
+
+                            </form>
+                        </div>
+                        <br /><br />
+                        <!--return docman contracts list-->
+                        @if (ViewBag.SearchType == "By_Serial_Num" && ViewBag.DocmanContracts != null && ViewBag.DocmanContracts.Count > 0)
+                        {
+                            @Html.Partial("~/ContractFileTracking/Views/_DocmanContracts.cshtml")
+                        }
+                    </div>
+                </div><!--end main-->
+            </div><!--end col_lg-8-->
+            <div class="col-lg-2"></div>
+        </div><!--end row-->
+    </div><!--end container-->
+    <br /><br /><br />
+
+
+    <script type="text/javascript">
+    $(function () {
+        $('.EditFinal').click(function () {
+            var contract_id = $(this).data('assigned-id');
+            var route = '@Url.Action("Edit", "CFTEfinal")?contract_id=' + contract_id;
+            $('#partial').load(route);
+        });
+    });
+    </script>
+    <!--start display medium modal-->
+    <div id="MediumModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4>Create/Edit Final Cost</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="partial"></div>
+                </div>
+                @*<div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+    <!--end display medium modal-->
+</body>
+</html>

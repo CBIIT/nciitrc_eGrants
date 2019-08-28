@@ -1,0 +1,409 @@
+﻿<!--start egrants searching-->
+<script language="JavaScript" type="text/javascript">
+    function search() {
+        if ($('#txtKW').val() == "" && $('#FiscalYear').val() == "" && $('#AdminCode').val()=="" && $('#Mechanism').val() == "" && $('#SerialNumber').val() == "") {
+            alert("Please enter data or fill the filter fields to search!");
+            $('#txtKW').focus();
+            return false;
+        }
+        else if ($('#AdminCode').val() != "" && $('#txtKW').val() == "" && $('#FiscalYear').val() == "" && $('#Mechanism').val() == "" && $('#SerialNumber').val() == "") {
+            alert("Too much data to return. Please enter a valid option");
+            $('#txtKW').focus();
+            return false;
+        }
+        else if ($('#txtKW').val() != "" && $('#FiscalYear').val() == "" && ($('#AdminCode').val() != "" || $('#AdminCode').val() == "") && $('#Mechanism').val() == "" && $('#SerialNumber').val() == "") {
+            //search by str
+            var str = $('#txtKW').val().trim();
+            if (str.length < 3) {
+                alert("The key word searching should be at least three characters.");
+                $('#txtKW').val('');
+                $('#txtKW').focus();
+                return false;
+            }
+            else
+            {              
+                var result = CheckSpecialCharacters(str);
+                if (result == false || result == 'false') {
+                    $('#txtKW').val('');
+                    $('#txtKW').focus();
+                    return false;
+                } else var url = "@Url.Action("by_str", "Egrants")?str=" + str;
+                //alert(url);
+                window.document.location.href = url;
+
+                @*if (str.substring(0, 8) == "appl_id:" || str.substring(0, 8) == "appl_id=") {
+                    if (isInteger(str.substring(8, str.length).trim()) == true) {
+                        var appl_id = str.substring(8, str.length);
+                        var url = "@Url.Action("by_appl", "Egrants")?appl_id=" + appl_id + "&mode=" + mode + "&str=" + str.substring(0, 8) + appl_id;
+                    } else var url = "@Url.Action("by_str", "Egrants")?str=" + str;
+                } else var url = "@Url.Action("by_str", "Egrants")?str=" + str;*@
+            }
+        } else search_by_filter();
+    }
+
+    function CheckSpecialCharacters(str) {
+        var iChars = "~!%|'";
+        for (var i = 0; i < str.length; i++) {
+            if (iChars.indexOf(str.charAt(i)) != -1) {
+                var character = str.charAt(i);
+                alert("Please don't use special characters [ ~, ! , % ,| ] in search");
+                //alert("Please don't insert special character [ " + character + " ] to search");
+                return false;
+            }
+        }
+    }
+
+    function search_by_filter() {
+        $('#txtKW').val('');
+
+        //check Admin Code value
+        var AdminCode = "";
+        if ($('#AdminCode').val() != "") {
+            AdminCode = $('#AdminCode').val();
+        }
+
+        //check Fiscal Year value
+        var FiscalYear = "";
+        if ($('#FiscalYear').val() == "" && $('#FiscalYear').val() == 'undefined') {
+            FiscalYear = ""
+        }else if ($('#FiscalYear').val() != "" && $('#FiscalYear').val() != 'undefined') {
+            if (isInteger($('#FiscalYear').val().trim()) == false || $('#FiscalYear').val().trim().length != 4) {
+                alert("Please insert correct fiscal year to search");
+                $('#FiscalYear').val('');
+                $('#FiscalYear').focus();
+                return false;
+            } else FiscalYear = $('#FiscalYear').val().trim();
+        }
+
+        //check Mechanism value
+        var Mechanism = "";
+        if ($('#Mechanism').val() != "" && $('#Mechanism').val().trim().length != 3) {
+            alert("Please insert correct Mechanism to search");
+            $('#Mechanism').val('');
+            $('#Mechanism').focus();
+            return false;
+        }else Mechanism = $('#Mechanism').val().trim();
+
+        //check SerialNumber value
+        var SerialNumber = "";
+        if ($('#SerialNumber').val() != "" && isInteger($('#SerialNumber').val().trim()) == false) {
+            alert("Please insert correct serial number to search");
+            $('#SerialNumber').val('');
+            $('#SerialNumber').focus();
+            return false;
+        } else SerialNumber = $('#SerialNumber').val().trim();
+
+        var url = "@Url.Action("by_filters", "Egrants")?fy=" + FiscalYear + "&mechanism=" + Mechanism + "&admincode=" + AdminCode + "&serialnum=" + SerialNumber;
+        //alert(url);
+        window.document.location.href = url;
+    }
+
+    function load_year_list() {
+        var fy = "";
+        fy = $('#FiscalYear').val();
+        var mechanism = "";
+        var admincode = "";
+        var serialnum = "";
+        var mechanism = $('#Mechanism').val();
+        var admincode = $('#AdminCode').val();
+        var serialnum = $('#SerialNumber').val();
+        //alert(admincode);
+        $.ajax(
+        {
+            type: 'POST',
+            url: "/Egrants/LoadYears",
+            data: { fy: fy, mechanism: mechanism, admin_code: admincode, serial_num: serialnum },  //fy: fy, mechan: mechan,
+            success: function (resp) {
+                sessionStorage.year = resp;
+                var jsonobj = JSON.parse(resp);
+                //alert(jsonobj);
+                $('#Year').empty();
+                $('#Year').append('<option value=' + -1 + '>' + 'Year' + '</option>');
+                $.each(jsonobj, function (index, element) {
+                    var SplitPoint = element.indexOf(":");
+                    var full_grant_num = element.substring(0, SplitPoint);
+                    var appl_id = element.substring(SplitPoint+1, element.length);
+                    //alert(element);
+                    $('#Year').append('<option value=' + appl_id + '>' + full_grant_num + '</option>');
+
+                });
+            }
+            });
+
+        //$('#SerialNumber').val() = serialnum;
+    }
+
+    $(document).ready(function () {
+        $("#Mechanism ,#AdminCode ,#SerialNumber, #FiscalYear").keyup(function (event) {
+            //alert(event.keyCode);
+            if (event.keyCode == 13) {
+                $("#btnsearch").click();
+            }
+        });
+    })
+
+    $(function (x) {
+        $('#Year').click(function () {
+            if ($('#SerialNumber').val() != "") {
+                load_year_list();
+            }
+            else {
+                alert('Please enter serial number');
+                $('#Year').empty();
+            }
+        });
+    });
+
+    //$(function (x) {
+    //    $('#Year').click(function ()
+    //    {
+    //        load_year_list();
+
+    //    });
+    //});
+
+    //shw appl with docs after search by AdminCode and SerialNumber
+    function show_appl() {
+        //alert(document.getElementById("Year").selectedIndex);
+        if (document.getElementById("Year").selectedIndex == -1) {
+            alert("Please select grant year");
+            return false;
+        } else  var selectedIndex = document.getElementById("Year").selectedIndex;
+        var appl_id = document.getElementById("Year").options[selectedIndex].value;
+        //alert(appl_id);
+        if (appl_id == -1) {
+            return false;
+        }
+        var url = "@Url.Action("by_appl", "Egrants")?appl_id=" + appl_id;
+        window.document.location.href = url;
+        //by_appl(appl_id);
+    }
+
+    //trig search button by click enter key
+    $(document).ready(function () {
+        $("#txtKW").keyup(function (event) {
+            //alert(event.keyCode);
+            if (event.keyCode == 13) {
+                $("#btnsearch").click();
+            }
+        });
+    })
+
+    //disable all filters after USER INSERTED str to searching
+    $(document).ready(function () {
+        $('#txtKW').keyup(function (event) {
+            //alert("key up");
+            event.preventDefault();
+            event.stopPropagation();
+            $('#FiscalYear').val('');
+            $('#FiscalYear').attr('disabled', true);
+            $('#AdminCode').val('');
+            $('#AdminCode').attr('disabled', true);
+            $('#Mechanism').val('');
+            $('#Mechanism').attr('disabled', true);
+            $('#SerialNumber').val('');
+            $('#SerialNumber').attr('disabled', true);
+            $('#Year').empty();
+            $('#Year').attr('disabled', true);
+            //$('#searchfilter').children().attr('disabled', true);
+        });
+    });
+
+    //disable all filters after USER COPY AND PASTE str to searching
+    $(document).ready(function () {
+        $('#txtKW').bind('paste keyup', function (event) {
+            //alert("key up");
+            $('#FiscalYear').val('');
+            $('#FiscalYear').attr('disabled', true);
+            $('#AdminCode').val('');
+            $('#AdminCode').attr('disabled', true);
+            $('#Mechanism').val('');
+            $('#Mechanism').attr('disabled', true);
+            $('#SerialNumber').val('');
+            $('#SerialNumber').attr('disabled', true);
+            $('#Year').empty();
+            $('#Year').attr('disabled', true);
+            //$('#searchfilter').children().attr('disabled', true);
+        });
+    });
+
+    //clear all
+    $(document).ready(function () {
+        $('#btnclear').click(
+            function (event) {
+                event.preventDefault();
+                $('#searchfilter').children().val('');
+                $('#FiscalYear').val('');
+                $('#FiscalYear').attr('disabled', false);
+                $('#Mechanism').val('');
+                $('#Mechanism').attr('disabled', false);
+                $('#AdminCode').val('CA');
+                $('#AdminCode').attr('disabled', false);
+                $('#SerialNumber').val('');
+                $('#SerialNumber').attr('disabled', false);
+                $('#Year').empty();
+                $('#Year').attr('disabled', false);
+                $('#txtKW').val('');
+                //$('#searchfilter').children().attr('disabled', false);
+            });
+    });
+
+    //Autocomplete version II
+    $(function () {
+        $(document).ready(function () {
+            {
+                AdminCode = $('#AdminCode').val();
+                Mechanism = $('#Mechanism').val();
+                //SerialNumber = Number($('#SerialNumber').change().val().toString());
+                SerialNumber = $('#SerialNumber').change().val();
+                FiscalYear = $('#FiscalYear').val();
+
+                //alert(Mechanism);
+                $('#FiscalYear').autocomplete({
+                    source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                });
+                $('#Mechanism').autocomplete({
+                    source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                });
+                $('#SerialNumber').autocomplete({
+                    source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                });
+
+                $('#searchfilter').click(function () {
+                    if (AdminCode != "") {
+                        var AdminCode = $('#AdminCode').change().val();
+                        var Mechanism = $('#Mechanism').change().val();
+                        var SerialNumber = $('#SerialNumber').change().val();
+                        //var SerialNumber = Number($('#SerialNumber').change().val().toString());
+                        var FiscalYear = $('#FiscalYear').change().val();
+                        //alert(Mechanism);
+                        $('#FiscalYear').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                        });
+                        $('#Mechanism').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                        });
+                        $('#SerialNumber').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                        });
+                    }
+                    if (AdminCode == "" || AdminCode == null) {
+                        //var AdminCode = "";
+                        //var Mechanism = "";
+                        $('#FiscalYear').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                        });
+                        $('#Mechanism').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                        });
+                        $('#SerialNumber').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                        });
+                    }
+                    else {
+                        var AdminCode = $('#AdminCode').change().val();
+                        var Mechanism = $('#Mechanism').change().val();
+                        var SerialNumber = $('#SerialNumber').change().val();
+                        //var SerialNumber = Number($('#SerialNumber').change().val().toString());
+                        var FiscalYear = $('#FiscalYear').change().val();
+                        //Mechanism = "R56";
+                        //alert(Mechanism);
+                        $('#FiscalYear').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                        });
+                        $('#Mechanism').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                        });
+                        $('#SerialNumber').autocomplete({
+                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                        });
+                    };
+                });
+            };
+        });
+    });
+
+    /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+    window.onscroll = function () {
+        scrollFunction()
+    };
+
+    function scrollFunction() {
+        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+            document.getElementById("myBtn").style.display = "block";
+        } else {
+            document.getElementById("myBtn").style.display = "none";
+        }
+    }
+
+    // When the user clicks on the button, scroll to the top of the document
+    function topFunction() {
+        document.body.scrollTop = 0; // For Safari
+        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    } /*--Ayu*/
+
+</script>
+<div id="searchform" style="display:inline; float:left; width:900px;">
+    <form name="GetFiltersInfo">
+        <input type="hidden" id="hidFilterFY" name="FY" value="@ViewBag.FilterFY" />
+        <input type="hidden" id="hidFilterMechanism" name="FY" value="@ViewBag.FilterMechanism" />
+    </form>
+    @*<br/>*@
+
+    @if (ViewBag.grantlayer != null && ViewBag.grantlayer.Count > 0)
+    {
+        @*<img name="Dividing line" style="width:900px; height:5px; border-top:double; border-top-color:currentColor;padding:5px" />*@
+        <div id="Dividing line" style="border-top:double; min-height:15px; width:900px;  float:left; display:inline;"></div><br />
+    }
+
+    <form class="form-horizontal" name="frmSearch" onSubmit="return search()" method="get" action="~/Egrants/by_str">
+        <fieldset>
+            <div class="form-inline">
+                @*style="margin:15px"*@
+                <label for="search" id="lblSearch">Keyword Search:</label>
+                <input type="text" id="txtKW" name="str" class="form-control" style="height:30px; width:430px; align-self:center" placeholder="Serial #, Grant #, PI name etc." title="Enter Key Word to search" />
+                <button type="button" id="btnsearch" style="border-radius:5px;background-color:#4169e1;font-size:medium;height:35px;width:80px;margin-left:135px" accesskey="S" class="btn btn-primary btn-sm" onclick="JavaScript:return search()"><u>S</u>earch</button>&#0160;@*@*title="Search by Key Word or Filters [shift + alt + S]" Ayu*@
+                <button type="button" id="btnclear" style="border-radius:5px;background-color:#4169e1;font-size:medium;height:35px;width:90px;margin-left:20px" accesskey="C" class="btn btn-primary btn-sm" title="Reset Search Input"><u>C</u>lear</button>
+                <br />
+            </div>
+            @*&#0160;&#0160;&#0160;&#0160;<b>OR</b> style="margin:15px;"*@
+            <div class="form-inline" id="searchfilter">
+                <div><b style="color:darkblue">OR</b></div>
+                <div>
+                    <label style="margin-left:80px"><b>FY</b></label>
+                    <label style="margin-left:40px"><b>Mechanism</b></label>
+                    <label style="margin-left:40px"><b>IC</b></label>
+                    <label style="margin-left:50px"><b>Serial Number</b></label>
+                    <label style="margin-left:100px"><b>Year</b></label>
+                </div>
+                <div>
+                    <b>@Html.Label("Filters:")</b>
+                    @Html.TextBox("FiscalYear", "", new { @class = "form-control", style = "width:80px;height=10px;margin-right:10px", placeholder = "FY" })
+                    @Html.TextBox("Mechanism", "", new { @class = "form-control", style = "width:80px;height=10px;margin-right:10px", placeholder = "Mechanism" })
+                    <select name="admincode" id="AdminCode" class="form-control" style="width:75px; height:35px;margin-right:10px" size="1" title="Select admin phs org code">
+                        <option id="0" value=""></option>
+                        @foreach (var AdminCodes in ViewBag.ICList)
+                        {
+                            <option value="@AdminCodes.admin_phs_org_code">@AdminCodes.admin_phs_org_code</option>
+                        }
+                    </select>
+                    @Html.TextBox("SerialNumber", "", new { @class = "form-control", style = "width:110px;height=10px;margin-right:10px", placeholder = "Serial No" })
+                    @Html.DropDownList("Year", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:200px; height=10px; font-size:16px;", onchange = "show_appl()" })
+                    @if (Convert.ToInt16(Session["position_id"]) > 1)
+                    {
+                        <button type="button" style="border-radius:5px;background-color:#008b8b;font-size:medium; height:35px;width:150px;margin-left:80px" accesskey="O" class="btn btn-primary btn-sm" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button>  @*Ayu*@
+                    }
+                </div>
+            </div>
+            <br />
+        </fieldset>
+    </form>
+
+    @if (ViewBag.grantlayer != null && ViewBag.grantlayer.Count > 0)
+    {
+        @*<img name="Dividing line" style="width:900px; height:5px;border-bottom:groove; border-color:darkgrey;padding:5px" />*@
+        <div id="Dividing line" style="border-bottom:groove; border-color:darkgrey;  width:900px; padding-left:20px; float:left; "></div>
+    }
+</div>
+
+<!--end egrants searching-->

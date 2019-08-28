@@ -1,0 +1,48 @@
+﻿<!--start grants_status template-->
+   <div class="dashboardItem">      
+	<div class="panel panel-primary">
+	<div class="panel-heading">
+		<table width="100%">
+			<tr>
+			<td width="99%"><center>GRANTS STATUS IN GPMATS</center></td>
+			<td width="1%">
+				<img width="14" height="14" border="0" hspace="2" src="~/Content/images/question_mark_40.jpg" title="help notice" onClick="JavaScript:help_me('grants_status')"/>
+			</td>
+			</tr>
+		</table>	
+	</div>
+	<div class="panel-body">
+	<table class="table table-hover">
+	    <thead>      
+           	<tr>
+     		    <th><label for="action">ACTION</label></th>
+                <th><label for="status">STATUS</label></th>
+                <th><label for="count">COUNT</label></th>
+          	</tr>
+       	</thead>
+      	<tbody>
+        @foreach (var GrantsStatus in ViewBag.GrantsStatus)
+        {     
+            if (Convert.ToInt16(GrantsStatus.tag) == 1)
+            {
+            <tr>
+                <td>@GrantsStatus.action_type</td>
+                <td></td>
+                <td></td>
+            </tr>
+            }
+            if (Convert.ToInt16(GrantsStatus.tag) == 2)
+            {
+            <tr>
+                <td></td>
+                <td>@GrantsStatus.status_code</td>
+                <td>@GrantsStatus.grants_count</td>
+            </tr>
+            }
+        }
+ 	    </tbody>
+   	</table>
+  	</div>
+	</div>
+   </div>  
+<!--end grants_status template-->

@@ -1,0 +1,41 @@
+﻿
+<!--start grants_to_go_cc template-->
+<div class="dashboardItem">      
+	<div class="panel panel-primary">
+	<div class="panel-heading">
+		<table width="100%">
+			<tr>
+			<td width="99%"><center>High Priority Competing Grants</center></td>
+			<td width="1%">
+				<img width="14" height="14" border="0" hspace="2" src="~/Content/images/question_mark_40.jpg" title="help notice" onClick="JavaScript:help_me('Competing_Grants')"/>
+			</td>
+			</tr>
+		</table>	
+	</div>
+	<div class="panel-body">
+	<table class="table table-hover">
+	    <thead>
+           	<tr>
+     		    <th><label for="grants">Grants</label></th>
+                <th><label for="assigned">Assigned Date</label></th>
+          	</tr>
+       	</thead>
+      	<tbody>
+    	@foreach(var grantstogocc in ViewBag.GrantsTogoCC)
+        {
+		<tr>
+            <td>
+			    <a target="_new" title="view grant year from GPMAT" href="https://i2e.nci.nih.gov/yourgrants/jsp/GrantDetails.jsp?applId=@Convert.ToString(grantstogocc.appl_id)">						
+			   	    @grantstogocc.fgn
+			    </a>
+			</td>
+            <td>@grantstogocc.assigned_date</td>
+        </tr>
+        }
+ 	</tbody>
+   	</table>
+  	</div>
+   	<div class="panel-footer">[Note: These grants are nearing OGA deadline for processing. i.e. 60 days for Competing]</div>
+	</div>
+</div>  
+<!--end grants_to_go_cc template-->

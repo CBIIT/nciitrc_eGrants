@@ -1,0 +1,24 @@
+﻿@{
+    ViewBag.Title = "eGrants [Doc Attachments]";
+}
+
+<script language="JavaScript" type="text/javascript">
+
+        function show_doc(docurl) {
+            var ImageServer = document.getElementById("hidImageServer").value;
+            var url = ImageServer + docurl;
+            window.open(url);
+        }
+
+</script>
+
+<form name="frmGetInfo">
+    <input type="hidden" id="hidImageServer" name="ImageServer" value=@ViewBag.ImageServer />
+</form>
+
+<div id="main">
+    @foreach (var docs in ViewBag.Attachments)
+    {
+        <a href="JavaScript:show_doc('@docs.url')" title="Click here to dispaly attachment">@docs.document_name</a><br />
+    } 
+</div>

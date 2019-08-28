@@ -1,0 +1,39 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <script src="~/scripts/jquery-1.9.1.js"></script>
+</head>
+<body>
+    <header style="padding: 0 20px;">
+        <h4>
+            <label style="color: #666;">Grant Application Id:</label>@ViewBag.applid<br />
+            <label style="color: #666;">Notification Name:</label>  @ViewBag.notification.notificationName
+        </h4>
+        <div style="font-weight: bold;"><label style="width: 75px; text-align: left; display: inline-block; color: #666; font-size: 0.9em;"> From: </label> <span> @ViewBag.notification.fromAddress</span></div>
+        <div style="font-weight: bold;"><label style="width: 75px; text-align: left; display: inline-block; color: #666; font-size: 0.9em;">  To: </label> <span> @ViewBag.notification.toAddress</span></div>
+        <div style="font-weight: bold;"><label style="width: 75px; text-align: left; display: inline-block; color: #666; font-size: 0.9em;">  cc: </label> <span> @ViewBag.notification.ccAddress</span></div>
+        <div style="font-weight: bold;"><label style="width: 75px; text-align: left; display: inline-block; color: #666; font-size: 0.9em;">  Sent: </label> <span>@ViewBag.notification.sentDate</span> </div>
+        <div style="font-weight: bold;">
+            <label style="width: 75px; text-align: right; display: inline-block; color: #666; font-size: 0.9em; text-transform: uppercase; margin-top: 20px;">  Subject: </label>
+            <span>@ViewBag.notification.subject</span>
+        </div>
+    </header>
+    <article style="padding:  10px 20px;" id="mailbody"></article>
+    <script type="text/javascript">
+        $(document).ready( function(){
+            // var elmt = document.getElementById("mailbody");
+            var elmt2 = $("#mailbody");
+            var mail = @Html.Raw(Json.Encode(ViewBag.notification.emailContent));       
+            //var child3 = 'helloooooo';
+            elmt2.append(mail);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+﻿<!--start pagenation-->
+@{
+    
+    <b>Found @ViewBag.TotalContracts contracts in @ViewBag.TotalPages page(s) and @ViewBag.PerPage contracts per page.</b><br />
+
+    var total_contracts = ViewBag.TotalContracts;
+    var total_tabs = ViewBag.TotalTabs;
+    var total_pages = ViewBag.TotalPages;
+
+    if (total_pages > 1)
+    {
+        <b>page:</b>
+        <!--start tabs-->
+        foreach (var tabs in ViewBag.DocmanPagenation)
+        {
+            if (Convert.ToInt16(tabs.tag) == 2 && Convert.ToInt16(tabs.tab_number) <= total_tabs)                     // Convert.ToInt16(tabs.tab_number) == tab_num &&&& Convert.ToInt16(tabs.tab_number) == Convert.ToInt16(tab_num)
+            {
+                <!--start pages-->
+                <div class="menu" id="tab_@tabs.tab_number" style="display:none">
+                    @if (Convert.ToInt16(tabs.tab_number) > 1 && Convert.ToInt16(tabs.tab_number) <= Convert.ToInt16(total_tabs))
+                    {
+                        <a href="JavaScript:show_tab('previous', @tabs.tab_number)" title="Go to previous tab">&lt;</a>
+                    }
+
+                    @foreach (var page in ViewBag.DocmanPagenation)
+                    {
+                        if (Convert.ToInt16(page.tag) == 3 && Convert.ToInt16(page.tab_number) == Convert.ToInt16(tabs.tab_number))
+                        {
+                            if (Convert.ToInt16(page.page_number) == Convert.ToInt16(ViewBag.PageNum))
+                            {
+                                <b>&#91;<a href="JavaScript:view_page(@page.page_number)" title="Click it to show page by page number">@page.page_number</a>&#93;</b>
+                            }
+                            else
+                            {
+                                <b><a href="JavaScript:view_page(@page.page_number)" title="Click it to show page by page number">@page.page_number</a></b>
+                            }
+                        }
+                    }
+
+                    @if (Convert.ToInt16(tabs.tab_number) < total_tabs)
+                    {
+                        <a href="JavaScript:show_tab('next', @tabs.tab_number)" title="Go to next tab">&gt;</a>
+                    }
+                </div>
+                <!--end pages-->
+            }
+        }
+        <!--end tabs-->
+    }
+}
+<!--end pagenation-->

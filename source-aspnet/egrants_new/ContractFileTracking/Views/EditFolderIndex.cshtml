@@ -1,0 +1,315 @@
+﻿@{
+    ViewBag.Title = "Docman [CFT Edit Folder]";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel='stylesheet' type='text/css' href='~/Content/egrants.css' />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    <script src="~/scripts/validation.js"></script>
+
+    <script language="JavaScript">
+        var currenturl = window.document.location.href;
+
+        function load_contract() {
+            if (document.getElementById("txtSerialNum").value == '') {
+                alert("Insert serial number to search contract");
+                document.getElementById("txtSerialNum").focus();
+                return false;
+            } else var result = isInteger(document.getElementById("txtSerialNum").value);
+
+            if (result == false || result == 'false') {
+                alert("Please inset correct serial number to search contract");
+                document.getElementById("txtSerialNum").value = "";
+                document.getElementById("txtSerialNum").focus();
+                return false;
+            } else var serialnum = document.getElementById("txtSerialNum").value;
+
+            var url = "@Url.Action("To_Load","CFTEdit")?serial_num=" + serialnum;
+            window.self.location = url;
+        }
+
+        function select_contract(object) {
+            if (object.selectedIndex == 0) {
+                alert("Please select the contract number to search");
+                return false;
+            } else var contractid = object.options[object.selectedIndex].value;
+
+            var url = "@Url.Action("To_Select", "CFTEdit")?contract_id=" + contractid + "&serial_num=" + document.getElementById("hidSerialNum").value;
+            //alert(url);
+            window.self.location = url;
+        }
+
+        function add_docman_contract(full_contract_num, combined_piid) {
+            if (confirm('Are you sure that you wnat to add ' + full_contract_num + ' to Contract File Management system?')) {
+                var url = "@Url.Action("To_Add_Contract", "CFTEdit")?combined_piid=" + combined_piid;
+                //alert(url);
+                window.self.location = url;
+            }
+        }
+
+        function contract_folder_new() {
+            //find serial number
+            var serialnum = document.getElementById("txtSerialNum").value;
+
+            //find contract_id
+            var contractnid = get_contract_id();
+
+            //find contract_num
+            if (contractnid > 0) {
+                var contractnum = get_contract_num();
+            }
+
+            //find bar_code
+            if (contractnid > 0 && contractnum != null) {
+                var barcode = get_bar_code();
+            }
+
+            if (contractnid > 0 && barcode > 0 && contractnum != null) {
+                //find color id
+                var index = document.getElementById("ddlColors").selectedIndex;
+                if (index == 0) {
+                    alert("Please select folder color");
+                    return false;
+                } else var colorid = document.getElementById("ddlColors").options[index].value;
+
+                if (confirm("Are you sure that you want to create new folder (" + barcode + ") for " + contractnum + "?")) {
+                    var url = "@Url.Action("To_Add_Folder", "CFTEdit")?contract_id=" + contractnid + "&bar_code=" + barcode + "&color_id=" + colorid + "&serial_num=" + serialnum;
+                    //alert(url);
+                    window.self.location = url;
+                } else return false;
+            }
+        }
+
+        function contract_folder_delete() {
+            //find contract_id
+            var contractnid = get_contract_id();
+
+            //find contract_num
+            if (contractnid > 0) {
+                var contractnum = get_contract_num();
+            }
+
+            //find bar_code
+            if (contractnid > 0 && contractnum != null) {
+                var barcode = get_bar_code();
+            }
+
+            if (contractnid > 0 && barcode > 0 && contractnum != null) {
+                if (confirm("Are you sure that you want to delete folder (" + barcode + ") for " + contractnum + "?")) {
+                    var url = "@Url.Action("To_Delete_Folder", "CFTEdit")?contract_id=" + contractnid + "&bar_code=" + barcode;
+                    //alert(url);
+                    window.self.location = url;
+                } else return false;
+            }
+        }
+
+        function get_contract_id() {
+            var index = document.getElementById("ddlContracts").selectedIndex;
+            if (index == 0) {
+                alert("Please select a contract");
+                return false;
+            } else var contractid = document.getElementById("ddlContracts").options[index].value;
+            return contractid;
+        }
+
+        function get_contract_num() {
+            var index = document.getElementById("ddlContracts").selectedIndex;
+            if (index == 0) {
+                alert("Please select a contract");
+                return false;
+            } else var contractnum = document.getElementById("ddlContracts").options[index].text;
+            return contractnum;
+        }
+
+        function get_bar_code() {
+            if (document.getElementById("txtBarcode").value == '') {
+                alert("Please insert barcode");
+                document.getElementById("txtBarcode").focus();
+                return false;
+            } else result = isInteger(document.getElementById("txtBarcode").value);
+
+            if (result == false || result == 'false') {
+                alert("Please inset correct barcode");
+                document.getElementById("txtBarcode").value = "";
+                document.getElementById("txtBarcode").focus();
+                return false;
+            } else barcode = document.getElementById("txtBarcode").value;
+            return barcode;
+        }
+
+        function get_page_name() {
+            var page_name = "CFTEditFolder";
+            return page_name;
+        }
+    </script>
+</head>
+<body>
+    <div class="container-fluid">
+        <!--start container-->
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+                <div id="main">
+
+                    <form name="frmGetInfo">
+                        <input type="hidden" id="hidSerialNum" name="serialnum" value="@ViewBag.SerialNum" />
+                    </form>
+
+                    <div id="caption">
+                        <b id="page_title">Edit Contract Folder</b>
+                    </div>
+
+                    &#0160;&#0160;@ViewBag.Message
+                    <div class="form-inline">
+                        <table id="modify" width="850">
+                            <thead>
+                                <tr>
+                                    <td width="20"></td>
+                                    <td width="120"></td>
+                                    <td width="200"></td>
+                                    <td width="300"></td>
+                                    <td width="120"></td>
+                                    <td width="200"></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6" height="10"></td></tr>
+                                <tr>
+                                    <td width="20"></td>
+                                    <td width="120"><lable for="serial number"><b>Serial Number:</b></lable></td>
+                                    <td width="200">
+                                        <input type="text" id="txtSerialNum" name="serial_num" class="form-control" style="height:30px; width:100px" size="5" title="Insert serial number" value="@ViewBag.SerialNum" />
+                                        &#0160;
+                                        <button class="btn btn-primary btn-sm" AccessKey="L" onClick="return load_contract();" title="Click here to load contract number">
+                                            <U>L</U>oad
+                                        </button>
+                                    </td>
+                                    <td width="300">
+                                        <lable for="contract number"><b>Contract:</b></lable>&#0160;
+                                        <select id="ddlContracts" name="contractid" onChange="select_contract(this);" class="form-control" style="width:150px; height:30px;" title="select contract number">
+                                            <option></option>
+                                            <!--show selected contract or show contracts by serail number-->
+                                            @if (ViewBag.CFTContract != null)
+                                            {
+                                                foreach (var Contract in ViewBag.CFTContract)
+                                                {
+                                                    <option value=@Contract.contract_id selected="selected">@Contract.full_contract_number</option>
+                                                }
+                                            }
+                                            else if (ViewBag.CFTContracts != null) 
+                                            {
+                                                foreach (var Contracts in ViewBag.CFTContracts)
+                                                {
+                                                    <option value=@Contracts.contract_id>@Contracts.full_contract_number</option>
+                                                }                                                  
+                                            }                                                                                                                                                    
+                                        </select>
+                                    </td>
+                                    <td idth="60">
+                                        <lable for="close out"><b>Close Out:</b></lable>
+                                        @if (ViewBag.CFTContract != null)
+                                        {
+                                            foreach (var Contract in ViewBag.CFTContract)
+                                            {
+                                                @Contract.close_out
+                                            }
+                                        }
+                                    </td>
+                                    <td width="200">
+                                        <lable for="fiscal year"><b>Fiscal Year:</b></lable>
+                                        @if (ViewBag.CFTContract != null)
+                                        {
+                                            foreach (var Contract in ViewBag.CFTContract)
+                                            {
+                                                @Contract.fiscal_year
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                @if (ViewBag.CFTContracts != null && ViewBag.CFTContracts.Count >= 1)
+                                {
+                                    <tr>
+                                        <td></td>
+                                        <td colspan="5" height="20"><lable for="notice">* There could be multiple contracts with same serial number, please select particular one from the contract list after search</lable></td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td></td>
+                                    <td><lable for="bar code"><b>Barcode:</b></lable></td>
+                                    <td><input id="txtBarcode" name="Barcode" type="text" class="form-control" style="height:30px; width:100px" size="5" title="Insert barcode" /></td>
+                                    <td colspan="3">
+                                        <lable for="PIID"><b>PIID:</b></lable>&#0160;
+                                        @if (ViewBag.CFTContract != null)
+                                        {
+                                            foreach (var Contract in ViewBag.CFTContract)
+                                            {
+                                                @Contract.piid
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td><lable for="file color"><b>File Color:</b></lable></td>
+                                    <td>
+                                        <select id="ddlColors" name="color" class="form-control" style="width:130px; height:30px;" title="Select color">
+                                            <option></option>
+                                            @foreach (var item in ViewBag.FolderColors)
+                                            {
+                                                <option value=@item.color_id>
+                                                    @item.color_name
+                                                </option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td colspan="3">
+                                        <lable for="institution"><b>Institution:</b></lable>&#0160
+                                        @if (ViewBag.CFTContract != null)
+                                        {
+                                            foreach (var Contract in ViewBag.CFTContract)
+                                            {
+                                                @Contract.institution
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4"></td>
+                                    <td>
+                                        @if (ViewBag.CFTContract != null)
+                                        {
+                                            <button class="btn btn-primary btn-sm" accessKey="F" onClick="contract_folder_new();" title="Click here to add new contract folder [shift + alt + F]">
+                                                Add <U>F</U>older
+                                            </button>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (ViewBag.CFTContract != null)
+                                        {
+                                            <button class="btn btn-primary btn-sm" accessKey="D" onClick="contract_folder_delete();" title="Click here to delete contract folder [shift + alt + D]">
+                                                <U>D</U>elete Folder
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr><td colspan="5" height="20"></td></tr>
+                        </table>
+                    </div>
+                    <br />
+                    <!--start additional search for docman contracts-->
+                    @if (ViewBag.DocmanContracts != null && ViewBag.DocmanContracts.Count >= 1)
+                    {
+                        @Html.Partial("~/ContractFileTracking/Views/_DocmanContracts.cshtml")
+                    }
+                </div><!--end main-->
+            </div><!--end col_lg-8-->
+            <div class="col-lg-2"></div>
+        </div><!--end row-->
+    </div><!--end container-->
+    <br /><br /><br />
+</body>
+</html>

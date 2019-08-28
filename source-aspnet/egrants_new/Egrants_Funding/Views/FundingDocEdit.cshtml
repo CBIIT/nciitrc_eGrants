@@ -1,0 +1,88 @@
+﻿@{
+    ViewBag.Title = "eGrants [Funding QC List]";
+    Layout = "~/Shared/Views/_egrants_header.cshtml";
+}
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+    //var d = new Date();
+    //var y = d.getFullYear();
+
+    function back_to_funding_index() {
+        var url = "@Url.Action("funding_index", "EgrantsFunding")";
+        //alert(url);
+        window.self.location = url;
+    }
+
+    function appl_edit(docid) {
+        var url = "@Url.Action("appl_edit_default", "EgrantsFunding")?doc_id=" + docid + "&fy=" + document.getElementById("hidFY").value;;
+        window.self.location.href = url;
+    }
+
+    function doc_edit(act, docid, applid) {
+      if (confirm('Are you sure that you want to ' + act + ' this document?')) {
+            act = 'to_' + act;
+            var url = "@Url.Action("doc_edit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=" + act + "&appl_id=" + applid + "&doc_id=" + docid
+            //alert(url);
+            window.self.location.href = url;
+        }
+    }
+
+    function show_doc(docurl) {
+        var ImageServer = document.getElementById("hidImageServer").value;
+        //alert(docurl);
+        if (docurl.substring(0, 5) == "/data") {
+            var url = ImageServer + docurl.substring(1, docurl.length);
+        } else if (docurl.substring(0, 5) == "data/") {
+            var url = ImageServer + docurl;
+        } else url = docurl;
+
+        //alert(url);
+        window.open(url);
+    }
+</script>
+
+    <form name="frmGetInfo">
+        <input type="hidden" id="hidFY" name="fy" value="@ViewBag.FY" />
+        <input type="hidden" id="hidImageServer" name="MImageServer" value="@Convert.ToString(Session["ImageServer"])" />
+    </form>
+
+    <div id="main">
+        <!--start main-->
+        <div id="caption"><b id="page_title">Edit Funding Document </b></div>
+        <br />
+        <a href="JavaScript:back_to_funding_index()"><b>NCI Funding Files Index</b></a>
+        <br /><br />
+        <div>
+
+        <!--start show docs   -->
+        @if (ViewBag.FundingDocs != null && ViewBag.FundingDocs.Count >= 1)
+        {
+            var DocsGrid = new WebGrid(ViewBag.FundingDocs, rowsPerPage: 50);  //, defaultSort: "Category Name"
+
+            <div id="grid">
+            @DocsGrid.Pager(WebGridPagerModes.Numeric)
+            @DocsGrid.GetHtml(
+                headerStyle: "webgrid-header",
+                footerStyle: "webgrid-footer",
+                rowStyle: "webgrid-odd-row-style",
+                alternatingRowStyle: "webgrid-even-row-style",
+                selectedRowStyle: "webgrid-selected-row",
+                numericLinksCount: 10,
+ 
+            //fillEmptyRows: true,
+            //emptyRowCellValue: "There is no any data return for this kind searching",
+            columns: DocsGrid.Columns(
+                DocsGrid.Column("category_name", "Category Name", format:@<a href="Javascript:show_doc('@item.url')" title="click here to display funding document">@item.category_name</a>, style: "col-med", canSort: true),
+                DocsGrid.Column("full_grant_num", "Full Grant Number", null, style: "col-med", canSort: true),
+                DocsGrid.Column("", "Edit Appls", format:@<a href="JavaScript:appl_edit('@item.document_id')" title="Cilck here to edit appls for funding document">Edit Appls</a>, style: "col-sma", canSort: false),
+                DocsGrid.Column("", "Store", format:@<a href="JavaScript:doc_edit('store', '@item.document_id','@item.appl_id')" title="Cilck here to store funding document">Store Document</a>, style: "col-sma", canSort: false),
+                DocsGrid.Column("", "Delete", format:@<a href="JavaScript:doc_edit('delete', '@item.document_id','@item.appl_id')" title="Cilck here to delete funding document">Delete Document</a>, style: "col-sma", canSort: false)
+                )
+            )
+                </div>
+        }
+        <!--end show docs-->
+        </div>
+    </div><!--end main-->
+<br /><br /><br />

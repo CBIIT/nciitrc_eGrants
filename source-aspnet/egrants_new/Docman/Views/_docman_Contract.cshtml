@@ -1,0 +1,90 @@
+﻿<!--start each single contract-->
+
+<script language="JavaScript">
+
+function to_create(econ_id) {
+    var url = "@Url.Action("Show_Create", "Docman")?econ_id=" + econ_id;
+    //alert(url);
+    window.self.location = url;
+}
+
+</script>
+
+@{
+    foreach (var econ in ViewBag.DocmanContract)
+    {        
+        <table>
+            <tr><td width="20"></td><td width="270"></td><td width="270"></td><td width="270"></td></tr>
+            <tr>
+                <td>
+                    @if (Convert.ToInt32(econ.document_count) > 0)
+                                {
+                        <img class="img_16_16" src="~/Content/images/folder_open.gif" title="Documents in DocMan" />
+                    }
+                    else
+                    {
+                        <img class="img_16_16" src="~/Content/images/folder_closed.gif" title="No Documents in DocMan">
+                    }
+                </td>
+                <td>
+                    @if (Convert.ToInt32(econ.document_count) > 0)
+                    {
+                        <a target="_self" href="@Url.Action("by_id", "Docman", new { econ_id = econ.econ_id })" title="Click to display documents">&#160;View Documents</a>
+                    }
+                    else
+                    {
+                        <span>View Documents</span>
+                    }
+                </td>
+                <td colspan="2">
+                    @if (Convert.ToString(econ.can_upload) == "y")
+                    {
+                        <button type="button" accesskey="P" class="btn btn-primary btn-group-sm" title="Click here to create new document [shift + alt + P]" onclick="javascript:to_create(@econ.econ_id)"><u>P</u>ost Document</button>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <lable for="NCI Control"><b>NCI Control:</b></lable>&#0160;
+                    <a target="_self" href="@Url.Action("by_str", "Docman", new { str = econ.full_contract_number })" title="Search for full_contract_number">@econ.full_contract_number</a>
+                </td>
+                <td>
+                    <lable for="PIID"><b>PIID:</b></lable>&#0160;
+                    <a target="_self" href="@Url.Action("by_str", "Docman", new { str = econ.piid })" title="Search for @econ.piid">@econ.piid</a>
+                </td>
+                <td width="250"><lable for="RFP"><b>RFP:</b></lable>&#0160;
+                    @econ.rfp_number
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <lable for="specialist name"><b>Specialist:</b></lable>&#0160;&#0160;
+                    <a target="_self" href="@Url.Action("by_str", "Docman", new { str = econ.specialist_name })" title="Search for @econ.specialist_name">@econ.specialist_name</a>
+                </td>
+                <td>
+                    <lable for="team leader name"><b>Team Leader:</b></lable>&#0160;
+                    <a target="_self" href="@Url.Action("by_str", "Docman", new { str = econ.team_leader })" title="Search for @econ.team_leader">@econ.team_leader</a>
+                </td>
+                <td>
+                    <lable for="branch chief name"><b>Branch Chief:</b></lable>&#0160;
+                    <a target="_self" href="@Url.Action("by_str", "Docman", new { str = econ.branch_chief })" title="Search for @econ.branch_chief">@econ.branch_chief</a>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan="2">
+                    <lable for="vendor name"><b>Institution:</b></lable>&#0160;
+                    <a target="_self" href="@Url.Action("by_str", "Docman", new { str = econ.institution })" title="Search for @econ.institution">@econ.institution</a>
+                </td>
+                <td>
+                    <lable for="Referenced PIID"><b>Referenced:</b></lable>&#0160;
+                    <a target="_self" href="@Url.Action("by_str", "Docman", new { str = econ.ref_piid })" title="Search for @econ.ref_piid">@econ.ref_piid</a>
+                </td>
+            </tr>
+        </table>
+        <br/>
+    }
+}
+<!--end each single contract-->

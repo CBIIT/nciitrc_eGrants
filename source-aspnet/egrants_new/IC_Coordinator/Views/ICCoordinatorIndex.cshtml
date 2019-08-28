@@ -1,0 +1,139 @@
+﻿@{
+    ViewBag.Title = "eGrants [IC Coordinator Index]";
+    Layout = "~/Shared/Views/_egrants_header.cshtml";
+}
+
+<script language="Javascript">
+    var currenturl = window.document.location.href;
+
+    $(document).ready(function () {
+        set_default();
+    });
+
+    function set_default() {
+        //it could be search person_id
+        var CoordinatorID = document.getElementById("hidCoordinatorID").value;
+
+        //to select
+        for (var i = 1; i < document.getElementById("ddlCoordinators").length; i++) {
+            if (document.getElementById("ddlCoordinators").options[i].value == CoordinatorID) {
+                document.getElementById("ddlCoordinators").options[i].selected = "selected";             
+            }
+
+            //disable all coordinator name if user PossionID<5
+            if (document.getElementById("hidPossionID").value < 5 && document.getElementById("ddlCoordinators").options[i].value != CoordinatorID) {
+                document.getElementById("ddlCoordinators").options[i].disabled = true;
+            }
+        }
+    }
+
+    function to_review() {
+        if (document.getElementById("ddlCoordinators").selectedIndex > 0){
+            var id = document.getElementById("ddlCoordinators").options[document.getElementById("ddlCoordinators").selectedIndex].value;
+            var url="@Url.Action("To_Review", "ICCoordinator")?id=" + id;
+            window.document.location.href = url;
+         }
+    }
+
+    function to_request(id) {
+        var url = "@Url.Action("To_Request", "ICCoordinator")?id=" + id;
+        window.document.location.href = url;
+    }
+
+    function to_delete(id, userid) {
+        if (confirm('Are you sure that you want to delete requested for '+ userid+'?')) {
+            var url = "@Url.Action("To_Delete", "ICCoordinator")?id=" + id + "&url=" + currenturl;
+            window.document.location.href = url;
+        }
+    }
+
+    function to_edit(id) {
+        var url = "@Url.Action("To_Edit", "ICCoordinator")?id=" + id;
+        window.document.location.href = url;
+    }
+</script>
+
+<form name="frmGetInfo">
+    <input type="hidden" id="hidPersonID" name="PersonID" value="@Convert.ToString(Session["Personid"])" />
+    <input type="hidden" id="hidPossionID" name="PositionID" value="@Convert.ToString(Session["position_id"])" />
+    <input type="hidden" id="hidCoordinatorID" name="CoordinatorID" value="@ViewBag.CoordinatorID" />
+</form>
+
+<!--start mian-->
+<div id="main">
+    <div id="caption">
+        <center>
+            <b id="page_title">Provisioning Request List</b>&#0160;&#0160;
+            @if (Convert.ToInt16(Session["position_id"]) >= 5 || Convert.ToInt16(Session["is_coordinator"]) == 1)
+            {
+                @Html.ActionLink("Add New IC Coordinator", "To_Add", "ICCoordinator", new { area = "IC_Coordinator" }, null)
+            }
+        </center>
+    </div>
+    <br />
+    <div class="form-inline">
+        @if (Convert.ToInt16(Session["position_id"]) >= 5 || Convert.ToInt16(Session["is_coordinator"]) == 1)
+        {
+            <b>New Request initiated by IC Coordinator:</b>
+            <select name="Coordinator" id="ddlCoordinators" class="form-control" style="width:200px; height:30px;" size="1" title="Select Coordinator" onchange="to_review()">
+                <option></option>
+                @if (Convert.ToInt16(Session["position_id"]) >= 5)
+                {
+                    <option value=0>All</option>
+                }
+
+                @foreach (var coordinators in ViewBag.Coordinators)
+                {
+                    <option id="coordinator_id" value="@coordinators.person_id">@coordinators.person_name</option>
+
+                    @*if (Convert.ToInt16(coordinators.person_id) == Convert.ToInt16(ViewBag.CoordinatorID))
+                        {
+                            //id="coordinator_id"
+                            <option value="@coordinators.person_id" selected="selected">@coordinators.person_name</option>
+                        }
+                        else
+                        {
+                            <option id="coordinator_id" value="@coordinators.person_id">@coordinators.person_name</option>
+                        }*@
+                }
+            </select>
+        }
+    </div>
+
+
+    @if (ViewBag.Users != null && ViewBag.Users.Count >= 1)
+    {
+        var UsersGrid = new WebGrid(ViewBag.Users, rowsPerPage: 50);  //, defaultSort: "Category Name"
+        <br />
+        <div id="grid" style="width:950px">
+            @*<div id="grid">*@
+            @UsersGrid.Pager(WebGridPagerModes.Numeric)
+            @UsersGrid.GetHtml(
+            tableStyle: "webgrid-table",
+            headerStyle: "webgrid-header",
+            footerStyle: "webgrid-footer",
+            rowStyle: "webgrid-odd-row-style",
+            alternatingRowStyle: "webgrid-even-row-style",
+            selectedRowStyle: "webgrid-selected-row",
+            numericLinksCount: 10,
+
+            columns: UsersGrid.Columns(
+                UsersGrid.Column("first_name", "First Name", null, style: "col-larg", canSort: true),
+                UsersGrid.Column("last_name", "Last Name", null, style: "col-larg", canSort: true),
+                UsersGrid.Column("userid", "Login", style: "col-larg", canSort: true),
+                UsersGrid.Column("division", "Division", null, style: "col-larg", canSort: true),
+                UsersGrid.Column("access_type", "Access Type", null, style: "col-larg", canSort: true),
+                UsersGrid.Column("requested_date", "Requested At", null, style: "col-larg", canSort: true),
+                UsersGrid.Column("start_date", "Start Date", null, style: "col-larg", canSort: true),
+                UsersGrid.Column("status", "Status", style: "col-med", canSort: true),
+                UsersGrid.Column("Actions", "Actions", format: @<text>
+                    <a href="JavaScript:to_request(@item.id)">Review</a>&#0160;|&#0160;
+                    <a href="JavaScript:to_edit(@item.id)">Edit</a>&#0160;|&#0160;
+                    <a href="JavaScript:to_delete('@item.id','@item.userid')">Delete</a>
+                </text>, style: "col-exlarg", canSort: false)
+                )
+            )
+        </div>
+    }
+    <br />
+</div><!--end main-->

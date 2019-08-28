@@ -1,0 +1,137 @@
+﻿@{
+    ViewBag.Title = "Docman [CFT Edit Contract]";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel='stylesheet' type='text/css' href='~/Content/egrants.css' />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    <script src="~/scripts/validation.js"></script>
+
+    <script language="JavaScript">
+
+    var currenturl = window.document.location.href;
+
+    function add_boxes() {
+        //find Accession number
+        var index = document.getElementById("ddlAccession").selectedIndex;
+        if (index == 0) {
+            alert("Please select an accession number to create new box/es");
+            return false;
+        } else var accession_id = document.getElementById("ddlAccession").options[index].id;
+            var accession_num = document.getElementById("ddlAccession").options[index].value;;
+
+        //find box start number
+        if (document.getElementById("txtStartNum").value == '') {
+            alert("Please insert the box start number");
+            document.getElementById("txtStartNum").focus();
+            return false;
+        } else var result = isInteger(document.getElementById("txtStartNum").value);
+
+        if (result == false || result == 'false') {
+            alert("Please inset correct box start number");
+            document.getElementById("txtStartNum").value = "";
+            document.getElementById("txtStartNum").focus();
+            return false;
+        } else var startnum = document.getElementById("txtStartNum").value;
+
+        //find box end number
+        if (document.getElementById("txtEndNum").value == '') {
+            if (confirm("Are you sure that you want to create box " + startnum + " for accession " + accession_num + "?")) {
+                var url = "@Url.Action("To_Add_Box", "CFTEdit")?accession_id=" + accession_id + "&box_start_num=" + startnum + "&box_end_num=0";
+                //alert(url);
+                window.self.location = url;
+            } else return false;
+        }
+
+        if (document.getElementById("txtEndNum").value != '') {
+            var result = isInteger(document.getElementById("txtEndNum").value);
+            if (result == false || result == 'false') {
+                alert("Please inset correct box end number");
+                document.getElementById("txtEndNum").value = "";
+                document.getElementById("txtEndNum").focus();
+                return false;
+            } else var endnum = document.getElementById("txtEndNum").value;
+
+            if (endnum <= startnum) {
+                alert("Please inset correct box start number and end number");
+                document.getElementById("txtEndNum").value = "";
+                document.getElementById("txtEndNum").focus();
+                return false;
+            }
+
+            if (confirm("Are you sure that you want to create series boxes from " + startnum + " to " + endnum + " for accession " + accession_num + " ?")) {
+                var url = "@Url.Action("To_Add_Box", "CFTEdit")?accession_id=" + accession_id + "&box_start_num=" + startnum + "&box_end_num=" + endnum;
+                //alert(url);
+                window.self.location = url;
+            } else return false;
+        }
+    }
+
+    function get_page_name() {
+        var page_name = "CFTEditBox";
+        return page_name;
+    }
+    </script>
+</head>
+<body>
+    <div class="container-fluid">
+        <!--start container-->
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+                <div id="main">
+                    <div id="caption">
+                        <b id="page_title">Edit Box</b>
+                    </div>
+
+                    &#0160;&#0160;@ViewBag.Message
+                    @*<form class="form-inline">*@
+                    <div class="form-inline">
+                        <table id="modify" width="750">
+                            <thead>
+                                <tr><td height="10"></td></tr>
+                                <tr>
+                                    <td>&#0160;* To create box, select an accession number, insert box number, and click create new</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td valign="bottom">
+                                        &#0160;
+                                        <label for="accession"><b>Accession:</b></label>&#0160;
+                                        <select id="ddlAccession" name="Accessions" class="form-control" style="width:120px; height:30px;">
+                                            <option></option>
+                                            @foreach (var item in ViewBag.Accessions)
+                                            {
+                                                <option value=@item.accession_number id=@item.accession_id>
+                                                    @item.accession_number
+                                                </option>
+                                            }
+                                        </select>&#0160;&#0160;
+                                        <label for="box number"><b>Box Number:</b></label>&#0160;
+                                        <input type="text" id="txtStartNum" name="StartNum" class="form-control" style="height:30px; width:50px" />&#0160;
+                                        <label for="to"><b>To:</b></label>&#0160;
+                                        <input type="text" id="txtEndNum" name="EndNum" class="form-control" style="height:30px; width:50px" />&#0160;
+                                        <button class="btn btn-primary btn-sm" AccessKey="N" onClick="return add_boxes()" title="Click here to create new box[shift + alt + N]">
+                                            Create <U>N</U>ew
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr><td height="15"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    @*</form>*@
+                </div><!--end main-->
+            </div><!--end col_lg-8-->
+            <div class="col-lg-2"></div>
+        </div><!--end row-->
+    </div><!--end container-->
+    <br /><br /><br />
+</body>
+</html>
+

@@ -1,0 +1,318 @@
+﻿@{
+    ViewBag.Title = "eGrants [Supplement Requests]";
+}
+
+@*<!DOCTYPE html>
+<html>
+<head>
+    <link rel='stylesheet' type='text/css' href='~/Content/egrants.css' />
+    <script language="JavaScript" type="text/javascript" src="~/scripts/validation.js"></script>*@
+
+    <script language="JavaScript" type="text/javascript">
+        var currenturl = window.document.location.href;
+        var DocCount = 0;
+        var ApplCount = 0;
+        var former_applid = 0;
+
+        //set default
+        $(document).ready(function () {
+            set_default();
+        });
+
+        function set_default() {
+            if (document.frmGetInfo.status.value == 'Done') {
+                window.opener.location.reload();
+                window.close();
+            }
+        }
+
+        function show_popup(act, grant_id) {
+            var url = "@Url.Action("LoadSupplementDoc", "EgrantsDoc")?act=" + act + "&grant_id=" + grant_id;
+            window.document.location.href = url;
+        }
+
+        function GetidStr() {
+            var DocidStr = "";
+            var inputs = document.getElementsByTagName("input");
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].type == 'checkbox' && inputs[i].checked== true) {
+                    DocidStr = DocidStr + inputs[i].id + ','
+                } else continue
+            }
+
+            DocidStr = DocidStr.substring(0, DocidStr.length - 1);
+            return DocidStr;
+        }
+
+        function show_select() {
+            DocCount = 0;
+            //var ApplCount = 0;
+            var inputs = document.getElementsByTagName("input");
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].type == 'checkbox' && inputs[i].checked == true) {                 
+                    DocCount = DocCount + 1;
+                    if (DocCount == 1) {
+                        former_applid = inputs[i].value;
+                        ApplCount = 1;
+                    } else if (DocCount > 1 && former_applid != inputs[i].value) {
+                        ApplCount = ApplCount + 1;
+                        document.getElementById('parents').style.display = "inline";
+                    }                     
+                } else continue              
+            }
+
+            if (DocCount == 0) {
+                //clearn up selected box and hide all
+                document.getElementById('ddlProcess').selectedIndex = 0;
+                document.getElementById('to_select').style.display = "none";
+                document.getElementById('to_pay').style.display = "none";
+                document.getElementById('to_supplement').style.display = "none";              
+            } else document.getElementById('to_select').style.display = "inline";
+
+            if (DocCount == 0 || ApplCount == 1) {
+                document.getElementById('parents').style.display = "none";
+            }
+        }
+
+        function to_process(object) {
+            var selected_value = object.options[object.selectedIndex].value;
+
+            if (selected_value == '1') {
+                document.getElementById('to_supplement').style.display = "inline";
+                document.getElementById('to_pay').style.display = "none";
+            }
+
+            if (selected_value == '2') {          
+                document.getElementById('to_pay').style.display = "inline";
+                document.getElementById('to_supplement').style.display = "none";
+            }         
+        }
+
+        function to_move() {
+            if (ApplCount > 1) {
+                var selected_index = document.getElementById("parentgrants").selectedIndex;
+                if (selected_index == 0) {
+                    alert("Please select the former grant num");
+                    return false;
+                } else var parent_applid = document.getElementById("parentgrants").options[selected_index].id;
+            } else var parent_applid = former_applid;
+
+            var grant_id = document.frmGetInfo.grant_id.value;
+            var DocidStr = GetidStr();
+            if (document.getElementById("supportyear").value == '') {
+                alert("Please insert Support year");
+                document.getElementById("supportyear").focus();
+                return false;
+            } else var supportyear = document.getElementById("supportyear").value;
+
+            var result = isInteger(supportyear);
+            if (result == false || result == 'false') {
+                alert("Please inset correct number for support year");
+                document.getElementById("supportyear").value = '';
+                document.getElementById("supportyear").focus();
+                return false;
+            }
+
+            if (document.getElementById("suffixcode").value != '') {
+                var suffixcode = document.getElementById("suffixcode").value;
+                if (suffixcode.length > 4) {
+                    alert("suffix code should be no more than 4 digits");
+                    document.getElementById("suffixcode").value = '';
+                    document.getElementById("suffixcode").focus();
+                    return false;
+                }
+            } else suffixcode = "";
+
+            if (confirm('Are you sure that you want to move this supplement document?')) {
+                var url = "@Url.Action("ProcessSupplementDoc", "EgrantsDoc")?act=to_move&grant_id=" + grant_id + "&docid_str=" + DocidStr + "&support_year=" + supportyear + "&suffix_code=" + suffixcode + "&former_applid=" + parent_applid;
+                //alert(url);
+                window.document.location.href = url;   
+            }
+        }
+
+        function to_pay() {
+            if (ApplCount > 1) {
+                var selected_index = document.getElementById("parentgrants").selectedIndex;
+                if (selected_index == 0) {
+                    alert("Please select the former grant num");
+                    return false;
+                } else var parent_applid = document.getElementById("parentgrants").options[selected_index].id;
+            } else var parent_applid = former_applid;
+
+            var grant_id = document.frmGetInfo.grant_id.value;
+            var DocidStr = GetidStr();
+            var supportyear = 0;
+            var suffixcode = "";
+
+            if (confirm('Are you sure that you want to pay this supplement request with its parent Grant?')) {               
+                var url = "@Url.Action("ProcessSupplementDoc", "EgrantsDoc")?act=to_pay&grant_id=" + grant_id + "&docid_str=" + DocidStr + "&support_year=" + supportyear + "&suffix_code=" + suffixcode + "&former_applid=" + parent_applid;
+                //alert(url);
+                window.document.location.href = url;
+            }
+        }
+
+        function show_doc(docurl) {
+            var ImageServer = document.getElementById("hidImageServer").value;
+            //alert(docurl);
+            if (docurl.substring(0, 12) == "https://s2s.") {
+                var url = "@Url.Action("show_era_doc", "EgrantsDoc")?docurl=" + docurl;
+            }else if (docurl.substring(0, 5) == "/data") {
+                var url = ImageServer + docurl.substring(1, docurl.length);
+            }else if (docurl.substring(0, 5) == "data/") {
+                var url = ImageServer + docurl;
+            }else url = docurl;
+
+            //alert(url);
+            window.open(url);     
+        }
+
+    </script>
+@*</head>
+<body onload="Setfocus() ">*@
+<div id="main">
+    <form name="frmGetInfo">
+        <input type="hidden" name="grant_id" value="@ViewBag.GrantID" />
+        <input type="hidden" name="status" value="@ViewBag.Status" />
+        <input type="hidden" id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" />  
+    </form>
+
+    <div id="caption" style="padding:  10px 20px;">
+    <a href="Javascript:show_popup('to_view', @ViewBag.GrantID)" title="Click here to refresh window"><b>Refresh</b></a>
+    &#0160;&#47;
+    <a href="Javascript:show_popup('to_history', @ViewBag.GrantID)"  title="Click here to show supplement history"><b>History</b>
+    </a>
+    </div>
+    <br/>
+    <!--start show supplement-->
+    @*<div style="padding:  0 20px;">*@
+        <table id="modify" width="950">
+            <thead>
+                <tr>
+                    <td width="20"></td>
+                    <td width="150"></td>
+                    <td width="20"></td>
+                    <td width="20"></td>
+                    <td width="200"></td>
+                    <td width="120"></td>
+                    <td width="80"></td>
+                    <td width="100"></td>
+                    <td width="100"></td>
+                </tr>
+            </thead>
+            @if (ViewBag.Supplement != null && ViewBag.Supplement.Count >= 1)
+            {
+                <tbody>
+                    <tr class="bg_grey">
+                        <td></td>
+                        <td>&#0160;<lable for="parent grant num"><b>Parent Grant</b></lable></td>
+                        <td>&#0160;<lable for="support_year"><b>Year</b></lable></td>
+                        <td>&#0160;<lable for="suffix_code"><b>Suffix</b></lable></td>
+                        <td>&#0160;<lable for="category_name"><b>Category Name</b></lable></td>
+                        <td>&#0160;<lable for="submitted_date"><b>Submitted Date</b></lable></td>
+                        <td>&#0160;<lable for="status"><b>Status</b></lable></td>
+                        <td>&#0160;<lable for="moved_date"><b>Moved Date</b></lable></td>
+                        <td>&#0160;<lable for="moved_by"><b>Moved By</b></lable></td>
+                    </tr>
+                    @foreach (var docs in ViewBag.Supplement)
+                    {
+                        if (Convert.ToInt16(docs.tag) == 2)
+                        {
+                            <tr>
+                                <td>
+                                    @if (Convert.ToInt16(Session["position_id"]) >= 2 && Convert.ToString(ViewBag.Act) == "to_view")
+                                    {
+                                        <input type="checkbox" id="@docs.id" value="@docs.former_appl_id" onClick="JavaScript:show_select()" title="Check here to load suppelment" />
+                                    }
+                                </td>
+                                <td>@docs.former_num</td>
+                                <td>@docs.support_year</td>
+                                <td>@docs.suffix_code</td>
+                                <td>
+                                    @if (docs.sub_category_name != "")
+                                    {
+                                        <a href="javascript:show_doc('@docs.url')" title="To open documents">@docs.category_name<span>:</span>@docs.sub_category_name</a>
+                                    }
+                                    else
+                                    {
+                                        <a href="javascript:show_doc('@docs.url')" title="To open documents">@docs.category_name</a>
+                                    }
+                                </td>
+                                <td>@docs.date_of_submitted</td>
+                                <td>@docs.status</td>
+                                <td>@docs.moved_date</td>
+                                <td>@docs.moved_by</td>
+                            </tr>
+                        }
+                    }
+                    @if (Convert.ToInt16(Session["position_id"]) >= 2 && Convert.ToString(ViewBag.Act) == "to_view")
+                    {
+                        <tr><td colspan="9" height="20px"></td></tr>
+                        <tr class="bg_grey">
+                            <td colspan="9">&#0160;* Select check box and select drop dow list for process type</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                                <div id="parents" height="20px" style="display:none">
+                                    <lable for="parent grants"><b>Parent:</b></lable>&#0160;
+                                    <select name="parent" id="parentgrants" class="smallfont" size="1" title="Select parent grant">
+                                        <option></option>
+                                        @foreach (var appls in ViewBag.FormerAppls)
+                                        {
+                                            if (ViewBag.FormerAppls.Count == 1)
+                                            {
+                                                <option id="@appls.former_appl_id" selected="selected">@appls.former_num</option>
+                                            }
+                                            else {
+                                                <option id="@appls.former_appl_id">@appls.former_num</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </td>
+                            <td colspan="5">
+                                <div name="type" height="20px" id="to_select" style="display:none">
+                                    &#0160;
+                                    <lable for="process type"><b>Process Type:</b></lable>
+                                    &#0160;
+                                    <select name="process" id="ddlProcess" class="smallfont" size="1" onChange="to_process(this)" title="Select process type">
+                                        <option value="0" />
+                                        <option value="1">Pay as Supplement</option>
+                                        <option value="2">Pay in Parent</option>
+                                    </select>
+                                </div>
+                                &#0160;
+                                <div name="pay" height="20px" id="to_pay" style="display:none">
+                                    <button AccessKey="M" class="smallfont" title="Click here to pay with Parent Grant by parent appl [alt + shift + M]" onClick="to_pay();">
+                                        <u>M</u>ove to Parent
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4"></td>
+                            <td colspan="5">
+                                <div name="move" height="20px" id="to_supplement" style="display:none">
+                                    &#0160;
+                                    <lable for="supportyear"><b>Support Year:</b></lable>&#0160;
+                                    <input type="text" id="supportyear" name="support_year" class="smallfont" size="2" title="Insert Grant Year" />
+                                    &#0160;
+                                    <lable for="suffix_code"><b>Suffix Code:</b></lable>&#0160;
+                                    <input type="text" id="suffixcode" name="suffix_code" class="smallfont" size="5" title="Insert Suffix Code" />
+                                    &#0160;
+                                    <button AccessKey="M" class="smallfont" title="Click here to upload selected document [alt + shift + M]" onClick="to_move();">
+                                        <u>M</u>ove Supplement
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }<!--end show suppelment-->
+                </tbody>
+            }
+        </table>
+    @*</div>*@
+</div><!--end main-->
+@*</body>
+</html>*@
+
+
+

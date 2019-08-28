@@ -1,0 +1,24 @@
+﻿<script language="JavaScript">
+    function run_menu() {      
+        if (document.getElementById("ddlMenus").selectedIndex != 0) {      
+            var ActionController = document.getElementById("ddlMenus").options[document.getElementById("ddlMenus").selectedIndex].value;
+            var url = '@Url.Action("Index", "Controller")';
+            url = url.replace("Controller", ActionController);
+            window.document.location.href = url;
+        }
+    }
+</script>            
+
+<div id="main" class="form-inline" style="margin:0;padding:0;">   
+    <b>Menu Option:</b>      
+    <select name="menus" id="ddlMenus" class="form-control" style="width:300px; height:30px;" onchange="Javascript:run_menu()" title="select admin object">
+        <option></option>
+        @foreach (var item in ViewBag.AdminMenu)
+        {
+            <option value="@item.menu_action" id="@item.menu_id">@item.menu_title</option>
+        }
+    </select>
+</div><!--end main-->
+
+
+

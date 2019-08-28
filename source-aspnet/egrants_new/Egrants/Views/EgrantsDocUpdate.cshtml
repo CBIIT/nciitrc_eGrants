@@ -1,0 +1,158 @@
+﻿@{
+    ViewBag.Title = "egrants [Document Index Update]";
+    Layout = "~/Shared/Views/_egrants_header.cshtml";
+}
+
+<script language="javascript" type="text/javascript"> 
+    $(document).ready(function () {        
+            set_default();
+    });
+
+    function set_default() {        
+        //set category_id
+        if (document.getElementById("hidCategory_id").value != "") {
+            for (i = 1; i <= document.getElementById("hidMax_Categoryid").value; i++) {
+                if (document.getElementById("ddlCategories").options[i] != null && document.getElementById("ddlCategories").options[i].id == document.getElementById("hidCategory_id").value) {
+                    document.getElementById("ddlCategories").options[i].selected = "yes";
+                    var input_string = document.getElementById("ddlCategories").options[i].value;
+                    var input_type = input_string.charAt(0);
+                }
+            }
+        }
+
+        //show sub_category
+        if (input_type == "T")
+        {
+            var el = "sub_category_" + document.getElementById("hidCategory_id").value;
+            document.getElementById(el).style.display = "inline";
+            var el = "T_" + document.getElementById("hidCategory_id").value;
+            document.getElementById(el).value = document.getElementById("hidSub_category").value;
+        }
+
+        if (input_type == "D")
+        {
+            var el = "sub_category_" + document.getElementById("hidCategory_id").value;
+            document.getElementById(el).style.display = "inline";
+            var el = "D_" + document.getElementById("hidCategory_id").value;
+            var listlength = document.getElementById(el).length;
+            if (document.getElementById("hidSub_category").value == "") {
+                document.getElementById(el).options[0].selected = "yes";
+            }
+            else {
+                for (var i = 1; i <= listlength-1; i++) {
+                    if (document.getElementById(el).options[i].value == document.getElementById("hidSub_category").value) {
+                        document.getElementById(el).options[i].selected = "yes";
+                    }
+                }
+            }
+        }
+
+        //load grant years list
+        if (document.getElementById("hidAppl_id").value != "") {         
+            load_appls();
+            var myVar = setTimeout(function () { selected_appl() }, 500);          
+        }
+
+        //set document date
+        if (document.getElementById("hidDocument_date").value != null && document.getElementById("hidDocument_date").value != "") {
+            document.getElementById("txtDocumentdate").value = document.getElementById("hidDocument_date").value;
+        }
+    }
+
+    //to set original appl_id
+    function selected_appl() {
+        var appl_id = document.getElementById("hidAppl_id").value;
+        //alert(appl_id);
+        $("#ddlAppls").val(appl_id);
+    }
+
+    function modify_index() {     
+        //get doc_id
+        var Docid = document.getElementById("hidDocument_id").value;
+
+        //get appl_id
+        if (get_appl()== false) {
+            return false;
+        }
+
+        //get category_id and get sub_category input index
+        if (get_category_id() == false) {
+            return false;
+        } else  var selectedindex = document.getElementById("ddlCategories").selectedIndex;
+                var input_string = document.getElementById("ddlCategories").options[selectedindex].value;
+                var input_type = input_string.charAt(0);
+                var input_constraint = input_string.charAt(1);
+
+        //get sub_category
+        if (get_sub_category(input_type, input_constraint, Categoryid, CategoryName) == false) {
+            return false;
+        }
+
+        //get document_date
+        if (get_document_date() == false) {
+            return false;
+        }
+
+        //get previous url
+        var previous_url = get_previous_url();
+        var previousurl = encodeURIComponent(previous_url);
+        var url = "@Url.Action("doc_index_modify", "EgrantsDoc")?act=to_update&appl_id=" + Applid + "&document_id=" + Docid + "&category_id=" + Categoryid + "&sub_category=" + SubCategory + "&document_date=" + DocDate + "&previous_url=" + previousurl;
+        //alert(url);
+        window.self.location = url;
+        return true;        
+    }
+
+    function get_previous_url() {
+        var previous_url = document.getElementById("hidPrevious_url").value;
+        if (previous_url != "" && previous_url != null && previous_url != undefined) {
+            var url = previous_url;
+        } else var url = document.getElementById("hidOriginal_url").value;
+        return url;
+    }
+
+    function back() {
+        //alert(document.getElementById("hidPrevious_url").value);
+        var previous_url = document.getElementById("hidPrevious_url").value;
+        window.self.location = previous_url;
+    }
+</script>
+
+<!--load data for current document-->
+<form name="frmGetInfo">
+    <input type="hidden" id="hidStatus" name="status" value="@ViewBag.Status" />
+    <input type="hidden" id="hidAdmin_code" name="admin_code" value="@ViewBag.admincode" />
+    <input type="hidden" id="hidSerial_num" name="serial_num" value="@ViewBag.serialnum" />
+    <input type="hidden" id="hidMax_Categoryid" name="max_categoryid" value="@ViewBag.MaxCategoryid" />
+    <input type="hidden" id="hidAct" name="act" value="modify" />
+    <input type="hidden" id="hidAppl_id" name="appl_id" value="@ViewBag.applid" />
+    <input type="hidden" id="hidDocument_id" name="document_id" value="@ViewBag.docid" />
+    <input type="hidden" id="hidDocument_date" name="document_date" value="@ViewBag.docdate" />
+    <input type="hidden" id="hidCategory_id" name="category_id" value="@ViewBag.categoryid" />
+    <input type="hidden" id="hidSub_category" name="sub_category" value="@ViewBag.subcategory" />
+    <input type="hidden" id="hidPrevious_url" name="previous_url" value="@ViewBag.Previousurl" />
+    <input type="hidden" id="hidPossionID" name="position_id" value=@Convert.ToString(Session["position_id"]) />
+</form>
+
+<div id="main" style="margin:0;padding:0;">
+    <div id="caption" style="margin:0;padding:0;"><b id="page_title">Update Document</b></div>
+    <div>
+        @Html.Partial("~/Egrants/Views/_egrants_Doc.cshtml")
+        <img width="800" height="10" src="~/Content/images/horizontal_line.jpg" />
+        <table width="800">
+            <tr>
+                <td width="100"></td>
+                <td width="700" height="50">
+                    <button type="button" AccessKey="U" class="btn btn-primary btn-sm eGrantsDocBtn" OnClick="return modify_index()" title="Click here to update document index [shift + alt + U]"><u>U</u>pdate</button>                
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+

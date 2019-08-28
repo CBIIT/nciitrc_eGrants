@@ -1,0 +1,126 @@
+﻿@{
+int show_appls = 0;
+<div id="toggle_appls" width="1000" style="border-bottom:groove; border-top:double; border-color:darkgrey; padding-bottom:5px; min-height:50px; width:900px; padding-left:20px; float:left; display:none;">
+    <!--show all appls-->
+    <div id="all_appls" style="display:none">
+        <span>&#0160;</span><input type="checkbox" id="all_appls_checkall" onClick="JavaScript:select_all_toggle_appls('all_appls')" /><span>&#0160;&#0160;</span><b>Select All</b><br />
+        @foreach (var appl in ViewBag.appllayer_All)
+        {
+            if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(ViewBag.GrantID))
+            {
+                <div class="col-md-3" id="appl_toggle_@appl.appl_id" style="font-size:small; padding:0px; margin-left:5px;">
+                    <input type="checkbox" id="@appl.appl_id" class="all_appls_checkbox" name="all_appls_checkbox" />&#0160;@appl.full_grant_num
+                    <!--show flags-->
+                    @if (Convert.ToString(appl.appl_fda_flag) == "y")
+                    {
+                        <b>&#0160;</b><img src="~/Content/images/flag_fda.bmp" height="12" style="display:inline" title="fda flag" />
+                    }               
+
+                    @if (Convert.ToString(appl.appl_ms_flag) == "y")
+                    {
+                        <b>&#0160;</b><img src="~/Content/images/flag_ms.jpg" height="16" style="display:inline" title="moodshot flag" />
+                    }
+
+                    @if (Convert.ToString(appl.appl_od_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_od.jpg" height="16" title="OD flag" />
+                    }
+
+                    @if (Convert.ToInt16(appl.appl_type_code) == 4)
+                    {
+                        <img src="~/Content/images/Type4.bmp" height="12" style="margin-left:5px; display:inline" title="type 4 flag" />
+                    }
+
+                    @if (Convert.ToInt16(appl.appl_type_code) == 7)
+                    {
+                        <img src="~/Content/images/Type7.bmp" height="12" style="margin-left:5px; display:inline" title="type 7 flag" />
+                    }
+
+                    @if (appl.deleted_by_impac == "y")
+                    {
+                        <img src="~/Content/images/deleted_yr.png" class="img_16_16" style="margin-left:5px; display:inline" title="deleted by IMPAC" />
+                    }
+
+                    @if (appl.competing == "yes")
+                    {
+                        <img src="~/Content/images/compet_yr.png" class="img_20_20" style="margin-left:5px; display:inline" title="deleted by IMPAC" />
+                    }
+                </div>
+            }
+        }
+        <!--to show defualt 12 appls only-->
+        @if (ViewBag.ApplCount > 12)
+        {
+            <a href="Javascript:toggle_appls_mode_switch('defualt_appls')"><img class="img_18_18" src="../Content/images/minus.png" title="to show defualt 12 appls" /></a>
+                    @*<a href="Javascript:show_toggle_appls('@ViewBag.GrantID','12')"><img class="img_18_18" src="../Content/images/minus.png" title="to show defualt 12 appls" /></a>*@
+        }
+        <!--to search-->
+        <a href="JavaScript:search_by_toggle()" title="search by selected appls and categories"><img style='width:30px' src="../Content/images/searchicon.png" /></a>
+    </div>
+
+    <!--show defualt 12 appls only-->
+    <div id="defualt_appls" style="display:inline">
+        <span>&#0160;</span><input type="checkbox" id="defualt_appls_checkall" onClick="JavaScript: select_all_toggle_appls('defualt_appls')" /><span>&#0160;&#0160;</span><b>Select All</b><br />       
+        @foreach (var appl in ViewBag.appllayer_All)
+        {
+            if (show_appls < 12)
+            {
+                {
+                <div class="col-md-3" id="appl_toggle_@appl.appl_id" style="font-size:small; padding:0px; margin-left:5px;">
+                    <input type="checkbox" id="@appl.appl_id" class="defualt_appls_checkbox" name="defualt_appls_checkbox" />&#0160;@appl.full_grant_num
+                    <!--show flags-->
+                    @if (Convert.ToString(appl.appl_fda_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_fda.bmp" height="12" style="margin-left:5px; display:inline" title="fda flag" />
+                    }
+
+                    @if (appl.appl_ms_flag == "y")
+                    {
+                        <img src="~/Content/images/flag_ms.jpg" height="16" style="margin-left:5px; display:inline" title="moodshot flag" />
+                    }
+
+                    @if (Convert.ToString(appl.appl_od_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_od.jpg" height="16" title="OD flag" />
+                    }
+
+                    @if (Convert.ToInt16(appl.appl_type_code) == 4)
+                    {
+                        <img src="~/Content/images/Type4.bmp" height="12" style="margin-left:5px; display:inline" title="type 4 flag" />
+                    }
+
+                    @if (Convert.ToInt16(appl.appl_type_code) == 7)
+                    {
+                        <img src="~/Content/images/Type7.bmp" height="12" style="margin-left:5px; display:inline" title="type 7 flag" />
+                    }
+
+                    @if (appl.deleted_by_impac == "y")
+                    {
+                        <img src="~/Content/images/deleted_yr.png" class="img_16_16" style="margin-left:5px; display:inline" title="deleted by IMPAC" />
+                    }
+
+                    @if (appl.competing == "yes")
+                    {
+                        <img src="~/Content/images/compet_yr.png" class="img_20_20" style="margin-left:5px; display:inline" title="deleted by IMPAC" />
+                    }
+                </div>
+                show_appls = show_appls + 1;
+                }
+            }
+        }
+
+        <!--to show all appls-->
+        @if (ViewBag.ApplCount > 12)
+        {
+            <a href="Javascript:toggle_appls_mode_switch('all_appls')"><img class='img_20_20' src='../Content/images/plus.png' title='to show all appls' /></a>                
+        }
+        <!--to search-->
+        <a href="JavaScript:search_by_toggle()" title="search by selected appls and categories"><img style="width:30px" src="../Content/images/searchicon.png" /></a>
+    </div>
+</div>
+}
+
+
+
+
+

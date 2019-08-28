@@ -1,0 +1,36 @@
+﻿<!--start grants_expedited template-->
+
+<div class="dashboardItem">
+   	<div class="panel panel-primary">
+        <div class="panel-heading">
+		<table width="100%">
+			<tr>
+			<td width="99%"><center>Expedited Grants</center></td>
+			<td width="1%">
+				<img width="14" height="14" border="0" hspace="2" src="~/Content/images/question_mark_40.jpg" title="help notice" onClick="JavaScript:help_me('Expedited_Grants')"/>
+			</td>
+			</tr>
+		</table>		
+	</div>
+    <div class="panel-body">
+	<table class="table table-hover">
+           <thead>
+           <tr>
+                <th><label for="grant">Grant</label></th>
+                <th><label for="ncba dategrant">NCAB DateGrant</label></th>
+           </tr>
+           </thead>
+           <tbody>
+	        @foreach (var grantsexpedited in ViewBag.GrantsExpedited)
+            {
+		        <tr>
+                    <td><a target="_new" href="@Url.Action("by_appl","Egrants")?appl_id=@Convert.ToString(grantsexpedited.appl_id)">@grantsexpedited.fgn</a></td>
+		            <td>@grantsexpedited.ncab_date</td>
+                </tr>
+            }              		   
+           </tbody>			
+	</table>
+    </div>
+    </div> 
+</div>       		  
+<!--end grants_expedited template-->

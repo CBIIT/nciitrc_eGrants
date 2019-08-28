@@ -1,0 +1,38 @@
+﻿@{
+    ViewBag.Title = "eGrants [Doc Process]";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel='stylesheet' type='text/css' href='~/Content/egrants.css' />
+
+    <script language="JavaScript" type="text/javascript">
+        function set_focus() {          
+            if (document.frmGetInfo.status.value == 'Done') {
+                window.setTimeout(to_close, 1000);
+            }
+        }
+
+        function to_close() {
+            var currenturl = window.opener.location.href;
+            var endPos = currenturl.lastIndexOf("&mode=");
+            if (endPos != -1) {
+                var url = currenturl.substring(0, endPos) + "&mode=qc";
+                window.opener.location.href = url
+            } else window.opener.location.reload();     
+            window.close();
+        }
+    </script>
+</head>
+<body onload="set_focus();">
+    <form name="frmGetInfo">
+        <input type="hidden" name="status" value="@ViewBag.Status" />
+    </form>
+
+    <img src="~/Content/images/processing.gif" width="120" height="120" alt="data is processing" />
+ 
+</body>
+</html>
+
+
+
