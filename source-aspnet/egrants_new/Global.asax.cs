@@ -10,6 +10,9 @@ using System.Data;
 using System.Data.SqlClient;
 using egrants_new.Models;
 using System.Net;
+using System.Web.Http;
+//using egrants_new.App_Start;
+
 
 namespace egrants_new
 {
@@ -40,11 +43,30 @@ namespace egrants_new
                 userid = Context.Request.ServerVariables["HEADER_SM_USER"];
                 if (userid == null)
                 {
-                    userid = "";    //qians
+                    userid = "shellba";    //qians
                 }
                 return userid;
             }
         }
+        //private IEnumerable<IDisposable> GetHangfireServers()
+        //{
+        //   // Hangfire.
+                
+        //        GlobalConfiguration.Configuration
+        //        .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+        //        .UseSimpleAssemblyNameTypeSerializer()
+        //        .UseRecommendedSerializerSettings()
+        //        .UseSqlServerStorage("Server=.\\SQLEXPRESS; Database=HangfireTest; Integrated Security=True;", new SqlServerStorageOptions
+        //        {
+        //            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        //            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        //            QueuePollInterval = TimeSpan.Zero,
+        //            UseRecommendedIsolationLevel = true,
+        //            DisableGlobalLocks = true
+        //        });
+
+        //    yield return new BackgroundJobServer();
+        //}
 
         protected string IC
         {
@@ -53,7 +75,7 @@ namespace egrants_new
                 ic = Context.Request.ServerVariables["HEADER_USER_SUB_ORG"];
                 if (ic == null)
                 {
-                    ic = "";        //nci
+                    ic = "NCI";        //nci
                 }
 
                 //commen ted out by Leon at 7/31/2019
@@ -244,6 +266,12 @@ namespace egrants_new
                 // Get the absolute path to the log file 
                 string logFile = "App_Data/ErrorLog.txt";
                 logFile = HttpContext.Current.Server.MapPath(logFile);
+
+                //if (!File.Exists(logFile))
+                //{
+                //    byte[] file = new byte[0];
+                //    File.Create(logFile);
+                //}
 
                 // Open the log file for append and write the log
                 StreamWriter sw = new StreamWriter(logFile, true);
