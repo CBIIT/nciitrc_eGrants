@@ -166,7 +166,7 @@ namespace egrants_new.Integration.WebServices
                             CommandType = CommandType.StoredProcedure,
                         };
                     cmd.Parameters.Add("@WSEndpoint_Id", SqlDbType.Int).Value = history.WebService.WSEndpoint_Id;
-                    cmd.Parameters.Add("@Result", SqlDbType.VarChar).Value = history.Result;
+                    cmd.Parameters.Add("@Result", SqlDbType.VarChar).Value = history.Result??"Error";
                     cmd.Parameters.Add("@ResultStatusCode", SqlDbType.Int).Value = (int)history.ResultStatusCode;
                     cmd.Parameters.Add("@DateTriggered", SqlDbType.DateTimeOffset).Value = history.DateTriggered;
                     cmd.Parameters.Add("@DateCompleted", SqlDbType.DateTimeOffset).Value = history.DateCompleted;
