@@ -90,7 +90,7 @@ namespace egrants_new.Integration.WebServices
             }
 
             if (paramString.StartsWith("&"))
-            {
+            { 
                 paramString = paramString.Substring(1);
             }
 
@@ -104,18 +104,33 @@ namespace egrants_new.Integration.WebServices
 
                 switch (value)
                 {
-                    case "##Now24Hr":
+                    case "##LastRun":
+                    {
+                        var time = WebService.LastRun.TimeOfDay.ToString();
+                        time = time.Split('.')[0];
+                        var lastRun =
+                            $"{WebService.LastRun.LocalDateTime.ToShortDateString()}%20{time}";
 
+                        value = lastRun;
+
+                        }
+
+                        break;
+                    case "##Now24Hr":
+                    {
                         var time = DateTime.Now.TimeOfDay.ToString();
                         time = time.Split('.')[0];
                         value = $"{DateTime.Now.ToShortDateString()}%20{time}";
+                    }
 
                         break;
                     case "##Now":
+                    {
                         value = $"{DateTime.Now.ToShortDateString()}%20{DateTime.Now.ToString("T")}";
                         value = value.Replace(" PM", "");
                         value = value.Replace(" AM", "");
                         break;
+                    }
                     case "##MaxId":
                         //TODO: Implement later
                         //This would look up the last Id of a primary key and return that to be included in the query string dynamically
