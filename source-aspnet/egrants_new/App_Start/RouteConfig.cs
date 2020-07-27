@@ -26,7 +26,13 @@ namespace egrants_new
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Egrants", action = "Index", id = UrlParameter.Optional }
             );
-          
+
+            routes.MapRoute(
+                name: "Integration",
+                url: "{controller}/{action}/{id}",
+                defaults: new { controller = "Integration", action = "Trigger", id = UrlParameter.Optional }
+            );
+
             routes.MapRoute(
                 name: "Docman",
                 url: "{controller}/{action}/{id}",
