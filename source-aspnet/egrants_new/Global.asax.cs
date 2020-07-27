@@ -11,6 +11,9 @@ using System.Data.SqlClient;
 using egrants_new.Models;
 using System.Net;
 using System.Web.Http;
+using Hangfire;
+using Hangfire.SqlServer;
+using egrants_new.Integration.WebServices;
 //using egrants_new.App_Start;
 
 
@@ -34,7 +37,15 @@ namespace egrants_new
             AreaRegistration.RegisterAllAreas();
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
-        }
+
+            HangfireAspNet.Use(GetHangfireServers);
+            string wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
+            string notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
+
+            /// Create the Background job
+            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(),wsCronExp);
+            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(),notifierCronExp);
+            }
 
         protected string UserID
         {
@@ -48,25 +59,27 @@ namespace egrants_new
                 return userid;
             }
         }
-        //private IEnumerable<IDisposable> GetHangfireServers()
-        //{
-        //   // Hangfire.
-                
-        //        GlobalConfiguration.Configuration
-        //        .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-        //        .UseSimpleAssemblyNameTypeSerializer()
-        //        .UseRecommendedSerializerSettings()
-        //        .UseSqlServerStorage("Server=.\\SQLEXPRESS; Database=HangfireTest; Integrated Security=True;", new SqlServerStorageOptions
-        //        {
-        //            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-        //            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-        //            QueuePollInterval = TimeSpan.Zero,
-        //            UseRecommendedIsolationLevel = true,
-        //            DisableGlobalLocks = true
-        //        });
+        private IEnumerable<IDisposable> GetHangfireServers()
+        {
+            // Hangfire.
 
-        //    yield return new BackgroundJobServer();
-        //}
+            string conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
+
+            Hangfire.GlobalConfiguration.Configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(conx, new SqlServerStorageOptions
+            {
+                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                QueuePollInterval = TimeSpan.Zero,
+                UseRecommendedIsolationLevel = true,
+                DisableGlobalLocks = true
+            });
+
+            yield return new BackgroundJobServer();
+        }
 
         protected string IC
         {

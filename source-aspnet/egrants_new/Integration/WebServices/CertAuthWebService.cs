@@ -26,11 +26,13 @@ namespace egrants_new.Integration.WebServices
         {
             if (WebService.AuthenticationType == Enumerations.AuthenticationType.Certificate)
             {
-                if (File.Exists(WebService.CertificatePath))
+                string certPath = ConfigurationManager.AppSettings[WebService.CertificatePath];
+                string certPwd = ConfigurationManager.AppSettings[WebService.CertificatePwd];
+                if (File.Exists(certPath))
                 {
                     try
                     {
-                        X509Certificate2 certificate = new X509Certificate2(WebService.CertificatePath, WebService.CertificatePwd);
+                        X509Certificate2 certificate = new X509Certificate2(certPath, certPwd);
                         webRequest.ClientCertificates.Add(certificate);
                     } 
                     catch
