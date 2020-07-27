@@ -17,5 +17,11 @@ namespace egrants_new.Integration.Models
         public DateTimeOffset DateTriggered { get; set; }
         public DateTimeOffset DateCompleted { get; set; }
         public string ExceptionMessage { get; set; }
+
+        public void UpdateEndpointSchedule()
+        {
+            //Update the webservice endpoint record to reflect run date, time, and increment next run date
+                WebService.MarkRunCompleted(ResultStatusCode);
+        }
     }
 }

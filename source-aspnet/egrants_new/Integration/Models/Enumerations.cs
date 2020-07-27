@@ -33,5 +33,12 @@ namespace egrants_new.Integration.Models
             Years
         }
 
+        public enum Interval
+        {
+            Interval = 0,
+            AtSetDateTime
+
+        }
+
     }
 }

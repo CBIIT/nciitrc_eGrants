@@ -29,7 +29,6 @@ namespace egrants_new.Integration.WebServices
             history.WebService = WebService;
             history.WebServiceName = WebService.Name;
             history.DateTriggered = DateTimeOffset.Now;
-
             try
             {
                 var result = string.Empty;
@@ -63,14 +62,18 @@ namespace egrants_new.Integration.WebServices
                 }
 
                 history.ResultStatusCode = response.StatusCode;
-                history.DateCompleted = DateTimeOffset.Now;
-                history.Result = result;
+            history.Result = result;
             }
-            catch (Exception ex)
+            catch (WebException ex)
             {
+                HttpWebResponse failedResponse = (HttpWebResponse)ex.Response;
+                history.ResultStatusCode = failedResponse.StatusCode;
                 history.ExceptionMessage =
                     $"WebService {WebService.Name} encountered an exception: {ex.Message} {ex.StackTrace}";
             }
+
+            history.DateCompleted = DateTimeOffset.Now;
+            history.UpdateEndpointSchedule();
 
             return history;
         }

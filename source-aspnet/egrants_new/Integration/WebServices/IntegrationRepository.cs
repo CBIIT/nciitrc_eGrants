@@ -48,6 +48,8 @@ namespace egrants_new.Integration.WebServices
             }
 
             SaveHistory(history);
+            UpdateWebServiceScheduleInfo(history);
+
         }
 
         public void SaveData(string json, WebServiceEndPoint webService)
@@ -166,7 +168,7 @@ namespace egrants_new.Integration.WebServices
                             CommandType = CommandType.StoredProcedure,
                         };
                     cmd.Parameters.Add("@WSEndpoint_Id", SqlDbType.Int).Value = history.WebService.WSEndpoint_Id;
-                    cmd.Parameters.Add("@Result", SqlDbType.VarChar).Value = history.Result??"Error";
+                    cmd.Parameters.Add("@Result", SqlDbType.VarChar).Value = history.Result ?? "Error";
                     cmd.Parameters.Add("@ResultStatusCode", SqlDbType.Int).Value = (int)history.ResultStatusCode;
                     cmd.Parameters.Add("@DateTriggered", SqlDbType.DateTimeOffset).Value = history.DateTriggered;
                     cmd.Parameters.Add("@DateCompleted", SqlDbType.DateTimeOffset).Value = history.DateCompleted;
@@ -176,17 +178,12 @@ namespace egrants_new.Integration.WebServices
                     conn.Open();
 
                     cmd.ExecuteNonQuery();
-                    
-                    UpdateWebServiceScheduleInfo(history);
+
                 }
                 catch (Exception ex)
                 {
                     //throw ex;
                     //todo: handle exception
-                }
-                finally
-                {
-
                 }
             }
         }
@@ -214,7 +211,7 @@ namespace egrants_new.Integration.WebServices
                     while (dr.Read())
                     {
                         var history = new WebServiceHistory();
-                        MapDataToObject(history,dr);
+                        MapDataToObject(history, dr);
                         histories.Add(history);
                     }
                 }
@@ -223,7 +220,7 @@ namespace egrants_new.Integration.WebServices
                     //throw ex;
                     //todo: handle exception
                 }
-                
+
                 return histories;
             }
         }
@@ -233,32 +230,19 @@ namespace egrants_new.Integration.WebServices
         {
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
             {
-                //Update the webservice endpoint record to reflect run date, time, and increment next run date
-                if (history.ResultStatusCode == HttpStatusCode.OK ||
-                    (history.ResultStatusCode != HttpStatusCode.OK && !history.WebService.RetryOnFail))
-                {
-                    TimeSpan t = TimeSpan.Parse(history.WebService.IntervalTimeSpan);
-                    history.WebService.NextRun = history.WebService.NextRun.Add(t);
-                    history.WebService.LastRun = history.DateTriggered;
-                }
-                else
-                {
-                    //TODO:  Observe the retry on failure settings from the Endpoint Record
-                    //Do nothing and this webservice end point will show again when the SP is run
-                    //Left this here in case there are properties to set before updating the database
-                }
 
                 //Save the updates for schedule
-                SqlCommand cmd2 =
+                SqlCommand cmd =
                     new SqlCommand("sp_web_service_save_schedule_updates", conn)
                     {
                         CommandType = CommandType.StoredProcedure,
                     };
-                cmd2.Parameters.Add("@WSEndpoint_Id", SqlDbType.Int).Value = history.WebService.WSEndpoint_Id;
-                cmd2.Parameters.Add("@NextRun", SqlDbType.DateTimeOffset).Value = history.WebService.NextRun;
-                cmd2.Parameters.Add("@LastRun", SqlDbType.DateTimeOffset).Value = history.WebService.LastRun;
+                conn.Open();
+                cmd.Parameters.Add("@WSEndpoint_Id", SqlDbType.Int).Value = history.WebService.WSEndpoint_Id;
+                cmd.Parameters.Add("@NextRun", SqlDbType.DateTimeOffset).Value = history.WebService.NextRun;
+                cmd.Parameters.Add("@LastRun", SqlDbType.DateTimeOffset).Value = history.WebService.LastRun;
 
-                cmd2.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -415,7 +399,7 @@ namespace egrants_new.Integration.WebServices
                     cmd.Parameters.Add("@WSHistory_Id", SqlDbType.Int).Value = history.WSHistory_Id;
                     cmd.ExecuteNonQuery();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     //TODO: Handle exception
                 }
