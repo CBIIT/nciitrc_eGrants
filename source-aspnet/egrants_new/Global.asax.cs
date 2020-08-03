@@ -54,7 +54,7 @@ namespace egrants_new
                 userid = Context.Request.ServerVariables["HEADER_SM_USER"];
                 if (userid == null)
                 {
-                    userid = "shellba";    //qians
+                    userid = "";    //qians
                 }
                 return userid;
             }

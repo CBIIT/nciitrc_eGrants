@@ -324,7 +324,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="App_Start\WepApiConfig.cs" />
     <Compile Include="CustomRazorViewEngine.cs" />
     <Compile Include="Dashboard\Controllers\ReminderController.cs" />
     <Compile Include="Dashboard\Controllers\DashboardController.cs" />
@@ -372,7 +371,6 @@
     <Compile Include="Integration\Models\Enumerations.cs" />
     <Compile Include="Integration\Models\WebServiceParam.cs" />
     <Compile Include="Integration\WebServices\EmailNotifier.cs" />
-    <Compile Include="Integration\WebServices\HangfireAuthorization.cs" />
     <Compile Include="Integration\WebServices\IDataTransformer.cs" />
     <Compile Include="Integration\WebServices\IntegrationRepository.cs" />
     <Compile Include="Integration\Models\NodeMapping.cs" />
