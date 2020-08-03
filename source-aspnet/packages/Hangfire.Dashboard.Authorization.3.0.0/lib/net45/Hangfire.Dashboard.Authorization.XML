@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Hangfire.Dashboard.Authorization</name>
+    </assembly>
+    <members>
+        <member name="M:Hangfire.Dashboard.AuthorizationFilter.SplitString(System.String)">
+            <summary>
+            Splits the string on commas and removes any leading/trailing whitespace from each result item.
+            </summary>
+            <param name="original">The input string.</param>
+            <returns>An array of strings parsed from the input <paramref name="original"/> string.</returns>
+        </member>
+        <member name="P:Hangfire.Dashboard.AuthorizationFilter.Roles">
+            <summary>
+            Gets or sets the authorized roles.
+            </summary>
+            <value>
+            The roles string.
+            </value>
+            <remarks>Multiple role names can be specified using the comma character as a separator.</remarks>
+        </member>
+        <member name="P:Hangfire.Dashboard.AuthorizationFilter.Users">
+            <summary>
+            Gets or sets the authorized users.
+            </summary>
+            <value>
+            The users string.
+            </value>
+            <remarks>Multiple role names can be specified using the comma character as a separator.</remarks>
+        </member>
+        <member name="T:Hangfire.Dashboard.BasicAuthAuthorizationFilter">
+            <summary>
+            Represents Hangfire authorization filter for basic authentication.
+            </summary>
+            <remarks>If you are using this together with OWIN security, configure Hangfire BEFORE OWIN security configuration.</remarks>
+        </member>
+        <member name="T:Hangfire.Dashboard.BasicAuthAuthorizationFilterOptions">
+            <summary>
+            Represents options for Hangfire basic authentication
+            </summary>
+        </member>
+        <member name="P:Hangfire.Dashboard.BasicAuthAuthorizationFilterOptions.SslRedirect">
+            <summary>
+            Redirects all non-SSL requests to SSL URL
+            </summary>
+        </member>
+        <member name="P:Hangfire.Dashboard.BasicAuthAuthorizationFilterOptions.RequireSsl">
+            <summary>
+            Requires SSL connection to access Hangfire dahsboard. It's strongly recommended to use SSL when you're using basic authentication.
+            </summary>
+        </member>
+        <member name="P:Hangfire.Dashboard.BasicAuthAuthorizationFilterOptions.LoginCaseSensitive">
+            <summary>
+            Whether or not login checking is case sensitive.
+            </summary>
+        </member>
+        <member name="P:Hangfire.Dashboard.BasicAuthAuthorizationFilterOptions.Users">
+            <summary>
+            Represents users list to access Hangfire dashboard.
+            </summary>
+        </member>
+        <member name="T:Hangfire.Dashboard.BasicAuthAuthorizationUser">
+            <summary>
+            Represents user to access Hangfire dashboard via basic authentication
+            </summary>
+        </member>
+        <member name="M:Hangfire.Dashboard.BasicAuthAuthorizationUser.#ctor">
+            <summary>
+            Initialize a new instance of the <see cref="T:Hangfire.Dashboard.BasicAuthAuthorizationUser"/> class with
+            <see cref="T:System.Security.Cryptography.SHA1"/> as a crypto provider.
+            </summary>
+        </member>
+        <member name="M:Hangfire.Dashboard.BasicAuthAuthorizationUser.#ctor(System.Func{System.Security.Cryptography.HashAlgorithm})">
+            <summary>
+            Initialize a new instance of the <see cref="T:Hangfire.Dashboard.BasicAuthAuthorizationUser"/> with the
+            specified <paramref name="cryptoProviderFactory"/> that will be used as a crypto
+            provider.
+            </summary>
+        </member>
+        <member name="M:Hangfire.Dashboard.BasicAuthAuthorizationUser.Validate(System.String,System.String,System.Boolean)">
+            <summary>
+            Validate user
+            </summary>
+            <param name="login">User name</param>
+            <param name="password">User password</param>
+            <param name="loginCaseSensitive">Whether or not login checking is case sensitive</param>
+            <returns></returns>
+        </member>
+        <member name="P:Hangfire.Dashboard.BasicAuthAuthorizationUser.CryptoProviderFactory">
+            <summary>
+            Gets the callback that is used for password hash calculation when setting or
+            validating a password.
+            </summary>
+        </member>
+        <member name="P:Hangfire.Dashboard.BasicAuthAuthorizationUser.Login">
+            <summary>
+            Gets or sets a login name for the user.
+            </summary>
+        </member>
+        <member name="P:Hangfire.Dashboard.BasicAuthAuthorizationUser.Password">
+            <summary>
+            Gets or sets a password hash for the user. Please use the <see cref="P:Hangfire.Dashboard.BasicAuthAuthorizationUser.PasswordClear"/>
+            property to set a plain text password that will be hashed automatically.
+            </summary>
+        </member>
+        <member name="P:Hangfire.Dashboard.BasicAuthAuthorizationUser.PasswordClear">
+            <summary>
+            Sets the <see cref="P:Hangfire.Dashboard.BasicAuthAuthorizationUser.Password"/> property from a string by automatically hashing it
+            using the given <see cref="P:Hangfire.Dashboard.BasicAuthAuthorizationUser.CryptoProviderFactory"/>.
+            </summary>
+        </member>
+    </members>
+</doc>
