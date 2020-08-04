@@ -132,7 +132,7 @@ namespace egrants_new.Integration.WebServices
                 }
 
                 using (SqlBulkCopy bulkCopy =
-                    new SqlBulkCopy(_conx))
+                    new SqlBulkCopy(_conx, SqlBulkCopyOptions.FireTriggers))
                 {
                     bulkCopy.DestinationTableName = webService.DestinationTable;
                     foreach (WSNodeMapping node in webService.NodeMappings)
@@ -142,6 +142,7 @@ namespace egrants_new.Integration.WebServices
 
                     try
                     {
+                        
                         // Write from the source to the destination.
                         bulkCopy.WriteToServer(rows.ToArray());
                         bulkCopy.Close();
