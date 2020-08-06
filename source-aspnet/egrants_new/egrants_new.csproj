@@ -227,17 +227,6 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="getEraDocuments.dll" />
     <Content Include="Global.asax" />
-    <Content Include="Integration\SQL_Scripts\Create NodeMapping Table.sql" />
-    <Content Include="Integration\SQL_Scripts\Create sp_get_web_service_endpoint.sql" />
-    <Content Include="Integration\SQL_Scripts\Create sp_get_web_service_history.sql" />
-    <Content Include="Integration\SQL_Scripts\Create WebService Endpoint Table.sql" />
-    <Content Include="Integration\SQL_Scripts\Create WSHistory Table.sql" />
-    <Content Include="Integration\SQL_Scripts\Create WSMapping Table.sql" />
-    <Content Include="Integration\SQL_Scripts\sp_get_web_service_mapping.sql" />
-    <Content Include="Integration\SQL_Scripts\sp_get_web_service_node_mapping.sql" />
-    <Content Include="Integration\SQL_Scripts\sp_web_service_call_trigger_uri.sql" />
-    <Content Include="Integration\SQL_Scripts\sp_web_service_call_url.sql" />
-    <Content Include="Integration\SQL_Scripts\sp_web_service_trigger_webservices.sql" />
     <Content Include="Integration\EmailBodyTemplate.html" />
     <Content Include="scripts\ai.0.15.0-build58334.js" />
     <Content Include="scripts\ai.0.15.0-build58334.min.js" />
