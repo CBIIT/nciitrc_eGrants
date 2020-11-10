@@ -84,7 +84,7 @@ foreach (var appl in ViewBag.appllayer)
                             <span style="width:500px; float:right;">
                                 @if (Convert.ToString(appl.closeout_flag) == "f")
                                 {
-                                <a target="_new" href="@Session["frpprAcceptance"]?applID=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Acceptance</b></a>
+                                <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Acceptance</b></a>
                                 }
                                 @if (Convert.ToString(appl.closeout_flag) == "i")
                                 {
