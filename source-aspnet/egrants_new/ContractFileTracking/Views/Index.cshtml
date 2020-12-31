@@ -1,9 +1,0 @@
-﻿@{
-    ViewBag.Title = "Docman CFT Main";
-    Layout = null;
-}
-
-<frameset rows="300,*" name="CFT Main" scrolling="yes" noresize framespacing="0" frameborder="no" border="0">
-    <frame ID="1" src=@Url.Action("Index","CFTHeader", new {  area = "ContractFileTracking", accession_id=0}, null) title="Contracts File Tracking Head" id="1" name="frameHead" style="border:none">
-    <frame ID="2" src=@Url.Action("Index","CFTTracking", new { area = "ContractFileTracking" }, null) title="Contracts File Tracking Body" id="2" name="frameBody" style="border:none">
-</frameset>

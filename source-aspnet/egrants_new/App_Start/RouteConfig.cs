@@ -33,11 +33,12 @@ namespace egrants_new
                 defaults: new { controller = "Integration", action = "Trigger", id = UrlParameter.Optional }
             );
 
-            routes.MapRoute(
+            /*routes.MapRoute(
                 name: "Docman",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Docman", action = "Index", id = UrlParameter.Optional }
-            );
+                
+            );*/
         }
     }
 }
