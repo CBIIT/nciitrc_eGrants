@@ -32,12 +32,14 @@ namespace egrants_new.Integration.WebServices
                 {
 
 
-                    var message = new MailMessage();
-                    message.From = new MailAddress(config["FromAddress"]);
-                    message.IsBodyHtml = true;
-                    message.Priority = MailPriority.Normal;
-                    message.Subject = config["SubjectLine"];
-                    message.IsBodyHtml = true;
+                    var message = new MailMessage()
+                    {
+                        From = new MailAddress(config["FromAddress"]),
+                        IsBodyHtml = true,
+                        Priority = MailPriority.Normal,
+                        Subject = config["SubjectLine"],
+                    };
+
 
                     var addresses = config["ToAddress"].Split(';');
                     foreach (var address in addresses)
