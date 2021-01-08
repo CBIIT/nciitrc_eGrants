@@ -149,7 +149,7 @@ namespace egrants_new
         {
             var usertype = Models.EgrantsCommon.UserType(Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
             //Session.Add("UserType", usertype);
-            if (usertype == "" || usertype == null || usertype == "NULL")
+            if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
             {
                 Response.Redirect("~/Shared/Views/egrants_default.htm");
             }
@@ -206,15 +206,6 @@ namespace egrants_new
             Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
             Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
 
-            //for docman
-            Session["docmanDoc"] = ConfigurationManager.ConnectionStrings["docmanDoc"].ConnectionString;
-            Session["docmanDocEmail"] = ConfigurationManager.ConnectionStrings["docmanDocEmail"].ConnectionString;
-
-            //route to docman for docman user
-            if (usertype == "d")
-            {
-                Response.Redirect("~/Docman");
-            }
         }
 
         //This event raised whenever an unhandled exception occurs in the application. This provides an opportunity to implement generic application-wide error handling.
