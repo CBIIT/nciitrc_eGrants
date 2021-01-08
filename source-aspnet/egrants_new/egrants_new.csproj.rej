@@ -1,0 +1,10 @@
+diff a/source-aspnet/egrants_new/egrants_new.csproj b/source-aspnet/egrants_new/egrants_new.csproj	(rejected hunks)
+@@ -244,8 +244,6 @@
+     <Content Include="scripts\bluebird.js" />
+     <Content Include="scripts\bootstrap.js" />
+     <Content Include="scripts\bootstrap.min.js" />
+-    <Content Include="Docman\Views\_docman_Search.cshtml" />
+-    <Content Include="ContractFileTracking\Views\_DocmanContracts.cshtml" />
+     <Content Include="Content\Grant Review Certification Form.pdf" />
+     <Content Include="Content\eGrants Category Glossary.docx" />
+     <Content Include="Egrants\Views\Go_to_Default.cshtml" />

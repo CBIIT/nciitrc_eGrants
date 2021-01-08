@@ -15,7 +15,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>egrants_new</RootNamespace>
     <AssemblyName>egrants_new</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -25,6 +25,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <Use64BitIISExpress />
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,6 +35,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LegacyPublishPropertiesPageEnabled>true</LegacyPublishPropertiesPageEnabled>
+    <PublishDatabases>false</PublishDatabases>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -105,6 +108,7 @@
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.7\lib\net45\System.Net.Http.Formatting.dll</HintPath>
@@ -115,8 +119,6 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Http, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.7\lib\net45\System.Web.Http.dll</HintPath>
@@ -124,13 +126,13 @@
     <Reference Include="System.Web.Http.WebHost, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.7\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Web.Razor">
@@ -244,8 +246,6 @@
     <Content Include="scripts\bluebird.js" />
     <Content Include="scripts\bootstrap.js" />
     <Content Include="scripts\bootstrap.min.js" />
-    <Content Include="Docman\Views\_docman_Search.cshtml" />
-    <Content Include="ContractFileTracking\Views\_DocmanContracts.cshtml" />
     <Content Include="Content\Grant Review Certification Form.pdf" />
     <Content Include="Content\eGrants Category Glossary.docx" />
     <Content Include="Egrants\Views\Go_to_Default.cshtml" />
@@ -266,7 +266,6 @@
     <Content Include="Egrants\Views\EgrantsDocCreate.cshtml" />
     <Content Include="Egrants\Views\EgrantsDocUpload.cshtml" />
     <Content Include="Egrants\Views\_egrants_showCatsToggle.cshtml" />
-    <Content Include="ContractFileTracking\Views\eFinalCostEdit.cshtml" />
     <Content Include="Egrants\Views\_egrants_Doc.cshtml" />
     <Content Include="Egrants\Views\_egrants_showUnidentifiedDocs.cshtml" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
@@ -278,6 +277,7 @@
     <Content Include="Integration\Views\Trigger.cshtml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
+    <None Include="Properties\PublishProfiles\Local IIS Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
     <None Include="Properties\PublishProfiles\prod45.pubxml" />
     <None Include="Properties\PublishProfiles\ProdNew.pubxml" />
@@ -304,8 +304,6 @@
     <Content Include="Egrants_Admin\Views\ApplDestructedIndex.cshtml" />
     <Content Include="Egrants_Admin\Views\ApplDestructedEdit.cshtml" />
     <Content Include="Egrants\Views\_egrants_showPagination.cshtml" />
-    <Content Include="Docman\Views\_docman_Pagination.cshtml" />
-    <Content Include="Docman\Views\_docman_Contract.cshtml" />
     <Content Include="Egrants\Views\Supplement.cshtml" />
     <Content Include="Egrants\Views\DocProcess.cshtml" />
     <Content Include="Egrants\Views\EgrantsApplCreate.cshtml" />
@@ -329,16 +327,6 @@
     <Compile Include="Dashboard\Controllers\DashboardController.cs" />
     <Compile Include="Dashboard\Models\Reminder.cs" />
     <Compile Include="Dashboard\Models\Dashboard.cs" />
-    <Compile Include="Docman\Controllers\DocmanController.cs" />
-    <Compile Include="Docman\Models\Docman.cs" />
-    <Compile Include="ContractFileTracking\Controllers\CFTEditController.cs" />
-    <Compile Include="ContractFileTracking\Controllers\CFTEfinalController.cs" />
-    <Compile Include="ContractFileTracking\Controllers\CFTHeaderController.cs" />
-    <Compile Include="ContractFileTracking\Controllers\ContractFileTrackingController.cs" />
-    <Compile Include="ContractFileTracking\Controllers\CFTTrackingController.cs" />
-    <Compile Include="ContractFileTracking\Models\CFTEdit.cs" />
-    <Compile Include="ContractFileTracking\Models\CFTEfinal.cs" />
-    <Compile Include="ContractFileTracking\Models\CFTTracking.cs" />
     <Compile Include="Egrants\Controllers\EgrantsController.cs" />
     <Compile Include="Egrants\Controllers\EgrantsDocController.cs" />
     <Compile Include="Egrants\Models\EgrantsAppl.cs" />
@@ -411,13 +399,6 @@
     <Content Include="Management\Views\DocTransactionReport.cshtml" />
     <Content Include="Management\Views\Index.cshtml" />
     <Content Include="Management\Views\SystemReport.cshtml" />
-    <Content Include="ContractFileTracking\Views\EditAccessionIndex.cshtml" />
-    <Content Include="ContractFileTracking\Views\EditBoxIndex.cshtml" />
-    <Content Include="ContractFileTracking\Views\EditFolderIndex.cshtml" />
-    <Content Include="ContractFileTracking\Views\CFTHeaderIndex.cshtml" />
-    <Content Include="ContractFileTracking\Views\Index.cshtml" />
-    <Content Include="ContractFileTracking\Views\CFTTrackingIndex.cshtml" />
-    <Content Include="Docman\Views\DocmanDeletedDocs.cshtml" />
     <Content Include="Egrants_Admin\Views\CategoryEditIndex.cshtml" />
     <Content Include="Egrants_Admin\Views\FlagMaintenanceIndex.cshtml" />
     <Content Include="Egrants_Admin\Views\EgrantsAccessCreate.cshtml" />
@@ -425,14 +406,6 @@
     <Content Include="Egrants_Admin\Views\Index.cshtml" />
     <Content Include="IC_Coordinator\Views\ICCoordinatorIndex.cshtml" />
     <Content Include="Egrants\Views\InstitutionalFilesIndex.cshtml" />
-    <Content Include="ContractFileTracking\Views\eFinalCostView.cshtml" />
-    <Content Include="ContractFileTracking\Views\_eFinalCostEdit.cshtml" />
-    <Content Include="Docman\Views\DocmanContractDocs.cshtml" />
-    <Content Include="Docman\Views\DocmanIndex.cshtml" />
-    <Content Include="Docman\Views\DocmanDocDelete.cshtml" />
-    <Content Include="Docman\Views\DocmanDocModify.cshtml" />
-    <Content Include="Docman\Views\DocmanDocUpload.cshtml" />
-    <Content Include="Docman\Views\DocmanDocCreate.cshtml" />
     <Content Include="Egrants_Funding\Views\Index.cshtml" />
     <Content Include="Egrants_Funding\Views\FundingApplEdit.cshtml" />
     <Content Include="Egrants_Funding\Views\FundingDocEdit.cshtml" />
@@ -493,9 +466,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>51006</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:52030/</IISUrl>
-          <OverrideIISAppRootUrl>True</OverrideIISAppRootUrl>
-          <IISAppRootUrl>http://localhost:52030/</IISAppRootUrl>
+          <IISUrl>http://localhost:51006/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>https://egrants-web-dev45.nci.nih.gov/</CustomServerUrl>
