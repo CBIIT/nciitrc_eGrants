@@ -104,12 +104,12 @@ Sub Process (dirpath,oConn,oRS)
 		'v_Sender = CItem.Sender
 		'wscript.echo "Sender= "  & v_Sender   Automatic reply
 		''wscript.echo "Sender= "  & v_Sender
-		''IF ((InStr(v_SubLine,"Undeliverable: ") < 1) OR (InStr(v_SubLine,"Automatic reply ") < 1)) Then
-		IF ((InStr(v_SubLine,"Undeliverable: ") < 1)) Then
+		''IF ((InStr(v_SubLine,"Undeliverable: ",1) < 1) OR (InStr(v_SubLine,"Automatic reply ",1) < 1)) Then
+		IF ((InStr(v_SubLine,"Undeliverable: ",1) < 1)) Then
 			v_Sender = CItem.Sender
-			IF (InStr(v_SubLine,"eSNAP Received at NIH") > 0)  OR  (InStr(v_SubLine,"eRA Commons: RPPR for Grant ") > 0) Then
-				IF (InStr(v_SubLine,"eRA Commons: RPPR for Grant ") > 0) Then
-					IF (InStr(v_SubLine," Submitted to NIH with a Non-Compliance ") > 0) Then
+			IF (InStr(v_SubLine,"eSNAP Received at NIH",1) > 0)  OR  (InStr(v_SubLine,"eRA Commons: RPPR for Grant ",1) > 0) Then
+				IF (InStr(v_SubLine,"eRA Commons: RPPR for Grant ",1) > 0) Then
+					IF (InStr(v_SubLine," Submitted to NIH with a Non-Compliance ",1) > 0) Then
 						''''(1) load into eGrants
 						''''---- IMP: STRIP SPACES FROM CATEGORY NAME "ERA NOTIFICATION"
 						replysubj="category=eRANotification, sub=RPPR Non-Compliance, extract=1, " & CItem.subject
@@ -174,7 +174,7 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail=nothing
 				END IF
 		
-			ELSEIF InStr(v_SubLine,"IC ACTION REQUIRED - Relinquishing Statement") > 0 Then
+			ELSEIF InStr(v_SubLine,"IC ACTION REQUIRED - Relinquishing Statement",1) > 0 Then
 				'''wscript.echo "FOUND->"&v_SubLine
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then				
@@ -192,7 +192,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				END IF
 				Set OutMail=nothing
-			ELSEIF InStr(v_SubLine," Supplement Requested through ") > 0 Then
+			ELSEIF InStr(v_SubLine," Supplement Requested through ",1) > 0 Then
 				'''wscript.echo "FOUND->"&v_SubLine
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then				
@@ -208,7 +208,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With				
 				END IF
 				Set OutMail=nothing
-			ELSEIF (InStr(v_SubLine," FCOI ") > 0  AND InStr(1,v_SubLine,"Automatic reply:") = 0) Then				
+			ELSEIF (InStr(v_SubLine," FCOI ",1) > 0  AND InStr(v_SubLine,"Automatic reply:",1) = 0) Then				
 				IF  len(Trim(v_SubLine))<>0  THEN
 					applid=getApplid(removespcharacters(v_SubLine),oConn)
 					'''wscript.echo "FCOI => applid=" & applid
@@ -283,7 +283,7 @@ Sub Process (dirpath,oConn,oRS)
 				END IF
 				Set OutMail=nothing
 			''''---- IMP: STRIP SPACES FROM CATEGORY NAME "ERA NOTIFICATION"	
-			ELSEIF InStr(v_SubLine,"No Cost Extension Submitted") > 0 Then
+			ELSEIF InStr(v_SubLine,"No Cost Extension Submitted",1) > 0 Then
 				replysubj="category=eRANotification, sub=No Cost Extension, extract=1," & CItem.subject
 				'''wscript.echo "FOUND->"&v_SubLine
 				'''wscript.echo "FOUND->"&replysubj
@@ -309,7 +309,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				END IF
 				Set OutMail=nothing
-			ELSEIF InStr(v_SubLine," Change of Institution request for Grant ") > 0 Then
+			ELSEIF InStr(v_SubLine," Change of Institution request for Grant ",1) > 0 Then
 				replysubj=CItem.subject
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then
@@ -328,7 +328,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With				
 				END IF
 				Set OutMail=nothing
-			ELSEIF InStr(v_Sender,"Public Access") > 0 Then
+			ELSEIF InStr(v_Sender,"Public Access",1) > 0 Then
 				replysubj="category=PublicAccess, extract=1, " & CItem.subject
 				'''wscript.echo "FOUND->"&v_SubLine
 				'''wscript.echo "FOUND->"&replysubj
@@ -352,7 +352,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With				
 				END IF
 				Set OutMail=nothing
-			ELSEIF InStr(v_SubLine,"JIT Request for Grant") > 0    Then  
+			ELSEIF InStr(v_SubLine,"JIT Request for Grant",1) > 0    Then  
 					replysubj="category=JIT Info, sub=Reminder, extract=1, " & CItem.subject
 					Set OutMail = CItem.Forward
 					IF (dBug="n") Then								
@@ -373,8 +373,8 @@ Sub Process (dirpath,oConn,oRS)
 						End With					
 					END IF
 					Set OutMail=nothing								
-			ELSEIF InStr(v_SubLine,"NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant") > 0 Then
-			    IF (InStr(v_SubLine," R15 ") > 0) Then
+			ELSEIF InStr(v_SubLine,"NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant",1) > 0 Then
+			    IF (InStr(v_SubLine," R15 ",1) > 0) Then
 				replysubj="category=eRANotification, sub=Late Progress Report, extract=1, " & CItem.subject
 				'''wscript.echo "FOUND->"&v_SubLine
 				'''wscript.echo "FOUND->"&replysubj
@@ -400,7 +400,7 @@ Sub Process (dirpath,oConn,oRS)
 				END IF
 				Set OutMail=nothing
 			    END IF
-			ELSEIF InStr(v_SubLine,"Expiring Funds") > 0  OR InStr(v_SubLine,"EXPIRING FUNDS-") > 0  Then  
+			ELSEIF InStr(v_SubLine,"Expiring Funds",1) > 0  OR InStr(v_SubLine,"EXPIRING FUNDS-",1) > 0  Then  
 				'''Only attached document has to be extracted so many make Body=""
 				'''wscript.echo "FOUND->"&v_SubLine
 				replysubj="category=Closeout, extract=2, " & CItem.subject
@@ -425,7 +425,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With				
 				END IF
 				Set OutMail=nothing								
-			ELSEIF InStr(v_SubLine,"Prior Approval: ") > 0  Then  
+			ELSEIF InStr(v_SubLine,"Prior Approval: ",1) > 0  Then  
 				'''wscript.echo "FOUND Prior Approval_1"&v_SubLine
 				'''wscript.echo "RE :"&InStr(v_SubLine,"RE: Prior Approval: ") 
 				'''wscript.echo "RE :"&InStr(v_SubLine,"FW: Prior Approval: ")
@@ -454,9 +454,9 @@ Sub Process (dirpath,oConn,oRS)
 				END IF
 					Set OutMail=nothing								
 				''END IF
-			ELSEIF InStr(v_SubLine,"FFR NOTIFICATION : REJECTED") > 0    Then  
+			ELSEIF InStr(v_SubLine,"FFR NOTIFICATION : REJECTED",1) > 0    Then  
 
-				IF (InStr(lcASE(v_SubLine),"re: ffr notification") > 0  OR  InStr(LCase(v_SubLine),"fw: ffr notification") > 0)  Then  
+				IF (InStr(lcASE(v_SubLine),"re: ffr notification",1) > 0  OR  InStr(LCase(v_SubLine),"fw: ffr notification",1) > 0)  Then  
 					'''wscript.echo "DON'T WANT THIS" & v_SubLine
 				ELSE
 					replysubj="category=Notification, sub=FFR Rejection, extract=1, " & CItem.subject
