@@ -80,7 +80,7 @@ order by grant_id
 select grant_id, grant_close_date, to_be_destroyed as is_closed_out--, is_closed_out (earlier code)
 from grants										 
 where to_be_destroyed=1 --where is_closed_out=1 (earlier code)
-order by grant_close_date asc
+order by grant_close_date desc
 
 
 GO
