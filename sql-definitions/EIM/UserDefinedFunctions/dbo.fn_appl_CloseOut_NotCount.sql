@@ -1,0 +1,30 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+
+/*******************************************************
+**5/14/2015: Auther : Qian Shiliang
+**Description : This function return count of CloseOut documents for a given appl
+**Usage:
+*******************************************************/
+CREATE FUNCTION [dbo].[fn_appl_CloseOut_NotCount]  (@appl_id int)  
+RETURNS int
+
+AS  
+BEGIN 
+
+DECLARE @notification_count	int
+
+SELECT @notification_count=COUNT(*) FROM dbo.IMPP_CloseOut_Notification_All WHERE appl_id = @appl_id GROUP BY appl_id 
+
+IF @notification_count=0 or @notification_count is null SET @notification_count=0
+
+RETURN @notification_count
+
+END
+
+
+
+
+GO
+

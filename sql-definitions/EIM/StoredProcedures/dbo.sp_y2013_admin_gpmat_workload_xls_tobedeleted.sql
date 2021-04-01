@@ -1,0 +1,126 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_y2013_admin_gpmat_workload_xls_tobedeleted]
+@Operator		varchar(50),
+@Inst			varchar(10)
+
+AS
+/************************************************************************************************************/
+/***									 							***/
+/***	Procedure Name: sp_y2013_admin_gpmat_workload_xls			***/
+/***	Description:return GPMAT worklod report for xls				***/
+/***	Created:	06/26/2014	Leon								***/
+/***	Modified:	06/26/2014	Leon								***/
+/***																***/
+/************************************************************************************************************/
+SET NOCOUNT ON
+
+DECLARE
+@profile_id	smallint,
+@person_id	int
+
+/** find user info***/
+SET @person_id=(SELECT person_id FROM people WHERE userid=@Operator)
+
+/**
+declare @person_name	varchar(50)
+declare @first_name		varchar(50)
+declare @separate		int
+declare @qc_date 		smalldatetime
+declare @daydiff 		int
+declare	@xmlout			varchar(max)
+declare @X				Xml
+
+--find the qc days
+SELECT @qc_date=MIN(qc_date) FROM egrants WHERE qc_person_id=@person_id and qc_date is not null and parent_id is null
+IF @qc_date IS NOT NULL
+BEGIN
+SELECT @daydiff=DATEDIFF(day, getdate(), @qc_date)-1
+END
+
+--find user name
+set @person_name=(select person_name from people where person_id=@person_id)
+IF @person_name<>'' and @person_name is not null 
+BEGIN
+select  @separate=PATINDEX('%,%', @person_name)
+select  @first_name=LEFT(@person_name,@separate-1 )
+END 
+
+SET @X = (
+SELECT person_id, person_name,ISNULL(@first_name, NULL) as first_name,userid,profile_id,[profile] as ic,
+admin_phs_org_code,position_id,@daydiff as qc_days,convert(varchar, getdate(),101) as today,
+can_egrants,can_egrants_upload,can_econtracts,can_cft,can_admin
+FROM vw_people AS user_info 
+WHERE userid=@operator
+FOR XML AUTO, TYPE, ELEMENTS
+)
+SELECT @xmlout = cast(@X as varchar(max))
+SELECT @xmlout 
+
+--return admin meun 
+SET @X = (
+SELECT menu_id,menu_title,menu_url,menu_hover 
+FROM  dbo.vw_adm_menu_assignment as menu 
+WHERE person_id=@person_id and menu_url is not null
+FOR XML AUTO, ELEMENTS
+)
+SELECT @xmlout = cast(@X as varchar(max))
+SELECT @xmlout
+
+
+GOTO header
+**/
+SELECT *
+FROM OPENQUERY (CIIP, 'SELECT OGA_OVERALL_WORKLOAD.RESP_SPEC_FULL_NAME_CODE,
+       OGA_OVERALL_WORKLOAD.RESP_SPEC_ROLE_USAGE_CODE,
+       OGA_OVERALL_WORKLOAD.BRANCH_NUM, 
+       OGA_OVERALL_WORKLOAD.TEAM_NUM,
+       OGA_OVERALL_WORKLOAD.ACTION_FY,
+       OGA_OVERALL_WORKLOAD.OCT_CNT,
+       OGA_OVERALL_WORKLOAD.OCT_REL,
+       OGA_OVERALL_WORKLOAD.OCT_WRKLD,
+       OGA_OVERALL_WORKLOAD.NOV_CNT,
+       OGA_OVERALL_WORKLOAD.NOV_REL,
+       OGA_OVERALL_WORKLOAD.NOV_WRKLD,
+       OGA_OVERALL_WORKLOAD.DEC_CNT,
+       OGA_OVERALL_WORKLOAD.DEC_REL,
+       OGA_OVERALL_WORKLOAD.DEC_WRKLD,
+       OGA_OVERALL_WORKLOAD.JAN_CNT,
+       OGA_OVERALL_WORKLOAD.JAN_REL,
+       OGA_OVERALL_WORKLOAD.JAN_WRKLD,
+       OGA_OVERALL_WORKLOAD.FEB_CNT,
+       OGA_OVERALL_WORKLOAD.FEB_REL,
+       OGA_OVERALL_WORKLOAD.FEB_WRKLD,
+       OGA_OVERALL_WORKLOAD.MAR_CNT,
+       OGA_OVERALL_WORKLOAD.MAR_REL,
+       OGA_OVERALL_WORKLOAD.MAR_WRKLD,
+       OGA_OVERALL_WORKLOAD.APR_CNT,
+       OGA_OVERALL_WORKLOAD.APR_REL,
+       OGA_OVERALL_WORKLOAD.APR_WRKLD,
+       OGA_OVERALL_WORKLOAD.MAY_CNT,
+       OGA_OVERALL_WORKLOAD.MAY_REL,
+       OGA_OVERALL_WORKLOAD.MAY_WRKLD,
+       OGA_OVERALL_WORKLOAD.JUN_CNT,
+       OGA_OVERALL_WORKLOAD.JUN_REL,
+       OGA_OVERALL_WORKLOAD.JUN_WRKLD,
+       OGA_OVERALL_WORKLOAD.JUL_CNT,
+       OGA_OVERALL_WORKLOAD.JUL_REL,
+       OGA_OVERALL_WORKLOAD.JUL_WRKLD,
+       OGA_OVERALL_WORKLOAD.AUG_CNT,
+       OGA_OVERALL_WORKLOAD.AUG_REL,
+       OGA_OVERALL_WORKLOAD.AUG_WRKLD,
+       OGA_OVERALL_WORKLOAD.SEP_CNT,
+       OGA_OVERALL_WORKLOAD.SEP_REL,
+       OGA_OVERALL_WORKLOAD.SEP_WRKLD,
+       OGA_OVERALL_WORKLOAD.TOTAL_CNT,
+       OGA_OVERALL_WORKLOAD.TOTAL_REL,
+       OGA_OVERALL_WORKLOAD.TOTL_WRKLD
+FROM NCIGAB.OGA_OVERALL_WORKLOAD OGA_OVERALL_WORKLOAD
+ORDER BY OGA_OVERALL_WORKLOAD.BRANCH_NUM, 
+       OGA_OVERALL_WORKLOAD.TEAM_NUM,
+       OGA_OVERALL_WORKLOAD.RESP_SPEC_FULL_NAME_CODE ASC')
+       
+RETURN
+
+GO
+

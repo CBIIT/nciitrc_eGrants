@@ -1,0 +1,81 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+
+CREATE PROCEDURE [dbo].[sp_web_admin_gpmat_workload]
+@ic				varchar(10),
+@Operator		varchar(50)
+
+AS
+/**************************************************************************************************************/
+/***																										***/
+/***	Procedure Name: sp_web_admin_gpmat_workload															***/
+/***	Description:return GPMAT workload report																***/
+/***	Created:	07/01/2014	Leon																		***/
+/***	Modified:	07/01/2014	Leon																		***/
+/***																										***/
+/**************************************************************************************************************/
+SET NOCOUNT ON
+
+DECLARE
+@profile_id	smallint,
+@person_id	int
+
+/** find user info***/
+SET @person_id=(SELECT person_id FROM people WHERE userid=@Operator)
+
+SELECT *
+FROM OPENQUERY (CIIP, 'SELECT OGA_OVERALL_WORKLOAD.RESP_SPEC_FULL_NAME_CODE AS "specialist_name",
+       OGA_OVERALL_WORKLOAD.RESP_SPEC_ROLE_USAGE_CODE AS "specialist_code",
+       OGA_OVERALL_WORKLOAD.BRANCH_NUM AS "branch", 
+       OGA_OVERALL_WORKLOAD.TEAM_NUM AS "team",
+       OGA_OVERALL_WORKLOAD.ACTION_FY AS "fy",
+       OGA_OVERALL_WORKLOAD.OCT_CNT,
+       OGA_OVERALL_WORKLOAD.OCT_REL,
+       OGA_OVERALL_WORKLOAD.OCT_WRKLD,
+       OGA_OVERALL_WORKLOAD.NOV_CNT,
+       OGA_OVERALL_WORKLOAD.NOV_REL,
+       OGA_OVERALL_WORKLOAD.NOV_WRKLD,
+       OGA_OVERALL_WORKLOAD.DEC_CNT,
+       OGA_OVERALL_WORKLOAD.DEC_REL,
+       OGA_OVERALL_WORKLOAD.DEC_WRKLD,
+       OGA_OVERALL_WORKLOAD.JAN_CNT,
+       OGA_OVERALL_WORKLOAD.JAN_REL,
+       OGA_OVERALL_WORKLOAD.JAN_WRKLD,
+       OGA_OVERALL_WORKLOAD.FEB_CNT,
+       OGA_OVERALL_WORKLOAD.FEB_REL,
+       OGA_OVERALL_WORKLOAD.FEB_WRKLD,
+       OGA_OVERALL_WORKLOAD.MAR_CNT,
+       OGA_OVERALL_WORKLOAD.MAR_REL,
+       OGA_OVERALL_WORKLOAD.MAR_WRKLD,
+       OGA_OVERALL_WORKLOAD.APR_CNT,
+       OGA_OVERALL_WORKLOAD.APR_REL,
+       OGA_OVERALL_WORKLOAD.APR_WRKLD,
+       OGA_OVERALL_WORKLOAD.MAY_CNT,
+       OGA_OVERALL_WORKLOAD.MAY_REL,
+       OGA_OVERALL_WORKLOAD.MAY_WRKLD,
+       OGA_OVERALL_WORKLOAD.JUN_CNT,
+       OGA_OVERALL_WORKLOAD.JUN_REL,
+       OGA_OVERALL_WORKLOAD.JUN_WRKLD,
+       OGA_OVERALL_WORKLOAD.JUL_CNT,
+       OGA_OVERALL_WORKLOAD.JUL_REL,
+       OGA_OVERALL_WORKLOAD.JUL_WRKLD,
+       OGA_OVERALL_WORKLOAD.AUG_CNT,
+       OGA_OVERALL_WORKLOAD.AUG_REL,
+       OGA_OVERALL_WORKLOAD.AUG_WRKLD,
+       OGA_OVERALL_WORKLOAD.SEP_CNT,
+       OGA_OVERALL_WORKLOAD.SEP_REL,
+       OGA_OVERALL_WORKLOAD.SEP_WRKLD,
+       OGA_OVERALL_WORKLOAD.TOTAL_CNT,
+       OGA_OVERALL_WORKLOAD.TOTAL_REL,
+       OGA_OVERALL_WORKLOAD.TOTL_WRKLD
+FROM NCIGAB.OGA_OVERALL_WORKLOAD OGA_OVERALL_WORKLOAD
+ORDER BY OGA_OVERALL_WORKLOAD.BRANCH_NUM, 
+       OGA_OVERALL_WORKLOAD.TEAM_NUM,
+       OGA_OVERALL_WORKLOAD.RESP_SPEC_FULL_NAME_CODE ASC'  
+)
+     
+RETURN
+
+
+GO
+

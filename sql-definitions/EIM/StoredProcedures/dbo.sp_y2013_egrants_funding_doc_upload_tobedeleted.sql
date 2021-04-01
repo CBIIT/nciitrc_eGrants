@@ -1,0 +1,175 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_y2013_egrants_funding_doc_upload_tobedeleted]
+
+@Act 			varchar(50),
+@AdminCode 		char(2),
+@SerialNum		int, 
+@ApplID			int,
+--@DocumentID		int,	--commented by hareesh on 12/22/2014 5:00pm
+@CategoryID 	int,
+@DocDate 		smalldatetime,
+@FileType		varchar(5),  
+@Operator		varchar(50),
+@Inst			varchar(10)
+
+AS
+/****************************************************************************************************************/
+/***									 								***/
+/***	Procedure Name: sp_y2013_egrants_funding_doc_upload				***/
+/***	Description:create funding document								***/
+/***	Created:	12/22/2009	Leon									***/
+/***	Modified:	11/07/2013	Leon									***/
+/***	Modified:	10/13/2015	Leon	set fy value by code			***/
+/****************************************************************************************************************/
+
+SET NOCOUNT ON
+
+declare 
+@fy				int,
+@profile_id 	int,
+@person_id 		int,
+@DocumentID		int,			--new code, created by Leon, inserted by hareesh on 12/22/2014 5:00pm
+@xmlout			varchar(max),	--new code, created by Leon, inserted by hareesh on 12/22/2014 5:00pm
+@X				Xml				--new code, created by Leon, inserted by hareesh on 12/22/2014 5:00pm
+
+--find the profile_id
+SELECT @profile_id=profile_id FROM profiles WHERE profile=@Inst 
+
+--find the operator's person_id
+SELECT @person_id =person_id FROM people WHERE userid=@Operator and profile_id=@profile_id
+
+--return all admin_phs_org_code
+SET @X = (
+SELECT DISTINCT admin_phs_org_code as admin_phs_org_code FROM vw_appls AS admin_phs_org_code
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+--set fy
+SET @fy=YEAR(GETDATE())
+IF MONTH(GETDATE())>=10 SET @fy=@fy+1
+
+--return all categories by fy
+SET @X = (
+SELECT distinct category_id,category_name,level_id,parent_id
+FROM funding_categories as category
+WHERE category_fy is null or category_fy=2014	--since the latest category_fy is 2014
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+--run by act
+IF @act='' or @act is null or @act='to_load' GOTO to_load
+IF @act='to_create' GOTO to_create
+-------------------------------------------------------
+to_load:
+
+IF @ApplID <>'' and @ApplID is not null
+--load by @ApplID
+BEGIN
+SET @X = (
+SELECT 
+grant_id, 			
+admin_phs_org_code,	
+serial_num,			
+(
+SELECT DISTINCT appl_id,support_year,full_grant_num
+FROM vw_appls as appl 
+WHERE grant_id =(select grant_id from vw_appls where appl_id=@ApplID)
+FOR XML AUTO, TYPE, ELEMENTS
+)		
+FROM vw_grants as [grant] 
+WHERE grant_id =(select grant_id from vw_appls where appl_id=@ApplID)
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+END
+
+ELSE--load by @AdminCode and @SerialNum
+
+BEGIN
+SET @X = (
+SELECT 
+grant_id, 			
+admin_phs_org_code,	
+serial_num,			
+(
+SELECT DISTINCT appl_id,support_year,full_grant_num
+FROM vw_appls as appl 
+WHERE admin_phs_org_code=@AdminCode and serial_num=@SerialNum
+FOR XML AUTO, TYPE, ELEMENTS
+)		
+FROM vw_grants as [grant] 
+WHERE admin_phs_org_code=@AdminCode and serial_num=@SerialNum
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+END
+
+GOTO head
+
+RETURN
+--------------------------------------------------------
+/***to create new document***/
+to_create:
+
+INSERT funding_documents(category_id,document_date,created_date,created_by_person_id,document_fy) 
+SELECT @CategoryID,@DocDate,getdate(),@person_id,@fy		
+
+SELECT @Documentid = @@IDENTITY
+
+INSERT funding_appls(document_id, appl_id) SELECT @Documentid, @ApplID
+
+/**return new  document_id and url **/
+SET @X = (
+SELECT RIGHT('00000' + CONVERT(varchar,document_id), 6) AS  document_id, url 
+FROM vw_funding AS document  
+WHERE document_id=@Documentid
+FOR XML AUTO, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GOTO head
+
+RETURN
+-----------------------------------------------------------
+head:
+
+/** find user info***/
+declare @person_name	varchar(50)
+declare @first_name		varchar(50)
+declare @separate		int
+declare @qc_date 		smalldatetime
+declare @daydiff 		int
+
+--find the qc days
+SELECT @qc_date=MIN(qc_date) FROM egrants WHERE qc_person_id=@person_id and qc_date is not null and parent_id is null
+IF @qc_date IS NOT NULL
+BEGIN
+SELECT @daydiff=DATEDIFF(day, getdate(), @qc_date)-1
+END
+
+set @person_name=(select person_name from people where person_id=@person_id)
+
+IF @person_name<>'' and @person_name is not null 
+BEGIN
+select  @separate=PATINDEX('%,%', @person_name)
+select  @first_name=LEFT(@person_name,@separate-1 )
+END 
+
+/*--new code, created by Leon, inserted by hareesh on 12/22/2014 5:00pm--*/
+SELECT person_id, person_name,ISNULL(@first_name, NULL) as first_name,userid,profile_id,[profile] as ic,
+admin_phs_org_code,position_id,@daydiff as qc_days,convert(varchar, getdate(),101) as today,
+can_egrants,can_egrants_upload,can_cft,can_mgt,can_docman,can_admin
+FROM vw_people AS user_info 
+WHERE userid=@operator  and application_type='egrants' and can_egrants_upload='y'
+
+RETURN
+GO
+

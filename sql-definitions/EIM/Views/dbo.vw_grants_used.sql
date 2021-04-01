@@ -1,0 +1,9 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW dbo.vw_grants_used
+AS
+SELECT DISTINCT grant_id
+FROM  dbo.egrants
+
+GO
+

@@ -1,0 +1,22 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+create FUNCTION [dbo].[fn_get_qc_tab] (@person_id int)
+  
+RETURNS int
+
+BEGIN
+
+DECLARE @count	int
+DECLARE @qc_tab int
+
+SEt @count=(SELECT count(*) FROM documents WHERE qc_person_id=@person_id and qc_date is not null and parent_id is null and stored_date is null and disabled_date is null)
+
+IF @count>0 SET @qc_tab=1 ElSE SET @qc_tab=0
+
+RETURN @qc_tab
+
+END
+
+
+GO
+

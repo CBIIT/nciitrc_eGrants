@@ -1,0 +1,143 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+CREATE PROCEDURE [dbo].[sp_web_egrants_load_data_years] 
+@fy				varchar(4)=null,
+@mechanism		varchar(3)=null,
+@admincode		varchar(2)=null,
+@serialnum		varchar(10)=null
+
+AS
+             
+SET NOCOUNT ON
+
+---1=@fy
+---2=@mechanism
+---3=@admincode
+---4=@serialnum
+--Created by Ayu
+
+declare @sql			varchar(400)
+--declare @like			varchar(100)
+
+---2,Load years all filters null
+IF (@fy is null or @fy ='') and (@mechanism is null or @mechanism='') and (@admincode is null or  @admincode='') and (@serialnum is null or @serialnum='')	
+BEGIN
+SET @sql ='select top 10 full_grant_num, appl_id from vw_appls  order by support_year desc'
+exec (@sql)
+END --new 
+
+---2,Load years by @mechanism only
+IF (@fy is null or @fy ='') and (@mechanism <>'') and (@admincode is null or  @admincode='') and (@serialnum is null or @serialnum='')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code = '+ char(39)+ @mechanism + char(39) +' and doc_count>0 order by support_year desc'
+exec (@sql)
+END --new
+
+---1-2, Load years by @fy and @mechanism 
+IF (@fy is not null and @fy <>'') and (@mechanism<>'') and (@admincode is null or @admincode='') and (@serialnum is null or @serialnum='')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code = '+ char(39)+ @mechanism + char(39) +' and fy=' +convert(varchar, @fy) +' and doc_count>0 order by support_year desc'
+ exec ( @sql)
+END
+
+---1-3, Load years by @mechanism and @admincode
+IF (@fy is null or @fy ='') and (@mechanism <>'') and (@admincode is not null and @admincode<>'') and (@serialnum is null or @serialnum='')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code = '+ char(39)+ @mechanism + char(39) + ' and admin_phs_org_code=' +char(39)+ @admincode +char(39)+' and doc_count>0 order by support_year desc'
+exec (@sql)
+END --new
+---2-4, Load years by @mechanism and @serialnum
+IF (@fy is null or @fy='') and (@mechanism<>'') and (@admincode is null or @admincode='') and (@serialnum is not null and @serialnum<>'')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code = '+ char(39)+ @mechanism + char(39) + '  and serial_num=' +convert(varchar, @serialnum) +' and doc_count>0 order by support_year desc'
+exec(@sql)
+END --new
+
+---1-2-3,Load years by @fy,@mechanism ,@admincode 
+IF (@fy is not null and @fy <>'') and (@mechanism<>'') and (@admincode is not null and @admincode<>'') and (@serialnum is null or @serialnum='')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code ='+ char(39)+ @mechanism + char(39) +' and fy =' +char(39)+ @fy +char(39)+' and admin_phs_org_code=' +char(39)+ @admincode +char(39)+' and doc_count>0 order by support_year desc'
+exec(@sql)
+END
+  
+---1-2-4, Load years by @fy, @mechanism and @serialnum
+IF (@fy is not null and @fy <>'') and (@mechanism<>'') and (@admincode is  null or @admincode ='') and (@serialnum is not null and @serialnum<>'')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code ='+ char(39)+ @mechanism + char(39) +' and fy=' +char(39)+ @fy +char(39)+' and serial_num=' +convert(varchar, @serialnum) +' and doc_count>0 order by support_year desc'
+exec(@sql)
+END
+
+---2-3-4, Load years by @mechanism, @admincode and @serialnum
+IF (@fy is null or  @fy='') and (@mechanism <>'') and (@admincode is not null and @admincode<>'') and (@serialnum is not null and @serialnum<>'')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code ='+ char(39)+ @mechanism + char(39) +' and admin_phs_org_code=' +char(39)+ @admincode +char(39)+' and serial_num=' +convert(varchar, @serialnum) +' and doc_count>0 order by support_year desc '
+exec(@sql)
+END--new ayua
+
+---1-2-3-4, Load years by @fy,@mechanism ,@admincode and @serialnum
+IF (@fy is not null and @fy >0) and (@mechanism<>'') and (@admincode is not null and @admincode<>'') and (@serialnum is not null and @serialnum<>'')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code ='+ char(39)+ @mechanism + char(39) +' and fy =' +char(39)+ @fy +char(39)+' and admin_phs_org_code=' +char(39)+ @admincode +char(39)+' and serial_num=' +convert(varchar, @serialnum) +' and doc_count>0 order by support_year desc '
+exec(@sql)
+END
+
+--Load years by @fy
+IF (@fy <>'') and (@mechanism ='' or @mechanism is null) and (@admincode is null or  @admincode='') and (@serialnum is null or @serialnum='')	
+BEGIN
+SET @sql ='select Top 10 full_grant_num, appl_id from vw_appls where fy=' +convert(varchar, @fy)+' and doc_count>0 order by support_year desc'
+exec (@sql)
+END --new
+
+---1-3, Load years by @fy and @admincode
+IF (@fy <>'') and (@mechanism ='' or @mechanism is null) and (@admincode is not null and @admincode<>'') and (@serialnum is null or @serialnum='')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where fy=' +convert(varchar, @fy)+ ' and admin_phs_org_code=' +char(39)+ @admincode +char(39)+' and doc_count>0 order by support_year desc'
+exec (@sql)
+END --new
+---2-4, Load years by @admincode and @serialnum
+IF (@fy ='' or @fy is null) and (@mechanism ='' or @mechanism is null) and (@admincode is not null and @admincode<>'') and (@serialnum is not null and @serialnum<>'')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where admin_phs_org_code=' +char(39)+ @admincode +char(39)+ '  and serial_num=' +convert(varchar, @serialnum) +' and doc_count>0 order by support_year desc'
+exec(@sql)
+END --new
+
+---2-4, Load years by @admincode only
+IF (@fy is null or @fy ='' ) and (@mechanism is null or @mechanism ='' ) and (@admincode<>'' )  and (@serialnum is  null or  @serialnum='')	
+BEGIN
+SET @sql ='select top 10 full_grant_num, appl_id from vw_appls where admin_phs_org_code=' +char(39)+ @admincode +char(39)+ ' order by support_year desc'
+exec(@sql)
+END --new 
+
+---2-4, Load years by @serialnum only
+IF (@fy ='' or @fy is null) and (@mechanism ='' or @mechanism is null) and (@admincode is null or @admincode='') and (@serialnum<>'')	
+BEGIN
+SET @sql ='select top 10 full_grant_num, appl_id from vw_appls where serial_num='+char(39)+ @serialnum +char(39)+' and doc_count>0 order by support_year desc'
+exec(@sql)
+END --new
+
+--IF (@fy is null or @fy ='') and (@mechanism <>'') and (@admincode is null or  @admincode='') and (@serialnum is null or @serialnum='')	
+--BEGIN
+--SET @sql ='select full_grant_num, appl_id from vw_appls where activity_code = '+ char(39)+ @mechanism + char(39) +' and doc_count>0 order by support_year desc'
+--exec (@sql)
+--END --new
+
+---2-4, Load years by @fy and @serialnum
+IF (@fy <>'') and (@mechanism ='' or @mechanism is null) and (@admincode is null or @admincode='') and (@serialnum is not null and @serialnum<>'')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where fy=' +convert(varchar, @fy)+ '  and serial_num=' +convert(varchar, @serialnum) +' and doc_count>0 order by support_year desc'
+exec(@sql)
+END --new
+
+  ---2-3-4, Load years by @fy, @admincode and @serialnum
+IF (@fy <>'') and (@mechanism ='' or @mechanism is null) and (@admincode is not null and @admincode<>'') and (@serialnum is not null and @serialnum<>'')	
+BEGIN
+SET @sql ='select full_grant_num, appl_id from vw_appls where fy=' +convert(varchar, @fy)+ ' and admin_phs_org_code=' +char(39)+ @admincode +char(39)+' and serial_num=' +convert(varchar, @serialnum) +' and doc_count>0 order by support_year desc '
+exec(@sql)
+END--new ayua
+
+--return SQL query
+select @sql
+
+GO
+

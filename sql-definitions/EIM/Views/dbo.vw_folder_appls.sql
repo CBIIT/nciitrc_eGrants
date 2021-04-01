@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW dbo.vw_folder_appls
+AS
+SELECT     dbo.folder_appls.folder_id, dbo.folders.bar_code, dbo.folders.created_date, dbo.vw_appls.full_grant_num, dbo.folder_appls.appl_id, 
+                      dbo.vw_appls.grant_id AS grant_id_appl, dbo.folders.grant_id AS grant_id_folder, dbo.folders.box_id, dbo.folders.location_id, dbo.folders.specialist_id, 
+                      dbo.vw_appls.support_year, dbo.vw_appls.admin_phs_org_code, dbo.vw_appls.serial_num, dbo.folders.profile_id, dbo.vw_appls.grant_num, 
+                      dbo.vw_appls.former_admin_phs_org_code, dbo.vw_appls.former_serial_num, dbo.vw_appls.former_grant_num, 
+                      dbo.vw_appls.future_admin_phs_org_code, dbo.vw_appls.future_serial_num, dbo.vw_appls.future_grant_num, dbo.folders.destroyed_date, 
+                      dbo.folders.to_be_scanned, dbo.folders.latest_move_date, dbo.folders.latest_access_date, dbo.vw_appls.closed_out, dbo.folders.is_transfer, 
+                      dbo.folders.removed_content_date, dbo.vw_appls.activity_code, dbo.vw_appls.appl_type_code, dbo.vw_boxes.accession_number, 
+                      dbo.vw_boxes.destroyed_date AS frc_destroyed_date
+FROM         dbo.folders INNER JOIN
+                      dbo.folder_appls ON dbo.folders.folder_id = dbo.folder_appls.folder_id INNER JOIN
+                      dbo.vw_appls ON dbo.folder_appls.appl_id = dbo.vw_appls.appl_id LEFT OUTER JOIN
+                      dbo.vw_boxes ON dbo.folders.box_id = dbo.vw_boxes.box_id
+
+GO
+

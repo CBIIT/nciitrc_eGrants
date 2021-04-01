@@ -1,0 +1,82 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+
+
+/*************************************************************************************************
+*  Author :   Imran Omair
+*  Date   :   4/9/2019
+*
+*************************************************************************************************/
+CREATE PROCEDURE [dbo].[sp_grants_flag_DS] 
+AS
+
+BEGIN
+
+DECLARE 
+	@SYSUSR INT,
+	@FLAGAPPLICATION CHAR(1),
+	@FLAGTYPE VARCHAR(5)
+
+SET @FLAGTYPE='DS'  --HARD CODE :  BECAUSE THIS PROC IS FOR DIVERSITY SUPPLEMENT LAG
+
+SELECT @SYSUSR=PERSON_ID FROM People WHERE person_name='SYSTEM'
+
+SELECT @FLAGAPPLICATION=flag_application_code 
+FROM dbo.Grants_Flag_Master 
+WHERE flag_type_code=@FLAGTYPE 
+AND end_date IS NULL 
+AND flag_gen_type='automatic'
+
+PRINT '==>>  PROC [sp_grants_flag_DS] STARTED AT = ' + cast(GETDATE() as varchar)
+
+TRUNCATE TABLE dbo.grants_flag_DS_WIP
+
+/*  10/23/20 
+  Modified per egrant task# 11 
+ Added the date condition to bring everything from 11/01/2019 without the app_type_code condition. 
+*/
+INSERT dbo.grants_flag_DS_WIP([APPL_ID],[ADMIN_PHS_ORG_CODE],[SERIAL_NUM],[APPL_TYPE_CODE],[DIVERSITY_REENTRY_FLAG] )
+SELECT DISTINCT APPL_ID,ADMIN_PHS_ORG_CODE,SERIAL_NUM,APPL_TYPE_CODE,DIVERSITY_REENTRY_FLAG
+FROM OPENQUERY(IRDB,'select APPL_ID,ADMIN_PHS_ORG_CODE,SERIAL_NUM,APPL_TYPE_CODE,DIVERSITY_REENTRY_FLAG from APPLS_MV
+where DIVERSITY_REENTRY_FLAG=''Y'' and ADMIN_PHS_ORG_CODE=''CA'' and 
+to_date(to_char(created_date,''yyyy-mm-dd''),''yyyy-mm-dd'')>=to_date(''2019-11-01'',''yyyy-mm-dd'')'
+)
+
+/*  10/23/20 
+   Modified per egrant task# 11 
+  Added the date condition to bring everything before 11/01/2019 with only the app_type_code  = 3. 
+*/
+
+INSERT dbo.grants_flag_DS_WIP([APPL_ID],[ADMIN_PHS_ORG_CODE],[SERIAL_NUM],[APPL_TYPE_CODE],[DIVERSITY_REENTRY_FLAG] )
+SELECT DISTINCT APPL_ID,ADMIN_PHS_ORG_CODE,SERIAL_NUM,APPL_TYPE_CODE,DIVERSITY_REENTRY_FLAG
+FROM OPENQUERY(IRDB,'select APPL_ID,ADMIN_PHS_ORG_CODE,SERIAL_NUM,APPL_TYPE_CODE,DIVERSITY_REENTRY_FLAG from APPLS_MV
+where DIVERSITY_REENTRY_FLAG=''Y'' and APPL_TYPE_CODE=3 and ADMIN_PHS_ORG_CODE=''CA'' and 
+to_date(to_char(created_date,''yyyy-mm-dd''),''yyyy-mm-dd'') < to_date(''2019-11-01'',''yyyy-mm-dd'')'
+)
+
+UPDATE grants_flag_DS_WIP
+SET grants_flag_DS_WIP.GRANT_ID=(SELECT DISTINCT GRANT_ID FROM vw_appls WHERE APPL_ID=grants_flag_DS_WIP.APPL_ID)
+
+
+INSERT DBO.Grants_Flag_Construct (grant_id,APPL_ID,flag_type,flag_application,start_dt,created_by,created_dt)
+SELECT A.GRANT_ID,A.APPL_ID, @FLAGTYPE, @FLAGAPPLICATION, GETDATE(),1899, GETDATE() 
+FROM dbo.grants_flag_DS_WIP A  
+WHERE A.grant_id not in 
+(
+	SELECT B.grant_id FROM dbo.Grants_Flag_Construct B WHERE b.grant_id=a.grant_id and b.flag_type=@FLAGTYPE and b.appl_id=a.appl_id
+)
+
+and A.appl_id not in 
+(
+	SELECT B.appl_id FROM dbo.Grants_Flag_Construct B WHERE b.grant_id=a.grant_id and b.flag_type=@FLAGTYPE and b.appl_id=a.appl_id
+)
+AND A.grant_id IS NOT NULL
+
+PRINT 'NEW DIVERSITY SUPPLEMENT FLAGS ADDED = ' + CAST(@@ROWCOUNT AS VARCHAR) 
+
+PRINT '==>> PROC [sp_grants_flag_DS] FINISHED AT = ' + CAST(GETDATE() AS VARCHAR)
+
+END
+
+GO
+

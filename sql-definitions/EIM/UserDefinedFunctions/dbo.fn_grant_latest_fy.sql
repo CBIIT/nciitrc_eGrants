@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE FUNCTION fn_grant_latest_fy (@GrantID int)
+  
+RETURNS smallint AS  
+
+
+BEGIN 
+
+
+RETURN (SELECT max(fy) from appls where grant_id=@GrantID)
+
+
+END
+
+
+
+
+GO
+

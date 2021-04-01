@@ -1,0 +1,26 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+CREATE PROCEDURE [dbo].[sp_egrants_desturction_report]
+
+AS
+BEGIN
+
+insert destruction(grant_id, destruction_reason)
+
+select DISTINCT grant_id, 'Retention Policy' as reason
+--, grant_num,grant_close_date,dbo.fn_grant_latest_fy(grant_id)
+from egrants
+where admin_phs_org_code='CA'
+and is_tobacco=0 and activity_code not like 'C%'
+and dbo.fn_grant_funded(grant_id)=1
+and unix_directory is not null
+and grant_close_date<'10/1/2002' 
+--and dbo.fn_grant_latest_fy(grant_id)<2002
+and grant_id NOT IN 
+(select grant_id from destruction)
+
+END
+
+GO
+

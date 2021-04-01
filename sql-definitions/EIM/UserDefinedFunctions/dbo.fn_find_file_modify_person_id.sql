@@ -1,0 +1,41 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+-- ===================================================================================
+-- Author:		Joel Friedman
+-- Create date:	5/12/2007
+-- 
+-- Description:	Return the file_modified_by_person_id from the document row with the
+-- latest file_modified_date
+--
+--				Modification History:
+--
+--	Date		By				Reason
+--	---------	---------------	------------------------------------
+--	
+--
+-- ===================================================================================
+
+create FUNCTION [dbo].[fn_find_file_modify_person_id] (
+	@appl_id int,
+	@category_id int)
+  
+RETURNS int
+
+BEGIN
+	DECLARE @file_modified_by_person_id int
+
+	select @file_modified_by_person_id = (select top 1 file_modified_by_person_id from documents 
+		where appl_id = @appl_id and category_id = @category_id and disabled_date is null
+		and url is not null order by file_modified_date desc, document_id desc)
+
+RETURN @file_modified_by_person_id
+
+END
+
+
+
+--'select count(*) from appls where grant_id=@GrantID and active_grant_status='Y' )>0
+
+GO
+

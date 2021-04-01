@@ -1,0 +1,101 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE PROCEDURE [dbo].[sp_ApplsIDs]
+AS
+
+BEGIN
+
+/*
+Should I do check for Duplicate records?
+Should I make the file name dynamic by the sue of a variable?
+Should appl_id be set to NULL for records which do not have duplicates?
+Any error handling
+
+*/
+
+
+DECLARE @GrantNum varchar(50)
+DECLARE @R int
+
+DROP TABLE #temp_1
+
+CREATE TABLE #temp_1
+(FileName varchar(255) NULL,
+GrantNumber varchar(50) NULL,
+PageCount INT NULL,
+appl_id INT) --,
+--appl_id_old INT NULL,
+--document_id INT NULL,
+--is_duplicate BIT) --DEFAULT(0))
+
+
+--Insert records from the input file into a temporary table
+INSERT INTO #temp_1 (FileName, GrantNumber, PageCount)
+SELECT * FROM OPENQUERY(pdfinfo,'SELECT * FROM SampleInputFile.txt') --Should I make the file name dynamic by the sue of a variable?
+
+SELECT * FROM #temp_1
+
+
+--Check to see if provided file name itself is appl_id, if so use it 
+UPDATE #temp_1
+SET appl_id = CONVERT(INT,[FileName])
+where appl_id IS NULL 
+AND ISNUMERIC([FileName])=1 
+AND EXISTS ( SELECT appl_id 
+			 FROM appls 
+			 WHERE appl_id = CONVERT (INT, [FileName])
+			)
+
+
+DECLARE cur CURSOR FOR
+SELECT COALESCE(GrantNumber,[FileName])
+FROM #temp_1
+WHERE appl_id IS NULL
+
+OPEN cur
+
+FETCH NEXT FROM cur INTO @GrantNum
+
+WHILE @@FETCH_STATUS=0
+
+BEGIN
+
+--commented out the below line on 6/3/13 1:45am by hareesh
+--exec @R=sp_GenerateApplID_HJ @GrantNum  --cross check this stored procedure to se if its inserting into any other tables or just retreving
+exec @R=sp_GenerateApplID @GrantNum  --cross check this stored procedure to se if its inserting into any other tables or just retreving
+
+--select @R
+
+UPDATE #temp_1
+SET appl_id=@R 
+WHERE [FileName]=@GrantNum 
+AND appl_id IS NULL
+
+--PRINT @GrantNum
+--PRINT @R
+
+FETCH NEXT FROM cur INTO @GrantNum
+END
+
+CLOSE cur
+DEALLOCATE cur
+
+SELECT * FROM #temp_1
+
+--Set appl_id as Null for records which do not have duplicates
+--UPDATE #temp_1
+--SET appl_id = NULL 
+--WHERE appl_id=0
+
+SELECT * FROM #temp_1
+
+
+UPDATE #temp_1 
+SET appl_id=dbo.fn_applid_match(GrantNumber)
+WHERE GrantNumber IS NOT NULL 
+AND appl_id IS NOT NULL --change to IS NULL in case duplicate logic is added
+
+END
+
+GO
+

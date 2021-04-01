@@ -1,0 +1,38 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+CREATE FUNCTION [dbo].[fn_grant_Unfunded] (@GID int)
+RETURNS bit
+BEGIN 
+
+IF EXISTS (SELECT appl_id from appls where grant_id=@GID and appl_status_group_descrip in ('Cancelled','Withdrawn','Terminated'))
+RETURN 1
+
+
+RETURN 0
+
+
+ 
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+

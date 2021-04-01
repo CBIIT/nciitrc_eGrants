@@ -1,0 +1,25 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+CREATE PROCEDURE [dbo].[DB_GET_EGRANTS_AUDIT_REPORT]
+
+AS
+/************************************************************************************************************/
+/***									 																***/
+/***	Procedure Name:DB_GET_EGRANTS_AUDIT_REPORT														***/
+/***	Description:egrants audit report for dashboard													***/
+/***	Created:	08/29/2017		Leon																***/
+/***	Modified:	08/29/2017		Leon	simplified	for MVC											***/
+/************************************************************************************************************/
+
+SET NOCOUNT ON
+
+---return audit report
+DECLARE @audit_report_url			varchar(800)
+SET @audit_report_url='/data/funded/egrantsadmin/auditreport'
+
+SELECT [File_name] as report_name, @audit_report_url +'/'+ [File_name] as report_url, convert(varchar(10),Run_date,101) as run_date, Run_date as sorting_date
+FROM dbo.egrants_audit_report as report
+ORDER BY sorting_date desc
+
+GO
+

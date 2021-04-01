@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+CREATE VIEW dbo.vw_all_appls_used
+AS
+SELECT distinct appl_id FROM  folder_appls
+UNION
+SELECT distinct appl_id FROM  documents
+UNION
+SELECT distinct appl_id FROM vw_funding
+
+
+GO
+

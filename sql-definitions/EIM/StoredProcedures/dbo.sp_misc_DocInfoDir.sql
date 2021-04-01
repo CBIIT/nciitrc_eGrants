@@ -1,0 +1,81 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_misc_DocInfoDir]
+
+
+@Path varchar(255)
+
+AS
+
+declare @cmd varchar(255)
+declare @TempFile varchar(255)
+declare @CPath varchar(255)
+declare @CDocID int
+
+
+
+SELECT @TempFile='c:\directory.txt'
+
+SELECT @Cmd= 'dir ' + @Path + '*.info /B /W >>' + @TempFile
+EXEC master..xp_cmdshell @Cmd
+
+IF OBJECT_ID('tempdb..##directory') IS NOT NULL
+DROP TABLE ##directory
+CREATE TABLE ##directory(path varchar(255))
+
+IF OBJECT_ID('tempdb..##t') IS NOT NULL
+DROP TABLE ##t
+CREATE TABLE ##t(line varchar(255))
+
+create table #pages(document_id int, page_count int)
+
+
+SELECT @Cmd= 'bcp ##directory in ' + @TempFile + ' -c -t , -r \n -S ' + @@SERVERNAME + ' -T '
+EXEC master..xp_cmdshell @Cmd
+
+SELECT @Cmd='DEL ' + @TempFile
+EXEC master..xp_cmdshell @Cmd
+
+
+declare cur CURSOR FOR
+select path from ##directory
+
+open cur
+
+FETCH NEXT FROM cur INTO @CPath
+
+WHILE @@FETCH_STATUS=0
+
+BEGIN
+                           
+SET @CDocID=convert(int,   left(@CPath,patindex('%.%',@CPath)-1)    )
+SET @CPath=@Path + @CPath
+
+delete ##t
+SELECT @cmd= 'bcp ##t in ' + @CPath + ' -c -t , -r \n -S ' + @@SERVERNAME + ' -T '
+EXEC master..xp_cmdshell @Cmd
+
+insert #pages(document_id,page_count)
+select @CDocID,convert(int,right(line,len(line)-6)) from
+##t where line like 'Pages:%'
+
+
+
+FETCH NEXT FROM cur INTO @CPath
+
+END
+
+close cur
+deallocate cur
+
+
+update pdf
+set page_count=#pages.page_count
+from pdf,#pages
+where pdf.document_id=#pages.document_id
+
+
+drop table ##directory
+drop table ##t
+GO
+

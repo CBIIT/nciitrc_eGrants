@@ -1,0 +1,21 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION [dbo].[fn_funding_RFA_count] (@FDocID int)
+  
+RETURNS smallint
+
+BEGIN
+
+RETURN
+(
+select count(distinct rfa_pa_number)
+from funding_appls fa INNER JOIN vw_appls a ON
+a.appl_id=fa.appl_id and document_id=@FDocID
+where rfa_pa_number is not null
+)
+
+
+END
+
+GO
+

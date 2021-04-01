@@ -1,0 +1,9 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[inventory](
+	[folder_id] [int] NULL,
+	[inventory_date] [datetime] NULL
+) ON [PRIMARY]
+
+GO
+

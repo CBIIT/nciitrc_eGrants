@@ -1,0 +1,57 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+-- =========================================================================================================
+--
+-- Author:		Joel Friedman
+-- Create date: 03/29/2012
+-- Description:	Remove garbage characters to enable valid text string for XML 
+--
+-- =========================================================================================================
+CREATE FUNCTION [dbo].[fn_clean_characters]
+(
+	-- Add the parameters for the function here
+	@cat varchar(500)
+)
+RETURNS varchar(500)
+AS
+BEGIN
+	DECLARE	@char	varchar(1)
+	Declare @x		int
+            
+	set @char = char(151)	--	em dash	           
+	 
+	set @cat = replace(@cat,'&','&amp;')  
+	set @cat = replace(@cat,'#','&#35;') 
+	set @cat = replace(@cat,':','&#58;') 
+	set @cat = replace(@cat,'–','&#45;') 
+	set @cat = replace(@cat,'<<','&#171;') 
+	set @cat = replace(@cat,'>>','&#187;')
+	set @cat = replace(@cat,'<','&#60;') 
+	set @cat = replace(@cat,'>','&#62;')  
+	set @cat = replace(@cat,'’','''')  
+	set @cat = replace(@cat,@char,'--')
+	
+	set @x=123
+	while @x<255
+	Begin
+		set @char=char(@x)
+		set @cat = replace (@cat, @char, '&#' + convert(varchar,@x) + ';')
+		set @x = @x + 1
+	END			
+	
+	--  Remove extra spaces
+	set @cat = replace(@cat,'  ',' ')
+	set @cat = replace(@cat,'  ',' ')  
+	set @cat = rtrim(ltrim(@cat))
+	
+	RETURN @cat
+
+END
+
+
+
+
+GO
+

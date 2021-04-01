@@ -1,0 +1,45 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+-- =============================================
+-- Author:		Joel Friedman
+-- Create date: 6/14/2012
+-- Description:	Remove garbage characters to enable valid Unix file name
+-- =============================================
+CREATE FUNCTION fn_clean_unix
+(
+	-- Add the parameters for the function here
+	@unix varchar(125)
+)
+RETURNS varchar(125)
+AS
+BEGIN
+	DECLARE
+			
+            @position INT,
+            @col varchar(125),
+            @valid varchar(100)
+            
+	SELECT @POSITION = 1
+	SELECT @valid = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-'
+	
+	select @col = ''
+
+	WHILE @position <= DATALENGTH(@unix)
+		BEGIN
+			select @col = @col + SUBSTRING(@unix, @position, 1)
+			
+			if (CHARINDEX(SUBSTRING(@Unix, @position, 1),@valid)) = 0
+				  BEGIN
+						SELECT @col = SUBSTRING(@col, 1, DATALENGTH(@col)-1)
+				  END
+		    
+			SELECT @position = @position + 1
+		END					
+	    
+	RETURN @col
+
+END
+
+
+GO
+

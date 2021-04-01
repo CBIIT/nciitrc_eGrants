@@ -1,0 +1,12 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW dbo.vw_egrants_impac_docs
+AS
+SELECT appl_id, category_name, COUNT(document_id) AS doc_count
+FROM  dbo.egrants
+WHERE (created_by = 'impac')
+GROUP BY appl_id, category_name
+
+
+GO
+

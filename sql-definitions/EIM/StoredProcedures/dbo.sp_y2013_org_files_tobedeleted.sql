@@ -1,0 +1,239 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_y2013_org_files_tobedeleted]
+
+@act  				varchar(20),
+@str  				varchar(50),
+@index_id			int,
+@org_id				int,
+@doc_id				int,
+@category_id		int,
+@file_type			varchar(5),
+@start_date			varchar(10),
+@end_date			varchar(10),
+@ic  				varchar(10),
+@operator 			varchar(50)
+
+AS
+/************************************************************************************************************/
+/***									 										***/
+/***	Procedure Name:sp_y2013_org_files										***/
+/***	Description:edit or create org files									***/
+/***	Created:	03/09/2016	Leon											***/
+/***	Modified:	03/09/2016	Leon											***/
+/***																			***/
+/************************************************************************************************************/
+SET NOCOUNT ON
+
+DECLARE 
+@document_id	int,
+@xmlout			varchar(max),
+@X				Xml,
+@person_id		int,
+@profile_id		int,
+@count			int
+
+/** find user info***/
+SET @profile_id=(select profile_id from profiles where [profile]=@ic)
+SET @person_id=(SELECT person_id FROM vw_people WHERE userid=@Operator and profile_id=@profile_id)
+
+/** find user info***/
+declare @person_name	varchar(50)
+declare @first_name		varchar(50)
+declare @separate		int
+
+--check permission
+SET @count=(select COUNT(*) FROM vw_people WHERE userid=@operator and application_type='egrants')
+
+--find user info
+IF @count=1
+BEGIN
+SET @X = (
+SELECT *
+FROM vw_people as user_info
+WHERE userid=LOWER(@operator)
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+END
+ELSE
+BEGIN
+SELECT null
+END
+
+----find user name
+--set @person_name=(select person_name from people where person_id=@person_id)
+--IF @person_name<>'' and @person_name is not null 
+--BEGIN
+--select  @separate=PATINDEX('%,%', @person_name)
+--select  @first_name=LEFT(@person_name,@separate-1 )
+--END 
+
+----return user's info
+--SELECT distinct p.person_id, p.person_id, p.person_name,ISNULL(@first_name, NULL) as first_name,p.userid,profile_id,[profile] as ic,
+--admin_phs_org_code,position_id,convert(varchar,getdate(),101) as today,can_egrants,can_egrants_upload,can_cft,can_mgt,can_docman,can_admin---,can_iccoord
+--FROM vw_people p 
+--WHERE p.userid=@operator and application_type='egrants'  
+
+/**set default act**/
+if (@act ='' or @act ='show_orgs') goto show_orgs
+if (@act ='load_org') goto load_org
+if (@act ='to_search') goto to_search
+if (@act ='to_upload') goto to_upload
+if (@act ='to_disable') goto to_disable
+---------------------
+show_orgs:
+
+--display org by index_id
+if @index_id is null or @index_id='' set @index_id=2
+SET @X = (
+SELECT org_id, UPPER(Org_name)AS org_name,index_id,
+(				---get sv data 
+SELECT created_by, created_date, end_date, url as sv_url
+FROM vw_org_document as sv
+WHERE tobe_flagged=1 and org_name = org.org_name and end_date=(
+	SELECT MAX(end_date)
+	FROM vw_Org_Document 
+	WHERE org_name = org.org_name and tobe_flagged=1 and end_date > GETDATE()
+	GROUP BY category_id
+)FOR XML AUTO,TYPE,ELEMENTS
+)
+FROM dbo.Org_Master AS org
+WHERE index_id=@index_id and dbo.fn_get_org_doc_count(org_id)>0
+ORDER BY Org_name
+FOR XML AUTO, TYPE, ELEMENTS
+)
+
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GOTO header
+
+RETURN
+----------------------
+to_search:
+
+--display org by search string
+SET @str=LTRIM(rtrim(@str))
+SET @str=REPLACE(@str, '     ',' ')---reducing space
+SET @str=REPLACE(@str, '   ',' ')---reducing space
+SET @str=REPLACE(@str, '  ',' ')---reducing space
+
+SET @X = (
+SELECT @str as search_str,
+( 
+SELECT org_id, UPPER(Org_name)AS org_name,index_id,
+(				---get sv data 
+SELECT created_by, created_date, end_date, url as sv_url
+FROM vw_org_document as sv
+WHERE tobe_flagged=1 and org_name = org.org_name and end_date=(
+	SELECT MAX(end_date)
+	FROM vw_Org_Document 
+	WHERE org_name = org.org_name and tobe_flagged=1 and end_date > GETDATE()
+	GROUP BY category_id
+)FOR XML AUTO,TYPE,ELEMENTS
+)
+FROM dbo.Org_Master AS org
+WHERE org_name like '%'+@str+'%'
+ORDER BY Org_name
+FOR XML AUTO, TYPE, ELEMENTS
+)
+FROM performance AS orgs
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GOTO header
+
+RETURN
+------------------------
+load_org:
+
+SET @X = (
+SELECT org_id, UPPER(Org_name)AS org_name,index_id,
+(SELECT document_id,category_name,url,[start_date],end_date,created_date
+FROM dbo.vw_Org_Document as doc
+WHERE org_id=org.org_id
+FOR XML AUTO, TYPE, ELEMENTS
+)
+FROM dbo.Org_Master AS org
+WHERE org_id =@org_id	
+ORDER BY Org_name
+FOR XML AUTO, TYPE, ELEMENTS
+)
+
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GOTO header
+
+RETURN
+----------------------
+to_upload:
+
+----update new document 
+INSERT dbo.Org_Document(org_id,doctype_id,file_type,url,created_date,created_by_person_id,start_date_ShowFlag,end_date_showFlag)
+SELECT @org_id,@category_id,@file_type,'to be updated',getdate(),@person_id,ISNULL(@start_date,null),ISNULL(@end_date,null)
+
+SELECT  @document_id=@@IDENTITY
+
+----update url
+UPDATE dbo.Org_Document 
+SET url='/data/funded/nci/institutional/'+convert(varchar,@document_id)+'.'+@file_type
+WHERE document_id=@document_id
+
+----return info
+SET @X = (
+SELECT document_id AS doc_id,url
+FROM dbo.Org_Document AS new_doc
+WHERE document_id=@document_id 
+FOR XML AUTO, TYPE, ELEMENTS
+)
+
+--return xml file***/
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GOTO load_org
+
+RETURN
+-------------------------
+to_disable:
+
+update dbo.Org_Document set disabled_date=GETDATE(), disabled_by_person_id=@person_id where document_id=@doc_id	
+
+GOTO load_org
+
+RETURN
+-------------------------
+header:
+
+--display index list
+SET @X = (
+SELECT      
+UPPER(org_index) AS org_index,
+index_id,
+index_seq AS seq
+FROM dbo.org_index AS [index]
+ORDER BY index_seq
+FOR XML AUTO, ELEMENTS 
+)
+
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+--show all category
+SET @X = (
+SELECT doctype_id AS category_id,doctype_name AS category_name,tobe_flagged AS tobe_flag, Flag_period
+FROM dbo.Org_Categories AS category
+ORDER BY category_name
+FOR XML AUTO, ELEMENTS 
+)
+
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GO
+

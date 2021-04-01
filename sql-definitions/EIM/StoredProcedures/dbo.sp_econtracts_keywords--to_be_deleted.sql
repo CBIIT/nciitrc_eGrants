@@ -1,0 +1,68 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+CREATE PROCEDURE [dbo].[sp_econtracts_keywords--to_be_deleted]
+
+AS
+/************************************************************************************************************/
+/***									 		***/
+/***	Procedure Name: sp_econtracts_keywords			***/
+/***	Description:	clean and add keyword to contracts_text from contracts		***/
+/***	Created:	11/29/2007	Jim						***/
+/***	Modified:	9/19/2008	Leon						***/
+/***											***/
+/************************************************************************************************************/
+SET NOCOUNT ON
+
+declare @contract_id_max 	int
+declare @contract_id 		varchar(100)
+declare @str_in 			varchar(8000)
+declare @str_out			varchar(8000)
+declare @contracts_text  table  (contract_id int NOT NULL, keywords varchar(8000))
+
+begin
+
+delete ncieim_b..contracts_text
+select @contract_id_max = isnull(max(contract_id),0) from ncieim_b..contracts_text
+
+/** save contract_id and all key words for contracts_text table **/
+insert into @contracts_text (contract_id, keywords) 
+select distinct contract_id, cast(cast(isnull(contract_number,'') as int) as varchar(6)) + ' ' 
++ ltrim(rtrim(replace(institution, char(39), ''))) + ' '
++ ltrim(rtrim(replace(isnull(person_name,''), char(39), '')) + ' ')
++ ltrim(rtrim(replace(isnull(adb,''), char(39), '')) + ' ')
++ ltrim(rtrim(replace(isnull(hhs,''), char(39), '')) + ' ')
++ ltrim(rtrim(replace(isnull(rfp,''), char(39), '')) + ' ')
++ activity_code + N'-' + contract_type + N'-' +right('0000' + convert(varchar, contract_number,null), 6) as keywords
+from vw_contracts 
+where contract_id > @contract_id_max
+
+---clean all noise_words from keywords
+declare c_keywords cursor for 
+select contract_id, keywords from @contracts_text
+open  c_keywords
+	fetch next from c_keywords into @contract_id, @str_in
+	while @@fetch_status = 0 
+	begin
+
+	exec sp_econtracts_noise_words_deleted @wholestr = @str_in, @result = @str_out output
+
+	update @contracts_text
+	set keywords = @str_out
+	where keywords = @str_in
+
+	fetch next from  c_keywords into @contract_id, @str_in
+end
+close  c_keywords
+deallocate  c_keywords
+
+insert into ncieim_b..contracts_text (contract_id, keywords) 
+select contract_id, keywords 
+from @contracts_text
+
+exec ncieim_b..sp_fulltext_catalog 'eContracts_text', 'stop' --cat_contracts
+exec ncieim_b..sp_fulltext_catalog 'eContracts_text', 'start_incremental'--cat_contracts
+end
+
+GO
+

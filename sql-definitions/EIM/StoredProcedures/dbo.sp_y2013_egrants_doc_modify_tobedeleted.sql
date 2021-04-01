@@ -1,0 +1,178 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_y2013_egrants_doc_modify_tobedeleted]
+
+@Act 			varchar(50),
+@ApplID 		int,
+@CategoryID 	int,
+@DocDate 		smalldatetime,
+@SubCategory	varchar(35),
+@PageCount 		smallint,
+@ToStore		varchar(4),
+@Specialistid	int,
+@Docs			varchar(800),
+@Inst			varchar(10),
+@Operator		varchar(50)
+
+AS
+/************************************************************************************************************/
+/***									 					***/
+/***	Procedure Name: sp_egrants_doc_modify				***/
+/***	Description:create document							***/
+/***	Created:	10/27/2003	Leon						***/
+/***	Modified:	11/12/2013	Leon						***/
+/***	Added new function: store_all & delete_all			***/
+/***														***/
+/************************************************************************************************************/
+SET NOCOUNT ON
+
+DECLARE
+@profile_id			smallint,
+@specialist_type	varchar(10),
+@specialist_name	varchar(100),
+@doc_id				int,
+@person_id			int,
+@sql				varchar(850)
+
+/***find the profile_id***/
+SELECT @profile_id=profile_id FROM profiles WHERE profile=@inst 
+
+/**find the operator's person_id**/
+SET @Operator=left(@Operator,50)
+SELECT @person_id =person_id FROM vw_people WHERE userid=@Operator and profile_id=@profile_id
+
+IF @person_id  IS null or @person_id =''
+BEGIN
+INSERT INTO people (userid, profile_id) VALUES (@Operator, @profile_id)
+SELECT @person_id =@@IDENTITY
+END
+
+IF @act='to_store_all' or @act='to_delete_all' or @act='to_create_supp' 
+BEGIN
+CREATE TABLE #doc (doc_id int)---save all doc_id
+SET @sql='INSERT #doc SELECT document_id FROM documents WHERE document_id in (' + @Docs + ')'
+EXEC (@sql)
+END 
+ELSE 
+BEGIN
+SET @doc_id=convert(int,@Docs)
+END 
+
+IF @act='to_route' GOTO to_route
+IF @act='to_update' GOTO to_update
+IF @act='to_store' GOTO to_store
+IF @act='to_restore' GOTO to_restore
+IF @act='to_delete' GOTO to_delete
+IF @act='to_store_all' GOTO to_store_all
+IF @act='to_delete_all' GOTO to_delete_all
+----------------------------------------------------------
+to_route:
+
+UPDATE documents 
+SET qc_person_id=@Specialistid, qc_date=getdate(), stored_date=null, stored_by_person_id=null 
+WHERE document_id =@doc_id
+
+SELECT @specialist_name ='to '+person_name FROM people WHERE person_id=@Specialistid
+
+/**insert document transaction information**/
+EXEC sp_y2013_egrants_doc_transaction @doc_id, @Operator, 'routed', @specialist_name
+
+RETURN
+----------------------------------------------------------
+to_restore:
+
+/**to restore document's url**/
+EXEC sp_y2013_egrants_doc_url_restore @doc_id 
+
+/**insert document transaction information**/
+EXEC sp_y2013_egrants_doc_transaction @doc_id, @Operator,'url_restored', null		
+
+RETURN  
+-----------------------------------------------------------
+to_store:
+
+--insert document transaction information 
+EXEC sp_y2013_egrants_doc_transaction @doc_id, @Operator,'stored', null	
+
+---store document
+UPDATE documents 
+SET stored_date = getdate(), stored_by_person_id=@person_id, qc_date=null
+WHERE document_id=@doc_id
+
+RETURN
+--------------------------------------------------------
+to_delete:
+
+/**insert document transaction information **/
+EXEC sp_y2013_egrants_doc_transaction @doc_id, @Operator,'disabled', null		
+
+/**to disable document**/
+UPDATE documents SET disabled_date=getdate(), disabled_by_person_id=@person_id, qc_date=null, qc_person_id=null 
+WHERE document_id=@doc_id
+
+RETURN  
+------------------------------------------------------------
+to_store_all:
+
+---store documents
+UPDATE documents 
+SET stored_date=getdate(),stored_by_person_id=@person_id,qc_date=null ---, qc_person_id=null,problem_msg=null, problem_reported_by_person_id=null,profile_id=@profile_id  
+FROM  documents d, #doc  
+WHERE d.document_id=#doc.doc_id and d.appl_id is not null 
+
+---insert document transaction information
+INSERT documents_transactions (document_id, operator, action_type, full_grant_num, category_name, document_date, description) 
+SELECT e.document_id, @operator, 'stored', full_grant_num, category_name, document_date, null
+FROM  egrants e, #doc  
+WHERE e.document_id=#doc.doc_id
+
+RETURN
+--------------------------------------------------------------
+to_delete_all:
+
+--delete documents
+UPDATE documents 
+SET disabled_date=getdate(),disabled_by_person_id=@person_id,qc_date=null,qc_person_id=null 
+FROM  documents d, #doc  
+WHERE d.document_id=#doc.doc_id and d.appl_id is not null 
+
+--insert document transaction information
+INSERT documents_transactions (document_id, operator, action_type, full_grant_num, category_name, document_date, description) 
+SELECT e.document_id, @operator, 'deleted', full_grant_num, category_name, document_date, null
+FROM  egrants e, #doc  
+WHERE e.document_id=#doc.doc_id
+
+RETURN
+-------------------------------------------------------
+to_update:	
+
+IF @SubCategory='null' or @SubCategory='undefined' or @SubCategory='' or @SubCategory is null 
+BEGIN
+SET @SubCategory = null
+UPDATE documents SET sub_category_name = null WHERE document_id = convert(int,@Docs)
+END
+
+/** to update document's index only**/
+SET @sql='UPDATE documents SET ' 
+IF @ApplID IS NOT NULL and  @ApplID<>'' SET @sql=@sql+'appl_id=' + convert(varchar,@ApplID)+', parent_id=null, '
+IF @CategoryID IS NOT NULL and  @CategoryID<>'' SET @sql=@sql+'category_id=' + convert(varchar,@CategoryID) +', '
+IF @SubCategory IS NOT NULL and @SubCategory<>'' SET @sql=@sql+'sub_category_name='+char(39)+@SubCategory+char(39)+','
+IF @DocDate IS NOT NULL and @DocDate<>'' SET @sql=@sql+ 'document_date=' +char(39)+convert(varchar,@DocDate)+char(39)+','
+
+---IF @PageCount IS NOT NULL and @PageCount<>'' SET @sql=@sql+'page_count=' + convert(varchar,@PageCount)+', ' 
+
+SET @sql=@sql+' modified_date='+char(39)+convert(varchar,getdate())+char(39)+', index_modified_by_person_id='+convert(varchar,@person_id) + ',' SET @sql=@sql+' qc_reason=' + char(39)+ 'Change'+char(39)+',  qc_person_id=null , qc_date=' +char(39)+convert(varchar,getdate())+char(39)+', profile_id=' +convert(varchar,@profile_id)+', stored_date=null, stored_by_person_id=null '  
+
+SET @sql=@sql+' FROM documents WHERE document_id in ('+@docs+')'
+EXEC (@sql)
+
+IF @Specialistid IS NOT NULL and  @Specialistid<>'' GOTO to_route
+IF @ToStore='yes' GOTO to_store								---- and (@Specialistid is null or @Specialistid='') 
+
+/**insert document transaction information**/
+EXEC sp_y2013_egrants_doc_transaction @doc_id, @Operator, 'index_modified', null		---@DocDate, null
+
+RETURN
+--------------------------------------------------------
+GO
+

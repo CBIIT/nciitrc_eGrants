@@ -1,0 +1,15 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW [dbo].[vw_contracts_ciip_t--to_be_deleted]
+AS
+SELECT  * FROM OPENQUERY(CIIP,
+'select c.id, C.AWARD_NUM, LATEST_SIGNED_MOD_NUM
+, to_char(c.last_change_date, ''yyyymmdd'') as  last_change_date
+from contracts_t c') ciip 
+
+
+
+
+
+GO
+

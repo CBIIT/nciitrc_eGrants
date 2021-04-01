@@ -1,0 +1,30 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_egrants_mail_category]
+		@appl_id int,
+		@cat_name nvarchar(100)
+
+AS
+
+SET NOCOUNT ON
+
+declare @txtSQL Nvarchar(1000)
+
+Set @txtSQL =	'Select cat.category_id, cat.category_name from dbo.categories cat
+				inner join dbo.categories_ic cic on cat.category_id = cic.category_id
+				inner join profiles pro on cic.ic = pro.profile
+				inner join vw_appls app on app.admin_phs_org_code = pro.admin_phs_org_code
+				where cat.category_name = ''' + @cat_name + ''' 
+				and app.appl_id = '  + convert(nvarchar,@appl_id )
+
+EXEC sp_executesql @txtSQL
+/*
+Select cat.category_id, cat.category_name from dbo.categories cat
+inner join dbo.categories_ic cic on cat.category_id = cic.category_id
+inner join profiles pro on cic.ic = pro.profile
+inner join vw_appls app on app.admin_phs_org_code = pro.admin_phs_org_code
+where cat.category_name = 'Inventions' and app.appl_id = 7469432
+*/
+
+GO
+

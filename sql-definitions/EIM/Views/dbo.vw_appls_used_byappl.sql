@@ -1,0 +1,12 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+/*This view returns appls that are used in egrants and that are in the same grant as the appl_id_check
+*/
+CREATE VIEW dbo.vw_appls_used_byappl
+AS
+SELECT DISTINCT dbo.egrants.appl_id, dbo.appls.appl_id AS appl_id_check
+FROM  dbo.egrants INNER JOIN
+               dbo.appls ON dbo.egrants.grant_id = dbo.appls.grant_id
+
+GO
+

@@ -1,0 +1,25 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+-- =============================================
+-- Author:Imran Omair
+-- Create date: 4/19/2013
+-- Description:	To replace an existing document
+-- =============================================
+CREATE PROCEDURE [dbo].[SP_REPLACE_EGRANTS_DOCUMENT] 
+
+@DOCID INT,--
+@PROFILEID smallint,
+@UPLOADID VARCHAR(20), -- ONLY COME FROM NHLBI
+@DD VARCHAR(10),	--Document Date is email recieved date
+@UID VARCHAR(50),	--Sender user id
+@FT VARCHAR(5),		--
+@QCFLAG VARCHAR(3)
+
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+END
+
+GO
+

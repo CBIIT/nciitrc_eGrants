@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+CREATE VIEW [dbo].[vw_boxes]
+AS
+SELECT dbo.boxes.box_id, dbo.accessions.accession_number, dbo.accessions.accession_year, dbo.accessions.accession_counter, dbo.boxes.box_number, 
+	dbo.accessions.accession_number + '-' + RIGHT('00' + CONVERT(varchar, dbo.boxes.box_number), 3) AS box, dbo.accessions.destroyed_date, 
+	dbo.accessions.contract, dbo.accessions.accession_id, dbo.accessions.profile_id
+FROM  dbo.accessions INNER JOIN
+	dbo.boxes ON dbo.accessions.accession_id = dbo.boxes.accession_id
+
+GO
+

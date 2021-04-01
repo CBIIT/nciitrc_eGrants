@@ -1,0 +1,58 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+
+CREATE PROCEDURE [dbo].[sp_egrants_maint_pop_PRAM]
+
+AS
+DECLARE @impacID int
+DECLARE @CATEGORYID smallint
+DECLARE @PROC_NAME VARCHAR(50)
+DECLARE @RUN_DATETIME DATETIME
+DECLARE @IMPAC_DOWNLOAD_CNT INT
+DECLARE @EGRANTS_UPLOAD_CNT INT
+SET @PROC_NAME = 'sp_egrants_maint_pop_PRAM'
+SET @RUN_DATETIME = GETDATE()
+
+PRINT 'BEGIN PROC: ['+@PROC_NAME+'] @ '+ cast(getdate() as varchar)
+
+TRUNCATE TABLE IMPP_RPPR_PRAM_NEW 
+
+/**
+Bring all PRAM from ImpacII
+**/
+
+SELECT @CATEGORYID=category_id from categories where impac_doc_type_code='PRM'
+SELECT @impacID=person_id FROM people WHERE userid='impac'
+
+INSERT IMPP_RPPR_PRAM_NEW(APPL_ID, DOCUMENT_DATE,RPPR_DOC_ID )
+SELECT APPL_ID,RECEIVED_DATE,RPPR_DOC_ID FROM
+OPENQUERY(IRDB,'SELECT A.APPL_ID,D.RECEIVED_DATE,C.RPPR_DOC_ID
+FROM APPLS_T A, RPPRS_MV B, RPPR_DOCS_MV C, EAPPL_ROUTINGS_MV D
+WHERE A.APPL_ID=B.APPL_ID
+AND B.RPPR_ID=C.RPPR_ID
+AND C.RPPR_ID=D.RPPR_ID
+AND A.ADMIN_PHS_ORG_CODE=''CA''  
+AND B.RPPR_STATUS_CODE=''FIN''    
+AND C.DOC_TYPE_CODE =''PRM''
+AND D.REVIEWER_USER_ID in (''Agency'',''NIH'')
+and D.PRAM_FLAG in (''Y'',''R'')   ')
+--REMOVE LINE "and D.compliant_publications_flag is null" BASED ON Era INSTRUCTION ON 6/21/2018
+
+SELECT @IMPAC_DOWNLOAD_CNT = @@ROWCOUNT
+PRINT 'Total PRAM brought today =' + cast(@IMPAC_DOWNLOAD_CNT as varchar)+' @ '+ cast(getdate() as varchar)
+
+/*
+Insert new PRAM in documents table
+*/
+
+INSERT documents(appl_id, category_id, document_date, created_by_person_id, file_type,url,profile_id, nga_rpt_seq_num)
+SELECT distinct gi.appl_id, @CATEGORYID, convert(datetime,convert(varchar,gi.DOCUMENT_DATE,101),101), @impacID,'pdf', NULL AS url,dbo.fn_grant_profile_id(e.grant_id), gi.rppr_doc_id
+from IMPP_RPPR_PRAM_NEW gi,egrants e
+where  gi.APPL_ID=e.appl_id
+and gi.RPPR_DOC_ID not in (select distinct nga_rpt_seq_num from egrants where nga_rpt_seq_num is not null and created_by_person_id= @impacID 
+and category_id=@CATEGORYID and url is null and egrants.appl_id=gi.appl_id)
+
+print 'Total PRAM Added in eGrants=' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
+PRINT 'END PROC: ['+@PROC_NAME+'] @ '+ cast(getdate() as varchar)
+GO
+

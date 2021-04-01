@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE FUNCTION [dbo].[fn_test_filename] (@url varchar(500))
+
+RETURNS varchar(100)
+
+AS  
+BEGIN
+declare @s varchar(255)
+
+set @s=reverse(@url)
+return reverse(left(@s,patindex('%/%',@s)-1))
+
+
+END
+
+
+GO
+

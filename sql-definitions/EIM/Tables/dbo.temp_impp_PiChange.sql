@@ -1,0 +1,12 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[temp_impp_PiChange](
+	[appl_id] [int] NOT NULL,
+	[document_date] [smalldatetime] NULL,
+	[KeyId] [int] NULL,
+	[new_keyid] [int] NULL,
+	[document_id] [int] NULL
+) ON [PRIMARY]
+
+GO
+

@@ -1,0 +1,12 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[IMPP_Closout_Notification_All_BKP_04_06_20](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[appl_id] [int] NOT NULL,
+	[Notification_Name] [varchar](30) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[Created_date] [smalldatetime] NULL,
+	[event_log_id] [int] NULL
+) ON [PRIMARY]
+
+GO
+

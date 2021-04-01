@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[destruction](
+	[grant_id] [int] NOT NULL,
+	[destruction_reason] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[notes] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[approved_by] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[added_date] [smalldatetime] NOT NULL,
+	[destroyed_date] [smalldatetime] NULL
+) ON [PRIMARY]
+
+GO
+

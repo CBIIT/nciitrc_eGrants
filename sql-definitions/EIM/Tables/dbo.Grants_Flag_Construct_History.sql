@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[Grants_Flag_Construct_History](
+	[gfh_id] [int] IDENTITY(1,1) NOT NULL,
+	[gf_id] [int] NULL,
+	[appl_id] [int] NULL,
+	[grant_id] [int] NULL,
+	[flag_type] [varchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[flag_application] [char](1) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[flag_persist] [bit] NOT NULL,
+	[start_dt] [datetime] NULL,
+	[end_dt] [datetime] NULL,
+	[created_by] [int] NULL,
+	[created_dt] [datetime] NULL,
+	[last_updated_by] [int] NULL,
+	[last_updated_date] [datetime] NULL,
+	[action] [nchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[trigger_table] [nchar](1) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[record_modified_on] [datetime] NOT NULL
+) ON [PRIMARY]
+
+GO
+

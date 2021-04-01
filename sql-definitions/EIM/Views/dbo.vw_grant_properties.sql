@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW dbo.vw_grant_properties
+AS
+SELECT a.grant_id, a.person_id, a.external_org_id, a.pi_name, a.org_name, project_title,last_name,first_name,fy
+FROM  dbo.vw_appls a INNER JOIN
+                   (SELECT grant_id, MAX(appl_id) AS appl_id
+                    FROM   appls
+                    GROUP BY grant_id) t ON a.appl_id = t.appl_id AND a.grant_id = t.grant_id
+
+
+
+
+
+
+
+
+GO
+

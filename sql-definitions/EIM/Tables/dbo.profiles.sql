@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[profiles](
+	[profile_id] [smallint] IDENTITY(1,1) NOT NULL,
+	[profile] [varchar](5) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[admin_phs_org_code] [char](2) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[qc_type] [int] NULL
+) ON [PRIMARY]
+
+GO
+

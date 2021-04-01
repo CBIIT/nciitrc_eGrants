@@ -1,0 +1,16 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+create FUNCTION [dbo].[fn_get_person_name] (@person_id int)
+  
+RETURNS varchar(100) AS 
+
+BEGIN 
+RETURN 
+(
+select person_name from eim.dbo.people where person_id=@person_id
+)
+
+
+END
+GO
+

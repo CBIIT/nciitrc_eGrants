@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+create FUNCTION [dbo].[fn_get_category_name] (@category_id int)
+  
+RETURNS varchar(50) AS  
+
+BEGIN
+
+declare @category_name varchar(50)
+
+select @category_name  = category_name from categories where category_id = @category_id
+
+RETURN @category_name 
+
+END
+
+GO
+

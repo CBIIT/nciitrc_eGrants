@@ -1,0 +1,43 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION fn_dir
+(
+
+@Path varchar(100)
+
+)
+
+  
+RETURNS @d TABLE (path varchar(100))
+
+AS
+
+BEGIN
+
+declare @TempFile varchar(255)
+declare @cmd varchar(100)
+
+SELECT @TempFile='c:\directory.txt'
+
+SELECT @Cmd= 'dir ' + @Path + '  *.*  /B /W >>' + @TempFile
+EXEC master..xp_cmdshell @Cmd
+
+
+SELECT @Cmd= 'bcp dir in ' + @TempFile + ' -c -t , -r \n -S ' + @@SERVERNAME + ' -T '
+EXEC master..xp_cmdshell @Cmd
+
+SELECT @Cmd='DEL ' + @TempFile
+EXEC master..xp_cmdshell @Cmd
+
+insert @d
+select * from dir
+
+
+RETURN
+
+END
+
+
+
+GO
+

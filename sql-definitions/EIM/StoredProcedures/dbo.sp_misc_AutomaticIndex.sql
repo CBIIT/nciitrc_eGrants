@@ -1,0 +1,134 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_misc_AutomaticIndex]
+
+AS
+
+declare @CID smallint
+declare @Phrase varchar(100)
+declare @Thresh int
+declare @PID int
+
+
+--start from skratch
+delete documents_index
+
+
+
+DECLARE cur CURSOR FOR
+SELECT category_id,phrase,threshhold,phrase_id
+from automatic_index
+
+OPEN cur
+
+FETCH NEXT FROM cur
+INTO @CID,@Phrase,@Thresh,@PID
+
+WHILE @@Fetch_Status=0
+BEGIN
+
+
+--2 cases:
+
+IF @Thresh is null -- then check for the exact match of the phrase
+BEGIN
+insert documents_index(category_id,page_id,rank,phrase_id)
+select @CID,[key],rank,@PID
+from containstable(ncieim_b..dt,txt,@Phrase)
+END
+
+IF @Thresh is not null --check for threshhold of match instead
+BEGIN
+insert documents_index(category_id,page_id,rank,phrase_id)
+select @CID,[key],rank,@PID
+from freetexttable(ncieim_b..dt,txt,@Phrase)
+where rank>=@Thresh
+END
+
+
+
+
+FETCH NEXT FROM cur
+INTO @CID,@Phrase,@Thresh,@PID
+
+END
+
+
+CLOSE cur
+DEALLOCATE cur
+
+
+
+
+--delete documents that do satisfy criteria
+
+--Specific Aims is not found in the beginning of document
+delete documents_index where match_id in
+(
+select match_id from matches
+where phrase_id=13 and NOT (page>7)
+)
+
+
+--Table of Contents document always takes priority
+delete documents_index where category_id<>42 and page_id in
+(select page_id from matches where category_id=42)
+
+
+
+--Often Assurance Human and Animal are on the same page - create one doc out it - Assurance Misc
+
+--find pages that have both Animal and Human assurances
+select distinct page_id into #t from matches  where category_name='Assurance Human' and page_id in
+(select page_id from matches where category_name='Assurance Animal')
+
+--delete reference to the Animal version - only keep human
+delete documents_index where page_id in (select page_id from #t) and category_id=9
+
+--now change human one to misc
+update documents_index 
+set category_id=10
+where page_id in (select page_id from #t) and category_id=8
+
+
+--Checklist takes priority over (usually) Assurances
+delete documents_index where category_id<>20 and page_id in
+(select page_id from matches where category_name='Checklist')
+
+--Keep only Face Pages
+
+select distinct page_id into #s from documents_index
+where category_id=13
+
+delete documents_index where page_id in (select page_id from #s)
+
+insert documents_index(page_id,category_id)
+select page_id,13 from #s
+
+
+--delete the superficial Literature document from duplicates
+delete documents_index where category_id=45 and page_id in
+(select page_id from documents_index
+group by page_id
+having count(distinct category_id)>1)
+
+
+--keep Abstracts over Description
+delete documents_index where category_id=41 and page_id in
+(select page_id from matches where category_name='Abstract')
+
+
+
+
+--Randomly delete the other duplicates
+delete documents_index where match_id not in
+(select min(match_id) from documents_index group by page_id)
+
+
+
+--repopulate the documents_i table
+delete documents_i
+insert documents_i(page_id,category_id)
+select page_id,category_id from documents_index
+GO
+

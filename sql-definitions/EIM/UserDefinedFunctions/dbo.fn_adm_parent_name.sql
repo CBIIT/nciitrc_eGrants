@@ -1,0 +1,28 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+
+CREATE FUNCTION [dbo].[fn_adm_parent_name] (@folder_id int)
+  
+RETURNS varchar(250) AS  
+
+BEGIN 
+
+declare @parent_name  varchar(250)
+
+set @parent_name =(select folder_name from dbo.adm_folders where folder_id =(select parent_id from dbo.adm_folders where folder_id=@folder_id))
+
+RETURN
+(
+
+select @parent_name  
+
+)
+END
+
+
+
+
+
+GO
+

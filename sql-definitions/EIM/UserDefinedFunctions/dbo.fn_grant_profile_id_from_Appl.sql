@@ -1,0 +1,18 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION [dbo].[fn_grant_profile_id_from_Appl] (@applid int)
+  
+RETURNS int  AS  
+
+BEGIN 
+
+RETURN 
+(
+SELECT ISNULL(profile_id,null) AS profile_id  from profiles where admin_phs_org_code=
+(select admin_phs_org_code from vw_appls where appl_id=@applid)
+)
+
+
+END
+GO
+

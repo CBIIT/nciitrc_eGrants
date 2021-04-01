@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+--USAGE: exec DB_GET_WIDGET_EXPEDITED_GRANTS 'omairi'
+ 
+CREATE PROCEDURE [dbo].[DB_GET_WIDGET_EXPEDITED_GRANTS]
+@USERID VARCHAR(30)
+AS
+BEGIN
+--select widget_id,widget_title,description,
+--(select 'y' from dbo.DB_WIDGET_ASSIGNMENT a where a.userid=@USERID and a.end_date is null and a.widget_id=b.widget_id) as selected
+--from dbo.DB_Widget_Master b where b.end_date is null
+
+select appl_id,fgn,NCAB_date
+from dbo.DB_EARLY_CONCUR_FLAG 
+WHERE USERid=@USERID 
+ORDER BY NCAB_date ASC
+
+END
+
+
+
+GO
+

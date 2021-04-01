@@ -1,0 +1,18 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[categories](
+	[category_id] [smallint] IDENTITY(1,1) NOT NULL,
+	[category_name] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[package] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[created_date] [smalldatetime] NULL,
+	[created_by_person_id] [int] NULL,
+	[impac_doc_type_code] [varchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[modified_date] [smalldatetime] NULL,
+	[modified_by_person_id] [int] NULL,
+	[can_upload] [char](3) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[input_type] [char](1) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[input_constraint] [char](1) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+) ON [PRIMARY]
+
+GO
+

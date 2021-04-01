@@ -1,0 +1,57 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+/*
+-- ==========================================================================================
+-- Author:		Joel Friedman
+-- Create date: 05/26/2011
+-- Description:	Returns the count of "pages" of data from a datasource
+-- Useage:		Requires	(1) the name of the source dataset, 
+--							(2) selection criteria (without the word 'where' (optional).
+--									example  'disabled_date is not null'
+--							(3) number of rows to list on each page, 
+--				Returns:	The count number of "pages" required to display all rows 
+--								from the dataset.
+--							
+-- ==========================================================================================
+*/
+CREATE PROCEDURE [dbo].[return_page_count]
+	@source_data varchar(100),		-- source table, dataset or view 
+	@where_clause varchar(500),		-- criteria after where in select statement  (optional)
+	@page_size int					-- number of rows to list on each page
+
+AS
+BEGIN
+	SET NOCOUNT ON;
+	
+	declare @sql nvarchar(4000)	
+	declare @row_count int
+	declare @how_many_pages int
+	
+	--  Add selection criteria if entered
+	if @where_clause > ''
+	begin
+		set @source_data = @source_data + ' where ' + 	@where_clause
+	end
+	
+	--  Determine the total number of rows in the dataset
+	set @sql=N'SELECT @RowCount = COUNT(*) FROM ' + @source_data
+	
+	EXEC sp_executesql
+	   @sql,
+		N'@RowCount int OUTPUT',
+		@row_count OUTPUT
+	
+	--  calculate number of pages
+	set @how_many_pages = @row_count/@page_size
+	
+	if @how_many_pages*@page_size < @row_count
+	begin
+		set @how_many_pages = @how_many_pages + 1
+	end
+	
+	select @how_many_pages
+	
+end
+GO
+

@@ -1,0 +1,32 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+
+CREATE FUNCTION [dbo].[fn_adm_items_count] (@folder_id int)
+  
+RETURNS int AS  
+
+BEGIN 
+
+declare @count_folder		int
+declare @count_file	int
+declare @count				int
+
+SET @count_folder =(select count(*) from dbo.adm_folders where parent_id=@folder_id  and  disabled_date is null) 
+SET @count_file	=(SELECT count(*) from dbo.adm_files where folder_id=@folder_id and disabled_date is null) 
+SET @count=@count_folder+@count_file
+
+RETURN
+(
+
+select @count
+
+)
+END
+
+
+
+
+
+GO
+

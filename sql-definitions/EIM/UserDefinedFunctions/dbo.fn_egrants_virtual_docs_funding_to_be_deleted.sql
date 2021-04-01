@@ -1,0 +1,180 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+
+
+CREATE FUNCTION [dbo].[fn_egrants_virtual_docs_funding_to_be_deleted]
+(@IC varchar(10)=NULL)
+
+RETURNS TABLE 
+AS
+RETURN 
+(
+SELECT distinct
+
+3	AS tag, 
+2	AS parent,
+grant_id				[grant!1!grant_id!element], 
+NULL					[grant!1!serial_num!element],
+CAST(null as varchar)	[grant!1!admin_phs_org_code!element],
+CAST(null as varchar)	[grant!1!former_grant_num!element],   
+CAST(null as varchar)   [grant!1!future_grant_num!element],  
+CAST(null as varchar)	[grant!1!arra_flag!element],
+CAST(null as varchar) 	[grant!1!stop_sign!element],
+CAST(null as varchar)   [grant!1!org_name!element],                                       
+CAST(null as varchar)  	[grant!1!pi_name!element],              
+CAST(null as varchar) 	[grant!1!project_title!element],   
+CAST(null as varchar)	[grant!1!award_package!element],
+CAST(null as varchar)	[grant!1!application_package!element],
+CAST(null as varchar) 	[grant!1!correspondence_package!element],
+CAST(null as varchar) 	[grant!1!closeout_package!element],
+CAST(null as varchar) 	[grant!1!prog_class_code!element],
+CAST(null as varchar) 	[grant!1!is_tobacco!element],
+CAST(null as varchar)  	[grant!1!fda_flag!element],
+
+appl_id					[appl!2!appl_id!element],
+CAST(null as varchar)	[appl!2!full_grant_num!element],
+CAST(null as varchar)	[appl!2!support_year!element],
+CAST(null as varchar)	[appl!2!suffix_code!element],
+CAST(null as varchar)	[appl!2!new_supp!element],
+CAST(null as varchar)	[appl!2!closeout_notcount!element],
+CAST(null as varchar)	[appl!2!org_name!element],
+CAST(null as varchar)	[appl!2!deleted_by_impac!element],
+CAST(null as varchar)	[appl!2!competing!element],
+null            		[appl!2!fsr_count!element], 
+null					[appl!2!frc_destroyed!element], 
+CAST(null as varchar)	[appl!2!can_add_funding!element], 
+CAST(null as varchar)	[appl!2!fda_flag!element], 
+CAST(null as varchar)	[appl!2!closeout_flag!element],
+
+document_id							[doc!3!document_id!element],
+convert(varchar,document_date,101)	[doc!3!document_date!element],
+'Funding'							[doc!3!category_name!element],
+37									[doc!3!category_id!element],
+created_by							[doc!3!created_by!element],
+convert(varchar,created_date,101)	[doc!3!created_date!element],
+CAST(null as varchar)				[doc!3!modified_by!element],
+CAST(null as varchar)				[doc!3!modified_date!element],
+CAST(null as varchar)				[doc!3!file_modified_by!element],
+CAST(null as varchar)				[doc!3!file_modified_date!element],
+CAST(null as varchar)				[doc!3!problem_msg!element],
+CAST(null as varchar)				[doc!3!problem_reported_by!element],
+null								[doc!3!page_count!element],
+null								[doc!3!parent_id!element],
+null								[doc!3!attachment_count!element],
+CAST(null as varchar)				[doc!3!description!element],
+replace(url,'nci.nih', LOWER(@IC+'.nih')) [doc!3!url!element],
+CAST(null as varchar)				[doc!3!file_type!element],
+CAST(null as varchar)				[doc!3!qc_date!element],
+CAST(null as varchar)				[doc!3!qc_reason!element],
+null								[doc!3!qc_person_id!element],
+CAST(null as varchar)				[doc!3!qc_person_name!element],
+null								[doc!3!doc_rank!element],
+CAST(null as varchar)				[doc!3!uploadid!element],
+'n'									[doc!3!can_upload!element],
+'n'									[doc!3!can_modify_index!element],
+'n'									[doc!3!can_delete!element],
+'n'									[doc!3!can_restore!element],
+'n'									[doc!3!can_store!element],
+CAST(null as varchar)				[doc!3!ic!element]
+
+FROM vw_funding
+where admin_phs_org_code='CA'
+
+)
+
+
+
+--USE [EIM]
+--GO
+/****** Object:  UserDefinedFunction [dbo].[fn_egrants_virtual_docs_funding]    Script Date: 05/19/2015 10:03:31 ******/
+--SET ANSI_NULLS ON
+--GO
+--SET QUOTED_IDENTIFIER OFF
+--GO
+
+/**
+ALTER FUNCTION [dbo].[fn_egrants_virtual_docs_funding]
+(@IC varchar(10)=NULL)
+
+RETURNS TABLE 
+AS
+RETURN 
+(
+SELECT distinct
+
+3	AS tag, 
+2	AS parent,
+grant_id				[grant!1!grant_id!element], 
+NULL					[grant!1!serial_num!element],
+CAST(null as varchar)	[grant!1!admin_phs_org_code!element],
+CAST(null as varchar)	[grant!1!former_grant_num!element],   
+CAST(null as varchar)   [grant!1!future_grant_num!element],  
+CAST(null as varchar)	[grant!1!arra_flag!element],
+CAST(null as varchar) 	[grant!1!stop_sign!element],
+CAST(null as varchar)   [grant!1!org_name!element],                                       
+CAST(null as varchar)  	[grant!1!pi_name!element],              
+CAST(null as varchar) 	[grant!1!project_title!element],   
+CAST(null as varchar)	[grant!1!award_package!element],
+CAST(null as varchar)	[grant!1!application_package!element],
+CAST(null as varchar) 	[grant!1!correspondence_package!element],
+CAST(null as varchar) 	[grant!1!closeout_package!element],
+CAST(null as varchar) 	[grant!1!prog_class_code!element],
+CAST(null as varchar) 	[grant!1!is_tobacco!element],
+CAST(null as varchar)  	[grant!1!fda_flag!element],
+
+appl_id					[appl!2!appl_id!element],
+CAST(null as varchar)	[appl!2!full_grant_num!element],
+CAST(null as varchar)	[appl!2!support_year!element],
+CAST(null as varchar)	[appl!2!suffix_code!element],
+CAST(null as varchar)	[appl!2!new_supp!element],
+CAST(null as varchar)	[appl!2!closeout_notcount!element],
+CAST(null as varchar)	[appl!2!org_name!element],
+CAST(null as varchar)	[appl!2!deleted_by_impac!element],
+CAST(null as varchar)	[appl!2!competing!element],
+null            		[appl!2!fsr_count!element], 
+null					[appl!2!frc_destroyed!element], 
+CAST(null as varchar)	[appl!2!can_add_funding!element], 
+CAST(null as varchar)	[appl!2!fda_flag!element], 
+CAST(null as varchar)	[appl!2!closeout_flag!element],
+
+document_id							[doc!3!document_id!element],
+convert(varchar,document_date,101)	[doc!3!document_date!element],
+'Funding'							[doc!3!category_name!element],
+37									[doc!3!category_id!element],
+created_by							[doc!3!created_by!element],
+convert(varchar,created_date,101)	[doc!3!created_date!element],
+CAST(null as varchar)				[doc!3!modified_by!element],
+CAST(null as varchar)				[doc!3!modified_date!element],
+CAST(null as varchar)				[doc!3!file_modified_by!element],
+CAST(null as varchar)				[doc!3!file_modified_date!element],
+CAST(null as varchar)				[doc!3!problem_msg!element],
+CAST(null as varchar)				[doc!3!problem_reported_by!element],
+null								[doc!3!page_count!element],
+null								[doc!3!parent_id!element],
+null								[doc!3!attachment_count!element],
+CAST(null as varchar)				[doc!3!description!element],
+replace(url,'nci.nih', LOWER(@IC+'.nih')) [doc!3!url!element],
+CAST(null as varchar)				[doc!3!file_type!element],
+CAST(null as varchar)				[doc!3!qc_date!element],
+CAST(null as varchar)				[doc!3!qc_reason!element],
+null								[doc!3!qc_person_id!element],
+CAST(null as varchar)				[doc!3!qc_person_name!element],
+null								[doc!3!doc_rank!element],
+CAST(null as varchar)				[doc!3!uploadid!element],
+'n'									[doc!3!can_upload!element],
+'n'									[doc!3!can_modify_index!element],
+'n'									[doc!3!can_delete!element],
+'n'									[doc!3!can_restore!element],
+'n'									[doc!3!can_store!element],
+CAST(null as varchar)				[doc!3!ic!element]
+
+FROM vw_funding
+where admin_phs_org_code='CA'
+
+)
+
+**/
+
+
+GO
+

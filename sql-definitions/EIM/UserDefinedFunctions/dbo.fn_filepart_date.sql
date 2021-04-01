@@ -1,0 +1,77 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE FUNCTION fn_filepart_date (@f varchar(255))
+
+  
+RETURNS smalldatetime AS  
+BEGIN 
+
+declare @p smallint
+declare @sz tinyint
+
+
+
+
+--4 digit year
+
+select @p=patindex('%[0-9][0-9][-][0-9][0-9][-][0-9][0-9][0-9][0-9]%',@f),@sz=10
+IF @p=0 select @p=patindex('%[0-9][0-9][-][0-9][-][0-9][0-9][0-9][0-9]%',@f),@sz=9
+IF @p=0 select @p=patindex('%[0-9][-][0-9][-][0-9][0-9][0-9][0-9]%',@f),@sz=8
+IF @p=0 select @p=patindex('%[0-9][-][0-9][0-9][-][0-9][0-9][0-9][0-9]%',@f),@sz=9
+
+
+--2 digit year
+select @p=patindex('%[0-9][0-9][-][0-9][0-9][-][0-9][0-9][0-9][0-9]%',@f),@sz=8
+IF @p=0 select @p=patindex('%[0-9][0-9][-][0-9][-][0-9][0-9][0-9][0-9]%',@f),@sz=7
+IF @p=0 select @p=patindex('%[0-9][-][0-9][-][0-9][0-9][0-9][0-9]%',@f),@sz=6
+IF @p=0 select @p=patindex('%[0-9][-][0-9][0-9][-][0-9][0-9][0-9][0-9]%',@f),@sz=7
+
+
+
+
+
+IF  ISDATE(substring(@f,@p,@sz))<>1 RETURN NULL
+
+RETURN substring(@f,@p,@sz)
+
+
+
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+

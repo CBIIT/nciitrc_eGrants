@@ -1,0 +1,21 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+CREATE FUNCTION [dbo].[fn_flag_A] (@applID int, @flag_type varchar(10))
+  
+RETURNS char(1) AS  
+
+BEGIN
+
+Declare @GrantID int
+
+Select @GrantID = grant_id from appls where appl_id = @applID
+
+IF (select count(*) from grants_flag_construct where flag_type=@flag_type and grant_id=@GrantID and appl_id = @applID and end_dt is null)>0  
+RETURN 'y'
+
+RETURN 'n'
+
+END 
+GO
+

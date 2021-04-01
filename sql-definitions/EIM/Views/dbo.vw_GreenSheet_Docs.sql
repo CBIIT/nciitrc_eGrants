@@ -1,0 +1,27 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+CREATE VIEW [dbo].[vw_GreenSheet_Docs]
+
+AS
+
+SELECT ciip.appl_id, ciip.submitted_date, ciip.form_role_code 
+FROM OPENQUERY(CIIP, ' 
+select * from 
+(
+select a.appl_id,b.submitted_date,b.form_role_code from appl_forms_t a, forms_t b where a.frm_id = b.id 
+union all
+select a.appl_id,b.submitted_date,b.form_role_code from appl_forms_t a, forms_t b, appl_gm_actions_t g where g.id = a.agt_id and a.frm_id = b.id
+)
+') ciip INNER JOIN dbo.appls ON ciip.appl_id = dbo.appls.appl_id
+
+
+/**
+SELECT ciip.APPL_ID FROM
+OPENQUERY(CIIP, 'select appl_id from form_appl_status_vw') ciip INNER JOIN
+dbo.appls ON ciip.APPL_ID = dbo.appls.appl_id
+**/
+
+
+GO
+

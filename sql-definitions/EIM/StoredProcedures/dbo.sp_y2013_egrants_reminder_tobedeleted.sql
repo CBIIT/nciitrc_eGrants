@@ -1,0 +1,104 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+
+create PROCEDURE [dbo].[sp_y2013_egrants_reminder_tobedeleted]
+
+@act				varchar(20),
+@serial_num			int,
+@appl_id			int,
+@effective_date		smalldatetime,
+@event_type			varchar(20),
+@reminder_text		varchar(500),
+@by_email			char(1),
+@by_display			char(1),
+@ic					varchar(10),
+@operator			varchar(50)
+
+AS
+/************************************************************************************************************/
+/***									 							***/
+/***	Procedure Name:  sp_y2013_egrants_reminder					***/
+/***	Description:egrants reminder								***/
+/***	Created:	10/24/2016		Leon							***/
+/************************************************************************************************************/
+
+SET NOCOUNT ON
+
+DECLARE @person_id 			int
+DECLARE @profile_id			int
+DECLARE @separate			int
+DECLARE @person_name		varchar(50)
+DECLARE @first_name			varchar(20)
+DECLARE @sql				varchar(800)
+DECLARE @xmlout				varchar(max)
+DECLARE @X					Xml
+
+DECLARE @USERID				varchar(50)
+SET @USERID=@operator
+--SET @USERID='OMAIRI'
+/**find profile_id **/
+SET @profile_id=(select profile_id FROM profiles WHERE profile=@ic)
+SET @person_id = (SELECT person_id FROM vw_people WHERE userid=@operator)
+SET @person_name=(SELECT person_name from vw_people where person_id=@person_id)
+
+--find user info
+--IF @person_name<>'' and @person_name is not null 
+--BEGIN
+--select @separate=PATINDEX('%,%', @person_name)
+--/****If the below line is not present and the person_name in people table has no comma the user will not be able to login***/
+--IF @separate>0 select @first_name=LEFT(@person_name,@separate-1 )
+--END 
+
+--SELECT person_id,person_name, @first_name as first_name,userid,position_id,profile_id, [profile] as ic, dbo.fn_get_qc_days(@person_id) as qc_days,
+--can_egrants,can_egrants_upload,can_cft,can_mgt,can_docman,can_admin,can_iccoord,can_dashboard,can_qc
+--FROM vw_people AS user_info 
+--WHERE userid=LOWER(@operator)and application_type='egrants'
+
+IF @act='search' GOTO to_search
+IF @act='select' GOTO to_select
+IF @act='save' GOTO to_save
+-----------------
+to_search:
+
+SET @X = (
+SELECT appl.appl_id,appl.serial_num, appl.full_grant_num 
+FROM dbo.DB_GPMATS_ASSIGNMENT_STATUS d,vw_appls as appl
+WHERE appl.appl_id=d.APPL_ID and appl.serial_num=@serial_num
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+RETURN
+------------------
+to_select:
+ 
+SET @X = (
+SELECT APPL_ID as appl_id,
+FGN as full_grant_num, 
+convert(varchar,GRANT_ASSIGN_DATE,101) as assign_date,
+CASE APPL_TYPE_CODE
+	WHEN 5 THEN convert(varchar,DATEADD(day, 45, convert(varchar(10),GRANT_ASSIGN_DATE,101)),101)
+	WHEN 1 THEN convert(varchar,DATEADD(day, 60, convert(varchar(10),GRANT_ASSIGN_DATE,101)),101)
+	WHEN 2 THEN convert(varchar,DATEADD(day, 60, convert(varchar(10),GRANT_ASSIGN_DATE,101)),101) 
+ELSE
+	convert(varchar,DATEADD(day, DATEDIFF(day,GRANT_ASSIGN_DATE,GETDATE()), convert(varchar(10),GRANT_ASSIGN_DATE,101)),101) 
+END AS due_date
+FROM dbo.DB_GPMATS_ASSIGNMENT_STATUS as appl
+WHERE APPL_ID=@appl_id
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+RETURN
+------------------
+to_save:
+
+INSERT dbo.DB_REMINDER(event_type,user_id,appl_id,effective_date,Txt,to_be_emailed,to_be_displayed,created_date,created_by_person_id)
+SELECT @event_type,@operator,@appl_id,@effective_date,@reminder_text,ISNULL(@by_email,null),ISNULL(@by_display,null),GETDATE(),@person_id
+
+RETURN
+
+GO
+

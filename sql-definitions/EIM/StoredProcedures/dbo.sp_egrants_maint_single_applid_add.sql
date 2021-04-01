@@ -1,0 +1,113 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_egrants_maint_single_applid_add] 
+
+@appl_id	 int
+
+/************************************************************************************************************/
+/***									 		***/
+/***	Procedure Name: sp_egrants_maint_single_applid_add				***/
+/***	Description:	Add appl_id from impac to appls table				***/
+/***	Created:	04/24/2007	Leon						***/
+/***	Modified:	04/26/2007	Leon						***/
+/***											***/
+/************************************************************************************************************/
+
+AS
+
+SET NOCOUNT ON
+
+declare 
+@sql			varchar(4000),
+@grant_id		int
+
+
+IF (select count(*) from appls_ciip where appl_id=@appl_id)=0
+BEGIN
+
+SET @sql=
+'insert appls_ciip
+(appl_id, appl_type_code,
+activity_code, admin_phs_org_code,
+serial_num, support_year, suffix_code,
+project_title, former_num, rfa_pa_number,
+council_meeting_date, external_org_id, org_name, 
+person_id, last_name, first_name, mi_name, prog_class_code, irg_code,
+APPL_STATUS_GROUP_DESCRIP,fy,LAST_UPD_DATE, irg_flex_code, summary_statement_flag,active_grant_flag )'
+
+SET @sql=@sql+
+'select appl_id, appl_type_code,
+activity_code, admin_phs_org_code,
+serial_num, support_year, suffix_code,
+project_title, former_num, rfa_pa_number,
+council_meeting_date,external_org_id, org_name,
+person_id, last_name, first_name, mi_name, prog_class_code, irg_code,
+APPL_STATUS_GROUP_DESCRIP,fy,LAST_UPD_DATE, irg_flex_code,summary_statement_flag, active_grant_flag from '
+
+/*--commented by hareesh on 5/4/16 5:10pm--*/
+--SET @sql= @sql + 'openquery(IRDB,' + char(39) + '
+--select appl_id, appl_type_code,
+--activity_code, admin_phs_org_code,
+--serial_num, support_year, suffix_code,
+--project_title, former_num, rfa_pa_number,
+--council_meeting_date, external_org_id, org_name,
+--person_id, last_name, first_name, mi_name, prog_class_code, irg_code,
+--APPL_STATUS_GROUP_DESCRIP,fy,LAST_UPD_DATE, irg_flex_code, summary_statement_flag, active_grant_flag from 
+--dm_pv_grant_pi where appl_id=' + char(39) + char(39) +convert(varchar,@appl_id) + char(39) + char(39) + char(39) + ')'
+
+
+/*--added by hareesh on 5/4/16 5:10pm--*/
+SET @sql= @sql + 'openquery(IRDB,' + char(39) + '
+select appl_id, appl_type_code,
+activity_code, admin_phs_org_code,
+serial_num, support_year, suffix_code,
+project_title, former_num, rfa_pa_number,
+council_meeting_date, external_org_id, org_name,
+pi_role_person_id, pi_last_name, pi_first_name, pi_mi_name, prog_class_code, irg_code,
+APPL_STATUS_GROUP_DESCRIP,fy,LAST_UPD_DATE, irg_flex_code, ss_exists_code, active_grant_flag from 
+pva_grant_pi_mv where appl_id=' + char(39) + char(39) +convert(varchar,@appl_id) + char(39) + char(39) + char(39) + ')'
+
+
+EXEC (@sql)
+
+END
+
+--find grant_id for @appl_id
+IF (select grant_id  from appls_ciip where appl_id=@appl_id) IS NULL 
+BEGIN
+SELECT @grant_id=g.grant_id 
+FROM appls_ciip s, vw_grants g
+WHERE s. admin_phs_org_code=g. admin_phs_org_code and s.serial_num=g.serial_num and s.appl_id=@appl_id
+
+UPDATE  appls_ciip SET grant_id=@grant_id WHERE appl_id=@appl_id
+
+END
+
+--insert appl data to appls table
+IF  (select count(*) from appls where appl_id=@appl_id)=0 
+BEGIN
+
+INSERT appls (appl_id, appl_type_code, activity_code, grant_id, support_year, suffix_code, project_title, former_num, rfa_pa_number, council_meeting_date, external_org_id, 
+org_name, person_id, last_name, first_name, mi_name, prog_class_code, irg_code, appl_status_group_descrip, fy,
+appl_received_date, created_date, last_upd_date, irg_flex_code, summary_statement_flag)
+
+SELECT appls_ciip.APPL_ID, appls_ciip.APPL_TYPE_CODE, appls_ciip.ACTIVITY_CODE, appls_ciip.grant_id, appls_ciip.SUPPORT_YEAR, 
+               appls_ciip.SUFFIX_CODE, appls_ciip.PROJECT_TITLE, appls_ciip.FORMER_NUM, appls_ciip.RFA_PA_NUMBER,
+               appls_ciip.COUNCIL_MEETING_DATE, appls_ciip.EXTERNAL_ORG_ID, appls_ciip.ORG_NAME, 
+               appls_ciip.PERSON_ID, appls_ciip.LAST_NAME, appls_ciip.FIRST_NAME, appls_ciip.MI_NAME, 
+               appls_ciip.PROG_CLASS_CODE, appls_ciip.IRG_CODE, appls_ciip.APPL_STATUS_GROUP_DESCRIP, appls_ciip.FY, 
+               appls_ciip.APPL_RECEIVED_DATE, appls_ciip.CREATED_DATE, 
+               appls_ciip.LAST_UPD_DATE,appls_ciip.irg_flex_code,appls_ciip.summary_statement_flag
+FROM  appls_ciip 
+WHERE appl_id=@appl_id
+
+END
+
+
+
+
+/****** Object:  StoredProcedure [dbo].[sp_egrants_maint_single_applid_replacement]    Script Date: 06/17/2013 14:57:06 ******/
+SET ANSI_NULLS ON
+
+GO
+

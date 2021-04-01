@@ -1,0 +1,151 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_inventory]
+
+AS
+
+--------------------------------------------------------------------------------------------
+declare @person_id			int
+declare @invFileName varchar(30)
+declare @CMD varchar(100)
+SET @invFileName='F:\Data\util\pdfinfo\inventory-'+CONVERT(varchar(10),getdate(),105)+'.txt'
+
+select @person_id= person_id from people where userid='system'
+
+--update page count for pdfinfo  
+UPDATE pdfinfo
+SET page_count=source.page_count, last_upd_date=getdate()
+FROM openquery(pdfinfo,'select * from inventory.txt') source
+INNER JOIN pdfinfo ON 
+pdfinfo.file_name=source.file_name COLLATE SQL_Latin1_General_Pref_CP1_CI_AS and 
+pdfinfo.directory=source.directory COLLATE SQL_Latin1_General_Pref_CP1_CI_AS 
+WHERE pdfinfo.page_count<>source.page_count or (pdfinfo.page_count IS NULL and source.page_count IS NOT NULL)
+
+--insert page count to pdfinfo 
+INSERT pdfinfo(file_name, directory, page_count)
+SELECT DISTINCT source.file_name, source.directory, source.page_count 
+FROM openquery(pdfinfo,'select * from inventory.txt') source
+LEFT OUTER JOIN pdfinfo ON 
+pdfinfo.file_name=source.file_name COLLATE SQL_Latin1_General_Pref_CP1_CI_AS and 
+pdfinfo.directory=source.directory COLLATE SQL_Latin1_General_Pref_CP1_CI_AS 
+WHERE pdfinfo.file_id IS NULL and source.file_name IS NOT NULL
+-----------------------------------------------------------------------------------------------
+---update document_id fro pdfinfo
+/* --commented by hareesh on 2/24/15 12:30pm because pdfinfo job is failing
+UPDATE pdfinfo 
+--SET document_id=convert(float,replace([file_name],'.pdf','')) --commented by hareesh on 2/16/15 6:30pm
+SET document_id=convert(bigint,replace([file_name],'.pdf','')) 
+WHERE ISNUMERIC(replace([file_name],'.pdf',''))=1 and document_id IS NULL
+*/
+
+--added by hareesh on 2/24/15 12:30pm 
+UPDATE pdfinfo															
+SET document_id=convert(bigint,replace([file_name],'.pdf','')) 
+WHERE ISNUMERIC(replace([file_name],'.pdf',''))=1 and document_id IS NULL
+and convert(bigint,replace([file_name],'.pdf','')) <> 36111457878787
+
+UPDATE pdfinfo 
+SET cdocument_id=replace(replace(file_name, 'c',''),'.pdf','')
+WHERE [file_name] like 'c%' and ISNUMERIC(replace(replace(file_name, 'c',''),'.pdf',''))=1 and cdocument_id IS NULL
+
+UPDATE pdfinfo SET is_corrupt=0 WHERE is_corrupt=1
+
+UPDATE pdfinfo SET is_corrupt=1 WHERE ISNUMERIC(page_count)=0 
+
+UPDATE pdfinfo SET is_current=0 WHERE is_current=1
+
+UPDATE pdfinfo
+SET is_current=1
+FROM pdfinfo p INNER JOIN egrants ON p.document_id=egrants.document_id and unix_file=directory + [file_name]
+
+-------------------------------------------------------------------------------------
+----update page counts fro contract documents
+UPDATE contract_documents
+SET page_count=p.page_count
+FROM pdfinfo p INNER JOIN contract_documents c ON p.cdocument_id=c.document_id
+WHERE ISNULL(c.page_count,-1)!=ISNULL(p.page_count,-2) -- or c.page_count IS NULL and p.page_count IS NOT NULL 
+
+----update page counts fro grants documents
+UPDATE documents 
+SET page_count=p.page_count
+FROM pdfinfo p INNER JOIN documents d ON p.document_id=d.document_id
+WHERE  is_current=1 and p.page_count is not null and p.page_count<>ISNULL(d.page_count,-100)
+
+------------------------------------------------------------------------------------
+---set source to main
+UPDATE pdfinfo SET is_in_main=0 WHERE is_in_main=1
+
+UPDATE pdfinfo
+SET is_in_main=1
+FROM openquery(pdfinfo,'select * from inventory.txt') source
+INNER JOIN pdfinfo ON pdfinfo.file_name=source.file_name COLLATE SQL_Latin1_General_Pref_CP1_CI_AS
+WHERE source.directory='/egrants/funded2/nci/main/' and pdfinfo.directory='/egrants/funded2/nci/main/' and ISNUMERIC(source.page_count)=1
+
+/*Imran : PIV Migration change 6/7/2014*/
+/*
+UPDATE documents 
+SET url='https://egrants-data.nci.nih.gov/funded2/nci/main/' + convert(varchar, documents.document_id) + '.pdf'
+FROM pdfinfo INNER JOIN documents ON pdfinfo.document_id=documents.document_id
+WHERE is_in_main=1 and url like 'https://egrants-data.nci.nih.gov/funded2/nci/convert%'
+*/
+UPDATE documents 
+---SET url='/data/funded2/nci/main/' + convert(varchar, documents.document_id) + '.pdf'  cpomment out by Leon 5/16/2016
+SET url='data/funded2/nci/main/' + convert(varchar, documents.document_id) + '.pdf'
+FROM pdfinfo INNER JOIN documents ON pdfinfo.document_id=documents.document_id
+WHERE is_in_main=1 and url like '/data/funded2/nci/convert%'
+
+-----------------------------------------------------------------------------------
+----send problems to QC
+DECLARE @problems TABLE (document_id int, ic varchar(20), qc_date smalldatetime)
+
+INSERT @problems
+SELECT egrants.document_id,ic, qc_date  --, unix_directory,created_by, created_date,file_modified_date, stored_date, stored_by,qc_date
+FROM egrants INNER JOIN
+
+(SELECT DISTINCT directory 
+FROM pdfinfo) AS dir ON dir.directory=egrants.unix_directory 
+INNER JOIN
+(SELECT egrants.document_id, 'Not found' AS problem
+FROM egrants 
+LEFT OUTER JOIN pdfinfo p ON egrants.document_id=p.document_id 
+WHERE created_date<dateadd(d,-5, getdate()) and ISNULL(file_modified_date,'1/1/1990')<dateadd(d,-5, getdate()) and file_type='pdf' and p.document_id is null
+
+UNION
+
+SELECT egrants.document_id, 'Corrupt' 
+FROM egrants INNER JOIN pdfinfo p ON egrants.document_id=p.document_id
+WHERE p.is_corrupt=1 and p.is_current=1
+) AS problems
+
+ON egrants.document_id=problems.document_id
+--WHERE qc_date IS NULL
+ORDER BY ic, created_date DESC
+
+--these documents should no longer be flagged
+UPDATE documents
+SET qc_date=NULL
+where qc_date is not null and qc_reason='Error' and problem_msg like 'Automated%' and document_id NOT IN (select document_id from @problems)
+
+--insert transaction data
+INSERT documents_transactions 
+(document_id, operator, action_type, full_grant_num, category_name, document_date, description) 
+SELECT d.document_id, 'System', 'error_reported', full_grant_num, category_name, document_date, 'Automated Inventory has flagged this document as corrupted'
+FROM egrants d INNER JOIN @problems p ON p.document_id=d.document_id
+WHERE p.qc_date is null  --and p.ic!='NHLBI'
+
+SET @Cmd= 'REN F:\Data\util\pdfinfo\inventory.txt ' + @invFileName
+EXEC master..xp_cmdshell @Cmd
+
+--update documents and set up error flag
+
+---UNCOMMENT THIS!!!!!
+/*
+UPDATE documents
+SET qc_reason='Error', qc_date=getdate(), 
+problem_msg='Automated Inventory has flagged this document as corrupted', 
+problem_reported_by_person_id=@person_id	--, stored_date=NULL, stored_by_person_id=NULL
+FROM documents d INNER JOIN @problems p ON p.document_id=d.document_id
+WHERE p.qc_date is null
+*/
+GO
+

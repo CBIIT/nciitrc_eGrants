@@ -1,0 +1,36 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+CREATE FUNCTION [dbo].[fn_get_latest_full_grant_num] (@grant_id int)
+  
+RETURNS varchar(50) AS 
+
+BEGIN
+declare @count	int
+declare @full_grant_num varchar(30)
+declare @a table(appl_id int primary key)
+
+insert @a(appl_id) select appl_id from vw_appls where grant_id=@grant_id and suffix_code is null and support_year=(
+select max(support_year) from vw_appls where grant_id=@grant_id and suffix_code is null)
+
+set @count=(select count(*) from @a)
+
+IF @count=1
+BEGIN
+SET @full_grant_num=(
+select full_grant_num from vw_appls x where x.grant_id=@grant_id and x.suffix_code is null 
+--and x.fy=(select max(y.fy) from vw_appls y where y.grant_id=@grant_id and y.suffix_code is null)
+and x.support_year=(select max(z.support_year) from vw_appls z where z.grant_id=@grant_id and z.suffix_code is null)
+)
+END
+ELSE
+BEGIN
+SET @full_grant_num=(select grant_num from vw_grants where grant_id=@grant_id)
+END
+
+RETURN @full_grant_num
+END
+
+GO
+

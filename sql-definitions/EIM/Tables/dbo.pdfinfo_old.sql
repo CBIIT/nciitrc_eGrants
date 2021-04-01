@@ -1,0 +1,14 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[pdfinfo_old](
+	[file_id] [int] IDENTITY(1,1) NOT NULL,
+	[file_name] [varchar](255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[page_count] [int] NULL,
+	[document_id] [int] NULL,
+	[cdocument_id] [int] NULL,
+	[is_valid] [bit] NOT NULL,
+	[is_in_main] [bit] NOT NULL
+) ON [PRIMARY]
+
+GO
+

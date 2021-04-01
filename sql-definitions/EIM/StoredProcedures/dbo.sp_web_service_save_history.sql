@@ -1,0 +1,46 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+
+-- =============================================
+-- Author:			Benny Shell
+-- Create date:		06/07/2020
+-- Description:		Save WebService History Record 
+-- =============================================
+CREATE     PROCEDURE [dbo].[sp_web_service_save_history]
+          @WSEndpoint_Id int
+           ,@Result varchar(max)
+           ,@ResultStatusCode int
+           ,@DateTriggered datetimeoffset(7)
+           ,@DateCompleted datetimeoffset(7)=null
+           ,@WebServiceName varchar(255)
+           ,@EndpointUriSent varchar(1024)
+           ,@ExceptionMessage varchar(4000)=null
+AS
+BEGIN
+SET NOCOUNT ON;
+	
+INSERT INTO [dbo].[WSHistory]
+           ([WSEndpoint_Id]
+           ,[Result]
+           ,[ResultStatusCode]
+           ,[DateTriggered]
+           ,[DateCompleted]
+           ,[WebServiceName]
+           ,[EndpointUriSent]
+           ,[ExceptionMessage])
+     VALUES
+           (@WSEndpoint_Id
+           ,@Result
+           ,@ResultStatusCode 
+           ,@DateTriggered
+           ,@DateCompleted
+           ,@WebServiceName
+           ,@EndpointUriSent
+           ,@ExceptionMessage)
+END
+
+
+GO
+

@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[CIIP_Greensheet_Rev](
+	[appl_id] [int] NULL,
+	[agt_id] [int] NULL,
+	[submitted_date] [datetime] NULL,
+	[Revision_type_description] [nvarchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+) ON [PRIMARY]
+
+GO
+

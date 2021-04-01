@@ -1,0 +1,12 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[cord_manager_documents](
+	[cordmanager_id] [int] NULL,
+	[doc_name] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[path] [nvarchar](200) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[create_date] [smalldatetime] NULL,
+	[created_by] [int] NULL
+) ON [PRIMARY]
+
+GO
+

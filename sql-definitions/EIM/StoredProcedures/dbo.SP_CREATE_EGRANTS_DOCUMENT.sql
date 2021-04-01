@@ -1,0 +1,166 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+
+-- =============================================
+-- Author:		<Imran Omair>
+-- Create date: <5/5/2011>
+-- Mod : 10/25/12
+-- =============================================
+CREATE PROCEDURE [dbo].[SP_CREATE_EGRANTS_DOCUMENT]
+
+--@FGN VARCHAR(30),	--CombinedPIID
+@CAT VARCHAR(100),	--Category Name
+@APPID INT,--
+@PROFILEID smallint,
+@UPLOADID VARCHAR(20), -- ONLY COME FROM NHLBI
+@DD VARCHAR(10),	--Document Date is email recieved date
+@UID VARCHAR(50),	--Sender user id
+@FT VARCHAR(5),		--
+@QCFLAG VARCHAR(3)
+
+AS
+	SET NOCOUNT ON;
+BEGIN
+	DECLARE @UserInterNalID int 
+	DECLARE @dcdate smalldatetime
+	DECLARE @ApplId int
+	DECLARE @documentid int
+	DECLARE @catID int
+	DECLARE @qcreason varchar(20)
+	DECLARE @qcpersonid int
+	DECLARE @url varchar(200)
+	DECLARE @ICCODE varchar(10)
+	DECLARE @Error int
+	DECLARE @ErrorStr nvarchar(200)
+	DECLARE @qcreasen nvarchar(200)
+	SET @Error=0	
+	SET @qcpersonid=NULL
+	SET @dcdate=NULL
+	SET @ErrorStr=''
+	SET @ICCODE='NCI'
+	IF @PROFILEID='5' 
+		SET @ICCODE='NHLBI'
+
+	SET @ApplId=@APPID	
+	--If @UID <> 'ncioatrackingsystem'
+	--go to unaouthorizeduser_Error
+
+	CREATE TABLE #output (name nvarchar(20),value nvarchar(200))
+
+	--VALIDATE CATEGORY
+	--print @APPID
+	IF NOT EXISTS( SELECT * FROM appls where appl_id= @APPID) 
+	BEGIN
+	    SET @Error=1;
+	    SET @ErrorStr=@ErrorStr + ' Grant Does not Exist.' 
+	    SET @ApplId=NULL  --mark un identified document
+	    set @qcreason = 'Email'
+		SET @QCFLAG='yes'
+		SET @qcpersonid=122 --408 for imran   --397 for Dave
+	END
+
+	--Validate Category
+	IF replace(@CAT,' ','') <>''
+	  IF NOT EXISTS( SELECT categories.category_ID FROM categories  
+			inner join dbo.categories_ic on categories.category_id=categories_ic.category_id
+			WHERE ic=@ICCODE and replace(category_name,' ','') = replace(@CAT,' ','')	)
+	  begin
+	    SET @Error=1;
+	    SET @ErrorStr=@ErrorStr + ' Category=' + @CAT + ':Does not Exist.' 
+	    SET @ApplId=NULL  --mark un identified document
+	    SET @catID=NULL
+	    set @qcreason = 'Email'
+	    SET @QCFLAG='yes'
+	    SET @qcpersonid=122  --408 for imran  --397 for Dave
+	  end
+	  else
+		  SELECT 	@catID=categories.category_ID FROM categories  
+			inner join dbo.categories_ic on categories.category_id=categories_ic.category_id
+			WHERE ic='NCI' and replace(category_name,' ','') = replace(@CAT,' ','')		
+
+	--VALIDATE UPLOADER
+	IF NOT EXISTS (SELECT * FROM dbo.people WHERE userid = LTRIM(RTRIM(@UID)) and profile_id=@PROFILEID and position_id>=2 and application_type='egrants')
+	begin
+	  SET @Error=2;
+	  SET @ErrorStr= ' user=' + @UID + ': Not Allowed to Upload documents.' 
+	end
+	  else
+		  SELECT @UserInterNalID=person_id FROM dbo.people 
+		  WHERE userid = LTRIM(RTRIM(@UID)) and profile_id=@PROFILEID and position_id>=2 and application_type='egrants'
+
+	IF @UID = 'FAXMASTER'
+	begin
+	  SET @UserInterNalID=1899;  --Craeted_by_person_ID should be system fr all Faxes added on 10/25/12
+	end
+
+
+	--validate QCflag
+	If lower(@QCFLAG)='yes'
+	  begin
+	    SET @Error=1;
+	    SET @ErrorStr=@ErrorStr + ' Junck attachments found' 
+	    SET @ApplId=NULL  --mark un identified document
+	    set @qcreason = 'Fax/Email'
+	    Set @dcdate = getdate()
+	    SET @qcpersonid=122  --408 for imran  --397 for Dave
+	  end
+
+  IF @Error < 2 
+  BEGIN
+	If @FT is null or @FT ='' SET @FT = 'pdf'
+	--SET @url = 'https://egrants-data.nci.nih.gov/funded2/nci/main/'
+	--SET @url = '/data/funded2/nci/main/'  comment out by leon 5/16/2016
+	SET @url = 'data/funded2/nci/main/'
+
+	INSERT documents(document_date, created_date, created_by_person_id, profile_id,mail_upload_id, qc_reason,qc_person_id,
+	file_type,  uid, category_id, appl_id, qc_date, stored_date)
+
+	SELECT convert(smalldatetime,@DD) as document_date, 
+		getdate() as created_date,
+		@UserInterNalID as created_by_person_id,
+		@PROFILEID as profile_id,
+		Replace(Ltrim(Rtrim(@UPLOADID)),'',NULL) as mail_upload_id,
+		@qcreason as qc_reason,
+		@qcpersonid as qc_person_id,
+		lower(@FT) as file_type, 
+		@UID as uid,
+		@catID as category_id,		
+		@ApplId as appl_id,
+		@dcdate as qc_date,
+		NULL as stored_date
+
+		SET @documentid = @@IDENTITY
+
+		--SET @documentid = '999999'
+	UPDATE documents
+	SET file_type=CASE file_type WHEN 'tif' THEN 'pdf' ELSE file_type END,
+	url=@url + convert(varchar,document_id) + '.' + CASE file_type WHEN 'tif' THEN 'pdf' ELSE file_type END
+	WHERE document_id=@documentid AND url IS NULL --AND qc_reason IN ('Fax', 'Email')
+	END
+	IF @Error=1
+	begin 
+		SET @ErrorStr='[Forwarded to QC] ' + @ErrorStr 
+		INSERT #output(name,value)
+		VALUES ('Advisory',@documentid)   --@documentid
+	end
+	ELSE IF @Error=2
+	begin 
+		--SET @ErrorStr='[Forwarded to QC] ' + @ErrorStr 
+		INSERT #output(name,value)
+		VALUES ('Error',@ErrorStr)
+	end
+	ELSE 
+	begin  
+		INSERT #output(name,value)
+		VALUES ('Success',@documentid)
+	end  
+  --SELECT * FROM DOCUMENTS WHERE DOCUMENT_ID=@documentid
+
+  select * from #output
+
+END
+
+
+GO
+

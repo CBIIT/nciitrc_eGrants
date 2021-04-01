@@ -1,0 +1,62 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+
+
+
+CREATE FUNCTION [dbo].[fn_egrants_web_funding_documents]
+
+(@appl_id	int)
+
+RETURNS TABLE 
+AS
+RETURN 
+(
+SELECT distinct
+'NCI'								as ic,
+grant_id							as grant_id, 
+appl_id								as appl_id,
+full_grant_num						as full_grant_num,
+document_id							as document_id,
+convert(varchar,document_date,101)	as document_date,
+CASE 
+WHEN (sub_category is null or sub_category='') and (sub_string is null or sub_string='')  THEN 'Funding' 
+WHEN (sub_category is not null and sub_category <>'') and (sub_string is null or sub_string='') THEN 'Funding:'+ sub_category 
+WHEN (sub_category is not null and sub_category <>'') and (sub_string is not null and sub_string <>'') THEN 'Funding:'+ sub_category +'_'+ sub_string 
+END									as document_name,
+document_date						as doc_date,
+37									as category_id,
+'Funding'							as category_name,
+CAST(null as varchar)				as sub_category_name,
+created_by							as created_by,
+convert(varchar,created_date,101)	as created_date,
+CAST(null as varchar)				as modified_by,
+CAST(null as varchar)				as modified_date,
+CAST(null as varchar)				as file_modified_by,
+CAST(null as varchar)				as file_modified_date,
+CAST(null as varchar)				as problem_msg,
+CAST(null as varchar)				as problem_reported_by,
+null								as page_count,
+0									as fsr_count,
+0									as attachment_count,
+0									as closeout_notcount,
+0									as frc_destroyed,
+replace(url,'nci.nih', LOWER('nci.nih')) as url,
+CAST(null as varchar)				as qc_date,
+CAST(null as varchar)				as qc_reason,
+CAST(null as varchar)				as qc_person_id,
+CAST(null as varchar)				as qc_person_name,
+'n'									as can_qc,
+'n'									as can_upload,
+'n'									as can_modify_index,
+'n'									as can_delete,
+'n'									as can_restore,
+'n'									as can_store
+
+FROM vw_funding
+where appl_id=@appl_id
+
+)
+
+
+GO
+

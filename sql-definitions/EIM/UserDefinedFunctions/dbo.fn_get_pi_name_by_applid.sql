@@ -1,0 +1,17 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+create FUNCTION [dbo].[fn_get_pi_name_by_applid] (@appl_id int)
+  
+RETURNS varchar(92) AS  
+
+BEGIN
+
+declare @pi_name  varchar(92)
+set @pi_name=(select pi_name from vw_grants where grant_id=(select grant_id from vw_appls where appl_id=@appl_id))
+
+RETURN @pi_name
+
+END
+GO
+

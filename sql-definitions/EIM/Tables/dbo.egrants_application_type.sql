@@ -1,0 +1,9 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[egrants_application_type](
+	[application_type] [varchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[applicaton_type_name] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+) ON [PRIMARY]
+
+GO
+

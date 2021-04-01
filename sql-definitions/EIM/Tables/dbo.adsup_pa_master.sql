@@ -1,0 +1,15 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[adsup_pa_master](
+	[pa] [nchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[Detail] [ntext] COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[Created_by_person_id] [int] NULL,
+	[Created_date] [datetime] NULL,
+	[Last_updated_by] [int] NULL,
+	[Last_updated_date] [datetime] NULL,
+	[Start_date] [datetime] NULL,
+	[end_date] [datetime] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+

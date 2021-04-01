@@ -1,0 +1,16 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[eGrants_maint_docslod_log](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[proc_name] [varchar](100) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[Run_datetime] [datetime] NOT NULL,
+	[category_id] [int] NULL,
+	[impac_doc_type_code] [varchar](25) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[Impac_download_cnt] [int] NULL,
+	[egrants_upload_cnt] [int] NULL,
+	[Comment] [varchar](200) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[created_date] [datetime] NULL
+) ON [PRIMARY]
+
+GO
+

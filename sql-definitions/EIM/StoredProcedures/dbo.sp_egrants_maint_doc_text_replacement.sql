@@ -1,0 +1,46 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+/****************************************************************************************************************/
+/***									 										***/
+/***	Procedure Name: sp_egrants_maint_doc_text_replacement					***/
+/***	Description:	replace document text 									***/
+/***	Created:	10/22/2010	Leon, Joel										***/
+/***	Modified:	10/22/2010	Leon, Joel										***/
+/***																			***/
+/****************************************************************************************************************/
+
+CREATE PROCEDURE [dbo].[sp_egrants_maint_doc_text_replacement]
+@AdminCode 		char(2),
+@SerialNum		int
+AS
+
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+DECLARE @grant_id  int
+DECLARE @T			varchar(8000)
+
+--find grant_id
+SET @grant_id = (select grant_id from grants where admin_phs_org_code=@AdminCode and serial_num=@SerialNum)
+
+--find all document_id
+create table #tmp_docs (document_id int)
+insert #tmp_docs select document_id from egrants where grant_id=@grant_id 
+
+---select * from #tmp_docs
+
+select * from ncieim_b.dbo.documents_text where document_id in(select document_id from #tmp_docs)
+/**
+select * from ncieim_b.dbo.documents_text where document_id in(
+31384676,29781904,29851513,31380771,34023055,25437912,21238490,20394042,
+25437913,25437943,24133300,24067753,24067752,24140245,24067754,25644956,
+31380775,24389856,29298595)
+**/
+
+END
+
+GO
+

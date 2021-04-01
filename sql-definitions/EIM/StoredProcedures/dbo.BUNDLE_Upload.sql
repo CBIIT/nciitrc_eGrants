@@ -1,0 +1,65 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+--USAGE: exec BUNDLE_Upload 
+CREATE PROCEDURE [dbo].[BUNDLE_Upload]
+
+AS
+
+declare @cmd varchar(255)
+declare @TempFile varchar(255)
+declare @CPath varchar(255)
+declare @stmp varchar(50)
+
+set @stmp=getdate()
+set @stmp=replace(@stmp,' ','')
+set @stmp=replace(@stmp,':','_')
+
+
+
+--SELECT @TempFile='c:\Bundle_List.txt'
+SELECT @TempFile='d:\util\scripts\bundle\Daily_Log\Bundle_List_' + @stmp +'.txt'
+
+SELECT @Cmd= 'dir d:\util\emails\*_awardfile.xml  /B /W >>' + @TempFile
+EXEC master..xp_cmdshell @Cmd
+
+
+IF OBJECT_ID('tempdb..##BundleList') IS NOT NULL
+DROP TABLE ##BundleList
+
+CREATE TABLE ##BundleList(path varchar(255))
+
+SELECT @Cmd= 'bcp ##BundleList in ' + @TempFile + ' -c -t , -r \n -S ' + @@SERVERNAME + ' -T '
+print @Cmd
+EXEC master..xp_cmdshell @Cmd
+select * from ##BundleList
+
+--SELECT @Cmd='DEL ' + @TempFile
+--EXEC master..xp_cmdshell @Cmd
+
+declare cur CURSOR FOR
+select path from ##BundleList order by path
+
+open cur
+
+FETCH NEXT FROM cur INTO @CPath
+
+WHILE @@FETCH_STATUS=0
+
+BEGIN
+
+
+PRINT 'Processing ...' + @CPath
+exec sp_egrants_mail
+
+FETCH NEXT FROM cur INTO @CPath
+
+END
+
+close cur
+deallocate cur
+
+drop table ##BundleList
+
+
+GO
+

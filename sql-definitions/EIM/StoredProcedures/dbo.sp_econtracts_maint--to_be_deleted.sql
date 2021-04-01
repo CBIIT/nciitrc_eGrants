@@ -1,0 +1,75 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE PROCEDURE [dbo].[sp_econtracts_maint--to_be_deleted] 
+
+AS
+
+/************************************************************************************************************/
+/***									 						***/
+/***	Procedure Name: sp_econtracts_maint						***/
+/***	Description:	daily maint for contracts table			***/
+/***	Created:	1/19/2007	Leon, Jim						***/
+/***	Modified:	9/06/2007	Leon							***/
+/***															***/
+/************************************************************************************************************/
+SET NOCOUNT ON
+
+declare @ciip_id	int
+select @ciip_id=person_id from people where userid='ciip'
+
+------------------------------------------------------------------------------------------
+-- insert data to contracts_ciip from  vw_contracts_ciip 
+delete contracts_ciip
+
+insert into contracts_ciip
+(ciip_contract_id, award_num, fiscal_year,serial_num, contract_number, full_contract_number,adb_num, close_out, activity_code,hhs, 
+contract_type,rfp, institution,specialist_name,project_end_date,contractor_tin,latest_signed_mod_num)
+select 
+ciip_contract_id, award_num, fiscal_year,serial_num, contract_number, full_contract_number,adb_num, close_out, activity_code, hhs,
+contract_type,rfp, institution,specialist_name,project_end_date,contractor_tin,latest_signed_mod_num
+from vw_contracts_ciip
+----------------------------------------------------------------------------------------------
+-- update contract ciip_id in contracts table from contracts_ciip table
+update contracts
+set ciip_id = ciip_contract_id
+from contracts c, contracts_ciip t
+where c.ciip_id is null
+and c.contract_number = t.contract_number
+and c.activity_code = t.activity_code
+and c.contract_type = t.contract_type
+and t.project_end_date > '19000101'
+and t.ciip_contract_id not in(select ciip_id from contracts)
+----------------------------------------------------------------------------------------------
+-- update contract data in contracts table from contracts_ciip table
+update contracts
+set contract_number = t.contract_number,
+	fiscal_year = t.fiscal_year,
+	hhs = t.hhs,
+	contract_type = t.contract_type,
+	activity_code = t.activity_code,
+    	institution = t.institution,
+    	rfp = t.rfp,
+	latest_signed_mod_num=t.latest_signed_mod_num,
+	specialist_name = dbo.fn_contract_specialist_name(t.specialist_name),
+	project_end_date=cast(t.project_end_date as smalldatetime)
+from contracts c, contracts_ciip t
+where c.ciip_id is not null  
+and c.ciip_id = t.ciip_contract_id 
+and c.created_by_person_id =@ciip_id
+and c.disabled_date is null
+and t.project_end_date > '19000101'
+and t.latest_signed_mod_num >c.latest_signed_mod_num
+--------------------------------------------------------------------------------------------
+-- insert new contract  from ciip records to contracts table
+insert contracts (ciip_id, contract_number, fiscal_year, hhs, contract_type, activity_code,institution, rfp, specialist_name, created_by_person_id, created_date, project_end_date,latest_signed_mod_num)
+select ciip_contract_id, contract_number, fiscal_year, hhs, contract_type,activity_code, institution, rfp, dbo.fn_contract_specialist_name(specialist_name),@ciip_id, getdate(), project_end_date,latest_signed_mod_num
+from contracts_ciip 
+where ciip_contract_id not in (select ciip_id from contracts where ciip_id is not null and disabled_date is null) and project_end_date > '19000101'
+-------------------------------------------------------------------------------------------
+-- update specialist_id
+update contracts
+set specialist_id = p.person_id
+from contracts c, people p
+where c.ciip_id is not null and  c.created_by_person_id =@ciip_id and c.specialist_name=p.person_name
+GO
+

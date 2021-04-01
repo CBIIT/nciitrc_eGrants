@@ -1,0 +1,17 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+
+
+CREATE VIEW [dbo].[vw_categories]
+AS
+SELECT	dbo.categories.category_id, dbo.categories.category_name, dbo.categories.package, dbo.categories_ic.ic, dbo.categories_ic.removed_by_person_id, dbo.categories.input_type,dbo.categories.input_constraint,
+		dbo.categories_ic.removed_date, dbo.categories_ic.added_by_person_id, dbo.categories_ic.added_date, dbo.categories.can_upload, dbo.categories.impac_doc_type_code
+FROM	dbo.categories INNER JOIN
+		dbo.categories_ic ON dbo.categories.category_id = dbo.categories_ic.category_id
+WHERE	dbo.categories_ic.removed_date IS NULL 
+
+
+GO
+

@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[categories_ic](
+	[category_id] [smallint] NOT NULL,
+	[ic] [varchar](5) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[added_date] [smalldatetime] NULL,
+	[added_by_person_id] [int] NULL,
+	[removed_date] [smalldatetime] NULL,
+	[removed_by_person_id] [int] NULL
+) ON [PRIMARY]
+
+GO
+
