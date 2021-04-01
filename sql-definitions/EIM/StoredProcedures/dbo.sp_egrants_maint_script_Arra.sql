@@ -1,0 +1,34 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+CREATE PROCEDURE [dbo].[sp_egrants_maint_script_Arra]
+
+AS
+
+BEGIN
+
+DECLARE @cmd varchar(4000)
+DECLARE @Dt varchar(20)
+DECLARE @stmp varchar(50)
+set @stmp=getdate()
+set @stmp=replace(@stmp,' ','')
+set @stmp=replace(@stmp,':','_')
+
+
+SELECT @Dt=convert(varchar,last_run_date,101) from scripts where script='Arra'
+
+SET @Dt= char(39) + @Dt + char(39)
+
+SET @cmd='bcp "select command from eim..vw_script_arra where created_date>' + @Dt + '" queryout d:\util\scripts\arra_' + @stmp + '.sh -c -T'
+--SET @cmd='bcp "select command from eim..vw_script_arra" queryout d:\util\scripts\arra.sh -c -T'
+
+EXEC master..xp_cmdshell @cmd
+
+UPDATE scripts SET last_run_date=getdate() WHERE script='Arra'
+
+END
+
+
+GO
+

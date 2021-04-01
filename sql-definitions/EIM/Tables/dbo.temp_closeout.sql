@@ -1,0 +1,10 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[temp_closeout](
+	[grant_id] [int] NULL,
+	[appl_id] [int] NULL,
+	[grant_close_date] [datetime] NULL
+) ON [PRIMARY]
+
+GO
+

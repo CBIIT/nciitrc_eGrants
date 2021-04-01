@@ -1,0 +1,69 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+
+
+
+CREATE PROCEDURE [dbo].[sp_GenerateApplIDs_old]
+AS
+
+BEGIN
+
+
+Declare @GrantNum varchar(50)
+DECLARE @R int
+
+--Check to see if provided file name itself is appl_id, if so use it | HJ 10/21/2009
+update temp_qa_imm set appl_id=convert(int, [file_name])
+where appl_id is null and IsNumeric([file_name])=1 
+and exists (select appl_id from appls where appl_id=convert(int, [file_name]))
+
+
+
+declare cur CURSOR FOR
+select COALESCE(grant_num,[file_name])
+from temp_qa_imm
+where appl_id is null
+
+open cur
+
+FETCH NEXT FROM cur INTO @GrantNum
+
+WHILE @@FETCH_STATUS=0
+
+BEGIN
+
+exec @R=sp_GenerateApplID @GrantNum
+
+UPDATE temp_qa_imm
+SET appl_id=@R WHERE [file_name]=@GrantNum and appl_id is null
+
+PRINT @GrantNum
+PRINT @R
+
+FETCH NEXT FROM cur INTO @GrantNum
+END
+
+close cur
+deallocate cur
+
+-- set appl_id as Null for records which do not have duplicates | HJ 10/21/2009
+update temp_qa_imm
+set appl_id=NULL where appl_id=0
+
+
+--update temp_qa set appl_id=dbo.fn_applid_match(grant_num)
+--where grant_num is not null and appl_id is null
+
+
+RETURN
+
+END 
+
+
+
+
+
+GO
+

@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[appls_replacement](
+	[replacement_id] [int] IDENTITY(1,1) NOT NULL,
+	[appl_id_old] [int] NULL,
+	[appl_id_new] [int] NULL,
+	[changed_date] [smalldatetime] NULL
+) ON [PRIMARY]
+
+GO
+

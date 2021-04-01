@@ -1,0 +1,17 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[institutions_files](
+	[ins_id] [int] IDENTITY(1,1) NOT NULL,
+	[index_id] [int] NOT NULL,
+	[file_type] [varchar](5) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[institution_name] [varchar](250) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[created_date] [smalldatetime] NULL,
+	[created_by_person_id] [int] NULL,
+	[modified_date] [smalldatetime] NULL,
+	[modified_by_person_id] [int] NULL,
+	[disabled_date] [smalldatetime] NULL,
+	[disabled_by_person_id] [int] NULL
+) ON [PRIMARY]
+
+GO
+

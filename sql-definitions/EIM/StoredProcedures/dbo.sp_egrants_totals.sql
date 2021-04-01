@@ -1,0 +1,54 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+CREATE PROCEDURE sp_egrants_totals
+
+@SID int,
+@str varchar(500)
+
+AS
+
+declare @GrantCount int
+declare @ApplCount int
+declare @DocCount int
+declare @PageCount int
+
+declare @fGrantCount int
+declare @fApplCount int
+declare @fDocCount int
+declare @fPageCount int
+
+SET @str=dbo.fn_str(@str)
+
+SELECT
+@GrantCount=count(distinct grant_id),
+@ApplCount= count(distinct appl_id),
+@DocCount= count(*),
+@PageCount=sum(page_count)
+FROM
+CONTAINSTABLE(ncieim_b..documents_text,keywords,@str) c, egrants e
+WHERE e.document_id=c.[key]
+
+SELECT
+@fGrantCount=count(distinct grant_id),
+@fApplCount= count(distinct appl_id),
+@fDocCount= count(*),
+@fPageCount=sum(page_count)
+FROM
+CONTAINSTABLE(ncieim_b..documents_text,txt,@str) c, egrants e
+WHERE e.document_id=c.[key]
+
+UPDATE searches 
+SET
+grant_total=@GrantCount,
+appl_total=@ApplCount,
+doc_total=@DocCount,
+page_total=@PageCount,
+
+grant_total_full=@fGrantCount,
+appl_total_full=@fApplCount,
+doc_total_full=@fDocCount,
+page_total_full=@fPageCount
+
+WHERE search_id=@SID
+GO
+

@@ -1,0 +1,59 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_y2013_egrants_stop_notice_tobedeleted]
+(
+@GrantID	int,
+@ic			varchar(5)
+)
+AS
+/******************************************************************************************************************/
+/***	Procedure Name:		sp_egrants_stop_notice																***/
+/***	Description:		find the stop_notice by grant_id													***/
+/***	Created:			03/01/2013	Leon																	***/
+/***	Modified:			03/01/2005	Leon																	***/
+/***	Modified:			Hareesh commented lines 23-30 on 03/31/2011 at 5:03 pm, since ths piece of code is not 
+							required for openquery any longer. Also changed openquery Linked Server from to 
+							in Line 81. Tested the chunk of code containing openquery and it works.		***/
+/******************************************************************************************************************/
+
+SET NOCOUNT ON
+
+/**
+SELECT
+1	AS tag, 
+null	AS parent,
+null		[grants!1!grants!element], 
+null		[grant!2!appl_id!element], 
+null		[grant!2!full_grant_num!element],
+null		[grant!2!closeout_fsr_code!element],
+null		[grant!2!final_invention_stmnt_code!element],            
+null        [grant!2!final_report_date!element]
+
+UNION ALL
+
+SELECT
+2, 
+1,
+null,
+appl_id,
+full_grant_num, 
+closeout_fsr_code,
+final_invention_stmnt_code,
+ISNULL(convert(varchar,final_report_date,101),'N') as final_report_date
+FROM vw_grant_stop_sign
+WHERE grant_id=@GrantID 
+FOR XML EXPLICIT
+**/
+
+SELECT
+appl_id,
+full_grant_num, 
+closeout_fsr_code,
+final_invention_stmnt_code,
+ISNULL(convert(varchar,final_report_date,101),'N') as final_report_date
+FROM vw_grant_stop_sign
+WHERE grant_id=@GrantID 
+
+---SELECT * FROM profiles WHERE profile=@ic 
+GO
+

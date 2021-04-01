@@ -1,0 +1,126 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+CREATE PROCEDURE [dbo].[sp_web_admin_supplement_loaddata]
+
+@act				varchar(50),
+@pa					varchar(10),
+@detail				varchar(8000),		---could be email body, full grant num
+@id					int,				---could be serial number
+@ic					varchar(10),
+@Operator			varchar(50)			
+
+AS
+/************************************************************************************************************/
+/***									 									***/
+/***	Procedure Name: sp_web_admin_supplement_loaddate					***/
+/***	Description: for show, create or edit supplement					***/
+/***	Created:	12/10/2014	Leon										***/
+/***	Modified:	12/16/2014	Leon										***/
+/***	Modified:	04/17/2014	Leon										***/
+/***	Modified:	12/05/2015	Leon	run show_notification after deleted	***/
+/***	Modified:	11/21/2016	Leon	modified for MVC					***/
+/************************************************************************************************************/
+SET NOCOUNT ON
+
+DECLARE
+@profile_id	smallint,
+@person_id	int,
+@appl_id	int,
+@count		int
+
+SET @person_id=(select person_id from vw_people where userid=@Operator)
+
+---nt = notification
+if @act='show_notification' GOTO show_notification
+if @act='search_notification' GOTO search_notification
+if @act='delete_notification' GOTO delete_notification
+if @act='edit_notification' GOTO edit_notification
+IF @act='review_notification' GOTO review_notification
+--if @act='resent_notification' GOTO resent_email_notification
+IF @act='Show_Email_Rule' GOTO Show_Email_Rule
+-----------------
+show_notification:
+
+select id,full_grant_num,appl_id, pa, subjectLine, NotificationBody, convert(varchar,NotRcvd_dt,101) as NotRcvd_dt, convert(varchar,created_date,101) as created_date, created_date as sorting_date
+from dbo.adsup_notification 
+where Full_grant_num is not null and disabled_date is null
+order by sorting_date desc
+
+RETURN
+-----------------------
+search_notification:
+
+--return Notifications by searil_number searching
+select id,full_grant_num,appl_id, pa, subjectLine, NotificationBody, convert(varchar,NotRcvd_dt,101) as NotRcvd_dt, dbo.fn_adsupp_OGANOTSENT_Status(id) as created_date, created_date as sorting_date 
+from dbo.adsup_notification 
+where Full_grant_num is not null and Full_grant_num like '%'+convert(varchar, @id) +'%' and disabled_date is null 
+order by sorting_date desc
+
+RETURN
+-----------------------
+edit_notification:
+
+
+SET @appl_id=(select appl_id from vw_appls where full_grant_num=@detail)
+IF @appl_id is null 
+BEGIN
+SELECT 'The full grant number youin serted is incorrect' as info From performance AS return_info
+END
+
+SET @count=(select count(distinct pa) from dbo.adsup_notification where pa=@pa)
+IF @count=0
+BEGIN
+SELECT 'The PA you inserted is incorrect' as info From performance AS return_info
+END
+
+IF @count=1 and @appl_id is not null 
+BEGIN
+UPDATE dbo.adsup_notification SET appl_id=@appl_id,pa=@pa,Last_updated_by=@person_id,Last_updated_date=GETDATE() WHERE id=@id
+SELECT 'The data for the notification you seleted has been edited' as info From performance AS return_info
+END
+
+SET @appl_id=(select appl_id from vw_appls where full_grant_num=@detail)
+SET @count=(select count(distinct pa) from dbo.adsup_notification where pa=@pa)
+
+IF @count=1 and @appl_id is not null 
+BEGIN
+UPDATE dbo.adsup_notification SET appl_id=@appl_id,pa=@pa,Last_updated_by=@person_id,Last_updated_date=GETDATE() WHERE id=@id
+END
+
+GOTO show_notification
+
+RETURN
+--------------------------
+delete_notification:
+
+update dbo.adsup_notification set disabled_date=GETDATE(),disabled_by_personid=@person_id, Last_updated_by=@person_id,Last_updated_date=GETDATE() where id=@id
+
+GOTO show_notification
+
+RETURN
+-------------------------
+review_notification:
+
+select 1 as tag,full_grant_num, pa,id,null as document_id,null as document_date,null as url,null as category_name FROM dbo.adsup_notification as pa where id=@id
+union
+select 2 as tag,null,null,null,document_id,CONVERT(varchar,document_date,101),url,c.category_name
+from documents doc,categories c
+where doc.category_id=c.category_id and appl_id in( select dbo.adsup_notification.appl_id from dbo.adsup_notification where id=@id)
+
+RETURN
+--------------------------
+Show_Email_Rule:
+
+SELECT ltrim(rtrim(pa))as pa,email_to,email_cc,
+convert(varchar,er.start_date,101) as 'start_date',
+convert(varchar,er.end_date,101) as 'end_date',
+email_template_id, template_name as email_template_name,[subject] as email_subject, body as email_body, person_name 
+FROM dbo.adsup_email_rules as er, dbo.adsup_email_master em, vw_people vp 
+WHERE er.pa=@pa and em.id=er.email_template_id and er.created_by_person_id = vp.person_id and er.email_template_id is not null
+
+RETURN
+-------------
+
+GO
+

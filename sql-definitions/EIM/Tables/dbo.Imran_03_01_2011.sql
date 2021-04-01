@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[Imran_03_01_2011](
+	[full_grant_num] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[appl_id] [int] NOT NULL,
+	[document_id] [int] NOT NULL,
+	[applf] [int] NULL,
+	[sumf] [int] NULL,
+	[JITf] [int] NULL
+) ON [PRIMARY]
+
+GO
+

@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[Grant_contacts_PD](
+	[PROG_CLASS_CODE] [nvarchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[PD_FULL_NAME] [nvarchar](93) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[PD_EMAIL_ADDRESS] [nvarchar](100) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[INACTIVE_DATE] [date] NULL
+) ON [PRIMARY]
+
+GO
+

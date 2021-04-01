@@ -1,0 +1,42 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE function [dbo].[fn_clean_name]
+(@name nvarchar(500))
+returns nvarchar(500)
+as
+begin
+
+declare @out nvarchar(500), @pos int
+set @pos = 0
+set @out = ltrim(rtrim(upper(@name)))
+
+set @out = replace(@out,'.','')
+set @out = replace(@out,'.','')
+set @out = replace(@out,',','')
+set @out = replace(@out,' INCORPORATED', '')
+set @out = replace(@out,' INC','')
+set @out = replace(@out,' (INC)','')
+set @out = replace(@out,', LLC','')
+set @out = replace(@out,' LLC','')
+set @out = replace(@out,' CORPORATION', '')
+set @out = replace(@out,' CORP', '')
+set @out = replace(@out,' LIMITED', '')
+set @out = replace(@out,' LTD', '')
+set @out = replace(@out,' LABS',' LAB')
+set @out = replace(@out,' LABORATORIES',' LAB')
+set @out = replace(@out,' ASSOCIATES', ' ASSOC')
+set @out = replace(@out,' UNIVERSITY',' UNIV')
+set @out = replace(@out,' THE UNIV',' UNIV')
+set @out = replace(@out,' - ','-')
+set @out = replace(@out,'  ',' ')
+
+set @pos = charindex(':', @out)
+if @pos > 0 
+	begin
+		select @out = left(@out,@pos-1)
+	end
+
+return @out
+end
+GO
+

@@ -1,0 +1,49 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+--USAGE: exec BUNDLE_Upload 
+CREATE PROCEDURE [dbo].[Doublecheck_NGA]
+
+AS
+
+declare @APPLID INT
+declare @NGACREATEDDATE SMALLDATETIME
+declare @NGAID INT
+declare @RPTSEQNUM INT
+declare @i int
+
+truncate  table TEMP_NGA_RECONCILE
+
+
+declare cur CURSOR FOR
+select APPL_ID,NGA_ID,rpt_seq_num,nga_create_date from IMPP_NGA 
+--where appl_id in (7677919,8448439,8275994,8271277,8221545,8313481,8289107,8259534)
+--where nga_create_date > convert(smalldatetime,'04/10/2007',101)
+where nga_id not in (select distinct nga_id from egrants where nga_id is not null)
+and nga_create_date > convert(smalldatetime,'04/10/2007',101)
+order by nga_create_date DESC
+
+
+open cur
+
+FETCH NEXT FROM cur INTO @APPLID,@NGAID,@RPTSEQNUM,@NGACREATEDDATE
+set @i = 0
+WHILE @@FETCH_STATUS=0
+
+BEGIN
+	IF NOT EXISTS (SELECT * FROM documents WHERE appl_id=@APPLID AND category_id=1 AND nga_id=@NGAID AND nga_rpt_seq_num=@RPTSEQNUM)
+		INSERT TEMP_NGA_RECONCILE(APPLID,NGAID,RPTSEQNUM,NGACREATEDDATE)
+		VALUES (@APPLID,@NGAID,@RPTSEQNUM,@NGACREATEDDATE)
+	
+	FETCH NEXT FROM cur INTO @APPLID,@NGAID,@RPTSEQNUM,@NGACREATEDDATE
+	set @i = @i + 1
+	print @i
+END
+
+close cur
+deallocate cur
+
+
+
+
+GO
+

@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION fn_folders (@SerialNum int)
+
+RETURNS @folders TABLE (folder_id int)
+
+
+AS
+BEGIN
+
+ --  DECLARE @reports TABLE (empid nchar(5) primary key, 
+  
+
+   INSERT @folders
+   SELECT folder_id from vw_folder_grants where serial_num=@SerialNum
+   
+
+RETURN
+END
+
+
+GO
+

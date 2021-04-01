@@ -1,0 +1,51 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+CREATE FUNCTION fn_xmlfile
+(
+@tcFileName varchar(255)
+)
+RETURNS 
+@tab TABLE 
+(applid int)
+AS
+BEGIN
+
+
+	-- Scratch variables used in the script
+	DECLARE @retVal INT
+    DECLARE @loadRetVal INT
+	DECLARE @oXML INT
+    DECLARE @tcXMLString varchar(8000)
+    DECLARE @xmlDoc int
+
+-- Initialize the XML document
+	EXEC @retVal = sp_OACreate 'MSXML2.DOMDocument', @oXML OUTPUT
+	EXEC @retVal = sp_OAMethod @oXML, 'load', @loadRetVal OUTPUT, @tcFileName
+	EXEC @retVal = sp_OAMethod @oXML, 'xml', @tcXMLString OUTPUT
+	EXEC sp_OADestroy @oXML
+
+
+
+EXEC sp_xml_preparedocument @xmlDoc OUTPUT, @tcXMLString
+
+INSERT @tab
+select applid
+FROM OPENXML (@xmlDoc, '/Root/document', 2) 
+WITH  
+(applid int, alias varchar(100), uid varchar(20), uploadid varchar(20), folderid int,
+documentid int, subject varchar(500), date smalldatetime, uid varchar(50),
+file_type varchar(10), body varchar(8000)
+) XML
+
+
+EXEC sp_xml_removedocument @xmlDoc
+
+
+RETURN 
+
+
+END
+
+GO
+

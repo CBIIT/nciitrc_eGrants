@@ -1,0 +1,12 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[purchase_orders](
+	[sequence_id] [int] NOT NULL,
+	[sequence_start] [int] NULL,
+	[sequence_end] [int] NULL,
+	[old_box_number] [smallint] NULL,
+	[box_id] [int] NULL
+) ON [PRIMARY]
+
+GO
+

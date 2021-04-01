@@ -1,0 +1,18 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW [dbo].[vw_temp_funding_docs_2010]
+AS
+SELECT     dbo.temp_funding_documents_2010.document_id, dbo.temp_funding_documents_2010.document_date, dbo.temp_funding_documents_2010.created_date, dbo.people.person_name AS created_by,
+                      dbo.temp_funding_documents_2010.created_by_person_id, dbo.temp_funding_documents_2010.disabled_date, dbo.temp_funding_documents_2010.disabled_by_person_id, 
+                      dbo.temp_funding_documents_2010.stored_date, dbo.temp_funding_documents_2010.stored_by_person_id, dbo.temp_funding_categories_2010.category_id,  dbo.temp_funding_categories_2010.level_id, 
+                      dbo.temp_funding_categories_2010.category_name, parent.category_name AS parent_category_name, 
+                      'https://egrants-data.nci.nih.gov/funded/nci/funding/upload/' + RIGHT('00000' + CONVERT(varchar, dbo.temp_funding_documents_2010.document_id), 6) 
+                      + '.pdf' AS url, dbo.fn_funding_RFA(dbo.temp_funding_documents_2010.document_id) AS rfa_pa_number, 
+                      dbo.fn_funding_RFA_count(dbo.temp_funding_documents_2010.document_id) AS rfa_pa_number_count
+FROM         dbo.temp_funding_documents_2010 INNER JOIN
+   	      dbo.people ON  dbo.temp_funding_documents_2010.created_by_person_id=dbo.people.person_id INNER JOIN 
+                      dbo.temp_funding_categories_2010 ON dbo.temp_funding_documents_2010.category_id = dbo.temp_funding_categories_2010.category_id LEFT OUTER JOIN
+                      dbo.temp_funding_categories_2010 AS parent ON dbo.temp_funding_categories_2010.parent_id = parent.category_id    
+WHERE     (dbo.temp_funding_documents_2010.disabled_date IS NULL)
+GO
+

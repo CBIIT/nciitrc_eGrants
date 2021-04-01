@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+create FUNCTION [dbo].[fn_get_position_id_backup_12022016] (@access_Type varchar(20))
+  
+RETURNS int
+
+BEGIN
+DECLARE @position_id int
+
+IF @access_Type='Read Only' SET @position_id=1 ElSE SET @position_id =2
+
+RETURN @position_id
+
+END
+
+
+GO
+

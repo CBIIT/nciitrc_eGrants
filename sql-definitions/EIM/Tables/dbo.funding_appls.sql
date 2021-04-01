@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[funding_appls](
+	[document_id] [int] NOT NULL,
+	[appl_id] [int] NOT NULL,
+	[disabled_date] [smalldatetime] NULL,
+	[disabled_by_person_id] [int] NULL
+) ON [PRIMARY]
+
+GO
+

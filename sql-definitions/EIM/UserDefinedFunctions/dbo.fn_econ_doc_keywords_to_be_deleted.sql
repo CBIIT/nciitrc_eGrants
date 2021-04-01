@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION [dbo].[fn_econ_doc_keywords_to_be_deleted]  (@DocID int)  
+RETURNS varchar(1000)
+
+AS  
+BEGIN 
+
+RETURN (
+		select distinct cast(cast(isnull(a.econ_id,'') as int) as varchar(6)) + ' ' 
+		+ ltrim(rtrim(replace(a.vendor_name, char(39), ''))) + ' '
+		+ ltrim(rtrim(replace(isnull(a.specialist_name,''), char(39), '')) + ' ')
+		+ ltrim(rtrim(replace(isnull(a.team_leader,''), char(39), '')) + ' ')
+		+ ltrim(rtrim(replace(isnull(a.branch_chief,''), char(39), '')) + ' ')
+		+ ltrim(rtrim(replace(isnull(a.full_contract_number,''), char(39), '')) + ' ')
+		+ ltrim(rtrim(replace(isnull(a.piid,''), char(39), '')) + ' ')
+		+ ltrim(rtrim(replace(isnull(a.RFP_Number,''), char(39), '')) + ' ')
+		as keywords  
+		from eim.dbo.vw_econ_contracts a , dbo.vw_econ_documents b where a.econ_id=b.econ_id
+		and b.document_id=@DocID)
+END
+GO
+

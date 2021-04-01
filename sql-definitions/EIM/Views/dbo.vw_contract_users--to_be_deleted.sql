@@ -1,0 +1,16 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW [dbo].[vw_contract_users--to_be_deleted]
+AS
+SELECT dbo.people.person_id, dbo.people.person_name, SUBSTRING(dbo.people.person_name, PATINDEX('%,%', dbo.people.person_name) + 2, 
+               LEN(dbo.people.person_name)) AS last_name, SUBSTRING(dbo.people.person_name, 1, PATINDEX('%,%', dbo.people.person_name) - 1) 
+               AS first_name, dbo.people.userid, dbo.people.type, dbo.people.application_type, dbo.people_teams.branch_id, dbo.people_teams.team_id, 
+               dbo.people_teams.team_name, dbo.people_branches.branch_name, dbo.people_positions.position_name, dbo.people.position_id
+FROM  dbo.people_teams INNER JOIN
+               dbo.people_branches ON dbo.people_teams.branch_id = dbo.people_branches.branch_id RIGHT OUTER JOIN
+               dbo.people ON dbo.people_teams.team_id = dbo.people.team_id RIGHT OUTER JOIN
+               dbo.people_positions ON dbo.people.position_id = dbo.people_positions.position_id
+WHERE (dbo.people.application_type = 'econtracts') AND (dbo.people.active = 1)
+
+GO
+

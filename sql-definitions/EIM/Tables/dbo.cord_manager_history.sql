@@ -1,0 +1,26 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[cord_manager_history](
+	[id] [int] NOT NULL,
+	[user_fname] [nvarchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[user_lname] [nvarchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[user_login] [nvarchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[badge_id] [nvarchar](30) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[division] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[status] [varchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[status_date] [smalldatetime] NULL,
+	[date_Requested] [smalldatetime] NULL,
+	[access_Type] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[date_LastAccess] [smalldatetime] NULL,
+	[cord_id] [int] NOT NULL,
+	[start_date] [smalldatetime] NULL,
+	[end_date] [smalldatetime] NULL,
+	[comments] [nvarchar](200) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[person_id] [int] NULL,
+	[action] [nchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[Trigger_table] [nchar](1) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[record_modified_on] [smalldatetime] NULL
+) ON [PRIMARY]
+
+GO
+

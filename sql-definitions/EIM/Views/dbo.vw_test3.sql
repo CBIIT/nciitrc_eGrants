@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW dbo.vw_test3
+AS
+SELECT dbo.appls.appl_id
+FROM  dbo.appls LEFT OUTER JOIN
+               dbo.appls_ciip ON dbo.appls.appl_id = dbo.appls_ciip.APPL_ID
+WHERE (dbo.appls_ciip.APPL_ID IS NULL)
+
+GO
+

@@ -1,0 +1,54 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+create PROCEDURE [dbo].[sp_web_egrants_funding_appl_edit]
+@act 			varchar(50),
+@appl_id		int,
+@document_id	int,
+@ic				varchar(10),
+@Operator		varchar(50)
+
+AS
+/**************************************************************************/
+/***									 								***/
+/***	Procedure Name: sp_web_egrants_funding_appl_edit				***/
+/***	Description:	add or delete appl funding document				***/
+/***	Created:		02/09/2009	Leon								***/
+/***	Modified:		04/03/2013	Leon								***/
+/***	Simplified:		10/15/2014	Leon 								***/
+/***	Modified:		09/30/2016	Leon	modified for MVC			***/
+/**************************************************************************/
+
+SET NOCOUNT ON
+
+declare 
+@profile_id		int,
+@person_id		int,
+@xmlout			varchar(max),
+@X				Xml
+
+/***find the profile_id and person_id***/
+SET @ic=LOWER(@ic)
+SET @profile_id = (SELECT profile_id FROM profiles WHERE profile=@ic)
+SET @Operator=left(@Operator,50)
+SET @person_id = (SELECT person_id FROM people WHERE userid=@Operator)
+
+IF @act='add_appl'	GOTO to_add
+IF @act='delete_appl' GOTO to_delete
+
+-------------------------
+to_add:
+
+INSERT funding_appls(document_id, appl_id ) SELECT @document_id,@appl_id
+
+RETURN
+-----------------------
+to_delete:
+
+UPDATE funding_appls SET disabled_date=GETDATE(), disabled_by_person_id=@person_id WHERE document_id=@document_id and appl_id=@appl_id
+
+RETURN
+-----------------------
+
+GO
+

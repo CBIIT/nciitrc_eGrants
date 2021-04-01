@@ -1,0 +1,9 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[Imm_bkup_destruct_2014](
+	[appl_id] [int] NULL,
+	[bkup_dt] [smalldatetime] NULL
+) ON [PRIMARY]
+
+GO
+

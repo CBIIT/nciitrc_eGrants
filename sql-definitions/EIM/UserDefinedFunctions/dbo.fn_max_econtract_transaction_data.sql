@@ -1,0 +1,34 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION [dbo].[fn_max_econtract_transaction_data](
+		@document_id int,
+		@action_type varchar(20) )
+RETURNS @retTable TABLE (
+			document_id int,
+			transaction_date smalldatetime NULL,
+			operator varchar(50) NULL,
+			description varchar(100) NULL)
+AS
+ 
+BEGIN 
+
+declare		@transaction_date smalldatetime,
+			@operator varchar(50),
+			@description varchar(100)
+
+
+SELECT	top 1 @transaction_date = transaction_date,
+		@operator = operator,
+		@description = description
+		from dbo.econtract_transactions
+		WHERE action_type = @action_type and document_id = @document_id 
+		order by transaction_date desc
+
+    BEGIN
+        INSERT @retTable
+        SELECT @document_id, @transaction_date, @operator, @description;
+    END;
+    RETURN;
+end
+GO
+

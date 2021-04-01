@@ -1,0 +1,21 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE FUNCTION fn_active_grant_flag (@GrantID int)
+  
+RETURNS char(1)
+
+BEGIN
+
+IF (select count(*) from appls where grant_id=@GrantID and active_grant_flag='Y' )>0
+RETURN 'Y'
+
+RETURN 'N'
+
+END
+
+
+
+--'select count(*) from appls where grant_id=@GrantID and active_grant_status='Y' )>0
+
+GO
+

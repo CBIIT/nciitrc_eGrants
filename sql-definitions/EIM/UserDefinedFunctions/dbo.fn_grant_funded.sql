@@ -1,0 +1,36 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE FUNCTION fn_grant_funded (@GID int)
+RETURNS bit
+BEGIN 
+
+IF EXISTS (SELECT appl_id from appls where grant_id=@GID and appl_status_group_descrip IS NOT NULL)
+RETURN 1
+
+
+RETURN 0
+
+
+ 
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+

@@ -1,0 +1,10 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[appls_deleted_in_impac_pvgrantpi](
+	[appl_id] [int] NOT NULL,
+	[deleted_date] [smalldatetime] NOT NULL,
+	[exception_date] [smalldatetime] NULL
+) ON [PRIMARY]
+
+GO
+

@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW vw_spore_local AS
+
+SELECT DISTINCT document_id,appl_id,unix_file, page_count
+FROM         dbo.egrants
+WHERE     (admin_phs_org_code = 'CA') AND (prog_class_code LIKE '%OS%') AND (fy >= 2004) AND (category_name = 'Application File') AND 
+(created_by != 'impac') AND (appl_type_code IN (1, 2, 3, 5)) AND
+ (appl_status_group_descrip = 'awarded') and
+appl_id not in
+(select appl_id from vw_spore_impac)
+GO
+

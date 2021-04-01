@@ -1,0 +1,156 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+
+CREATE PROCEDURE [dbo].[sp_egrants_maint_pop_JIT_tobedeleted]
+
+AS
+DECLARE @impacID int
+DECLARE @CATEGORYID smallint
+DECLARE @PROC_NAME VARCHAR(50)
+DECLARE @RUN_DATETIME DATETIME
+DECLARE @IMPAC_DOWNLOAD_CNT INT
+DECLARE @EGRANTS_UPLOAD_CNT INT
+SET @PROC_NAME = 'sp_egrants_maint_pop_JIT'
+SET @RUN_DATETIME = GETDATE()
+
+PRINT 'BEGIN PROC: [sp_egrants_maint_pop_JIT] @ '+ cast(getdate() as varchar)
+
+TRUNCATE TABLE IMPP_JIT
+
+/**
+Bring all JIT from ImpacII
+**/
+
+SELECT @CATEGORYID=category_id from categories where impac_doc_type_code='JIT' and category_name='JIT Info'
+SELECT @impacID=person_id FROM people WHERE userid='impac'
+
+INSERT dbo.IMPP_JIT(SERIAL_NUM,APPL_ID,DOC_TYPE_CODE,SUBMITTED_FILE_DATE,DOC_VERSION)
+SELECT serial_num,appl_id,doc_type_code,submitted_file_date,doc_version
+FROM openquery(IRDB, '
+select a.serial_num,a.appl_id,b.doc_type_code,b.submitted_file_date,b.doc_version from appls_t a, doc_available_mv b
+where a.appl_id=b.DOC_KEY_ID
+and b.doc_type_code=''JIT''
+order by submitted_file_date desc
+ ')
+SELECT @IMPAC_DOWNLOAD_CNT = @@ROWCOUNT
+PRINT 'Total JIT brought today =' + cast(@IMPAC_DOWNLOAD_CNT as varchar)+' @ '+ cast(getdate() as varchar)
+
+
+/*
+Update Documents_date & sub_category_name if a New JIT has arrived (with new file_submitted_date) and the 
+Existing JIT has not been Annotated and replaced file_modified_by_person_id is null or (url is null) Yet
+4/23/2019: Added the following condition: and sub_category_name <> 'Reminder'
+4/30/2019 Removed sub_category_name <> 'Reminder' because now checking on ImpacII created document
+*/
+
+Update documents SET DOCUMENTS.DOCUMENT_DATE=A.submitted_file_date, documents.sub_category_name='Revised('+cast(a.doc_version as varchar)+')' 
+from Impp_jit a 
+--select distinct a.appl_id,60, 530, 'pdf',getdate(),a.submitted_file_date,dbo.fn_grant_profile_id_from_Appl(a.appl_id),'Revised('+cast(a.doc_version as varchar)+')' 
+--select a.appl_id,a.submitted_file_date,'Revised('+cast(a.doc_version as varchar)+')',documents.documnt_date,document.sub_category_name
+--from Impp_jit a, documents 
+where a.appl_id=documents.appl_id
+and documents.category_id=@CATEGORYID and documents.created_by_person_id=@impacID and documents.file_modified_by_person_id is null and documents.url is null 
+and cast(a.submitted_file_date as date) > (select max(cast(x.document_date as date)) from documents x where x.appl_id=a.appl_id and x.category_id=@CATEGORYID and x.disabled_date is null and x.disabled_by_person_id is null and created_by_person_id=@impacID)
+and documents.url is null
+and documents.disabled_by_person_id is null and documents.disabled_date is null
+
+
+--Update documents SET DOCUMENTS.DOCUMENT_DATE=A.submitted_file_date, documents.sub_category_name='Revised('+cast(a.doc_version as varchar)+')' from Impp_jit a 
+--where a.appl_id=documents.appl_id
+--and documents.category_id=@CATEGORYID and sub_category_name <> 'Reminder'  --Excluding the Reminders
+--and cast(a.submitted_file_date as date) > (select max(cast(x.document_date as date)) from documents x where x.appl_id=a.appl_id and x.category_id=@CATEGORYID and x.disabled_date is null and x.disabled_by_person_id is null)
+--and documents.url is null
+--and documents.disabled_by_person_id is null and documents.disabled_date is null
+--SELECT @EGRANTS_UPLOAD_CNT = @@ROWCOUNT
+--PRINT 'Recent JIT Date changed =' + cast(@EGRANTS_UPLOAD_CNT as varchar)+' @ '+ cast(getdate() as varchar)
+--EXEC DBO.Record_egrants_docload_log  @PROC_NAME,@RUN_DATETIME,@CATEGORYID,'JIT',@IMPAC_DOWNLOAD_CNT,@EGRANTS_UPLOAD_CNT,'Recent JIT Date changed'
+
+--commented on 4/30/2019
+--Update documents SET DOCUMENTS.DOCUMENT_DATE=A.submitted_file_date, documents.sub_category_name='Revised('+cast(a.doc_version as varchar)+')' from Impp_jit a 
+--where a.appl_id=documents.appl_id
+--and documents.category_id=@CATEGORYID and documents.created_by_person_id=530 and documents.file_modified_by_person_id is not null and documents.url is null  
+--and cast(a.submitted_file_date as date) > (select max(cast(x.document_date as date)) from documents x where x.appl_id=a.appl_id and x.category_id=60 and x.disabled_date is null and x.disabled_by_person_id is null and created_by_person_id=530)
+--and documents.disabled_by_person_id is null and documents.disabled_date is null
+
+SELECT @EGRANTS_UPLOAD_CNT = @@ROWCOUNT
+PRINT 'Recent JIT Date changed =' + cast(@EGRANTS_UPLOAD_CNT as varchar)+' @ '+ cast(getdate() as varchar)
+EXEC DBO.Record_egrants_docload_log  @PROC_NAME,@RUN_DATETIME,@CATEGORYID,'JIT',@IMPAC_DOWNLOAD_CNT,@EGRANTS_UPLOAD_CNT,'Recent JIT Date changed'
+
+
+
+/*
+
+Insert New JIT that is not in egrants and the old ImpacII JIT has been replaced by an annotated version.
+Update Documents_date if a New JIT has arrived (with new file_submitted_date) and the 
+Existing JIT has been Annotated and replaced (url is null) Previously
+SOP : User should annotate this new one and replace this one not the previous one. User might 
+want to delete the old one if the need is to keep only one latest one.
+4/23/2019: Added the following condition: and sub_category_name <> 'Reminder'
+4/30/2019: Removing condition added on 4/23 because now we check only impac created JIT
+*/
+INSERT documents(appl_id, category_id, created_by_person_id, file_type, created_date, document_date, profile_id,sub_category_name)
+select distinct a.appl_id,@CATEGORYID, @impacID, 'pdf',getdate(),a.submitted_file_date,dbo.fn_grant_profile_id_from_Appl(a.appl_id),'Revised('+cast(a.doc_version as varchar)+')' 
+--select distinct a.appl_id,60, 530, 'pdf',getdate(),a.submitted_file_date,dbo.fn_grant_profile_id_from_Appl(a.appl_id),'Revised('+cast(a.doc_version as varchar)+')' 
+from Impp_jit a, documents 
+where a.appl_id=documents.appl_id
+and a.appl_id not in (select distinct b.appl_id from documents b where b.category_id=60 and b.appl_id is not null and b.disabled_date is null and b.created_by_person_id=530 and b.file_modified_by_person_id is null)
+and cast(a.submitted_file_date as date) > (select max(cast(x.document_date as date)) from documents x where x.appl_id=a.appl_id and x.category_id=60 and x.disabled_date is null and x.disabled_by_person_id is null and x.created_by_person_id=530 and x.file_modified_by_person_id is not null)
+order by a.submitted_file_date desc   --40  nci only 29
+
+--commented on 4/30/2019 ; Imran
+----INSERT documents(appl_id, category_id, created_by_person_id, file_type, created_date, document_date, profile_id,sub_category_name)
+----select distinct a.appl_id,@CATEGORYID, @impacID, 'pdf',getdate(),a.submitted_file_date,dbo.fn_grant_profile_id_from_Appl(a.appl_id),'Revised('+cast(a.doc_version as varchar)+')' 
+----from Impp_jit a, documents 
+----where a.appl_id=documents.appl_id
+----and documents.category_id=@CATEGORYID and documents.created_by_person_id=530 and documents.file_modified_by_person_id is not null and documents.url is null 
+----and cast(a.submitted_file_date as date) > (select max(cast(x.document_date as date)) from documents x where x.appl_id=a.appl_id and x.category_id=@CATEGORYID and x.disabled_date is null and x.disabled_by_person_id is null and created_by_person_id=530)
+----and documents.url is not null
+----and documents.disabled_by_person_id is null and documents.disabled_date is null
+----and cast(documents.file_modified_date as date) < cast(a.submitted_file_date as Date)
+----order by a.submitted_file_date desc
+
+SELECT @EGRANTS_UPLOAD_CNT = @@ROWCOUNT
+PRINT 'New Version JIT Added =' + cast(@EGRANTS_UPLOAD_CNT as varchar)+' @ '+ cast(getdate() as varchar)
+EXEC DBO.Record_egrants_docload_log  @PROC_NAME,@RUN_DATETIME,@CATEGORYID,'JIT',@IMPAC_DOWNLOAD_CNT,@EGRANTS_UPLOAD_CNT,'New Version JIT Added'
+
+/*
+Insert Brand New JIT
+4/23/2019: Added the following condition: and sub_category_name <> 'Reminder'
+*/
+
+--Insert impacII created jit(NCI Only) that we do not have (we might have non impacII creted one)
+--4/30/2019 : Imran : added constraint "created_by_person_id=@impacID"
+--This will add duplicates because so many of them have JIT created by User
+INSERT documents(appl_id, category_id, created_by_person_id, file_type, created_date, document_date, profile_id,sub_category_name)
+select a.appl_id,@CATEGORYID, @impacID, 'pdf',getdate(),a.submitted_file_date,dbo.fn_grant_profile_id_from_Appl(a.appl_id),'Version-'+cast(a.doc_version as varchar) 
+from Impp_jit a  
+where a.appl_id in (select distinct appl_id from appls)
+and a.appl_id not in (select distinct b.appl_id from documents b where b.category_id=@CATEGORYID and appl_id is not null and disabled_date is null and created_by_person_id=@impacID)
+
+
+
+--INSERT documents(appl_id, category_id, created_by_person_id, file_type, created_date, document_date, profile_id,sub_category_name)
+--select a.appl_id,@CATEGORYID, @impacID, 'pdf',getdate(),a.submitted_file_date,dbo.fn_grant_profile_id_from_Appl(a.appl_id),'Revised('+cast(a.doc_version as varchar)+')'
+--from Impp_jit a  
+--where a.appl_id in (select distinct appl_id from appls)
+----and a.appl_id not in (select distinct b.appl_id from documents b where b.category_id=@CATEGORYID and appl_id is not null and disabled_date is null and (sub_category_name <> 'Reminder' or sub_category_name is null))
+--and a.appl_id not in (select distinct b.appl_id from documents b where b.category_id=@CATEGORYID and appl_id is not null and disabled_date is null and sub_category_name <> 'Reminder')
+
+
+----Insert impacII created jit(NCI Only) that we do not have (we might have non impacII creted one)
+--select a.appl_id,60, 530, 'pdf',getdate(),a.submitted_file_date,dbo.fn_grant_profile_id_from_Appl(a.appl_id),'Revised('+cast(a.doc_version as varchar)+')'
+--from Impp_jit a  
+--where a.appl_id in (select distinct appl_id from appls)
+----and a.appl_id not in (select distinct b.appl_id from documents b where b.category_id=60 and appl_id is not null and disabled_date is null and (sub_category_name <> 'Reminder' or sub_category_name is null))
+--and a.appl_id not in (select distinct b.appl_id from documents b where b.category_id=60 and appl_id is not null and disabled_date is null and created_by_person_id=530)
+--and dbo.fn_grant_profile_id_from_Appl(a.appl_id) =1
+--order by a.submitted_file_date desc  --60
+
+
+SELECT @EGRANTS_UPLOAD_CNT = @@ROWCOUNT
+PRINT 'Brand New JIT Added =' + cast(@EGRANTS_UPLOAD_CNT as varchar)+' @ '+ cast(getdate() as varchar)
+EXEC DBO.Record_egrants_docload_log  @PROC_NAME,@RUN_DATETIME,@CATEGORYID,'JIT',@IMPAC_DOWNLOAD_CNT,@EGRANTS_UPLOAD_CNT,'Brand New JIT Added'
+PRINT 'END PROC:==> [sp_egrants_maint_pop_JIT] @ '+ cast(getdate() as varchar)
+
+GO
+

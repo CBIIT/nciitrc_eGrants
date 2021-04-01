@@ -1,0 +1,17 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[WSHistory](
+	[WSHistory_Id] [int] IDENTITY(1,1) NOT NULL,
+	[WSEndpoint_Id] [int] NOT NULL,
+	[Result] [varchar](max) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[ResultStatusCode] [int] NOT NULL,
+	[DateTriggered] [datetimeoffset](7) NOT NULL,
+	[DateCompleted] [datetimeoffset](7) NOT NULL,
+	[WebServiceName] [varchar](255) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[EndpointUriSent] [varchar](1024) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[ExceptionMessage] [varchar](4000) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[NotificationSent] [bit] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+

@@ -1,0 +1,208 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION fn_filepart_applid (@f varchar(255))
+
+  
+RETURNS int AS  
+BEGIN 
+
+----p1    p2   p3   p4         p5  p6     
+--- 1      T32 CA 12345 - 01 A1S1
+
+declare @ApplID int
+
+declare @p1 char(1)
+declare @p2 char(3)
+declare @p3 char(2)
+declare @p4 int
+declare @p5 tinyint
+declare @p6 varchar(4)
+
+declare @p1s tinyint
+declare @p1e tinyint
+declare @p2s tinyint
+declare @p2e tinyint
+declare @p3s tinyint
+declare @p3e tinyint
+declare @p4s tinyint
+declare @p4e tinyint
+declare @p5s tinyint
+declare @p5e tinyint
+declare @p6s tinyint
+declare @p6e tinyint
+
+declare @gnum varchar(25)
+declare @format varchar(20)
+
+declare @sz tinyint
+declare @p smallint
+declare @i tinyint
+
+
+---get rid of some common nuicances
+
+SET @f=replace(@f,'Change Notice','')
+SET @f=replace(@f,'NGA','')
+SET @f=replace(@f,'CF-','')
+
+--SET @f=replace(@f,'-','')
+
+
+
+SELECT @f=replace(@f,' ','')
+
+
+SELECT
+@p=PATINDEX( '%[1-9][A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9][A,S,X][1-9][A,S,X][1-9]%',@f),
+@format='132624'
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[1-9][A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9][A,S,X][1-9]%',@f),
+@format='132622'
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[1-9][A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9]%',@f),
+@format='132620'
+
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[1-9][A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9][A,S,X][1-9][A,S,X][1-9]%',@f),
+@format='132524'
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[1-9][A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9][A,S,X][1-9]%',@f),
+@format='132522'
+
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[1-9][A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9]%',@f),
+@format='132520'
+
+
+---misc formats
+
+/*
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9]%',@f),
+@format='032620'
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9]%',@f),
+@format='032520'
+
+
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9][A,S,X][1-9]%',@f),
+@format='032622'
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[A-Z][0-9][0-9][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9][A,S,X][1-9]%',@f),
+@format='032522'
+
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9]%',@f),
+@format='002620'
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9]%',@f),
+@format='002520'
+
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[0-9][0-9][0-9][0-9][0-9][0-9][-][0-9][0-9]%',@f),
+@format='000620'
+
+IF @p=0
+SELECT
+@p=PATINDEX( '%[0-9][0-9][0-9][0-9][0-9][-][0-9][0-9]%',@f),
+@format='000520'
+
+*/
+
+IF @p=0 SET @format=NULL
+IF @format is null or @format='' RETURN null
+
+
+set @i=1
+set @sz=1
+while @i<=7
+BEGIN
+set @sz=@sz + convert(int,substring(@format,@i,1))
+set @i=@i+1
+END
+
+SET @gnum=substring(@f,@p,@sz)
+
+
+SELECT @p1s=1,     @p1e=@p1s+convert(tinyint,substring(@format,1,1))-1
+SELECT @p2s=@p1e+1,@p2e=@p2s+convert(tinyint,substring(@format,2,1))-1
+
+SELECT @p3s=@p2e+1,@p3e=@p3s+convert(tinyint,substring(@format,3,1))-1
+
+SELECT @p4s=@p3e+1,@p4e=@p4s+convert(tinyint,substring(@format,4,1))-1
+
+SELECT @p5s=@p4e+2,@p5e=@p5s+convert(tinyint,substring(@format,5,1))-1
+SELECT @p6s=@p5e+1,@p6e=@p6s+convert(tinyint,substring(@format,6,1))-1
+
+
+select @p1=substring(@gnum,@p1s,convert(tinyint,substring(@format,1,1)))
+select @p2=substring(@gnum,@p2s,convert(tinyint,substring(@format,2,1)))
+select @p3=substring(@gnum,@p3s,convert(tinyint,substring(@format,3,1)))
+select @p4=substring(@gnum,@p4s,convert(tinyint,substring(@format,4,1)))
+select @p5=substring(@gnum,@p5s,convert(tinyint,substring(@format,5,1)))
+select @p6=substring(@gnum,@p6s,convert(tinyint,substring(@format,6,1)))
+
+IF @p1=0 set @p1=null
+IF @p2='' set @p2=null
+IF @p3='' set @p3=null
+IF @p4=0 set @p4=null
+IF @p5=0 set @p5=null
+IF @p6='' set @p6=null
+
+select @ApplID=appl_id from vw_appls where
+appl_type_code like ISNULL(@p1,'%') AND
+activity_code  like ISNULL(@p2,'%') AND
+admin_phs_org_code like ISNULL(@p3,'CA') AND
+serial_num=@p4 AND
+support_year=@p5 AND
+(suffix_code=@p6 OR (@p6 is null and suffix_code is null))
+
+
+--what to do if appl_id is still NULL
+IF @ApplID is NULL
+SELECT @ApplID=appl_id from appls where former_num=@gnum
+
+
+
+return @applid
+
+
+END
+
+
+
+
+
+
+
+
+
+
+
+GO
+

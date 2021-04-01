@@ -1,0 +1,45 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+/*-----------------------------------------------------------------*/
+-- USAGE : EXEC DBO.sp_getOfficersEmailForGrantNum <<APPL_ID>>,'SPEC'
+-- EXAMPLE : EXEC DBO.sp_getOfficersEmailForGrantNum 8921131,'SPEC'
+-- Author : Imran Omair
+-- Date Created : 7/28/2016
+/*------------------------------------------------------------------*/
+CREATE PROCEDURE [dbo].[sp_getOfficersEmailForGrantNum] 
+(	@APPLID INT = null, 
+	@OffCode varchar(5) = null
+)
+AS
+BEGIN 
+	SET NOCOUNT ON
+	declare @OffEmailAddress  varchar(100), @SQL VARCHAR(1000),@srlnum int
+	SELECT @srlnum = SERIAL_NUM FROM vw_appls WHERE appl_id=@APPLID
+	
+	If (@APPLID is not null) AND (@srlnum is not null) AND (RTRIM(LTRIM(@OffCode)) in ('SPEC','PD','PI')) 
+	BEGIN
+		If @OffCode='SPEC'
+		BEGIN
+			IF OBJECT_ID('tempdb..#OffEmail') IS NOT NULL
+			DROP TABLE #OffEmail
+
+			CREATE TABLE #OffEmail (Email_address_p varchar(80),Email_address_b varchar(80),APPLICATION_RECEIPT_DATE datetime,REVISION_NUM int, FULL_GRANT_NUM varchar(19), SUPPORT_YEAR int)
+			SET @SQL = 'INSERT INTO #OffEmail(Email_address_p ,Email_address_b ,APPLICATION_RECEIPT_DATE ,REVISION_NUM , FULL_GRANT_NUM , SUPPORT_YEAR )'
+			SET @SQL=@SQL + 'SELECT RESP_SPEC_EMAIL_ADDRESS,BKUP_SPEC_EMAIL_ADDRESS,APPLICATION_RECEIPT_DATE,ISNULL(REVISION_NUM,0),FULL_GRANT_NUM,SUPPORT_YEAR FROM OPENQUERY(CIIP, '+CHAR(39)+'select RESP_SPEC_EMAIL_ADDRESS,BKUP_SPEC_EMAIL_ADDRESS,APPLICATION_RECEIPT_DATE,REVISION_NUM,FULL_GRANT_NUM,SUPPORT_YEAR from GM_ACTION_QUEUE_VW where support_year in (SELECT Max(Support_year) FROM GM_ACTION_QUEUE_VW where serial_num ='+CAST(@srlnum AS VARCHAR)+') and serial_num='+CAST(@srlnum AS VARCHAR)+ CHAR(39)+')'
+			EXEC (@SQL)
+			--SET @SQL = 'SELECT A.Email_address_p,isnull(A.Email_address_b,'') as Email_address_b  FROM #OffEmail A WHERE A.REVISION_NUM IN (SELECT MAX(B.REVISION_NUM) FROM #OffEmail B)'		--,A.Email_address_b 
+		END
+		/*
+		else If @OffCode='PD'
+			SET @SQL='SELECT PD_EMAIL_ADDRESS FROM OPENQUERY(CIIP_PROD, '+CHAR(39)+'select PD_EMAIL_ADDRESS from GM_ACTION_QUEUE_VW where support_year in (SELECT Max(Support_year) FROM GM_ACTION_QUEUE_VW where serial_num ='+CAST(@srlnum AS VARCHAR)+') and serial_num='+CAST(@srlnum AS VARCHAR)+ CHAR(39)+')'
+		else If @OffCode='PI'
+			SET @SQL='SELECT PI_EMAIL_ADDRESS FROM OPENQUERY(CIIP, '+CHAR(39)+'select PI_EMAIL_ADDRESS from GM_ACTION_QUEUE_VW where support_year in (SELECT Max(Support_year) FROM GM_ACTION_QUEUE_VW where serial_num ='+CAST(@srlnum AS VARCHAR)+') and serial_num='+CAST(@srlnum AS VARCHAR)+ CHAR(39)+')'			
+		 --EXEC (@SQL)
+		*/
+		SELECT A.Email_address_p,isnull(A.Email_address_b,'') as Email_address_b  FROM #OffEmail A WHERE A.REVISION_NUM IN (SELECT MAX(B.REVISION_NUM) FROM #OffEmail B)		 
+	END
+END
+
+
+GO
+

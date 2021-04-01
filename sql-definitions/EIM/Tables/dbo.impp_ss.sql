@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[impp_ss](
+	[appl_id] [int] NOT NULL,
+	[ss_upd_date] [smalldatetime] NULL,
+	[ss_page_count_num] [smallint] NULL,
+	[last_upd_date] [smalldatetime] NULL
+) ON [PRIMARY]
+
+GO
+

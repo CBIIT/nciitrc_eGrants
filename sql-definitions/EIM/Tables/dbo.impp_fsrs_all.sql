@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[impp_fsrs_all](
+	[appl_id] [int] NOT NULL,
+	[fsr_id] [int] NOT NULL,
+	[fsr_seq_num] [int] NULL,
+	[accepted_date] [smalldatetime] NULL
+) ON [PRIMARY]
+
+GO
+

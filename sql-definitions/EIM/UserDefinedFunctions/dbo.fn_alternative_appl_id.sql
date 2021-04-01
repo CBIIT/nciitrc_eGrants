@@ -1,0 +1,43 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE FUNCTION fn_alternative_appl_id (@applID int)
+  
+RETURNS int
+
+
+BEGIN 
+
+
+RETURN
+
+(
+SELECT a1.appl_id FROM 
+appls a1, appls a2
+WHERE
+a2.appl_id=@applID and
+a2.grant_id=a1.grant_id and
+a2.appl_type_code=a1.appl_type_code and
+a2.activity_code=a1.activity_code and
+a2.support_year=a1.support_year and
+ISNULL(a2.suffix_code,'')=ISNULL(a1.suffix_code,'') and
+a2.appl_id<>a1.appl_id
+
+
+)
+
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+

@@ -1,0 +1,57 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER OFF
+
+
+
+CREATE FUNCTION [dbo].[fn_egrants_web_notification_documents]
+
+(@appl_id	int)
+
+RETURNS TABLE 
+AS
+RETURN 
+(
+SELECT distinct
+'NCI'								as ic,
+grant_id							as grant_id, 
+appl_id								as appl_id,
+full_grant_num						as full_grant_num,
+0									as document_id,
+CAST(null as varchar)				as document_date,
+'Closeout Notification'				as document_name,
+CAST(null as varchar)				as doc_date,
+0									as category_id,
+'Closeout Notification'				as category_name,
+CAST(null as varchar)				as sub_category_name,
+CAST(null as varchar)				as created_by,
+CAST(null as varchar)				as created_date,
+CAST(null as varchar)				as modified_by,
+CAST(null as varchar)				as modified_date,
+CAST(null as varchar)				as file_modified_by,
+CAST(null as varchar)				as file_modified_date,
+CAST(null as varchar)				as problem_msg,
+CAST(null as varchar)				as problem_reported_by,
+null								as page_count,
+0									as fsr_count,
+0									as attachment_count,
+0									as closeout_notcount,
+0									as frc_destroyed,
+CAST(null as varchar)				as url,
+CAST(null as varchar)				as qc_date,
+CAST(null as varchar)				as qc_reason,
+CAST(null as varchar)				as qc_person_id,
+CAST(null as varchar)				as qc_person_name,
+'n'									as can_qc,
+'n'									as can_upload,
+'n'									as can_modify_index,
+'n'									as can_delete,
+'n'									as can_restore,
+'n'									as can_store
+
+FROM vw_appls
+where appl_id=@appl_id and CloseOut_NotCount>0
+)
+
+
+GO
+

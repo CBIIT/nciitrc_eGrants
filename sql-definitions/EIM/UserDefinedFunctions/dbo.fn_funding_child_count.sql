@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION [dbo].[fn_funding_child_count] (@category_id int, @fy int)
+RETURNS int
+
+AS  
+
+BEGIN 
+
+declare @count  int
+
+SET @count=(SELECT COUNT(*) FROM vw_funding_categories
+WHERE category_fy=@fy and @category_id in(select parent_id from vw_funding_categories where category_fy=@fy))
+
+IF @count is null SET @count=0
+return @count 
+
+END
+GO
+

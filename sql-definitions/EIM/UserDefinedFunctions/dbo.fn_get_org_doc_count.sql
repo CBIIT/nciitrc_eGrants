@@ -1,0 +1,19 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+create FUNCTION [dbo].[fn_get_org_doc_count] (@org_id int)
+  
+RETURNS int AS 
+
+BEGIN 
+RETURN 
+(
+select count(*) from dbo.Org_document where org_id=@org_id and disabled_date is null
+)
+
+END
+
+
+
+GO
+

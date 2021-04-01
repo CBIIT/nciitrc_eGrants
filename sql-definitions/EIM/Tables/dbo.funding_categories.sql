@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[funding_categories](
+	[category_id] [smallint] IDENTITY(1,1) NOT NULL,
+	[category_name] [varchar](255) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[grand_parent_id] [smallint] NULL,
+	[parent_id] [smallint] NULL,
+	[level_id] [smallint] NULL,
+	[category_fy] [smallint] NULL
+) ON [PRIMARY]
+
+GO
+

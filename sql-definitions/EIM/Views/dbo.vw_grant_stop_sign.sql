@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+CREATE VIEW [dbo].[vw_grant_stop_sign]
+AS
+
+
+--10-07-2020 bshell - Temporarily pointed to local back up of GM_Closeout due to retiring link to remote oracle serer for GM_Closeout
+SELECT DISTINCT a1.grant_id, a.appl_id, a.full_grant_num,closeout.CLOSEOUT_FSR_CODE, 
+closeout.FINAL_INVENTION_STMNT_CODE, closeout.FINAL_REPORT_DATE
+FROM dbo.vw_appls a INNER JOIN (select appl_id, closeout_fsr_code,final_invention_stmnt_code,final_report_date 
+    from BKP_gm_closeouts_20201002 
+    where cast(substring(ltr1_date,1,23) as smalldatetime) >= cast('1998-04-01' as smalldatetime) 
+    and closeout_status_code='O' 
+    and (final_report_date is null or final_invention_stmnt_code='N' or final_invention_stmnt_code IS NULL))
+    closeout ON a.appl_id = closeout.APPL_ID INNER JOIN
+    dbo.vw_appls a1 ON a.last_name = a1.last_name AND a.first_name = a1.first_name 
+    AND (a.mi_name IS NULL AND a1.mi_name IS NULL OR REPLACE(a.mi_name, '.', '') = REPLACE(a1.mi_name, '.', ''))
+WHERE (a1.admin_phs_org_code IN ('CA', 'ES'))
+
+GO
+

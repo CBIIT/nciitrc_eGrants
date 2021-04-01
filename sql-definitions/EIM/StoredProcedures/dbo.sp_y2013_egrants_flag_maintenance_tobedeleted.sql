@@ -1,0 +1,142 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_y2013_egrants_flag_maintenance_tobedeleted]
+
+@type			varchar(50),
+@act			varchar(50),
+@adminCode 		char(2),
+@serialNum		int, 
+@applID 		int,
+@Operator		varchar(50),
+@Inst			varchar(10)
+
+AS
+/************************************************************************************************************/
+/***									 									***/
+/***	Procedure Name: sp_y2013_flag_maintenance							***/
+/***	Description: This procedure supports flag maintenance web page.		***/
+/***				 As of 12/2/2013, it will only work FDA flag			***/
+/***	Created:	04/23/2013	Leon										***/
+/***	Modified:	04/23/2013	Leon										***/
+/***	Modified:	12/02/2013	Hareesh - updated description				***/
+/***	Modified:	12/12/2013	Leon - add menu								***/
+/***	Modified:	12/16/2013	Leon - change name							***/
+/***																		***/
+/************************************************************************************************************/
+SET NOCOUNT ON
+
+DECLARE
+@profile_id	smallint,
+@person_id	int,
+@grant_id	int,
+@sql		varchar(800),
+@count		int,
+@flag_type	varchar(50),
+@xmlout		varchar(max),
+@X			Xml
+
+SET @type=LOWER(@type)
+SET @act=LOWER(@act)
+IF (@type<>'' and @type is not null) SET @flag_type=@type+'_flag'
+
+SET @profile_id	=(select profile_id	from profiles where [profile]=@Inst)
+SET @person_id=(SELECT person_id FROM vw_people WHERE userid=@Operator and profile_id=@profile_id)
+
+SELECT DISTINCT admin_phs_org_code FROM vw_appls AS admin_phs_org_codes
+
+if @act='' or @act is null GOTO head
+IF @act='show_all' GOTO show_type ---for old version
+IF @act='show_grant' GOTO show_grant
+IF @act='show_type' GOTO show_type
+IF @act='add' or @act='remove' GOTO add_remove
+---------------
+show_grant:
+
+SET @sql='SELECT appl_id,serial_num,full_grant_num,'+@flag_type+' as flag FROM vw_appls WHERE admin_phs_org_code='+char(39)+@AdminCode+char(39)+' and serial_num='+char(39)+CONVERT(varchar,@SerialNum)+char(39)
+EXEC (@sql)
+
+GOTO head
+
+RETURN
+-----------
+show_type:
+
+SET @sql='SELECT appl_id,serial_num,full_grant_num,'+@flag_type+' as flag FROM vw_appls WHERE '+@flag_type+'=''Y'''
+EXEC (@sql)
+
+GOTO head
+
+RETURN
+-------------------
+add_remove:
+
+SET @grant_id=(select grant_id from appls where appl_id=@applID)
+
+IF @act='add'
+BEGIN 
+SET @sql='UPDATE appls SET '+@flag_type+'=''y'' WHERE appl_id='+convert(varchar,@applID)
+EXEC (@sql)
+SET @sql='UPDATE grants SET '+@flag_type+'=''y'' WHERE grant_id='+convert(varchar,@grant_id)
+EXEC (@sql)
+END
+
+IF @act='remove'
+BEGIN
+SET @sql='UPDATE appls SET '+@flag_type+'=null WHERE appl_id='+convert(varchar,@applID)
+EXEC (@sql)
+
+SET @sql='UPDATE grants SET '+@flag_type+'=null WHERE grant_id='+convert(varchar,@grant_id)+' and (select count(*) from appls where grant_id='+convert(varchar,@grant_id)+' and '+ @flag_type+'=''y'')=0'
+EXEC (@sql)
+END
+
+GOTO show_type
+
+RETURN
+------------------
+head:
+
+--return user's meun 
+SET @X = (
+SELECT menu_id,menu_title,menu_url,menu_hover 
+FROM dbo.vw_adm_menu_assignment as menu 
+WHERE person_id=@person_id and menu_id<>4
+FOR XML AUTO, ELEMENTS
+)
+SELECT @xmlout = cast(@X as varchar(max))
+SELECT @xmlout
+
+/** find user info***/
+declare @person_name	varchar(50)
+declare @first_name		varchar(50)
+declare @separate		int
+declare @qc_date 		smalldatetime
+declare @daydiff 		int
+
+--find the qc days
+SELECT @qc_date=MIN(qc_date) FROM egrants WHERE qc_person_id=@person_id and qc_date is not null and parent_id is null
+IF @qc_date IS NOT NULL
+BEGIN
+SELECT @daydiff=DATEDIFF(day, getdate(), @qc_date)-1
+END
+
+--find user name
+set @person_name=(select person_name from people where person_id=@person_id)
+IF @person_name<>'' and @person_name is not null 
+BEGIN
+select  @separate=PATINDEX('%,%', @person_name)
+select  @first_name=LEFT(@person_name,@separate-1 )
+END 
+
+SET @X = (
+SELECT person_id, person_name,ISNULL(@first_name, NULL) as first_name,userid,profile_id,[profile] as ic,
+admin_phs_org_code,position_id,@daydiff as qc_days,convert(varchar, getdate(),101) as today,
+can_egrants,can_cft,can_mgt,can_docman,can_admin
+FROM vw_people AS user_info 
+WHERE userid=@operator 
+FOR XML AUTO, TYPE, ELEMENTS
+)
+
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+GO
+

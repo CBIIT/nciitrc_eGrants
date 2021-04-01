@@ -1,0 +1,20 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE FUNCTION [dbo].[fn_grant_profile_id] (@GrantID int)
+  
+RETURNS int  AS  
+
+BEGIN 
+
+RETURN 
+(
+SELECT ISNULL(profile_id,null) AS profile_id 
+from profiles 
+where admin_phs_org_code = (select admin_phs_org_code from grants where grant_id=@GrantID)
+)
+
+
+END
+
+GO
+

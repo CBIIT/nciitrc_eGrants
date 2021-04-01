@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE VIEW dbo.vw_test4
+AS
+SELECT     dbo.documents.document_id, dbo.documents.appl_id, dbo.categories.category_name, dbo.documents.created_by_person_id, 
+                      dbo.documents.created_date, dbo.documents.url, dbo.documents.file_modified_by_person_id, dbo.documents.file_modified_date
+FROM         dbo.categories INNER JOIN
+                      dbo.documents ON dbo.categories.category_id = dbo.documents.category_id LEFT OUTER JOIN
+                      dbo.appls ON dbo.documents.appl_id = dbo.appls.appl_id
+WHERE     (dbo.appls.appl_id IS NULL)
+
+GO
+

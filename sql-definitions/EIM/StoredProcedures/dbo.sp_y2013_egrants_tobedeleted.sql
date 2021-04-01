@@ -1,0 +1,598 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_y2013_egrants_tobedeleted]
+
+@str 			varchar(400),
+@grant_id 		int,
+@package 		varchar(50),
+@appl_id 		int,
+@current_tab 	int,
+@current_page	int,
+@browser		varchar(50),
+@ic  			varchar(10),
+@operator 		varchar(50)
+
+AS
+/************************************************************************************************************/
+/***									 										***/
+/***	Procedure Name:sp_y2013_egrants											***/
+/***	Description:searching for egrants										***/
+/***	Created:	08/03/2015	Leon											***/
+/***	Modified:	08/07/2015	Leon											***/
+/***	Modified:	08/17/2015	Leon											***/
+/***	Modified:	08/15/2016	Leon	add dashboard tab						***/
+/************************************************************************************************************/
+SET NOCOUNT ON
+
+declare @xmlout				varchar(max)
+declare @X					Xml
+
+declare @type				varchar(50)
+declare @sql				varchar(1000)
+declare @count				int
+declare @separate		    int
+declare @search_str			varchar(800)
+declare @search_id			int
+declare @SD					datetime
+declare @ED					datetime
+
+declare @profile_id			int
+declare @profile			varchar(10)
+declare @person_id			int
+declare @position_id		int
+declare @person_name		varchar(50)
+declare @application_type	varchar(20)
+declare @admin_phs_org_code varchar(2)
+
+declare @per_page			int
+declare @per_tab			int
+declare @start				int
+declare @end				int
+declare @total_pages		int
+declare @total_tabs			int
+declare @total_grants		int
+
+---find unser info
+SET @profile_id=(SELECT profile_id  FROM profiles WHERE  profile=@ic)
+SET @admin_phs_org_code=(SELECT admin_phs_org_code FROM profiles WHERE [profile]=@ic)
+SET @person_id=(SELECT person_id FROM vw_people WHERE userid=LOWER(@operator) AND profile_id=@profile_id)
+SET @position_id=(SELECT position_id FROM vw_people WHERE person_id=@person_id)
+SET @application_type=(SELECT application_type FROM vw_people WHERE person_id=@person_id)
+
+--check permission
+SET @count=(select COUNT(*) from vw_people where userid=LOWER(@operator) and application_type='egrants' and can_egrants='y')
+
+--return user info
+IF @count=1
+BEGIN
+SET @X = (
+SELECT * FROM vw_people AS user_info WHERE userid=LOWER(@operator)
+FOR XML AUTO, TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+END
+ELSE
+BEGIN
+SELECT null
+END
+
+--check search string
+SET @str=LTRIM(RTRIM(dbo.fn_str_decode(@str)))--Decode @str
+SET	@package=LTRIM(RTRIM(dbo.fn_str_decode(@package)))--Decode @package
+IF (@str='' or @str is null) and (@grant_id='' or @grant_id is null) and (@appl_id='' or @appl_id is null) GOTO foot
+
+---find search_type and create search string
+IF @appl_id is null and PATINDEX('%appl_id:%',@str)=1 
+BEGIN
+SET @separate=PATINDEX('%:%',@str)
+SET @appl_id=convert(int,SUBSTRING(@str,@separate+1,LEN(@str)))
+END
+
+IF @appl_id is null and PATINDEX('%-%',@str)>1 
+BEGIN
+IF RIGHT(@str,1)='+' SET @str=substring(@str,1,LEN(@str)-1)--remove last '+' for chrome
+SET @appl_id=(select appl_id FROM vw_appls WHERE full_grant_num=@str)
+END
+
+IF @appl_id is not null ---and @appl_id<>0  
+BEGIN
+SET @str=null
+SET @type='egrants_appl' 
+SET @search_str='appl_id:'+ convert(varchar,@appl_id)
+END
+
+IF @grant_id is not null --and @grant_id>0 
+BEGIN
+IF @package is null or @package='' SET @package='all'
+SET @str=null
+SET @type='egrants_grant' 
+SET @search_str='grant_id:'+ convert(varchar,@grant_id)+' package:'+@package
+END
+
+IF @str='qc' ---@str<>'' and @str is not null and 
+BEGIN
+SET @type='egrants_qc' 
+SET @search_str='filter:qc  user:'+ @operator 
+END
+
+IF @appl_id is null and (@str<>'' and @str is not null and @str<>'qc')
+BEGIN
+SET @type='egrants_str' 
+SET @search_str=@str
+END
+
+/**start to search**/
+SET @SD=getdate()
+
+/**find search_id**/
+SELECT @search_id=search_id FROM searches WHERE search_string=@search_str
+IF @search_id IS NULL
+BEGIN
+INSERT searches(search_string) SELECT @search_str
+SET @search_id=@@IDENTITY
+END
+
+/**set @current_page to defult of 1 if not entered**/
+IF @current_page is null or @current_page='' SET @current_page=1
+IF @current_tab is null or @current_tab='' SET @current_tab=1
+SET @total_pages=1
+SET @total_tabs=1
+IF @str='qc' SET @per_page=10 ELSE SET @per_page=20
+SET @per_tab=20
+
+/**create table to save search data**/
+DECLARE  @g table(grant_id int primary key)
+DECLARE  @a table(appl_id int primary key)
+DECLARE  @d table(document_id int primary key)
+
+---create table to save data
+CREATE TABLE #t(id int IDENTITY (1, 1) NOT NULL, grant_id int,serial_num int)
+CREATE TABLE #tabs (tab_number int)
+CREATE TABLE #pages(tab_number int, page_number int)
+
+/**go to load data**/
+if @type='egrants_str' GOTO egrants_str
+if @type='egrants_grant' GOTO egrants_grant
+if @type='egrants_appl' GOTO egrants_appl
+if @type='egrants_qc' GOTO egrants_qc
+
+RETURN
+-------------------
+egrants_str:
+
+SET @str=dbo.fn_str(@str)
+
+--searching str such as full grant number
+--IF PATINDEX('%-%',@str)>1 SET @appl_id=(select appl_id FROM vw_appls WHERE full_grant_num=substring(@str,1,LEN(@str)-1))
+--IF @appl_id is not null
+--BEGIN
+--INSERT @d(document_id) SELECT document_id FROM egrants WHERE appl_id=@appl_id
+--SET @sql='insert #t(grant_id, serial_num) select distinct grant_id, serial_num from vw_appls where appl_id='+convert(varchar,@appl_id)
+--END
+--ELSE 
+
+---commented out by leon 11/29/2016
+---SET @sql='insert #t(grant_id, serial_num) select distinct grant_id, serial_num from containstable(ncieim_b..appls_txt,keywords,' + char(39) + @str + char(39) + ') c, vw_appls a where a.appl_id=c.[key] and a.admin_phs_org_code='+char(39)+'CA'+char(39)+' and a.closed_out='+char(39)+'no'+char(39)+ 'order by serial_num'
+---SET @sql='insert #t(grant_id, serial_num) select distinct grant_id, serial_num from containstable(ncieim_b..appls_txt,keywords,' + char(39) + @str + char(39) + ') c, vw_appls a where a.appl_id=c.[key] and a.admin_phs_org_code='+char(39)+'CA'+char(39)+' order by serial_num'
+SET @sql='insert #t(grant_id, serial_num) select distinct grant_id, serial_num from containstable(ncieim_b..appls_txt,keywords,' + char(39) + @str + char(39) + ') c, vw_appls a where a.appl_id=c.[key] order by serial_num'
+--and a.admin_phs_org_code='+char(39)+'CA'+char(39)+'
+
+EXEC(@sql)
+
+SET @total_grants=(SELECT count(*)FROM #t)
+IF @total_grants>@per_page GOTO pagination --need pagination
+
+SELECT tab_number,page_number FROM #pages ORDER BY tab_number FOR XML AUTO, TYPE, ELEMENTS ---return empty tabs data recordset
+
+INSERT @g(grant_id)SELECT grant_id FROM #t 
+
+/**insert appl_id with @g**/
+INSERT @a 
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id
+UNION
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+
+GOTO XML_OUTPUT
+--------------------
+egrants_grant:
+
+INSERT @g(grant_id) SELECT @grant_id
+
+/** find search package type**/
+IF @package='all' or @package='All' or @package='' or @package is null
+BEGIN
+INSERT @d(document_id)
+SELECT DISTINCT document_id FROM vw_appls a,egrants d WHERE a.appl_id=d.appl_id and a.grant_id=@grant_id
+END
+
+ELSE
+
+BEGIN
+INSERT @d(document_id)
+SELECT DISTINCT document_id FROM vw_appls a,egrants d,categories c
+WHERE a.appl_id=d.appl_id and c.category_id=d.category_id and a.grant_id=@grant_id and c.package=@package
+END
+
+INSERT @a 
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id
+UNION
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+
+---IF (SELECT COUNT(*) FROM @d)=0 AND (SELECT COUNT(*) FROM @a)=0 GOTO foot
+
+GOTO XML_OUTPUT
+--------------------
+egrants_appl:
+
+---to find pi_name with appl_id
+DECLARE @pi_name		varchar(92)
+DECLARE @activity_type	varchar(50)
+SET @activity_type = 'R35'
+SET @pi_name=(select dbo.fn_get_pi_name_by_applid (@appl_id))
+
+SET @X = 
+(
+SELECT UPPER(@pi_name) AS pi_name, @activity_type AS activity_type,
+	(SELECT distinct appl_id,full_grant_num FROM vw_appls AS appl
+	WHERE pi_name=@pi_name and activity_code in(@activity_type) and doc_count>0 and frc_destroyed=0
+	FOR XML AUTO,TYPE, ELEMENTS)
+	--(SELECT distinct appl_id,full_grant_num FROM egrants AS appl
+	--WHERE pi_name=@pi_name and activity_code in(@activity_type) 
+	--FOR XML AUTO,TYPE, ELEMENTS)
+FROM performance AS activity_appls
+FOR XML AUTO, ELEMENTS 
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+INSERT @d(document_id) 
+SELECT document_id FROM egrants WHERE appl_id=@appl_id
+UNION
+SELECT document_id FROM funding_appls WHERE appl_id=@appl_id  --add in by leon 12/21/2016
+
+IF (SELECT COUNT(*) FROM @d)=0  
+BEGIN
+SET @X = 
+(
+SELECT * FROM egrants WHERE appl_id=@appl_id
+FOR XML AUTO,TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GOTO foot
+END
+ELSE
+BEGIN
+INSERT @g(grant_id) SELECT grant_id FROM vw_appls WHERE appl_id =@appl_id
+
+INSERT @a(appl_id)
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id
+UNION
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+
+GOTO XML_OUTPUT
+
+END
+----------------------
+egrants_qc:
+
+---find some documents without applid to qc
+DECLARE @md table(document_id int primary key)
+INSERT @md(document_id) SELECT DISTINCT document_id FROM egrants 
+WHERE qc_person_id=@person_id and appl_id is null and qc_date is not null and parent_id is null
+
+SET @X = 
+(
+SELECT
+d.document_id,
+convert(varchar,document_date,101) as document_date,
+category_name,
+document_name,
+created_by,
+convert(varchar,created_date,101) as created_date,
+page_count,
+CASE
+WHEN category_name= 'NGA' and created_by='impac' THEN url 
+WHEN category_name='Greensheet PGM' THEN url
+WHEN category_name='Greensheet Spec' THEN url
+ELSE replace(url,'nci.nih', LOWER(@IC) + '.nih') END AS url,
+file_type,
+convert(varchar,qc_date,101) as qc_date,
+qc_reason,
+qc_person_id,
+CASE WHEN can_upload='y' and 	((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code))) THEN 'y' ELSE 'n' END AS can_upload,
+CASE WHEN can_modify_index='y' and ((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code))) THEN 'y' ELSE 'n' END AS can_modify_index,
+CASE WHEN can_delete='y' and 	((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code)))  THEN 'y' ELSE 'n' END AS can_delete,
+CASE WHEN can_restore='y' and 	((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code)))  THEN 'y' ELSE 'n' END AS can_restore,
+CASE WHEN can_store='y' and 	((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code)))  THEN 'y' ELSE 'n' END AS can_store,
+ic
+FROM @md AS doc inner join egrants d on doc.document_id=d.document_id 
+FOR XML AUTO, TYPE, ELEMENTS 
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+-----find if need pagination
+SET @sql='insert #t(grant_id, serial_num) select distinct grant_id, serial_num FROM egrants 
+WHERE grant_id is not null and appl_id is not null and qc_date is not null and parent_id is null and stored_date is null and qc_person_id='+convert(varchar,@person_id)---distinct 
+EXEC(@sql)
+
+SET @total_grants=(SELECT count(*)FROM #t)
+IF @total_grants>@per_page GOTO pagination 
+ELSE
+BEGIN
+
+---return empty tabs data recordset
+SELECT tab_number,page_number FROM #pages ORDER BY tab_number FOR XML AUTO, TYPE, ELEMENTS 
+
+INSERT @d(document_id) SELECT document_id FROM egrants 
+WHERE qc_person_id=@person_id and qc_date is not null and appl_id is not null and parent_id is null and stored_date is null
+
+IF (SELECT COUNT(*) FROM @d)=0 GOTO foot  ----and (SELECT COUNT(*) FROM @a)=0  and (SELECT COUNT(*) FROM @g)=0 
+ELSE
+--INSERT @g(grant_id) SELECT DISTINCT grant_id FROM @d as d,egrants e WHERE e.grant_id is not null and d.document_id=e.document_id ---and e.appl_id IS NOT NULL
+INSERT @g(grant_id) SELECT DISTINCT grant_id FROM egrants e inner join @d as d ON e.document_id=d.document_id WHERE e.grant_id IS NOT NULL and e.appl_id IS NOT NULL
+
+INSERT @a(appl_id)
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id
+UNION 
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+
+GOTO XML_OUTPUT
+
+END
+----------------
+pagination:
+
+---set start page and end page
+SET @start=@per_page * (@current_page-1) + 1
+SET @end=@per_page * @current_page
+
+---find total number from #t
+SELECT @total_pages = ceiling(convert(real,@total_grants)/@per_page)
+SELECT @total_tabs = ceiling(convert(real,@total_grants)/@per_page/@per_tab)
+
+--insert all pages 
+IF @total_tabs>=1 
+BEGIN
+DECLARE @i INT
+SET @i=1
+WHILE @i<=@total_pages
+BEGIN
+	INSERT #pages(page_number) SELECT @i
+	SET @i=@i+1
+END
+UPDATE #pages SET tab_number=ceiling(convert(real,page_number)/@per_tab)
+
+--insert all tabs 
+INSERT #tabs(tab_number)SELECT distinct tab_number FROM #pages 
+
+---return pagination data
+SELECT tab_number,(select page_number from #pages as page where tab_number=tab.tab_number FOR XML AUTO, TYPE, ELEMENTS)
+FROM #tabs as tab order by tab_number FOR XML AUTO, TYPE, ELEMENTS
+
+END
+
+INSERT @g(grant_id) SELECT grant_id FROM #t WHERE #t.id between @start and @end ORDER BY serial_num
+
+/**insert appl_id with @g**/
+INSERT @a 
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id
+UNION
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+
+IF @str='qc' 
+BEGIN
+INSERT @d(document_id) SELECT DISTINCT document_id FROM documents d, @a a
+WHERE qc_person_id=@person_id and qc_date is not null and parent_id is null and disabled_date is null and d.appl_id=a.appl_id and stored_date is null --- in(select distinct appl_id from @a)--and appl_id is not null 
+END
+
+GOTO XML_OUTPUT
+------------------
+XML_OUTPUT:
+
+---set up appls_restriction 
+IF @operator='khoshbif' or @operator='dixonr3' ---or @operator='qians'
+BEGIN
+delete from @a where appl_id not in(select appl_id from appls_restriction)
+END
+
+SET @X = 
+(
+SELECT			---get grant 
+[grant].grant_id,
+serial_num,
+admin_phs_org_code,
+former_grant_num,   
+future_grant_num,
+org_name,											---dbo.fn_clean_characters(org_name)as org_name,                                       
+pi_name,											---dbo.fn_clean_characters(pi_name)as pi_name,  
+org_sv_url,											---added by leon 3/28/2016
+CASE 
+	WHEN len(project_title)<=70 
+	THEN UPPER(project_title)						---dbo.fn_clean_characters(UPPER(project_title)) 
+	ELSE UPPER(substring(project_title,0,70))+'...' ---dbo.fn_clean_characters(UPPER(substring(project_title,0,70)))+'...' 
+END as project_title,  
+prog_class_code,
+award_package,
+application_package,
+correspondence_package,
+closeout_package,
+adm_supp,
+
+(				--get flag data for grant level
+SELECT 
+distinct flag_type,flag_icon_namepath 
+FROM dbo.vw_Grants_Flag_Construct as grant_flag
+WHERE grant_id in ([grant].grant_id) and flag_application<>'A'
+FOR XML AUTO,TYPE,ELEMENTS
+), 
+
+(				---get sv data 
+SELECT created_by, created_date, end_date, url as sv_url
+FROM vw_org_document as sv
+WHERE tobe_flagged=1 and org_name =[grant].org_name and end_date=(
+	SELECT MAX(end_date)
+	FROM vw_Org_Document 
+	WHERE org_name =[grant].org_name and tobe_flagged=1 and end_date > GETDATE()
+	GROUP BY category_id
+)FOR XML AUTO,TYPE,ELEMENTS
+),
+
+(
+SELECT			---get appl 
+appl.appl_id as appl_id,
+full_grant_num, 
+support_year,
+suffix_code as suffix,
+support_year_suffix as suffix_code,
+dbo.fn_appl_new_supp(appl.appl_id) as new_supp,							
+dbo.fn_appl_CloseOut_NotCount(appl.appl_id) as closeout_notcount,		
+org_name,											---dbo.fn_clean_characters(org_name) as org_name,
+deleted_by_impac,
+competing,
+dbo.fn_appl_fsr_count(appl.appl_id) as fsr_count,
+frc_destroyed, 
+dbo.fn_show_closeout_flag(appl.appl_id) as closeout_flag,
+dbo.fn_get_irppr_id(appl.appl_id) as irppr_id,
+CASE 
+WHEN @IC='NCI' and @position_id>=5 and @application_type='egrants' and admin_phs_org_code='CA'  
+THEN 'y'
+ELSE 'n'
+END as can_add_funding, 
+
+(
+SELECT			--get flag data for appl level
+distinct flag_type,flag_icon_namepath 
+FROM dbo.vw_Grants_Flag_Construct as appl_flag 
+WHERE appl_id in (appl.appl_id) and flag_application<>'G'
+FOR XML AUTO,TYPE, ELEMENTS),
+
+(
+SELECT			--get document 
+doc.document_id as document_id,
+convert(varchar,document_date,101) as document_date,
+category_id,
+category_name,
+document_name,
+file_type,
+page_count,
+attachment_count,
+created_by,
+convert(varchar,created_date,101) as created_date,
+modified_by,
+convert(varchar,modified_date,101) as modified_date,
+file_modified_by,
+convert(varchar,file_modified_date,101) as file_modified_date,
+CASE WHEN parent_id is null THEN 0 ELSE parent_id END as parent_id,
+convert(varchar,qc_date,101) as qc_date,
+problem_msg,
+problem_reported_by,
+dbo.fn_clean_characters([description]) as [description],
+CASE WHEN can_upload='y' and  	((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code))) THEN 'y' ELSE 'n' END AS can_upload,
+CASE WHEN can_modify_index='y' and ((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code))) THEN 'y' ELSE 'n' END AS can_modify_index,
+CASE WHEN can_delete='y' and  	((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code))) THEN 'y' ELSE 'n' END AS can_delete,
+CASE WHEN can_restore='y' and   ((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code))) THEN 'y' ELSE 'n' END AS can_restore,
+CASE WHEN can_store='y' and 	((@position_id=8) or (@position_id>1 and (ic=@IC or admin_phs_org_code=@admin_phs_org_code))) THEN 'y' ELSE 'n' END AS can_store,
+ic,
+CASE WHEN LOWER(@IC)<>'nci' THEN replace(url,'nci.nih', LOWER(@IC) + '.nih')
+ELSE url END AS url
+FROM egrants as doc inner join @d AS d ON d.document_id=doc.document_id 
+WHERE appl_id = appl.appl_id	--appl_id in(appl.appl_id)	
+FOR XML AUTO,TYPE, ELEMENTS
+),	---end docs
+
+(
+SELECT					--get all funding docs when @type='egrants_grant' and @package='all'
+document_id,
+convert(varchar,document_date,101) as document_date,
+---'pdf' as file_type,
+0 as category_id,
+'Funding' as category_name,
+'Funding' as document_name,
+0 as parent_id,
+created_by, 
+convert(varchar,created_date, 101) as created_date,
+'n' as can_upload,
+'n' as can_modify_index,
+'n' as can_delete,
+'n' as can_restore,
+url 
+FROM vw_funding as doc inner join @a a on doc.appl_id=a.appl_id
+WHERE doc.appl_id=appl.appl_id and(@type='egrants_grant' and @package='all') 
+FOR XML AUTO,TYPE, ELEMENTS			---end funding docs
+),
+
+(						--get funding doc when @appl_id is not null
+SELECT					
+document_id,
+convert(varchar,document_date,101) as document_date,
+---'pdf' as file_type,
+0 as category_id,
+'Funding' as category_name,
+'Funding' as document_name,
+0 as parent_id,
+created_by, 
+convert(varchar,created_date, 101) as created_date,
+'n' as can_upload,
+'n' as can_modify_index,
+'n' as can_delete,
+'n' as can_restore,
+url 
+FROM vw_funding as doc 
+WHERE appl_id=appl.appl_id and (@appl_id is not null and appl_id=@appl_id) 
+FOR XML AUTO,TYPE, ELEMENTS		--end funding doc
+)
+
+FROM vw_appls as appl inner join @a as a ON appl.appl_id=a.appl_id
+WHERE grant_id=[grant].grant_id and doc_count>0
+ORDER BY appl.appl_id
+FOR XML AUTO,TYPE, ELEMENTS			--end appl 
+)
+
+FROM vw_grants as [grant] inner join @g g ON [grant].grant_id=g.grant_id
+ORDER BY [grant].grant_id			
+FOR XML AUTO, TYPE, ELEMENTS		--end grant 
+)
+
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GOTO foot
+-------------------------
+foot:
+/**insert search info to queries**/
+SET @ED=getdate()
+INSERT queries(search_id,execution_time,ic,searched_by,browser_type)
+SELECT @search_id,DATEDIFF(ms, @SD, @ED),UPPER(@IC),@operator,@browser
+
+SET @X = 
+(
+SELECT DISTINCT
+@ic AS ic,
+@str AS [str], 
+@type AS search_type,
+@grant_id AS grant_id,
+@package AS package,
+@appl_id AS	appl_id,
+@browser AS	browser,
+@operator AS operator,
+@total_grants AS total_grants, 
+@total_pages AS total_pages, 
+@total_tabs AS total_tabs, 
+@per_page AS per_page, 
+@current_page AS current_page, 
+@current_tab AS current_tab, 
+@start AS start_num, 
+@end AS end_num,
+convert(decimal(4,2), DATEDIFF( ms,@SD,getdate()  )  / convert(real,1000) ) AS execution_time
+FROM performance AS search_info 
+FOR XML AUTO,TYPE, ELEMENTS
+)
+select @xmlout = cast(@X as varchar(max))
+select @xmlout
+
+GO
+

@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[impp_grant_images_NEW_t](
+	[appl_id] [int] NOT NULL,
+	[accession_num] [int] NULL,
+	[total_pages_num] [int] NULL,
+	[appl_received_date] [datetime] NULL
+) ON [PRIMARY]
+
+GO
+

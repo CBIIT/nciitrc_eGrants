@@ -1,0 +1,16 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[documents_transactions](
+	[transaction_id] [int] IDENTITY(1,1) NOT NULL,
+	[document_id] [int] NOT NULL,
+	[transaction_date] [smalldatetime] NOT NULL,
+	[operator] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[action_type] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[full_grant_num] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[category_name] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[document_date] [smalldatetime] NULL,
+	[description] [varchar](100) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+) ON [PRIMARY]
+
+GO
+

@@ -1,0 +1,30 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+CREATE view [dbo].[vw_script_arra_old] as
+select 'cp ' + unix_file + ' /egrants/funded2/nci/arra/' + 
+convert(varchar,appl_id) + '_' + replace(category_name collate  Latin1_General_CI_AS,' ', '_') + '.' + file_type 
+
+as command
+
+from egrants INNER JOIN 
+
+
+(
+select max(document_id) as document_id
+from egrants where category_name IN
+(
+'Revised Abstract',
+'Revised Specific Aims',
+'Revised Public Health Relevance',
+'ARRA Award Documents: Modified Scope'
+)
+and appl_id>0 and fy>=2009
+
+group by appl_id, category_name
+) t
+
+ON egrants.document_id=t.document_id
+
+GO
+

@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+CREATE VIEW [dbo].[vw_appls_used]
+AS
+--SELECT DISTINCT appl_id
+--FROM  dbo.documents where appl_id is not null
+
+--10/20/2017:Imran: refer to CM-111
+
+--SELECT DISTINCT appl_id
+--FROM  dbo.documents where appl_id is not null
+--and appl_id not in (select appl_id from appls where frc_destroyed is not null)--2,376839
+
+--10/20/2017 : Imran bring back the original
+
+SELECT DISTINCT appl_id
+FROM  dbo.documents where appl_id is not null
+
+
+GO
+

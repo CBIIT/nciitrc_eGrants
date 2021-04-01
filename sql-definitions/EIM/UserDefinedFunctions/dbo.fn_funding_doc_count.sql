@@ -1,0 +1,23 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+create FUNCTION [dbo].[fn_funding_doc_count] (@category_id int, @fy int)
+RETURNS int
+
+AS  
+
+BEGIN 
+
+declare @count  int
+
+SET @count=(SELECT COUNT(*) FROM vw_funding_master 
+WHERE document_fy=@fy and category_id=@category_id
+GROUP BY category_id
+)
+
+IF @count is null SET @count=0
+return @count 
+
+END
+
+GO
+

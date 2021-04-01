@@ -1,0 +1,44 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date, ,>
+-- Description:	<Description, ,>
+-- =============================================
+CREATE FUNCTION [dbo].[fn_adsupp_getemail_subject]
+(
+	-- Add the parameters for the function here
+	@NotID Int
+)
+RETURNS Nvarchar(MAX)
+AS
+BEGIN
+	Declare @SUB nvarchar(max), @fgn varchar(70), @pi varchar(50), @applid int
+	
+	select @SUB=c.subject from dbo.adsup_email_master c
+	where c.id in (select distinct b.email_template_id from dbo.adsup_Notification_email_status b where b.Notification_id=@NotID)
+	
+	--SELECT @fgn=a.Full_grant_num from dbo.adsup_notification a WHERE A.id=@NotID
+	SELECT @fgn=a.Full_grant_num, @applid=appl_id from dbo.adsup_notification a WHERE A.id=@NotID
+	select @pi=' ( '+last_name+', '+first_name+' )' from appls where appl_id=@applid
+	SET @fgn = @fgn + @pi
+	
+	--select @SUB=c.subject,@fgn=a.Full_grant_num from dbo.adsup_notification a,
+	--dbo.adsup_email_rules b, dbo.adsup_email_master c
+	--where a.pa=b.pa
+	--and b.email_template_id=c.id
+	--and a.id=@NotID
+	
+	SELECT @SUB=REPLACE(@SUB,'@@FULLGRANTNUMBER',LTRIM(RTRIM(@fgn)))
+	
+	RETURN LTRIM(RTRIM(@SUB))
+
+END
+
+
+	--select c.subject from dbo.adsup_email_master c
+	--where c.id in (select distinct b.email_template_id from dbo.adsup_Notification_email_status b where b.Notification_id=388)
+
+GO
+

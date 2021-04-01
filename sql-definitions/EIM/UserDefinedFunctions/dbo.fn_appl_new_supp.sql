@@ -1,0 +1,39 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+
+CREATE FUNCTION [dbo].[fn_appl_new_supp]  (@appl_id int) 
+ 
+RETURNS varchar(4)
+
+AS  
+
+BEGIN 
+
+--DECLARE @support_year	tinyint
+DECLARE @next_suffix		varchar(4)
+DECLARE @current_suffix		varchar(4)
+DECLARE @number_suffix		int
+
+SELECT @current_suffix = 
+max(suffix_code)FROM dbo.appls WHERE grant_id = (select grant_id from appls where appl_id=@appl_id) 
+and left(suffix_code,1)='S' ---and len(suffix_code)=2
+GROUP BY grant_id
+
+IF @current_suffix ='' or @current_suffix is null SET @next_suffix='S1'
+
+IF @current_suffix <>'' and @current_suffix is not null SET @next_suffix='S'
+--BEGIN
+--SET @number_suffix=convert(int, substring(@current_suffix,1,len(@current_suffix)-1))
+--SET @next_suffix = 'S' + convert(varchar,(@number_suffix + 1))
+--END
+
+RETURN @next_suffix
+
+END
+
+
+
+
+GO
+

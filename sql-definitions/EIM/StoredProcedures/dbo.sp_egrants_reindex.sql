@@ -1,0 +1,109 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+CREATE PROCEDURE [dbo].[sp_egrants_reindex] AS
+
+--appls level
+print 'BEGIN INDEXING APPL LEVEL=' +' @ '+ cast(getdate() as varchar)
+--DELETE ncieim_b..appls_txt where appl_id not in
+--(select appl_id from vw_appls_used)---comment by Leon 10/19/2017
+--print '==>DELETED NOT IN vw_appls_used='+cast(@@ROWCOUNT as varchar) +' @ '+ cast(getdate() as varchar)
+
+update ncieim_b..appls_txt
+set keywords=dbo.fn_appl_keywords(a.appl_id)
+from ncieim_b..appls_txt  a,appls ac
+where 
+ac.appl_id=a.appl_id and ac.fy IN (2019) and
+(keywords<>dbo.fn_appl_keywords(a.appl_id) or keywords is null)
+
+print '==>UPDATED KW='+cast(@@ROWCOUNT as varchar) +' @ '+ cast(getdate() as varchar)
+
+insert ncieim_b..appls_txt(appl_id,keywords)
+select appl_id,dbo.fn_appl_keywords(appl_id)
+from vw_appls_used where appl_id not in
+(select appl_id from ncieim_b..appls_txt)
+print '==>INSERTED NEW KW='+cast(@@ROWCOUNT as varchar) +' @ '+ cast(getdate() as varchar)
+print 'END INDEXING APPL LEVEL=' +' @ '+ cast(getdate() as varchar)
+
+------------------------------------------------------
+---move disabled documents to separate table
+
+/*
+insert documents_disabled
+(
+document_id, url, page_count, appl_id, stamp, category_id, document_size, problem_msg, file_type, profile_id, corrupted, alias, inventoried, qc_reason,
+document_date, created_date, modified_date, added_date, stored_date, file_modified_date, qc_date, disabled_date, qc_person_id, created_by_person_id,
+stored_by_person_id, index_modified_by_person_id, file_modified_by_person_id, disabled_by_person_id, nga_id,external_upload_id, status_id,
+uid, aws_id, impp_doc_id
+)
+
+select 
+document_id, url, page_count, appl_id, stamp, category_id, document_size, problem_msg, file_type, profile_id, corrupted, alias, inventoried, qc_reason,
+document_date, created_date, modified_date, added_date, stored_date, file_modified_date, qc_date, disabled_date, qc_person_id, created_by_person_id,
+stored_by_person_id, index_modified_by_person_id, file_modified_by_person_id, disabled_by_person_id, nga_id,external_upload_id, status_id,
+uid, aws_id, impp_doc_id
+from documents where disabled_date is not null
+
+delete documents where disabled_date is not null
+*/
+-----------------------------------------------
+
+/***  7/17/2017:IMRAN: STOPPED DOCUMENT LEVEL INDEXING BECAUSE THIS IS NOT BEING USED
+DELETE ncieim_b..documents_text
+FROM  dbo.documents RIGHT OUTER JOIN
+               ncieim_b.dbo.documents_text ON dbo.documents.document_id = ncieim_b.dbo.documents_text.document_id
+WHERE (dbo.documents.document_id IS NULL)
+
+
+--modify changes
+--exec sp_egrants_reindex_modified
+exec EIM.dbo.Imm_egrants_reindex_modified
+
+
+INSERT ncieim_b..documents_text(document_id,keywords,txt)
+SELECT dbo.documents.document_id,dbo.fn_doc_keywords(documents.document_id),dbo.fn_doc_keywords(documents.document_id)
+FROM  dbo.documents LEFT OUTER JOIN
+               ncieim_b.dbo.documents_text ON dbo.documents.document_id = ncieim_b.dbo.documents_text.document_id
+WHERE (ncieim_b.dbo.documents_text.document_id IS NULL)
+***/
+
+
+--add newly extracted text -  if any
+
+--print 'added new text'
+
+--clear cache from searches
+update searches
+set
+grant_hits=null,
+all_hits=null,
+exhausted_keywords=0,
+exhausted_grants=0,
+exhausted_all=0,
+grant_total=null,
+appl_total=null,
+doc_total=null,
+page_total=null,
+grant_total_full=null,
+appl_total_full=null,
+doc_total_full=null,
+page_total_full=null,
+appl_id_perfect=null
+
+delete cache_grants
+delete cache_docs
+
+--run incremental index
+
+--ENABLE THIS LATE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--ENABLE THIS LATE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--ENABLE THIS LATE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--ENABLE THIS LATE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--ENABLE THIS LATE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+--exec ncieim_b..sp_fulltext_catalog 'appl_kw', 'start_incremental'
+-------exec sp_DocTextImportDir 'd:\util\txt\new\'
+--exec ncieim_b..sp_fulltext_catalog 'eim', 'start_incremental'
+
+GO
+

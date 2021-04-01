@@ -1,0 +1,13 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[temp_Bundle_new](
+	[document_id] [int] NULL,
+	[appl_id] [int] NULL,
+	[category_id] [smallint] NULL,
+	[document_date] [smalldatetime] NULL,
+	[sort_order] [smallint] NULL,
+	[parent_id] [int] NULL
+) ON [PRIMARY]
+
+GO
+

@@ -1,0 +1,10 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[folder_appls](
+	[folder_id] [int] NOT NULL,
+	[appl_id] [int] NOT NULL,
+	[folder_appl_id] [int] IDENTITY(1,1) NOT NULL
+) ON [PRIMARY]
+
+GO
+

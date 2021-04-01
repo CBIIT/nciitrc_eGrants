@@ -1,0 +1,43 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+-- =============================================
+-- Author:		Joel Friedman and Hareesh Jayini
+-- Create date: 03/24/2011
+-- Description:	Update econ_doc_transaction table to create audit trail
+-- =============================================
+CREATE FUNCTION [dbo].[fn_test_econ_audit]
+(
+	@doc_id int,
+	@person_id int,
+	@action_id	int,
+	@column varchar(50) =null,
+	@desc varchar(200) =null
+	
+)
+RETURNS varchar(50) --smallint
+AS
+BEGIN
+		/*
+		action_id	action_name					sdd'l Info
+		---------	-----------					-------------
+			1		posted						(none)
+			2		+disabled					disabled reason
+			3		reported error				error description
+			4		replaced image				doc id replaced
+			6		restored					(none)
+			7		modified index				columm,  old value -- new value
+			8		viewed deleted image		(none)
+		*/
+	-- Declare the return variable here
+	DECLARE @ResultVar smallint
+	set @ResultVar = 0		-- default failure
+
+	-- Add the T-SQL statements to compute the return value here
+
+	-- Return the result of the function
+	RETURN @column
+
+END
+
+GO
+

@@ -1,0 +1,12 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[IMPP_RPPR_PRAM](
+	[APPL_ID] [int] NOT NULL,
+	[CREATED_DATE] [smalldatetime] NULL,
+	[LAST_UPD_DATE] [smalldatetime] NULL,
+	[DOCTYPE] [varchar](3) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[RPPR_DOC_ID] [int] NULL
+) ON [PRIMARY]
+
+GO
+

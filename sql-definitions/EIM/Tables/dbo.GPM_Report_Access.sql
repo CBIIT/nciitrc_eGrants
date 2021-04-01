@@ -1,0 +1,11 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[GPM_Report_Access](
+	[Report_id] [int] NOT NULL,
+	[User_login] [varchar](50) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[start_date] [smalldatetime] NOT NULL,
+	[end_date] [smalldatetime] NULL
+) ON [PRIMARY]
+
+GO
+

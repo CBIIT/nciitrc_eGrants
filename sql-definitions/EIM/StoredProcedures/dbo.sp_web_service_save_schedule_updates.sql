@@ -1,0 +1,28 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+
+-- =============================================
+-- Author:			Benny Shell
+-- Create date:		06/21/2020
+-- Description:		Save WebService History Record 
+-- =============================================
+CREATE     PROCEDURE [dbo].[sp_web_service_save_schedule_updates]
+            @WSEndpoint_Id int
+           ,@NextRun datetimeoffset(7)=null
+           ,@LastRun datetimeoffset(7)=null
+AS
+BEGIN
+SET NOCOUNT ON;
+	
+UPDATE [dbo].[WSEndpoint]
+SET NextRun = @NextRun,
+	LastRun = @LastRun
+	Where [WSEndpoint_Id] = @WSEndpoint_Id
+
+END
+
+
+GO
+

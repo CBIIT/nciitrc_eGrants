@@ -1,0 +1,15 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[sql_server_agent_job](
+	[sql_server_agent_job_id] [int] IDENTITY(1,1) NOT NULL,
+	[sql_server_agent_job_id_guid] [uniqueidentifier] NOT NULL,
+	[sql_server_agent_job_name] [nvarchar](128) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
+	[job_create_datetime_utc] [datetime] NOT NULL,
+	[job_last_modified_datetime_utc] [datetime] NOT NULL,
+	[is_enabled] [bit] NOT NULL,
+	[is_deleted] [bit] NOT NULL,
+	[job_category_name] [varchar](100) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL
+) ON [PRIMARY]
+
+GO
+

@@ -1,0 +1,25 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER OFF
+
+
+CREATE FUNCTION [dbo].[fn_appl_fsr_count]  (@appl_id int)  
+RETURNS int
+
+AS  
+BEGIN 
+
+DECLARE @fsr_count	int
+
+SELECT @fsr_count=COUNT(*) FROM  dbo.impp_fsrs_all WHERE appl_id = @appl_id GROUP BY appl_id 
+
+IF @fsr_count=0 or @fsr_count is null SET @fsr_count=0
+
+RETURN @fsr_count
+
+END
+
+
+
+
+GO
+

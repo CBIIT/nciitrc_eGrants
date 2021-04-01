@@ -1,0 +1,98 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+/*
+-- ==========================================================================================
+-- Author:		Joel Friedman
+-- Create date: 05/24/2011
+-- Description:	Returns 1 "page" of data from a datasource
+--
+-- Modification History:
+--				05/26/2011	Joel Friedman	Added selection criteria
+-- 
+-- 
+-- Useage:		Requires	(1) the name of the source dataset, 
+--							(2) selection criteria (without the word 'where' (optional),
+--									example  'disabled_date is not null'
+--							(3) column name on which to sort,
+--							(4) sort direction (1 = asc, 2= desc), 
+--							(5) number of rows to list on each page, 
+--							(6) page number to display
+--				Returns:	A data set of all columns form the source dataset
+--								and the number of rows specified in the 4th parameter.
+--							If the page number to display is the last page, only as many
+--								rows as available are returned.
+--							If a page number beyond the total number of rows in the dataset is specified,
+--								nothing is returned.
+--							
+-- ==========================================================================================
+*/
+CREATE PROCEDURE [dbo].[return_one_page]
+	@source_data varchar(100),		-- source table, dataset or view 
+	@where_clause varchar(500),		-- criteria after where in select statement (optional)
+	@sort_column varchar(100),		-- name of column for sort
+	@sort_direction int,			-- 1 = asc, 2= desc
+	@page_size int,					-- number of rows to list on each page
+	@which_page int					-- page number to display
+AS
+BEGIN
+	SET NOCOUNT ON;
+	
+	declare @sql nvarchar(4000)
+	declare @order1 varchar(4)
+	declare @order2 varchar(4)
+	declare @how_many int
+	declare @row_count int
+	
+	--  Add selection criteria if entered
+	if @where_clause > ''
+	begin
+		set @source_data = @source_data + ' where ' + 	@where_clause
+	end
+	
+	--  Determine the total number of rows in the dataset
+	set @sql=N'SELECT @RowCount = COUNT(*) FROM ' + @source_data
+	
+	EXEC sp_executesql
+	   @sql,
+		N'@RowCount int OUTPUT',
+		@row_count OUTPUT
+	
+	--	Set the sort order
+	set @order1 = 'asc'
+	set @order2 = 'desc'	
+	
+	if @sort_direction = 2 
+		Begin
+			set @order1 = 'desc'
+			set @order2 = 'asc'
+		end				
+	
+	set @how_many = @page_size * @which_page
+	
+	--  Exit if the page requested would return no rows
+	if @row_count < (@how_many- @page_size)
+		begin
+			return
+		end
+	
+	--  Adjust the number of rows returned if the last page requested
+	if @how_many > @row_count
+		begin
+			set @page_size = @row_count - (@page_size * (@which_page -1))
+			set @how_many = @row_count
+		end	
+	
+	--  Build the dynamic SQL
+	set @sql = 'Select * from (select top ' + convert(varchar,@page_size) + ' * from (select top ' + convert(varchar,@how_many) 
+		+ ' * from ' + 	@source_data + ' order by ' + @sort_column + ' ' + @order1 + ') xx order by ' + @sort_column + 
+		' ' + @order2 + ') yy order by ' + @sort_column + ' ' + @order1
+
+	EXECUTE (@sql)
+	
+END
+
+
+
+GO
+

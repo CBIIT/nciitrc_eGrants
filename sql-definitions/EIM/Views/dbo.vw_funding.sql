@@ -1,0 +1,22 @@
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+
+
+CREATE VIEW [dbo].[vw_funding]
+AS
+SELECT     dbo.vw_funding_docs.document_id, dbo.vw_funding_docs.document_date, dbo.vw_funding_docs.created_date, dbo.vw_funding_docs.created_by, dbo.vw_funding_docs.sub_string,
+                      dbo.vw_funding_docs.created_by_person_id, dbo.vw_funding_docs.document_fy, dbo.vw_funding_docs.category_fy, dbo.vw_funding_docs.sub_category,
+                      dbo.vw_funding_docs.stored_date, dbo.vw_funding_docs.stored_by_person_id, dbo.vw_funding_docs.category_id, dbo.vw_funding_docs.level_id, 
+                      dbo.vw_funding_docs.category_name, dbo.vw_funding_docs.parent_category_name, dbo.funding_appls.appl_id, dbo.vw_funding_docs.url, 
+                      dbo.vw_appls.serial_num, dbo.vw_appls.admin_phs_org_code, dbo.vw_appls.full_grant_num, dbo.vw_appls.fy, dbo.vw_appls.grant_id, 
+                      dbo.vw_funding_docs.parent_id, dbo.vw_funding_docs.grand_parent_id, dbo.vw_appls.rfa_pa_number, ISNULL(dbo.grants.arra_flag, 'n') AS arra_flag, 
+                      dbo.funding_appls.disabled_by_person_id, dbo.funding_appls.disabled_date
+FROM         dbo.grants INNER JOIN
+                      dbo.vw_appls INNER JOIN
+                      dbo.vw_funding_docs INNER JOIN
+                      dbo.funding_appls ON dbo.vw_funding_docs.document_id = dbo.funding_appls.document_id ON dbo.vw_appls.appl_id = dbo.funding_appls.appl_id ON
+                       dbo.grants.grant_id = dbo.vw_appls.grant_id
+WHERE     (dbo.funding_appls.disabled_date IS NULL)
+
+GO
+

@@ -1,0 +1,54 @@
+﻿SET ANSI_NULLS OFF
+SET QUOTED_IDENTIFIER ON
+CREATE PROCEDURE [dbo].[sp_misc_PDFPages] 
+
+@Dir varchar(255)
+
+AS
+
+
+
+
+declare @Cmd varchar(100)
+declare @File varchar(100)
+declare @CDocID int
+declare @CPage int
+
+--drop table ##fl
+--drop table #p
+
+create table ##fl(line varchar(100))
+create table #p(document_id int,page_count int)
+
+DECLARE cur CURSOR
+FOR select document_id from pdf where page_count is null
+
+OPEN cur
+FETCH NEXT FROM cur
+INTO @CDocID
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+
+SET @File=@Dir + convert(varchar,@CDocID) + '.pdf.txt'
+
+SELECT @Cmd= 'bcp ##fl in ' + @File + ' -c -S ' + @@SERVERNAME + ' -T'
+EXEC master..xp_cmdshell @Cmd
+
+select @CPage=convert(int,right(line,4)) from ##fl where line like 'Pages%'
+
+update pdf set page_count=@CPage where document_id=@CDocID
+
+truncate table ##fl
+
+
+
+FETCH NEXT FROM cur INTO @CDocID
+END
+
+CLOSE cur
+DEALLOCATE cur
+
+drop table ##fl
+GO
+
