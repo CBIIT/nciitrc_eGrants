@@ -2,6 +2,7 @@
 SET QUOTED_IDENTIFIER ON
 
 
+
 CREATE   PROCEDURE [dbo].[sp_egrants_maint_impacdocs] 
 AS
 
@@ -630,7 +631,7 @@ SELECT @maxNGAid=max(nga_id) from documents where nga_id is not null
 
 INSERT impp_nga (appl_id, nga_create_date,rpt_seq_num, nga_id)
 SELECT nga_new.appl_id, nga_new.nga_create_date,nga_new.rpt_seq_num,nga_new.nga_id
-FROM  dbo.impp_nga RIGHT OUTER JOIN (SELECT * FROM  openquery(IMPAC, 'select a.id as appl_id, a.last_upd_date as nga_create_date, a.rpt_seq_num as rpt_seq_num, b.history_doc_seq as nga_id 
+FROM  dbo.impp_nga RIGHT OUTER JOIN (SELECT * FROM  openquery(IRDB, 'select a.id as appl_id, a.last_upd_date as nga_create_date, a.rpt_seq_num as rpt_seq_num, b.history_doc_seq as nga_id 
 from rpt_jobs_t a, history_docs_mv b
 	where a.id_type_code=''APPL_ID'' and a.event_code=''ENGA'' and a.rpt_seq_num=b.rpt_seq_num and a.last_upd_date is not null') Rowset_1) nga_new ON dbo.impp_nga.nga_id = nga_new.nga_id
 WHERE (dbo.impp_nga.nga_id IS NULL)
@@ -833,58 +834,22 @@ print 'New IRPPR Added =' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as
 
 -------------------------------------------------------------------------------------------------------
 /****** BUILDING GREEN SHEET DATA FROM NCI/CIIP SCHEMA**/
+
 Truncate table dbo.GreenSheet_data
-/*
-from openquery(CIIP,'SELECT APPL_ID, APPL_TYPE_CODE, SERIAL_NUM, SUPPORT_YEAR, ACTION_FY, SUFFIX_CODE, RESP_SPEC_FULL_NAME_CODE, RESP_SPEC_EMAIL_ADDRESS, PD_EMAIL_ADDRESS, PD_FULL_NAME 
-FROM GM_ACTION_QUEUE_VW g
-WHERE ACTION_TYPE NOT LIKE ''REVISION''')
-*/
 
-/* the Appl_id should come from the gm_actionQueue_vw
-
-we should return the appl_id from g instead there may be instances where the other is null
-if a revision the the join should be on g.id = a.agt_id
-otherwise we can use the a.appl_id = g.appl_id
-
-also we could look at forms_t also for type 
-
-*/
-
-Insert dbo.GreenSheet_data(appl_id, ACTION_TYPE)
-select appl_id, action_type
-FROM OPENQUERY(CIIP, 'select distinct g.appl_id, g.ACTION_TYPE from appl_forms_t a inner join forms_t b on a.frm_id = b.id inner join GM_ACTION_QUEUE_VW g on g.appl_id = a.appl_id where a.appl_id is not null')
-where action_type = 'AWARD'
-
-Insert dbo.GreenSheet_data(appl_id, ACTION_TYPE)
-select appl_id, action_type
-FROM OPENQUERY(CIIP, 'select distinct g.appl_id, g.ACTION_TYPE from appl_forms_t a inner join forms_t b on a.frm_id = b.id inner join GM_ACTION_QUEUE_VW g on g.id = a.agt_id where a.agt_id is not null')
-WHERE RTRIM(LTRIM(action_type)) = 'REVISION'
-
-
-SELECT @IMPAC_DOWNLOAD_CNT = @@ROWCOUNT
-print 'Total Green Sheet appl =' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
-
-SELECT @CATEGORYID=category_id from categories where impac_doc_type_code='PGM'
-
-UPDATE dbo.GreenSheet_data 
-	SET GreenSheet_data.pgm_form_submitted_date = GS.submitted_date,
-	GreenSheet_data.pgm_form_status = GS.FORM_STATUS
-	FROM OPENQUERY(CIIP, 'select A.APPL_ID, b.submitted_date, b.FORM_STATUS from appl_forms_t a inner join forms_t b on a.frm_id = b.id where  b.form_role_code = ''PGM'' ') GS
-	WHERE GreenSheet_data.APPL_ID=GS.APPL_ID
-	print 'Total PGM GreenSheet =' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
-
-SELECT @CATEGORYID=category_id from categories where impac_doc_type_code='SPEC'
-
-UPDATE dbo.GreenSheet_data 
-	SET GreenSheet_data.spec_form_submitted_date = GS.submitted_date,
-	GreenSheet_data.spec_form_status = GS.FORM_STATUS
-	FROM OPENQUERY(CIIP, 'select A.APPL_ID, b.submitted_date,b.FORM_STATUS from appl_forms_t a inner join forms_t b on a.frm_id = b.id where b.form_role_code = ''SPEC''  ') GS
-	WHERE GreenSheet_data.APPL_ID=GS.APPL_ID
-	print 'Total SPEC GreenSheet =' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
-
-update dbo.GreenSheet_data 
-set GreenSheet_data.appl_type_code = a.appl_type_code
-from vw_appls a where a.appl_id=GreenSheet_data.appl_id
+Insert dbo.GreenSheet_data(appl_id, PGM_FORM_STATUS, PGM_FORM_SUBMITTED_DATE, SPEC_FORM_STATUS, SPEC_FORM_SUBMITTED_DATE, APPL_TYPE_CODE, ACTION_TYPE, GPMATS_CANCELLED_FLAG, GPMATS_CLOSED_FLAG, DUMMY_FLAG, MULTIYEAR_AWARD_FLAG, REVISION_TYPE_CODE )
+Select appl_id, PGM_FORM_STATUS, PGM_FORM_SUBMITTED_DATE, SPEC_FORM_STATUS, SPEC_FORM_SUBMITTED_DATE, APPL_TYPE_CODE, ACTION_TYPE, GPMATS_CANCELLED_FLAG, GPMATS_CLOSED_FLAG, DUMMY_FLAG, MULTIYEAR_AWARD_FLAG, REVISION_TYPE_CODE  
+FROM OPENQUERY(CIIP, 'select g.appl_id, g.PGM_FORM_STATUS, g.PGM_FORM_SUBMITTED_DATE, g.SPEC_FORM_STATUS, g.SPEC_FORM_SUBMITTED_DATE, g.APPL_TYPE_CODE, gav.action_type,  g.GPMATS_CANCELLED_FLAG, g.GPMATS_CLOSED_FLAG, g.DUMMY_FLAG, gav.MULTIYEAR_AWARD_FLAG, gav.REVISION_TYPE_CODE  
+					  from form_grant_vw g 
+					  inner join GM_ACTION_QUEUE_VW gav on gav.appl_id = g.appl_id and gav.action_type = ''AWARD''')
+					  
+--					  UNION ALL
+--Select appl_id, PGM_FORM_STATUS, PGM_FORM_SUBMITTED_DATE, SPEC_FORM_STATUS, SPEC_FORM_SUBMITTED_DATE, APPL_TYPE_CODE, ACTION_TYPE, GPMATS_CANCELLED_FLAG, GPMATS_CLOSED_FLAG, DUMMY_FLAG, MULTIYEAR_AWARD_FLAG, REVISION_TYPE_CODE    
+--FROM OPENQUERY(CIIP, 'select g.appl_id, g.PGM_FORM_STATUS, g.PGM_FORM_SUBMITTED_DATE, g.SPEC_FORM_STATUS, g.SPEC_FORM_SUBMITTED_DATE, g.APPL_TYPE_CODE, gav.action_type,  g.GPMATS_CANCELLED_FLAG, g.GPMATS_CLOSED_FLAG, g.DUMMY_FLAG, gav.MULTIYEAR_AWARD_FLAG, gav.REVISION_TYPE_CODE  
+--					  from appl_forms_t af 
+--					  inner join GM_ACTION_QUEUE_VW gav on gav.id = af.agt_id 
+--					  inner join form_grant_vw g on g.appl_id=gav.appl_id				  
+--					  where gav.action_type = ''REVISION''')
 
 --Greensheet_data Table has so many appls that are not in vw_appls. so delete them
 delete greensheet_data where appl_id not in (select appl_id from vw_appls)
@@ -895,12 +860,9 @@ delete greensheet_data where appl_id in (select appl_id from vw_appls where frc_
 --Delete non NCI data
 delete greensheet_data where appl_id in (select appl_id from vw_appls where admin_phs_org_code<>'CA')--19
 
--------------------------------------------------------------------------------------------------------
----disab  Greensheet SPEC or Greensheet PGM links if the Appl move out from NCI
 UPDATE documents SET disabled_by_person_id=1899, disabled_date=getdate()
 WHERE document_id in (
 SELECT document_id FROM egrants WHERE category_id in (73,74,612) and (admin_phs_org_code <>'ca')
---SELECT document_id FROM egrants WHERE category_id in(73,74,612) and (admin_phs_org_code <>'ca' or profile_id <>1 )
 )
 ------------------------------------------
 ---Update date for green sheets
@@ -933,13 +895,18 @@ SELECT appl_id,73,@impacID,'pdf',1, pgm_form_submitted_date
 FROM greensheet_data gd
 WHERE appl_id NOT IN (select appl_id from documents where category_id=73) 
 and gd.action_type = 'AWARD'
+and isnull(gd.GPMATS_CANCELLED_FLAG, 'N') <> 'Y'
+and isnull(gd.GPMATS_CLOSED_FLAG, 'N') <> 'Y' 
+and isnull(gd.DUMMY_FLAG,'N') = 'N' 
+and gd.pgm_form_status <> 'NOT STARTED'
 
+/*
 INSERT documents(appl_id,category_id,created_by_person_id,file_type,profile_id,document_date)	
 SELECT appl_id,73,@impacID,'pdf',1, pgm_form_submitted_date
 FROM greensheet_data gd
 WHERE appl_id NOT IN (select appl_id from documents where category_id=73) 
 and gd.action_type = 'REVISION' and gd.pgm_form_status = 'FROZEN'
-
+*/
 
 /*
 Greensheets for GPMATS Action Type = Award, for all grants types, including type 3, should be displayed in eGrants regardless of greensheet status.
@@ -950,74 +917,25 @@ print 'Inserted GreenSheet PGM=' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getda
 INSERT documents(appl_id,category_id,created_by_person_id,file_type,profile_id,document_date)	
 SELECT appl_id,74,@impacID,'pdf',1, spec_form_submitted_date
 FROM greensheet_data gd
-WHERE appl_id NOT IN (select appl_id from documents where category_id=74) 
-and gd.action_type = 'AWARD'
+WHERE appl_id NOT IN (select appl_id from documents where category_id=74) and
+ gd.action_type = 'AWARD'
+and isnull(gd.GPMATS_CANCELLED_FLAG, 'N') <> 'Y'
+and isnull(gd.GPMATS_CLOSED_FLAG, 'N') <> 'Y' 
+and isnull(gd.DUMMY_FLAG,'N') = 'N' 
+and gd.spec_form_status <> 'NOT STARTED'
 
-INSERT documents(appl_id,category_id,created_by_person_id,file_type,profile_id,document_date)	
-SELECT appl_id,74,@impacID,'pdf',1, spec_form_submitted_date
-FROM greensheet_data gd
-WHERE appl_id NOT IN (select appl_id from documents where category_id=74) 
-and gd.action_type = 'REVISION' and gd.spec_form_status = 'FROZEN'
+
+--INSERT documents(appl_id,category_id,created_by_person_id,file_type,profile_id,document_date)	
+--SELECT appl_id,74,@impacID,'pdf',1, spec_form_submitted_date
+--FROM greensheet_data gd
+--WHERE appl_id NOT IN (select appl_id from documents where category_id=74) 
+--and gd.action_type = 'REVISION' and gd.spec_form_status = 'FROZEN'
+--and isnull(gd.GPMATS_CANCELLED_FLAG, 'N') <> 'Y'
+--and isnull(gd.DUMMY_FLAG,'N') = 'N' 
 
 
 print 'Inserted GreenSheet SPEC=' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
 -------------------------------------------------------------------------------------------------------
-/*
-Currently greensheets for Grants Type 3 only displayed when Greensheet status in FROZEN. Should be that 
-ONLY Revision Greensheet (GPMATS Action Type = REVISION) should be displayed only when the greensheet status = FROZEN.
-*/
-
-
-
-
---DECLARE @greendates TABLE(appl_id int primary key, pgm_form_submitted_date smalldatetime,spec_form_submitted_date smalldatetime)
---INSERT @greendates
---SELECT appl_id, max(pgm_form_submitted_date),max(spec_form_submitted_date)
---FROM OPENQUERY(CIIP, 'select appl_id,pgm_form_submitted_date,spec_form_submitted_date from form_grant_vw where pgm_form_submitted_date is not null or spec_form_submitted_date is not null') ciip GROUP BY appl_id
-
---UPDATE documents 
---SET document_date=
---(CASE category_id
---	WHEN 73 THEN pgm_form_submitted_date
---	WHEN 74 THEN spec_form_submitted_date
---END
---)
---FROM @greendates g, documents d
---WHERE g.appl_id=d.appl_id and category_id in (73,74)
---print 'GreenSheet Updated =' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
-
-/**--Add revised IMPAC II JIT link when user has modified existing eGrants row
-
-INSERT [temp_documents](appl_id, category_id, created_by_person_id, file_type, document_date, created_date, profile_id)
-SELECT xx.appl_id, 60, 530, 'pdf', xx.jit_date, xx.jit_date, dd.profile_id FROM  documents dd inner join
-(select d.appl_id, max(d.created_date) created_date, max(a.jit_date) jit_date, 
-max(document_id) document_id from documents d inner join appls a on d.appl_id = a.appl_id
-where d.category_id=60 and d.disabled_date is null and d.url is not null and d.created_date < a.jit_date 
-and d.created_by_person_id=@impacID and d.appl_id not in ((Select distinct appl_id from documents 
-where category_id=60 and url is null and created_by_person_id=@impacID and 
-(disabled_date is null or (disabled_date is not null and created_date >= a.jit_date))) union (select distinct appl_id 
-from temp_documents where category_id=60 and url is null and created_by_person_id=@impacID and 
-(disabled_date is null or (disabled_date is not null and created_date >= a.jit_date)))) 
-group by d.appl_id) xx on dd.document_id =xx.document_id**/
-
--------------------------------------------------------------------------------------------------------
-/**update all documents if profile_id is null
-UPDATE documents SET profile_id =dbo.fn_grant_profile_id(grant_id) 
-FROM appls a
-WHERE documents.appl_id=a.appl_id and documents.profile_id is null**/
-
-
-/**update all documents the profile_id shouldn't =1
-CREATE TABLE #t (document_id int, profile_id int)
-INSERT #t (document_id, profile_id)
-SELECT document_id,dbo.fn_grant_profile_id(grant_id)
-FROM documents d,appls a 
-WHERE d.appl_id=a.appl_id and d.profile_id=1 and dbo.fn_grant_profile_id(grant_id) <>1
-
-UPDATE documents SET profile_id =#t.profile_id
-FROM #t 
-WHERE documents.document_id=#t.document_id
-**/
 
 
 GO

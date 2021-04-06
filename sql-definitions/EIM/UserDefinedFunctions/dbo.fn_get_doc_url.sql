@@ -2,6 +2,7 @@
 SET QUOTED_IDENTIFIER ON
 
 
+
 CREATE   FUNCTION [dbo].[fn_get_doc_url] (@document_id int, @IC varchar(5))
 
 RETURNS varchar(800) AS 
@@ -23,7 +24,7 @@ declare
 @nga_id					int
 
 set @IC=LOWER(@IC)
-set @locall_image_server='https://egrants-web-test.'+@IC+'.nih.gov/'
+set @locall_image_server='https://egrants-web-dev.'+@IC+'.nih.gov/'
 set @impac_image_server='https://i2e-dev.'+@IC+'.nih.gov/'
 
 SELECT 

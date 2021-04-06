@@ -13,7 +13,8 @@ CREATE TABLE [dbo].[GM_ACTION_QUEUE_VW](
 	[PD_FULL_NAME] [nvarchar](62) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
 	[ACTION_TYPE] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
 	[ADMIN_PHS_ORG_CODE] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
-	[RESP_SPEC_NPN_ID] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+	[RESP_SPEC_NPN_ID] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[to_delete] [nchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
 ) ON [PRIMARY]
 
 GO
