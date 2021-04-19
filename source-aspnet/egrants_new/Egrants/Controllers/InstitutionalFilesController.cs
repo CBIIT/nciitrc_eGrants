@@ -61,8 +61,6 @@ namespace egrants_new.Controllers
 
         public ActionResult Show_Docs(int org_id, string org_name)
         {
-
-            org_name = org_name.Replace("'", "''");
             //set act
             string act= "show_docs";
             ViewBag.Act = act;

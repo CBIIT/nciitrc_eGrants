@@ -133,7 +133,7 @@ namespace egrants_new.Egrants.Models
                 {
                     tag = rdr["tag"]?.ToString(),
                     org_id = rdr["org_id"]?.ToString(),
-                    org_name = rdr["org_name"]?.ToString(),
+                    org_name = rdr["org_name"]?.ToString().Replace("'","\'"),
                     document_id = rdr["document_id"]?.ToString(),
                     category_name = rdr["category_name"]?.ToString(),
                     url = rdr["url"]?.ToString(),
