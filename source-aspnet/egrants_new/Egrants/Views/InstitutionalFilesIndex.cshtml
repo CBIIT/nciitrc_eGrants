@@ -60,7 +60,8 @@
             window.document.location.href = url;
         }
 
-        function show_docs(org_id, org_name) {
+    function show_docs(org_id, org_name) {
+            var safeOrg_name = org_name.replace("'", "''");
             var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id+"&org_name="+org_name;
             window.document.location.href = url;
         }
