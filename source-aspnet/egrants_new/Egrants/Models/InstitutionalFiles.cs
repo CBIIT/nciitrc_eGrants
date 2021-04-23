@@ -108,6 +108,7 @@ namespace egrants_new.Egrants.Models
         //to load all intitutional files list
         public static List<DocFiles> LoadOrgDocList(string act, string str, int index_id, int org_id, int doc_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
         {
+            str = str.Replace("'", "''");
             System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_files", conn);
             cmd.CommandType = CommandType.StoredProcedure;
