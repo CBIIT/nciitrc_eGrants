@@ -66,6 +66,59 @@ namespace egrants_new.Integration.WebServices
         }
 
 
+        public void GenerateSQLJobErrorMessage()
+        {
+
+            var config = ConfigurationManager.AppSettings;
+            bool enabled = false;
+            enabled = bool.Parse(config["Enabled"]);
+            if (enabled)
+            {
+
+                var repo = new IntegrationRepository();
+                List<SQLJobError> errors = repo.GetSQLJobErrors();
+
+                if (errors.Count > 0)
+                {
+
+
+                    var message = new MailMessage()
+                    {
+                        From = new MailAddress(config["FromAddress"]),
+                        IsBodyHtml = true,
+                        Priority = MailPriority.Normal,
+                        //Subject = config["SubjectLine"],
+                        Subject = "Test SQL Job Error Message"
+                    };
+
+
+                    var addresses = config["ToAddress"].Split(';');
+                    foreach (var address in addresses)
+                    {
+                        message.To.Add(new MailAddress(address));
+                    }
+
+                    string mailContent = "";
+                    int exCount = 1;
+                    foreach (var error in errors)
+                    {
+                        mailContent +=
+                            $"<b>{exCount}) SQJ Job Name:</b> {error.JobName}<br>   <b>Job Step:</b> {error.StepId} <br>   <b>Error Date/Time:</b> {error.ErrorDateTime} <br>   <b>ErrorMessage:</b><br> {error.ErrorMessage}<br><br>";
+                        exCount++;
+                    }
+
+                    string mailTemplate = File.ReadAllText(config["MailTemplate"]);
+                    mailContent = mailTemplate.Replace("###Exceptions", mailContent);
+                    message.Body = mailContent;
+                    SendEmail(message);
+                    errors.ForEach(err => repo.MarkSQLJobErrorSent(err));
+                }
+            }
+        }
+
+
+
+
         public void GenerateTestMessage()
         {
             var message = new MailMessage();

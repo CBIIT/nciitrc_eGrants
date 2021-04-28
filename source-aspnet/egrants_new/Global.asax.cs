@@ -45,7 +45,8 @@ namespace egrants_new
             /// Create the Background job
             RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(),wsCronExp);
             RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(),notifierCronExp);
-            }
+            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), notifierCronExp);
+        }
 
         protected string UserID
         {
