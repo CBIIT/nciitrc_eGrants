@@ -60,7 +60,7 @@ namespace egrants_new.Egrants.Models
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_files", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
+            cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str.Replace("'","''");
             cmd.Parameters.Add("@index_id", System.Data.SqlDbType.Int).Value = index_id;
             cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
             cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
