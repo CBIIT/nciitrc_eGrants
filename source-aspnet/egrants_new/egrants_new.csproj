@@ -356,6 +356,7 @@
     </Compile>
     <Compile Include="IC_Coordinator\Controllers\ICCoordinatorController.cs" />
     <Compile Include="IC_Coordinator\Models\ICCoordinator.cs" />
+    <Compile Include="Integration\Models\SQLJobError.cs" />
     <Compile Include="Integration\Models\Enumerations.cs" />
     <Compile Include="Integration\Models\WebServiceParam.cs" />
     <Compile Include="Integration\WebServices\EmailNotifier.cs" />
