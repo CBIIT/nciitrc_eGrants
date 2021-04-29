@@ -62,8 +62,7 @@ namespace egrants_new
         }
         private IEnumerable<IDisposable> GetHangfireServers()
         {
-            // Hangfire.
-
+          
             string conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
 
             Hangfire.GlobalConfiguration.Configuration
