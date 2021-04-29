@@ -71,8 +71,8 @@ namespace egrants_new.Integration.WebServices
         {
 
             var config = ConfigurationManager.AppSettings;
-            bool enabled = false;
-            enabled = bool.Parse(config["Enabled"]);
+            bool enabled = true;
+            //enabled = bool.Parse(config["Enabled"]);
             if (enabled)
             {
 
@@ -100,12 +100,12 @@ namespace egrants_new.Integration.WebServices
                     }
 
                     string mailContent = "";
-                    int exCount = 1;
+                    int errCount = 1;
                     foreach (var error in errors)
                     {
                         mailContent +=
-                            $"<b>{exCount}) SQJ Job Name:</b> {error.JobName}<br>   <b>Job Step:</b> {error.StepId} <br>   <b>Error Date/Time:</b> {error.ErrorDateTime} <br>   <b>ErrorMessage:</b><br> {error.ErrorMessage}<br><br>";
-                        exCount++;
+                            $"<b>{errCount}) SQJ Job Name:</b> {error.JobName}<br>   <b>Job Step:</b> {error.StepId} <br>   <b>Error Date/Time:</b> {error.ErrorDateTime} <br>   <b>ErrorMessage:</b><br> {error.ErrorMessage}<br><br>";
+                        errCount++;
                     }
 
                     string mailTemplate = File.ReadAllText(config["MailTemplate"]);
