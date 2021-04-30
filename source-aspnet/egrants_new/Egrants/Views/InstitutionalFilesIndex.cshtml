@@ -293,7 +293,7 @@
                             {
                                 <tr>
                                     <td style="height:15px; width:500px;">
-                                        <a href="JavaScript:show_docs('@org.org_id'" title="Click here to display documents list for @org.org_name"><b>@org.org_name</b></a>
+                                        <a href="JavaScript:show_docs('@org.org_id')" title="Click here to display documents list for @org.org_name"><b>@org.org_name</b></a>
                                         @foreach (var doc in ViewBag.OrgFiles)
                                         {
                                             if (Convert.ToInt16(doc.tag) == 2 && Convert.ToInt32(org.org_id) == Convert.ToInt32(doc.org_id))
