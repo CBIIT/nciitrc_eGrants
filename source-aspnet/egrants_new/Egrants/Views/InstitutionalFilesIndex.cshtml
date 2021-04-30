@@ -20,6 +20,19 @@
     }
 </style>
 
+@{
+
+    string siteminder_encode(string str)
+    {
+        return str.Replace("'", "*e*");
+
+    }
+
+
+
+
+}
+
 <script language="JavaScript">
         var currenturl = window.document.location.href;
         var frmdata = new FormData();
@@ -51,7 +64,7 @@
                 return false;
             } else var search_str = document.getElementById("txtStr").value;
 
-            var url = "@Url.Action("Search_Orgs", "InstitutionalFiles")?act=search_orgs&str=" + search_str;
+            var url = "@Url.Action("Search_Orgs", "InstitutionalFiles")?act=search_orgs&str=" + siteminder_encode(search_str);
             window.document.location.href = url;
         }
 
@@ -60,18 +73,18 @@
             window.document.location.href = url;
         }
 
-    function show_docs(org_id, org_name) {
-            var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id+"&org_name="+org_name;
+        function show_docs(org_id, org_name = "") {
+            var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" +siteminder_encode(org_name);
             window.document.location.href = url;
         }
 
         function delete_doc(doc_id, category_name, org_id, org_name) {
-            var url = "@Url.Action("Delete_Doc", "InstitutionalFiles")?act=disable_doc&doc_id=" + doc_id + "&org_id=" + org_id + "&org_name=" + org_name;
+            var url = "@Url.Action("Delete_Doc", "InstitutionalFiles")?act=disable_doc&doc_id=" + doc_id + "&org_id=" + org_id + "&org_name=" + siteminder_encode(org_name);
             window.document.location.href = url;
         }
 
         function to_create_doc(org_name, org_id) {
-            var url="@Url.Action("Show_Create_Doc", "InstitutionalFiles")?org_name=" + org_name + "&org_id=" + org_id;         
+            var url = "@Url.Action("Show_Create_Doc", "InstitutionalFiles")?org_name=" + siteminder_encode(org_name) + "&org_id=" + org_id;         
             window.document.location.href = url;
         }
 
@@ -86,7 +99,13 @@
                 document.getElementById("by_asp").style.display = "inline";
                 document.getElementById("by_ddrop").style.display = "none";
             }         
-        }
+    }
+
+    function siteminder_encode(string_val) {
+        var safeString = string_val.replace("'", "*e*");
+        return safeString;
+
+    }
 
         function select_category() {
             if (document.getElementById("ddlCategories").selectedIndex == 0) {
@@ -237,7 +256,7 @@
         }
 
         function refresh_after_upload(org_id, org_name) {
-            var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
+            var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + siteminder_encode(org_name);
             window.document.location.href = url;
         }
 
@@ -293,7 +312,7 @@
                             {
                                 <tr>
                                     <td style="height:15px; width:500px;">
-                                        <a href="JavaScript:show_docs('@org.org_id'" title="Click here to display documents list for @org.org_name"><b>@org.org_name</b></a>
+                                        <a href="JavaScript:show_docs('@org.org_id')" title="Click here to display documents list for @org.org_name"><b>@org.org_name</b></a>
                                         @foreach (var doc in ViewBag.OrgFiles)
                                         {
                                             if (Convert.ToInt16(doc.tag) == 2 && Convert.ToInt32(org.org_id) == Convert.ToInt32(doc.org_id))
