@@ -59,7 +59,6 @@ namespace egrants_new.Controllers
             return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
         }
 
-        [HttpPost]
         public ActionResult Show_Docs(int org_id, string org_name = "")
         {
             //set act
