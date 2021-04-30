@@ -59,13 +59,13 @@ namespace egrants_new.Controllers
             return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
         }
 
-        public ActionResult Show_Docs(int org_id, string org_name)
+        public ActionResult Show_Docs(int org_id)
         {
             //set act
             string act= "show_docs";
             ViewBag.Act = act;
             ViewBag.OrgID = org_id;
-            ViewBag.OrgName = org_name;
+            //ViewBag.OrgName = org_name;
 
             //load Character Index
             ViewBag.CharacterIndex = InstitutionalFiles.LoadOrgNameCharacterIndex();
