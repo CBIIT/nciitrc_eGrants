@@ -59,7 +59,7 @@ namespace egrants_new.Controllers
             return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
         }
 
-        public ActionResult Show_Docs(int org_id)
+        public ActionResult Show_Docs(int org_id, string org_name = "")
         {
             //set act
             string act= "show_docs";
