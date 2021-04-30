@@ -84,7 +84,7 @@ namespace egrants_new.Controllers
             ViewBag.Act = act;
             ViewBag.OrgID = org_id;
             ViewBag.OrgName = org_name;
-            return Show_Docs(org_id, org_name);
+            return Show_Docs(org_id);
         }
 
         public ActionResult Show_Create_Doc(int org_id, string org_name)
