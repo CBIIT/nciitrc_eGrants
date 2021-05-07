@@ -48,7 +48,7 @@ namespace egrants_new.Integration.WebServices
                         message.To.Add(new MailAddress(address));
                     }
 
-                    string mailContent = "";
+                    string mailContent = "<hr>eGrants Web Service Exceptions<hr>";
                     int exCount = 1;
                     foreach (var ex in exceptions)
                     {
@@ -72,7 +72,7 @@ namespace egrants_new.Integration.WebServices
 
             var config = ConfigurationManager.AppSettings;
             bool enabled = true;
-            //enabled = bool.Parse(config["Enabled"]);
+            enabled = bool.Parse(config["SQLNotificationEnabled"]);
             if (enabled)
             {
 
@@ -82,33 +82,32 @@ namespace egrants_new.Integration.WebServices
                 if (errors.Count > 0)
                 {
 
-
                     var message = new MailMessage()
                     {
                         From = new MailAddress(config["FromAddress"]),
                         IsBodyHtml = true,
                         Priority = MailPriority.Normal,
-                        //Subject = config["SubjectLine"],
-                        Subject = "Test SQL Job Error Message"
+                        Subject = config["SQLSubjectLine"],
+                       
                     };
 
 
-                    var addresses = config["ToAddress"].Split(';');
+                    var addresses = config["SQLToAddress"].Split(';');
                     foreach (var address in addresses)
                     {
                         message.To.Add(new MailAddress(address));
                     }
 
-                    string mailContent = "";
+                    string mailContent = "<hr>eGrants SQL Job Error Messages<hr>";
                     int errCount = 1;
                     foreach (var error in errors)
                     {
                         mailContent +=
-                            $"<b>{errCount}) SQJ Job Name:</b> {error.JobName}<br>   <b>Job Step:</b> {error.StepId} <br>   <b>Error Date/Time:</b> {error.ErrorDateTime} <br>   <b>ErrorMessage:</b><br> {error.ErrorMessage}<br><br>";
+                            $"<b>{errCount}) SQJ Job Name:</b> {error.JobName}<br>   <b>Job Step:</b> {error.StepId.ToString()} <br>   <b>Error Date/Time:</b> {error.ErrorDateTime.ToString()} <br>   <b>ErrorMessage:</b><br> {error.ErrorMessage}<br><br>";
                         errCount++;
                     }
 
-                    string mailTemplate = File.ReadAllText(config["MailTemplate"]);
+                    string mailTemplate = File.ReadAllText(config["SQLMailTemplate"]);
                     mailContent = mailTemplate.Replace("###Exceptions", mailContent);
                     message.Body = mailContent;
                     SendEmail(message);
