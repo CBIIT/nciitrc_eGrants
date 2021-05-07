@@ -41,12 +41,13 @@ namespace egrants_new
             HangfireAspNet.Use(GetHangfireServers);
             var wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
             var notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
+            var sqlNotifierTime = ConfigurationManager.AppSettings["SQLErrorCronExp"];
 
             /// Create the Background job
-            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(),wsCronExp);
-            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(),notifierCronExp);
-            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), notifierCronExp);
-
+            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
+            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
+        }
 
         protected string UserID
         {
