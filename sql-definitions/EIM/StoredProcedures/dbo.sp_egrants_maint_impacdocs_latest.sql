@@ -1,7 +1,8 @@
 ﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER OFF
+SET QUOTED_IDENTIFIER ON
 
-CREATE PROCEDURE [dbo].[sp_egrants_maint_impacdocs_latest] 
+
+CREATE   PROCEDURE [dbo].[sp_egrants_maint_impacdocs_latest] 
 AS
 
 DECLARE @impacID int
@@ -122,50 +123,12 @@ and x.category_id=@CATEGORYID and x.url is null AND x.profile_id=1 and x.created
 print 'NEW WORK BOOK INSERTED =' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
 
 -------------------------------------------------------------------------------------------------------
----Add new Greensheet PGM 
----The links to *Program and Specialist *gs are displayed immediately (even when gs is NOT Saved), 
----users can navigate to the Greensheets system and start filling up the form.
----The link to Revision gs is displayed only when Revision gs is FROZEN. Therefore, Revision type of 
----greensheet is always read-only when accessed via eGrants. 
----The initial discussion was that we will keep ARC rules consistent with Revision. 
-
-INSERT documents(appl_id,category_id,created_by_person_id,file_type,profile_id)	
-SELECT appl_id,73,@impacID,'pdf',1
-FROM vw_ciip_docs
-WHERE appl_id NOT IN (select appl_id from documents where category_id=73)
-
---select @CATEGORYID=category_id from categories where impac_doc_type_code='PGM'
-
---INSERT documents(appl_id,category_id,document_date,created_by_person_id,file_type,profile_id)	
---SELECT appl_id,@CATEGORYID,pgm_form_submitted_date,@impacID,'pdf',1
---FROM dbo.GreenSheet_data 
---WHERE appl_id NOT IN (select appl_id from documents where category_id=@CATEGORYID)
-
-print 'Inserted GreenSheet PGM=' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
+-- Removed separate implementation of Greensheet insert and used new 5/25/2021 bshell
+-------------------------------------------------------------------------------------------------------
+exec sp_egrants_maint_impacdocs_GREENSHEETS
 
 -------------------------------------------------------------------------------------------------------
----Add new Greensheet SPEC
----The links to *Program and Specialist *gs are displayed immediately (even when gs is NOT Saved), 
----users can navigate to the Greensheets system and start filling up the form.
----The link to Revision gs is displayed only when Revision gs is FROZEN. Therefore, Revision type of 
----greensheet is always read-only when accessed via eGrants. 
----The initial discussion was that we will keep ARC rules consistent with Revision. 
 
-INSERT documents(appl_id,category_id,created_by_person_id,file_type,profile_id)
-SELECT appl_id,74,@impacID,'pdf',1
-FROM vw_ciip_docs 
-WHERE appl_id NOT IN (select appl_id from documents where category_id=74)
-
---select @CATEGORYID=category_id from categories where impac_doc_type_code='SPEC'
---INSERT documents(appl_id,category_id,document_date,created_by_person_id,file_type,profile_id)	
---SELECT appl_id,@CATEGORYID,spec_form_submitted_date,@impacID,'pdf',1
---FROM dbo.GreenSheet_data 
---WHERE appl_id NOT IN (select appl_id from documents where category_id=@CATEGORYID)
-
-
-print 'Inserted GreenSheet SPEC=' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
--------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------
 --ADD NEW MULTI-YEAR PROGRESS REPORT
 TRUNCATE TABLE IMPP_RPPR_MPR_NEW
 INSERT IMPP_RPPR_MPR_NEW(APPL_ID, DOCUMENT_DATE, RPPR_DOC_ID)
@@ -226,6 +189,7 @@ SELECT DISTINCT B.APPL_ID,B.FULL_GRANT_NUM AS FGN,B.REVISION_NUM,
 (SELECT A.USERID FROM nci_people_t A WHERE A.ID=B.RESP_SPEC_NPN_ID)  AS USERID,
 B.AWAITGMR_DATE AS GRANT_ASSIGN_DATE,B.RELEASE_DATE,B.BUDGET_START_DATE,B.APPL_TYPE_CODE,B.CURRENT_ACTION_STATUS_CODE,B.ACTION_TYPE,B.ACTIVITY_CODE,B.DAY_COUNT_NUM
 FROM GM_ACTION_QUEUE_VW B WHERE B.ACTION_FY=2017 ORDER BY USERID,B.BUDGET_START_DATE DESC')
+
 print 'GPMATS_ASSIGNMENT DOWNLOADED for dashboard =' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
 
 
