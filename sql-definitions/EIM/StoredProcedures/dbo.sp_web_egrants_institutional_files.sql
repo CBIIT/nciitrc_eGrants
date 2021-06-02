@@ -1,7 +1,8 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
-CREATE PROCEDURE [dbo].[sp_web_egrants_institutional_files]
+
+CREATE   PROCEDURE [dbo].[sp_web_egrants_institutional_files]
 
 @act  				varchar(20),
 @str  				varchar(50),
@@ -57,7 +58,7 @@ SELECT 1 as tag, org_id, UPPER(Org_name)AS org_name, null as created_by,null as 
 FROM dbo.Org_Master
 WHERE index_id=@index_id and dbo.fn_get_org_doc_count(org_id)>0
 UNION
-SELECT 2 as tag, v.org_id, o.Org_name, created_by, v.created_date, end_date,'https://egrants.nci.nih.gov'+url as sv_url
+SELECT 2 as tag, v.org_id, o.Org_name, created_by, v.created_date, end_date, (select dbo.fn_get_local_image_server()) +url as sv_url
 FROM vw_org_document as v, dbo.Org_Master as o
 WHERE o.index_id=@index_id and o.org_id=v.org_id and tobe_flagged=1 and end_date = (select dbo.fn_get_org_max_end_date(o.org_id))
 Order by Org_name
