@@ -227,6 +227,41 @@ namespace egrants_new.Integration.WebServices
         }
 
 
+        public List<egrants_new.Integration.Models.SQLJobError> GetSQLJobErrors()
+        {
+            List<SQLJobError> errors = new List<SQLJobError>();
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("sp_web_service_get_SQLJobErrors", conn)
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                        };
+
+                    conn.Open();
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        var sqlJobError = new SQLJobError();
+                        MapDataToObject(sqlJobError, dr);
+                        errors.Add(sqlJobError);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //throw ex;
+                    //todo: handle exception
+                }
+
+                return errors;
+            }
+        }
+
         private void UpdateWebServiceScheduleInfo(WebServiceHistory history)
         {
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
@@ -398,6 +433,30 @@ namespace egrants_new.Integration.WebServices
                             CommandType = CommandType.StoredProcedure,
                         };
                     cmd.Parameters.Add("@WSHistory_Id", SqlDbType.Int).Value = history.WSHistory_Id;
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+
+            }
+        }
+
+        public void MarkSQLJobErrorSent(SQLJobError error)
+        {
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    conn.Open();
+                    //Save the updates for schedule
+                    SqlCommand cmd =
+                        new SqlCommand("sp_web_service_update_SQLJobError", conn)
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                        };
+                    cmd.Parameters.Add("@Error_Id", SqlDbType.Int).Value = error.ErrorId;
                     cmd.ExecuteNonQuery();
                 }
                 catch (Exception ex)
