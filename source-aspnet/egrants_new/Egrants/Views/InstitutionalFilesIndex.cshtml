@@ -201,7 +201,9 @@
             frmdata.append('end_date', EndDate);                  
             docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_File");
 
-            refresh_after_upload(org_id, org_name);
+            setTimeout(function() {
+                refresh_after_upload(org_id, org_name);
+            }, 500);
             //return true;
         }
 
@@ -232,7 +234,9 @@
             frmdata.append('end_date', EndDate);
             docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_DDrop");
 
-            refresh_after_upload(org_id, org_name);
+            setTimeout(function() {
+                refresh_after_upload(org_id, org_name);
+            }, 500);
             //return true;
         }
 
