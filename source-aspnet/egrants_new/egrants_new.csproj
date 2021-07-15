@@ -440,7 +440,6 @@
     <Content Include="scripts\bluebird.js" />
     <Content Include="scripts\bootstrap.js" />
     <Content Include="scripts\bootstrap.min.js" />
-    <Content Include="Docman\Views\_docman_Search.cshtml" />
     <Content Include="Content\Grant Review Certification Form.pdf" />
     <Content Include="Content\eGrants Category Glossary.docx" />
     <Content Include="Egrants\Views\Go_to_Default.cshtml" />
