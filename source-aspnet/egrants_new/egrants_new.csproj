@@ -441,7 +441,6 @@
     <Content Include="scripts\bootstrap.js" />
     <Content Include="scripts\bootstrap.min.js" />
     <Content Include="Docman\Views\_docman_Search.cshtml" />
-    <Content Include="ContractFileTracking\Views\_DocmanContracts.cshtml" />
     <Content Include="Content\Grant Review Certification Form.pdf" />
     <Content Include="Content\eGrants Category Glossary.docx" />
     <Content Include="Egrants\Views\Go_to_Default.cshtml" />
@@ -462,7 +461,6 @@
     <Content Include="Egrants\Views\EgrantsDocCreate.cshtml" />
     <Content Include="Egrants\Views\EgrantsDocUpload.cshtml" />
     <Content Include="Egrants\Views\_egrants_showCatsToggle.cshtml" />
-    <Content Include="ContractFileTracking\Views\eFinalCostEdit.cshtml" />
     <Content Include="Egrants\Views\_egrants_Doc.cshtml" />
     <Content Include="Egrants\Views\_egrants_showUnidentifiedDocs.cshtml" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
