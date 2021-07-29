@@ -200,16 +200,15 @@
                 <tbody>
                     <tr class="bg_grey">
                         <td></td>
-                        <td>&#0160;<lable for="parent grant num"><b>Parent Grant</b></lable></td>
-                        <td>&#0160;<lable for="support_year"><b>Year</b></lable></td>
-                        <td>&#0160;<lable for="suffix_code"><b>Suffix</b></lable></td>
-                        <td>&#0160;<lable for="category_name"><b>Category Name</b></lable></td>
-                        <td>&#0160;<lable for="submitted_date"><b>Submitted Date</b></lable></td>
-                        <td>&#0160;<lable for="status"><b>Status</b></lable></td>
-                        <td>&#0160;<lable for="moved_date"><b>Moved Date</b></lable></td>
-                        <td>&#0160;<lable for="moved_by"><b>Moved By</b></lable></td>
-                        <td>&#0160;<lable for="accession_number"><b>Accession Number</b></lable></td>
-                        <td>&#0160;<lable for="era_ts"><b>eRa Timestamp</b></lable></td>
+                        <td>&#0160;<label for="parent grant num"><b>Parent Grant</b></label></td>
+                        <td>&#0160;<label for="support_year"><b>Year</b></label></td>
+                        <td>&#0160;<label for="suffix_code"><b>Suffix</b></label></td>
+                        <td>&#0160;<label for="category_name"><b>Category Name</b></label></td>
+                        <td>&#0160;<label for="submitted_date"><b>Submitted Date</b></label></td>
+                        <td>&#0160;<label for="status"><b>Status</b></label></td>
+                        <td>&#0160;<label for="moved_date"><b>Moved Date</b></label></td>
+                        <td>&#0160;<label for="moved_by"><b>Moved By</b></label></td>
+                        <td>&#0160;<label for="accession_number"><b>Accession Number</b></label></td>
                     </tr>
                     @foreach (var docs in ViewBag.Supplement)
                     {
@@ -240,7 +239,6 @@
                     <td>@docs.moved_date</td>
                     <td>@docs.moved_by</td>
                     <td>@docs.accession_number</td>
-                    <td>@docs.eRa_TS</td>
                 </tr>
                         }
                     }
