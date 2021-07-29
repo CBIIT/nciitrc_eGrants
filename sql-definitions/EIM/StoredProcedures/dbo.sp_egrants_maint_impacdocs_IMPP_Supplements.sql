@@ -1,6 +1,7 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
 
+
 CREATE   PROCEDURE dbo.sp_egrants_maint_impacdocs_IMPP_Supplements
 AS
 
@@ -9,10 +10,10 @@ AS
 -------------------------------------------
 TRUNCATE TABLE dbo.IMPP_Admin_Supplements
 
-INSERT dbo.IMPP_Admin_Supplements(Supp_appl_id,Full_grant_num,Former_Num,Action_date,admin_supp_action_code,serial_num,APPL_TYPE_CODE,ACTIVITY_CODE,ADMIN_PHS_ORG_CODE,SUPPORT_YEAR,SUFFIX_CODE, ACCESSION_NUMBER, eRa_TS)
-select APPL_ID,FULL_GRANT_NUM,FORMER_NUM,ACTION_DATE,ADMIN_SUPP_ACTION_CODE,SERIAL_NUM,APPL_TYPE_CODE,ACTIVITY_CODE,ADMIN_PHS_ORG_CODE,SUPPORT_YEAR,SUFFIX_CODE, ACCESSION_NUM, CREATED_DATE
+INSERT dbo.IMPP_Admin_Supplements(Supp_appl_id,Full_grant_num,Former_Num,Action_date,admin_supp_action_code,serial_num,APPL_TYPE_CODE,ACTIVITY_CODE,ADMIN_PHS_ORG_CODE,SUPPORT_YEAR,SUFFIX_CODE, ACCESSION_NUMBER)
+select APPL_ID,FULL_GRANT_NUM,FORMER_NUM,ACTION_DATE,ADMIN_SUPP_ACTION_CODE,SERIAL_NUM,APPL_TYPE_CODE,ACTIVITY_CODE,ADMIN_PHS_ORG_CODE,SUPPORT_YEAR,SUFFIX_CODE, ACCESSION_NUM
 from OPENQUERY(IRDB,'SELECT A.APPL_ID, A.APPL_TYPE_CODE||A.GRANT_NUM AS FULL_GRANT_NUM, A.FORMER_NUM, B.ACTION_DATE, B.ADMIN_SUPP_ACTION_CODE,
-A.SERIAL_NUM, A.APPL_TYPE_CODE, A.ACTIVITY_CODE, A.ADMIN_PHS_ORG_CODE, A.SUPPORT_YEAR, A.SUFFIX_CODE, A.ACCESSION_NUM, A.CREATED_DATE 
+A.SERIAL_NUM, A.APPL_TYPE_CODE, A.ACTIVITY_CODE, A.ADMIN_PHS_ORG_CODE, A.SUPPORT_YEAR, A.SUFFIX_CODE, A.ACCESSION_NUM
 FROM APPLS_MV A, ADMIN_SUPP_ROUTINGS_T B
 WHERE A.APPL_ID=B.APPL_ID AND A.ADMIN_PHS_ORG_CODE=''CA'' ')
 ORDER BY APPL_ID DESC,ACTION_DATE DESC
@@ -22,12 +23,13 @@ SET IMPP_Admin_Supplements.Former_appl_id=B.appl_id
 from IMPP_Admin_Supplements a, vw_appls b
 where a.Former_Num=b.full_grant_num
 
-INSERT INTO dbo.IMPP_Admin_Supplements_WIP(serial_num,Supp_appl_id,Full_grant_num,Former_Num,Former_appl_id,Submitted_date,file_type,category_id,doc_url,accession_number,eRa_TS )
+/* WIP - Submitted_date = Action_Date, serial_num = serial_num, supp_appl_id = supp_appl_id,   */
+
+INSERT INTO dbo.IMPP_Admin_Supplements_WIP(serial_num,Supp_appl_id,Full_grant_num,Former_Num,Former_appl_id,Submitted_date,file_type,category_id,doc_url,accession_number )
 SELECT A.serial_num,A.Supp_appl_id,A.Full_grant_num,A.Former_Num,A.Former_appl_id,A.Action_date,'PDF',38,
 --'https://i2e.nci.nih.gov/documentviewer/viewDocument.action?applId='+convert(varchar,A.Supp_appl_id)+'&docType=IGI' commented on 10/17/18
 'https://s2s.era.nih.gov/docservice/dataservices/document/once/applId/'+convert(varchar,A.Supp_appl_id)+'/' + 'IGI',
-a.accession_number,
-a.eRa_TS
+a.accession_number
 FROM dbo.IMPP_Admin_Supplements A
 where A.admin_supp_action_code='STA'
 and A.Supp_appl_id NOT in (select distinct Supp_appl_id  from IMPP_Admin_Supplements_WIP WHERE Supp_appl_id IS NOT NULL)
@@ -35,6 +37,15 @@ and A.Supp_appl_id NOT in (select distinct Supp_appl_id  from IMPP_Admin_Supplem
 AND Action_date > '10/1/2015'
 order by a.serial_num
 print 'ADMINISTRATIVE SUPPLEMENT ACTIONS DOWNLOADED =' + cast(@@ROWCOUNT as varchar)
+
+Update sw
+SET accession_number = s.accession_number
+from IMPP_Admin_Supplements_WIP sw INNER JOIN IMPP_Admin_Supplements s 
+on sw.Supp_appl_id = s.Supp_appl_id 
+and sw.Serial_num = s.serial_num 
+and sw.Support_year = s.SUPPORT_YEAR 
+and sw.Full_grant_num = s.Full_grant_num
+where sw.accession_number is null and not(s.accession_number is null)
 
 --Insert all accepted supplement action into placeholder to send email
 insert dbo.adsup_accepted(supp_appl_id,full_grant_num,Former_num,serial_num,Former_appl_id,Action_date,admin_supp_action_code)
