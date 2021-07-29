@@ -208,36 +208,40 @@
                         <td>&#0160;<lable for="status"><b>Status</b></lable></td>
                         <td>&#0160;<lable for="moved_date"><b>Moved Date</b></lable></td>
                         <td>&#0160;<lable for="moved_by"><b>Moved By</b></lable></td>
+                        <td>&#0160;<lable for="accession_number"><b>Accession Number</b></lable></td>
+                        <td>&#0160;<lable for="era_ts"><b>eRa Timestamp</b></lable></td>
                     </tr>
                     @foreach (var docs in ViewBag.Supplement)
                     {
                         if (Convert.ToInt16(docs.tag) == 2)
                         {
-                            <tr>
-                                <td>
-                                    @if (Convert.ToInt16(Session["position_id"]) >= 2 && Convert.ToString(ViewBag.Act) == "to_view")
-                                    {
-                                        <input type="checkbox" id="@docs.id" value="@docs.former_appl_id" onClick="JavaScript:show_select()" title="Check here to load suppelment" />
-                                    }
-                                </td>
-                                <td>@docs.former_num</td>
-                                <td>@docs.support_year</td>
-                                <td>@docs.suffix_code</td>
-                                <td>
-                                    @if (docs.sub_category_name != "")
-                                    {
-                                        <a href="javascript:show_doc('@docs.url')" title="To open documents">@docs.category_name<span>:</span>@docs.sub_category_name</a>
-                                    }
-                                    else
-                                    {
-                                        <a href="javascript:show_doc('@docs.url')" title="To open documents">@docs.category_name</a>
-                                    }
-                                </td>
-                                <td>@docs.date_of_submitted</td>
-                                <td>@docs.status</td>
-                                <td>@docs.moved_date</td>
-                                <td>@docs.moved_by</td>
-                            </tr>
+                <tr>
+                    <td>
+                        @if (Convert.ToInt16(Session["position_id"]) >= 2 && Convert.ToString(ViewBag.Act) == "to_view")
+                        {
+                            <input type="checkbox" id="@docs.id" value="@docs.former_appl_id" onClick="JavaScript:show_select()" title="Check here to load suppelment" />
+                        }
+                    </td>
+                    <td>@docs.former_num</td>
+                    <td>@docs.support_year</td>
+                    <td>@docs.suffix_code</td>
+                    <td>
+                        @if (docs.sub_category_name != "")
+                        {
+                            <a href="javascript:show_doc('@docs.url')" title="To open documents">@docs.category_name<span>:</span>@docs.sub_category_name</a>
+                        }
+                        else
+                        {
+                            <a href="javascript:show_doc('@docs.url')" title="To open documents">@docs.category_name</a>
+                        }
+                    </td>
+                    <td>@docs.date_of_submitted</td>
+                    <td>@docs.status</td>
+                    <td>@docs.moved_date</td>
+                    <td>@docs.moved_by</td>
+                    <td>@docs.accession_number</td>
+                    <td>@docs.eRa_TS</td>
+                </tr>
                         }
                     }
                     @if (Convert.ToInt16(Session["position_id"]) >= 2 && Convert.ToString(ViewBag.Act) == "to_view")

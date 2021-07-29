@@ -83,6 +83,8 @@ namespace egrants_new.Egrants.Models
             public string url { get; set; }
             public string moved_date { get; set; }
             public string moved_by { get; set; }
+            public string accession_number { get; set; }
+            public string eRa_TS { get; set; }
         }
 
         //to load supplement documents
@@ -124,6 +126,8 @@ namespace egrants_new.Egrants.Models
                     url = rdr["url"]?.ToString(),
                     moved_date = rdr["moved_date"]?.ToString(),
                     moved_by = rdr["moved_by"]?.ToString(),
+                    accession_number = rdr["accession_number"]?.ToString(),
+                    eRa_TS = rdr["eRa_TS"]?.ToString()
                 });
             }
             conn.Close();

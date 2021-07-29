@@ -1,7 +1,8 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
 
-CREATE   VIEW [dbo].[vw_grants]
+
+CREATE    VIEW [dbo].[vw_grants]
 AS
 SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial_num, dbo.grants.mechanism_code, 
                       dbo.grants.admin_phs_org_code + RIGHT('00000' + CONVERT(varchar, dbo.grants.serial_num), 6) AS grant_num, 
@@ -11,7 +12,10 @@ SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial
                       dbo.grants.future_serial_num), 6) AS future_grant_num, dbo.appls.org_name, dbo.appls.project_title, dbo.appls.active_grant_flag, dbo.appls.fy, 
 
                       --dbo.appls.prog_class_code, 	  
-					  (SELECT top 1 A.prog_class_code FROM APPLS A, GRANTS B WHERE A.grant_id=B.grant_id AND B.grant_id=dbo.grants.grant_id  AND (A.suffix_code IS NULL OR A.suffix_code LIKE '%A%') ORDER BY B.serial_num,a.fy desc,a.support_year desc, a.suffix_code desc) as prog_class_code,
+					  (SELECT TOP 1 prog_class_code
+					   FROM      Grant_Contacts_PD_GS
+					   WHERE     SERIAL_NUM = grants.SERIAL_NUM and ADMIN_PHS_ORG_CODE = grants.ADMIN_PHS_ORG_CODE
+					   ORDER BY SUPPORT_YEAR DESC, ACTION_FY DESC, SUFFIX_CODE DESC) as prog_class_code,
 
 					  dbo.appls.last_name, dbo.appls.first_name, dbo.appls.mi_name, ISNULL(dbo.appls.first_name + ' ', '') 
                       + ISNULL(dbo.appls.mi_name + ' ', '') + dbo.appls.last_name AS pi_name, ISNULL(dbo.grants.is_tobacco, 0) AS is_tobacco, 
@@ -30,15 +34,30 @@ SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial
 
  					  --dbo.appls.pd_full_name as current_pd_name,dbo.appls.pd_email_address as current_pd_email_address,
 
-					  contacts.pd_full_name as current_pd_name,
-					  contacts.pd_email_address as current_pd_email_address,
+
+					  (SELECT TOP 1 pd_full_name
+					   FROM      Grant_Contacts_PD_GS
+					   WHERE     SERIAL_NUM = grants.SERIAL_NUM and ADMIN_PHS_ORG_CODE = grants.ADMIN_PHS_ORG_CODE
+					   ORDER BY SUPPORT_YEAR DESC, ACTION_FY DESC, SUFFIX_CODE DESC) as current_pd_name,
+
+  					  (SELECT TOP 1 pd_email_address
+					   FROM      Grant_Contacts_PD_GS 
+					   WHERE     SERIAL_NUM = grants.SERIAL_NUM and ADMIN_PHS_ORG_CODE = grants.ADMIN_PHS_ORG_CODE
+					   ORDER BY SUPPORT_YEAR DESC, ACTION_FY DESC, SUFFIX_CODE DESC) as current_pd_email_address,
 
 
 					  dbo.appls.first_name+' '+dbo.appls.last_name as current_pi_name,dbo.appls.pi_email_addr as current_pi_email_address,
 					  --dbo.appls.gs_full_name as current_spec_name,
 
-					  contacts.RESP_SPEC_FULL_NAME_CODE as current_spec_name,
-					  contacts.RESP_SPEC_EMAIL_ADDRESS as current_spec_email_address,
+					  (SELECT TOP 1  RESP_SPEC_FULL_NAME_CODE
+					   FROM      Grant_Contacts_PD_GS 
+					   WHERE     SERIAL_NUM = grants.SERIAL_NUM and ADMIN_PHS_ORG_CODE = grants.ADMIN_PHS_ORG_CODE
+                       ORDER BY  SUPPORT_YEAR DESC, ACTION_FY DESC, SUFFIX_CODE DESC) as current_spec_name,
+
+			           (SELECT TOP 1 RESP_SPEC_EMAIL_ADDRESS 
+						FROM   Grant_Contacts_PD_GS 
+						WHERE  SERIAL_NUM = grants.SERIAL_NUM and ADMIN_PHS_ORG_CODE = grants.ADMIN_PHS_ORG_CODE
+						ORDER BY SUPPORT_YEAR DESC, ACTION_FY DESC, SUFFIX_CODE DESC) as current_spec_email_address,
 
 
 					  /*** 6/7/2019 : IMRAN
@@ -70,9 +89,7 @@ SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial
 
 FROM         dbo.grants LEFT OUTER JOIN
                       dbo.appls ON dbo.grants.grant_id = dbo.appls.grant_id AND dbo.fn_grant_latest_appl(dbo.grants.grant_id) = dbo.appls.appl_id
-
-		  LEFT JOIN vw_PD_GS_last_competing_fy contacts on contacts.serial_num = grants.serial_num AND contacts.ADMIN_PHS_ORG_CODE = grants.admin_phs_org_code
-  
+ 
 		  LEFT OUTER JOIN (SELECT grant_id,count(*) AS MSFlag_cnt FROM dbo.Grants_Flag_Construct where flag_type='MS' and flag_application='A'
 			GROUP BY grant_id) as MS_flag ON dbo.grants.grant_id=MS_flag.grant_id and dbo.grants.admin_phs_org_code='CA'
 
@@ -90,8 +107,6 @@ FROM         dbo.grants LEFT OUTER JOIN
 
 		  LEFT OUTER JOIN(SELECT grant_id,count(*) AS DSFlag_cnt FROM dbo.Grants_Flag_Construct where flag_type='DS' and flag_application='A'
 			GROUP BY grant_id) as DS_flag ON dbo.grants.grant_id=DS_flag.grant_id and dbo.grants.admin_phs_org_code='CA'
-
-
 
 
 GO
