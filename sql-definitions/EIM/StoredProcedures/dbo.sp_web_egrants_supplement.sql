@@ -43,8 +43,7 @@ DECLARE
 @document_id	int,
 @impacid		int,
 @sql			varchar(800),
-@accession_number int,
-@eRa_ts			varchar(30)
+@accession_number int
 
 --@locall_image_server varchar(100)
 
@@ -106,8 +105,7 @@ null as [status],
 null as url,
 null as moved_date,
 null as moved_by,
-null as accession_number,
-null as eRa_TS
+null as accession_number
 
 FROM grants AS [grant]
 WHERE grant_id=@grant_id
@@ -140,8 +138,7 @@ CASE WHEN moved_date is not null THEN CONVERT(varchar,moved_date,101)
 ELSE null END,
 CASE WHEN moved_by is not null THEN dbo.fn_get_person_name(moved_by) 
 ELSE null END,
-accession_number,
-eRa_TS
+accession_number
 FROM dbo.IMPP_Admin_Supplements_WIP  
 WHERE Serial_num=@serial_num and adm_supp_wip_id in (select doc_id from #doc )
 ORDER BY submitted_date DESC
