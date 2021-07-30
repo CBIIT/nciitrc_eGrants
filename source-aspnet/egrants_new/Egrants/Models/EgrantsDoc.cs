@@ -106,6 +106,7 @@ namespace egrants_new.Egrants.Models
             SqlDataReader rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
+                DateTime dt = (DateTime)rdr["date_of_submitted"];
                 Supplement.Add(new supplement
                 {
                     tag = rdr["tag"]?.ToString(),
@@ -118,9 +119,9 @@ namespace egrants_new.Egrants.Models
                     suffix_code = rdr["suffix_code"]?.ToString(),
                     former_num = rdr["former_num"]?.ToString(),
                     former_appl_id = rdr["former_appl_id"]?.ToString(),
-                    date_of_submitted = rdr["date_of_submitted"]?.ToString("G"),
+                    date_of_submitted = dt.ToLongTimeString(),
                     category_name = rdr["category_name"]?.ToString(),
-                    sub_category_name= rdr["sub_category_name"]?.ToString(),
+                    sub_category_name = rdr["sub_category_name"]?.ToString(),
                     status = rdr["status"]?.ToString(),
                     url = rdr["url"]?.ToString(),
                     moved_date = rdr["moved_date"]?.ToString(),
