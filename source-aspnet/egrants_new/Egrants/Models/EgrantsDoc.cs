@@ -109,7 +109,7 @@ namespace egrants_new.Egrants.Models
                 string date_time = "";
                 if (rdr["date_of_submitted"] != null)
                 {
-                    DateTime dt = DateTime.Parse(rdr["date_of_submitted"].ToString());
+                    DateTime dt = DateTime.Parse(rdr["date_of_submitted"]);
                     date_time = dt.ToLongTimeString();
                 }
                 
