@@ -106,7 +106,7 @@ namespace egrants_new.Egrants.Models
             SqlDataReader rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
-                DateTime dt = (DateTime) rdr["date_of_submitted"].ToString();
+                DateTime dt = (DateTime) rdr["date_of_submitted"];
                 Supplement.Add(new supplement
                 {
                     tag = rdr["tag"]?.ToString(),
