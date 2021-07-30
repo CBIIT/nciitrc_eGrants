@@ -19,7 +19,8 @@ CREATE TABLE [dbo].[IMPP_Admin_Supplements_WIP](
 	[adm_supp_wip_id] [int] IDENTITY(1,1) NOT NULL,
 	[movedto_document_id] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
 	[sub_category_name] [varchar](35) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
-	[doc_url] [nvarchar](200) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+	[doc_url] [nvarchar](200) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[ACCESSION_NUMBER] [int] NULL
 ) ON [PRIMARY]
 
 GO
