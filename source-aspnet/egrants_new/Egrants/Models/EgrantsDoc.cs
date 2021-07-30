@@ -106,13 +106,6 @@ namespace egrants_new.Egrants.Models
             SqlDataReader rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
-                string date_time = "";
-                if (rdr["date_of_submitted"] != null)
-                {
-                    DateTime dt = DateTime.Parse(rdr["date_of_submitted"]);
-                    date_time = dt.ToLongTimeString();
-                }
-                
                 Supplement.Add(new supplement
                 {
                     tag = rdr["tag"]?.ToString(),
@@ -125,7 +118,7 @@ namespace egrants_new.Egrants.Models
                     suffix_code = rdr["suffix_code"]?.ToString(),
                     former_num = rdr["former_num"]?.ToString(),
                     former_appl_id = rdr["former_appl_id"]?.ToString(),
-                    date_of_submitted = date_time,
+                    date_of_submitted = rdr["submitted_date"]?.ToString(),
                     category_name = rdr["category_name"]?.ToString(),
                     sub_category_name = rdr["sub_category_name"]?.ToString(),
                     status = rdr["status"]?.ToString(),
