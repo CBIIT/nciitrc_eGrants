@@ -1,7 +1,9 @@
-﻿SET ANSI_NULLS OFF
-SET QUOTED_IDENTIFIER OFF
+﻿SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
 
-CREATE PROCEDURE [dbo].[sp_web_egrants_supplement]
+
+
+CREATE   PROCEDURE [dbo].[sp_web_egrants_supplement]
 
 @act 			varchar(50),
 @grant_id		int,
@@ -40,7 +42,9 @@ DECLARE
 @doc_id			int,
 @document_id	int,
 @impacid		int,
-@sql			varchar(800)
+@sql			varchar(800),
+@accession_number int
+
 --@locall_image_server varchar(100)
 
 /***find the profile_id**/
@@ -100,7 +104,9 @@ null as sub_category_name,
 null as [status],
 null as url,
 null as moved_date,
-null as moved_by
+null as moved_by,
+null as accession_number
+
 FROM grants AS [grant]
 WHERE grant_id=@grant_id
 
@@ -131,7 +137,8 @@ doc_url,
 CASE WHEN moved_date is not null THEN CONVERT(varchar,moved_date,101) 
 ELSE null END,
 CASE WHEN moved_by is not null THEN dbo.fn_get_person_name(moved_by) 
-ELSE null END
+ELSE null END,
+accession_number
 FROM dbo.IMPP_Admin_Supplements_WIP  
 WHERE Serial_num=@serial_num and adm_supp_wip_id in (select doc_id from #doc )
 ORDER BY submitted_date DESC
