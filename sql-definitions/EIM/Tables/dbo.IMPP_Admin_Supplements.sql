@@ -12,7 +12,8 @@ CREATE TABLE [dbo].[IMPP_Admin_Supplements](
 	[ACTIVITY_CODE] [varchar](3) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
 	[ADMIN_PHS_ORG_CODE] [varchar](2) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
 	[SUPPORT_YEAR] [tinyint] NULL,
-	[SUFFIX_CODE] [varchar](4) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+	[SUFFIX_CODE] [varchar](4) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[ACCESSION_NUMBER] [int] NULL
 ) ON [PRIMARY]
 
 GO

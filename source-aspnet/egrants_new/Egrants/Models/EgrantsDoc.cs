@@ -83,6 +83,7 @@ namespace egrants_new.Egrants.Models
             public string url { get; set; }
             public string moved_date { get; set; }
             public string moved_by { get; set; }
+            public string accession_number { get; set; }
         }
 
         //to load supplement documents
@@ -117,13 +118,14 @@ namespace egrants_new.Egrants.Models
                     suffix_code = rdr["suffix_code"]?.ToString(),
                     former_num = rdr["former_num"]?.ToString(),
                     former_appl_id = rdr["former_appl_id"]?.ToString(),
-                    date_of_submitted = rdr["date_of_submitted"]?.ToString(),
+                    date_of_submitted = rdr["submitted_date"]?.ToString(),
                     category_name = rdr["category_name"]?.ToString(),
-                    sub_category_name= rdr["sub_category_name"]?.ToString(),
+                    sub_category_name = rdr["sub_category_name"]?.ToString(),
                     status = rdr["status"]?.ToString(),
                     url = rdr["url"]?.ToString(),
                     moved_date = rdr["moved_date"]?.ToString(),
                     moved_by = rdr["moved_by"]?.ToString(),
+                    accession_number = rdr["accession_number"]?.ToString()
                 });
             }
             conn.Close();

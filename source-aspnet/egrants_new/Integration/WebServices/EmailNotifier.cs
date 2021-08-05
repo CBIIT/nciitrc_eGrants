@@ -48,7 +48,7 @@ namespace egrants_new.Integration.WebServices
                         message.To.Add(new MailAddress(address));
                     }
 
-                    string mailContent = "";
+                    string mailContent = "<hr>eGrants Web Service Exceptions<hr>";
                     int exCount = 1;
                     foreach (var ex in exceptions)
                     {
@@ -65,6 +65,58 @@ namespace egrants_new.Integration.WebServices
                 }
             }
         }
+
+
+        public void GenerateSQLJobErrorMessage()
+        {
+
+            var config = ConfigurationManager.AppSettings;
+            bool enabled = true;
+            enabled = bool.Parse(config["SQLNotificationEnabled"]);
+            if (enabled)
+            {
+
+                var repo = new IntegrationRepository();
+                List<SQLJobError> errors = repo.GetSQLJobErrors();
+
+                if (errors.Count > 0)
+                {
+
+                    var message = new MailMessage()
+                    {
+                        From = new MailAddress(config["FromAddress"]),
+                        IsBodyHtml = true,
+                        Priority = MailPriority.Normal,
+                        Subject = config["SQLSubjectLine"],
+                       
+                    };
+
+
+                    var addresses = config["SQLToAddress"].Split(';');
+                    foreach (var address in addresses)
+                    {
+                        message.To.Add(new MailAddress(address));
+                    }
+
+                    string mailContent = "<hr>eGrants SQL Job Error Messages<hr>";
+                    int errCount = 1;
+                    foreach (var error in errors)
+                    {
+                        mailContent +=
+                            $"<b>{errCount}) SQJ Job Name:</b> {error.JobName}<br>   <b>Job Step:</b> {error.StepId.ToString()} <br>   <b>Error Date/Time:</b> {error.ErrorDateTime.ToString()} <br>   <b>ErrorMessage:</b><br> {error.ErrorMessage}<br><br>";
+                        errCount++;
+                    }
+
+                    string mailTemplate = File.ReadAllText(config["SQLMailTemplate"]);
+                    mailContent = mailTemplate.Replace("###Exceptions", mailContent);
+                    message.Body = mailContent;
+                    SendEmail(message);
+                    errors.ForEach(err => repo.MarkSQLJobErrorSent(err));
+                }
+            }
+        }
+
+
 
 
         public void GenerateTestMessage()
