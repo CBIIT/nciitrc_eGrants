@@ -118,6 +118,7 @@
             document.getElementById("by_ddrop").style.display = "inline";
             document.getElementById("by_file").style.display = "none";
             document.getElementById("by_email").style.display = "none";
+            document.getElementById("btnDragdrop").style.display = "inline";
             Init();
         }
 
@@ -125,12 +126,14 @@
             document.getElementById("by_file").style.display = "inline";
             document.getElementById("by_ddrop").style.display = "none";
             document.getElementById("by_email").style.display = "none";
+            document.getElementById("btnFileUpload").style.display = "inline";
         }
 
         if (act == "by_email") {
             document.getElementById("by_email").style.display = "inline";
             document.getElementById("by_ddrop").style.display = "none";
             document.getElementById("by_file").style.display = "none";
+            document.getElementById("btnEmail").style.display = "inline";
         }
     }
 
@@ -366,7 +369,7 @@
                                 <div id="dropArea">Drag-drop only one file here to upload</div>
                                 <br />                           
                                 <span>
-                                    <button type="button" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
+                                    <button type="button" style="display:inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
                                      By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
                                 </span>
                                 </div>
@@ -375,7 +378,7 @@
                             <div class="tabcontent" id="by_file" style="display:none">                         
                                     <br />
                                     <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br />                           
-                                    <div style="display:inline"><button type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to upload document [shift + alt + D]">A<u>d</u>d</button></div>	
+                                    <div style="display:inline"><button style="display:inline" type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to upload document [shift + alt + D]">A<u>d</u>d</button></div>	
                                     <div style="display:inline">By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>
                             </div>
                             <!--end upload by file-->
@@ -385,7 +388,7 @@
                                 &#0160;&#0160;1. After grant year, category and date are entered/confirmed, click the &#0160;&#0160;<br /><br />
                                 &#0160;&#0160;&#0160;&#0160;&#0160;&#0160;"Upload via Email" button to open an email window.<br /><br /><br />
                                 &#0160;&#0160;2. Attach the document (<b>do not</b> change the subject) and click send.<br /><br /><br />
-                                <div style="display: inline"><button type="button" name="CreatByEmail" id="btnEmail" onclick="return create_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>  
+                                <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return create_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>  
                                 <div style="display: inline">By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>
 
                             </div>
