@@ -380,7 +380,10 @@
             <!--start create new doc-->
             @if (ViewBag.OrgCategory != null)
             {
-            <div>
+                <div>
+                    <table>
+                        <tr>
+                            <td width="800">
                 <table width="800">
                     <tr height="20">
                         <td width="100"><lable for="Institute"><b>Institute:</b></lable></td>
@@ -465,6 +468,10 @@
                         </td>
                     </tr>
                 </table>
+            </td>
+                <td><div valign="top" style="width: 300px; height:200px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;  " >Reminder: Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants.  More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td>
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </tr>
+        </table>
             </div>
 
                 @*<a href="javascript:show_docs('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')" title="Click here to return [shift + alt + R]">Return</a>
