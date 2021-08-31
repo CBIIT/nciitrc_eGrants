@@ -426,7 +426,7 @@
                                 <li></li>
                                 <li class="active"><a href="Javascript:switch_upload_mode('by_asp')">Locate File and Upload</a></li>                            
                             </ul>
-                            <div class="tab-content" id="TabUploadContent">                               
+                            <div class="tab-content" id="TabUploadContent">
                                 <!--start upload by drag drop -->
                                 <div class="tab-pane fade active in" id="by_ddrop" style="display:inline">
                                     <br />
@@ -434,23 +434,21 @@
                                         Drag-drop only one file here to upload
                                     </div>
                                     <br />
-                                    <button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)');" disabled="disabled"><u>C</u>reate New</button>
-                                    <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
-                                    </div>
+                                    <span><button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)');" disabled="disabled"><u>C</u>reate New</button><div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+                                <</span>
                                 <!--end upload by drag drop-->
 
                                 <!--sstart upload by file-->
-                                <div class="tab-pane fade active in" id="by_asp" style="display:none">                             
-                                    <br/>
-                                    <input type="file" name="file" id="UploadFile" />     
-                                    <br/>                                     
-                                    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')"><u>C</u>reate New</button> 
-                                    <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+                                <div class="tab-pane fade active in" id="by_asp" style="display:none">
+                                    <br />
+                                    <input type="file" name="file" id="UploadFile" />
+                                    <br />
+                                    <span><button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')"><u>C</u>reate New</button><div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div></span>
 
-                                    </div>
+                                </div>
 
                                 @*<br />*@
-                                <!--end upload by file-->                          
+                                <!--end upload by file-->
                                 <!--start progree bar-->
                                 @*<br />*@
                                 <div class="progress" style="display:none; margin:0; padding:0;">
