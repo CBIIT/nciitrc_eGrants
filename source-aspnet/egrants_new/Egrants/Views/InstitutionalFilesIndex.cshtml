@@ -435,7 +435,8 @@
                                     </div>
                                     <br />
                                     <button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)');" disabled="disabled"><u>C</u>reate New</button>
-                                </div>
+                                    <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+                                    </div>
                                 <!--end upload by drag drop-->
 
                                 <!--sstart upload by file-->
@@ -443,8 +444,11 @@
                                     <br/>
                                     <input type="file" name="file" id="UploadFile" />     
                                     <br/>                                     
-                                    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')"><u>C</u>reate New</button>                              
-                                </div>
+                                    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')"><u>C</u>reate New</button> 
+                                    <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+
+                                    </div>
+
                                 @*<br />*@
                                 <!--end upload by file-->                          
                                 <!--start progree bar-->

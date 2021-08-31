@@ -240,7 +240,9 @@
                                 <div id="dropArea">Drag-drop only one file here to upload</div><br />
                                 <button type="button" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn"  disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;                             
                                 @*<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn"  accesskey="C" title="Click here to cancel upload [shift + alt + C]" onclick="return back()"><u>C</u>ancel</button>*@
-                            </div>
+                                <div style="display:inline">  By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+
+                                </div>
                             <!--end upload by drag drop-->
                             <!--start upload by file-->
                             <div class="tab-pane fade active in" id="by_file" style="display:none">
@@ -249,7 +251,9 @@
                                     <input type="file" name="file" id="UploadFile" style="width:600px; height:30px;" onchange="active_btnFileUpload()" /><br />
                                     <button type="button" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;    
                                     @*<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn" onclick="return back()"  accesskey="C" title="Click here to cancel upload [shift + alt + C]"><u>C</u>ancel</button>*@ 
-                                </div>
+                                    <div style="display:inline">  By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+
+                                    </div>
                             </div>
                             <!--end upload by file-->
                             <!--start upload by email-->
@@ -263,6 +267,8 @@
                                 <button type="button" name="CreatByEmail" id="btnEmail" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_email()" AccessKey="U" title="Click here to upload document by email [shift + alt + U]">                                 
                                     <u>U</u>pload Via Email
                                 </button>
+                                <div style="display:inline">  By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+
                             </div>
                             <!--end upload by email-->
                         </div>
