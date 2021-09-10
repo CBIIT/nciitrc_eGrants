@@ -83,7 +83,7 @@ namespace egrants_new.Models
             group by qc_person_id)
 
             Select qc.files_to_qc, qc.qc_days,
-            qc.qc_person_id, COALESCE(vp.person_name, CAST(qc.qc_person_id as varchar(10)))
+            qc.qc_person_id, COALESCE(vp.person_name, CAST(qc.qc_person_id as varchar(10))) as qc_person_name
             from qc inner join vw_people vp on qc.qc_person_id = vp.person_id", conn);
                 cmd.CommandType = CommandType.Text;
                 cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;    
