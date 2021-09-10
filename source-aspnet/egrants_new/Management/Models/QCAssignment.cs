@@ -78,7 +78,7 @@ namespace egrants_new.Models
             and qc_person_id is not null
             and qc_reason is not null
             and disabled_date is null
-            and ic = 'NCI'
+            and ic = @ic
             AND parent_id IS null
             group by qc_person_id)
 
