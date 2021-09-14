@@ -80,7 +80,7 @@ namespace egrants_new.Models
             and disabled_date is null
             and ic = @ic
             AND parent_id IS null
-            and grant_id is not null 
+            and not(grant_id is null) 
             group by qc_person_id)
 
             Select qc.files_to_qc, qc.qc_days,
