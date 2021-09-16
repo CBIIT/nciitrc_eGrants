@@ -49,7 +49,8 @@ namespace egrants_new.Controllers.Management
             //load qc report
             ViewBag.QCReport = QCAssignment.LoadQCReport(Convert.ToString(Session["ic"]));
 
-            return View("~/Management/Views/Index.cshtml");
+            //return View("~/Management/Views/Index.cshtml");
+            return RedirectToAction("Index");
         }
 
         public ActionResult To_Remove(string qc_reason, string qc_person_id)
@@ -72,7 +73,8 @@ namespace egrants_new.Controllers.Management
             //load qc report
             ViewBag.QCReport = QCAssignment.LoadQCReport(Convert.ToString(Session["ic"]));
 
-            return View("~/Management/Views/Index.cshtml");
+            // return View("~/Management/Views/Index.cshtml");
+            return RedirectToAction("Index");
         }
 
          public ActionResult To_Route(string person_id, string percent, string qc_person_id)
@@ -96,7 +98,8 @@ namespace egrants_new.Controllers.Management
             //load qc report
             ViewBag.QCReport = QCAssignment.LoadQCReport(Convert.ToString(Session["ic"]));
 
-            return View("~/Management/Views/Index.cshtml");
+            //return View("~/Management/Views/Index.cshtml");
+            return RedirectToAction("Index");
         }
     }
 }
