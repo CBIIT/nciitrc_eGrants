@@ -1,149 +1,41 @@
 ﻿using System;
+using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Data.SqlTypes;
+using System.EnterpriseServices;
 using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Web;
+using System.Xml.Linq;
 using egrants_new.Integration.Models;
 using egrants_new.Integration.Shared;
+using egrants_new.Integration.WebServices;
+using egrants_new.Integration.EmailRulesEngine;
 using Newtonsoft.Json.Linq;
 
-namespace egrants_new.Integration.WebServices
+namespace egrants_new.Integration.EmailRulesEngine
 {
-    public class IntegrationRepository
+    public class EmailIntegrationRepository
     {
         //Look at the data persistence utilized throughout the application possible ways to standardize
         //private DBContext db; 
         private readonly string _conx;
 
 
-        public IntegrationRepository()
+        public EmailIntegrationRepository()
         {
             _conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
             //Any possible init needed in the constructor???
         }
 
-
-        public void SaveData(WebServiceHistory history)
-        {
-            try
-            {
-                SaveData(history.Result, history.WebService);
-            }
-            catch (Exception ex)
-            {
-                var nl = Environment.NewLine;
-                history.ExceptionMessage +=
-                    $"{nl}Exception in Integration Repository SaveData method.{nl + ex.Message + nl + ex.StackTrace}";
-            }
-
-            SaveHistory(history);
-            UpdateWebServiceScheduleInfo(history);
-
-        }
-
-        public void SaveData(string json, WebServiceEndPoint webService)
-        {
-            //Usually not recommended, but utilizing dynamic SQL here will make sure that the generic web service 
-            //will be as versatile as needed. 
-            //Ensure that the incoming data, although from a trusted source is checked to prevent SQL injection attack
-            //and prevent remote code execution
-            if (!string.IsNullOrWhiteSpace(json))
-            {
-                //First build data list
-                var records = JArray.Parse(json);
-
-
-                //TODO:  If there are no records, then skip and update that the job ran and return
-
-                //Read the destination table's data structure, quick select 
-                string columnList = String.Join(", ", webService.NodeMappings.Select(map => map.DestinationField));
-
-                string strQueryForTable =
-                    $"Select top 1 {columnList} from {webService.Database}.{webService.Schema}.{webService.DestinationTable}";
-
-                //Find the Connection String for the database destination of the import data
-
-                DataTable tbl = new DataTable();
-
-                using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
-                {
-                    try
-                    {
-                        System.Data.SqlClient.SqlCommand cmd =
-                            new System.Data.SqlClient.SqlCommand(strQueryForTable, conn);
-                        cmd.CommandType = CommandType.Text;
-                        conn.Open();
-                        SqlDataAdapter da = new SqlDataAdapter(cmd);
-                        da.Fill(tbl);
-                        conn.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        //TODO:  Handle Exception
-                        throw new Exception("Failed to retrieve destination table schema.  Verify Mapping data");
-                    }
-                    finally
-                    {
-                        conn.Close();
-                    }
-                }
-
-                List<DataRow> rows = new List<DataRow>();
-
-
-                foreach (JObject obj in records.Children<JObject>())
-                {
-                    DataRow row = tbl.NewRow();
-                    foreach (WSNodeMapping nodeMapping in webService.NodeMappings)
-                    {
-                        //TODO: Later implement data transformation or reconciliation 
-                        //TODO: Handle DataTypes
-                        if (tbl.Columns[nodeMapping.DestinationField].DataType ==
-                            System.Type.GetType("System.DateTime"))
-                        {
-                            string dateValue = (string)obj[nodeMapping.NodeName];
-                            dateValue = dateValue.Replace('T', ' ');
-                            DateTimeOffset date = DateTimeOffset.Parse(dateValue);
-                            row[nodeMapping.DestinationField] = date.LocalDateTime;
-                        }
-                        else if (tbl.Columns[nodeMapping.DestinationField].DataType.ToString().ToLower()
-                            .Contains("int"))
-                        {
-                            row[nodeMapping.DestinationField] = (int)obj[nodeMapping.NodeName];
-                        }
-                        else
-                        {
-                            row[nodeMapping.DestinationField] = obj[nodeMapping.NodeName];
-                        }
-                    }
-
-                    rows.Add(row);
-                }
-
-                using (SqlBulkCopy bulkCopy =
-                    new SqlBulkCopy(_conx, SqlBulkCopyOptions.FireTriggers))
-                {
-                    bulkCopy.DestinationTableName = webService.DestinationTable;
-                    foreach (WSNodeMapping node in webService.NodeMappings)
-                    {
-                        bulkCopy.ColumnMappings.Add(node.DestinationField, node.DestinationField);
-                    }
-
-                    try
-                    {
-                        
-                        // Write from the source to the destination.
-                        bulkCopy.WriteToServer(rows.ToArray());
-                        bulkCopy.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                }
-            }
-        }
 
 
         public void SaveHistory(WebServiceHistory history)
@@ -217,7 +109,7 @@ namespace egrants_new.Integration.WebServices
         }
 
 
-        public List<egrants_new.Integration.Models.SQLJobError> GetSQLJobErrors()
+        public List<SQLJobError> GetSQLJobErrors()
         {
             List<SQLJobError> errors = new List<SQLJobError>();
 
@@ -346,7 +238,7 @@ namespace egrants_new.Integration.WebServices
                         });
                     }
 
-                    LoadWebServiceNodeMappings(ep);
+                    //LoadWebServiceNodeMappings(ep);
 
                     conn.Close();
                     switch (ep.AuthenticationType)
@@ -373,7 +265,7 @@ namespace egrants_new.Integration.WebServices
             }
         }
 
-        private void LoadWebServiceNodeMappings(WebServiceEndPoint ep)
+        private void Load(WebServiceEndPoint ep)
         {
             if (ep.WSEndpoint_Id <= 0)
             {
@@ -433,7 +325,7 @@ namespace egrants_new.Integration.WebServices
             }
         }
 
-        public void MarkSQLJobErrorSent(SQLJobError error)
+        public void MarkSqlJobErrorSent(SQLJobError error)
         {
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
             {
@@ -457,6 +349,20 @@ namespace egrants_new.Integration.WebServices
             }
         }
 
-      
+
+        public void SaveActionResult(EmailRuleActionResult result)
+        {
+
+
+
+        }
+
+
+        public void SaveRuleMatch(EmailMessage msg, EmailRule rule)
+        {
+
+
+        }
+
     }
 }

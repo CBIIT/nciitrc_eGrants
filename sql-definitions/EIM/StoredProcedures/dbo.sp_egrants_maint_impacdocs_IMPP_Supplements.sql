@@ -1,5 +1,5 @@
 ﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER ON
+SET QUOTED_IDENTIFIER OFF
 
 
 CREATE   PROCEDURE dbo.sp_egrants_maint_impacdocs_IMPP_Supplements

@@ -468,7 +468,6 @@
     <Content Include="Content\eGrants Help Guide.pdf" />
     <Content Include="Egrants\Views\_egrants_showDocs.cshtml" />
     <Content Include="Egrants\Views\Back_to_default.cshtml" />
-    <Content Include="Integration\Views\Trigger.cshtml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
@@ -549,9 +548,17 @@
     </Compile>
     <Compile Include="IC_Coordinator\Controllers\ICCoordinatorController.cs" />
     <Compile Include="IC_Coordinator\Models\ICCoordinator.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailActionModule.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailFileCopyMoveAction.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailRuleActionResult.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailRulesEngine.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailIntegrationRepository.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailModels.cs" />
+    <Compile Include="Integration\EmailRulesEngine\IEmailAction.cs" />
     <Compile Include="Integration\Models\SQLJobError.cs" />
     <Compile Include="Integration\Models\Enumerations.cs" />
     <Compile Include="Integration\Models\WebServiceParam.cs" />
+    <Compile Include="Integration\Shared\SqlHelper.cs" />
     <Compile Include="Integration\WebServices\EmailNotifier.cs" />
     <Compile Include="Integration\WebServices\IDataTransformer.cs" />
     <Compile Include="Integration\WebServices\IntegrationRepository.cs" />
@@ -562,6 +569,7 @@
     <Compile Include="Integration\WebServices\BaseWebService.cs" />
     <Compile Include="Integration\WebServices\IAuthCertificate.cs" />
     <Compile Include="Integration\WebServices\IEgrantWebService.cs" />
+    <Compile Include="Integration\WebServices\MicrosoftGraphOAuthService.cs" />
     <Compile Include="Integration\WebServices\WSDataTransformProxy.cs" />
     <Compile Include="Integration\WebServices\WSScheduleManager.cs" />
     <Compile Include="Management\Controllers\DocTransactionReportController.cs" />
@@ -640,7 +648,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\Images\" />
-    <Folder Include="Integration\Controllers\" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

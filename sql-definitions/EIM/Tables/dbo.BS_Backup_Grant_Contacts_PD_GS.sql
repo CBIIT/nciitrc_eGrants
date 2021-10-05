@@ -1,6 +1,6 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
-CREATE TABLE [dbo].[Grant_Contacts_PD_GS](
+CREATE TABLE [dbo].[BS_Backup_Grant_Contacts_PD_GS](
 	[APPL_ID] [numeric](10, 0) NULL,
 	[APPL_TYPE_CODE] [nvarchar](1) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
 	[SERIAL_NUM] [numeric](6, 0) NOT NULL,

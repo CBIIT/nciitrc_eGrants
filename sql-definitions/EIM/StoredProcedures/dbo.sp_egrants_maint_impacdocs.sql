@@ -36,7 +36,6 @@ print 'PD DETAIL DOWNLOADED =' + cast(@EGRANTS_UPLOAD_CNT as varchar)
 EXEC sp_egrants_maint_impacdocs_IMPP_Supplements
 
 
-
 ----print 'Closeout Flag Updated =' + cast(@@ROWCOUNT as varchar)+' @ '+ cast(getdate() as varchar)
 TRUNCATE TABLE IRDB_CLOSEOUT_FLAG_NEW
 INSERT dbo.IRDB_CLOSEOUT_FLAG_NEW(appl_id,fy,GC_OBJECT_NAME,GC_ACTION_TYPE_CODE,GC_OBJECT_STATUS_CODE,action_date)
