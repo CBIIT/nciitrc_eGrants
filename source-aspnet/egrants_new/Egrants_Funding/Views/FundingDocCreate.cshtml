@@ -315,8 +315,8 @@
             </thead>
             <tbody>
                 <tr height="30px">
-                    <td width="100"><lable for="Institute"><b>Institute:</b></lable></td>
-                    <td width="700">
+                    <td width="100"><label for="Institute"><b>Institute:</b></label></td>
+                    <td width="800">
                         <select name="admin_code" id="ddlAdmincodes" class="form-control" style="width:80px; height:30px;" size="1" title="Select admin phs org code">
                             @foreach (var AdminCode in ViewBag.AdminCodeList)
                             {
@@ -334,52 +334,54 @@
                                 }
                             }
                         </select>
-                        <lable for="Serial Number"><b>Serial Number:</b></lable>
+                        <label for="Serial Number"><b>Serial Number:</b></label>
                         <input name="serial_num" type="text" id="txtSerialnum" class="form-control" style="height:30px; width:80px;" title="Insert serial number" value="@ViewBag.serialnum" />&#0160;
-                        <button name="load appls" id="btnLoadAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="E" OnClick="return load_appls();" title="Click here to load available appls [shift + alt + E]"><u>E</u>nter to see available appls</button>
-                        <button name="get more grant" id="btnAddAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="L" OnClick="return get_docid();" title="Click here to add available appls [shift + alt + A]"><u>L</u>ink to more grants</button>
-                        @*<button name="load appls" id="btnLoadAppls" class="btn-primary btn-sm" style="font-size:medium;background-color:#4169e1;" AccessKey="E" OnClick="return load_appls();" title="Click here to load available appls [shift + alt + E]"><u>E</u>nter to see available appls</button> 
-                        <button name="get more grant" id="btnAddAppls" class="btn-primary btn-sm" AccessKey="L" style="font-size:medium;background-color:#4169e1;" OnClick="return get_docid();" title="Click here to add available appls [shift + alt + A]"><u>L</u>ink to more grants</button>  *@
+                        <button name="load appls" id="btnLoadAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="E" OnClick="return load_appls();" title="Click here to load availabel appls [shift + alt + E]"><u>E</u>nter to see availabel appls</button>
+                        <button name="get more grant" id="btnAddAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="L" OnClick="return get_docid();" title="Click here to add availabel appls [shift + alt + A]"><u>L</u>ink to more grants</button>
+                        @*<button name="load appls" id="btnLoadAppls" class="btn-primary btn-sm" style="font-size:medium;background-color:#4169e1;" AccessKey="E" OnClick="return load_appls();" title="Click here to load availabel appls [shift + alt + E]"><u>E</u>nter to see availabel appls</button> 
+                        <button name="get more grant" id="btnAddAppls" class="btn-primary btn-sm" AccessKey="L" style="font-size:medium;background-color:#4169e1;" OnClick="return get_docid();" title="Click here to add availabel appls [shift + alt + A]"><u>L</u>ink to more grants</button>  *@
                     </td>
                 </tr>
                 <tr>
-                    <td><lable for="Full Grant Number"><b>Grant:</b></lable></td>
+                    <td><label for="Full Grant Number"><b>Grant:</b></label></td>
                     <td>
                         @Html.DropDownList("ddlAppls", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:250px;height=6px", onchange = "create_new_appl(this)", title = "Select a grant year" })                        
                     </td>
                 </tr>
                 <tr>
-                    <td><lable for="Category Name"><b>Category:</b></lable></td>
+                    <td><label for="Category Name"><b>Category:</b></label></td>
                     <td>
-                        <select name="category_id" id="ddlCategories" class="form-control" style="width:270px;" size="6" title="select category">
-                            @foreach (var category1 in ViewBag.CategoryList)
-                            {
-                                if (Convert.ToInt32(category1.level_id) == 1)
+                        <div  style="display: inline; vertical-align: top;">
+                            <select name="category_id" id="ddlCategories" class="form-control" style="width: 270px;" size="6" title="select category">
+                                @foreach (var category1 in ViewBag.CategoryList)
                                 {
-                                    <option id="@category1.category_id" value="@category1.level_id">@category1.category_name</option>
-                                }
-
-                                if (Convert.ToInt32(category1.level_id) == 2)
-                                {
-                                    <option id="@category1.category_id" value="@category1.level_id">@category1.category_name---</option>
-                                    foreach (var category3 in ViewBag.CategoryList)
+                                    if (Convert.ToInt32(category1.level_id) == 1)
                                     {
-                                        if (Convert.ToInt32(category3.level_id) > 2 && category3.parent_id != null && Convert.ToInt32(category3.parent_id) == Convert.ToInt32(category1.category_id))
+                                        <option id="@category1.category_id" value="@category1.level_id">@category1.category_name</option>
+                                    }
+
+                                    if (Convert.ToInt32(category1.level_id) == 2)
+                                    {
+                                        <option id="@category1.category_id" value="@category1.level_id">@category1.category_name---</option>
+                                        foreach (var category3 in ViewBag.CategoryList)
                                         {
-                                            <option id="@category3.category_id" value="@category3.level_id">&#0160;&#0160;&#0160;&#0160;@category3.category_name</option>
+                                            if (Convert.ToInt32(category3.level_id) > 2 && category3.parent_id != null && Convert.ToInt32(category3.parent_id) == Convert.ToInt32(category1.category_id))
+                                            {
+                                                <option id="@category3.category_id" value="@category3.level_id">&#0160;&#0160;&#0160;&#0160;@category3.category_name</option>
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        </select>
+                            </select>
+                        </div>
                         &#0160;
-                        <div style="float:right; vertical-align:top;" >
-                            <input name="sub_category" type="text" id="txtSubCategory" class="form-control" style="height:30px; width:250px; vertical-align:top;" title="Insert sub category" /><span>&#0160;&#0160;(35 char max)<b> Optional</b></span>
+                        <div style="display: inline; vertical-align: top;">
+                            <input name="sub_category" type="text" id="txtSubCategory" class="form-control" style="height: 30px; width: 200px; vertical-align: top;" title="Insert sub category"/><span>&#0160;&#0160;(35 char max)<b> Optional</b></span>
                         </div>
                     </td>
                 </tr>
                 <tr>
-                    <td><lable for="Document Date"><b>Date:</b></lable></td>
+                    <td><label for="Document Date"><b>Date:</b></label></td>
                     <td><input name="document_date" id="txtDocumentdate" type="text" class="form-control" style="width:100px;height:30px;" value="@System.DateTime.Today.ToString("MM/dd/yyyy")" title="Insert document date"></td>
                 </tr>
                 <tr>
@@ -399,14 +401,18 @@
                                 <br />
                                 <div id="dropArea">Drag-drop only one file here to upload</div><br />
                                 <button type="button" name="CreatByDdrop" id="btnDragdrop" accesskey="N" disabled="disabled" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_ddrop();">Create <u>N</u>ew</button>
-                            </div>
+                                <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div>
+
+                                </div>
                             <!--end upload by drag drop-->
                             <!--start upload by file-->
                             <div class="tab-pane fade active in" id="by_file" style="display:none; margin:0; padding:0;">
                                 <br />
                                 <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br />
                                 <button type="button" name="CreatByFile" id="btnFileUpload" accesskey="N" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_file();">Create <u>N</u>ew</button>
-                            </div>
+                                <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div>
+
+                                </div>
                             <!--end upload by file-->
                             <br /><br />
                             <!--show progress bar-->
@@ -415,6 +421,9 @@
                             </div>
                             <!--end progress bar-->
                         </div>
+                    </td>
+                    <td>
+                        <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
                     </td>
                 </tr>
                 <tr>
