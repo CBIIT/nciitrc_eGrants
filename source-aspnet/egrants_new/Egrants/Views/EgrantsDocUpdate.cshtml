@@ -3,12 +3,13 @@
     Layout = "~/Shared/Views/_egrants_header.cshtml";
 }
 
-<script language="javascript" type="text/javascript"> 
-    $(document).ready(function () {        
+<script language="javascript" type="text/javascript">
+
+    $(document).ready(function () {
             set_default();
     });
 
-    function set_default() {        
+    function set_default() {
         //set category_id
         if (document.getElementById("hidCategory_id").value != "") {
             for (i = 1; i <= document.getElementById("hidMax_Categoryid").value; i++) {
@@ -48,9 +49,9 @@
         }
 
         //load grant years list
-        if (document.getElementById("hidAppl_id").value != "") {         
+        if (document.getElementById("hidAppl_id").value != "") {
             load_appls();
-            var myVar = setTimeout(function () { selected_appl() }, 500);          
+            var myVar = setTimeout(function () { selected_appl() }, 500);
         }
 
         //set document date
@@ -66,7 +67,7 @@
         $("#ddlAppls").val(appl_id);
     }
 
-    function modify_index() {     
+    function modify_index() {
         //get doc_id
         var Docid = document.getElementById("hidDocument_id").value;
 
@@ -99,7 +100,7 @@
         var url = "@Url.Action("doc_index_modify", "EgrantsDoc")?act=to_update&appl_id=" + Applid + "&document_id=" + Docid + "&category_id=" + Categoryid + "&sub_category=" + SubCategory + "&document_date=" + DocDate + "&previous_url=" + previousurl;
         //alert(url);
         window.self.location = url;
-        return true;        
+        return true;
     }
 
     function get_previous_url() {
@@ -133,30 +134,37 @@
     <input type="hidden" id="hidPossionID" name="position_id" value=@Convert.ToString(Session["position_id"]) />
 </form>
 
-<div id="main" style="margin:0;padding:0;">
-    <div id="caption" style="margin:0;padding:0;"><b id="page_title">Update Document</b></div>
-    <div>
-        @Html.Partial("~/Egrants/Views/_egrants_Doc.cshtml")
-        <img width="800" height="10" src="~/Content/images/horizontal_line.jpg" />
-        <table width="800">
-            <tr>
-                <td width="100"></td>
-                <td width="700" height="50">
-                    <button type="button" AccessKey="U" class="btn btn-primary btn-sm eGrantsDocBtn" OnClick="return modify_index()" title="Click here to update document index [shift + alt + U]"><u>U</u>pdate</button>                
-                </td>
-                <td><div  valign="top" style="  box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height:260px; line-height: normal; font-style: normal; vertical-align:	text-top; padding-left: 15px;  "><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants.  More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td>
+<div id="main" style="margin: 0; padding: 0;">
+    <table>
+        <tr>
+            <td>
+                <div id="caption" style="margin: 0; padding: 0;"><b id="page_title">Update Document</b></div>
+                <div>
+                    @Html.Partial("~/Egrants/Views/_egrants_Doc.cshtml")
+                    <img width="800" height="10" src="~/Content/images/horizontal_line.jpg" />
+                    <table width="800">
+                        <tr>
+                            <td width="100"></td>
+                            <td width="700" height="50">
+                                <button type="button" AccessKey="U" class="btn btn-primary btn-sm eGrantsDocBtn" OnClick="return modify_index()" title="Click here to update document index [shift + alt + U]"><u>U</u>pdate</button>
+                            </td>
 
-            </tr>
-            <tr>
-                <td></td>
-                <td>
-                    <button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>
-                </td>
-                <td><div  valign="top" style="  box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height:260px; line-height: normal; font-style: normal; vertical-align:	text-top; padding-left: 15px;  "><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants.  More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>
+                                <button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td style="width: 400px;  padding: 50px;">
+                <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
+            </td>
+        </tr>
+    </table>
 
-            </tr>
-        </table>
-    </div>
 </div>
 
 
