@@ -276,7 +276,6 @@
             <td>
                 @Html.DropDownList("ddlAppls", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:250px;height=32px", onchange = "create_new_appl(this)", title = "Select a grant year" })
 
-                <div style="float: right"><a target="_new" href="~/Content/eGrants Category Glossary.docx" title="show eGrants Category Glossary">eGrants Category Glossary</a></div>
 
             </td>
 
@@ -336,9 +335,13 @@
                                     <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control" style="height:32px; width:250px;" title="Insert sub category optional" /><span>&#0160;&#0160;(35 char max)<b> Optional</b></span>
                                 }
                             }*@
+
                         </div>
                     }
                 }
+                
+                <div style="float: right"><a target="_new" href="~/Content/eGrants Category Glossary.docx" title="show eGrants Category Glossary">eGrants Category Glossary</a></div>
+
             </td>
         </tr>
         <tr style="height: 40px">
