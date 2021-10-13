@@ -389,49 +389,52 @@
                         <!--show loading icon-->
                         <div class="loading" style="display:none"><img src="~/Content/images/Loading.gif" width="50" /></div>
                     </td>
-                    <td>
+                    <td valign="top">
+                        <br />
                         <ul class="nav nav-tabs">
                             <li class="active"><a href="Javascript:switch_upload_mode('by_ddrop')">Drag & Drop</a></li>
                             <li></li>
                             <li class="active"><a href="Javascript:switch_upload_mode('by_file')">Locate File and Upload</a></li>
                         </ul>
-                        <div class="tab-content" id="myTabContent" style="margin:0; padding:0;">
+                        <div class="tab-content" id="myTabContent" style="margin: 0; padding: 0;">
                             <!--start upload by drag drop -->
-                            <div class="tab-pane fade active in" id="by_ddrop" style="display:none; margin:0; padding:0;">
-                                <br />
-                                <div id="dropArea">Drag-drop only one file here to upload</div><br />
+                            <div class="tab-pane fade active in" id="by_ddrop" style="display: none; margin: 0; padding: 0;">
+                                <br/>
+                                <div id="dropArea">Drag-drop only one file here to upload</div><br/>
                                 <button type="button" name="CreatByDdrop" id="btnDragdrop" accesskey="N" disabled="disabled" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_ddrop();">Create <u>N</u>ew</button>
                                 <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div>
 
-                                </div>
+                            </div>
                             <!--end upload by drag drop-->
                             <!--start upload by file-->
-                            <div class="tab-pane fade active in" id="by_file" style="display:none; margin:0; padding:0;">
-                                <br />
-                                <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br />
+                            <div class="tab-pane fade active in" id="by_file" style="display: none; margin: 0; padding: 0;">
+                                <br/>
+                                <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px;"/><br/>
                                 <button type="button" name="CreatByFile" id="btnFileUpload" accesskey="N" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_file();">Create <u>N</u>ew</button>
                                 <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div>
 
-                                </div>
+                            </div>
+                            <br/>
+                            <div style="padding-top: 15px;"><button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+                                <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="../Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/></a>
+                                <b id="done"><span id="mssg"></span></b> </div>
                             <!--end upload by file-->
-                            <br /><br />
+
                             <!--show progress bar-->
-                            <div class="progress" style="display:none; margin:0; padding:0;">
-                                <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; " aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress" style="display: none; margin: 0; padding: 0;">
+                                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                             <!--end progress bar-->
                         </div>
                     </td>
-                    <td  style="width: 400px;  padding: 50px;" >
+                    <td  style="width: 400px;  padding-left: 50px;" >
                         <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
                     </td>
                 </tr>
                 <tr>
                     <td></td>
                     <td>
-                        <button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
-                        <a target="_new" href="#" id="notice" style="visibility:hidden"><img src="../Content/images/check_doc_btn.png" style="height:35px;" title="Check Document" /></a>
-                        <b id="done"><span id="mssg"></span></b>                                     
+                            
                     </td>
                 </tr>
             </tbody>
