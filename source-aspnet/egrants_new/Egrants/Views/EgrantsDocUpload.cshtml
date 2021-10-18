@@ -210,8 +210,8 @@
     <div id="content" style="margin:0; padding:0;">
         <table>
             <tr>
-                <td width="800">
-                    <table width="800">
+                <td >
+                    <table >
                         <thead>
                             <tr><td colspan="2" height="20"></td></tr>
                             <tr><td colspan="2" height="20"><b>Grant:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@ViewBag.FullGrantNum </td></tr>
@@ -220,9 +220,9 @@
                             <tr><td colspan="2" height="20"></td></tr>
                         </thead>
                         <tbody>
-                            <tr>
+                            <tr >
                                 <!--show loading icon-->
-                                <td width="700" valign="middle">
+                                <td  valign="middle">
                                     @*<ul class="nav nav-tabs">
                                             <li class="active" id="li_ddrop"><a href="Javascript:switch_upload_mode('by_ddrop')">Drag & Drop</a></li>
                                             <li></li>
@@ -242,7 +242,7 @@
                                         <div class="tab-pane fade active in" id="by_ddrop" style="display:none">
                                             <br />
                                             <div id="dropArea">Drag-drop only one file here to upload</div><br />
-                                            <div style="width: 800px;">
+                                            <div style="width: 650px;">
                                                 <span><button type="button" style="display:inline" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;
                                                 @*<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn"  accesskey="C" title="Click here to cancel upload [shift + alt + C]" onclick="return back()"><u>C</u>ancel</button>*@
                                                 <div style="display:inline">  By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
@@ -254,7 +254,7 @@
                                         <div class="tab-pane fade active in" id="by_file" style="display:none">
                                             <div>
                                                 <br />
-                                                <input type="file" name="file" id="UploadFile" style="width:600px; height:30px;" onchange="active_btnFileUpload()" /><br />
+                                                <input type="file" name="file" id="UploadFile" style="width:550px; height:30px;" onchange="active_btnFileUpload()" /><br />
                                                 <span style="width: 450px;">
                                                     <button type="button"  style="display:inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;
                                                     @*<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn" onclick="return back()"  accesskey="C" title="Click here to cancel upload [shift + alt + C]"><u>C</u>ancel</button>*@
@@ -266,7 +266,7 @@
                                         <!--start upload by email-->
                                         <div class="tab-pane fade active in" id="by_email" style="display:none">
                                             <br />
-                                            <label style="width:650px"><b>How to Upload Via Email?</b></label><br /><br />
+                                            <label style="width:500px"><b>How to Upload Via Email?</b></label><br /><br />
                                             <br />
                                             &#0160;&#0160;1. Click the button "Upload Via Email" to open an email window.<br /><br />
                                             &#0160;&#0160;2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
@@ -275,7 +275,6 @@
                                                 <button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_email()" AccessKey="U" title="Click here to upload document by email [shift + alt + U]">
                                                     <u>U</u>pload Via Email
                                                 </button>
-                                                <div style="display:inline">  By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                                             </span>
                                         </div>
                                         <!--end upload by email-->
@@ -302,7 +301,7 @@
                         </tbody>
                     </table>
                 </td>
-                <td><div valign="top" style="width: 300px; height:200px; line-height: normal; font-style: normal; vertical-align:	text-top;  ">Reminder: Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants.  More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td>
+                <td  style=" padding-left: 1px;" ><div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td>
             </tr>
         </table>
     </div><!--end content-->
