@@ -70,7 +70,22 @@ namespace egrants_new.Models
         public static List<QCReports> LoadQCReport(string ic)
         {
             System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT count(*) as files_to_qc, qc_person_id, ISNULL(qc_person_name, qc_userid) AS qc_person_name, AVG(datediff(d,qc_date,getdate())) as qc_days FROM vw_people v LEFT OUTER JOIN egrants e ON e.qc_person_id=v.person_id WHERE qc_date is not null and qc_person_id is not null and qc_reason is not null and disabled_date is null and e.ic=@ic AND parent_id IS null GROUP BY qc_person_id,qc_person_name,qc_userid order by qc_person_name", conn);
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand(
+                @"	with qc as (Select count(*) as files_to_qc, 
+            AVG(datediff(d, qc_date, getdate())) as qc_days,
+            qc_person_id from egrants where
+            qc_date is not null
+            and qc_person_id is not null
+            and qc_reason is not null
+            and disabled_date is null
+            and ic = @ic
+            AND parent_id IS null
+            and not(grant_id is null) 
+            group by qc_person_id)
+
+            Select qc.files_to_qc, qc.qc_days,
+            qc.qc_person_id, COALESCE(vp.person_name, CAST(qc.qc_person_id as varchar(10))) as qc_person_name
+            from qc inner join vw_people vp on qc.qc_person_id = vp.person_id", conn);
                 cmd.CommandType = CommandType.Text;
                 cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;    
                 conn.Open();
