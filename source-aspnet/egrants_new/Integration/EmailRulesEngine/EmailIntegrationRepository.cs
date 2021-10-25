@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Web;
+using System.Xml;
 using System.Xml.Linq;
 using egrants_new.Integration.Models;
 using egrants_new.Integration.Shared;
@@ -243,14 +244,14 @@ namespace egrants_new.Integration.EmailRulesEngine
                     conn.Close();
                     switch (ep.AuthenticationType)
                     {
-                        case Enumerations.AuthenticationType.Certificate:
+                        case IntegrationEnums.AuthenticationType.Certificate:
                             ws = new CertAuthWebService(ep);
                             //ws.WebService = ep;
                             break;
-                        case Enumerations.AuthenticationType.UserPassword:
+                        case IntegrationEnums.AuthenticationType.UserPassword:
                             throw new Exception("User Password Auth Type Not Implemented");
                             break;
-                        case Enumerations.AuthenticationType.OAuth:
+                        case IntegrationEnums.AuthenticationType.OAuth:
                             ws = new MicrosoftGraphOAuthService(ep);
                             break;
                         default:
@@ -361,6 +362,110 @@ namespace egrants_new.Integration.EmailRulesEngine
         public void SaveRuleMatch(EmailMessage msg, EmailRule rule)
         {
 
+
+        }
+
+        public List<EmailMessage> GetEmailMessages()
+        {
+            var output = new List<EmailMessage>();
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("sp_email_get_messages", conn)
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                        };
+                   // cmd.Parameters.Add("@webserviceid", SqlDbType.Int).Value = ep.WSEndpoint_Id;
+                    conn.Open();
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        EmailMessage msg = new EmailMessage();
+                        SqlHelper.MapDataToObject(msg, dr);
+                        output.Add(msg);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+            return output;
+
+        }
+
+        public List<EmailRule> GetEmailRules()
+        {
+            var output = new List<EmailRule>();
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("sp_email_get_rules", conn)
+                        {
+                              CommandType = CommandType.StoredProcedure,
+                        };
+                    // cmd.Parameters.Add("@webserviceid", SqlDbType.Int).Value = ep.WSEndpoint_Id;
+                    conn.Open();
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        EmailRule rule = new EmailRule();
+                        SqlHelper.MapDataToObject(rule, dr);
+                        output.Add(rule);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+            return output;
+        }
+
+        public List<EmailRuleCriteria> GetEmailCriteria(int ruleId)
+        {
+            var output = new List<EmailRuleCriteria>();
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("sp_email_get_rule_criteria", conn)
+                        {
+                              CommandType = CommandType.StoredProcedure,
+                        };
+                     cmd.Parameters.Add("@ruleid", SqlDbType.Int).Value = ruleId;
+                    conn.Open();
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        EmailRuleCriteria criteria = new EmailRuleCriteria();
+                        SqlHelper.MapDataToObject(criteria, dr);
+                        output.Add(criteria);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+            return output;
 
         }
 

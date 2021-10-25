@@ -71,8 +71,10 @@ namespace egrants_new.Integration.WebServices
                     try
                     {
                         System.Data.SqlClient.SqlCommand cmd =
-                            new System.Data.SqlClient.SqlCommand(strQueryForTable, conn);
-                        cmd.CommandType = CommandType.Text;
+                            new System.Data.SqlClient.SqlCommand(strQueryForTable, conn)
+                            {
+                                CommandType = CommandType.Text
+                            };
                         conn.Open();
                         SqlDataAdapter da = new SqlDataAdapter(cmd);
                         da.Fill(tbl);
@@ -351,14 +353,14 @@ namespace egrants_new.Integration.WebServices
                     conn.Close();
                     switch (ep.AuthenticationType)
                     {
-                        case Enumerations.AuthenticationType.Certificate:
+                        case IntegrationEnums.AuthenticationType.Certificate:
                             ws = new CertAuthWebService(ep);
                             //ws.WebService = ep;
                             break;
-                        case Enumerations.AuthenticationType.UserPassword:
+                        case IntegrationEnums.AuthenticationType.UserPassword:
                             throw new Exception("User Password Auth Type Not Implemented");
                             break;
-                        case Enumerations.AuthenticationType.OAuth:
+                        case IntegrationEnums.AuthenticationType.OAuth:
                             ws = new MicrosoftGraphOAuthService(ep);
                             break;
                         default:

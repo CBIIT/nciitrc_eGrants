@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using egrants_new.Integration.EmailRulesEngine;
+using static egrants_new.Integration.Models.IntegrationEnums;
 
 namespace egrants_new.Integration.EmailRulesEngine
 {
@@ -75,9 +76,9 @@ namespace egrants_new.Integration.EmailRulesEngine
         public int Id { get; set; }
         public int Order { get; set; }
         public int EmailRulesId { get; set; }
-        public int CriteriaType { get; set; }
+        public CriteriaType CriteriaType { get; set; }
         public int FieldToEval { get; set; }
-        public int EvalType { get; set; }
+        public EvalType EvalType { get; set; }
         public string EvalValue { get; set; }
         public int CreatedByPersonId { get; set; }
         public DateTime CreatedDate { get; set; }

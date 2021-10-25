@@ -6,6 +6,7 @@ using System.Web;
 using System.Reflection;
 using System.Web.Services.Description;
 using egrants_new.Integration.EmailRulesEngine;
+using egrants_new.Integration.Models;
 
 namespace egrants_new.Integration.EmailRulesEngine
 {
@@ -55,11 +56,8 @@ namespace egrants_new.Integration.EmailRulesEngine
         public List<EmailRule> LoadRules()
         {
 
-
-
-
-            List<EmailRule> output = new List<EmailRule>();
-            return output;
+            //List<EmailRule> output = new List<EmailRule>();
+            return _repo.GetEmailRules();
         }
 
 
@@ -78,20 +76,46 @@ namespace egrants_new.Integration.EmailRulesEngine
             PropertyInfo[] properties = msg.GetType().GetProperties();
             PropertyInfo fieldToEval = properties[criteria.FieldToEval];
             string fieldVal = (string)fieldToEval.GetValue(msg);
-
             bool result = false;
+
+            switch (criteria.EvalType)
+            {
+                case IntegrationEnums.EvalType.Contains:
+                   result = fieldVal.Contains(criteria.EvalValue);
+
+                    break;
+                case IntegrationEnums.EvalType.EndsWith:
+                    result = fieldVal.EndsWith(criteria.EvalValue, StringComparison.CurrentCultureIgnoreCase);
+
+                    break;
+                case IntegrationEnums.EvalType.Equals:
+                    result = fieldVal.Equals(criteria.EvalValue, StringComparison.CurrentCultureIgnoreCase);
+
+                    break;
+                case IntegrationEnums.EvalType.GreaterThan:
+                    result = int.Parse(fieldVal) > int.Parse(criteria.EvalValue);
+
+                    break;
+                case IntegrationEnums.EvalType.LessThan:
+                    result = int.Parse(fieldVal) < int.Parse(criteria.EvalValue);
+
+                    break;
+                case IntegrationEnums.EvalType.NotEqual:
+                    result = int.Parse(fieldVal) != int.Parse(criteria.EvalValue);
+
+                    break;
+                case IntegrationEnums.EvalType.StartsWith:
+                    result = fieldVal.StartsWith(criteria.EvalValue, StringComparison.CurrentCultureIgnoreCase);
+
+                    break;
+
+                default:
+                    break;
+            }
+
 
             return result;
         }
-
-        public bool TestOperation(  )
-        {
-            bool test = false;
-
-
-            return test;
-        }
-
 
         public void ExecuteActions()
         {

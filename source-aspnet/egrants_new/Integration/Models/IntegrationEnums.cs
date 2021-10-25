@@ -5,7 +5,7 @@ using System.Web;
 
 namespace egrants_new.Integration.Models
 {
-    public class Enumerations
+    public class IntegrationEnums
     {
         public enum AuthenticationType
         {
@@ -40,5 +40,20 @@ namespace egrants_new.Integration.Models
 
         }
 
+        public enum EvalType
+        {
+            Contains = 0,
+            StartsWith,
+            EndsWith,
+            Equals,
+            LessThan,
+            GreaterThan,
+            NotEqual
+        }
+
+        public enum CriteriaType
+        {
+            Generic
+        }
     }
 }

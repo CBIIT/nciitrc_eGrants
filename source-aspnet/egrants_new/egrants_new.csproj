@@ -556,7 +556,7 @@
     <Compile Include="Integration\EmailRulesEngine\EmailModels.cs" />
     <Compile Include="Integration\EmailRulesEngine\IEmailAction.cs" />
     <Compile Include="Integration\Models\SQLJobError.cs" />
-    <Compile Include="Integration\Models\Enumerations.cs" />
+    <Compile Include="Integration\Models\IntegrationEnums.cs" />
     <Compile Include="Integration\Models\WebServiceParam.cs" />
     <Compile Include="Integration\Shared\SqlHelper.cs" />
     <Compile Include="Integration\WebServices\EmailNotifier.cs" />

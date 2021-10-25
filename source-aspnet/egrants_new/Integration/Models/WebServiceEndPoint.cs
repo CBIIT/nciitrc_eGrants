@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using egrants_new.Integration.Models;
-using static egrants_new.Integration.Models.Enumerations;
+using static egrants_new.Integration.Models.IntegrationEnums;
 
 namespace egrants_new.Integration.Models
 {
@@ -25,7 +25,7 @@ namespace egrants_new.Integration.Models
         public DateTimeOffset LastTrigger { get; set; }
         public string DestinationDatabase { get; set; }
         public string DestinationTable { get; set; }
-        public Enumerations.Interval Interval { get; set; }
+        public IntegrationEnums.Interval Interval { get; set; }
         public string QueryString { get; set; }
         public DateTimeUnits Frequency { get; set; }
         public bool Enabled { get; set; }
@@ -39,7 +39,7 @@ namespace egrants_new.Integration.Models
         public string Database { get; set; }
         public string Schema { get; set; }
         public List<WSNodeMapping> NodeMappings { get; set; }
-        public Enumerations.ReconciliationBehavior ReconciliationBehavior { get; set; }
+        public IntegrationEnums.ReconciliationBehavior ReconciliationBehavior { get; set; }
         public string CertificatePath { get; set; }
         public string CertificatePwd { get; set; }
         public string IntervalTimeSpan { get; set; }

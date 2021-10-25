@@ -31,14 +31,14 @@ namespace egrants_new.Integration.Shared
                                 break;
 
                             case "authenticationtype":
-                                prop.SetValue(obj, (Enumerations.AuthenticationType)reader[prop.Name]);
+                                prop.SetValue(obj, (IntegrationEnums.AuthenticationType)reader[prop.Name]);
                                 break;
 
                             case "datetimeoffset":
                                 prop.SetValue(obj, (DateTimeOffset)reader[prop.Name]);
                                 break;
                             case "datetimeunits":
-                                prop.SetValue(obj, (Enumerations.DateTimeUnits)reader[prop.Name]);
+                                prop.SetValue(obj, (IntegrationEnums.DateTimeUnits)reader[prop.Name]);
                                 break;
                             case "boolean":
                                 prop.SetValue(obj, (bool)reader[prop.Name]);

@@ -37,8 +37,8 @@ namespace egrants_new.Integration.WebServices
                 uristring = String.Join(@"?", uristring, PrepareQueryString());
                 history.EndpointUriSent = uristring;
 
-                
-                
+
+
                 var uri = new Uri(uristring);
 
                 HttpWebRequest webServiceRequest = (HttpWebRequest)WebRequest.Create(uri);
@@ -62,7 +62,7 @@ namespace egrants_new.Integration.WebServices
                 }
 
                 history.ResultStatusCode = response.StatusCode;
-            history.Result = result;
+                history.Result = result;
             }
             catch (WebException ex)
             {
@@ -93,7 +93,7 @@ namespace egrants_new.Integration.WebServices
             }
 
             if (paramString.StartsWith("&"))
-            { 
+            {
                 paramString = paramString.Substring(1);
             }
 
@@ -108,32 +108,32 @@ namespace egrants_new.Integration.WebServices
                 switch (value)
                 {
                     case "##LastRun":
-                    {
-                        var time = WebService.LastRun.TimeOfDay.ToString();
-                        time = time.Split('.')[0];
-                        var lastRun =
-                            $"{WebService.LastRun.LocalDateTime.ToShortDateString()}%20{time}";
+                        {
+                            var time = WebService.LastRun.TimeOfDay.ToString();
+                            time = time.Split('.')[0];
+                            var lastRun =
+                                $"{WebService.LastRun.LocalDateTime.ToShortDateString()}%20{time}";
 
-                        value = lastRun;
+                            value = lastRun;
 
                         }
 
                         break;
                     case "##Now24Hr":
-                    {
-                        var time = DateTime.Now.TimeOfDay.ToString();
-                        time = time.Split('.')[0];
-                        value = $"{DateTime.Now.ToShortDateString()}%20{time}";
-                    }
+                        {
+                            var time = DateTime.Now.TimeOfDay.ToString();
+                            time = time.Split('.')[0];
+                            value = $"{DateTime.Now.ToShortDateString()}%20{time}";
+                        }
 
                         break;
                     case "##Now":
-                    {
-                        value = $"{DateTime.Now.ToShortDateString()}%20{DateTime.Now.ToString("T")}";
-                        value = value.Replace(" PM", "");
-                        value = value.Replace(" AM", "");
-                        break;
-                    }
+                        {
+                            value = $"{DateTime.Now.ToShortDateString()}%20{DateTime.Now.ToString("T")}";
+                            value = value.Replace(" PM", "");
+                            value = value.Replace(" AM", "");
+                            break;
+                        }
                     case "##MaxId":
                         //TODO: Implement later
                         //This would look up the last Id of a primary key and return that to be included in the query string dynamically
@@ -143,14 +143,53 @@ namespace egrants_new.Integration.WebServices
                         break;
                 }
 
+                return value;
+            }
+
+            if (value.Contains("##"))
+            {
+                if (value.Contains("##LastRun"))
+                {
+                    var time = WebService.LastRun.TimeOfDay.ToString();
+                    time = time.Split('.')[0];
+                    var lastRun =
+                        $"{WebService.LastRun.LocalDateTime.ToShortDateString()}%20{time}";
+
+                    value = value.Replace("##LastRun", lastRun);
+                }
+
+                if (value.Contains("##Now24Hr"))
+                {
+                    var time = DateTime.Now.TimeOfDay.ToString();
+                    time = time.Split('.')[0];
+                    var now24 = $"{DateTime.Now.ToShortDateString()}%20{time}";
+                    value = value.Replace("##Now24Hr", now24);//  $"{DateTime.Now.ToShortDateString()}%20{time}";
+                }
+
+                if (value.Contains("##Now"))
+                {
+                    value = $"{DateTime.Now.ToShortDateString()}%20{DateTime.Now.ToString("T")}";
+                    value = value.Replace(" PM", "");
+                    value = value.Replace(" AM", "");
+
+                }
+
+                if (value.Contains("##MaxId"))
+                {
+                    //TODO: Implement later
+                    //This would look up the last Id of a primary key and return that to be included in the query string dynamically
+
+                }
+                return value;
             }
 
             return value;
         }
 
-
     }
-
+    
 }
+
+
 
 

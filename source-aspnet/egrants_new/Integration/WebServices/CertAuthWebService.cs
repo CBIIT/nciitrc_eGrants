@@ -19,12 +19,12 @@ namespace egrants_new.Integration.WebServices
 
         public CertAuthWebService(WebServiceEndPoint ws):base( ws)
         {
-            base.WebService.AuthenticationType = Enumerations.AuthenticationType.Certificate;
+            base.WebService.AuthenticationType = IntegrationEnums.AuthenticationType.Certificate;
         }
 
         public override void AddAuthentication(ref HttpWebRequest webRequest)
         {
-            if (WebService.AuthenticationType == Enumerations.AuthenticationType.Certificate)
+            if (WebService.AuthenticationType == IntegrationEnums.AuthenticationType.Certificate)
             {
                 string certPath = ConfigurationManager.AppSettings[WebService.CertificatePath];
                 string certPwd = ConfigurationManager.AppSettings[WebService.CertificatePwd];

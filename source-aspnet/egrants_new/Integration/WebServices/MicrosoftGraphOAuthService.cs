@@ -19,14 +19,15 @@ namespace egrants_new.Integration.WebServices
 
         public MicrosoftGraphOAuthService(WebServiceEndPoint ws) : base(ws)
         {
-            base.WebService.AuthenticationType = Enumerations.AuthenticationType.OAuth;
+            base.WebService.AuthenticationType = IntegrationEnums.AuthenticationType.OAuth;
         }
 
         public override void AddAuthentication(ref HttpWebRequest webRequest)
         {
-            if (WebService.AuthenticationType == Enumerations.AuthenticationType.OAuth)
+            if (WebService.AuthenticationType == IntegrationEnums.AuthenticationType.OAuth)
             {
-                string oAuthToken = ConfigurationManager.AppSettings["MicrosoftGraphToken"];
+                //string oAuthToken = ConfigurationManager.AppSettings["MicrosoftGraphToken"];
+                string oAuthToken = ConfigurationManager.AppSettings[WebService.CertificatePath];
 
                 if (!string.IsNullOrWhiteSpace(oAuthToken))
                 {
