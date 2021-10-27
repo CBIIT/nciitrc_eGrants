@@ -468,6 +468,8 @@
     <Content Include="Content\eGrants Help Guide.pdf" />
     <Content Include="Egrants\Views\_egrants_showDocs.cshtml" />
     <Content Include="Egrants\Views\Back_to_default.cshtml" />
+    <Content Include="Egrants\Views\_MailIntegrationMain.cshtml" />
+    <Content Include="Egrants\Views\MailIntegrationMain.cshtml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
@@ -519,12 +521,15 @@
     <Compile Include="Dashboard\Controllers\DashboardController.cs" />
     <Compile Include="Dashboard\Models\Reminder.cs" />
     <Compile Include="Dashboard\Models\Dashboard.cs" />
+    <Compile Include="Egrants\Builders\MailIntegrationBuilder.cs" />
     <Compile Include="Egrants\Controllers\EgrantsController.cs" />
     <Compile Include="Egrants\Controllers\EgrantsDocController.cs" />
+    <Compile Include="Egrants\Controllers\IntegrationController.cs" />
     <Compile Include="Egrants\Models\EgrantsAppl.cs" />
     <Compile Include="Egrants\Models\EgrantsDoc.cs" />
     <Compile Include="Egrants\Models\Egrants.cs" />
     <Compile Include="Egrants\Models\InstitutionalFiles.cs" />
+    <Compile Include="Egrants\Models\MailIntegrationPage.cs" />
     <Compile Include="Egrants_Admin\Controllers\ApplDestructedController.cs" />
     <Compile Include="Egrants_Admin\Controllers\EgrantsAccessController.cs" />
     <Compile Include="Egrants_Admin\Controllers\SupplementController.cs" />
@@ -648,6 +653,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\Images\" />
+    <Folder Include="Dashboard\Views\Integration\" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

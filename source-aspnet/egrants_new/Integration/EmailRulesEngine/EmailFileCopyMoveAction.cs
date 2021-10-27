@@ -10,6 +10,12 @@ namespace egrants_new.Integration.EmailRulesEngine
         public EmailRule EmailRule { get; set; }
         public EmailRuleAction Action { get; set; }
 
+        public EmailFileCopyMoveAction(EmailRule rule, EmailRuleAction action)
+        {
+            EmailRule = rule;
+            Action = action;
+        }
+
         public EmailRuleActionResult DoAction()
         {
             var result = new EmailRuleActionResult();
@@ -25,6 +31,12 @@ namespace egrants_new.Integration.EmailRulesEngine
     {
         public EmailRule EmailRule { get; set; }
         public EmailRuleAction Action { get; set; }
+
+        public EmailForwardAction(EmailRule rule, EmailRuleAction action)
+        {
+            EmailRule = rule;
+            Action = action;
+        }
 
         public EmailRuleActionResult DoAction()
         {
@@ -42,6 +54,13 @@ namespace egrants_new.Integration.EmailRulesEngine
         public EmailRule EmailRule { get; set; }
         public EmailRuleAction Action { get; set; }
 
+        public EmailCreateTextFileAction(EmailRule rule, EmailRuleAction action)
+        {
+            EmailRule = rule;
+            Action = action;
+        }
+
+
         public EmailRuleActionResult DoAction()
         {
             var result = new EmailRuleActionResult();
@@ -58,6 +77,13 @@ namespace egrants_new.Integration.EmailRulesEngine
         public EmailRule EmailRule { get; set; }
         public EmailRuleAction Action { get; set; }
 
+        public EmailCreatePdfAction(EmailRule rule, EmailRuleAction action)
+        {
+            EmailRule = rule;
+            Action = action;
+        }
+
+
         public EmailRuleActionResult DoAction()
         {
             var result = new EmailRuleActionResult();
@@ -73,6 +99,13 @@ namespace egrants_new.Integration.EmailRulesEngine
     {
         public EmailRule EmailRule { get; set; }
         public EmailRuleAction Action { get; set; }
+
+        public EmailCreateSendNewEmailAction(EmailRule rule, EmailRuleAction action)
+        {
+            EmailRule = rule;
+            Action = action;
+        }
+
 
         public EmailRuleActionResult DoAction()
         {

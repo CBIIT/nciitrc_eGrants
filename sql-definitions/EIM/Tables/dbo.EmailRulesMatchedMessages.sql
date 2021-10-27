@@ -4,7 +4,8 @@ CREATE TABLE [dbo].[EmailRulesMatchedMessages](
 	[EmailRuleId] [int] NOT NULL,
 	[EmailMessageId] [int] NOT NULL,
 	[CreatedDate] [smalldatetime] NOT NULL,
-	[ActionsCompleted] [bit] NULL
+	[ActionsCompleted] [bit] NULL,
+	[Matched] [bit] NULL
 ) ON [PRIMARY]
 
 GO

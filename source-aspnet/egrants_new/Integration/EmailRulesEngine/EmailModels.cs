@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using egrants_new.Integration.EmailRulesEngine;
+using egrants_new.Integration.Models;
 using static egrants_new.Integration.Models.IntegrationEnums;
 
 namespace egrants_new.Integration.EmailRulesEngine
@@ -58,7 +59,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         public int LastModifiedBy { get; set; }
         public DateTime LastModifiedDate { get; set; }
         public List<EmailRuleCriteria> Criteria { get; set; }
-        public List<IEmailAction> Actions { get; set; }
+        public List<EmailRuleAction> Actions { get; set; }
     }
 
 
@@ -105,7 +106,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         public int Id { get; set; }
         public int Order { get; set; }
         public string Description { get; set; }
-        public int ActionType { get; set; }
+        public IntegrationEnums.EmailActionType ActionType { get; set; }
         public string TargetValue { get; set; }
         public int CreatedByPersonId { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -120,6 +121,9 @@ namespace egrants_new.Integration.EmailRulesEngine
         public int EmailMessageId { get; set; }
         public DateTime CreatedDate { get; set; }
         public bool ActionsCompleted { get; set; }
+        public bool Matched { get; set; }
+        public EmailRule Rule { get; set; }
+        public EmailMessage Message { get; set; }
     }
 
 }

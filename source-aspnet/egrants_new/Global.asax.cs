@@ -43,10 +43,14 @@ namespace egrants_new
             var notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
             var sqlNotifierTime = ConfigurationManager.AppSettings["SQLErrorCronExp"];
 
-            /// Create the Background job
-            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
-            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
-     //       RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
+            //       /// Create the Background job
+//            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+            //       RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
+            ////       RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
+
+            //var wsMgr = new WsScheduleManager();
+
+            //wsMgr.StartScheduledJobs();
         }
 
         protected string UserID
@@ -56,7 +60,7 @@ namespace egrants_new
                 userid = Context.Request.ServerVariables["HEADER_SM_USER"];
                 if (userid == null)
                 {
-                    userid = "";    //qians
+                    userid = "shellba";    //qians
                 }
                 return userid;
             }

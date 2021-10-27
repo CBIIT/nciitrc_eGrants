@@ -9,7 +9,7 @@ namespace egrants_new.Integration.Models
     {
         public enum AuthenticationType
         {
-            UserPassword=0,
+            UserPassword = 0,
             Certificate,
             OAuth
         }
@@ -55,5 +55,17 @@ namespace egrants_new.Integration.Models
         {
             Generic
         }
+
+
+        public enum EmailActionType
+        {
+            EmailFileCopyMoveAction,
+            EmailForwardAction,
+            EmailCreateTextFileAction,
+            EmailCreatePdfAction,
+            EmailCreateSendNewEmailAction
+        }
+
+
     }
 }

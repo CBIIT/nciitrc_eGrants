@@ -51,8 +51,10 @@ namespace egrants_new.Integration.WebServices
             if (!string.IsNullOrWhiteSpace(json))
             {
                 //First build data list
-                var records = JArray.Parse(json);
-
+                //var records =    JArray.Parse(json);
+                dynamic  result = JObject.Parse(json);
+                var records = result["value"];
+                //var records = JArray.Parse(emails);
 
                 //TODO:  If there are no records, then skip and update that the job ran and return
 
@@ -116,7 +118,37 @@ namespace egrants_new.Integration.WebServices
                         }
                         else
                         {
-                            row[nodeMapping.DestinationField] = obj[nodeMapping.NodeName];
+                            if (nodeMapping.NodeName.Contains("\\"))
+                            {
+                                var nodes = nodeMapping.NodeName.Split('\\');
+                                var tmp = obj;
+                                //var token = obj;
+                                for(int i = 0;i<nodes.Length;i++)
+                                {
+                                    var token = tmp[nodes[i]];
+                                    if (i == (nodes.Length - 1))
+                                    {
+                                        row[nodeMapping.DestinationField] = token;
+                                    }
+                                    else
+                                    {
+                                        if (token.Type == JTokenType.Array)
+                                        {
+                                            tmp = (JObject)token[0];
+                                        }
+                                        else
+                                        {
+                                            tmp = (JObject)token;
+                                        }
+
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                row[nodeMapping.DestinationField] = obj[nodeMapping.NodeName];
+                            }
+                      
                         }
                     }
 

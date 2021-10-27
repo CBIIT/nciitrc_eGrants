@@ -25,21 +25,24 @@ namespace egrants_new.Integration.WebServices
 
         public WebServiceHistory GetData()
         {
-            WebServiceHistory history = new WebServiceHistory();
-            history.WebService = WebService;
-            history.WebServiceName = WebService.Name;
-            history.DateTriggered = DateTimeOffset.Now;
+            WebServiceHistory history = new WebServiceHistory
+            {
+                WebService = WebService,
+                WebServiceName = WebService.Name,
+                DateTriggered = DateTimeOffset.Now
+            };
             try
             {
                 var result = string.Empty;
-                var uristring = String.Join("/", WebService.EndpointUri, WebService.Action);
+                var uriString = string.Join("/", WebService.EndpointUri, WebService.Action);
 
-                uristring = String.Join(@"?", uristring, PrepareQueryString());
-                history.EndpointUriSent = uristring;
+                uriString = string.Join(@"?", uriString, PrepareQueryString());
+                history.EndpointUriSent = uriString;
 
+                uriString =
+                    "https://graph.microsoft.com/v1.0/me/messages?$filter=receivedDateTime+ge+2021-10-22T14:41:09Z";
 
-
-                var uri = new Uri(uristring);
+                var uri = new Uri(uriString);
 
                 HttpWebRequest webServiceRequest = (HttpWebRequest)WebRequest.Create(uri);
                 webServiceRequest.Method = WebService.WebRequestMethod;

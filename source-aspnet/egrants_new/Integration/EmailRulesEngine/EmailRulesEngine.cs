@@ -23,14 +23,14 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         }
 
-        public void ProcessRules()
+        public void ProcessMail()
         {
             var rules = LoadRules();
-            var messages = LoadMessages();
 
-            foreach (var msg  in messages)
+            foreach (var rule in rules)
             {
-                foreach (var rule in rules)
+                var messages = LoadMessages(rule);
+                foreach (var msg in messages)
                 {
                     bool trueFlag = false;
                     foreach (var criteria in rule.Criteria)
@@ -43,11 +43,19 @@ namespace egrants_new.Integration.EmailRulesEngine
                         }
                     }
                     //Write the match to the match table
-                    if (trueFlag)
-                    {
-                       _repo.SaveRuleMatch(msg,rule);
-                    }
+                    _repo.SaveRuleMatch(msg, rule, trueFlag);
                 }
+            }
+        }
+
+
+        public void ProcessPendingActions()
+        {
+            var rules = LoadRules();
+
+            foreach (var rule in rules)
+            {
+                ExecuteActions(rule);
             }
         }
 
@@ -55,20 +63,14 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public List<EmailRule> LoadRules()
         {
-
-            //List<EmailRule> output = new List<EmailRule>();
             return _repo.GetEmailRules();
         }
 
 
-        public List<EmailMessage> LoadMessages()
+        public List<EmailMessage> LoadMessages(EmailRule rule)
         {
-            List<EmailMessage> output = new List<EmailMessage>(); 
-
-
-            return output;
+            return _repo.GetEmailMessages(rule);
         }
-
 
 
         public bool EvaluateCriteria(EmailMessage msg, EmailRuleCriteria criteria)
@@ -81,7 +83,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             switch (criteria.EvalType)
             {
                 case IntegrationEnums.EvalType.Contains:
-                   result = fieldVal.Contains(criteria.EvalValue);
+                    result = fieldVal.Contains(criteria.EvalValue);
 
                     break;
                 case IntegrationEnums.EvalType.EndsWith:
@@ -117,9 +119,17 @@ namespace egrants_new.Integration.EmailRulesEngine
             return result;
         }
 
-        public void ExecuteActions()
+        public void ExecuteActions(EmailRule rule)
         {
 
+            var matches = _repo.GetEmailRuleMatches(rule.Id);
+
+            foreach (var match in matches)
+            {
+                var msg = _repo.GetEmailMessage(match.EmailMessageId);
+                _actionModule.PerformActions(msg,rule);
+
+            }
 
 
         }
