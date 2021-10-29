@@ -2,7 +2,8 @@
 SET QUOTED_IDENTIFIER ON
 
 
-CREATE     procedure [dbo].[sp_email_get_message]
+
+CREATE       procedure [dbo].[sp_email_get_message]
 	@msgid INT
 as 
 BEGIN
@@ -21,7 +22,7 @@ Select [Id]
       ,[IsRead]
       ,[Body]
       ,[Sender]
-      ,[From]
+      ,[EmailFrom]
       ,[ToRecipients]
       ,[CcRecipients]
 	  

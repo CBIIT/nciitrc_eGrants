@@ -61,22 +61,22 @@ namespace egrants_new.Integration.EmailRulesEngine
 
 
 
-        public List<EmailRule> LoadRules()
+        private List<EmailRule> LoadRules()
         {
             return _repo.GetEmailRules();
         }
 
 
-        public List<EmailMessage> LoadMessages(EmailRule rule)
+        private List<EmailMessage> LoadMessages(EmailRule rule)
         {
             return _repo.GetEmailMessages(rule);
         }
 
 
-        public bool EvaluateCriteria(EmailMessage msg, EmailRuleCriteria criteria)
+        private bool EvaluateCriteria(EmailMessage msg, EmailRuleCriteria criteria)
         {
             PropertyInfo[] properties = msg.GetType().GetProperties();
-            PropertyInfo fieldToEval = properties[criteria.FieldToEval];
+            PropertyInfo fieldToEval = properties.FirstOrDefault(p => p.Name.ToLower() == criteria.FieldToEval.ToLower());
             string fieldVal = (string)fieldToEval.GetValue(msg);
             bool result = false;
 
@@ -119,7 +119,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             return result;
         }
 
-        public void ExecuteActions(EmailRule rule)
+        private void ExecuteActions(EmailRule rule)
         {
 
             var matches = _repo.GetEmailRuleMatches(rule.Id);

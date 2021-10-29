@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Configuration;
 using System.Web;
 using egrants_new.Integration.Models;
 using Hangfire.Server;
@@ -23,22 +24,27 @@ namespace egrants_new.Integration.EmailRulesEngine
         {
             foreach (var action in rule.Actions)
             {
-                var emailAction = MakEmailAction(action, rule);
+                var emailAction = MakeEmailAction(action, rule);
 
-                var result = emailAction.DoAction();
+                var result = emailAction.DoAction(msg);
                 _emailRepo.SaveActionResult(result);
 
-                if (!result.Successful)
+                if (result.Successful)
                 {
-                    return;
+                    //mark action successful
                 }
+                else
+                {
+                    //Mark not successful 
+                }
+                    
             }
 
             return;
         }
 
 
-        public IEmailAction MakEmailAction(EmailRuleAction action, EmailRule rule)
+        public IEmailAction MakeEmailAction(EmailRuleAction action, EmailRule rule)
         {
             IEmailAction outAction;
 
@@ -74,6 +80,21 @@ namespace egrants_new.Integration.EmailRulesEngine
             return outAction;
 
         }
+
+
+        public static ExtractedMessageDetails ExtractMessageDetails(EmailMessage msg, EmailRule rule)
+        {
+            var outputDetails = new ExtractedMessageDetails();
+
+
+
+
+            return outputDetails;
+        }
+
+
+
+
 
     }
 }

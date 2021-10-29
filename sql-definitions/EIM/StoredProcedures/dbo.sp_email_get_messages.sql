@@ -1,7 +1,8 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
 
-CREATE   procedure [dbo].[sp_email_get_messages]
+
+CREATE     procedure [dbo].[sp_email_get_messages]
 	@ruleid INT
 as 
 BEGIN
@@ -20,14 +21,14 @@ Select [Id]
       ,[IsRead]
       ,[Body]
       ,[Sender]
-      ,[From]
+      ,[EmailFrom]
       ,[ToRecipients]
       ,[CcRecipients]
 	  
 from EmailMessages em 
-	 left join EmailRulesMatchedMessages matched on em.Id = matched.EmailMessageId
+	 left join EmailRulesMatchedMessages matched on em.Id = matched.EmailMessageId and matched.EmailRuleId = @ruleid
 where matched.EmailMessageId is null 
-	  and matched.EmailRuleId = @ruleid
+	  
 
 END
 

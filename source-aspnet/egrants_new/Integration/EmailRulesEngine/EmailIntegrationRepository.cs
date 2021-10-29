@@ -122,7 +122,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public EmailMessage GetEmailMessage(int messageId)
         {
-            var output = new EmailMessage();
+            EmailMessage output = null; // = new EmailMessage();
 
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
             {
@@ -292,7 +292,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                 try
                 {
                     SqlCommand cmd =
-                        new SqlCommand("sp_email_get_matchedmessages", conn)
+                        new SqlCommand("sp_email_get_matched_messages", conn)
                         {
                             CommandType = CommandType.StoredProcedure,
                         };
@@ -314,6 +314,49 @@ namespace egrants_new.Integration.EmailRulesEngine
                     //TODO: Handle exception
                 }
             }
+            return output;
+
+        }
+
+
+        public string GetPlaceHolder( ExtractedMessageDetails details)
+        {
+            string output = string.Empty;
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("getPlaceHolder_new", conn)
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                        };
+                    cmd.Parameters.Add("@PARENTAPPLID", SqlDbType.Int).Value = details.Parentapplid;
+                    cmd.Parameters.Add("@pa", SqlDbType.VarChar).Value = details.Pa;
+                    cmd.Parameters.Add("@Rcvd_dt", SqlDbType.SmallDateTime).Value = details.Rcvd_dt;
+                    cmd.Parameters.Add("@Catname", SqlDbType.VarChar).Value = details.Catname;
+                    cmd.Parameters.Add("@filetype", SqlDbType.VarChar).Value = details.Filetype;
+                    cmd.Parameters.Add("@sub", SqlDbType.VarChar).Value = details.Sub;
+                    cmd.Parameters.Add("@body", SqlDbType.VarChar).Value = details.Body;
+                    cmd.Parameters.Add("@subcatname", SqlDbType.VarChar).Value = details.Subcatname;
+
+                    conn.Open();
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        output = (string) dr["ABC"];
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+
             return output;
 
         }

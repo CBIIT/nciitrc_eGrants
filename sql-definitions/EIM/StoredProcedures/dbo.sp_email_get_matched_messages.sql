@@ -2,7 +2,8 @@
 SET QUOTED_IDENTIFIER ON
 
 
-CREATE     procedure [dbo].[sp_email_get_matched_messages]
+
+CREATE       procedure [dbo].[sp_email_get_matched_messages]
 	@ruleid INT
 as 
 BEGIN
@@ -12,7 +13,7 @@ Select [EmailRuleId]
       ,[ActionsCompleted]
       ,[Matched]
   FROM [dbo].[EmailRulesMatchedMessages]
-  where EmailRuleId = @ruleid
+  where EmailRuleId = @ruleid and Matched = 1
 
 END
 

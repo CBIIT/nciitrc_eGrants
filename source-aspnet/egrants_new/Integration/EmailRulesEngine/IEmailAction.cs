@@ -11,7 +11,7 @@ namespace egrants_new.Integration.EmailRulesEngine
     {
 
         EmailRule EmailRule { get; set; }
-        EmailRuleActionResult DoAction();
+        EmailRuleActionResult DoAction(EmailMessage msg = null);
 
     }
 }

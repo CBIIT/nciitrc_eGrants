@@ -40,7 +40,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         public bool IsRead { get; set; }
         public string Body { get; set; }
         public string Sender { get; set; }
-        public string From { get; set; }
+        public string EmailFrom { get; set; }
         public string ToRecipients { get; set; }
         public string CcRecipients { get; set; }
     }
@@ -78,7 +78,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         public int Order { get; set; }
         public int EmailRulesId { get; set; }
         public CriteriaType CriteriaType { get; set; }
-        public int FieldToEval { get; set; }
+        public string FieldToEval { get; set; }
         public EvalType EvalType { get; set; }
         public string EvalValue { get; set; }
         public int CreatedByPersonId { get; set; }
@@ -124,6 +124,21 @@ namespace egrants_new.Integration.EmailRulesEngine
         public bool Matched { get; set; }
         public EmailRule Rule { get; set; }
         public EmailMessage Message { get; set; }
+    }
+
+
+
+    public class ExtractedMessageDetails
+    {
+        public int Parentapplid { get; set; }
+        public string Pa { get; set; }
+        public DateTime Rcvd_dt { get; set; }
+        public  string Catname { get; set; }
+        public  string Filetype { get; set; }
+        public string Subcatname { get; set; }
+        public string Sub { get; set; }
+        public string Body { get; set; } 
+
     }
 
 }
