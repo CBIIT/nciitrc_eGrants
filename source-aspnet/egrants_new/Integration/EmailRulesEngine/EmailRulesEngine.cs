@@ -127,7 +127,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             foreach (var match in matches)
             {
                 var msg = _repo.GetEmailMessage(match.EmailMessageId);
-                _actionModule.PerformActions(msg,rule);
+                bool completedActions = _actionModule.PerformActions(msg,rule);
 
             }
 

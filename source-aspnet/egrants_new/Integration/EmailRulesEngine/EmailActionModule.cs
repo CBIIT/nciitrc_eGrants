@@ -20,8 +20,10 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        public void PerformActions(EmailMessage msg, EmailRule rule)
+        public bool PerformActions(EmailMessage msg, EmailRule rule)
         {
+            bool allActionsCompleted = true;
+
             foreach (var action in rule.Actions)
             {
                 var emailAction = MakeEmailAction(action, rule);
@@ -31,16 +33,16 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                 if (result.Successful)
                 {
-                    //mark action successful
+                    //result is already true so just Continue with actions
                 }
                 else
                 {
-                    //Mark not successful 
+                    //An Action Failed so exit processing mark it and exit 
+                    allActionsCompleted = false;
                 }
-                    
             }
 
-            return;
+            return allActionsCompleted;
         }
 
 

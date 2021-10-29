@@ -104,6 +104,7 @@ namespace egrants_new.Integration.EmailRulesEngine
     public class EmailRuleAction
     {
         public int Id { get; set; }
+        public int EmailRulesId { get; set; }
         public int Order { get; set; }
         public string Description { get; set; }
         public IntegrationEnums.EmailActionType ActionType { get; set; }

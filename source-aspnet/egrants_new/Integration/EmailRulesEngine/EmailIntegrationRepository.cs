@@ -256,7 +256,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                 try
                 {
                     SqlCommand cmd =
-                        new SqlCommand("sp_email_get_rule_action", conn)
+                        new SqlCommand("sp_email_get_rule_actions", conn)
                         {
                             CommandType = CommandType.StoredProcedure,
                         };

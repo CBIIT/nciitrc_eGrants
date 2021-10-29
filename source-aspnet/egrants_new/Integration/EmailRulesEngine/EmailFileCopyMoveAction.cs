@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Configuration;
 using System.Runtime.Remoting.Messaging;
 using System.Web;
+using System.Threading.Tasks;
+using System.Configuration;
 
 namespace egrants_new.Integration.EmailRulesEngine
 {
@@ -22,15 +25,52 @@ namespace egrants_new.Integration.EmailRulesEngine
         public EmailRuleActionResult DoAction(EmailMessage msg)
         {
             Message = msg;
-            var result = new EmailRuleActionResult();
+            string tmpActionMsg = "Action Initialized";
+            var result = new EmailRuleActionResult()
+            {
+                ActionId = Action.Id,
+                RuleId = EmailRule.Id,
+                Successful = false
+            };
            //SaveAttachmentAndFileMoveCopy
-           var filePath = Action.TargetValue;
+           var destinationPath = Action.TargetValue;
+
+           try
+           {
+               //Create the file
+               tmpActionMsg = "Creating TXT file layout";
+               string txtFileContents = $@"From:	{msg.EmailFrom}
+Sent:	{msg.SentDateTime}
+To:	{msg.ToRecipients}
+Subject:	{msg.Subject} 
 
 
 
+{msg.Body}";
+               tmpActionMsg = "Getting eGrants Document Placeholder Filename";
+               string fileName = GetPlaceHolderFileName();
+               string localPath = ConfigurationManager.AppSettings["EmailAttachmentTempFolder"];
+               string localFile = Path.Combine(localPath, fileName);
+               string destinationFile = Path.Combine(destinationPath, fileName);
 
+               tmpActionMsg = "Writing File to Disk";
+               File.WriteAllText(localFile, txtFileContents);
 
-           return result;
+               //Move File to Remote Dir
+               tmpActionMsg = "Copying File to Remote directory";
+               File.Copy(localFile, destinationFile);
+
+               tmpActionMsg = "Action Completed";
+
+           }
+            catch (Exception ex)
+            {
+                result.ErrorException = ex;
+
+            }
+
+            result.ActionMessage = tmpActionMsg;
+            return result;
         }
 
 
@@ -41,10 +81,8 @@ namespace egrants_new.Integration.EmailRulesEngine
 
             var msgDetails = EmailActionModule.ExtractMessageDetails(Message, EmailRule);
 
-
-            string filename = repo.GetPlaceHolder();
-
-
+            string filename = repo.GetPlaceHolder(msgDetails);
+            filename = string.Join(".", filename, msgDetails.Filetype);
 
             return filename;
         }
@@ -77,7 +115,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         private string ExtractNotificationIDElement(string body)
         {
             string output = string.Empty;
-            var array = body.Split('Notification Id=');
+            //var array = body.Split('Notification Id=');
 
 
 
