@@ -48,7 +48,8 @@ Subject:	{msg.Subject}
 
 {msg.Body}";
                tmpActionMsg = "Getting eGrants Document Placeholder Filename";
-               string fileName = GetPlaceHolderFileName();
+                //string fileName = GetPlaceHolderFileName();
+               string fileName = string.Join(".", Guid.NewGuid().ToString(), "txt");
                string localPath = ConfigurationManager.AppSettings["EmailAttachmentTempFolder"];
                string localFile = Path.Combine(localPath, fileName);
                string destinationFile = Path.Combine(destinationPath, fileName);

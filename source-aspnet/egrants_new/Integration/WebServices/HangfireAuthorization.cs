@@ -20,7 +20,7 @@ namespace egrants_new.Integration.WebServices
             // is the part of the `Microsoft.Owin` package.
             var owinContext = new OwinContext(context.GetOwinEnvironment());
             //var userid = owinContext.Request.User.Identity.Name;
-            var userid = "shellba";//owinContext.Request.User.Identity.Name;
+
             //var userid = HttpApplication.Context.Request.ServerVariables["HEADER_SM_USER"];
             if (Users.Split(',').Contains(userid))
             {

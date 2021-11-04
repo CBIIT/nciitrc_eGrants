@@ -66,6 +66,10 @@ namespace egrants_new.Integration.Models
             EmailCreateSendNewEmailAction
         }
 
-
+        public enum SaveType
+        {
+            eRaWebServiceData,
+            MicrosoftGraphApi
+        }
     }
 }

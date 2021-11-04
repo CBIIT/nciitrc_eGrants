@@ -51,10 +51,16 @@ namespace egrants_new.Integration.WebServices
             if (!string.IsNullOrWhiteSpace(json))
             {
                 //First build data list
-                //var records =    JArray.Parse(json);
-                dynamic  result = JObject.Parse(json);
-                var records = result["value"];
-                //var records = JArray.Parse(emails);
+                JArray records = new JArray();// Only needed to resolve an intelisense/compiler warning
+                if (webService.SaveType == IntegrationEnums.SaveType.eRaWebServiceData)
+                {
+                    records =    JArray.Parse(json);
+                }
+                else if (webService.SaveType == IntegrationEnums.SaveType.MicrosoftGraphApi)
+                {
+                    dynamic result = JObject.Parse(json);
+                    records = result["value"];
+                }
 
                 //TODO:  If there are no records, then skip and update that the job ran and return
 

@@ -14,7 +14,8 @@ namespace egrants_new.Integration.WebServices
     {
         List<String> Errors { get; set; }
         WebServiceEndPoint WebService { get; set; }
-        WebServiceHistory GetData();
+        //WebServiceHistory GetData();
+        List<WebServiceHistory> GetData();
         void AddAuthentication(ref HttpWebRequest webRequest);
     }
 }

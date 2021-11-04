@@ -23,10 +23,14 @@ namespace egrants_new.Integration.WebServices
 
             foreach (var job in jobs)
             {
-                WebServiceHistory history;
+                //WebServiceHistory history;
 
-                history = job.GetData();
-                _repo.SaveData(history);
+                var histories = job.GetData();
+                foreach (var history in histories)
+                {
+                    _repo.SaveData(history);
+                }
+     
             }
         }
 

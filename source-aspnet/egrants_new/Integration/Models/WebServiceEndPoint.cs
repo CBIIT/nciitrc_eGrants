@@ -44,6 +44,16 @@ namespace egrants_new.Integration.Models
         public string CertificatePwd { get; set; }
         public string IntervalTimeSpan { get; set; }
 
+        public SaveType SaveType
+        {
+            get
+            {
+                return AuthenticationType == AuthenticationType.OAuth
+                    ? SaveType.MicrosoftGraphApi
+                    : SaveType.eRaWebServiceData;
+            }
+        }
+
         public WebServiceEndPoint()
         {
             NodeMappings = new List<WSNodeMapping>();

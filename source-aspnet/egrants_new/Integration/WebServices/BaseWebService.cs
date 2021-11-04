@@ -10,6 +10,7 @@ using System.Net;
 using System.Runtime.Remoting.Messaging;
 using System.Security.Cryptography.X509Certificates;
 using System.Web;
+using System.Web.Services.Description;
 using egrants_new.Integration.Models;
 
 namespace egrants_new.Integration.WebServices
@@ -23,8 +24,11 @@ namespace egrants_new.Integration.WebServices
         public WebServiceEndPoint WebService { get; set; }
         public List<string> Errors { get; set; }
 
-        public WebServiceHistory GetData()
+        public virtual List<WebServiceHistory> GetData()
         {
+
+            var output = new List<WebServiceHistory>();
+
             WebServiceHistory history = new WebServiceHistory
             {
                 WebService = WebService,
@@ -38,9 +42,6 @@ namespace egrants_new.Integration.WebServices
 
                 uriString = string.Join(@"?", uriString, PrepareQueryString());
                 history.EndpointUriSent = uriString;
-
-                uriString =
-                    "https://graph.microsoft.com/v1.0/me/messages?$filter=receivedDateTime+ge+2021-10-22T14:41:09Z";
 
                 var uri = new Uri(uriString);
 
@@ -78,7 +79,9 @@ namespace egrants_new.Integration.WebServices
             history.DateCompleted = DateTimeOffset.Now;
             history.UpdateEndpointSchedule();
 
-            return history;
+            output.Add(history);
+
+            return output;
         }
 
         public virtual void AddAuthentication(ref HttpWebRequest webRequest)
@@ -86,7 +89,7 @@ namespace egrants_new.Integration.WebServices
             throw new NotImplementedException();
         }
 
-        private string PrepareQueryString()
+        internal string PrepareQueryString()
         {
             string paramString = string.Empty;
 
@@ -103,7 +106,7 @@ namespace egrants_new.Integration.WebServices
             return paramString;
         }
 
-        private string EvaluateParamValue(string value)
+        internal string EvaluateParamValue(string value)
         {
             if (value.StartsWith("##"))
             {
@@ -146,10 +149,7 @@ namespace egrants_new.Integration.WebServices
                         break;
                 }
 
-                return value;
-            }
-
-            if (value.Contains("##"))
+            }else if (value.Contains("##"))
             {
                 if (value.Contains("##LastRun"))
                 {
@@ -182,6 +182,14 @@ namespace egrants_new.Integration.WebServices
                     //TODO: Implement later
                     //This would look up the last Id of a primary key and return that to be included in the query string dynamically
 
+                }
+
+                if (value.Contains("##ZLastRun"))
+                {
+                    var timeZone = TimeZone.CurrentTimeZone;
+                    var timeZoned = WebService.LastRun.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'");
+ 
+                value = value.Replace("##ZLastRun", timeZoned);
                 }
                 return value;
             }

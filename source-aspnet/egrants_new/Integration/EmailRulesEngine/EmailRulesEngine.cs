@@ -110,7 +110,6 @@ namespace egrants_new.Integration.EmailRulesEngine
                     result = fieldVal.StartsWith(criteria.EvalValue, StringComparison.CurrentCultureIgnoreCase);
 
                     break;
-
                 default:
                     break;
             }
@@ -130,7 +129,6 @@ namespace egrants_new.Integration.EmailRulesEngine
                 bool completedActions = _actionModule.PerformActions(msg,rule);
 
             }
-
 
         }
 
