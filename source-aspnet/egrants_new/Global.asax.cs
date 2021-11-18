@@ -29,25 +29,19 @@ namespace egrants_new
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Application["UsersOnline"] = 0;
-
             ViewEngines.Engines.Clear();
-
             ViewEngines.Engines.Add(new CustomRazorViewEngine());
-
             AreaRegistration.RegisterAllAreas();
-
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            //HangfireAspNet.Use(GetHangfireServers);
+            //var wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
+            //var notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
+            //var sqlNotifierTime = ConfigurationManager.AppSettings["SQLErrorCronExp"];
 
-            HangfireAspNet.Use(GetHangfireServers);
-            var wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
-            var notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
-            var sqlNotifierTime = ConfigurationManager.AppSettings["SQLErrorCronExp"];
-
-            //       /// Create the Background job
-//            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
-            //       RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
-            ////       RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
-
+            ////       /// Create the Background job
+            //RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+            //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
+            //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
             //var wsMgr = new WsScheduleManager();
 
             //wsMgr.StartScheduledJobs();
@@ -67,8 +61,6 @@ namespace egrants_new
         }
         private IEnumerable<IDisposable> GetHangfireServers()
         {
-            // Hangfire.
-
             string conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
 
             Hangfire.GlobalConfiguration.Configuration
@@ -97,33 +89,18 @@ namespace egrants_new
                     ic = "NCI";        //nci
                 }
 
-                //commen ted out by Leon at 7/31/2019
-                //if (userid == "wilburns" || userid == "agarwalraj" || userid == "canariaca" || userid == "silkensens" || userid == "hallettkl")
-                //{
-                //    ic = "nci";
-                //} 
-                //return ic;             
-
                 //check exception user and who's ic not as nci
-                if (ic !="nci" && ic != "NCI")
+                if (ic == "nci" || ic == "NCI") return ic;
+                int userexception = EgrantsCommon.CheckUsersException(userid);
+                if (userexception == 1)
                 {
-                    int userexception = EgrantsCommon.CheckUsersException(userid);
-                    if (userexception == 1)
-                    {
-                        ic = "nci";
-                    }
+                    ic = "nci";
                 }
                 return ic;
             }
         }
 
-        protected string BrowserType
-        {
-            get
-            {
-                return Request.Browser.Browser.ToString();
-            }
-        }
+        protected string BrowserType => Request.Browser.Browser.ToString();
 
         //This event is used to determine user permissions and give authorization rights to user. 
         protected void Application_AuthorizeRequest(Object sender, EventArgs e)
@@ -136,7 +113,7 @@ namespace egrants_new
             {
                 Response.Redirect("~/Shared/Views/egrants_default.htm");
             }
-        }     
+        }
 
         //This event raised for each time a new session begins, This is a good place to put code that is session-specific.
         protected void Session_Start(object sender, EventArgs e)
@@ -148,7 +125,7 @@ namespace egrants_new
             Session["ic"] = IC;
             Session["browser"] = BrowserType;
 
-            check_user_type();      
+            check_user_type();
         }
 
         protected void check_user_type()
@@ -168,9 +145,11 @@ namespace egrants_new
         protected void check_user_validation(string usertype)
         {
             //set all profiles for user
-            IEnumerable<Models.EgrantsCommon.User> users = Models.EgrantsCommon.uservar(Convert.ToString(Session["userid"]), Convert.ToString(Session["ic"]), usertype);
+            IEnumerable<Models.EgrantsCommon.User> users =
+                Models.EgrantsCommon.uservar(Convert.ToString(Session["userid"]), Convert.ToString(Session["ic"]),
+                    usertype);
             foreach (var usr in users)
-            {                
+            {
                 Session.Add("Validation", usr.Validation);
                 Session.Add("userid", usr.UserId);
                 Session.Add("ic", usr.ic);

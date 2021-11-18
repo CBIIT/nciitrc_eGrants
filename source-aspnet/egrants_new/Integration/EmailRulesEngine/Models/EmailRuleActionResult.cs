@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
-namespace egrants_new.Integration.EmailRulesEngine
+
+namespace egrants_new.Integration.EmailRulesEngine.Models
+
 {
     public class EmailRuleActionResult
     {
+        public int MessageId { get; set; }
         public int ActionId { get; set; }
         public int RuleId { get; set; }
         public bool Successful { get; set; }
@@ -14,5 +14,8 @@ namespace egrants_new.Integration.EmailRulesEngine
         public bool ActionCompleted { get; set; }
         public string ActionMessage { get; set; }
         public Exception ErrorException { get; set; }
+        public string ExceptionText { get; set; }
+        public string ActionDataPassed { get; set; }
+        public DateTimeOffset CreatedDate { get; set; }
     }
 }

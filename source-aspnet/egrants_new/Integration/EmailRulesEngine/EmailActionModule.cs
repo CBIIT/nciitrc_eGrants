@@ -5,6 +5,7 @@ using System.Net.Configuration;
 using System.Web;
 using egrants_new.Integration.Models;
 using Hangfire.Server;
+using egrants_new.Integration.EmailRulesEngine.Models;
 
 namespace egrants_new.Integration.EmailRulesEngine
 {
@@ -20,7 +21,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        public bool PerformActions(EmailMessage msg, EmailRule rule)
+        public bool PerformActions(EmailMsg msg, EmailRule rule)
         {
             bool allActionsCompleted = true;
 
@@ -84,7 +85,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        public static ExtractedMessageDetails ExtractMessageDetails(EmailMessage msg, EmailRule rule)
+        public static ExtractedMessageDetails ExtractMessageDetails(EmailMsg msg, EmailRule rule)
         {
             var outputDetails = new ExtractedMessageDetails();
 

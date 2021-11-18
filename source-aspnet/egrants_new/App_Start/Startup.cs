@@ -11,55 +11,60 @@ using Hangfire;
 using Hangfire.SqlServer;
 using egrants_new;
 using Hangfire.Dashboard;
+using System.Runtime.Remoting.Contexts;
 
-namespace egrants_new { }
-//{
-//    public class Startup
-//    {
-//        private IEnumerable<IDisposable> GetHangfireServers()
-//        {
-//            string conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
-//            GlobalConfiguration.Configuration
-//                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-//                .UseSimpleAssemblyNameTypeSerializer()
-//                .UseRecommendedSerializerSettings()
-//                .UseSqlServerStorage(conx, new SqlServerStorageOptions
-//                {
-//                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-//                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-//                    QueuePollInterval = TimeSpan.Zero,
-//                    UseRecommendedIsolationLevel = true,
-//                    DisableGlobalLocks = true
-//                });
+[assembly: OwinStartup(typeof(egrants_new.Startup))]
 
-//            yield return new BackgroundJobServer();
-//        }
+namespace egrants_new
+{
+    public partial class Startup
+    {
 
+       // var owinContext = new OwinContext(context.GetOwinEnvironment());
+                //private IEnumerable<IDisposable> GetHangfireServers()
+                //{
+                //    string conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
+                //    GlobalConfiguration.Configuration
+                //        .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                //        .UseSimpleAssemblyNameTypeSerializer()
+                //        .UseRecommendedSerializerSettings()
+                //        .UseSqlServerStorage(conx, new SqlServerStorageOptions
+                //        {
+                //            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                //            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                //            QueuePollInterval = TimeSpan.Zero,
+                //            UseRecommendedIsolationLevel = true,
+                //            DisableGlobalLocks = true
+                //        });
 
-
-//        public void Configuration(IAppBuilder app)
-//        {
-//            app.UseHangfireAspNet(GetHangfireServers);
-//            var options = new DashboardOptions
-//            {
-//                Authorization = new[]
-//                {
-//                    new HangfireAuthorization { Users = "shellba"}
-//                }
-//            };
-
-//            app.UseHangfireDashboard("/hangfire",options);
+                //    yield return new BackgroundJobServer();
+                //}
 
 
-//            string wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
-//            string notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
 
-//            // Create the Background job
-//            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(),wsCronExp);
-//            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(),notifierCronExp);
+                //public void Configuration(IAppBuilder app)
+                //{
+                //    app.UseHangfireAspNet(GetHangfireServers);
+                //    var options = new DashboardOptions
+                //    {
+                //        Authorization = new[]
+                //        {
+                //            new Hangfire.AuthorizationFilter { Users = "shellba"}
+                //        }
+                //    };
 
-//        }
+                //    app.UseHangfireDashboard("/hangfire", options);
 
 
-//    }
+                //    string wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
+                //    string notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
 
+                //    // Create the Background job
+                //    RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+                //    RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
+
+                //}
+
+
+    }
+}

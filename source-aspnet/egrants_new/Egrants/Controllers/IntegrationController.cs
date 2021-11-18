@@ -1,35 +1,13 @@
-﻿using Microsoft.Identity.Client;
+﻿
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.OpenIdConnect;
-using System;
-using System.Configuration;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using egrants_new.Egrants.Builders;
 using egrants_new.Egrants.Models;
 using egrants_new.Integration.EmailRulesEngine;
-using egrants_new.Integration.Models;
 using egrants_new.Integration.WebServices;
-using Microsoft.Owin.Security;
-//using Microsoft.Owin.Security.Cookies;
-//using Microsoft.Owin.Security.OpenIdConnect;
-using System.Security.Claims;
-using System.Web;
-using System.Web.Mvc;
-using Microsoft.Owin.Security.OpenIdConnect;
 using Microsoft.Owin.Security.Cookies;
 //using egrants_new.Integration.WebServices.SessionTokenStorage;
 
@@ -134,8 +112,6 @@ namespace egrants_new.Egrants.Controllers
             return RedirectToAction("Index", "Integration");
         }
 
-
-
         //public async Task<ActionResult> ReadMail()
         //{
         //    IConfidentialClientApplication app = MsalAppBuilder.BuildConfidentialClientApplication();
@@ -172,7 +148,6 @@ namespace egrants_new.Egrants.Controllers
 
         //    return View();
         //}
-
 
     }
 }

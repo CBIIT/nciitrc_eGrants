@@ -5,7 +5,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Web;
 using System.Reflection;
 using System.Web.Services.Description;
-using egrants_new.Integration.EmailRulesEngine;
+using egrants_new.Integration.EmailRulesEngine.Models;
 using egrants_new.Integration.Models;
 
 namespace egrants_new.Integration.EmailRulesEngine
@@ -67,13 +67,13 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        private List<EmailMessage> LoadMessages(EmailRule rule)
+        private List<EmailMsg> LoadMessages(EmailRule rule)
         {
             return _repo.GetEmailMessages(rule);
         }
 
 
-        private bool EvaluateCriteria(EmailMessage msg, EmailRuleCriteria criteria)
+        private bool EvaluateCriteria(EmailMsg msg, EmailRuleCriteria criteria)
         {
             PropertyInfo[] properties = msg.GetType().GetProperties();
             PropertyInfo fieldToEval = properties.FirstOrDefault(p => p.Name.ToLower() == criteria.FieldToEval.ToLower());

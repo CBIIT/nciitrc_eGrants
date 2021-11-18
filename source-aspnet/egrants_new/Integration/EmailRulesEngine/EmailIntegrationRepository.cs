@@ -19,7 +19,7 @@ using System.Xml.Linq;
 using egrants_new.Integration.Models;
 using egrants_new.Integration.Shared;
 using egrants_new.Integration.WebServices;
-using egrants_new.Integration.EmailRulesEngine;
+using egrants_new.Integration.EmailRulesEngine.Models;
 using Newtonsoft.Json.Linq;
 
 namespace egrants_new.Integration.EmailRulesEngine
@@ -41,13 +41,43 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public void SaveActionResult(EmailRuleActionResult result)
         {
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("sp_email_save_actionresult", conn)
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                        };
 
+                    cmd.Parameters.Add("@emailruleid", SqlDbType.Int).Value = result.RuleId;
+                    cmd.Parameters.Add("@EmailMessageid", SqlDbType.Int).Value = result.MessageId;
+                    cmd.Parameters.Add("@actionid", SqlDbType.Int).Value = result.ActionId;
+                    cmd.Parameters.Add("@actioncompleted", SqlDbType.Bit).Value = result.ActionCompleted;
+                    cmd.Parameters.Add("@successful", SqlDbType.Bit).Value = result.Successful;
+                    cmd.Parameters.Add("@actionmessage", SqlDbType.VarChar).Value = result.ActionMessage;
+                    cmd.Parameters.Add("@actionstarted", SqlDbType.Bit).Value = result.ActionStarted;
+                    cmd.Parameters.Add("@errorexception", SqlDbType.VarChar).Value = result.ErrorException.ToString();
+                    cmd.Parameters.Add("@createdate", SqlDbType.DateTimeOffset).Value = result.CreatedDate;
+                    cmd.Parameters.Add("@actiondata", SqlDbType.VarChar).Value = result.ActionDataPassed;
+                    conn.Open();
+
+                    cmd.ExecuteNonQuery();
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+
+            }
 
 
         }
 
 
-        public void SaveRuleMatch(EmailMessage msg, EmailRule rule, bool matched)
+        public void SaveRuleMatch(EmailMsg msg, EmailRule rule, bool matched)
         {
 
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
@@ -61,10 +91,10 @@ namespace egrants_new.Integration.EmailRulesEngine
                         };
 
                     cmd.Parameters.Add("@emailruleid", SqlDbType.Int).Value = rule.Id;
-                    cmd.Parameters.Add("@emailmessageid", SqlDbType.VarChar).Value = msg.Id;
+                    cmd.Parameters.Add("@EmailMessageid", SqlDbType.VarChar).Value = msg.Id;
                     cmd.Parameters.Add("@createddate", SqlDbType.DateTime).Value = DateTime.Now.ToShortTimeString();
                     cmd.Parameters.Add("@actionscompleted", SqlDbType.Bit).Value = 0;
-                    cmd.Parameters.Add("@matched", SqlDbType.Bit).Value = matched ? 1:0 ;
+                    cmd.Parameters.Add("@matched", SqlDbType.Bit).Value = matched ? 1 : 0;
 
                     conn.Open();
 
@@ -72,7 +102,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                     while (dr.Read())
                     {
-                        var obj = new EmailMessage();
+                        var obj = new EmailMsg();
                         SqlHelper.MapDataToObject(obj, dr);
                     }
 
@@ -85,9 +115,9 @@ namespace egrants_new.Integration.EmailRulesEngine
             }
         }
 
-        public List<EmailMessage> GetEmailMessages(EmailRule rule)
+        public List<EmailMsg> GetEmailMessages(EmailRule rule)
         {
-            var output = new List<EmailMessage>();
+            var output = new List<EmailMsg>();
 
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
             {
@@ -98,14 +128,14 @@ namespace egrants_new.Integration.EmailRulesEngine
                         {
                             CommandType = CommandType.StoredProcedure,
                         };
-                     cmd.Parameters.Add("@ruleid", SqlDbType.Int).Value = rule.Id;
+                    cmd.Parameters.Add("@ruleid", SqlDbType.Int).Value = rule.Id;
                     conn.Open();
 
                     SqlDataReader dr = cmd.ExecuteReader();
 
                     while (dr.Read())
                     {
-                        var obj = new EmailMessage();
+                        var obj = new EmailMsg();
                         SqlHelper.MapDataToObject(obj, dr);
                         output.Add(obj);
                     }
@@ -120,9 +150,9 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         }
 
-        public EmailMessage GetEmailMessage(int messageId)
+        public EmailMsg GetEmailMessage(int messageId)
         {
-            EmailMessage output = null; // = new EmailMessage();
+            EmailMsg output = null; // = new EmailMessage();
 
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
             {
@@ -140,7 +170,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                     while (dr.Read())
                     {
-                        var obj = new EmailMessage();
+                        var obj = new EmailMsg();
                         SqlHelper.MapDataToObject(obj, dr);
                         output = obj;
                     }
@@ -319,7 +349,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        public string GetPlaceHolder( ExtractedMessageDetails details)
+        public string GetPlaceHolder(ExtractedMessageDetails details)
         {
             string output = string.Empty;
 
@@ -347,7 +377,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                     while (dr.Read())
                     {
-                        output = (string) dr["ABC"];
+                        output = (string)dr["ABC"];
                     }
 
                 }

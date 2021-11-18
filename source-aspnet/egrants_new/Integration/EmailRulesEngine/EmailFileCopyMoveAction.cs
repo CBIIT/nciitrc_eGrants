@@ -7,6 +7,8 @@ using System.Runtime.Remoting.Messaging;
 using System.Web;
 using System.Threading.Tasks;
 using System.Configuration;
+using egrants_new.Integration.EmailRulesEngine.Models;
+
 
 namespace egrants_new.Integration.EmailRulesEngine
 {
@@ -14,7 +16,8 @@ namespace egrants_new.Integration.EmailRulesEngine
     {
         public EmailRule EmailRule { get; set; }
         public EmailRuleAction Action { get; set; }
-        public EmailMessage Message { get; set; }
+        public EmailMsg Message { get; set; }
+        public string ActionData { get; set; }
 
         public EmailFileCopyMoveAction(EmailRule rule, EmailRuleAction action)
         {
@@ -22,7 +25,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             Action = action;
         }
 
-        public EmailRuleActionResult DoAction(EmailMessage msg)
+        public EmailRuleActionResult DoAction(EmailMsg msg)
         {
             Message = msg;
             string tmpActionMsg = "Action Initialized";
@@ -126,96 +129,4 @@ Subject:	{msg.Subject}
 
 
     }
-
-    public class EmailForwardAction : IEmailAction
-    {
-        public EmailRule EmailRule { get; set; }
-        public EmailRuleAction Action { get; set; }
-
-        public EmailForwardAction(EmailRule rule, EmailRuleAction action)
-        {
-            EmailRule = rule;
-            Action = action;
-        }
-
-        public EmailRuleActionResult DoAction(EmailMessage msg)
-        {
-            var result = new EmailRuleActionResult();
-            //SaveAttachmentAndFileMoveCopy
-            var filePath = Action.TargetValue;
-
-
-            return result;
-        }
-    }
-
-    public class EmailCreateTextFileAction : IEmailAction
-    {
-        public EmailRule EmailRule { get; set; }
-        public EmailRuleAction Action { get; set; }
-
-        public EmailCreateTextFileAction(EmailRule rule, EmailRuleAction action)
-        {
-            EmailRule = rule;
-            Action = action;
-        }
-
-
-        public EmailRuleActionResult DoAction(EmailMessage msg)
-        {
-            var result = new EmailRuleActionResult();
-            //SaveAttachmentAndFileMoveCopy
-            var filePath = Action.TargetValue;
-
-
-            return result;
-        }
-    }
-
-    public class EmailCreatePdfAction : IEmailAction
-    {
-        public EmailRule EmailRule { get; set; }
-        public EmailRuleAction Action { get; set; }
-
-        public EmailCreatePdfAction(EmailRule rule, EmailRuleAction action)
-        {
-            EmailRule = rule;
-            Action = action;
-        }
-
-
-        public EmailRuleActionResult DoAction(EmailMessage msg)
-        {
-            var result = new EmailRuleActionResult();
-            //SaveAttachmentAndFileMoveCopy
-            var filePath = Action.TargetValue;
-
-
-            return result;
-        }
-    }
-    
-    public class EmailCreateSendNewEmailAction : IEmailAction
-    {
-        public EmailRule EmailRule { get; set; }
-        public EmailRuleAction Action { get; set; }
-
-        public EmailCreateSendNewEmailAction(EmailRule rule, EmailRuleAction action)
-        {
-            EmailRule = rule;
-            Action = action;
-        }
-
-
-        public EmailRuleActionResult DoAction(EmailMessage msg)
-        {
-            var result = new EmailRuleActionResult();
-            //SaveAttachmentAndFileMoveCopy
-            var filePath = Action.TargetValue;
-
-
-            return result;
-        }
-    }
-
 }

@@ -15,13 +15,16 @@ using Microsoft.Identity.Client;
 using egrants_new.Integration.Models;
 using Hangfire.Dashboard.Resources;
 using Newtonsoft.Json.Linq;
+using Microsoft.Exchange.WebServices;
+using Microsoft.Exchange.WebServices.Auth;
+using Microsoft.Exchange.WebServices.Data;
 
 namespace egrants_new.Integration.WebServices
 {
-    public class MicrosoftGraphOAuthService : BaseWebService
+    public class EwsClient : BaseWebService
     {
 
-        public MicrosoftGraphOAuthService(WebServiceEndPoint ws) : base(ws)
+        public EwsClient(WebServiceEndPoint ws) : base(ws)
         {
             base.WebService.AuthenticationType = IntegrationEnums.AuthenticationType.OAuth;
         }
@@ -46,32 +49,11 @@ namespace egrants_new.Integration.WebServices
 
                 try
                 {
-                    HttpWebRequest webServiceRequest = (HttpWebRequest)WebRequest.Create(nextUri);
-                    webServiceRequest.Method = WebService.WebRequestMethod;
-                    webServiceRequest.Accept = WebService.AcceptsHeader;
-                    webServiceRequest.AllowAutoRedirect = WebService.AllowRedirect;
-                    webServiceRequest.KeepAlive = WebService.KeepAlive;
+                    ConnectExchange();
 
-                    if (WebService.Timeout > 0)
-                    {
-                        webServiceRequest.Timeout = WebService.Timeout;
-                    }
 
-                    AddAuthentication(ref webServiceRequest);
-                    nextUri = ""; //Clear out in case of exception,  it will cause an infinite loop
 
-                    var response = (HttpWebResponse)webServiceRequest.GetResponse();
-                    Stream stream = response.GetResponseStream();
-                    if (stream != null)
-                    {
-                        result = new StreamReader(stream).ReadToEnd();
-                    }
-
-                    //Check for More
-                    var graphResults = JObject.Parse(result);
-                    nextUri = (string)graphResults["@odata.nextLink"];
-
-                    history.ResultStatusCode = response.StatusCode;
+                    //history.ResultStatusCode = response.StatusCode;
                     history.Result = result;
                 }
                 catch (WebException ex)
@@ -92,7 +74,7 @@ namespace egrants_new.Integration.WebServices
         }
 
 
-         public void AddAuthentication(ref HttpWebRequest webRequest)
+        public void AddAuthentication(ref HttpWebRequest webRequest)
         {
             if (WebService.AuthenticationType == IntegrationEnums.AuthenticationType.OAuth)
             {
@@ -100,7 +82,7 @@ namespace egrants_new.Integration.WebServices
                 var tenantId = ConfigurationManager.AppSettings["MSGraphTenantId"];
                 var clientSecret = ConfigurationManager.AppSettings["MSGraphSecret"];
                 var clientAppId = ConfigurationManager.AppSettings["clientiduri"];
-                IConfidentialClientApplication confidentialClientApp =  ConfidentialClientApplicationBuilder.Create(clientId)
+                IConfidentialClientApplication confidentialClientApp = ConfidentialClientApplicationBuilder.Create(clientId)
                     .WithClientSecret(clientSecret)
                     .WithAuthority(AadAuthorityAudience.AzureAdMyOrg, true)
                     .WithTenantId(tenantId)
@@ -111,7 +93,7 @@ namespace egrants_new.Integration.WebServices
                     securestring.AppendChar(c);
                 }
 
-                IEnumerable<string> scope = new string[] {string.Concat(clientAppId , "/.default")};
+                IEnumerable<string> scope = new string[] { string.Concat(clientAppId, "/.default") };
 
                 var token = confidentialClientApp
                     .AcquireTokenForClient(scope)
@@ -152,6 +134,52 @@ namespace egrants_new.Integration.WebServices
                 throw new Exception("Something went wrong.  Authentication not set.");
             }
         }
+
+
+        private void ConnectExchange()
+        {
+
+            var serverURI = new Uri("https://mail.nih.gov/ews/exchange.asmx");
+            var exch = new Microsoft.Exchange.WebServices.Data.ExchangeService();
+            exch.Url = serverURI;
+            exch.UseDefaultCredentials = false;
+            exch.Credentials = new System.Net.NetworkCredential("shellba", "XOdark9922144!@","NIH");
+            // or to impersonate a network account use: 
+            // var netCredential  =  Net.NetworkCredential = Net.CredentialCache.DefaultNetworkCredentials
+            // exch.Credentials = netCredential
+            var folderVw = new FolderView(999)
+            {
+                Traversal = FolderTraversal.Deep
+            };
+            //folderVw.Traversal = FolderTraversal.Deep;
+            //var deletedItems = FindItemsResults(Of Item) = Nothing
+
+            var info = exch.ServerInfo;
+
+            var msg = new EmailMessage(exch)
+            {
+                From = "benny.shell@nih.gov",
+                Subject = "Testing Email",
+                Body = "This a testing message",
+            };
+            msg.ToRecipients.Add("benny.shell@nih.gov");
+
+            msg.From = "benny.shell@nih.gov";
+            msg.ToRecipients.Add("benny.shell@nih.gov");
+            msg.Subject = "Testing Email";
+            msg.Body = "This a testing message";
+            msg.SendAndSaveCopy(WellKnownFolderName.SentItems);
+            var inbox = exch.FindItems(WellKnownFolderName.Inbox, folderVw);
+            foreach (var item in inbox)
+            {
+                var subject = item.Subject;
+            }
+
+         }
+
+
+
+
     }
 
 }
