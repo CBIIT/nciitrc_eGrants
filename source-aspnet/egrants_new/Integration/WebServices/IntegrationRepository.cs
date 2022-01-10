@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using egrants_new.Integration.Models;
 using egrants_new.Integration.Shared;
+using egrants_new.Integration.Shared;
 using Newtonsoft.Json.Linq;
 
 namespace egrants_new.Integration.WebServices
@@ -400,7 +401,7 @@ namespace egrants_new.Integration.WebServices
                             break;
                         case IntegrationEnums.AuthenticationType.OAuth:
                             //ws = new MicrosoftGraphOAuthService(ep);
-                            ws= new EwsClient(ep);
+                            ws= new MicrosoftGraphOAuthService(ep);
                             
                             break;
                         default:
