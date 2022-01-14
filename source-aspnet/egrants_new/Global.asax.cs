@@ -33,18 +33,18 @@ namespace egrants_new
             ViewEngines.Engines.Add(new CustomRazorViewEngine());
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
-            //HangfireAspNet.Use(GetHangfireServers);
-            //var wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
-            //var notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
-            //var sqlNotifierTime = ConfigurationManager.AppSettings["SQLErrorCronExp"];
+            HangfireAspNet.Use(GetHangfireServers);
+            var wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
+            var notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
+            var sqlNotifierTime = ConfigurationManager.AppSettings["SQLErrorCronExp"];
 
-            ////       /// Create the Background job
-            //RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+            //       /// Create the Background job
+            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
             //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
             //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
-            //var wsMgr = new WsScheduleManager();
+            var wsMgr = new WsScheduleManager();
 
-            //wsMgr.StartScheduledJobs();
+            wsMgr.StartScheduledJobs();
         }
 
         protected string UserID

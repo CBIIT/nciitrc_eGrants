@@ -400,7 +400,6 @@ namespace egrants_new.Integration.WebServices
                             throw new Exception("User Password Auth Type Not Implemented");
                             break;
                         case IntegrationEnums.AuthenticationType.OAuth:
-                            //ws = new MicrosoftGraphOAuthService(ep);
                             ws= new MicrosoftGraphOAuthService(ep);
                             
                             break;

@@ -10,11 +10,14 @@ using System.Net;
 using System.Runtime.Remoting.Messaging;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Identity.Client;
 using egrants_new.Integration.Models;
 using Hangfire.Dashboard.Resources;
 using Newtonsoft.Json.Linq;
+using System.Security;
+using System.Text;
 
 namespace egrants_new.Integration.WebServices
 {
@@ -92,66 +95,61 @@ namespace egrants_new.Integration.WebServices
         }
 
 
-         public void AddAuthentication(ref HttpWebRequest webRequest)
+        public override void AddAuthentication(ref HttpWebRequest webRequest)
         {
-            if (WebService.AuthenticationType == IntegrationEnums.AuthenticationType.OAuth)
+            var tokenValue = GetAuthToken().Result;
+
+            if (tokenValue != null)
             {
-                var clientId = ConfigurationManager.AppSettings["MSGraphClientId"];
-                var tenantId = ConfigurationManager.AppSettings["MSGraphTenantId"];
-                var clientSecret = ConfigurationManager.AppSettings["MSGraphSecret"];
-                var clientAppId = ConfigurationManager.AppSettings["clientiduri"];
-                IConfidentialClientApplication confidentialClientApp =  ConfidentialClientApplicationBuilder.Create(clientId)
-                    .WithClientSecret(clientSecret)
-                    .WithAuthority(AadAuthorityAudience.AzureAdMyOrg, true)
-                    .WithTenantId(tenantId)
-                    .Build();
-                var securestring = new System.Security.SecureString();//"XOdark9922144!@".ToCharArray(), 15);
-                foreach (char c in "XOdark9922144!@".ToCharArray())
-                {
-                    securestring.AppendChar(c);
-                }
-
-                IEnumerable<string> scope = new string[] {string.Concat(clientAppId , "/.default")};
-
-                var token = confidentialClientApp
-                    .AcquireTokenForClient(scope)
-                    .WithForceRefresh(true)
-                    .ExecuteAsync();
-
-                //var oAuthTokenBuilder = publicClientApp.AcquireTokenSilent(scopes, accounts.FirstOrDefault());
-
-                var oAuthToken = token.Result;
-
-                //token.
-
-
-                //string oAuthToken = ConfigurationManager.AppSettings["MicrosoftGraphToken"];
-                //string oAuthToken = ConfigurationManager.AppSettings[WebService.CertificatePath];
-
-                if (!string.IsNullOrWhiteSpace(oAuthToken.AccessToken))
-                {
-                    try
-                    {
-
-                        webRequest.PreAuthenticate = true;
-                        webRequest.Headers.Add("Authorization", "Bearer " + token);
-                        webRequest.Accept = "application/json";
-                    }
-                    catch
-                    {
-                        throw new Exception("Token Authorization Failed");
-                    }
-                }
-                else
-                {
-                    throw new Exception("The authentication token was not found");
-                }
+                webRequest.PreAuthenticate = true;
+                webRequest.Headers.Add("Authorization", "Bearer " + tokenValue);
+//                webRequest.Accept = "application/json";
             }
+
             else
             {
                 throw new Exception("Something went wrong.  Authentication not set.");
             }
         }
+
+
+        public async Task<string> GetAuthToken()
+        {
+            string resultOut = string.Empty;
+            var clientId = ConfigurationManager.AppSettings["MSGraphClientId"];
+            var tenantId = ConfigurationManager.AppSettings["MSGraphTenantId"];
+            var clientSecret = ConfigurationManager.AppSettings["MSGraphSecret"];
+            //var clientAppId = ConfigurationManager.AppSettings["MSGraphClientIdUri"];
+            //var apiUserId = ConfigurationManager.AppSettings["MSGraphUserId"];
+            //var apiUserPwd = ConfigurationManager.AppSettings["MSGraphUserPwd"];
+            var apiScope = ConfigurationManager.AppSettings["MSGraphScopes"];
+
+            var baseUri = "https://login.microsoftonline.com";
+            var reqUri = $"/{tenantId}/oauth2/v2.0/token";
+
+            var content = new FormUrlEncodedContent(new[]
+            {
+                    new KeyValuePair<string, string>("client_id", clientId),
+                    new KeyValuePair<string, string>("scope", apiScope ),
+                    new KeyValuePair<string, string>("client_secret", clientSecret),
+                    new KeyValuePair<string, string>("grant_type", "client_credentials")
+                });
+
+            //            byte[] byteArray = Encoding.UTF8.GetBytes(content.ToString());
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new Uri(baseUri);
+                var result = await httpClient.PostAsync(reqUri, content);
+                resultOut = await result.Content.ReadAsStringAsync();
+            }
+
+            var authResults = JObject.Parse(resultOut);
+            var token = (string)authResults["access_token"];
+
+            return token;
+        }
+
     }
 
 }

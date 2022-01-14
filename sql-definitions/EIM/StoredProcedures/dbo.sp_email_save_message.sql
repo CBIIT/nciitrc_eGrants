@@ -1,6 +1,8 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
 
+
+
 /*
 		cmd.Parameters.Refresh
 		cmd.Parameters(1).Value=CItem.ReceivedTime
@@ -15,23 +17,23 @@ SET QUOTED_IDENTIFIER ON
 		cmd.Parameters(10).Value=CItem.HTMLBody
 */
 
-CREATE   procedure dbo.sp_email_save_message
-		@ReceivedTime varchar(30), 
+CREATE   Procedure [dbo].[sp_email_save_message]
+		@ReceivedTime varchar(255), 
 		@To varchar(255),
-		@Recipients varchar(255),
+--		@Recipients varchar(255),
 		@SenderEmailAddress varchar(255),
-		@CC varchar(255),
+--		@CC varchar(255),
 		@Subject varchar(255),
-		@BodyFormat varchar(255),
-		@Body varchar(max),
-		@HTMLBody varchar(max),
-		@HasAttachments varchar(10)
+		@BodyFormat int,
+		@Body varchar(MAX),
+		@HTMLBody varchar(MAX),
+		@HasAttachments int
 as 
 BEGIN
 
 Declare @bitAttachments bit = 0
 
-If @HasAttachments = 'true' 
+If @HasAttachments > 0-- 'true' 
  set @bitAttachments = 1 
 
 
@@ -50,14 +52,15 @@ INSERT INTO EmailMessages
       ,[IsRead]
       ,[Body]
       ,[EmailFrom]
-      ,[ToRecipients]
-      ,[CcRecipients])
+	  ,[Sender]
+      ,[ToRecipients])
+--      ,[CcRecipients])
 
 	  VALUES
 	  (1
       ,'xxx'
       ,@ReceivedTime
-      ,null
+      ,GETDATE()
       ,@ReceivedTime
       ,''
       ,@bitAttachments
@@ -68,10 +71,11 @@ INSERT INTO EmailMessages
       ,null
       ,@Body
       ,@SenderEmailAddress
-      ,@To
-      ,@CC)
+	  ,@SenderEmailAddress
+       ,@To)
+--      ,@CC)
 
-	  Select @@IDENTITY
+--	  Select @@IDENTITY 
 END
 
 

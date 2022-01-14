@@ -66,14 +66,7 @@
     <add key="owin:AutomaticAppStartup" value="false"/>
     <add key="WSClientCertPath" value="C:\cert\2020\EGRANTS-WEB-DEV_NCI_NIH_GOV.pfx"/>
     <add key="WSClientCertPwd" value="g@b123"/>
-	<!--Mail Integration Credentials -->
-	<add key ="MSGraphClientId"  value="b1764bef-3b64-4544-941b-4e38657ecb61" />
-	<add key="MSGraphTenantId" value="14b77578-9773-42d5-8507-251ca2dc2b06"/>
-	<add key="MSGraphSecret" value="5GR7Q~4yRrQ6yl6VtTjlBpEd2mbLreCcXZ8EM"/>
-    <add key="MSGraphScopes" value="https://graph.microsoft.com/.default"/>
-	<add key ="MSGraphUserId" value="shellba@nih.gov"/>
-
-</appSettings>
+  </appSettings>
 
 	<system.web>
 		<compilation debug="true" targetFramework="4.5.2" />
