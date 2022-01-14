@@ -67,7 +67,7 @@ namespace egrants_new.Integration.WebServices
         }
 
 
-        public void GenerateSQLJobErrorMessage()
+        public void GenerateSqlJobErrorMessage()
         {
 
             var config = ConfigurationManager.AppSettings;
