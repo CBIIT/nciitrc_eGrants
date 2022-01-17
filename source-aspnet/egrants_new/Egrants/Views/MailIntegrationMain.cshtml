@@ -27,8 +27,32 @@
 <div id="main">
     <!--start main-->
     <div id="caption"><b id="page_title">Integration Page</b></div>
-    @Html.ActionLink("Click here to sign in", "SignIn", "Integration", new { area = "" }, new { @class = "btn btn-primary btn-large" })
+ 
 
     <div>@Model.Result</div>
+
+
+    <div id="MailboxView">
+        <h2>Mailbox View</h2>
+        <div>
+            <table id="MailMessages">
+                <thead>
+                    <th>Date</th>
+                    <th>To</th>
+                    <th>From</th>
+                    <th>Subject</th>
+                    <th>Snippet</th>
+                    <th>Important</th>
+                </thead>
+                @foreach(
+            </table>
+
+
+        </div>
+        </div>
+
+
+
+
 
 </div>

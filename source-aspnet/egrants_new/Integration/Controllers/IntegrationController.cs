@@ -47,11 +47,16 @@ namespace egrants_new.Integration.Controllers
         private void CallWebService(int webServiceId)
         {
             IntegrationRepository repo = new IntegrationRepository();
-            WebServiceHistory history = new WebServiceHistory();
+            //WebServiceHistory history = new WebServiceHistory();
 
             var ws = repo.GetEgrantWebService(webServiceId);
-            history = ws.GetData();
+            var histories = ws.GetData();
+
+            foreach( var history in histories)
+            {
             repo.SaveData(history);
+            }
+
 
         }
 
