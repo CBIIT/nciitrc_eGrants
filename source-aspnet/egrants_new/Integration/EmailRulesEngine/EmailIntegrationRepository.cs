@@ -38,8 +38,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-
-        public void SaveActionResult(EmailRuleActionResult result)
+        public void SaveRule(EmailRule emailRule)
         {
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
             {
@@ -51,16 +50,63 @@ namespace egrants_new.Integration.EmailRulesEngine
                             CommandType = CommandType.StoredProcedure,
                         };
 
+                    //cmd.Parameters.Add("@emailruleid", SqlDbType.Int).Value = .RuleId;
+                    //cmd.Parameters.Add("@EmailMessageid", SqlDbType.Int).Value = result.MessageId;
+                    //cmd.Parameters.Add("@actionid", SqlDbType.Int).Value = result.ActionId;
+                    //cmd.Parameters.Add("@actioncompleted", SqlDbType.Bit).Value = result.ActionCompleted;
+                    //cmd.Parameters.Add("@successful", SqlDbType.Bit).Value = result.Successful;
+                    //cmd.Parameters.Add("@actionmessage", SqlDbType.VarChar).Value = result.ActionMessage;
+                    //cmd.Parameters.Add("@actionstarted", SqlDbType.Bit).Value = result.ActionStarted;
+                    //cmd.Parameters.Add("@errorexception", SqlDbType.VarChar).Value = result.ErrorException.ToString();
+                    //cmd.Parameters.Add("@createdate", SqlDbType.DateTimeOffset).Value = result.CreatedDate;
+                    //cmd.Parameters.Add("@actiondata", SqlDbType.VarChar).Value = result.ActionDataPassed;
+                    //conn.Open();
+
+                    cmd.ExecuteNonQuery();
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+
+            }
+
+
+        }
+
+
+
+        public void SaveActionResult(EmailRuleActionResult result)
+        {
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("sp_email_save_actionresult", conn)
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                        };
+
+                    string exceptionMessage = string.Empty;
+
+                    if (result.ErrorException != null)
+                    {
+                        exceptionMessage = result.ErrorException.Message;
+                    }
+
                     cmd.Parameters.Add("@emailruleid", SqlDbType.Int).Value = result.RuleId;
                     cmd.Parameters.Add("@EmailMessageid", SqlDbType.Int).Value = result.MessageId;
                     cmd.Parameters.Add("@actionid", SqlDbType.Int).Value = result.ActionId;
                     cmd.Parameters.Add("@actioncompleted", SqlDbType.Bit).Value = result.ActionCompleted;
                     cmd.Parameters.Add("@successful", SqlDbType.Bit).Value = result.Successful;
-                    cmd.Parameters.Add("@actionmessage", SqlDbType.VarChar).Value = result.ActionMessage;
+                    cmd.Parameters.Add("@actionmessage", SqlDbType.VarChar).Value = result.ActionMessage??string.Empty;
                     cmd.Parameters.Add("@actionstarted", SqlDbType.Bit).Value = result.ActionStarted;
-                    cmd.Parameters.Add("@errorexception", SqlDbType.VarChar).Value = result.ErrorException.ToString();
+                    cmd.Parameters.Add("@errorexception", SqlDbType.VarChar).Value = exceptionMessage;
                     cmd.Parameters.Add("@createdate", SqlDbType.DateTimeOffset).Value = result.CreatedDate;
-                    cmd.Parameters.Add("@actiondata", SqlDbType.VarChar).Value = result.ActionDataPassed;
+                    cmd.Parameters.Add("@actiondata", SqlDbType.VarChar).Value = result.ActionDataPassed ??string.Empty;
                     conn.Open();
 
                     cmd.ExecuteNonQuery();
@@ -77,7 +123,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        public void SaveRuleMatch(EmailMsg msg, EmailRule rule, bool matched)
+        public void SaveRuleMessageMatch(EmailMsg msg, EmailRule rule, bool matched)
         {
 
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
@@ -97,14 +143,39 @@ namespace egrants_new.Integration.EmailRulesEngine
                     cmd.Parameters.Add("@matched", SqlDbType.Bit).Value = matched ? 1 : 0;
 
                     conn.Open();
+                    cmd.ExecuteNonQuery();
+                    
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
 
-                    SqlDataReader dr = cmd.ExecuteReader();
+            }
+        }
 
-                    while (dr.Read())
-                    {
-                        var obj = new EmailMsg();
-                        SqlHelper.MapDataToObject(obj, dr);
-                    }
+
+        public void SaveRuleMatch(EmailRuleMatchedMessages match)
+        {
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("sp_email_update_matched_messages", conn)
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                        };
+
+                    cmd.Parameters.Add("@emailruleid", SqlDbType.Int).Value = match.EmailRuleId;
+                    cmd.Parameters.Add("@EmailMessageid", SqlDbType.VarChar).Value = match.EmailMessageId;
+                    cmd.Parameters.Add("@createddate", SqlDbType.DateTime).Value = match.CreatedDate;
+                    cmd.Parameters.Add("@actionscompleted", SqlDbType.Bit).Value = match.ActionsCompleted;
+                    cmd.Parameters.Add("@matched", SqlDbType.Bit).Value = match.Matched;
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
 
                 }
                 catch (Exception ex)
@@ -114,6 +185,8 @@ namespace egrants_new.Integration.EmailRulesEngine
 
             }
         }
+
+
 
         public List<EmailMsg> GetEmailMessages(EmailRule rule)
         {
@@ -390,6 +463,74 @@ namespace egrants_new.Integration.EmailRulesEngine
             return output;
 
         }
+
+        public string GetTempApplId(string notificationId )
+        {
+            string baseSql= "select appl_id from adsup_notification where id = {0}";
+            string SQL = String.Format(baseSql,notificationId);
+
+            string output = string.Empty;
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("SQL", conn)
+                        {
+                            CommandType = CommandType.Text,
+                        };
+
+                    conn.Open();
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        output = (string)dr["id"];
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+            return output;
+        }
+
+        public string GetPa(string subjectLine)
+        {
+            string baseSql = "select dbo.fn_PA_match( '{0}') as pa";
+            string SQL = String.Format(baseSql, subjectLine);
+
+            string output = string.Empty;
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("SQL", conn)
+                        {
+                            CommandType = CommandType.Text,
+                        };
+
+                    conn.Open();
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        output = (string)dr["id"];
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+            return output;
+        }
+
 
     }
 }

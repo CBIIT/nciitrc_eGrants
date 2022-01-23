@@ -8,6 +8,7 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
         public int EmailRuleId { get; set; }
         public int EmailMessageId { get; set; }
         public DateTime CreatedDate { get; set; }
+        public DateTime LastModifiedDate { get; set; }
         public bool ActionsCompleted { get; set; }
         public bool Matched { get; set; }
         public EmailRule Rule { get; set; }

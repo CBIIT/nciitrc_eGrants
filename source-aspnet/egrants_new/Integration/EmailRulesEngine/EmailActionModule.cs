@@ -40,6 +40,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                 {
                     //An Action Failed so exit processing mark it and exit 
                     allActionsCompleted = false;
+                    break;
                 }
             }
 

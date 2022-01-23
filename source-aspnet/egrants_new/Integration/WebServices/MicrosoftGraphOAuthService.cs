@@ -61,6 +61,13 @@ namespace egrants_new.Integration.WebServices
                     }
 
                     AddAuthentication(ref webServiceRequest);
+
+                    //Need to ensure that we have unique Message Id's from Graph Api
+                    //Adding the header
+                    var immutableHeader = @"IdType = ""ImmutableId""";
+                    webServiceRequest.Headers.Add("Prefer", immutableHeader);
+
+
                     nextUri = ""; //Clear out in case of exception,  it will cause an infinite loop
 
                     var response = (HttpWebResponse)webServiceRequest.GetResponse();
@@ -103,7 +110,7 @@ namespace egrants_new.Integration.WebServices
             {
                 webRequest.PreAuthenticate = true;
                 webRequest.Headers.Add("Authorization", "Bearer " + tokenValue);
-//                webRequest.Accept = "application/json";
+                //                webRequest.Accept = "application/json";
             }
 
             else

@@ -5,7 +5,7 @@ using System.Web;
 
 namespace egrants_new.Integration.Models
 {
-    public class SQLJobError
+    public class SqlJobError
     {
 
         public int ErrorId;

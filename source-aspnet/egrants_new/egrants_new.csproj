@@ -573,11 +573,14 @@
     <Compile Include="IC_Coordinator\Models\ICCoordinator.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailActionModule.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailCreatePdfAction.cs" />
+    <Compile Include="Integration\EmailRulesEngine\BaseEmailAction.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailExtractEmailDetails.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailCreateSendNewEmailAction.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailCreateTextFileAction.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailFileCopyMoveAction.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailForwardAction.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailIntegrationRepository.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailLookUpAction.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailRulesEngine.cs" />
     <Compile Include="Integration\EmailRulesEngine\Models\EmailModels.cs" />
     <Compile Include="Integration\EmailRulesEngine\Models\EmailMonitoredMailbox.cs" />
@@ -589,7 +592,8 @@
     <Compile Include="Integration\EmailRulesEngine\Models\EmailRuleHistory.cs" />
     <Compile Include="Integration\EmailRulesEngine\Models\EmailRuleMatchedMessages.cs" />
     <Compile Include="Integration\EmailRulesEngine\Models\ExtractedMessageDetails.cs" />
-    <Compile Include="Integration\EmailRulesEngine\Models\IEmailAction.cs" />
+    <Compile Include="Integration\EmailRulesEngine\IEmailAction.cs" />
+    <Compile Include="Integration\EmailRulesEngine\Models\EmailMsgMetadata.cs" />
     <Compile Include="Integration\Identity\IdentityImplementation.cs" />
     <Compile Include="Integration\Models\IntegrationEnums.cs" />
     <Compile Include="Integration\Models\SQLJobError.cs" />
@@ -606,6 +610,7 @@
     <Compile Include="Integration\WebServices\IAuthCertificate.cs" />
     <Compile Include="Integration\WebServices\IEgrantWebService.cs" />
     <Compile Include="Integration\WebServices\MicrosoftGraphOAuthService.cs" />
+    <Compile Include="Integration\WebServices\WebServiceInPlaceAdapter.cs" />
     <Compile Include="Integration\WebServices\WSDataTransformProxy.cs" />
     <Compile Include="Integration\WebServices\WSScheduleManager.cs" />
     <Compile Include="Management\Controllers\DocTransactionReportController.cs" />

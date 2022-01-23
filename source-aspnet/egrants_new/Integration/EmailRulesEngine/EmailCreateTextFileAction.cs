@@ -2,13 +2,10 @@
 
 namespace egrants_new.Integration.EmailRulesEngine
 {
-    public class EmailCreateTextFileAction : IEmailAction
+    public class EmailCreateTextFileAction : BaseEmailAction
     {
-        public EmailRule EmailRule { get; set; }
-        public EmailRuleAction Action { get; set; }
-        public string ActionData { get; set; }
 
-        public EmailCreateTextFileAction(EmailRule rule, EmailRuleAction action)
+        public EmailCreateTextFileAction(EmailRule rule, EmailRuleAction action):base(rule, action)
         {
             EmailRule = rule;
             Action = action;
@@ -23,6 +20,11 @@ namespace egrants_new.Integration.EmailRulesEngine
 
 
             return result;
+        }
+
+        public override void DelegatedAction(EmailMsg msg)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using egrants_new.Integration.EmailRulesEngine.Models;
 
 namespace egrants_new.Integration.EmailRulesEngine.Models
 {
@@ -22,5 +24,13 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
         public string EmailFrom { get; set; }
         public string ToRecipients { get; set; }
         public string CcRecipients { get; set; }
+        public Dictionary<string, EmailMsgMetadata> EgrantsMetaData { get; set; }
+
+
+        public EmailMsg()
+        {
+            EgrantsMetaData = new Dictionary<string, EmailMsgMetadata>();
+        }
+
     }
 }

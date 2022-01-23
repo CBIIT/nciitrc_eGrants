@@ -43,7 +43,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                         }
                     }
                     //Write the match to the match table
-                    _repo.SaveRuleMatch(msg, rule, trueFlag);
+                    _repo.SaveRuleMessageMatch(msg, rule, trueFlag);
                 }
             }
         }
@@ -127,8 +127,12 @@ namespace egrants_new.Integration.EmailRulesEngine
             {
                 var msg = _repo.GetEmailMessage(match.EmailMessageId);
                 bool completedActions = _actionModule.PerformActions(msg,rule);
+                match.ActionsCompleted = completedActions;
 
+                _repo.SaveRuleMatch(match);
             }
+
+
 
         }
 

@@ -6,7 +6,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using egrants_new.Integration.Models;
 using egrants_new.Integration.Shared;
-using egrants_new.Integration.Shared;
 using Newtonsoft.Json.Linq;
 
 namespace egrants_new.Integration.WebServices
@@ -258,9 +257,9 @@ namespace egrants_new.Integration.WebServices
         }
 
 
-        public List<egrants_new.Integration.Models.SQLJobError> GetSQLJobErrors()
+        public List<egrants_new.Integration.Models.SqlJobError> GetSqlJobErrors()
         {
-            List<SQLJobError> errors = new List<SQLJobError>();
+            List<SqlJobError> errors = new List<SqlJobError>();
 
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
             {
@@ -278,7 +277,7 @@ namespace egrants_new.Integration.WebServices
 
                     while (dr.Read())
                     {
-                        var sqlJobError = new SQLJobError();
+                        var sqlJobError = new SqlJobError();
                         SqlHelper.MapDataToObject(sqlJobError, dr);
                         errors.Add(sqlJobError);
                     }
@@ -475,7 +474,7 @@ namespace egrants_new.Integration.WebServices
             }
         }
 
-        public void MarkSQLJobErrorSent(SQLJobError error)
+        public void MarkSqlJobErrorSent(SqlJobError error)
         {
             using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
             {

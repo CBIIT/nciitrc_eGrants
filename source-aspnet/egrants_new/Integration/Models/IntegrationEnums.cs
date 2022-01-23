@@ -71,5 +71,14 @@ namespace egrants_new.Integration.Models
             eRaWebServiceData,
             MicrosoftGraphApi
         }
+
+        public enum MetadataType
+        {
+            String,
+            Integer,
+            Date,
+            Decimal,
+
+        }
     }
 }

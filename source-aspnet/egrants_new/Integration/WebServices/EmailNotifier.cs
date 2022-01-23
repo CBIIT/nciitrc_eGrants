@@ -77,7 +77,7 @@ namespace egrants_new.Integration.WebServices
             {
 
                 var repo = new IntegrationRepository();
-                List<SQLJobError> errors = repo.GetSQLJobErrors();
+                List<SqlJobError> errors = repo.GetSqlJobErrors();
 
                 if (errors.Count > 0)
                 {
@@ -111,7 +111,7 @@ namespace egrants_new.Integration.WebServices
                     mailContent = mailTemplate.Replace("###Exceptions", mailContent);
                     message.Body = mailContent;
                     SendEmail(message);
-                    errors.ForEach(err => repo.MarkSQLJobErrorSent(err));
+                    errors.ForEach(err => repo.MarkSqlJobErrorSent(err));
                 }
             }
         }
