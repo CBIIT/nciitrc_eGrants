@@ -582,6 +582,7 @@
     <Compile Include="Integration\EmailRulesEngine\EmailIntegrationRepository.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailLookUpAction.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailRulesEngine.cs" />
+    <Compile Include="Integration\EmailRulesEngine\Models\GrantEmailAttachment.cs" />
     <Compile Include="Integration\EmailRulesEngine\Models\EmailModels.cs" />
     <Compile Include="Integration\EmailRulesEngine\Models\EmailMonitoredMailbox.cs" />
     <Compile Include="Integration\EmailRulesEngine\Models\EmailMsg.cs" />

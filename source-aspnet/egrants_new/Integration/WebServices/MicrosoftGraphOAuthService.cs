@@ -18,6 +18,9 @@ using Hangfire.Dashboard.Resources;
 using Newtonsoft.Json.Linq;
 using System.Security;
 using System.Text;
+using System.Web.Services.Description;
+using egrants_new.Integration.EmailRulesEngine.Models;
+using egrants_new.Integration.EmailRulesEngine.Models;
 
 namespace egrants_new.Integration.WebServices
 {
@@ -100,6 +103,54 @@ namespace egrants_new.Integration.WebServices
 
             return output;
         }
+
+
+
+       // public List<GrantEmailAttachment> GetEmailAttachments(int msgId)
+        public string GetEmailAttachments(string msgId)
+        {
+            string mailboxName = ConfigurationManager.AppSettings["MSGraphUserId"];
+            string tmpResult = string.Empty;
+            string output = "";
+
+            //Build URI for Attachment Call
+            string attachmentUri =
+                @"https://graph.microsoft.com/v1.0/users/{0}/mailFolders/Inbox/messages/{1}/attachments/";
+
+            string nextUri = string.Format(attachmentUri, mailboxName, msgId);
+
+            HttpWebRequest webServiceRequest = (HttpWebRequest)WebRequest.Create(nextUri);
+            webServiceRequest.Method = "GET";
+            //webServiceRequest.Accept = WebService.AcceptsHeader;
+            //webServiceRequest.AllowAutoRedirect = WebService.AllowRedirect;
+            //webServiceRequest.KeepAlive = WebService.KeepAlive;
+
+            if (WebService.Timeout > 0)
+            {
+                webServiceRequest.Timeout = WebService.Timeout;
+            }
+
+            AddAuthentication(ref webServiceRequest);
+
+            //Need to ensure that we have unique Message Id's from Graph Api
+            //Adding the header
+
+            var response = (HttpWebResponse)webServiceRequest.GetResponse();
+            Stream stream = response.GetResponseStream();
+            if (stream != null)
+            {
+                tmpResult = new StreamReader(stream).ReadToEnd();
+            }
+
+            //Check for More
+            var graphResults = JObject.Parse(tmpResult);
+            output = (string)graphResults["value"];
+
+            return output;
+        }
+
+
+
 
 
         public override void AddAuthentication(ref HttpWebRequest webRequest)

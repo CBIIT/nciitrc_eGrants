@@ -77,5 +77,29 @@ namespace egrants_new.Egrants.Controllers
             return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
+        public ActionResult InvokeGetAttachment(string messageId)
+        {
+            string outmeeage = "";
+            string dir = "C:\\testing\\attachments";
+            var repo = new EmailIntegrationRepository();
+            
+            var attach = repo.GetEmailAttachments(messageId);
+
+            if (attach.Count > 0)
+            {
+                
+                foreach (var att in attach)
+                {
+                    //Save them to disk
+                    att.SaveToDisk(dir,att.Name,"file");
+
+                }
+            }
+            var page = new MailIntegrationPage();
+            page.Result = "Attachments Saved";
+
+            return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+        }
+
     }
 }

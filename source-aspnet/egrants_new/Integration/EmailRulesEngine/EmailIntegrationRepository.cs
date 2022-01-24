@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.EnterpriseServices;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -170,7 +171,6 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                     cmd.Parameters.Add("@emailruleid", SqlDbType.Int).Value = match.EmailRuleId;
                     cmd.Parameters.Add("@EmailMessageid", SqlDbType.VarChar).Value = match.EmailMessageId;
-                    cmd.Parameters.Add("@createddate", SqlDbType.DateTime).Value = match.CreatedDate;
                     cmd.Parameters.Add("@actionscompleted", SqlDbType.Bit).Value = match.ActionsCompleted;
                     cmd.Parameters.Add("@matched", SqlDbType.Bit).Value = match.Matched;
 
@@ -254,6 +254,35 @@ namespace egrants_new.Integration.EmailRulesEngine
                     //TODO: Handle exception
                 }
             }
+            return output;
+
+        }
+
+
+        public List<GrantEmailAttachment> GetEmailAttachments(string messageId)
+        {
+            List<GrantEmailAttachment> output = null; // = new EmailMessage();
+            //var wsAdapter = new WebServiceInPlaceAdapter();
+            var serviceFactory = new WebServiceInPlaceAdapter.InPlaceWebServiceFactory();
+
+            MicrosoftGraphOAuthService service = (MicrosoftGraphOAuthService)serviceFactory.Make(IntegrationEnums.AuthenticationType.OAuth);
+            string arrOfAttachments = service.GetEmailAttachments(messageId);
+
+            var arrayAttachments = JArray.Parse(arrOfAttachments);
+
+            foreach (JObject attachment in arrayAttachments.Children<JObject>())
+            {
+                //JObject tmp = JObject.Parse(attachment);
+                var att = new GrantEmailAttachment()
+                {
+                    Name = (string)attachment["Name"],
+                    Id = (int)attachment["Id"],
+                    Size = (int)attachment["Size"],
+                    ContentBytes = (string)attachment["ContentBytes"]
+                };
+                output.Add(att);
+            }
+
             return output;
 
         }
@@ -386,7 +415,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        public List<EmailRuleMatchedMessages> GetEmailRuleMatches(int ruleId)
+        public List<EmailRuleMatchedMessages> GetEmailRuleMatches(int ruleId, bool forceAll)
         {
             var output = new List<EmailRuleMatchedMessages>();
 
@@ -400,6 +429,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                             CommandType = CommandType.StoredProcedure,
                         };
                     cmd.Parameters.Add("@ruleid", SqlDbType.Int).Value = ruleId;
+                    cmd.Parameters.Add("@all", SqlDbType.Bit).Value = forceAll;
                     conn.Open();
 
                     SqlDataReader dr = cmd.ExecuteReader();

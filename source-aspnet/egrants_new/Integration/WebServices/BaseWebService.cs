@@ -20,6 +20,7 @@ namespace egrants_new.Integration.WebServices
         public BaseWebService(WebServiceEndPoint ws)
         {
             WebService = ws;
+            
         }
         public WebServiceEndPoint WebService { get; set; }
         public List<string> Errors { get; set; }

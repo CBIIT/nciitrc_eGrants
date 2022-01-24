@@ -121,18 +121,15 @@ namespace egrants_new.Integration.EmailRulesEngine
         private void ExecuteActions(EmailRule rule)
         {
 
-            var matches = _repo.GetEmailRuleMatches(rule.Id);
+            var matches = _repo.GetEmailRuleMatches(rule.Id, false);
 
             foreach (var match in matches)
             {
                 var msg = _repo.GetEmailMessage(match.EmailMessageId);
                 bool completedActions = _actionModule.PerformActions(msg,rule);
                 match.ActionsCompleted = completedActions;
-
                 _repo.SaveRuleMatch(match);
             }
-
-
 
         }
 

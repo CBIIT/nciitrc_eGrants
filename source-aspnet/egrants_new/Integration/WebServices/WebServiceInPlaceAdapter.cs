@@ -11,23 +11,31 @@ namespace egrants_new.Integration.WebServices
     public class WebServiceInPlaceAdapter
     {
         private IEgrantWebService _ws = null;
+        private InPlaceWebServiceFactory factory;
 
 
 
         public WebServiceInPlaceAdapter()
         {
-
+            factory = new InPlaceWebServiceFactory();
         }
 
 
+        public bool SetupNewWebServiceCall(IntegrationEnums.AuthenticationType authenticationType)
+        {
+            //This will need to be updated later, but since there's only one type
+            var ws = factory.Make(AuthenticationType.OAuth);
 
 
+
+            return true;
+        }
 
 
         public class InPlaceWebServiceFactory
         {
           //  private IEgrantWebService ws = null;
-            public IEgrantWebService Make()
+            public IEgrantWebService Make(AuthenticationType authenticationType)
             {
                 var ep = new WebServiceEndPoint();
 
@@ -35,7 +43,7 @@ namespace egrants_new.Integration.WebServices
                 ep.WebRequestMethod = "";
                 ep.EndpointUri = "";
                 ep.Action = "";
-                ep.AuthenticationType = AuthenticationType.OAuth;
+                ep.AuthenticationType = authenticationType;
                 ep.NodeMappings = new List<WSNodeMapping>();
                 ep.Params = new List<WebServiceParam>();
                 ep.LastRun = new DateTimeOffset();
