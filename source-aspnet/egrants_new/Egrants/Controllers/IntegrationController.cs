@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Owin.Security;
 using System.Security.Claims;
 using System.Web;
@@ -6,6 +8,7 @@ using System.Web.Mvc;
 using egrants_new.Egrants.Builders;
 using egrants_new.Egrants.Models;
 using egrants_new.Integration.EmailRulesEngine;
+using egrants_new.Integration.EmailRulesEngine.Models;
 using egrants_new.Integration.WebServices;
 
 //using egrants_new.Integration.WebServices.SessionTokenStorage;
@@ -18,8 +21,19 @@ namespace egrants_new.Egrants.Controllers
         // GET: Integration
         public ActionResult Index()
         {
+            var repo = new EmailIntegrationRepository();
             var page = new MailIntegrationPage();
             page.Result = "Start";
+
+            var rule = repo.GetEmailRules().Where(r => r.Id == 2).FirstOrDefault();
+            var msgs = repo.GetEmailMessages(rule);
+            page.Messages = msgs;
+
+            if (msgs.Count > 0)
+            {
+                page.Messages = msgs.GetRange(0, 25);
+            }
+
             
             return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
@@ -43,6 +57,7 @@ namespace egrants_new.Egrants.Controllers
 
             var page = new MailIntegrationPage();
             page.Result = "Process Graph Data Invoked";
+            page.Messages = new List<EmailMsg>();
 
             return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
@@ -58,6 +73,7 @@ namespace egrants_new.Egrants.Controllers
 
             var page = new MailIntegrationPage();
             page.Result = "Rules Invoked";
+            page.Messages = new List<EmailMsg>();
 
             return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
@@ -73,6 +89,7 @@ namespace egrants_new.Egrants.Controllers
 
             var page = new MailIntegrationPage();
             page.Result = "Actions Invoked";
+            page.Messages = new List<EmailMsg>();
 
             return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
@@ -97,6 +114,7 @@ namespace egrants_new.Egrants.Controllers
             }
             var page = new MailIntegrationPage();
             page.Result = "Attachments Saved";
+            page.Messages = new List<EmailMsg>();
 
             return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }

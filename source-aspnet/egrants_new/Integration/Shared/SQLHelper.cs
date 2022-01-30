@@ -43,6 +43,9 @@ namespace egrants_new.Integration.Shared
                             case "boolean":
                                 prop.SetValue(obj, (bool)reader[prop.Name]);
                                 break;
+                            case "datetime":
+                                prop.SetValue(obj,(DateTime)reader[prop.Name]);
+                                break;
                             default:
                                 break;
                         }

@@ -114,7 +114,6 @@ namespace egrants_new.Integration.EmailRulesEngine
                     break;
             }
 
-
             return result;
         }
 

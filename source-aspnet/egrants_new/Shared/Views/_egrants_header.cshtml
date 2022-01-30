@@ -170,6 +170,13 @@
                                     }
                                 }
                             }
+
+                            if (Convert.ToString(Session["userid"]) == "shellba")
+                            {
+                                {
+                                    <li><a title="Email Integration [shift + alt + E" accesskey="E" target="_top" href="@Url.Action("Index","Integration")"><span>Email Integration</span></a></li>
+                                }
+                            }
                         }
                         <li><a title="Institutional Files [shift + alt + F]" accesskey="F" target="_top" href="@Url.Action("Index", "InstitutionalFiles")"><span>Institutional Files</span></a></li>
                         <li class="dropdown">

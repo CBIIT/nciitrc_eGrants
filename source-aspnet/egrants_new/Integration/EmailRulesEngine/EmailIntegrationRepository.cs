@@ -494,40 +494,91 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         }
 
-        public string GetTempApplId(string notificationId )
+        public int GetTempApplId(string notificationId )
         {
-            string baseSql= "select appl_id from adsup_notification where id = {0}";
-            string SQL = String.Format(baseSql,notificationId);
-
-            string output = string.Empty;
-
-            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            //string output = string.Empty;
+            int applId = 0;
+            if (string.IsNullOrWhiteSpace(notificationId))
             {
-                try
+
+                string baseSql = "select appl_id from adsup_notification where id = {0}";
+                string SQL = String.Format(baseSql, notificationId);
+
+
+
+                using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
                 {
-                    SqlCommand cmd =
-                        new SqlCommand("SQL", conn)
-                        {
-                            CommandType = CommandType.Text,
-                        };
-
-                    conn.Open();
-
-                    SqlDataReader dr = cmd.ExecuteReader();
-
-                    while (dr.Read())
+                    try
                     {
-                        output = (string)dr["id"];
-                    }
+                        SqlCommand cmd =
+                            new SqlCommand(SQL, conn)
+                            {
+                                CommandType = CommandType.Text,
+                            };
 
-                }
-                catch (Exception ex)
-                {
-                    //TODO: Handle exception
+                        conn.Open();
+
+                        SqlDataReader dr = cmd.ExecuteReader();
+
+                        while (dr.Read())
+                        {
+                            applId = (int) dr["id"];
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO: Handle exception
+                    }
                 }
             }
-            return output;
+
+            return applId;
         }
+
+
+        public int GetApplId(string searchtext)
+        {
+            //string output = string.Empty;
+            int applId = 0;
+            if (string.IsNullOrWhiteSpace(searchtext))
+            {
+
+                string baseSql = "select dbo.Imm_fn_applid_match( '{0}') as applid";
+                string SQL = String.Format(baseSql, searchtext);
+
+
+
+                using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+                {
+                    try
+                    {
+                        SqlCommand cmd =
+                            new SqlCommand(SQL, conn)
+                            {
+                                CommandType = CommandType.Text,
+                            };
+
+                        conn.Open();
+
+                        SqlDataReader dr = cmd.ExecuteReader();
+
+                        while (dr.Read())
+                        {
+                            applId = (int)dr["applid"];
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO: Handle exception
+                    }
+                }
+            }
+
+            return applId;
+        }
+
 
         public string GetPa(string subjectLine)
         {
@@ -541,7 +592,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                 try
                 {
                     SqlCommand cmd =
-                        new SqlCommand("SQL", conn)
+                        new SqlCommand(SQL, conn)
                         {
                             CommandType = CommandType.Text,
                         };
@@ -550,7 +601,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                     SqlDataReader dr = cmd.ExecuteReader();
                     while (dr.Read())
                     {
-                        output = (string)dr["id"];
+                        output = (string)dr["pa"];
                     }
                 }
                 catch (Exception ex)

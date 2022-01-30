@@ -67,8 +67,17 @@ set @impac_image_server='https://i2e.'+@IC+'.nih.gov/'
 set @s2server_name = 'https://s2s.era.nih.gov/'
 set @sql_report_server = 'https://ncidb-p232-v.nci.nih.gov/ReportServer_MSSQLEGRANTSP/'
 set @era_server = 'https://apps.era.nih.gov/'
-
 END
+
+IF @server_name = 'NCIDB-P391-V\MSSQLEGRANTSP'
+BEGIN
+set @locall_image_server='https://egrants.'+@IC+'.nih.gov/'
+set @impac_image_server='https://i2e.'+@IC+'.nih.gov/'
+set @s2server_name = 'https://s2s.era.nih.gov/'
+set @sql_report_server = 'https://ncidb-p391-v.nci.nih.gov/ReportServer_MSSQLEGRANTSP/'
+set @era_server = 'https://apps.era.nih.gov/'
+END
+
 
 SELECT 
 @url=[url],

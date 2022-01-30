@@ -50,7 +50,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             {
                 if (Action.Order == 1)
                 {
-                   // ExtractMessageDetails(msg);
+                    ExtractMessageDetails(msg);
                 }
                 run(msg);
                 result.ActionCompleted = true;
@@ -70,7 +70,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         public abstract void DelegatedAction(EmailMsg msg);
 
 
-        public void ExtractMessageDetails(EmailMsg msg)
+        public virtual void  ExtractMessageDetails(EmailMsg msg)
         {
 
 
@@ -88,9 +88,19 @@ namespace egrants_new.Integration.EmailRulesEngine
             msg.EgrantsMetaData.Add("fgn",
                 new EmailMsgMetadata() { metadata = fgn, Name = "fgn", type = MetadataType.String });
 
-            int applid = int.Parse(ExtractValue(msg.Subject, "applid=", true));
-            msg.EgrantsMetaData.Add("applid",
-                new EmailMsgMetadata() { metadata = applid, Name = "applid", type = MetadataType.Integer });
+            var tmpApplid = ExtractValue(msg.Subject, "applid=", true);
+
+            int applid = 0;
+            if (!Int32.TryParse(tmpApplid, out applid))
+            {
+                msg.EgrantsMetaData.Add("applid",
+                    new EmailMsgMetadata() { metadata = 0, Name = "applid", type = MetadataType.Integer });
+            }
+            else
+            {
+                msg.EgrantsMetaData.Add("applid",
+                    new EmailMsgMetadata() { metadata = applid.ToString(), Name = "applid", type = MetadataType.Integer });
+            }
 
             var tempapplid = EmailRepo.GetTempApplId((ExtractValue(msg.Body, "Notification Id=")));
             msg.EgrantsMetaData.Add("tempapplid",
@@ -105,15 +115,15 @@ namespace egrants_new.Integration.EmailRulesEngine
                 new EmailMsgMetadata() { metadata = v_SubLine, Name = "v_SubLine", type = MetadataType.String });
 
             var notification_filetype = "txt";
-            msg.EgrantsMetaData.Add("pa",
+            msg.EgrantsMetaData.Add("notification_filetype",
                 new EmailMsgMetadata() { metadata = notification_filetype, Name = "notification_filetype", type = MetadataType.String });
 
             var catname = "eRA Notification"; //TODO: Get Data for this
             msg.EgrantsMetaData.Add("catname",
                 new EmailMsgMetadata() { metadata = catname, Name = "catname", type = MetadataType.String });
 
-            var subcatname = "Supplement Requested"; //TODO: Get Data for this
-            msg.EgrantsMetaData.Add("pa",
+            var subcatname = "subcatname"; //TODO: Get Data for this
+            msg.EgrantsMetaData.Add("subcatname",
                 new EmailMsgMetadata() { metadata = subcatname, Name = "subcatname", type = MetadataType.String });
 
             var emd = new ExtractedMessageDetails()
@@ -129,18 +139,18 @@ namespace egrants_new.Integration.EmailRulesEngine
             };
 
             var filenumbername = EmailRepo.GetPlaceHolder(emd);
-            msg.EgrantsMetaData.Add("pa",
+            msg.EgrantsMetaData.Add("filenumbername",
                 new EmailMsgMetadata() { metadata = filenumbername, Name = "filenumbername", type = MetadataType.String });
 
             var Alias = string.Concat(filenumbername, ".txt");
-            msg.EgrantsMetaData.Add("pa",
+            msg.EgrantsMetaData.Add("Alias",
                 new EmailMsgMetadata() { metadata = Alias, Name = "Alias", type = MetadataType.String });
         }
 
 
-        public string GetTempApplId(string notificationId)
+        public int GetTempApplId(string notificationId)
         {
-            string output = "";
+            int output = 0;
 
             output = EmailRepo.GetTempApplId(notificationId);
 
@@ -163,8 +173,9 @@ namespace egrants_new.Integration.EmailRulesEngine
         public string ExtractValue(string text, string search, bool digitsOnly = false)
         {
             string extracted = string.Empty;
-            string captureGroupType = digitsOnly ? "d*" : "w*";
-            string expression = $"{search}(?<result>\\{captureGroupType})";
+            string captureGroupType = digitsOnly ? "\\d*\\s" : ".+\\b";
+
+            string expression = $"{search}(?<result>{captureGroupType})";
             //Regex regex = new Regex(expression);
 
             var matches = Regex.Matches(text, expression, RegexOptions.IgnoreCase);
@@ -175,7 +186,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             }
             else
             {
-                throw new Exception("There were multiple matches for the category");
+                //throw new Exception("There were multiple matches for the category");
             }
 
             return extracted;
@@ -184,7 +195,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public string RemoveSpecialCharacters(string input)
         {
-            string result = "";
+            string result = input;
 
             result = result.Replace("\n", "\r\n");
             result = result.Replace("&", "and");
@@ -217,6 +228,19 @@ namespace egrants_new.Integration.EmailRulesEngine
             var bodyObj = JObject.Parse(msg.Body);
             string body = (string)bodyObj["content"];
             return body;
+        }
+
+        public string GetPlaceholder(ExtractedMessageDetails emd)
+        {
+
+            return EmailRepo.GetPlaceHolder(emd);
+
+        }
+
+        public int GetApplId(string searchtext)
+        {
+            return EmailRepo.GetApplId(searchtext);
+
         }
 
 
