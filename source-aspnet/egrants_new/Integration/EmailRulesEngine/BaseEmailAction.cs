@@ -232,15 +232,18 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public string GetPlaceholder(ExtractedMessageDetails emd)
         {
-
             return EmailRepo.GetPlaceHolder(emd);
-
         }
 
         public int GetApplId(string searchtext)
         {
-            return EmailRepo.GetApplId(searchtext);
+            return EmailRepo.GetApplId(RemoveSpecialCharacters(searchtext));
 
+        }
+
+        public bool CheckIsReply(string notificationId, string senderId)
+        {
+            return EmailRepo.ChecklIsReply(notificationId, senderId);
         }
 
 

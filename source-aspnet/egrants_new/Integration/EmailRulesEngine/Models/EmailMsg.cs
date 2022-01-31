@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using egrants_new.Integration.EmailRulesEngine.Models;
+using Newtonsoft.Json.Linq;
 
 namespace egrants_new.Integration.EmailRulesEngine.Models
 {
@@ -25,6 +26,25 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
         public string ToRecipients { get; set; }
         public string CcRecipients { get; set; }
         public Dictionary<string, EmailMsgMetadata> EgrantsMetaData { get; set; }
+
+        //private string _msgBody { get; set; }
+        public string MessageBody
+        {
+            get
+            {
+                if (Body != null)
+                {
+
+
+                    JObject body = JObject.Parse(Body);
+                    return (string) body["content"];
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+        }
 
 
         public EmailMsg()

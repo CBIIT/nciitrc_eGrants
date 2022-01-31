@@ -580,6 +580,43 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
+        //update dbo.adsup_Notification_email_status set reply_recieved_date=GETDATE() where Notification_id="&abc&" and email_address LIKE '"&v_SenderID&"%'"
+
+
+        public bool ChecklIsReply(string notificationId, string senderId)
+        {
+
+            if (!string.IsNullOrWhiteSpace(notificationId) && (!string.IsNullOrWhiteSpace(senderId)))
+            {
+
+                string baseSql = "update dbo.adsup_Notification_email_status set reply_recieved_date=GETDATE() where Notification_id={0} and email_address LIKE '%{1}%'";
+                string SQL = String.Format(baseSql, notificationId, senderId);
+
+                using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+                {
+                    try
+                    {
+                        SqlCommand cmd =
+                            new SqlCommand(SQL, conn)
+                            {
+                                CommandType = CommandType.Text,
+                            };
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO: Handle exception
+                    }
+                }
+            }
+
+            return true;
+        }
+
+
+
         public string GetPa(string subjectLine)
         {
             string baseSql = "select dbo.fn_PA_match( '{0}') as pa";
