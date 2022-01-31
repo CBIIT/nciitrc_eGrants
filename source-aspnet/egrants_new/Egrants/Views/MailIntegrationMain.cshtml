@@ -109,7 +109,9 @@
                         <th>From</th>
                         <th>Subject</th>
                         <th>Snippet</th>
+                        <th>Has Attachments</th>
                         <th>Important</th>
+                        <th><i class="glyphicon-paperclip"></i></th>
                         </thead>
                         <tr>
                             <td colspan="4">
@@ -130,7 +132,13 @@
 
                                 <td >@msg.BodyPreview</td>
 
+                                <td>@msg.HasAttachments</td>
+
                                 <td >@msg.Importance</td>
+                                <td> @if (msg.HasAttachments)
+                                     {
+                                    <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
+                                     }</td>
                             </tr>
 
                         }

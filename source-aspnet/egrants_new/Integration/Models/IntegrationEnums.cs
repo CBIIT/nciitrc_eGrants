@@ -63,7 +63,8 @@ namespace egrants_new.Integration.Models
             EmailForwardAction,
             EmailCreateTextFileAction,
             EmailCreatePdfAction,
-            EmailCreateSendNewEmailAction
+            EmailCreateSendNewEmailAction, 
+            EmailAdminSupplementProcess
         }
 
         public enum SaveType
@@ -79,6 +80,13 @@ namespace egrants_new.Integration.Models
             Date,
             Decimal,
 
+        }
+
+        public enum MessageSaveType
+        {
+            Text,
+            Html,
+            Pdf
         }
     }
 }

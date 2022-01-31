@@ -21,6 +21,7 @@ using System.Text;
 using System.Web.Services.Description;
 using egrants_new.Integration.EmailRulesEngine.Models;
 using egrants_new.Integration.EmailRulesEngine.Models;
+using egrants_new.Integration.Identity;
 
 namespace egrants_new.Integration.WebServices
 {
@@ -115,15 +116,15 @@ namespace egrants_new.Integration.WebServices
 
             //Build URI for Attachment Call
             string attachmentUri =
-                @"https://graph.microsoft.com/v1.0/users/{0}/mailFolders/Inbox/messages/{1}/attachments/";
+                $"https://graph.microsoft.com/v1.0/users/{mailboxName}/mailFolders/Inbox/messages/{msgId}/attachments";
 
-            string nextUri = string.Format(attachmentUri, mailboxName, msgId);
+            //string uri = string.Format(attachmentUri, mailboxName, msgId);
 
-            HttpWebRequest webServiceRequest = (HttpWebRequest)WebRequest.Create(nextUri);
+            HttpWebRequest webServiceRequest = (HttpWebRequest)WebRequest.Create(attachmentUri);
             webServiceRequest.Method = "GET";
-            //webServiceRequest.Accept = WebService.AcceptsHeader;
-            //webServiceRequest.AllowAutoRedirect = WebService.AllowRedirect;
-            //webServiceRequest.KeepAlive = WebService.KeepAlive;
+            webServiceRequest.Accept = WebService.AcceptsHeader;
+            webServiceRequest.AllowAutoRedirect = WebService.AllowRedirect;
+            webServiceRequest.KeepAlive = WebService.KeepAlive;
 
             if (WebService.Timeout > 0)
             {
@@ -144,7 +145,7 @@ namespace egrants_new.Integration.WebServices
 
             //Check for More
             var graphResults = JObject.Parse(tmpResult);
-            output = (string)graphResults["value"];
+            output = graphResults["value"].ToString();
 
             return output;
         }
@@ -155,7 +156,8 @@ namespace egrants_new.Integration.WebServices
 
         public override void AddAuthentication(ref HttpWebRequest webRequest)
         {
-            var tokenValue = GetAuthToken().Result;
+            var tokenValue = IdentityImplementation.Instance.GetAuthorizationMicrosoftOAuth();
+            //var tokenValue = GetAuthTokenII();
 
             if (tokenValue != null)
             {
@@ -169,6 +171,8 @@ namespace egrants_new.Integration.WebServices
                 throw new Exception("Something went wrong.  Authentication not set.");
             }
         }
+
+
 
 
         public async Task<string> GetAuthToken()
@@ -193,8 +197,6 @@ namespace egrants_new.Integration.WebServices
                     new KeyValuePair<string, string>("grant_type", "client_credentials")
                 });
 
-            //            byte[] byteArray = Encoding.UTF8.GetBytes(content.ToString());
-
             using (var httpClient = new HttpClient())
             {
                 httpClient.BaseAddress = new Uri(baseUri);
@@ -207,6 +209,60 @@ namespace egrants_new.Integration.WebServices
 
             return token;
         }
+
+
+        public string GetAuthTokenII()
+        {
+            string resultOut = string.Empty;
+            var clientId = ConfigurationManager.AppSettings["MSGraphClientId"];
+            var tenantId = ConfigurationManager.AppSettings["MSGraphTenantId"];
+            var clientSecret = ConfigurationManager.AppSettings["MSGraphSecret"];
+            //var clientAppId = ConfigurationManager.AppSettings["MSGraphClientIdUri"];
+            //var apiUserId = ConfigurationManager.AppSettings["MSGraphUserId"];
+            //var apiUserPwd = ConfigurationManager.AppSettings["MSGraphUserPwd"];
+            var apiScope = ConfigurationManager.AppSettings["MSGraphScopes"];
+
+            var baseUri = "https://login.microsoftonline.com";
+            var reqUri = $"/{tenantId}/oauth2/v2.0/token";
+
+            //var content = new FormUrlEncodedContent(new[]
+            //{
+            //    new KeyValuePair<string, string>("client_id", clientId),
+            //    new KeyValuePair<string, string>("scope", apiScope ),
+            //    new KeyValuePair<string, string>("client_secret", clientSecret),
+            //    new KeyValuePair<string, string>("grant_type", "client_credentials")
+            //});
+
+            var postData = $"client_id={clientId}";
+            postData += $"&scope={apiScope}";
+            postData += $"&client_secret={clientSecret}";
+            postData += $"&grant_type=client_credentials";
+            var data = Encoding.ASCII.GetBytes(postData);
+
+            string uri = String.Concat(baseUri,reqUri);
+
+            HttpWebRequest req = (HttpWebRequest) WebRequest.CreateHttp(uri);
+            
+            //req.Accept = 
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+            req.ContentLength = data.Length;
+
+            using (var stream = req.GetRequestStream())
+            {
+                stream.Write(data,0,data.Length);
+            }
+
+            var response = (HttpWebResponse) req.GetResponse();
+            resultOut = new StreamReader(response.GetResponseStream()).ReadToEnd();
+
+            var authResults = JObject.Parse(resultOut);
+            var token = (string)authResults["access_token"];
+
+            return token;
+        }
+
+
 
     }
 

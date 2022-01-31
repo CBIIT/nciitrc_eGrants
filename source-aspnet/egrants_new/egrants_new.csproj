@@ -572,6 +572,7 @@
     <Compile Include="IC_Coordinator\Controllers\ICCoordinatorController.cs" />
     <Compile Include="IC_Coordinator\Models\ICCoordinator.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailActionModule.cs" />
+    <Compile Include="Integration\EmailRulesEngine\EmailAdminSupplementProcess.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailCreatePdfAction.cs" />
     <Compile Include="Integration\EmailRulesEngine\BaseEmailAction.cs" />
     <Compile Include="Integration\EmailRulesEngine\EmailExtractEmailDetails.cs" />

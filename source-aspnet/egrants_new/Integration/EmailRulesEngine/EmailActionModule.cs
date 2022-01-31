@@ -74,6 +74,9 @@ namespace egrants_new.Integration.EmailRulesEngine
                 case IntegrationEnums.EmailActionType.EmailFileCopyMoveAction:
                     outAction = new EmailFileCopyMoveAction(rule, action);
                     break;
+                case IntegrationEnums.EmailActionType.EmailAdminSupplementProcess:
+                    outAction = new EmailAdminSupplementProcess(rule, action);
+                    break;
 
                 default:
                     throw new Exception("Action Type not defined or determined");

@@ -103,11 +103,11 @@ namespace egrants_new.Integration.EmailRulesEngine
                     cmd.Parameters.Add("@actionid", SqlDbType.Int).Value = result.ActionId;
                     cmd.Parameters.Add("@actioncompleted", SqlDbType.Bit).Value = result.ActionCompleted;
                     cmd.Parameters.Add("@successful", SqlDbType.Bit).Value = result.Successful;
-                    cmd.Parameters.Add("@actionmessage", SqlDbType.VarChar).Value = result.ActionMessage??string.Empty;
+                    cmd.Parameters.Add("@actionmessage", SqlDbType.VarChar).Value = result.ActionMessage ?? string.Empty;
                     cmd.Parameters.Add("@actionstarted", SqlDbType.Bit).Value = result.ActionStarted;
                     cmd.Parameters.Add("@errorexception", SqlDbType.VarChar).Value = exceptionMessage;
                     cmd.Parameters.Add("@createdate", SqlDbType.DateTimeOffset).Value = result.CreatedDate;
-                    cmd.Parameters.Add("@actiondata", SqlDbType.VarChar).Value = result.ActionDataPassed ??string.Empty;
+                    cmd.Parameters.Add("@actiondata", SqlDbType.VarChar).Value = result.ActionDataPassed ?? string.Empty;
                     conn.Open();
 
                     cmd.ExecuteNonQuery();
@@ -145,7 +145,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                     conn.Open();
                     cmd.ExecuteNonQuery();
-                    
+
                 }
                 catch (Exception ex)
                 {
@@ -261,25 +261,28 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public List<GrantEmailAttachment> GetEmailAttachments(string messageId)
         {
-            List<GrantEmailAttachment> output = null; // = new EmailMessage();
+            var integrationRepo = new IntegrationRepository();
+            List<GrantEmailAttachment> output = new List<GrantEmailAttachment>(); // = new EmailMessage();
             //var wsAdapter = new WebServiceInPlaceAdapter();
-            var serviceFactory = new WebServiceInPlaceAdapter.InPlaceWebServiceFactory();
+            //var serviceFactory = new WebServiceInPlaceAdapter.InPlaceWebServiceFactory();
+            //MicrosoftGraphOAuthService service = (MicrosoftGraphOAuthService)serviceFactory.Make(IntegrationEnums.AuthenticationType.OAuth);
 
-            MicrosoftGraphOAuthService service = (MicrosoftGraphOAuthService)serviceFactory.Make(IntegrationEnums.AuthenticationType.OAuth);
-            string arrOfAttachments = service.GetEmailAttachments(messageId);
+            MicrosoftGraphOAuthService ws = (MicrosoftGraphOAuthService)integrationRepo.GetEgrantWebService(3); //Hardcoded should be changed
+            string arrOfAttachments = ws.GetEmailAttachments(messageId);
 
             var arrayAttachments = JArray.Parse(arrOfAttachments);
 
-            foreach (JObject attachment in arrayAttachments.Children<JObject>())
+            foreach (JObject attachment in arrayAttachments)
             {
                 //JObject tmp = JObject.Parse(attachment);
-                var att = new GrantEmailAttachment()
-                {
-                    Name = (string)attachment["Name"],
-                    Id = (int)attachment["Id"],
-                    Size = (int)attachment["Size"],
-                    ContentBytes = (string)attachment["ContentBytes"]
-                };
+                var att = new GrantEmailAttachment();
+
+
+                att.Name = (string)attachment["name"];
+                att.Id = (string)attachment["id"];
+                att.Size = (int)attachment["size"];
+                att.ContentBytes = (string)attachment["contentBytes"];
+
                 output.Add(att);
             }
 
@@ -287,7 +290,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         }
 
-        public List<EmailRule> GetEmailRules()
+        public List<EmailRule> GetEmailRules(bool all = false)
         {
             var output = new List<EmailRule>();
 
@@ -300,6 +303,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                         {
                             CommandType = CommandType.StoredProcedure,
                         };
+                    cmd.Parameters.Add("@all", SqlDbType.Bit).Value = all;
                     // cmd.Parameters.Add("@webserviceid", SqlDbType.Int).Value = ep.WSEndpoint_Id;
                     conn.Open();
 
@@ -494,7 +498,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         }
 
-        public int GetTempApplId(string notificationId )
+        public int GetTempApplId(string notificationId)
         {
             //string output = string.Empty;
             int applId = 0;
@@ -522,7 +526,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                         while (dr.Read())
                         {
-                            applId = (int) dr["id"];
+                            applId = (int)dr["id"];
                         }
 
                     }

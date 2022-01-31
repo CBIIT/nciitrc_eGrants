@@ -16,6 +16,10 @@ namespace egrants_new.Integration.Shared
             PropertyInfo[] properties = obj.GetType().GetProperties();
             foreach (PropertyInfo prop in properties)
             {
+                if (prop.Name == "EgrantsMetaData")
+                {
+                    continue;
+                }
                 try
                 {
                     if (!Convert.IsDBNull(reader[prop.Name]))

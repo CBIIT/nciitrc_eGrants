@@ -116,11 +116,11 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public string GetTempApplId(string notificationId)
         {
-            string output = "";
-           
+            int output;
+
             output = _repo.GetTempApplId(notificationId);
 
-            return output;
+            return output.ToString();
         }
 
 

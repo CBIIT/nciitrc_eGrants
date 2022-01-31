@@ -31,7 +31,8 @@ namespace egrants_new.Egrants.Controllers
 
             if (msgs.Count > 0)
             {
-                page.Messages = msgs.GetRange(0, 25);
+               int numMsgs = msgs.Count > 25 ? 25 : msgs.Count;
+                page.Messages = msgs.GetRange(0,numMsgs);
             }
 
             
@@ -59,7 +60,7 @@ namespace egrants_new.Egrants.Controllers
             page.Result = "Process Graph Data Invoked";
             page.Messages = new List<EmailMsg>();
 
-            return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+            return RedirectToAction("Index"); //View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
 
@@ -75,7 +76,7 @@ namespace egrants_new.Egrants.Controllers
             page.Result = "Rules Invoked";
             page.Messages = new List<EmailMsg>();
 
-            return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+            return RedirectToAction("Index");//return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
 
@@ -91,7 +92,7 @@ namespace egrants_new.Egrants.Controllers
             page.Result = "Actions Invoked";
             page.Messages = new List<EmailMsg>();
 
-            return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+            return  RedirectToAction("Index");   //View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
         public ActionResult InvokeGetAttachment(string messageId)
@@ -116,7 +117,7 @@ namespace egrants_new.Egrants.Controllers
             page.Result = "Attachments Saved";
             page.Messages = new List<EmailMsg>();
 
-            return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+            return RedirectToAction("Index"); //View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
     }

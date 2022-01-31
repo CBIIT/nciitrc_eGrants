@@ -1,16 +1,13 @@
 ﻿using System;
-using System.CodeDom;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.EnterpriseServices;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web.Http.ModelBinding;
-using System.Windows.Forms;
 using static egrants_new.Integration.Models.IntegrationEnums;
 using egrants_new.Integration.EmailRulesEngine.Models;
-using Hangfire.Annotations;
 using Newtonsoft.Json.Linq;
+using egrants_new.Integration.Models;
+using System.Configuration;
+using System.IO;
 
 namespace egrants_new.Integration.EmailRulesEngine
 {
@@ -246,6 +243,56 @@ namespace egrants_new.Integration.EmailRulesEngine
             return EmailRepo.ChecklIsReply(notificationId, senderId);
         }
 
+        public void SaveMessage(EmailMsg msg, string filename, string destinationPath, Integration.Models.IntegrationEnums.MessageSaveType saveType)
+        {
+            string tmpActionMsg = "Action Initialized";
+            switch (saveType)
+            {
+                case MessageSaveType.Text:
+                    //SaveAttachmentAndFileMoveCopy
+                    //var destinationPath = Action.TargetValue;
 
+                    //Create the file
+                    tmpActionMsg = "Creating TXT file layout";
+                    string txtFileContents = $@"From:       {msg.EmailFrom}
+Sent:       {msg.SentDateTime}
+To:         {msg.ToRecipients}
+Subject:	{msg.Subject} 
+
+
+
+{msg.MessageBody}";
+
+                    //string fileName = GetPlaceHolderFileName();
+                    //string fileName = string.Join(".", Guid.NewGuid().ToString(), "txt");
+                    string localPath = ConfigurationManager.AppSettings["EmailAttachmentTempFolder"];
+                    string localFile = Path.Combine(localPath, filename);
+                    string destinationFile = Path.Combine(destinationPath, filename);
+
+                    tmpActionMsg = "Writing File to Disk";
+                    File.WriteAllText(localFile, txtFileContents);
+
+                    //Move File to Remote Dir
+                    tmpActionMsg = "Copying File to Remote directory";
+                    File.Copy(localFile, destinationFile);
+                    tmpActionMsg = "Action Completed";
+
+                    break;
+
+                case MessageSaveType.Html:
+                    throw new NotImplementedException("Saving Message Type HTML not Implemented Yet");
+
+                    break;
+                case MessageSaveType.Pdf:
+                    throw new NotImplementedException("Saving Message Type PDF Not Implemented");
+                    break;
+                default:
+                    break;
+
+            }
+
+
+
+        }
     }
 }
