@@ -47,7 +47,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             {
                 if (Action.Order == 1)
                 {
-                    ExtractMessageDetails(msg);
+                  //  ExtractMessageDetails(msg);
                 }
                 run(msg);
                 result.ActionCompleted = true;
@@ -277,7 +277,7 @@ Subject:	{msg.Subject}
                     File.Copy(localFile, destinationFile);
                     tmpActionMsg = "Action Completed";
 
-                    break;
+                    break;  
 
                 case MessageSaveType.Html:
                     throw new NotImplementedException("Saving Message Type HTML not Implemented Yet");

@@ -28,14 +28,14 @@ namespace egrants_new.Integration.EmailRulesEngine
         public override void DelegatedAction(EmailMsg msg)
         {
 
-            //ExtractMessageDetails(msg);
+            RunAdminSupplement(msg);
 
         }
 
 
 
 
-        public override void ExtractMessageDetails(EmailMsg msg)
+        public void RunAdminSupplement(EmailMsg msg)
         {
             //string msgBody = (string) JObject.Parse(msg.Body)["content"];
             string subcatname = "";
@@ -126,7 +126,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                     subcatname = "Unknown";
                 }
 
-                if (string.IsNullOrWhiteSpace(msg.Subject))
+                if (!string.IsNullOrWhiteSpace(msg.Subject))
                 {
                     applId = GetApplId(msg.Subject);
                 }
@@ -337,7 +337,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             {
                 //If this is a reply from PD OR PI
                 notificationId = base.ExtractValue(msg.MessageBody, "Notification Id=");
-                if (string.IsNullOrWhiteSpace(notificationId))
+                if (!string.IsNullOrWhiteSpace(notificationId))
                 {
 
                     bool isReply = CheckIsReply(notificationId, msg.Sender);

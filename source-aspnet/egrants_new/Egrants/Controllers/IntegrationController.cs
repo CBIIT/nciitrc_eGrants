@@ -25,7 +25,7 @@ namespace egrants_new.Egrants.Controllers
             var page = new MailIntegrationPage();
             page.Result = "Start";
 
-            var rule = repo.GetEmailRules().Where(r => r.Id == 2).FirstOrDefault();
+            var rule = repo.GetEmailRules().Where(r => r.Id == 4).FirstOrDefault();
             var msgs = repo.GetEmailMessages(rule);
             page.Messages = msgs;
 

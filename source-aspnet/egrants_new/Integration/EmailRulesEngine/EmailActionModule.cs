@@ -52,7 +52,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         {
             IEmailAction outAction;
 
-            switch (action.ActionType)
+            switch (action.ActionTypeEnum)
             {
                 case IntegrationEnums.EmailActionType.EmailForwardAction:
                     outAction = new EmailForwardAction(rule, action);

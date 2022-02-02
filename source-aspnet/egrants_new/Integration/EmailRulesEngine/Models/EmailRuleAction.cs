@@ -10,7 +10,16 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
         public int EmailRulesId { get; set; }
         public int Order { get; set; }
         public string Description { get; set; }
-        public IntegrationEnums.EmailActionType ActionType { get; set; }
+
+        public IntegrationEnums.EmailActionType ActionTypeEnum 
+        {
+            get
+            {
+                return (IntegrationEnums.EmailActionType) ActionType;
+            }
+        }
+
+        public int ActionType { get; set; }
         public string TargetValue { get; set; }
         public int CreatedByPersonId { get; set; }
         public DateTime CreatedDate { get; set; }
