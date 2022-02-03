@@ -50,7 +50,7 @@ namespace egrants_new.Integration.Models
             {
                 return AuthenticationType == AuthenticationType.OAuth
                     ? SaveType.MicrosoftGraphApi
-                    : SaveType.eRaWebServiceData;
+                    : SaveType.ERaWebServiceData;
             }
         }
 

@@ -105,9 +105,11 @@ namespace egrants_new.Integration.WebServices
             return output;
         }
 
-
-
-       // public List<GrantEmailAttachment> GetEmailAttachments(int msgId)
+        /// <summary>
+        /// Returns the json representation of a messages attachments array from Microsoft Graph API
+        /// </summary>
+        /// <param name="msgId"></param>
+        /// <returns></returns>
         public string GetEmailAttachments(string msgId)
         {
             string mailboxName = ConfigurationManager.AppSettings["MSGraphUserId"];

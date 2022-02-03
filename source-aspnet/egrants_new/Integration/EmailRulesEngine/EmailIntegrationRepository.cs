@@ -419,7 +419,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        public List<EmailRuleMatchedMessages> GetEmailRuleMatches(int ruleId, bool forceAll)
+        public List<EmailRuleMatchedMessages> GetEmailRuleMatches(int ruleId, bool forceAll, int messageId = 0)
         {
             var output = new List<EmailRuleMatchedMessages>();
 
@@ -434,6 +434,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                         };
                     cmd.Parameters.Add("@ruleid", SqlDbType.Int).Value = ruleId;
                     cmd.Parameters.Add("@all", SqlDbType.Bit).Value = forceAll;
+                    cmd.Parameters.Add("@msgId", SqlDbType.Int).Value = messageId;
                     conn.Open();
 
                     SqlDataReader dr = cmd.ExecuteReader();
@@ -454,6 +455,45 @@ namespace egrants_new.Integration.EmailRulesEngine
             return output;
 
         }
+
+        //public List<EmailRuleMatchedMessages> GetRuleMatchesByEmail(int ruleId, bool forceAll, int messageId = 0)
+        //{
+        //    var output = new List<EmailRuleMatchedMessages>();
+
+        //    using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+        //    {
+        //        try
+        //        {
+        //            SqlCommand cmd =
+        //                new SqlCommand("sp_email_get_matched_messages", conn)
+        //                {
+        //                    CommandType = CommandType.StoredProcedure,
+        //                };
+        //            cmd.Parameters.Add("@ruleid", SqlDbType.Int).Value = ruleId;
+        //            cmd.Parameters.Add("@all", SqlDbType.Bit).Value = forceAll;
+        //            cmd.Parameters.Add("@msgId", SqlDbType.Int).Value = messageId;
+        //            conn.Open();
+
+        //            SqlDataReader dr = cmd.ExecuteReader();
+
+        //            while (dr.Read())
+        //            {
+        //                var obj = new EmailRuleMatchedMessages();
+        //                SqlHelper.MapDataToObject(obj, dr);
+        //                output.Add(obj);
+        //            }
+
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            //TODO: Handle exception
+        //        }
+        //    }
+
+
+        //    return output;
+
+        //}
 
 
         public string GetPlaceHolder(ExtractedMessageDetails details)
@@ -502,7 +542,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         {
             //string output = string.Empty;
             int applId = 0;
-            if (string.IsNullOrWhiteSpace(notificationId))
+            if (!string.IsNullOrWhiteSpace(notificationId))
             {
 
                 string baseSql = "select appl_id from adsup_notification where id = {0}";
@@ -545,7 +585,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         {
             //string output = string.Empty;
             int applId = 0;
-            if (string.IsNullOrWhiteSpace(searchtext))
+            if (!string.IsNullOrWhiteSpace(searchtext))
             {
 
                 string baseSql = "select dbo.Imm_fn_applid_match( '{0}') as applid";
@@ -643,6 +683,42 @@ namespace egrants_new.Integration.EmailRulesEngine
                     while (dr.Read())
                     {
                         output = (string)dr["pa"];
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+            return output;
+        }
+
+
+
+        public List<EmailRuleActionResult> GetActionResults(int ruleId, int msgId)
+        {
+            string baseSql = "SELECT [Id],[ActionId],[RuleId],[MessageId],[Successful],[ActionStarted],[ActionCompleted],[ActionMessage],[ExceptionText],[CreatedDate],[ActionDataPassed] FROM[EIM].[dbo].[EmailRulesActionResults] where ruleid {0} = and messageId = {1}";
+            string SQL = String.Format(baseSql, ruleId,msgId);
+
+            var output = new List<EmailRuleActionResult>();
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand(SQL, conn)
+                        {
+                            CommandType = CommandType.Text,
+                        };
+
+                    conn.Open();
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        var obj = new EmailRuleActionResult();
+                        SqlHelper.MapDataToObject(obj, dr);
+                        output.Add(obj);
                     }
                 }
                 catch (Exception ex)

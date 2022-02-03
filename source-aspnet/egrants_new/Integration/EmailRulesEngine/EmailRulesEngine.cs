@@ -49,6 +49,40 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
+
+        public void ProcessMessage(int messageId, int ruleId=0)
+        {
+            var rules = LoadRules();
+
+            foreach (var rule in rules)
+            {
+                if ((ruleId != 0 && rule.Id == ruleId) || ruleId == 0)
+                {
+                    var message = _repo.GetEmailMessage(messageId);
+
+                    bool trueFlag = false;
+                    foreach (var criteria in rule.Criteria)
+                    {
+                        trueFlag = EvaluateCriteria(message, criteria);
+
+                        if (rule.CriteriaAny && trueFlag || !rule.CriteriaAny && !trueFlag)
+                        {
+                            break;
+                        }
+                    }
+
+                    //Write the match to the match table
+                    _repo.SaveRuleMessageMatch(message, rule, trueFlag);
+
+                    //Perform the Action Immediately (Ideal for Reprocessing )
+                    if (trueFlag)
+                    {
+                        ExecuteActionsByMessage(rule, message.Id);
+                    }
+                }
+            }
+        }
+
         public void ProcessPendingActions()
         {
             var rules = LoadRules();
@@ -125,7 +159,23 @@ namespace egrants_new.Integration.EmailRulesEngine
             foreach (var match in matches)
             {
                 var msg = _repo.GetEmailMessage(match.EmailMessageId);
-                bool completedActions = _actionModule.PerformActions(msg,rule);
+                bool completedActions = _actionModule.PerformActions(msg, rule);
+                match.ActionsCompleted = completedActions;
+                _repo.SaveRuleMatch(match);
+            }
+
+        }
+
+
+        private void ExecuteActionsByMessage(EmailRule rule, int messageId)
+        {
+
+            var matches = _repo.GetEmailRuleMatches(rule.Id, false,messageId);
+
+            foreach (var match in matches)
+            {
+                var msg = _repo.GetEmailMessage(match.EmailMessageId);
+                bool completedActions = _actionModule.PerformActions(msg, rule);
                 match.ActionsCompleted = completedActions;
                 _repo.SaveRuleMatch(match);
             }

@@ -120,5 +120,25 @@ namespace egrants_new.Egrants.Controllers
             return RedirectToAction("Index"); //View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
+        public ActionResult ProcessEmailMessage(int messageId, int ruleId = 0)
+        {
+
+            var engine = new EmailRulesEngine();
+
+            engine.ProcessMessage(messageId,ruleId);
+
+            var repo = new EmailIntegrationRepository();
+
+
+            var page = new MailIntegrationPage();
+            page.Result = $"Processed MessageId {messageId}";
+            page.Messages = new List<EmailMsg>();
+
+            return RedirectToAction("Index");//return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+            
+
+
+        }
+
     }
 }

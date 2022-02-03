@@ -52,7 +52,7 @@ namespace egrants_new.Integration.WebServices
             {
                 //First build data list
                 JArray records = new JArray();// Only needed to resolve an intelisense/compiler warning
-                if (webService.SaveType == IntegrationEnums.SaveType.eRaWebServiceData)
+                if (webService.SaveType == IntegrationEnums.SaveType.ERaWebServiceData)
                 {
                     records =    JArray.Parse(json);
                 }

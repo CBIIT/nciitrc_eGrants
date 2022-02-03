@@ -12,7 +12,9 @@ namespace egrants_new.Egrants.Models
         public string Result { get; set; }
 
         public List<EmailMsg> Messages { get; set; }
+        public List<EmailRuleActionResult> Results { get; set; }
 
+        public int PageType;
 
 
     }

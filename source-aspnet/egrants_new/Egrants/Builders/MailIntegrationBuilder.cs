@@ -5,15 +5,19 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
+using System.Web.Services.Description;
+using egrants_new.Egrants.Models;
+using egrants_new.Integration.EmailRulesEngine;
 
 namespace egrants_new.Egrants.Builders
 {
     public class MailIntegrationBuilder
     {
-
+        private EmailIntegrationRepository _repo; 
 
         public MailIntegrationBuilder()
         {
+           _repo = new EmailIntegrationRepository();
         }
 
 
@@ -36,6 +40,18 @@ namespace egrants_new.Egrants.Builders
             
             conn.Close();
             return output;
+        }
+
+
+        public MailIntegrationPage GetMailProcessingResults(int ruleId, int messageId)
+        {
+            MailIntegrationPage output = new MailIntegrationPage();
+
+
+            var results = _repo.GetActionResults(ruleId, messageId);
+
+
+            return new MailIntegrationPage();
         }
 
 

@@ -69,7 +69,7 @@ namespace egrants_new.Integration.Models
 
         public enum SaveType
         {
-            eRaWebServiceData,
+            ERaWebServiceData,
             MicrosoftGraphApi
         }
 
@@ -88,5 +88,15 @@ namespace egrants_new.Integration.Models
             Html,
             Pdf
         }
+
+
+        public enum MailIntegrationPageType
+        {
+            Index,
+            Messages,
+            Rules,
+            RulesActionResults
+        }
+
     }
 }

@@ -112,7 +112,6 @@
                         <th>Has Attachments</th>
                         <th>Important</th>
                         <th><i class="glyphicon-paperclip"></i></th>
-                        <th><i class="glyphicon-paperclip"></i></th>
                         </thead>
                         <tr class="tfoot">
                             <td colspan="4">
@@ -138,12 +137,8 @@
                                 <td >@msg.Importance</td>
                                 <td> @if (msg.HasAttachments)
                                      {
-                                         <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
+                                    <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
                                      }</td>
-                                <td> 
-                                     
-                                         <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
-                                     </td>
                             </tr>
 
                         }

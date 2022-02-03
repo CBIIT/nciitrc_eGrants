@@ -487,6 +487,7 @@
     <Content Include="Integration\Views\Trigger.cshtml" />
     <Content Include="Egrants\Views\_MailIntegrationMain.cshtml" />
     <Content Include="Egrants\Views\MailIntegrationMain.cshtml" />
+    <Content Include="Egrants\Views\MailIntegrationListActionResults.cshtml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />

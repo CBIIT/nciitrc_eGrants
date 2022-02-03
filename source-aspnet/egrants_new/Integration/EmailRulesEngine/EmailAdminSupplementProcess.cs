@@ -42,7 +42,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             string catname = "";
             string pa = "";
             string notification_filetype = "txt";
-            int applId=0;
+            int applId = 0;
             string fgn = "";
             string alias = "";
             string notificationId = "";
@@ -53,7 +53,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             {
                 catname = "Correspondence";
 
-				if (msg.Subject.Contains("Change in Status"))
+                if (msg.Subject.Contains("Change in Status"))
                 {
                     subcatname = "Supplement Status Change";
 
@@ -83,7 +83,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                 notificationId = base.ExtractValue(msg.MessageBody, "Notification Id=");
                 applId = GetTempApplId(notificationId);
 
-				ExtractedMessageDetails msgDetails = new ExtractedMessageDetails();
+                ExtractedMessageDetails msgDetails = new ExtractedMessageDetails();
 
                 msgDetails.Body = msg.MessageBody;
                 msgDetails.Catname = catname;
@@ -98,25 +98,25 @@ namespace egrants_new.Integration.EmailRulesEngine
                 string filenumbername = base.GetPlaceholder(msgDetails);
                 if (string.IsNullOrWhiteSpace(filenumbername))
                 {
-					//TODO: Email Error
-					//    .Recipients.Add("leul.ayana@nih.gov")
-					//    .Recipients.Add("leul.ayana@nih.gov")
-					//    .Recipients.Add("guillermo.choy-leon@nih.gov")
+                    //TODO: Email Error
+                    //    .Recipients.Add("leul.ayana@nih.gov")
+                    //    .Recipients.Add("leul.ayana@nih.gov")
+                    //    .Recipients.Add("guillermo.choy-leon@nih.gov")
                     //this to admin.replysubj =
                     //    "ERROR: Could not create entry in WIP. Check DB proc : getPlaceHolder_new to load OGA_Notification"
-				}
+                }
 
 
                 alias = filenumbername + ".txt";
                 // Generate file from email and save 
-                SaveMessage(msg,alias,outputFolder,MessageSaveType.Text);
-                
+                SaveMessage(msg, alias, outputFolder, MessageSaveType.Text);
+
             }
             else if (msg.Sender.Contains("caeranotifications"))
             {
                 notification_filetype = "txt";
 
-				catname = "eRA Notification";
+                catname = "eRA Notification";
                 if (msg.Subject.Contains(" Supplement Requested "))
                 {
                     subcatname = "Supplement Requested";
@@ -137,16 +137,17 @@ namespace egrants_new.Integration.EmailRulesEngine
                 }
 
                 if (applId == 0)
-				{
-					// Email That there was an error determining the 
-					//replysubj = "ERROR: Supplement could not identified"
+                {
+                    throw new Exception("ERROR: Supplement could not identified");
+                    // Email That there was an error determining the 
+                    //replysubj = "ERROR: Supplement could not identified"
                     //.Recipients.Add("leul.ayana@nih.gov")
                     //    .Recipients.Add("guillermo.choy-leon@nih.gov")
                     //    .Recipients.Add("leul.ayana@nih.gov")
-				}
+                }
                 else
                 {
-                    pa = base.GetPa(msg.Subject);
+                    pa = GetPa(msg.Subject);
 
                     ExtractedMessageDetails msgDetails = new ExtractedMessageDetails();
 
@@ -159,9 +160,10 @@ namespace egrants_new.Integration.EmailRulesEngine
                     msgDetails.Sub = msg.Subject;
                     msgDetails.Subcatname = subcatname;
 
-                    string filenumbername = base.GetPlaceholder(msgDetails);
+                    string filenumbername = GetPlaceholder(msgDetails);
                     if (string.IsNullOrWhiteSpace(filenumbername))
                     {
+                        throw new Exception("ERROR: Could not create entry in WIP. Check DB proc : getPlaceHolder_new to load OGA_Notification");
                         //TODO: Email Error
                         //    .Recipients.Add("leul.ayana@nih.gov")
                         //    .Recipients.Add("leul.ayana@nih.gov")
@@ -175,7 +177,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                     SaveMessage(msg, alias, outputFolder, MessageSaveType.Text);
 
                 }
-            } 
+            }
             else if (msg.Sender.Contains("driskelleb") || (msg.Sender.Contains("jonesni")) ||
                       (msg.Sender.Contains("omairi")) || (msg.Sender.Contains("woldezf")))
             {
@@ -195,7 +197,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                     notification_filetype = "txt";
 
                 }
-                else if((catname == "application file" || catname == "applicationfile") && msg.HasAttachments)
+                else if ((catname == "application file" || catname == "applicationfile") && msg.HasAttachments)
                 {
 
 
@@ -210,28 +212,26 @@ namespace egrants_new.Integration.EmailRulesEngine
                     msgDetails.Sub = msg.Subject;
                     msgDetails.Subcatname = subcatname;
 
-                    string filenumbername = base.GetPlaceholder(msgDetails);
+                    string filenumbername = GetPlaceholder(msgDetails);
 
-                    alias = filenumbername + "." + notification_filetype;
+                    //alias = filenumbername + "." + notification_filetype;
 
                     var attachments = EmailRepo.GetEmailAttachments(msg.GraphId);
                     if (attachments.Count > 1)
                     {
                         throw new Exception("There were more than 1 attachments included");
                     }
-                    else
-                    {
-                        var attachment = attachments.FirstOrDefault();
-                        string ext = attachment.Name.Split('.')[1];
-                        attachment.SaveToDisk(outputFolder, filenumbername, ext);
-                    }
+
+                    var attachment = attachments.FirstOrDefault();
+                    string ext = attachment?.Name.Split('.')[1];
+                    attachment?.SaveToDisk(outputFolder, filenumbername, ext);
                 }
 
                 if (!string.IsNullOrWhiteSpace(msg.Subject) && applId == 0 && string.IsNullOrWhiteSpace(fgn))
                 {
                     applId = int.Parse(ExtractValue(fgn, "applid="));
                 }
-                else if(msg.Subject.Length>0 && applId == 0 && fgn.Length ==0)
+                else if (msg.Subject.Length > 0 && applId == 0 && fgn.Length == 0)
                 {
                     applId = int.Parse(ExtractValue(msg.Subject, "applid="));
                 }
@@ -313,7 +313,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                         // Generate file from email and save 
                         SaveMessage(msg, alias, outputFolder, MessageSaveType.Text);
                     }
-                    else if (catname == "application file" && msg.HasAttachments )
+                    else if (catname == "application file" && msg.HasAttachments)
                     {
                         //TODO: Get Attachment and Save  
 
@@ -328,8 +328,8 @@ namespace egrants_new.Integration.EmailRulesEngine
                         {
                             var attachment = attachments.FirstOrDefault();
                             string ext = attachment.Name.Split('.')[1];
-                            attachment.SaveToDisk(outputFolder,filenumbername,ext);
-                        } 
+                            attachment.SaveToDisk(outputFolder, filenumbername, ext);
+                        }
                     }
                 }
             }
@@ -395,7 +395,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                 }
             }
-		}
+        }
 
     }
 }
