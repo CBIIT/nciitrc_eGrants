@@ -31,7 +31,7 @@ namespace egrants_new.Egrants.Controllers
 
             if (msgs.Count > 0)
             {
-               int numMsgs = msgs.Count > 25 ? 25 : msgs.Count;
+               int numMsgs = msgs.Count > 400 ? 400 : msgs.Count;
                 page.Messages = msgs.GetRange(0,numMsgs);
             }
 
