@@ -49,7 +49,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             string outputFolder = this.Action.TargetValue;
 
 
-            if (msg.Sender.Contains("nciogaegrantsprod"))
+            if (msg.Sender.ToLower().Contains("nciogaegrantsprod"))
             {
                 catname = "Correspondence";
 
@@ -112,7 +112,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                 SaveMessage(msg, alias, outputFolder, MessageSaveType.Text);
 
             }
-            else if (msg.Sender.Contains("caeranotifications"))
+            else if (msg.Sender.ToLower().Contains("caeranotifications"))
             {
                 notification_filetype = "txt";
 
@@ -178,8 +178,8 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                 }
             }
-            else if (msg.Sender.Contains("driskelleb") || (msg.Sender.Contains("jonesni")) ||
-                      (msg.Sender.Contains("omairi")) || (msg.Sender.Contains("woldezf")))
+            else if (msg.Sender.ToLower().Contains("driskelleb") || (msg.Sender.ToLower().Contains("jonesni")) ||
+                      (msg.Sender.ToLower().Contains("omairi")) || (msg.Sender.ToLower().Contains("woldezf")))
             {
                 fgn = ExtractValue(msg.Subject, "grantnumber=");
                 catname = ExtractValue(msg.Subject, "category=");
@@ -361,6 +361,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                     string filenumbername = base.GetPlaceholder(msgDetails);
                     if (string.IsNullOrWhiteSpace(filenumbername))
                     {
+                        //TODO:  Fix condition where this error is generated as fallback for not matching any criteria.
                         throw new Exception("ERROR: Could not create entry in WIP. ");
                         //If getPlaceHolder_new did not returned any thing this means there is an error to be investigated for ward this to admin. 
                         //TODO: Email Error
