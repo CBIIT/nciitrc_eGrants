@@ -548,6 +548,7 @@
     <Compile Include="Egrants\Models\EgrantsDoc.cs" />
     <Compile Include="Egrants\Models\Egrants.cs" />
     <Compile Include="Egrants\Models\InstitutionalFiles.cs" />
+    <Compile Include="Egrants\Models\MailIntegrationActionResultsPage.cs" />
     <Compile Include="Egrants\Models\MailIntegrationPage.cs" />
     <Compile Include="Egrants_Admin\Controllers\ApplDestructedController.cs" />
     <Compile Include="Egrants_Admin\Controllers\EgrantsAccessController.cs" />
@@ -600,8 +601,10 @@
     <Compile Include="Integration\Identity\IdentityImplementation.cs" />
     <Compile Include="Integration\Models\IntegrationEnums.cs" />
     <Compile Include="Integration\Models\SQLJobError.cs" />
+    <Compile Include="Integration\EmailRulesEngine\Models\ViewEmailActionResults.cs" />
     <Compile Include="Integration\Models\WebServiceParam.cs" />
     <Compile Include="Integration\Shared\SQLHelper.cs" />
+    <Compile Include="Integration\Shared\TextHelper.cs" />
     <Compile Include="Integration\WebServices\EmailNotifier.cs" />
     <Compile Include="Integration\WebServices\IDataTransformer.cs" />
     <Compile Include="Integration\WebServices\IntegrationRepository.cs" />

@@ -13,9 +13,16 @@ namespace egrants_new.Egrants.Models
 
         public List<EmailMsg> Messages { get; set; }
         public List<EmailRuleActionResult> Results { get; set; }
+        public List<ViewEmailActionResults> ActionResults { get; set; }
 
         public int PageType;
 
+        public MailIntegrationPage()
+        {
+            Messages = new List<EmailMsg>();
+            Results = new List<EmailRuleActionResult>();
+            ActionResults = new List<ViewEmailActionResults>();
+        }
 
     }
 }

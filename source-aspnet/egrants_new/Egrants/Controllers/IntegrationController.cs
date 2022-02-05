@@ -25,7 +25,7 @@ namespace egrants_new.Egrants.Controllers
             var page = new MailIntegrationPage();
             page.Result = "Start";
 
-            var rule = repo.GetEmailRules().Where(r => r.Id == 4).FirstOrDefault();
+            var rule = repo.GetEmailRules(true).Where(r => r.Id == 4).FirstOrDefault();
             var msgs = repo.GetEmailMessages(rule);
             page.Messages = msgs;
 
@@ -124,20 +124,46 @@ namespace egrants_new.Egrants.Controllers
         {
 
             var engine = new EmailRulesEngine();
-
             engine.ProcessMessage(messageId,ruleId);
 
             var repo = new EmailIntegrationRepository();
-
 
             var page = new MailIntegrationPage();
             page.Result = $"Processed MessageId {messageId}";
             page.Messages = new List<EmailMsg>();
 
-            return RedirectToAction("Index");//return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
-            
+            return RedirectToAction("GetEmailProcessingResults", new {messageId = messageId, ruleId = ruleId});//return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+        }
 
 
+        public ActionResult GetEmailProcessingResults(int messageId = 0, int ruleId = 0)
+        {
+
+            var repo = new EmailIntegrationRepository();
+            var page = new MailIntegrationPage();
+
+
+            if (messageId != 0)
+            {
+                page.Messages.Add(repo.GetEmailMessage(messageId));
+            }
+
+            if (messageId == 0 && ruleId != 0)
+            {
+                var rule = repo.GetEmailRules().FirstOrDefault(r => r.Id == ruleId);
+                page.Messages = repo.GetEmailMessages(rule);
+                page.ActionResults = repo.GetActionResultsII(ruleId, messageId);
+
+            }
+
+            if (messageId != 0 && ruleId == 0)
+            {
+
+                page.ActionResults = repo.GetActionResultsII(ruleId, messageId);
+
+            }
+
+            return View("~/Egrants/Views/MailIntegrationListActionResults.cshtml", page);
         }
 
     }

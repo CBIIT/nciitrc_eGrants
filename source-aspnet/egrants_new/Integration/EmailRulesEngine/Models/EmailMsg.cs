@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using egrants_new.Integration.EmailRulesEngine.Models;
+using egrants_new.Integration.Shared;
 using Newtonsoft.Json.Linq;
 
 namespace egrants_new.Integration.EmailRulesEngine.Models
@@ -32,17 +32,13 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
         {
             get
             {
+                string output = string.Empty;
                 if (Body != null)
                 {
-
-
                     JObject body = JObject.Parse(Body);
-                    return (string) body["content"];
+                    output = TextHelper.BustHtml((string)body["content"]);
                 }
-                else
-                {
-                    return string.Empty;
-                }
+                return output;
             }
         }
 
@@ -50,6 +46,7 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
         public EmailMsg()
         {
             EgrantsMetaData = new Dictionary<string, EmailMsgMetadata>();
+
         }
 
     }

@@ -14,61 +14,98 @@
         text-align: left;
         border-collapse: collapse;
     }
-    table.blueTable td, table.blueTable th {
-        border: 0px solid #AAAAAA;
-        padding: 3px 2px;
-    }
-    table.blueTable tbody td {
-        font-size: 13px;
-    }
-    table.blueTable tr:nth-child(even) {
-        background: #D0E4F5;
-    }
-    table.blueTable thead {
-        background: #1C6EA4;
-        background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-        background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-        background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-        border-bottom: 2px solid #444444;
-    }
-    table.blueTable thead th {
-        font-size: 15px;
-        font-weight: bold;
-        color: #FFFFFF;
-        border-left: 2px solid #D0E4F5;
-    }
-    table.blueTable thead th:first-child {
-        border-left: none;
-    }
 
-    table.blueTable tfoot {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 14px;
-        font-weight: bold;
-        color: #FFFFFF;
-        background: #D0E4F5;
-        background: -moz-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
-        background: -webkit-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
-        background: linear-gradient(to bottom, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
-        border-top: 2px solid #444444;
-    }
-    table.blueTable tfoot td {
-        font-size: 14px;
-    }
-    table.blueTable tfoot .links {
-        text-align: right;
-    }
-    table.blueTable tfoot .links a{
-        display: inline-block;
-        background: #1C6EA4;
-        color: #FFFFFF;
-        padding: 2px 8px;
-        border-radius: 5px;
-    }
+        table.blueTable td, table.blueTable th {
+            border: 0px solid #AAAAAA;
+            padding: 3px 2px;
+        }
+
+        table.blueTable tbody td {
+            font-size: 13px;
+        }
+
+        table.blueTable tr:nth-child(even) {
+            background: #D0E4F5;
+        }
+
+        table.blueTable thead {
+            background: #1C6EA4;
+            background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+            background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+            background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+            border-bottom: 2px solid #444444;
+        }
+
+            table.blueTable thead th {
+                font-size: 15px;
+                font-weight: bold;
+                color: #FFFFFF;
+                border-left: 2px solid #D0E4F5;
+            }
+
+                table.blueTable thead th:first-child {
+                    border-left: none;
+                }
+
+        table.blueTable tfoot {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFFFFF;
+            background: #D0E4F5;
+            background: -moz-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+            background: -webkit-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+            background: linear-gradient(to bottom, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+            border-top: 2px solid #444444;
+        }
+
+            table.blueTable tfoot td {
+                font-size: 14px;
+            }
+
+            table.blueTable tfoot .links {
+                text-align: right;
+            }
+
+                table.blueTable tfoot .links a {
+                    display: inline-block;
+                    background: #1C6EA4;
+                    color: #FFFFFF;
+                    padding: 2px 8px;
+                    border-radius: 5px;
+                }
 </style>
 
-<script language="JavaScript">
+@*<link href="~/Content/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/jquery.dataTables_themeroller.css" rel="stylesheet" type="text/css" />
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="~/Scripts/jquery.dataTables.js"></script>*@
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.5/css/jquery.dataTables.css">
+<link href="//cdn.datatables.net/1.10.5/css/jquery.dataTables_themeroller.css" rel="stylesheet" type="text/css" />
+<!-- jQuery -->
+<script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+<!-- DataTables -->
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.js">
+</script>
 
+<script language="JavaScript">
+    $(document).ready(function () {
+        $('#ActionResults').DataTable(
+            {
+                "autowidth": false,
+                "columns": [
+                    { "width": "10%" },
+                    { "width": "10%" },
+                    { "width": "10%" },
+                    { "width": "50%" },
+                    { "width": "5%" },
+                    { "width": "5%" },
+                    { "width": "5%" },
+                    { "width": "5%" }
+                ]
+            });
+    });
 
 </script>
 
@@ -79,8 +116,9 @@
 
 
     <div>@Model.Result</div>
-    
-    <div id="triggeractions">
+
+    @*
+        <div id="triggeractions">
         <div>
             <div class=""><h2>Trigger Integration Actions</h2></div>
             <table id="actions" class="blueTable">
@@ -89,68 +127,57 @@
                 <th>Activate Process</th>
                 </thead>
                 <tbody>
-                    <tr><td>Download Current Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeGraphData","Integration")" ><i class="ui-icon-play"></i>Invoke</a></td></tr>
-                    <tr><td>Run the Rules Engine</td><td align="center"><a  target="_top" href="@Url.Action("InvokeRules","Integration")">Invoke</a></td></tr>
+                    <tr><td>Download Current Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeGraphData","Integration")"><i class="ui-icon-play"></i>Invoke</a></td></tr>
+                    <tr><td>Run the Rules Engine</td><td align="center"><a target="_top" href="@Url.Action("InvokeRules","Integration")">Invoke</a></td></tr>
                     <tr><td>Process the Matched Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeActions","Integration")">Invoke</a></td></tr>
                 </tbody>
             </table>
         </div>
     </div>
+        *@
 
-        <div id="MailboxView">
-            <h2>Mailbox View</h2>
-            <div>
-                @if (Model.Messages.Count > 0)
-                {
-                    <table id="MailMessages" class="blueTable">
-                        <thead>
-                        <th>Date</th>
-                        <th>To</th>
-                        <th>From</th>
-                        <th>Subject</th>
-                        <th>Snippet</th>
-                        <th>Has Attachments</th>
-                        <th>Important</th>
-                        <th><i class="glyphicon-paperclip"></i></th>
-                        </thead>
-                        <tr class="tfoot">
-                            <td colspan="4">
-                                <div class="links"><a href="#">&laquo;</a> <a class="active" href="#">1</a> <a href="#">2</a> <a href="#">3</a> <a href="#">4</a> <a href="#">&raquo;</a></div>
-                            </td>
-                        </tr>
-                        <tbody>
-                        @foreach (var msg in Model.Messages)
+    <div id="MailboxView">
+        <h2>Mailbox View</h2>
+        <div>
+            @if (Model.ActionResults.Count > 0)
+            {
+                <table id="ActionResults" class="table">
+                    <thead>
+                    <th>Rule Description</th>
+                    <th>Message Id</th>
+                    <th>All Actions Completed?</th>
+                    <th>Action Name</th>
+                    <th>Action Message</th>
+                    <th>Action Complete</th>
+                    <th>Exception </th>
+                    <th>Retry Action</th>
+                    </thead>
+                    <tbody>
+                        @foreach (var result in Model.ActionResults)
                         {
                             <tr>
-                                <td >@msg.ReceivedDateTime</td>
-
-                                <td >@msg.ToRecipients</td>
-
-                                <td >@msg.EmailFrom</td>
-
-                                <td >@msg.Subject</td>
-
-                                <td >@msg.BodyPreview</td>
-
-                                <td>@msg.HasAttachments</td>
-
-                                <td >@msg.Importance</td>
-                                <td> @if (msg.HasAttachments)
-                                     {
-                                    <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
-                                     }</td>
+                                <td>@result.RuleDescription</td>
+                                <td>@result.EmailMessageId</td>
+                                <td>@result.ActionsCompleted</td>
+                                <td>@result.ActionName</td>
+                                <td>@result.ActionMessage</td>
+                                <td>@result.ActionCompleted</td>
+                                <td>@result.ExceptionText</td>
+                                <td>
+                                    <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
+                                </td>
                             </tr>
 
                         }
-                        </tbody>
+                    </tbody>
 
-                    </table>
-                }
-                else
-                {
-                    <div>No Messages Available</div>
-                }
+                </table>
+            }
+            else
+            {
+                <div>No Action Results Currently Available</div>
+            }
 
-            </div>
         </div>
+    </div>
 </div>

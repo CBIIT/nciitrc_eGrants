@@ -1,26 +1,12 @@
 ﻿using System;
-using System.CodeDom;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Data.SqlTypes;
-using System.EnterpriseServices;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Web;
-using System.Xml;
-using System.Xml.Linq;
-using egrants_new.Integration.Models;
 using egrants_new.Integration.Shared;
 using egrants_new.Integration.WebServices;
 using egrants_new.Integration.EmailRulesEngine.Models;
+
 using Newtonsoft.Json.Linq;
 
 namespace egrants_new.Integration.EmailRulesEngine
@@ -717,6 +703,45 @@ namespace egrants_new.Integration.EmailRulesEngine
                     while (dr.Read())
                     {
                         var obj = new EmailRuleActionResult();
+                        SqlHelper.MapDataToObject(obj, dr);
+                        output.Add(obj);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+            return output;
+        }
+
+
+        public List<ViewEmailActionResults> GetActionResultsII(int ruleId, int msgId = 0)
+        {
+            string baseSql = @"Select ermm.EmailRuleId, ermm.EmailMessageId, ermm.ActionsCompleted, erar.ActionCompleted, era.Description, erar.ActionMessage, erar.ExceptionText from EmailRulesMatchedMessages ermm
+            inner join EmailRulesActionResults erar on ermm.EmailMessageId = erar.MessageId
+            inner join EmailRulesActions era on era.Id = erar.ActionId
+            where (ermm.RuleId = {0} or {0}=0) and ({1}=0 or ermm.EmailMessageId={1})
+            order by  ermm.Id, erar.MessageId";
+            string SQL = String.Format(baseSql, ruleId, msgId);
+
+            var output = new List<ViewEmailActionResults>();
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand(SQL, conn)
+                        {
+                            CommandType = CommandType.Text,
+                        };
+
+                    conn.Open();
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        var obj = new ViewEmailActionResults();
                         SqlHelper.MapDataToObject(obj, dr);
                         output.Add(obj);
                     }

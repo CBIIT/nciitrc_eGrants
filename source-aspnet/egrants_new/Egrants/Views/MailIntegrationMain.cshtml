@@ -14,16 +14,20 @@
         text-align: left;
         border-collapse: collapse;
     }
+
     table.blueTable td, table.blueTable th {
         border: 0px solid #AAAAAA;
         padding: 3px 2px;
     }
+
     table.blueTable tbody td {
         font-size: 13px;
     }
+
     table.blueTable tr:nth-child(even) {
         background: #D0E4F5;
     }
+
     table.blueTable thead {
         background: #1C6EA4;
         background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
@@ -31,12 +35,14 @@
         background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
         border-bottom: 2px solid #444444;
     }
+
     table.blueTable thead th {
         font-size: 15px;
         font-weight: bold;
         color: #FFFFFF;
         border-left: 2px solid #D0E4F5;
     }
+
     table.blueTable thead th:first-child {
         border-left: none;
     }
@@ -52,13 +58,16 @@
         background: linear-gradient(to bottom, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
         border-top: 2px solid #444444;
     }
+
     table.blueTable tfoot td {
         font-size: 14px;
     }
+
     table.blueTable tfoot .links {
         text-align: right;
     }
-    table.blueTable tfoot .links a{
+
+    table.blueTable tfoot .links a {
         display: inline-block;
         background: #1C6EA4;
         color: #FFFFFF;
@@ -67,8 +76,37 @@
     }
 </style>
 
-<script language="JavaScript">
+@*<link href="~/Content/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jquery.dataTables_themeroller.css" rel="stylesheet" type="text/css" />
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" charset="utf8" src="~/Scripts/jquery.dataTables.js"></script>*@
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.5/css/jquery.dataTables.css">
+<link href="//cdn.datatables.net/1.10.5/css/jquery.dataTables_themeroller.css" rel="stylesheet" type="text/css" />
+<!-- jQuery -->
+<script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
 
+<!-- DataTables -->
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.js">
+</script>
+
+<script language="JavaScript">
+    $(document).ready( function () {
+        $('#MailMessages').DataTable(
+            {
+                "autowidth": false,
+                "columns": [
+                    { "width": "10%" },
+                    { "width": "10%" },
+                    { "width": "10%" },
+                    { "width": "50%" },
+                    { "width": "5%" },
+                    { "width": "5%" },
+                    { "width": "5%" },
+                    { "width": "5%" }
+                    ]
+            });
+    } );
 
 </script>
 
@@ -79,7 +117,7 @@
 
 
     <div>@Model.Result</div>
-    
+
     <div id="triggeractions">
         <div>
             <div class=""><h2>Trigger Integration Actions</h2></div>
@@ -89,73 +127,69 @@
                 <th>Activate Process</th>
                 </thead>
                 <tbody>
-                    <tr><td>Download Current Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeGraphData","Integration")" ><i class="ui-icon-play"></i>Invoke</a></td></tr>
-                    <tr><td>Run the Rules Engine</td><td align="center"><a  target="_top" href="@Url.Action("InvokeRules","Integration")">Invoke</a></td></tr>
+                    <tr><td>Download Current Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeGraphData","Integration")"><i class="ui-icon-play"></i>Invoke</a></td></tr>
+                    <tr><td>Run the Rules Engine</td><td align="center"><a target="_top" href="@Url.Action("InvokeRules","Integration")">Invoke</a></td></tr>
                     <tr><td>Process the Matched Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeActions","Integration")">Invoke</a></td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-        <div id="MailboxView">
-            <h2>Mailbox View</h2>
-            <div>
-                @if (Model.Messages.Count > 0)
-                {
-                    <table id="MailMessages" class="blueTable">
-                        <thead>
-                        <th>Date</th>
-                        <th>To</th>
-                        <th>From</th>
-                        <th>Subject</th>
-                        <th>Snippet</th>
-                        <th>Has Attachments</th>
-                        <th>Important</th>
-                        <th><i class="glyphicon-paperclip"></i></th>
-                        <th><i class="glyphicon-paperclip"></i></th>
-                        </thead>
-                        <tr class="tfoot">
-                            <td colspan="4">
-                                <div class="links"><a href="#">&laquo;</a> <a class="active" href="#">1</a> <a href="#">2</a> <a href="#">3</a> <a href="#">4</a> <a href="#">&raquo;</a></div>
-                            </td>
-                        </tr>
-                        <tbody>
+    <div id="MailboxView">
+        <h2>Mailbox View</h2>
+        <div>
+            @if (Model.Messages.Count > 0)
+            {
+                <table id="MailMessages" class="table">
+                    <thead>
+                    <th>Date</th>
+                    <th>To</th>
+                    <th>From</th>
+                    <th>Subject</th>
+                    <th>Has Attachments</th>
+                    <th>Important</th>
+                    <th><i class="glyphicon-paperclip"></i></th>
+                    <th><i class="glyphicon-import"></i></th>
+                    </thead>
+                    <tbody>
                         @foreach (var msg in Model.Messages)
                         {
                             <tr>
-                                <td >@msg.ReceivedDateTime</td>
+                                <td>@msg.ReceivedDateTime</td>
 
-                                <td >@msg.ToRecipients</td>
+                                <td>@msg.ToRecipients</td>
 
-                                <td >@msg.EmailFrom</td>
+                                <td>@msg.EmailFrom</td>
 
-                                <td >@msg.Subject</td>
+                                <td>@msg.Subject</td>
 
-                                <td >@msg.BodyPreview</td>
+                                @*<td>@msg.BodyPreview</td>*@
 
                                 <td>@msg.HasAttachments</td>
 
-                                <td >@msg.Importance</td>
-                                <td> @if (msg.HasAttachments)
-                                     {
-                                         <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
-                                     }</td>
-                                <td> 
-                                     
-                                         <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
-                                     </td>
+                                <td>@msg.Importance</td>
+                                <td>
+                                    @if (msg.HasAttachments)
+                                    {
+                                        <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
+                                    }
+                                </td>
+                                <td>
+
+                                    <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
+                                </td>
                             </tr>
 
                         }
-                        </tbody>
+                    </tbody>
 
-                    </table>
-                }
-                else
-                {
-                    <div>No Messages Available</div>
-                }
+                </table>
+            }
+            else
+            {
+                <div>No Messages Available</div>
+            }
 
-            </div>
         </div>
+    </div>
 </div>
