@@ -4,7 +4,7 @@ SET QUOTED_IDENTIFIER OFF
 
 
 
-CREATE         FUNCTION [dbo].[fn_get_doc_url] (@document_id int, @IC varchar(5))
+CREATE   FUNCTION [dbo].[fn_get_doc_url] (@document_id int, @IC varchar(5))
 
 RETURNS varchar(800) AS 
 
@@ -38,7 +38,7 @@ BEGIN
 set @locall_image_server='https://egrants-web-dev.'+@IC+'.nih.gov/'
 set @impac_image_server='https://i2e-dev.'+@IC+'.nih.gov/'
 set @s2server_name = 'https://s2s.era.nih.gov/'
-set @sql_report_server = 'https://ncidb-d387-v.nci.nih.gov/ReportServer/Pages/ReportViewer.aspx?/'
+set @sql_report_server = 'https://ncidb-d387-v.nci.nih.gov/ReportServer_MSSQLEGRANTSD/'
 set @era_server = 'https://apps.era.nih.gov/'
 END
 
@@ -96,10 +96,14 @@ IF @url is null
 BEGIN
 
 IF (@impac_doc_type='ENG' and @created_date>'04/10/2007' and @IC='nci') SET @doc_url=@s2server_name+'docservice/dataservices/document/once/keyId/' + CONVERT(varchar,@nga_rpt_seq_num) + '/' + @impac_doc_type
+IF (@impac_doc_type='ENG' and @created_date<'04/10/2007' and @IC='nci') SET @doc_url=@s2server_name+'docservice/dataservices/document/once/keyId/' + CONVERT(varchar,@nga_rpt_seq_num) + '/' + 'NGA'
+
+--IF (@impac_doc_type='ENG' and @IC='nci') SET @doc_url=@s2server_name+'docservice/dataservices/document/once/keyId/' + CONVERT(varchar,@nga_rpt_seq_num) + '/' + @impac_doc_type
+
 
 --IF (@impac_doc_type='ENG' and @created_date<'04/10/2007') SET @doc_url='https://businessobjects-sg-dev.nci.nih.gov/BOE/OpenDocument/1211012223/CrystalReports/viewrpt.cwr?apspassword=egrants1234&id=30939&apsuser=egrants&apsauthtype=secEnterprise&prompt0='+convert(varchar,@nga_id)+'&promptOnRefresh=1&wid=9b60a3fc9d06464e'
 --                                                                                         NGAReports/getNGAfromNGAid&ngaid=677076
-IF (@impac_doc_type='ENG' and @created_date<'04/10/2007') SET @doc_url= @sql_report_server+'NGAReports/getNGAfromNGAid&ngaid='+convert(varchar,@nga_id)
+--IF (@impac_doc_type='ENG' and @created_date<'04/10/2007') SET @doc_url= @sql_report_server+'NGAReports/getNGAfromNGAid&ngaid='+convert(varchar,@nga_id)
 
 ----PRAM Documents,MYP Documents,Final Invention Statement eAddition
 IF @impac_doc_type in('FSR','AWS','PRM','MYP','CLD','WBR','PRACPC','PRANCE','PRACOV') SET @doc_url=@s2server_name + 'docservice/dataservices/document/once/keyId/' + CONVERT(varchar,@nga_rpt_seq_num) + '/' + @impac_doc_type

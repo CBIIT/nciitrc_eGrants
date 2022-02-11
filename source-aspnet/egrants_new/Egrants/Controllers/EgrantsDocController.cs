@@ -11,6 +11,7 @@ using egrants_new.Egrants.Models;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 
 namespace egrants_new.Controllers
 {
@@ -36,7 +37,7 @@ namespace egrants_new.Controllers
 
 
         //show era doc
-        public RedirectResult show_era_doc(string docurl)
+        public ActionResult show_era_doc(string docurl)
         {
             string cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
             string cert_pass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
@@ -59,8 +60,69 @@ namespace egrants_new.Controllers
                 tempLink = reader.ReadToEnd();
             }
 
-            return Redirect(tempLink);        
+
+            if (docurl.EndsWith("NGA"))
+            {
+              return RedirectToAction("GetConverteRaRTF","EgrantsDoc", new { url = tempLink });
+            }
+            else
+            {
+                return RedirectToAction("show_era_doc2", "EgrantsDoc", new { url = tempLink });
+            }
         }
+
+
+        public RedirectResult show_era_doc2(string url)
+        {
+
+            return Redirect(url);
+        }
+
+        public ActionResult GetConverteRaRTF(string url)
+        {
+            Uri uri = new Uri(url);
+            HttpWebRequest webreq = (HttpWebRequest)WebRequest.Create(uri);
+            webreq.KeepAlive = false;
+            webreq.Method = "GET";
+            //webreq.Accept = "text/xml";
+            webreq.AllowAutoRedirect = false;
+            HttpWebResponse webresp;
+            webresp = (HttpWebResponse)webreq.GetResponse();
+            string rtf = string.Empty;
+            Stream postStream = webresp.GetResponseStream();
+            using (StreamReader reader = new StreamReader(postStream))
+            {
+               rtf = reader.ReadToEnd();
+            }
+
+
+            MailIntegrationPage page = new MailIntegrationPage()
+            {
+                Result = rtf.Replace("\n", "<br/>")
+            };
+
+            return View("~/Egrants/Views/EgrantsShowNGA.cshtml", page);
+
+        }
+
+        public ActionResult ShowRTFDocument()
+        {
+
+            string contents = System.IO.File.ReadAllText(@"C:\testing\rtf\NGA852271.rtf");
+
+
+            MailIntegrationPage page = new MailIntegrationPage()
+            {
+                Result =    contents.Replace("\n","<br/>")
+            };
+
+
+            return View("~/Egrants/Views/EgrantsShowNGA.cshtml", page);
+
+        }
+
+
+
 
         public ActionResult LoadSupplementDoc(string act, int grant_id)
         {

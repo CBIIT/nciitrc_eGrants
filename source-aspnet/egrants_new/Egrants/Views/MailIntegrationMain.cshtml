@@ -90,25 +90,7 @@
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.js">
 </script>
 
-<script language="JavaScript">
-    $(document).ready( function () {
-        $('#MailMessages').DataTable(
-            {
-                "autowidth": false,
-                "columns": [
-                    { "width": "10%" },
-                    { "width": "10%" },
-                    { "width": "10%" },
-                    { "width": "50%" },
-                    { "width": "5%" },
-                    { "width": "5%" },
-                    { "width": "5%" },
-                    { "width": "5%" }
-                    ]
-            });
-    } );
 
-</script>
 
 
 <div id="main">
@@ -127,9 +109,11 @@
                 <th>Activate Process</th>
                 </thead>
                 <tbody>
-                    <tr><td>Download Current Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeGraphData","Integration")"><i class="ui-icon-play"></i>Invoke</a></td></tr>
-                    <tr><td>Run the Rules Engine</td><td align="center"><a target="_top" href="@Url.Action("InvokeRules","Integration")">Invoke</a></td></tr>
-                    <tr><td>Process the Matched Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeActions","Integration")">Invoke</a></td></tr>
+                    <tr><td>Bulk Action: Download Current Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeGraphData","Integration")"><i class="ui-icon-play"></i>Invoke</a></td></tr>
+                    <tr><td>Bulk Action: Run the Rules Engine</td><td align="center"><a target="_top" href="@Url.Action("InvokeRules","Integration")">Invoke</a></td></tr>
+                    <tr><td>Bulk Action: Process the Matched Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeActions","Integration")">Invoke</a></td></tr>
+                    <tr><td>Individual Action: View Messages Waiting to Process</td><td align="center"><a target="_top" href="@Url.Action("ViewMessageToProcess","Integration")">Invoke</a></td></tr>
+                    @*<tr><td>Individual Action: View Processing Results </td><td align="center"><a target="_top" href="@Url.Action("InvokeActions","Integration")">Invoke</a></td></tr>*@
                 </tbody>
             </table>
         </div>
@@ -152,35 +136,35 @@
                     <th><i class="glyphicon-import"></i></th>
                     </thead>
                     <tbody>
-                        @foreach (var msg in Model.Messages)
-                        {
-                            <tr>
-                                <td>@msg.ReceivedDateTime</td>
+                    @foreach (var msg in Model.Messages)
+                    {
+                        <tr>
+                            <td>@msg.ReceivedDateTime</td>
 
-                                <td>@msg.ToRecipients</td>
+                            <td>@msg.ToRecipients</td>
 
-                                <td>@msg.EmailFrom</td>
+                            <td>@msg.EmailFrom</td>
 
-                                <td>@msg.Subject</td>
+                            <td>@msg.Subject</td>
 
-                                @*<td>@msg.BodyPreview</td>*@
+                            @*<td>@msg.BodyPreview</td>*@
 
-                                <td>@msg.HasAttachments</td>
+                            <td>@msg.HasAttachments</td>
 
-                                <td>@msg.Importance</td>
-                                <td>
-                                    @if (msg.HasAttachments)
-                                    {
-                                        <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
-                                    }
-                                </td>
-                                <td>
+                            <td>@msg.Importance</td>
+                            <td>
+                                @if (msg.HasAttachments)
+                                {
+                                    <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
+                                }
+                            </td>
+                            <td>
 
-                                    <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
-                                </td>
-                            </tr>
+                                <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
+                            </td>
+                        </tr>
 
-                        }
+                    }
                     </tbody>
 
                 </table>
@@ -193,3 +177,23 @@
         </div>
     </div>
 </div>
+
+<script language="JavaScript">
+    $(document).ready( function () {
+        $('#MailMessages').DataTable(
+            {
+                "autowidth": false,
+                "columns": [
+                    { "width": "10%" },
+                    { "width": "10%" },
+                    { "width": "10%" },
+                    { "width": "50%" },
+                    { "width": "5%" },
+                    { "width": "5%" },
+                    { "width": "5%" },
+                    { "width": "5%" }
+                ]
+            });
+    } );
+
+</script>

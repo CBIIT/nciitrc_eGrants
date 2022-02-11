@@ -23,7 +23,7 @@ namespace egrants_new.Integration.Shared
             bool inside = false;
             for (int i = 0; i < prunedHtml.Length; i++)
             {
-                char let = input[i];
+                char let = prunedHtml[i];
                 if (@let == '<')
                 {
                     inside = true;
@@ -46,6 +46,8 @@ namespace egrants_new.Integration.Shared
 
             clean = Regex.Replace(clean, regex, "\r\n");
             clean = Regex.Replace(clean, replacechar, "\r\n");
+            clean = clean.Replace("&lt;", "<");
+            clean = clean.Replace("&gt;", ">");
             return clean;
         }
     }

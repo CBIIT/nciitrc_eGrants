@@ -13,6 +13,22 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
         public string Subcatname { get; set; }
         public string Sub { get; set; }
         public string Body { get; set; } 
+        public string StatusOfProcessing { get; set; }
+        public string Filenumbername { get; set; }
 
+        public string linkToDoc
+        {
+            get
+            {
+                if (Parentapplid > 0)
+                {
+                    return $"https://egrants-web-dev.nci.nih.gov/Egrants/by_appl?appl_id={Parentapplid}&mode=";
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+        }
     }
 }

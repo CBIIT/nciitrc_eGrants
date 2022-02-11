@@ -1,4 +1,5 @@
-﻿@model egrants_new.Egrants.Models.MailIntegrationPage
+﻿@using Newtonsoft.Json.Linq
+@model egrants_new.Egrants.Models.MailIntegrationPage
 
 @{
     Layout = "~/Shared/Views/_egrants_header.cshtml";
@@ -7,6 +8,23 @@
 
 
 <style>
+
+    .flex {
+        display: flex;
+        width: 1000px;
+    }
+
+    .message {
+        border-style: solid;
+        width: 1000px;
+    }
+
+    .email-body {
+        width: 100%;
+        height: 250px;
+        resize: none;
+    }
+
     table.blueTable {
         border: 1px solid #1C6EA4;
         background-color: #EEEEEE;
@@ -112,32 +130,61 @@
 
 <div id="main">
     <!--start main-->
-    <div id="caption"><b id="page_title">Integration Page</b></div>
+    <div id="caption"><b id="page_title">Message Processing Results Page</b></div>
 
 
     <div>@Model.Result</div>
 
-    @*
-        <div id="triggeractions">
-        <div>
-            <div class=""><h2>Trigger Integration Actions</h2></div>
-            <table id="actions" class="blueTable">
-                <thead>
-                <th>Backend Integration Process</th>
-                <th>Activate Process</th>
-                </thead>
-                <tbody>
-                    <tr><td>Download Current Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeGraphData","Integration")"><i class="ui-icon-play"></i>Invoke</a></td></tr>
-                    <tr><td>Run the Rules Engine</td><td align="center"><a target="_top" href="@Url.Action("InvokeRules","Integration")">Invoke</a></td></tr>
-                    <tr><td>Process the Matched Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeActions","Integration")">Invoke</a></td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-        *@
+    @{
+        var msg = Model.Messages.FirstOrDefault();
+    }
 
-    <div id="MailboxView">
-        <h2>Mailbox View</h2>
+    <div class="flex">
+        <table class="message">
+            @*<tr><td><div>Date:</div></td><td> <div>To Recipients:</div></td><td>  <div>From:</div></td></tr>*@
+            <tr>
+                <td>
+                    <div><b>Date:</b></div>
+                    <div>@msg.CreatedDateTime</div>
+                </td>
+                <td>
+                    <div><b>To Recipients:</b></div>
+                    <div>@msg.ToRecipients</div>
+                </td>
+                <td>
+                    <div><b>From:</b></div>
+                    <div>@msg.EmailFrom</div>
+                </td>
+            </tr>
+            @*<tr>
+                    <td colspan="2">
+                        <div>Subject:</div>
+                    </td>
+                    <td>
+                        <div>HasAttachments?</div>
+                    </td>
+                </tr>*@
+            <tr>
+            <tr>
+                <td colspan="2">
+                    <div><b>Subject:</b></div>
+                    <div>@msg.Subject</div>
+                </td>
+                <td>
+                    <div><b>HasAttachments?</b></div>
+                    <div>@msg.HasAttachments</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan=" 3">
+                    <div><textarea class="email-body">@msg.MessageBody</textarea></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="ActionResults">
+        <h3>Email Action Results</h3>
         <div>
             @if (Model.ActionResults.Count > 0)
             {
@@ -145,30 +192,54 @@
                     <thead>
                     <th>Rule Description</th>
                     <th>Message Id</th>
-                    <th>All Actions Completed?</th>
+                    <th>Date Action Triggered</th>
+                    @*<th>All Actions Completed?</th>*@
                     <th>Action Name</th>
                     <th>Action Message</th>
                     <th>Action Complete</th>
                     <th>Exception </th>
-                    <th>Retry Action</th>
+                    <th>Action</th>
                     </thead>
                     <tbody>
-                        @foreach (var result in Model.ActionResults)
+                    @foreach (var result in Model.ActionResults)
+                    {
+
+                        string completedStatus = String.Empty;
+                        if (result.ActionCompleted)
                         {
-                            <tr>
-                                <td>@result.RuleDescription</td>
-                                <td>@result.EmailMessageId</td>
-                                <td>@result.ActionsCompleted</td>
-                                <td>@result.ActionName</td>
-                                <td>@result.ActionMessage</td>
-                                <td>@result.ActionCompleted</td>
-                                <td>@result.ExceptionText</td>
-                                <td>
-                                    <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
-                                </td>
-                            </tr>
+                            completedStatus = "True";
+                        }
+                        else
+                        {
+                            completedStatus = "False";
 
                         }
+
+                        <tr>
+                            <td>@result.RuleDescription</td>
+                            <td>@result.MessageId</td>
+                            <td>@result.ActionTriggered</td>
+
+                            <td>@result.ActionName</td>
+                            <td>@result.ActionMessage</td>
+                            <td>@completedStatus</td>
+                            <td>@result.ExceptionText</td>
+                            <td>
+                                @if (result.ActionCompleted)
+                                {
+                                    string url = string.Empty;
+                                    JObject actionMessage = JObject.Parse(result.ActionMessage);
+                                    url = (string) actionMessage["linkToDoc"];
+                                    <a target="_top" href="@url">View Result</a>
+                                }
+                                else
+                                {
+                                    <a target="_top" href="@Url.Action("ProcessEmailMessage", "Integration", new {messageId = $"{result.MessageId}"})">Reprocess</a>
+                                }
+                            </td>
+                        </tr>
+
+                    }
                     </tbody>
 
                 </table>

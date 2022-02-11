@@ -83,6 +83,8 @@ namespace egrants_new.Integration.EmailRulesEngine
             }
         }
 
+
+
         public void ProcessPendingActions()
         {
             var rules = LoadRules();
@@ -167,15 +169,16 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
-        private void ExecuteActionsByMessage(EmailRule rule, int messageId)
+        public void ExecuteActionsByMessage(EmailRule rule, int messageId)
         {
 
-            var matches = _repo.GetEmailRuleMatches(rule.Id, false,messageId);
+            var matches = _repo.GetEmailRuleMatches(rule.Id, false, messageId);
 
             foreach (var match in matches)
             {
+                var matchedRule = _repo.GetEmailRuleById(match.EmailRuleId);
                 var msg = _repo.GetEmailMessage(match.EmailMessageId);
-                bool completedActions = _actionModule.PerformActions(msg, rule);
+                bool completedActions = _actionModule.PerformActions(msg, matchedRule);
                 match.ActionsCompleted = completedActions;
                 _repo.SaveRuleMatch(match);
             }

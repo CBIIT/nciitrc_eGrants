@@ -454,6 +454,7 @@
     <Content Include="scripts\ai.0.15.0-build58334.js" />
     <Content Include="scripts\ai.0.15.0-build58334.min.js" />
     <Content Include="scripts\bluebird.js" />
+    <Content Include="scripts\bootstrap-wysiwyg.js" />
     <Content Include="scripts\bootstrap.js" />
     <Content Include="scripts\bootstrap.min.js" />
     <Content Include="Content\Grant Review Certification Form.pdf" />
@@ -488,6 +489,7 @@
     <Content Include="Egrants\Views\_MailIntegrationMain.cshtml" />
     <Content Include="Egrants\Views\MailIntegrationMain.cshtml" />
     <Content Include="Egrants\Views\MailIntegrationListActionResults.cshtml" />
+    <Content Include="Egrants\Views\EgrantsShowNGA.cshtml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
@@ -529,6 +531,7 @@
     <Content Include="Shared\Views\Go_to_Default.cshtml" />
     <Content Include="Shared\Views\_egrants_header.cshtml" />
     <Content Include="Service References\Application Insights\ConnectedService.json" />
+    <Content Include="Shared\Views\_egrants_docviewer.cshtml" />
     <None Include="Web.config">
       <SubType>Designer</SubType>
     </None>

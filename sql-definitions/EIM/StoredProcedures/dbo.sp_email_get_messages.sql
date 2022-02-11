@@ -2,11 +2,12 @@
 SET QUOTED_IDENTIFIER ON
 
 
-CREATE     procedure [dbo].[sp_email_get_messages]
+
+CREATE   procedure [dbo].[sp_email_get_messages]
 	@ruleid INT
 as 
 BEGIN
-Select [Id]
+Select em.[Id]
       ,[EmailMonitoredMailboxId]
       ,[GraphId]
       ,[CreatedDateTime]

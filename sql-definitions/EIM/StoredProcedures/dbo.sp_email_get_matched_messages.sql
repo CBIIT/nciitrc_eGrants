@@ -5,8 +5,10 @@ SET QUOTED_IDENTIFIER ON
 
 
 
-CREATE           procedure [dbo].[sp_email_get_matched_messages]
-	@ruleid INT,
+
+
+CREATE    procedure [dbo].[sp_email_get_matched_messages]
+	@ruleid int,
 	@all bit,
 	@msgId int
 as 
@@ -17,7 +19,7 @@ Select [EmailRuleId]
       ,[ActionsCompleted]
       ,[Matched]
   FROM [dbo].[EmailRulesMatchedMessages]
-  where EmailRuleId = @ruleid and Matched = 1 and ((@all = 1) OR (@all= 0 AND ActionsCompleted = 0)) and (EmailMessageId = @msgId and not(@msgId = 0))
+  where Matched = 1 and ((@ruleId = 0) or (EmailRuleId = @ruleid)) and ((@all = 1) OR (@all= 0 AND ActionsCompleted = 0)) and ((EmailMessageId = @msgId) or (@msgId = 0))
 
 END
 

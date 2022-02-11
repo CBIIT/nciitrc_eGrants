@@ -16,6 +16,7 @@ namespace egrants_new.Integration.EmailRulesEngine
         public EmailRule EmailRule { get; set; }
         public EmailRuleAction Action { get; set; }
         public string ActionData { get; set; }
+        public string ActionMessage { get; set; }
         public delegate void RunAction(EmailMsg msg);
         public readonly EmailIntegrationRepository EmailRepo;
 
@@ -50,11 +51,13 @@ namespace egrants_new.Integration.EmailRulesEngine
                   //  ExtractMessageDetails(msg);
                 }
                 run(msg);
+                result.ActionMessage = ActionMessage;
                 result.ActionCompleted = true;
                 result.Successful = true;
             }
             catch (Exception ex)
             {
+                result.ActionMessage = ActionMessage;
                 result.ActionCompleted = false;
                 result.ErrorException = ex;
                 result.ExceptionText = ex.Message;

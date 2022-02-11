@@ -36,7 +36,8 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
                 if (Body != null)
                 {
                     JObject body = JObject.Parse(Body);
-                    output = TextHelper.BustHtml((string)body["content"]);
+                    string htmlBody = (string) body["content"];
+                    output = TextHelper.BustHtml(htmlBody);
                 }
                 return output;
             }

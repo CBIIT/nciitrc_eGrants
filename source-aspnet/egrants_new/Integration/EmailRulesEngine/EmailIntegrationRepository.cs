@@ -276,6 +276,45 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         }
 
+
+        public EmailRule GetEmailRuleById(int ruleId)
+        {
+            EmailRule output = null;
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand($"Select * from EmailRules WHERE Id = {ruleId}", conn)
+                        {
+                            CommandType = CommandType.Text,
+                        };
+                    //cmd.Parameters.Add("@all", SqlDbType.Bit).Value = all;
+                    // cmd.Parameters.Add("@webserviceid", SqlDbType.Int).Value = ep.WSEndpoint_Id;
+                    conn.Open();
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        var obj = new EmailRule();
+                        SqlHelper.MapDataToObject(obj, dr);
+
+                        LoadRule(obj);
+                        output = obj;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+            return output;
+        }
+
+
         public List<EmailRule> GetEmailRules(bool all = false)
         {
             var output = new List<EmailRule>();
@@ -429,6 +468,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                     {
                         var obj = new EmailRuleMatchedMessages();
                         SqlHelper.MapDataToObject(obj, dr);
+                        obj.Message = GetEmailMessage(obj.EmailMessageId);
                         output.Add(obj);
                     }
 
@@ -552,7 +592,7 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                         while (dr.Read())
                         {
-                            applId = (int)dr["id"];
+                            applId = (int)dr["appl_id"];
                         }
 
                     }
@@ -718,11 +758,12 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public List<ViewEmailActionResults> GetActionResultsII(int ruleId, int msgId = 0)
         {
-            string baseSql = @"Select ermm.EmailRuleId, ermm.EmailMessageId, ermm.ActionsCompleted, erar.ActionCompleted, era.Description, erar.ActionMessage, erar.ExceptionText from EmailRulesMatchedMessages ermm
-            inner join EmailRulesActionResults erar on ermm.EmailMessageId = erar.MessageId
-            inner join EmailRulesActions era on era.Id = erar.ActionId
-            where (ermm.RuleId = {0} or {0}=0) and ({1}=0 or ermm.EmailMessageId={1})
-            order by  ermm.Id, erar.MessageId";
+            string baseSql = @"Select erar.RuleId, er.Description, erar.MessageId, erar.ActionCompleted, era.Description, erar.ActionMessage, erar.ExceptionText, erar.CreatedDate as ActionTriggered 
+                               from  EmailRulesActionResults erar 
+                               inner join EmailRulesActions era on era.Id = erar.ActionId
+                               inner join EmailRules er on erar.RuleId = er.Id
+                               where (erar.RuleId = {0} or {0}=0) and ({1}=0 or erar.MessageId={1})
+                               order by  erar.Id, erar.MessageId";
             string SQL = String.Format(baseSql, ruleId, msgId);
 
             var output = new List<ViewEmailActionResults>();
