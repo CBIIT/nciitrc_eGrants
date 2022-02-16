@@ -172,11 +172,11 @@ namespace egrants_new.Integration.EmailRulesEngine
                     }
                 }
                 else if (msg.Sender.ToLower().Contains("driskelleb") || (msg.Sender.ToLower().Contains("jonesni")) ||
-                          (msg.Sender.ToLower().Contains("omairi")) || (msg.Sender.ToLower().Contains("woldezf")))
+                          (msg.Sender.ToLower().Contains("omairi")) || (msg.Sender.ToLower().Contains("woldezf")) || (msg.Sender.ToLower().Contains("emily.driskell")))
                 {
                     fgn = ExtractValue(msg.Subject, "grantnumber=");
                     msgDetails.Catname = ExtractValue(msg.Subject, "category=");
-                    msgDetails.Parentapplid = int.Parse(ExtractValue(msg.Subject, "applid="));
+                    msgDetails.Parentapplid = ExtractValue(msg.Subject, "applid=").Length>0 ? int.Parse(ExtractValue(msg.Subject, "applid=")):0;
                     msgDetails.Subcatname = ExtractValue(msg.Subject, "sub=");
 
 
@@ -194,7 +194,10 @@ namespace egrants_new.Integration.EmailRulesEngine
                     {
 
                         msgDetails.Filenumbername = GetPlaceholder(msgDetails);
-
+                        if (string.IsNullOrWhiteSpace(msgDetails.Filenumbername))
+                        {
+                            throw new Exception("Could not get a temp file name number for the attachment.");
+                        }
                         var attachments = EmailRepo.GetEmailAttachments(msg.GraphId);
                         if (attachments.Count > 1)
                         {

@@ -60,8 +60,9 @@ namespace egrants_new.Controllers
                 tempLink = reader.ReadToEnd();
             }
 
+            bool displayNGAInline = bool.Parse(ConfigurationManager.AppSettings["NGAShowInline"]);
 
-            if (docurl.EndsWith("NGA"))
+            if (docurl.EndsWith("NGA") && displayNGAInline)
             {
               return RedirectToAction("GetConverteRaRTF","EgrantsDoc", new { url = tempLink });
             }

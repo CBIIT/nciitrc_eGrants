@@ -173,9 +173,9 @@ namespace egrants_new.Integration.EmailRulesEngine
         public string ExtractValue(string text, string search, bool digitsOnly = false)
         {
             string extracted = string.Empty;
-            string captureGroupType = digitsOnly ? "\\d*\\s" : ".+\\b";
+            string captureGroupType = digitsOnly ? "\\d*\\s" : ".+?[,\\w$]";
 
-            string expression = $"{search}(?<result>{captureGroupType})";
+            string expression = $".*{search}(?<result>{captureGroupType})(?:,|$)"; //    .*grantnumber=(?<result>.+?[,\w$])(?:,|$)
             //Regex regex = new Regex(expression);
 
             var matches = Regex.Matches(text, expression, RegexOptions.IgnoreCase);

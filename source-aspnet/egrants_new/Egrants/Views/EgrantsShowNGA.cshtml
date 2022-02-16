@@ -1,0 +1,55 @@
+﻿@model egrants_new.Egrants.Models.MailIntegrationPage
+
+@{
+    Layout = "~/Shared/Views/_egrants_docviewer.cshtml";
+}
+
+
+
+<style>
+
+    .content {
+        width: 700px;
+        height: 800px;
+        resize: none;
+    }
+
+    flex {
+        display: flex;
+    }
+</style>
+
+<script src="https://cdn.tiny.cloud/1/gmau8tb3hvdngzjdoo8wbydqn32quzq85jt42v6st8us1mdy/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+
+
+<div id="main">
+    <!--start main-->
+    <div id="caption"><b id="page_title">View NGA Document</b></div>
+    <div id="nga_content" style="display: none">@Model.Result</div>
+    <textarea class="content" id="nga_editor"></textarea>
+
+
+</div>
+
+
+<script language="JavaScript">
+    var ngacontent = document.getElementById("nga_content").innerText;
+
+    ngacontent = ngacontent.replace('\n', '<br/>');
+
+    tinymce.init({
+        force_p_newlines : false,
+        force_br_newlines : true,
+        convert_newlines_to_brs : true,
+        remove_linebreaks : false,    
+        selector: '.content',
+        setup: function (editor) {
+            editor.on('init', function (e) {
+                editor.execCommand("mceInsertContent", true, ngacontent);
+                editor.getBody().setAttribute('contenteditable', 'false');
+            });
+        }
+    });
+
+
+</script>

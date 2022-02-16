@@ -1,0 +1,141 @@
+﻿@using System.Web.Mvc.Html;
+@using egrants_new.Models;
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    <script src="~/scripts/jquery-1.9.1.js"></script>
+    <script src="~/scripts/bootstrap.js"></script>
+    <script src="~/scripts/validation.js"></script>
+    @*<script src="~/scripts/bootstrap.min.js"></script>*@
+    <script>
+        var user_position_id=@Convert.ToInt16(Session["position_id"]);
+        var QuickLinkType=[];
+
+        $(document).ready(function () {
+            //check Session["position_id"]
+            if (user_position_id >=2){
+                QuickLink = document.getElementById("leftpanelS");
+            }
+            else{
+                QuickLink = document.getElementById("leftpanelP");
+            } 
+       
+            //set
+            if (user_position_id >=1){
+                if (sessionStorage.getItem("QuickLinks") == null ) {
+                    sessionStorage.setItem("QuickLinks", "1");
+                }
+
+                //get
+                if (sessionStorage.getItem("QuickLinks") == "1") {
+                    QuickLink.style.display = "block";
+                } else QuickLink.style.display = "none";
+            }
+        });
+
+        function toggleleftpanel() {         
+            if (QuickLink.style.display === "none") {
+                QuickLink.style.display = "block";
+                sessionStorage.removeItem("QuickLinks");
+                sessionStorage.setItem("QuickLinks", "1");
+                //alert(sessionStorage.getItem("QuickLinks"));
+            } else {
+                QuickLink.style.display = "none";
+                sessionStorage.removeItem("QuickLinks");
+                sessionStorage.setItem("QuickLinks", "0");
+                //alert(sessionStorage.getItem("QuickLinks"));
+            }
+        }
+
+    </script>
+    <style>
+        .navbar-default {
+            border-bottom: none !important;         
+        }
+
+        .navbar {
+            background-color: #808080 !important;
+        }
+
+        .navbar .nav li span {
+            color: #ffffff !important;
+            font: Arial !important;
+            font-size: large !important;
+        }
+
+        #loginas {
+            color: dimgray !important;
+            font: arial !important;
+            font-size: large !important;
+            vertical-align: auto !important;
+            text-align: right !important;
+        }
+
+        #loginas a {
+            color: blue !important;
+        }
+
+        .eGrantsWhiteTxt {
+            border-top: 4px solid white !important;
+        }
+
+        .eGrantsDDbkgrnd {
+            background-color: #808080 !important;
+        }
+
+        .eGrantsUpldBtnColor {       
+            background-color: #1D8215 !important;  
+        }
+
+        .eGrantsReturnBtn {
+	        font-size:medium;
+            border:none;
+            color:white;
+            background-color:#808080; 
+        }
+
+        .eGrantsDocBtn {
+            font-size:medium;
+            background-color:#4169e1;
+        }
+
+        /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+        #myBtn {/*--Ayu*/
+            display: none; /* Hidden by default */
+            position: fixed; /* Fixed/sticky position */
+            bottom: 20px; /* Place the button at the bottom of the page */
+            right: 30px; /* Place the button 30px from the right */
+            z-index: 99; /* Make sure it does not overlap */
+            border: none; /* Remove borders */
+            outline: none; /* Remove outline */
+            background-color: darkcyan; /* Set a background color */
+            color: white; /* Text color */
+            cursor: pointer; /* Add a mouse pointer on hover */
+            padding: 15px; /* Some padding */
+            border-radius: 10px; /* Rounded corners */
+            font-size: 18px; /* Increase font size */
+        }
+
+        #myBtn:hover { /*--Ayu*/
+            background-color: #555; /* Add a dark-grey background on hover */
+        }   
+    </style>
+</head>
+<body>
+    <div class="row">
+        <div class="col-sm-1" >&nbsp;&nbsp;</div><div class="col-lg-9" id="mainbody"><br />@RenderBody()</div><!--end container body-content-->
+    </div>
+</body>
+</html>

@@ -8,19 +8,19 @@ namespace egrants_new.Integration.Models
     public class SqlJobError
     {
 
-        public int ErrorId;
-        public string UserName;
-        public int ErrorNumber;
-        public int ErrorState;
-        public int ErrorSeverity;
-        public int ErrorLine;
-        public string ErrorProcedure;
-        public string ErrorMessage;
-        public DateTime ErrorDateTime;
-        public string JobName;
-        public string JobId;
-        public int StepId;
-        public bool EmailSent;
+        public int ErrorId { get; set; }
+        public string UserName { get; set; }
+        public int ErrorNumber { get; set; }
+        public int ErrorState { get; set; }
+        public int ErrorSeverity { get; set; }
+        public int ErrorLine { get; set; }
+        public string ErrorProcedure { get; set; }
+        public string ErrorMessage { get; set; }
+        public DateTime ErrorDateTime { get; set; }
+        public string JobName { get; set; }
+        public string JobId { get; set; }
+        public int StepId { get; set; }
+        public bool EmailSent { get; set; }
 
 	}
 }
