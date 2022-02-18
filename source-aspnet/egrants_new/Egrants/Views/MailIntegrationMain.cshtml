@@ -15,71 +15,71 @@
         border-collapse: collapse;
     }
 
-    table.blueTable td, table.blueTable th {
-        border: 0px solid #AAAAAA;
-        padding: 3px 2px;
-    }
+        table.blueTable td, table.blueTable th {
+            border: 0px solid #AAAAAA;
+            padding: 3px 2px;
+        }
 
-    table.blueTable tbody td {
-        font-size: 13px;
-    }
+        table.blueTable tbody td {
+            font-size: 13px;
+        }
 
-    table.blueTable tr:nth-child(even) {
-        background: #D0E4F5;
-    }
+        table.blueTable tr:nth-child(even) {
+            background: #D0E4F5;
+        }
 
-    table.blueTable thead {
-        background: #1C6EA4;
-        background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-        background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-        background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-        border-bottom: 2px solid #444444;
-    }
+        table.blueTable thead {
+            background: #1C6EA4;
+            background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+            background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+            background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+            border-bottom: 2px solid #444444;
+        }
 
-    table.blueTable thead th {
-        font-size: 15px;
-        font-weight: bold;
-        color: #FFFFFF;
-        border-left: 2px solid #D0E4F5;
-    }
+            table.blueTable thead th {
+                font-size: 15px;
+                font-weight: bold;
+                color: #FFFFFF;
+                border-left: 2px solid #D0E4F5;
+            }
 
-    table.blueTable thead th:first-child {
-        border-left: none;
-    }
+                table.blueTable thead th:first-child {
+                    border-left: none;
+                }
 
-    table.blueTable tfoot {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 14px;
-        font-weight: bold;
-        color: #FFFFFF;
-        background: #D0E4F5;
-        background: -moz-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
-        background: -webkit-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
-        background: linear-gradient(to bottom, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
-        border-top: 2px solid #444444;
-    }
+        table.blueTable tfoot {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFFFFF;
+            background: #D0E4F5;
+            background: -moz-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+            background: -webkit-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+            background: linear-gradient(to bottom, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+            border-top: 2px solid #444444;
+        }
 
-    table.blueTable tfoot td {
-        font-size: 14px;
-    }
+            table.blueTable tfoot td {
+                font-size: 14px;
+            }
 
-    table.blueTable tfoot .links {
-        text-align: right;
-    }
+            table.blueTable tfoot .links {
+                text-align: right;
+            }
 
-    table.blueTable tfoot .links a {
-        display: inline-block;
-        background: #1C6EA4;
-        color: #FFFFFF;
-        padding: 2px 8px;
-        border-radius: 5px;
-    }
+                table.blueTable tfoot .links a {
+                    display: inline-block;
+                    background: #1C6EA4;
+                    color: #FFFFFF;
+                    padding: 2px 8px;
+                    border-radius: 5px;
+                }
 </style>
 
 @*<link href="~/Content/jquery.dataTables.css" rel="stylesheet" type="text/css" />
-<link href="~/Content/jquery.dataTables_themeroller.css" rel="stylesheet" type="text/css" />
-<script src="~/Scripts/jquery-1.10.2.min.js"></script>
-<script type="text/javascript" charset="utf8" src="~/Scripts/jquery.dataTables.js"></script>*@
+    <link href="~/Content/jquery.dataTables_themeroller.css" rel="stylesheet" type="text/css" />
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="~/Scripts/jquery.dataTables.js"></script>*@
 <!-- DataTables CSS -->
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.5/css/jquery.dataTables.css">
 <link href="//cdn.datatables.net/1.10.5/css/jquery.dataTables_themeroller.css" rel="stylesheet" type="text/css" />
@@ -112,7 +112,8 @@
                     <tr><td>Bulk Action: Download Current Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeGraphData","Integration")"><i class="ui-icon-play"></i>Invoke</a></td></tr>
                     <tr><td>Bulk Action: Run the Rules Engine</td><td align="center"><a target="_top" href="@Url.Action("InvokeRules","Integration")">Invoke</a></td></tr>
                     <tr><td>Bulk Action: Process the Matched Email Messages</td><td align="center"><a target="_top" href="@Url.Action("InvokeActions","Integration")">Invoke</a></td></tr>
-                    <tr><td>Individual Action: View Messages Waiting to Process</td><td align="center"><a target="_top" href="@Url.Action("ViewMessageToProcess","Integration")">Invoke</a></td></tr>
+                    <tr><td></td><td align="center"></td></tr>
+                    <tr><td>Individual Action: View Messages Waiting to Process</td><td align="center"><a target="_top" href="@Url.Action("ViewMessagesToProcess","Integration")">Invoke</a></td></tr>
                     @*<tr><td>Individual Action: View Processing Results </td><td align="center"><a target="_top" href="@Url.Action("InvokeActions","Integration")">Invoke</a></td></tr>*@
                 </tbody>
             </table>
@@ -136,35 +137,35 @@
                     <th><i class="glyphicon-import"></i></th>
                     </thead>
                     <tbody>
-                    @foreach (var msg in Model.Messages)
-                    {
-                        <tr>
-                            <td>@msg.ReceivedDateTime</td>
+                        @foreach (var msg in Model.Messages)
+                        {
+                            <tr>
+                                <td>@msg.ReceivedDateTime</td>
 
-                            <td>@msg.ToRecipients</td>
+                                <td>@msg.ToRecipients</td>
 
-                            <td>@msg.EmailFrom</td>
+                                <td>@msg.EmailFrom</td>
 
-                            <td>@msg.Subject</td>
+                                <td>@msg.Subject</td>
 
-                            @*<td>@msg.BodyPreview</td>*@
+                                @*<td>@msg.BodyPreview</td>*@
 
-                            <td>@msg.HasAttachments</td>
+                                <td>@msg.HasAttachments</td>
 
-                            <td>@msg.Importance</td>
-                            <td>
-                                @if (msg.HasAttachments)
-                                {
-                                    <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
-                                }
-                            </td>
-                            <td>
+                                <td>@msg.Importance</td>
+                                <td>
+                                    @if (msg.HasAttachments)
+                                    {
+                                        <a target="_top" href="@Url.Action("InvokeGetAttachment","Integration", new {messageId=$"{msg.GraphId}"})">Download</a>
+                                    }
+                                </td>
+                                <td>
 
-                                <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
-                            </td>
-                        </tr>
+                                    <a target="_top" href="@Url.Action("ProcessEmailMessage","Integration", new {messageId=$"{msg.Id}"})">Process</a>
+                                </td>
+                            </tr>
 
-                    }
+                        }
                     </tbody>
 
                 </table>
@@ -179,7 +180,7 @@
 </div>
 
 <script language="JavaScript">
-    $(document).ready( function () {
+    $(document).ready(function () {
         $('#MailMessages').DataTable(
             {
                 "autowidth": false,
@@ -194,6 +195,6 @@
                     { "width": "5%" }
                 ]
             });
-    } );
+    });
 
 </script>

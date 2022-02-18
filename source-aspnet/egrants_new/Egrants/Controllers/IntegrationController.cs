@@ -26,6 +26,7 @@ namespace egrants_new.Egrants.Controllers
             var page = new MailIntegrationPage();
             page.Result = "Start";
 
+
             var rule = repo.GetEmailRules(true).Where(r => r.Id == 4).FirstOrDefault();
             var msgs = repo.GetEmailMessages(rule);
             page.Messages = msgs;
@@ -42,7 +43,7 @@ namespace egrants_new.Egrants.Controllers
 
 
 
-        public ActionResult ViewMessageToProcess()
+        public ActionResult ViewMessagesToProcess()
         {
             var repo = new EmailIntegrationRepository();
             var page = new MailIntegrationPage();

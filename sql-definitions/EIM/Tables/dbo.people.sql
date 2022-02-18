@@ -31,7 +31,8 @@ CREATE TABLE [dbo].[people](
 	[is_coordinator] [bit] NOT NULL,
 	[iccoord] [int] NULL,
 	[phone_number] [varchar](10) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
-	[dashboard] [int] NULL
+	[dashboard] [int] NULL,
+	[email_attach] [bit] NULL
 ) ON [PRIMARY]
 
 GO
