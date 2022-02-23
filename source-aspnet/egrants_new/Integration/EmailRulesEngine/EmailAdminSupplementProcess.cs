@@ -192,6 +192,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                     }
                     else if ((msgDetails.Catname == "application file" || msgDetails.Catname == "applicationfile") && msg.HasAttachments)
                     {
+                        msgDetails.Catname = "application file";
                         var attachments = EmailRepo.GetEmailAttachments(msg.GraphId);
                         if (attachments.Count > 1)
                         {

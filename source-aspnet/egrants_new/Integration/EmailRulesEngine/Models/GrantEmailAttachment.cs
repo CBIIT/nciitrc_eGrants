@@ -24,7 +24,7 @@ namespace egrants_new.Integration.EmailRulesEngine.Models
             try
             {
                 string filename = String.Join(".", name, extension);
-                string filepath = Path.Combine(path, name);
+                string filepath = Path.Combine(path, filename);
                 File.WriteAllBytes(filepath, Convert.FromBase64String(ContentBytes));
 
             }
