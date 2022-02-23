@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Configuration;
-using System.Web;
 using egrants_new.Integration.Models;
-using Hangfire.Server;
 using egrants_new.Integration.EmailRulesEngine.Models;
 
 namespace egrants_new.Integration.EmailRulesEngine

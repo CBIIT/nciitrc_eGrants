@@ -249,10 +249,6 @@ namespace egrants_new.Integration.EmailRulesEngine
         {
             var integrationRepo = new IntegrationRepository();
             List<GrantEmailAttachment> output = new List<GrantEmailAttachment>(); // = new EmailMessage();
-            //var wsAdapter = new WebServiceInPlaceAdapter();
-            //var serviceFactory = new WebServiceInPlaceAdapter.InPlaceWebServiceFactory();
-            //MicrosoftGraphOAuthService service = (MicrosoftGraphOAuthService)serviceFactory.Make(IntegrationEnums.AuthenticationType.OAuth);
-
             MicrosoftGraphOAuthService ws = (MicrosoftGraphOAuthService)integrationRepo.GetEgrantWebService(3); //Hardcoded should be changed
             string arrOfAttachments = ws.GetEmailAttachments(messageId);
 
@@ -482,46 +478,6 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         }
 
-        //public List<EmailRuleMatchedMessages> GetRuleMatchesByEmail(int ruleId, bool forceAll, int messageId = 0)
-        //{
-        //    var output = new List<EmailRuleMatchedMessages>();
-
-        //    using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
-        //    {
-        //        try
-        //        {
-        //            SqlCommand cmd =
-        //                new SqlCommand("sp_email_get_matched_messages", conn)
-        //                {
-        //                    CommandType = CommandType.StoredProcedure,
-        //                };
-        //            cmd.Parameters.Add("@ruleid", SqlDbType.Int).Value = ruleId;
-        //            cmd.Parameters.Add("@all", SqlDbType.Bit).Value = forceAll;
-        //            cmd.Parameters.Add("@msgId", SqlDbType.Int).Value = messageId;
-        //            conn.Open();
-
-        //            SqlDataReader dr = cmd.ExecuteReader();
-
-        //            while (dr.Read())
-        //            {
-        //                var obj = new EmailRuleMatchedMessages();
-        //                SqlHelper.MapDataToObject(obj, dr);
-        //                output.Add(obj);
-        //            }
-
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            //TODO: Handle exception
-        //        }
-        //    }
-
-
-        //    return output;
-
-        //}
-
-
         public string GetPlaceHolder(ExtractedMessageDetails details)
         {
             string output = string.Empty;
@@ -648,10 +604,6 @@ namespace egrants_new.Integration.EmailRulesEngine
 
             return applId;
         }
-
-
-        //update dbo.adsup_Notification_email_status set reply_recieved_date=GETDATE() where Notification_id="&abc&" and email_address LIKE '"&v_SenderID&"%'"
-
 
         public bool ChecklIsReply(string notificationId, string senderId)
         {

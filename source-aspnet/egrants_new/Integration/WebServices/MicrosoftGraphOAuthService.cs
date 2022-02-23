@@ -2,25 +2,13 @@
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics.Eventing.Reader;
-using System.EnterpriseServices;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Runtime.Remoting.Messaging;
-using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using System.Web;
-using Microsoft.Identity.Client;
 using egrants_new.Integration.Models;
-using Hangfire.Dashboard.Resources;
 using Newtonsoft.Json.Linq;
-using System.Security;
 using System.Text;
-using System.Web.Services.Description;
-using egrants_new.Integration.EmailRulesEngine.Models;
-using egrants_new.Integration.EmailRulesEngine.Models;
+
 using egrants_new.Integration.Identity;
 
 namespace egrants_new.Integration.WebServices

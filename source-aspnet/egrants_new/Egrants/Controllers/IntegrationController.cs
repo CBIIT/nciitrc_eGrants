@@ -1,19 +1,12 @@
 ﻿
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Owin.Security;
-using System.Security.Claims;
-using System.Web;
 using System.Web.Mvc;
 using egrants_new.Egrants.Builders;
 using egrants_new.Egrants.Models;
 using egrants_new.Integration.EmailRulesEngine;
 using egrants_new.Integration.EmailRulesEngine.Models;
 using egrants_new.Integration.WebServices;
-using Newtonsoft.Json.Linq;
-
-//using egrants_new.Integration.WebServices.SessionTokenStorage;
-
 
 namespace egrants_new.Egrants.Controllers
 {
@@ -121,7 +114,7 @@ namespace egrants_new.Egrants.Controllers
 
         public ActionResult InvokeGetAttachment(string messageId)
         {
-            string outmeeage = "";
+            string outmessage  = "";
             string dir = "C:\\testing\\attachments";
             var repo = new EmailIntegrationRepository();
             
