@@ -796,5 +796,40 @@ namespace egrants_new.Integration.EmailRulesEngine
         }
 
 
+        public bool GrantAttachmentPermission(string sender)
+        {
+            bool output = false;
+
+            using (SqlConnection conn = new System.Data.SqlClient.SqlConnection(_conx))
+            {
+                try
+                {
+                    SqlCommand cmd =
+                        new SqlCommand("sp_email_verify_attachment_permission", conn)
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                        };
+                    cmd.Parameters.Add("@Sender", SqlDbType.VarChar).Value = sender;
+
+                    conn.Open();
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        //if there is a result then the saender was found
+                        output = true;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Handle exception
+                }
+            }
+
+            return output;
+        }
+
     }
 }
