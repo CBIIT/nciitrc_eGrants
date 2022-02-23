@@ -245,7 +245,7 @@ namespace egrants_new.Integration.EmailRulesEngine
                     {
                         msgDetails.Pa = "";
                         msgDetails.Filenumbername = GetPlaceholder(msgDetails);
-                        alias = msgDetails.Filenumbername + msgDetails.Filetype;
+                        alias = string.Join(".",msgDetails.Filenumbername, msgDetails.Filetype);
 
                         if (string.IsNullOrWhiteSpace(msgDetails.Filenumbername))
                         {
@@ -265,7 +265,6 @@ namespace egrants_new.Integration.EmailRulesEngine
                         else if (msgDetails.Catname == "application file" && msg.HasAttachments)
                         {
                             attachment?.SaveToDisk(LocalPath, msgDetails.Filenumbername, msgDetails.Filetype);
-
 
                             string localFile = Path.Combine(LocalPath, alias);
                             string destinationFile = Path.Combine(outputFolder, alias);

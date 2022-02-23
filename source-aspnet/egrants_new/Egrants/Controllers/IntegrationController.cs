@@ -26,11 +26,11 @@ namespace egrants_new.Egrants.Controllers
 
             if (msgs.Count > 0)
             {
-               int numMsgs = msgs.Count > 400 ? 400 : msgs.Count;
-                page.Messages = msgs.GetRange(0,numMsgs);
+                int numMsgs = msgs.Count > 400 ? 400 : msgs.Count;
+                page.Messages = msgs.GetRange(0, numMsgs);
             }
 
-            
+
             return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
@@ -61,16 +61,12 @@ namespace egrants_new.Egrants.Controllers
         {
             var repo = new IntegrationRepository();
             var builder = new MailIntegrationBuilder();
-            var jobs = repo.GetEgrantWebServiceDueToFire();
+            var job = repo.GetEgrantWebService(3);
 
-            foreach (var job in jobs)
+            var histories = job.GetData();
+            foreach (var history in histories)
             {
-                var histories = job.GetData();
-                foreach (var history in histories)
-                {
-                    repo.SaveData(history);
-                }
-
+                repo.SaveData(history);
             }
 
             var page = new MailIntegrationPage();
@@ -109,24 +105,24 @@ namespace egrants_new.Egrants.Controllers
             page.Result = "Actions Invoked";
             page.Messages = new List<EmailMsg>();
 
-            return  RedirectToAction("Index");   //View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+            return RedirectToAction("Index");   //View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
         public ActionResult InvokeGetAttachment(string messageId)
         {
-            string outmessage  = "";
+            string outmessage = "";
             string dir = "C:\\testing\\attachments";
             var repo = new EmailIntegrationRepository();
-            
+
             var attach = repo.GetEmailAttachments(messageId);
 
             if (attach.Count > 0)
             {
-                
+
                 foreach (var att in attach)
                 {
                     //Save them to disk
-                    att.SaveToDisk(dir,att.Name,"file");
+                    att.SaveToDisk(dir, att.Name, "file");
 
                 }
             }
@@ -158,7 +154,7 @@ namespace egrants_new.Egrants.Controllers
             engine.ExecuteActionsByMessage(rule, messageId);
             //Need to simply get matched message records where completed is not already marked and run it again.
 
-            return RedirectToAction("GetEmailProcessingResults", new {messageId = messageId, ruleId = ruleId});//return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
+            return RedirectToAction("GetEmailProcessingResults", new { messageId = messageId, ruleId = ruleId });//return View("~/Egrants/Views/MailIntegrationMain.cshtml", page);
         }
 
 
