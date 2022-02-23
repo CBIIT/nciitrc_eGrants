@@ -19,12 +19,14 @@ namespace egrants_new.Integration.EmailRulesEngine
         public string ActionMessage { get; set; }
         public delegate void RunAction(EmailMsg msg);
         public readonly EmailIntegrationRepository EmailRepo;
+        public string LocalPath { get; set; }
 
         protected BaseEmailAction(EmailRule rule, EmailRuleAction action)
         {
             EmailRepo = new EmailIntegrationRepository();
             EmailRule = rule;
             Action = action;
+            LocalPath = ConfigurationManager.AppSettings["EmailAttachmentTempFolder"];
         }
 
 
@@ -263,13 +265,12 @@ To:         {msg.ToRecipients}
 Subject:	{msg.Subject} 
 
 
-
 {msg.MessageBody}";
 
                     //string fileName = GetPlaceHolderFileName();
                     //string fileName = string.Join(".", Guid.NewGuid().ToString(), "txt");
-                    string localPath = ConfigurationManager.AppSettings["EmailAttachmentTempFolder"];
-                    string localFile = Path.Combine(localPath, filename);
+                    //string localPath = ConfigurationManager.AppSettings["EmailAttachmentTempFolder"];
+                    string localFile = Path.Combine(LocalPath, filename);
                     string destinationFile = Path.Combine(destinationPath, filename);
 
                     tmpActionMsg = "Writing File to Disk";
@@ -293,9 +294,18 @@ Subject:	{msg.Subject}
                     break;
 
             }
+        }
 
-
-
+        public void CopyFile(string sourceFile, string destinationFile)
+        {
+            if (File.Exists(sourceFile))
+            {
+                File.Copy(sourceFile,destinationFile);
+            }
+            else
+            {
+                throw new Exception($"Copying file operation failed. {sourceFile} is not present or accessible.");
+            }
         }
     }
 }

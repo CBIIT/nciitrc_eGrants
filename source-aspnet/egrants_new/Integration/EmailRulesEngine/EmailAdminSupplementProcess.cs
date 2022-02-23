@@ -37,15 +37,11 @@ namespace egrants_new.Integration.EmailRulesEngine
 
         public void RunAdminSupplement(EmailMsg msg)
         {
-            //string msgBody = (string) JObject.Parse(msg.Body)["content"];
-            string subcatname = "";
-            string catname = "";
-            string pa = "";
-            string notification_filetype = "txt";
-            int applId = 0;
+
             string fgn = "";
             string alias = "";
             string notificationId = "";
+            GrantEmailAttachment attachment = null;
             string outputFolder = this.Action.TargetValue;
             //Although msgDetails was meant to help send data to Stored procedure thru the Repo
             //It can also serve as the state of the processing.
@@ -53,7 +49,7 @@ namespace egrants_new.Integration.EmailRulesEngine
             msgDetails.Body = msg.MessageBody;
             msgDetails.Rcvd_dt = msg.ReceivedDateTime;
             msgDetails.Sub = msg.Subject;
-            msgDetails.Pa = String.Empty;
+
 
             try
             {
@@ -177,8 +173,14 @@ namespace egrants_new.Integration.EmailRulesEngine
 
                     fgn = ExtractValue(msg.Subject, "grantnumber=");
                     msgDetails.Catname = ExtractValue(msg.Subject, "category=");
-                    msgDetails.Parentapplid = ExtractValue(msg.Subject, "applid=").Length>0 ? int.Parse(ExtractValue(msg.Subject, "applid=")):0;
+                    msgDetails.Parentapplid = ExtractValue(msg.Subject, "applid=").Length > 0
+                        ? int.Parse(ExtractValue(msg.Subject, "applid="))
+                        : 0;
                     msgDetails.Subcatname = ExtractValue(msg.Subject, "sub=");
+                    //For some reason old logic excludes the subject and body
+                    //continuing that here
+                    msgDetails.Sub = String.Empty;
+                    msgDetails.Body = String.Empty;
 
                     if (string.IsNullOrWhiteSpace(msgDetails.Catname))
                     {
@@ -190,7 +192,8 @@ namespace egrants_new.Integration.EmailRulesEngine
                         msgDetails.Filetype = "txt";
 
                     }
-                    else if ((msgDetails.Catname == "application file" || msgDetails.Catname == "applicationfile") && msg.HasAttachments)
+                    else if ((msgDetails.Catname == "application file" || msgDetails.Catname == "applicationfile") &&
+                             msg.HasAttachments)
                     {
                         msgDetails.Catname = "application file";
                         var attachments = EmailRepo.GetEmailAttachments(msg.GraphId);
@@ -199,104 +202,74 @@ namespace egrants_new.Integration.EmailRulesEngine
                             throw new Exception("There were more than 1 attachments included");
                         }
 
-                        var attachment = attachments.FirstOrDefault();
+                        attachment = attachments.FirstOrDefault();
                         msgDetails.Filetype = attachment?.Name.Split('.')[1];
-
-                        //For some reason old logic excludes the subject and body
-                        //continuing that here
-                        msgDetails.Sub = String.Empty;
-                        msgDetails.Body = String.Empty;
                         msgDetails.Subcatname = String.Empty;
-
-                        msgDetails.Filenumbername = GetPlaceholder(msgDetails);
-                        if (string.IsNullOrWhiteSpace(msgDetails.Filenumbername))
-                        {
-                            throw new Exception("Could not get a temp file name number for the attachment.");
-                        }
-
-
-                        attachment?.SaveToDisk(outputFolder, msgDetails.Filenumbername, msgDetails.Filetype);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(msg.Subject) && msgDetails.Parentapplid == 0 && string.IsNullOrWhiteSpace(fgn))
+
+                    //Try to get the applId 
+                    if (!string.IsNullOrWhiteSpace(msg.Subject) && msgDetails.Parentapplid == 0 &&
+                        string.IsNullOrWhiteSpace(fgn))
                     {
-                        msgDetails.Parentapplid = int.Parse(ExtractValue(fgn, "applid="));
+                        msgDetails.Parentapplid = base.GetApplId(base.RemoveSpecialCharacters(fgn));
                     }
-                    else if (msg.Subject.Length > 0 && applId == 0 && fgn.Length == 0)
+                    else if (msg.Subject.Length > 0 && msgDetails.Parentapplid == 0 && fgn.Length == 0)
                     {
-                        msgDetails.Parentapplid = int.Parse(ExtractValue(msg.Subject, "applid="));
+                        msgDetails.Parentapplid = base.GetApplId(RemoveSpecialCharacters(msg.Subject));
                     }
 
                     if (msgDetails.Parentapplid == 0)
                     {
-                        msgDetails.Parentapplid = GetApplId(msg.MessageBody);
+                        msgDetails.Parentapplid = GetApplId(RemoveSpecialCharacters(msg.MessageBody));
                     }
 
                     if (msgDetails.Parentapplid == 0)
                     {
-                        throw new Exception("ERROR: GRANT NUMBER OR APPL_ID COULD BE IDENTIFIED EITHER IN SUBJECT OR EMAIL BODY");
+                        throw new Exception(
+                            "ERROR: GRANT NUMBER OR APPL_ID COULD BE IDENTIFIED EITHER IN SUBJECT OR EMAIL BODY");
                         //Send Email that there was failure
                         //.Recipients.Add("leul.ayana@nih.gov")
                     }
                     else if (msgDetails.Catname == "correspondence" && string.IsNullOrWhiteSpace(msgDetails.Subcatname))
                     {
-                        throw new Exception("INVALID SUBJECT LINE - Two parameter is Important. 1)category  2)grantnumber. If 1)category = coresspondence. You must add third parameter called sub=<<subcategoryname>>. Example category=correspondence,sub=admin supplement,grantnumber=SP30CA123456-65 ");
-                        //replysubj = "INVALID SUBJECT LINE"
-                        //replyText = "Two parameter is Important. 1)category  2)grantnumber. If 1)category = coresspondence. You must add third parameter called sub=<<subcategoryname>>. Example category=correspondence,sub=admin supplement,grantnumber=SP30CA123456-65"
-                        //replyText = replyText & vbNewLine & " If category=Application file, do not add third parameter sub=<<>> . Example : category=application file, grantnumber=SP30CA123456-65"
+                        throw new Exception(
+                            "INVALID SUBJECT LINE - Two parameters are important. 1)category  2)grantnumber. If 1)category = coresspondence. You must add third parameter called sub=<<subcategoryname>>. Example category=correspondence,sub=admin supplement,grantnumber=SP30CA123456-65 ");
                         //Set OutMail = CItem.Forward
-                        //With OutMail
                         //    .Recipients.Add("leul.ayana@nih.gov")
-                        //    .Recipients.Add("leul.ayana@nih.gov")
-                        //    .Recipients.Add("leul.ayana@nih.gov")
-                        //    .Subject = replysubj
-                        //    .Body = replyText & vbNewLine & vbNewLine & CItem.body
-                        //    .Send
-                        //End With
-                        //Set OutMail = nothing
 
                     }
-                    else if (applId != 0 && (msgDetails.Catname == "correspondence" || msgDetails.Catname == "application file" || msgDetails.Catname == "applicationfile"))
+                    else if (msgDetails.Parentapplid != 0 &&
+                             (msgDetails.Catname == "correspondence" || msgDetails.Catname == "application file" ||
+                              msgDetails.Catname == "applicationfile"))
                     {
                         msgDetails.Pa = "";
-
                         msgDetails.Filenumbername = GetPlaceholder(msgDetails);
+                        alias = msgDetails.Filenumbername + msgDetails.Filetype;
 
                         if (string.IsNullOrWhiteSpace(msgDetails.Filenumbername))
                         {
-                            throw new Exception("UN Identified email: NCIOGASupplent public folder");
+                            throw new Exception(
+                                "ERROR: Could not create entry in WIP. Check DB proc : getPlaceHolder_new");
                             //TODO: Email Error
                             //    .Recipients.Add("leul.ayana@nih.gov")
                             //    .Recipients.Add("guillermo.choy-leon@nih.gov")
-                            //    .Recipients.Add("leul.ayana@nih.gov")
-                            //    .Subject = replysubj
-                            //    .Body = replyText & vbNewLine & replybody & vbNewLine & CItem.body
                             //    "ERROR: Could not create entry in WIP. Check DB proc : getPlaceHolder_new to load OGA_Notification"
                         }
-                        else if ((msgDetails.Catname == "correspondence") && !msg.HasAttachments && msg.MessageBody.Length > 0)
+                        else if ((msgDetails.Catname == "correspondence") && !msg.HasAttachments &&
+                                 msg.MessageBody.Length > 0)
                         {
-
-                            alias = msgDetails.Filenumbername + ".txt";
                             // Generate file from email and save 
                             SaveMessage(msg, alias, outputFolder, MessageSaveType.Text);
                         }
                         else if (msgDetails.Catname == "application file" && msg.HasAttachments)
                         {
-                            //TODO: Get Attachment and Save  
+                            attachment?.SaveToDisk(LocalPath, msgDetails.Filenumbername, msgDetails.Filetype);
 
-                            alias = msgDetails.Filenumbername + "." + msgDetails.Filetype;
 
-                            var attachments = EmailRepo.GetEmailAttachments(msg.GraphId);
-                            if (attachments.Count > 1)
-                            {
-                                throw new Exception("There were more than 1 attachments included");
-                            }
-                            else
-                            {
-                                var attachment = attachments.FirstOrDefault();
-                                string ext = attachment?.Name.Split('.')[1];
-                                attachment.SaveToDisk(outputFolder, msgDetails.Filenumbername, ext);
-                            }
+                            string localFile = Path.Combine(LocalPath, alias);
+                            string destinationFile = Path.Combine(outputFolder, alias);
+                            CopyFile(localFile, destinationFile);
                         }
                     }
                 }
@@ -319,14 +292,11 @@ namespace egrants_new.Integration.EmailRulesEngine
                         if (string.IsNullOrWhiteSpace(msgDetails.Filenumbername))
                         {
                             //TODO:  Fix condition where this error is generated as fallback for not matching any criteria.
-                            throw new Exception("ERROR: Could not create entry in WIP. ");
-                            //If getPlaceHolder_new did not returned any thing this means there is an error to be investigated for ward this to admin. 
+                            throw new Exception("ERROR: Could not create entry in WIP. Check DB proc : getPlaceHolder_new to load OGA_Notification");
+                            //If getPlaceHolder_new did not returned any thing this means there is an error to be investigated forward this to admin. 
                             //TODO: Email Error
-                            //    .Recipients.Add("leul.ayana@nih.gov")
-                            //    .Recipients.Add("leul.ayana@nih.gov")
                             //    .Recipients.Add("guillermo.choy-leon@nih.gov")
-                            //this to admin.replysubj =
-                            //    "ERROR: Could not create entry in WIP. Check DB proc : getPlaceHolder_new to load OGA_Notification"
+
                         }
                         else
                         {
@@ -338,19 +308,8 @@ namespace egrants_new.Integration.EmailRulesEngine
                     }
                     else
                     {
-                        throw new Exception("UN Identified email: NCIOGASupplent public folder");
-                        //Set OutMail = CItem.Forward
-                        //	replysubj="UN Identified email: NCIOGASupplent public folder: "
-                        //With OutMail
-                        //    .Recipients.Add("leul.ayana@nih.gov")
+                        throw new Exception("UNIdentified email: NCIOGASupplement public folder");
                         //    .Recipients.Add("guillermo.choy-leon@nih.gov")
-                        //    .Recipients.Add("leul.ayana@nih.gov")
-                        //    .Subject = replysubj
-                        //    .Body = replyText & vbNewLine & vbNewLine & CItem.body
-                        //    .Send
-
-                        //End With
-
                     }
                 }
 
