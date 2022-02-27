@@ -469,6 +469,9 @@
     <Content Include="Egrants\Views\_egrants_showDocs.cshtml" />
     <Content Include="Egrants\Views\Back_to_default.cshtml" />
     <Content Include="Integration\Views\Trigger.cshtml" />
+    <Content Include="Egrants\Views\InstitutionalFiles_ShowDocs.cshtml" />
+    <Content Include="Egrants\Views\InstitutionalFiles_CreateDocs.cshtml" />
+    <Content Include="Egrants\Views\InstitutionalFiles_OrgList.cshtml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
@@ -522,10 +525,16 @@
     <Compile Include="Dashboard\Models\Dashboard.cs" />
     <Compile Include="Egrants\Controllers\EgrantsController.cs" />
     <Compile Include="Egrants\Controllers\EgrantsDocController.cs" />
+    <Compile Include="Egrants\Models\InstitutionalFilesEnums.cs" />
+    <Compile Include="Egrants\Models\InstitutionallFilesPage.cs" />
+    <Compile Include="Egrants\Models\InstitutionalOrgCategory.cs" />
     <Compile Include="Egrants\Models\EgrantsAppl.cs" />
     <Compile Include="Egrants\Models\EgrantsDoc.cs" />
     <Compile Include="Egrants\Models\Egrants.cs" />
-    <Compile Include="Egrants\Models\InstitutionalFiles.cs" />
+    <Compile Include="Egrants\Models\InstitutionalDocFiles.cs" />
+    <Compile Include="Egrants\DataRepositories\InstitutionalFilesRepo.cs" />
+    <Compile Include="Egrants\Models\InstitutionalOrg.cs" />
+    <Compile Include="Egrants\Models\InstitutionalOrgNameIndex.cs" />
     <Compile Include="Egrants_Admin\Controllers\ApplDestructedController.cs" />
     <Compile Include="Egrants_Admin\Controllers\EgrantsAccessController.cs" />
     <Compile Include="Egrants_Admin\Controllers\SupplementController.cs" />

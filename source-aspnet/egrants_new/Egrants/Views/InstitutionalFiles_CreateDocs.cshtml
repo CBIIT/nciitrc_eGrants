@@ -1,0 +1,110 @@
+﻿@model egrants_new.Egrants.Models.InstitutionallFilesPage
+
+<div>
+    <table>
+        <tr>
+            <td width="800">
+                <table width="800">
+                    <tr height="20">
+                        <td width="100"><lable for="Institute"><b>Institute:</b></lable></td>
+                        <td width="700"><b>@ViewBag.OrgName</b></td>
+                    </tr>
+                    <tr height="20">
+                        <td><lable for="Category"><b>Category:</b></lable></td>
+                        <td>
+                            <select name="category_id" id="ddlCategories" class="smallfont" size="1" title="Select category to create new document" OnChange="select_category()">
+                                <option value="0"></option>
+                                @foreach (var orgcategory in ViewBag.OrgCategory)
+                                {
+                                    <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                    <tr height="20">
+                        <td><lable for="flag"><b>Show Flag:</b></lable></td>
+                        <td>
+                            <div id="ShowFlag" style="display:none">
+                                <lable for="start date"><b>From</b></lable>
+                                &#0160;
+                                <input type="text" name="start_date" id="txtStartDate" class="smallfont" size="8" title="Insert start date" value="@ViewBag.Today" />&#0160;
+                                <lable for="end date"><b>To</b></lable>&#0160;
+                                <input type="text" name="end_date" id="txtEndDate" class="smallfont" size="8" title="Insert end date" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <!--show loading icon-->
+                            <div class="loading" style="display:none">
+                                <img src="~/Content/images/Loading.gif" width="80" />
+                            </div>
+                        </td>
+                        <td>
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="Javascript:switch_upload_mode('by_ddrop')">Drag & Drop</a></li>
+                                <li></li>
+                                <li class="active"><a href="Javascript:switch_upload_mode('by_asp')">Locate File and Upload</a></li>
+                            </ul>
+                            <div class="tab-content" id="TabUploadContent">
+                                <!--start upload by drag drop -->
+                                <div class="tab-pane fade active in" id="by_ddrop" style="display:inline">
+                                    <br />
+                                    <div id="dropArea">
+                                        Drag-drop only one file here to upload
+                                    </div>
+                                    <br />
+                                    <button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)');" disabled="disabled"><u>C</u>reate New</button>
+                                    <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+                                </div>
+                                <!--end upload by drag drop-->
+                                <!--sstart upload by file-->
+                                <div class="tab-pane fade active in" id="by_asp" style="display:none">
+                                    <br />
+                                    <input type="file" name="file" id="UploadFile" />
+                                    <br />
+                                    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')"><u>C</u>reate New</button>
+                                    <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+
+                                </div>
+
+                                @*<br />*@
+                                <!--end upload by file-->
+                                <!--start progree bar-->
+                                @*<br />*@
+                                <div class="progress" style="display:none; margin:0; padding:0;">
+                                    <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; " aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <!--end progree bar-->
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <button onclick="javascript: show_docs('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return previous page [alt + shift + R]"><u>R</u>eturn</button>&#0160;&#0160;
+                            @if (ViewBag.FileUrl != null)
+                            {
+                                <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file"><img src="../Content/images/check_doc_btn.png" style="height:35px;" title="Check Document" /></a>
+                            }
+                            <b>@ViewBag.Message</b>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+
+                <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+@*<a href="javascript:show_docs('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')" title="Click here to return [shift + alt + R]">Return</a>
+    <br />
+    <b>@ViewBag.Message</b>
+    <br/>
+    if (ViewBag.FileUrl != null)
+    {
+        <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file">Check Uploaded File</a>
+    }*@
