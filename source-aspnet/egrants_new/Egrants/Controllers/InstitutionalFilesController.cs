@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using egrants_new.Models;
 using egrants_new.Egrants.Models;
 
+
 namespace egrants_new.Controllers
 {
     public class InstitutionalFilesController : Controller
@@ -16,70 +17,76 @@ namespace egrants_new.Controllers
         // GET: InstitutionalFiles      
         public ActionResult Index()
         {          
-            //set act
-            string act = "show_orgs";
-            ViewBag.Act = act;
+            var _repo = new InstitutionalFilesRepo();
+            //Create new Page Model to adhere to MVC practices
+            //Should have a Builder but... This will do for now
+            var page = new InstitutionallFilesPage()
+            {
+                Action = InstitutionalFilesPageAction.ShowOrgs,
+                CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
+                OrgList =  _repo.LoadOrgList(InstitutionalFilesPageAction.ShowOrgs, "", 2, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
+            };
 
-            //load Character Index
-            ViewBag.CharacterIndex = InstitutionalFiles.LoadOrgNameCharacterIndex();
-
-            //load default org
-            ViewBag.OrgFiles = InstitutionalFiles.LoadOrgList(act, "", 2, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
-
-            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");         
+            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml",page);         
         }
 
         public ActionResult Show_Orgs(int index_id)
         {
+            var _repo = new InstitutionalFilesRepo();
             //set act
-            string act = "show_orgs";
+            InstitutionalFilesPageAction act = InstitutionalFilesPageAction.ShowOrgs;
             ViewBag.Act = act;
 
             //load Character Index
-            ViewBag.CharacterIndex = InstitutionalFiles.LoadOrgNameCharacterIndex();
+            ViewBag.CharacterIndex = _repo.LoadOrgNameCharacterIndices();
 
             //load default org
-            ViewBag.OrgFiles = InstitutionalFiles.LoadOrgList(act, "", index_id, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+            ViewBag.OrgFiles = _repo.LoadOrgList(act, "", index_id, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
 
             return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
         }
 
         public ActionResult Search_Orgs(string act, string str)
         {
+            var _repo = new InstitutionalFilesRepo();
             //set act
+            InstitutionalFilesPageAction action = InstitutionalFilesPageAction.ShowOrgs;
             ViewBag.Act = act;
             ViewBag.Str = str;
 
             //load Character Index
-            ViewBag.CharacterIndex = InstitutionalFiles.LoadOrgNameCharacterIndex();
+            ViewBag.CharacterIndex = _repo.LoadOrgNameCharacterIndices();
 
             //load default org
-            ViewBag.OrgFiles = InstitutionalFiles.LoadOrgList(act, str, 0, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+            ViewBag.OrgFiles = _repo.LoadOrgList(action, str, 0, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
 
             return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
         }
 
         public ActionResult Show_Docs(int org_id, string org_name = "")
         {
+            var _repo = new InstitutionalFilesRepo();
             //set act
+           // InstitutionalFilesPageAction action = InstitutionalFilesPageAction.ShowDocs
             string act= "show_docs";
             ViewBag.Act = act;
             ViewBag.OrgID = org_id;
             //ViewBag.OrgName = org_name;
 
             //load Character Index
-            ViewBag.CharacterIndex = InstitutionalFiles.LoadOrgNameCharacterIndex();
+            ViewBag.CharacterIndex = _repo.LoadOrgNameCharacterIndices();
 
             //load default org
-            ViewBag.DocFiles = InstitutionalFiles.LoadOrgDocList(act, "", 0, org_id, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+            ViewBag.DocFiles = _repo.LoadOrgDocList(act, "", 0, org_id, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
 
             return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
         }
 
         public ActionResult Delete_Doc(string act, int doc_id, int org_id, string org_name)
         {
+            var _repo = new InstitutionalFilesRepo();
             //disable_doc
-            InstitutionalFiles.DisableDoc(act, "", 0, org_id, doc_id, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+            _repo.DisableDoc(act, "", 0, org_id, doc_id, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
 
             ViewBag.Act = act;
             ViewBag.OrgID = org_id;
@@ -89,6 +96,7 @@ namespace egrants_new.Controllers
 
         public ActionResult Show_Create_Doc(int org_id, string org_name)
         {
+            var _repo = new InstitutionalFilesRepo();
             //set act
             ViewBag.Act = "create new";
             ViewBag.OrgID = org_id;
@@ -96,10 +104,10 @@ namespace egrants_new.Controllers
             ViewBag.Today = System.DateTime.Now.ToShortDateString();
 
             //load Character Index
-            ViewBag.CharacterIndex = InstitutionalFiles.LoadOrgNameCharacterIndex();
+            ViewBag.CharacterIndex = _repo.LoadOrgNameCharacterIndices();
 
             //load default org
-            ViewBag.OrgCategory = InstitutionalFiles.LoadOrgCategory();
+            ViewBag.OrgCategory = _repo.LoadOrgCategory();
 
             return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
         }
@@ -107,6 +115,7 @@ namespace egrants_new.Controllers
         [HttpPost]
         public void Create_Doc_by_DDrop(HttpPostedFileBase dropedfile, int category_id, string org_name, string start_date, string end_date, int org_id)
         {
+            var _repo = new InstitutionalFilesRepo();
             //ViewBag.Act = "create new";
             if (dropedfile != null && dropedfile.ContentLength > 0)
                 try
@@ -116,7 +125,7 @@ namespace egrants_new.Controllers
                     var fileExtension = System.IO.Path.GetExtension(fileName);
 
                     //get document id and create new document name 
-                    var docID = InstitutionalFiles.GetDocID(org_id, category_id, fileExtension, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+                    var docID = _repo.GetDocID(org_id, category_id, fileExtension, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
                     var docName = Convert.ToString(docID) + fileExtension;
 
                     //upload to local server
@@ -141,6 +150,7 @@ namespace egrants_new.Controllers
         [HttpPost]
         public void Create_Doc_by_File(HttpPostedFileBase file, int category_id, string org_name, string start_date, string end_date, int org_id)
         {
+            var _repo = new InstitutionalFilesRepo();
             //ViewBag.Act = "create new";
             if (file != null && file.ContentLength > 0)
                 try
@@ -150,7 +160,7 @@ namespace egrants_new.Controllers
                     var fileExtension = System.IO.Path.GetExtension(fileName);
 
                     //get document id and create new document name 
-                    var docID = InstitutionalFiles.GetDocID(org_id, category_id, fileExtension, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+                    var docID = _repo.GetDocID(org_id, category_id, fileExtension, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
                     var docName = Convert.ToString(docID) + fileExtension;
 
                     //upload to local server

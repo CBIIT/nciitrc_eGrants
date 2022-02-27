@@ -1,0 +1,44 @@
+﻿@using egrants_new.Egrants.Models
+@model egrants_new.Egrants.Models.InstitutionallFilesPage
+
+
+
+    <table width="850" valign="left">
+        <tr>
+            <td width="250"><b>@Model.SelectedInstitutionalOrg.Org_name</b></td>
+            <td width="150">
+                @if (Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
+                {
+                    <a href="JavaScript:to_create_doc('@ViewBag.OrgName','@ViewBag.OrgID')" title="Click here to create new document">Create New Document</a>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <table>
+                    <tr>
+                        <td width="250" class="bg_grey"><lable for="Category"><center><b>Category Name</b></center></lable></td>
+                        <td width="150" class="bg_grey"><lable for="document date"><center><b>Document Date</b></center></lable></td>
+                    </tr>
+                    @if (Model.Action == InstitutionalFilesPageAction.ShowDocs && Model.DocFiles.Count >0)
+                    {
+                        foreach (var doc in Model.DocFiles)
+                        {
+                                <tr>
+                                    <td>
+                                        <a href="JavaScript:show_doc('@doc.url')" title="Click here to display document">@doc.category_name</a>
+                                    </td>
+                                    <td>
+                                        @doc.created_date&#0160;&#0160;&#0160;&#0160;
+                                        <a href="JavaScript:delete_doc('@doc.document_id', '@doc.category_name','@doc.org_id', '@doc.org_name')" title="Click here to delete this document">
+                                            <img class="img_12_12" SRC="~/Content/images/Clear.jpg" />
+                                        </a>
+                                    </td>
+                                </tr>
+                        }
+                    }
+                </table>
+            </td>
+        </tr>
+    </table>
+
