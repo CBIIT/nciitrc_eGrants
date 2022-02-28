@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using egrants_new.Models;
 
 namespace egrants_new.Egrants.Models
@@ -47,11 +48,26 @@ namespace egrants_new.Egrants.Models
         //to load all intitution list
         public List<InstitutionalOrg> LoadOrgList(InstitutionalFilesPageAction action, string str, int index_id, int org_id, int doc_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
         {
+            string act = "";
+            switch (action)
+            {
+                case InstitutionalFilesPageAction.ShowDocs:
+                    act = "show_docs";
+                    break;
+                case InstitutionalFilesPageAction.ShowOrgs:
+                    act = "show_orgs";
+                    break;
+                case InstitutionalFilesPageAction.CreateNew:
+                    act = "create_new";
+                    break;
+                default:
+                    break;
+            }
 
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_files", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             //TODO:  This should branched to different Stored procedures based on the revision MAdhu does
-            //cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
+            cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
             cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
             cmd.Parameters.Add("@index_id", System.Data.SqlDbType.Int).Value = index_id;
             cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
@@ -83,9 +99,59 @@ namespace egrants_new.Egrants.Models
             return OrgList;
         }
 
-        //to load all intitutional files list
-        public List<InstitutionalDocFiles> LoadOrgDocList(string act, string str, int index_id, int org_id, int doc_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
+
+
+        public InstitutionalOrg FindOrg( int org_id)
         {
+
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_file_find_org", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            //TODO:  This should branched to different Stored procedures based on the revision MAdhu does
+
+            cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
+
+            conn.Open();
+
+            var Org = new InstitutionalOrg();
+            SqlDataReader rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                Org = new InstitutionalOrg()
+                {
+                    OrgId = (int)rdr["org_id"],
+                    Org_name = rdr["org_name"]?.ToString(),
+                    created_by = rdr["created_by"]?.ToString(),
+                    created_date = rdr["created_date"]?.ToString(),
+                    end_date = rdr["end_date"]?.ToString(),
+                    sv_url = rdr["sv_url"]?.ToString()
+                };
+            }
+            conn.Close();
+            return Org;
+        }
+
+
+
+        //to load all intitutional files list   -   [sp_web_egrants_institutional_file_find_org]
+        public List<InstitutionalDocFiles> LoadOrgDocList(InstitutionalFilesPageAction action, string str, int index_id, int org_id, int doc_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
+        {
+
+            string act = "";
+            switch (action)
+            {
+                case InstitutionalFilesPageAction.ShowDocs:
+                    act = "show_docs";
+                    break;
+                case InstitutionalFilesPageAction.ShowOrgs:
+                    act = "show_orgs";
+                    break;
+                case InstitutionalFilesPageAction.CreateNew:
+                    act = "create_new";
+                    break;
+                default:
+                    break;
+            }
+
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_files", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;

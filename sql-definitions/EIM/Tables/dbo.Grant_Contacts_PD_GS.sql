@@ -12,7 +12,8 @@ CREATE TABLE [dbo].[Grant_Contacts_PD_GS](
 	[PD_EMAIL_ADDRESS] [nvarchar](80) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
 	[PD_FULL_NAME] [nvarchar](62) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
 	[ADMIN_PHS_ORG_CODE] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
-	[RESP_SPEC_NPN_ID] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+	[RESP_SPEC_NPN_ID] [varchar](20) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[PROG_CLASS_CODE] [varchar](15) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
 ) ON [PRIMARY]
 
 GO
