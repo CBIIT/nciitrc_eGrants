@@ -9,6 +9,7 @@ namespace egrants_new.Egrants.Models
     {
         ShowOrgs,
         ShowDocs,
-        CreateNew
+        CreateNew,
+        SearchOrgs
     }
 }

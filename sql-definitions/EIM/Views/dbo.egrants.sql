@@ -1,14 +1,15 @@
 ﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER OFF
+SET QUOTED_IDENTIFIER ON
 
-
-/* modified 2010/10/25 by Leon and Joel to eliminate appls deleted in IMPAC 
-d(bo.documents.is_destroyed IS NULL or dbo.documents.is_destroyed=0)
-AND (ISNULL(dbo.documents.is_destroyed, 0) = 0) --AND (dbo.appls_deleted_in_impac.appl_id IS NULL)
-Date: 5/17/2019 added can restore for supplements
-*/
-CREATE VIEW [dbo].[egrants]
+CREATE        VIEW [dbo].[egrants]
 AS
+
+WITH supps as (
+	Select movedto_document_id, CAST (REPLACE(movedto_document_id, 'as','') as bigint) as DocumentID 
+	  from IMPP_Admin_Supplements_WIP
+     where movedto_document_id not like 'as%' and moved_date is not null and movedto_document_id is not null 
+)
+
 SELECT     dbo.profiles.profile AS ic, dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial_num, 
                       dbo.grants.admin_phs_org_code + RIGHT('00000' + CONVERT(varchar, dbo.grants.serial_num), 6) AS grant_num, dbo.grants.is_tobacco, 
                       dbo.grants.to_be_destroyed, dbo.grants.mechanism_code, dbo.grants.grant_close_date, 
@@ -38,8 +39,9 @@ SELECT     dbo.profiles.profile AS ic, dbo.grants.grant_id, dbo.grants.admin_phs
                       dbo.categories.impac_doc_type_code as impac_doc_type,			--- added by leon 9/8/2015
                       
                       dbo.documents.sub_category_name,
-                      CASE WHEN dbo.documents.sub_category_name is null or dbo.documents.sub_category_name=''
-                      THEN dbo.categories.category_name
+                      CASE 
+						WHEN dbo.categories.category_name like '%:IGNORE%' THEN LEFT(dbo.categories.category_name,CHARINDEX(':IGNORE',dbo.categories.category_name)-1)
+						WHEN dbo.documents.sub_category_name is null or dbo.documents.sub_category_name='' THEN dbo.categories.category_name
                       ELSE dbo.categories.category_name+':  '+dbo.documents.sub_category_name
                       END as document_name,   --- added by leon 5/23/2017       
                       
@@ -48,6 +50,7 @@ SELECT     dbo.profiles.profile AS ic, dbo.grants.grant_id, dbo.grants.admin_phs
                       CASE WHEN people_create.userid = 'impac' THEN 'y' ELSE 'n' END AS impac_doc, 
 
                       CASE 
+  					  WHEN (dbo.documents.category_id = 38) then 'y'
                       WHEN dbo.fn_appl_deleted_by_impac (dbo.appls.appl_id)='n' AND (url LIKE 'data/%' or url LIKE '/data/%') AND people_create.userid != 'system' AND parent_id IS NULL THEN 'y' 
                       WHEN dbo.fn_appl_deleted_by_impac (dbo.appls.appl_id)='n' AND (dbo.documents.category_id IS NULL OR dbo.documents.appl_id IS NULL) AND dbo.documents.qc_date IS NOT NULL THEN 'y'
                       ELSE 'n' 
@@ -73,7 +76,7 @@ SELECT     dbo.profiles.profile AS ic, dbo.grants.grant_id, dbo.grants.admin_phs
                       (url LIKE 'data/funded/nci/modify%' or url LIKE '/data/funded/nci/modify%') THEN 'y' 
                       WHEN dbo.fn_appl_deleted_by_impac (dbo.appls.appl_id)='n' AND people_create.userid IN ('impac', 'efile') AND (url LIKE 'data/funded/nci/modify%' or url LIKE '/data/funded/nci/modify%') AND category_name IN ('Application File', 'Summary Statement', 
                       'JIT Info', 'Financial Report') AND parent_id IS NULL THEN 'y' 
-					  WHEN dbo.fn_appl_deleted_by_impac (dbo.appls.appl_id)='n' AND documents.document_id in (select movedto_document_id from IMPP_Admin_Supplements_WIP where moved_date is not null and movedto_document_id is not null) AND 
+					  WHEN dbo.fn_appl_deleted_by_impac (dbo.appls.appl_id)='n' AND exists (select * from supps where DocumentID = documents.document_id) AND 
                       (url LIKE 'data/funded/nci/modify%' or url LIKE '/data/funded/nci/modify%') THEN 'y' 
                       ELSE 'n' 
                       END AS can_restore, 
@@ -99,8 +102,6 @@ FROM         dbo.documents LEFT OUTER JOIN
                             FROM          dbo.attachments AS attachments_1
                             GROUP BY document_id) AS attachments ON dbo.documents.document_id = attachments.document_id
 WHERE     (dbo.documents.disabled_date IS NULL)
-
-
 
 
 

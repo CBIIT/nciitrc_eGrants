@@ -14,74 +14,77 @@ namespace egrants_new.Controllers
 {
     public class InstitutionalFilesController : Controller
     {
-        // GET: InstitutionalFiles      
+        [HttpGet]
         public ActionResult Index()
-        {          
+        {
             var _repo = new InstitutionalFilesRepo();
             //Create new Page Model to adhere to MVC practices
             //Should have a Builder but... This will do for now
             var page = new InstitutionallFilesPage()
             {
+                SelectedInstitutionalOrg = new InstitutionalOrg(),
                 Action = InstitutionalFilesPageAction.ShowOrgs,
                 CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
-                OrgList =  _repo.LoadOrgList(InstitutionalFilesPageAction.ShowOrgs, "", 2, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
+                OrgList = _repo.LoadOrgList(InstitutionalFilesPageAction.ShowOrgs, "", 2, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
+
             };
 
-            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml",page);         
+            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
         }
 
+        [HttpGet]
         public ActionResult Show_Orgs(int index_id)
         {
             var _repo = new InstitutionalFilesRepo();
-            //set act
-            InstitutionalFilesPageAction act = InstitutionalFilesPageAction.ShowOrgs;
-            ViewBag.Act = act;
 
-            //load Character Index
-            ViewBag.CharacterIndex = _repo.LoadOrgNameCharacterIndices();
+            var page = new InstitutionallFilesPage()
+            {
+                SelectedInstitutionalOrg = new InstitutionalOrg(),
+                Action = InstitutionalFilesPageAction.ShowOrgs,
+                CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
+                OrgList = _repo.LoadOrgList(InstitutionalFilesPageAction.ShowOrgs, "", index_id, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
 
-            //load default org
-            ViewBag.OrgFiles = _repo.LoadOrgList(act, "", index_id, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+            };
 
-            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
+            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml",page);
         }
 
+        [HttpGet]
         public ActionResult Search_Orgs(string act, string str)
         {
             var _repo = new InstitutionalFilesRepo();
-            //set act
-            InstitutionalFilesPageAction action = InstitutionalFilesPageAction.ShowOrgs;
-            ViewBag.Act = act;
-            ViewBag.Str = str;
+            var page = new InstitutionallFilesPage()
+            {
+                SelectedInstitutionalOrg = new InstitutionalOrg(),
+                Action = InstitutionalFilesPageAction.ShowOrgs,
+                CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
+                OrgList = _repo.LoadOrgList(InstitutionalFilesPageAction.ShowOrgs, str, 0, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
 
-            //load Character Index
-            ViewBag.CharacterIndex = _repo.LoadOrgNameCharacterIndices();
+            };
 
-            //load default org
-            ViewBag.OrgFiles = _repo.LoadOrgList(action, str, 0, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
-
-            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
+            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml",page);
         }
 
+        [HttpGet]
         public ActionResult Show_Docs(int org_id, string org_name = "")
         {
             var _repo = new InstitutionalFilesRepo();
-            //set act
-           // InstitutionalFilesPageAction action = InstitutionalFilesPageAction.ShowDocs
-            string act= "show_docs";
-            ViewBag.Act = act;
-            ViewBag.OrgID = org_id;
-            //ViewBag.OrgName = org_name;
 
-            //load Character Index
-            ViewBag.CharacterIndex = _repo.LoadOrgNameCharacterIndices();
+            var selectedInstitutionalOrg = _repo.FindOrg(org_id);
 
-            //load default org
-            ViewBag.DocFiles = _repo.LoadOrgDocList(act, "", 0, org_id, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+            var page = new InstitutionallFilesPage()
+            {
+                SelectedInstitutionalOrg = selectedInstitutionalOrg,
+                Action = InstitutionalFilesPageAction.ShowDocs,
+                CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
+                DocFiles = _repo.LoadOrgDocList(InstitutionalFilesPageAction.ShowDocs, string.Empty, 0, org_id, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
 
-            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
+            };
+
+            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
         }
 
+        [HttpGet]
         public ActionResult Delete_Doc(string act, int doc_id, int org_id, string org_name)
         {
             var _repo = new InstitutionalFilesRepo();
@@ -94,22 +97,25 @@ namespace egrants_new.Controllers
             return Show_Docs(org_id, org_name);
         }
 
+        [HttpGet]
         public ActionResult Show_Create_Doc(int org_id, string org_name)
         {
             var _repo = new InstitutionalFilesRepo();
             //set act
-            ViewBag.Act = "create new";
-            ViewBag.OrgID = org_id;
-            ViewBag.OrgName = org_name; 
-            ViewBag.Today = System.DateTime.Now.ToShortDateString();
 
-            //load Character Index
-            ViewBag.CharacterIndex = _repo.LoadOrgNameCharacterIndices();
+            var selectedInstitutionalOrg = _repo.FindOrg(org_id);
 
-            //load default org
-            ViewBag.OrgCategory = _repo.LoadOrgCategory();
+            var page = new InstitutionallFilesPage()
+            {
+                SelectedInstitutionalOrg = selectedInstitutionalOrg,
+                Action = InstitutionalFilesPageAction.CreateNew,
+                CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
+                DocFiles = _repo.LoadOrgDocList(InstitutionalFilesPageAction.ShowDocs, string.Empty, 0, org_id, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"])),
+                OrgCategories = _repo.LoadOrgCategory(),
+                TodayText = System.DateTime.Now.ToShortDateString()
+            };
 
-            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml");
+            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
         }
 
         [HttpPost]

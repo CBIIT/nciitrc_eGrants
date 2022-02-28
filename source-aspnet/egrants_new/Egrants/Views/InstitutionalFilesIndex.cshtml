@@ -1,4 +1,5 @@
-﻿@model egrants_new.Egrants.Models.InstitutionallFilesPage
+﻿@using egrants_new.Egrants.Models
+@model egrants_new.Egrants.Models.InstitutionallFilesPage
 @{
     ViewBag.Title = "egrants [Institutional Files]";
     Layout = "~/Shared/Views/_egrants_header.cshtml";
@@ -17,6 +18,11 @@
     .nav-tabs > li > a:focus {
         color: #ffffff;
         background-color: #808080 !important;
+    }
+
+    .comment-textarea{
+        width: 600px;
+        height: 100px;
     }
 </style>
 
@@ -127,7 +133,7 @@
                 alert("Please select category");
                 return false;
             } else Categoryid = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-                    return true;
+            return true;
         }
 
         function check_date_range() {
@@ -270,37 +276,36 @@
 
     <div id="index_list" style="display:none">
         <b>Index:</b>
-        @foreach (var index in ViewBag.CharacterIndex)
+        @foreach (var index in Model.CharacterIndices)
         {
             <div id="index.index_id" style="display:inline">
-                <a href="JavaScript:show_orgs(@index.index_id)" title="Search Institution Files with @index.character_index">
-                    <b>@char.ToUpper(index.character_index[0])</b>&#0160;
+                <a href="JavaScript:show_orgs(@index.IndexId)" title="Search Institution Files with @index.CharacterIndex">
+                    <b>@char.ToUpper(index.CharacterIndex[0])</b>&#0160;
                 </a>
             </div>
         }
     </div>
-    <br /><br /><div>    <b>Institution Name:</b>&#0160;</div>
-    <b>Institution Name:</b>&#0160;
-    <input type="text" name="str" id="txtStr" class="smallfont" size="58" title="Insert institution name to search" value="@ViewBag.Str" />
-    &#0160;
-    <button type="button" class="btn btn-primary eGrantsDocBtn" accesskey="S" title="Search by institution name [shift + alt + S]" onClick="return search_orgs();"><u>S</u>earch</button>
+    <br /><br />
+    <div><div>    <b>Institution Name:</b>&#0160;</div><div>    <input type="text" name="str" id="txtStr" class="smallfont" size="58" title="Insert institution name to search" value="@ViewBag.Str" />
+        &#0160;
+        <button type="button" class="btn btn-primary eGrantsDocBtn" accesskey="S" title="Search by institution name [shift + alt + S]" onClick="return search_orgs();"><u>S</u>earch</button></div></div>
     <br /><br />
     <!--start show orgs list-->
     @if (Model.OrgList.Count > 0)
     {
-        @Html.Partial("InstitutionalFiles_OrgList.cshtml",Model.OrgList);
+        @Html.Partial("~/Egrants/Views/InstitutionalFiles_OrgList.cshtml", Model.OrgList);
     }
     <!--end show orgs list-->
     <!--start show docs list-->
-@if (Model.Action != "show_orgs" && Model.OrgCategories.Count == 0)
+@if (Model.Action != InstitutionalFilesPageAction.ShowOrgs && Model.OrgCategories.Count == 0)
 {
-    @Html.Partial("InstitutionalFiles_ShowDocs.cshtml", Model.DocFiles);
+    @Html.Partial("~/Egrants/Views/InstitutionalFiles_ShowDocs.cshtml", Model);
 }
     <!--end show docs list-->
     <!--start create new doc-->
-    @if (Model.OrgCategories.Count == 0)
+    @if (Model.OrgCategories.Count > 0)
     {
-        @Html.Partial("InstitutionalFiles_CreateDocs.cshtml",Model);
+        @Html.Partial("~/Egrants/Views/InstitutionalFiles_CreateDocs.cshtml", Model);
     }
     <!--end create new doc--->
 </div><!--end main-->

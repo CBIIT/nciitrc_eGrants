@@ -6,15 +6,19 @@
             <td width="800">
                 <table width="800">
                     <tr height="20">
-                        <td width="100"><lable for="Institute"><b>Institute:</b></lable></td>
-                        <td width="700"><b>@ViewBag.OrgName</b></td>
+                        <td width="100">
+                            <div class=""><b>Institute:</b></div>
+                        </td>
+                        <td width="700">
+                            <b>@Model.SelectedInstitutionalOrg.Org_name</b>
+                        </td>
                     </tr>
                     <tr height="20">
-                        <td><lable for="Category"><b>Category:</b></lable></td>
+                        <td><label for="Category"><b>Category:</b></label></td>
                         <td>
                             <select name="category_id" id="ddlCategories" class="smallfont" size="1" title="Select category to create new document" OnChange="select_category()">
                                 <option value="0"></option>
-                                @foreach (var orgcategory in ViewBag.OrgCategory)
+                                @foreach (var orgcategory in Model.OrgCategories)
                                 {
                                     <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
                                 }
@@ -22,14 +26,22 @@
                         </td>
                     </tr>
                     <tr height="20">
-                        <td><lable for="flag"><b>Show Flag:</b></lable></td>
+                        <td><label for="flag"><b>Show Flag:</b></label></td>
                         <td>
                             <div id="ShowFlag" style="display:none">
-                                <lable for="start date"><b>From</b></lable>
+                                <label for="start date"><b>From</b></label>
                                 &#0160;
-                                <input type="text" name="start_date" id="txtStartDate" class="smallfont" size="8" title="Insert start date" value="@ViewBag.Today" />&#0160;
-                                <lable for="end date"><b>To</b></lable>&#0160;
+                                <input type="text" name="start_date" id="txtStartDate" class="smallfont" size="8" title="Insert start date" value="@Model.TodayText" />&#0160;
+                                <label for="end date"><b>To</b></label>&#0160;
                                 <input type="text" name="end_date" id="txtEndDate" class="smallfont" size="8" title="Insert end date" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr height="20">
+                        <td><label for="comments"><b>Comments:</b></label></td>
+                        <td>
+                            <div class="" id="comments">
+                                <input type="textarea" name="comments" id="comments" class="smallfont comment-textarea" size="8" title="" />
                             </div>
                         </td>
                     </tr>
@@ -54,7 +66,7 @@
                                         Drag-drop only one file here to upload
                                     </div>
                                     <br />
-                                    <button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)');" disabled="disabled"><u>C</u>reate New</button>
+                                    <button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.Org_name');" disabled="disabled"><u>C</u>reate New</button>
                                     <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
                                 </div>
                                 <!--end upload by drag drop-->
@@ -63,7 +75,7 @@
                                     <br />
                                     <input type="file" name="file" id="UploadFile" />
                                     <br />
-                                    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')"><u>C</u>reate New</button>
+                                    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.Org_name')"><u>C</u>reate New</button>
                                     <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
 
                                 </div>
@@ -82,7 +94,7 @@
                     <tr>
                         <td></td>
                         <td>
-                            <button onclick="javascript: show_docs('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return previous page [alt + shift + R]"><u>R</u>eturn</button>&#0160;&#0160;
+                            <button onclick="javascript: show_docs('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.Org_name')" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return previous page [alt + shift + R]"><u>R</u>eturn</button>&#0160;&#0160;
                             @if (ViewBag.FileUrl != null)
                             {
                                 <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file"><img src="../Content/images/check_doc_btn.png" style="height:35px;" title="Check Document" /></a>

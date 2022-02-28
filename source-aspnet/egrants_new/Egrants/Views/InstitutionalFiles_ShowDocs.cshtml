@@ -9,7 +9,7 @@
             <td width="150">
                 @if (Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
                 {
-                    <a href="JavaScript:to_create_doc('@ViewBag.OrgName','@ViewBag.OrgID')" title="Click here to create new document">Create New Document</a>
+                    <a href="JavaScript:to_create_doc('@Model.SelectedInstitutionalOrg.Org_name','@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
                 }
             </td>
         </tr>
