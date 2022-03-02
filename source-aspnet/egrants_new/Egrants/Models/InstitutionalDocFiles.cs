@@ -11,5 +11,6 @@
             public string start_date { get; set; }
             public string end_date { get; set; }
             public string created_date { get; set; }
+            public string comments { get; set; }
         }
 }

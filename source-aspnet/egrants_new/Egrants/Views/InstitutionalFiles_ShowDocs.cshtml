@@ -1,44 +1,107 @@
 ﻿@using egrants_new.Egrants.Models
 @model egrants_new.Egrants.Models.InstitutionallFilesPage
 
+<style>
+    table.paleBlueRows {
+        /*font-family: "Times New Roman", Times, serif;*/
+        width: 100%;
+        /*height: 200px;*/
+        /*text-align: center;*/
+        border-collapse: collapse;
+    }
+    table.paleBlueRows td, table.paleBlueRows th {
+        padding: 3px 0px;
+    }
+    table.paleBlueRows tbody td {
+        font-size: 13px;
+    }
+    table.paleBlueRows tr:nth-child(even) {
+        background: #D0E4F5;
+    }
+    table.paleBlueRows thead {
+        background: #0B6FA4;
+        border-bottom: 5px solid #FFFFFF;
+    }
+    table.paleBlueRows thead th {
+        font-size: 17px;
+        font-weight: bold;
+        color: #FFFFFF;
+        text-align: left;
+    }
+    table.paleBlueRows tfoot {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333333;
+        background: #D0E4F5;
+        border-top: 3px solid #444444;
+    }
+    table.paleBlueRows tfoot td {
+        font-size: 14px;
+    }
+    table.paleBlueRows .action {
+        text-align: center;
+    }
+
+</style>
 
 
+<div id="data_table">
     <table width="850" valign="left">
         <tr>
-            <td width="250"><b>@Model.SelectedInstitutionalOrg.Org_name</b></td>
+            <td width="250"><b>Institution:&nbsp;@Model.SelectedInstitutionalOrg.Org_name</b></td>
             <td width="150">
                 @if (Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
                 {
                     <a href="JavaScript:to_create_doc('@Model.SelectedInstitutionalOrg.Org_name','@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
                 }
             </td>
-        </tr>
+        </tr><tr><td colspan="2">&nbsp;</td></tr>
         <tr>
             <td colspan="2">
-                <table>
+                <table class="paleBlueRows" >
+                    <thead>
                     <tr>
-                        <td width="250" class="bg_grey"><lable for="Category"><center><b>Category Name</b></center></lable></td>
-                        <td width="150" class="bg_grey"><lable for="document date"><center><b>Document Date</b></center></lable></td>
+                        <th width="150"><b>Document Name</b></></th>
+                        <th width="120"><b>Date</b></th>
+                        <th width="120"><b>End Date</b></th>
+                        <th width="250"><b>Comments</b></th>
+                        <th class="action"><b>Update</b></th>
+                        <th class="action"><b>Delete</b></th>
                     </tr>
-                    @if (Model.Action == InstitutionalFilesPageAction.ShowDocs && Model.DocFiles.Count >0)
-                    {
-                        foreach (var doc in Model.DocFiles)
+                    </thead>
+                    <tbody>
+                        @if (Model.DocFiles.Count > 0)
                         {
+                            foreach (var doc in Model.DocFiles)
+                            {
                                 <tr>
                                     <td>
                                         <a href="JavaScript:show_doc('@doc.url')" title="Click here to display document">@doc.category_name</a>
                                     </td>
-                                    <td>
-                                        @doc.created_date&#0160;&#0160;&#0160;&#0160;
-                                        <a href="JavaScript:delete_doc('@doc.document_id', '@doc.category_name','@doc.org_id', '@doc.org_name')" title="Click here to delete this document">
+                                    <td>@doc.created_date</td>
+                                    <td>@doc.end_date</td>
+                                    <td>@doc.comments</td>
+                                    <td class="action">
+                                        <a href="JavaScript:delete_doc('@doc.document_id', '@doc.category_name','@doc.org_id', '@doc.org_name')" title="Click here to update this document">
+                                            <img class="img_12_12" SRC="~/Content/images/Update File.png" />
+                                        </a>
+                                    </td>
+                                    <td class="action">
+                                       <a href="JavaScript:delete_doc('@doc.document_id', '@doc.category_name','@doc.org_id', '@doc.org_name')" title="Click here to delete this document">
                                             <img class="img_12_12" SRC="~/Content/images/Clear.jpg" />
                                         </a>
                                     </td>
                                 </tr>
+                            }
                         }
-                    }
+                        else
+                        {
+                            <tr><td colspan="6">No Documents</td></tr>
+                        }
+                    </tbody>
                 </table>
             </td>
         </tr>
     </table>
 
+    </div>

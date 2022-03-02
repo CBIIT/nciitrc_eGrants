@@ -25,7 +25,7 @@ namespace egrants_new.Controllers
                 SelectedInstitutionalOrg = new InstitutionalOrg(),
                 Action = InstitutionalFilesPageAction.ShowOrgs,
                 CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
-                OrgList = _repo.LoadOrgList(InstitutionalFilesPageAction.ShowOrgs, "", 2, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
+                OrgList = _repo.LoadOrgList( 2)
 
             };
 
@@ -42,7 +42,7 @@ namespace egrants_new.Controllers
                 SelectedInstitutionalOrg = new InstitutionalOrg(),
                 Action = InstitutionalFilesPageAction.ShowOrgs,
                 CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
-                OrgList = _repo.LoadOrgList(InstitutionalFilesPageAction.ShowOrgs, "", index_id, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
+                OrgList = _repo.LoadOrgList( index_id)
 
             };
 
@@ -50,7 +50,7 @@ namespace egrants_new.Controllers
         }
 
         [HttpGet]
-        public ActionResult Search_Orgs(string act, string str)
+        public ActionResult Search_Orgs(string str)
         {
             var _repo = new InstitutionalFilesRepo();
             var page = new InstitutionallFilesPage()
@@ -58,8 +58,7 @@ namespace egrants_new.Controllers
                 SelectedInstitutionalOrg = new InstitutionalOrg(),
                 Action = InstitutionalFilesPageAction.ShowOrgs,
                 CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
-                OrgList = _repo.LoadOrgList(InstitutionalFilesPageAction.ShowOrgs, str, 0, 0, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
-
+                OrgList = _repo.SearchOrgList(str)
             };
 
             return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml",page);
@@ -77,7 +76,7 @@ namespace egrants_new.Controllers
                 SelectedInstitutionalOrg = selectedInstitutionalOrg,
                 Action = InstitutionalFilesPageAction.ShowDocs,
                 CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
-                DocFiles = _repo.LoadOrgDocList(InstitutionalFilesPageAction.ShowDocs, string.Empty, 0, org_id, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]))
+                DocFiles = _repo.LoadOrgDocList( org_id)
 
             };
 
@@ -110,7 +109,7 @@ namespace egrants_new.Controllers
                 SelectedInstitutionalOrg = selectedInstitutionalOrg,
                 Action = InstitutionalFilesPageAction.CreateNew,
                 CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
-                DocFiles = _repo.LoadOrgDocList(InstitutionalFilesPageAction.ShowDocs, string.Empty, 0, org_id, 0, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"])),
+                DocFiles = _repo.LoadOrgDocList(org_id),
                 OrgCategories = _repo.LoadOrgCategory(),
                 TodayText = System.DateTime.Now.ToShortDateString()
             };
@@ -119,7 +118,7 @@ namespace egrants_new.Controllers
         }
 
         [HttpPost]
-        public void Create_Doc_by_DDrop(HttpPostedFileBase dropedfile, int category_id, string org_name, string start_date, string end_date, int org_id)
+        public void Create_Doc_by_DDrop(HttpPostedFileBase dropedfile, int category_id, string org_name, string start_date, string end_date, int org_id, string comments)
         {
             var _repo = new InstitutionalFilesRepo();
             //ViewBag.Act = "create new";
@@ -131,7 +130,7 @@ namespace egrants_new.Controllers
                     var fileExtension = System.IO.Path.GetExtension(fileName);
 
                     //get document id and create new document name 
-                    var docID = _repo.GetDocID(org_id, category_id, fileExtension, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+                    var docID = _repo.GetDocID(org_id, category_id, fileExtension, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]),comments);
                     var docName = Convert.ToString(docID) + fileExtension;
 
                     //upload to local server
@@ -154,7 +153,7 @@ namespace egrants_new.Controllers
         }
 
         [HttpPost]
-        public void Create_Doc_by_File(HttpPostedFileBase file, int category_id, string org_name, string start_date, string end_date, int org_id)
+        public void Create_Doc_by_File(HttpPostedFileBase file, int category_id, string org_name, string start_date, string end_date, int org_id, string comments)
         {
             var _repo = new InstitutionalFilesRepo();
             //ViewBag.Act = "create new";
@@ -166,7 +165,7 @@ namespace egrants_new.Controllers
                     var fileExtension = System.IO.Path.GetExtension(fileName);
 
                     //get document id and create new document name 
-                    var docID = _repo.GetDocID(org_id, category_id, fileExtension, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+                    var docID = _repo.GetDocID(org_id, category_id, fileExtension, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]),comments);
                     var docName = Convert.ToString(docID) + fileExtension;
 
                     //upload to local server
