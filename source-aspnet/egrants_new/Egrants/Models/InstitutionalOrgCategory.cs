@@ -12,6 +12,6 @@ namespace egrants_new.Egrants.Models
         public string tobe_flag { get; set; }
         public string flag_period { get; set; }
         public string flag_data { get; set; }
-        public string today { get; set; }
+        public bool require_comments { get; set; }
     }
 }

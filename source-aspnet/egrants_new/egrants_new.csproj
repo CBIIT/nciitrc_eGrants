@@ -526,7 +526,7 @@
     <Compile Include="Egrants\Controllers\EgrantsController.cs" />
     <Compile Include="Egrants\Controllers\EgrantsDocController.cs" />
     <Compile Include="Egrants\Models\InstitutionalFilesEnums.cs" />
-    <Compile Include="Egrants\Models\InstitutionallFilesPage.cs" />
+    <Compile Include="Egrants\Models\InstitutionalFilesPage.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrgCategory.cs" />
     <Compile Include="Egrants\Models\EgrantsAppl.cs" />
     <Compile Include="Egrants\Models\EgrantsDoc.cs" />

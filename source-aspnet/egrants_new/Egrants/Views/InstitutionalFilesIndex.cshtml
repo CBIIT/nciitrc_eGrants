@@ -20,7 +20,7 @@
         background-color: #808080 !important;
     }
 
-    .comment-textarea{
+    .comment-textarea {
         width: 600px;
         height: 100px;
     }
@@ -33,7 +33,8 @@
         var DropFileCount = 0;
         var Categoryid = 0;
         var StartDate = "";
-        var EndDate = "";
+    var EndDate = "";
+        var Comments = "";
 
         $(document).ready(function () {
             load_default();
@@ -169,16 +170,32 @@
                     EndDate = document.getElementById("txtEndDate").value;
                     //alert("EndDate=" + EndDate);
                     return true;
+    }
+
+    function check_comment() {
+
+        Comments = $("#comments").text();
+
+        var category = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+
+        if (Comments.length == 0 && (Categoryid == "3" || Categoryid == "2")) 
+        {
+            alert("The Comments are required for category " + category);
+            return false;
         }
+
+        return true;
+
+    }
 
         function create_doc_by_file(org_id, org_name) {
             //check loacte file, file type and file size
-            if (check_file() == false) {
+            if (check_file() === false) {
                 return false;
             }
 
             //find category_id
-            if (get_category_id() == false) {
+            if (get_category_id() === false) {
                 return false;
             } else
 
@@ -188,12 +205,15 @@
 
             //check start date and end date for site vist
             if (tobe_flag == 1) {
-                if (check_date_range() == false) {
+                if (check_date_range() === false) {
                     return false;
                 }
             }else {
                 StartDate = "";
                 EndDate = "";
+            }
+            if (check_comment() == false) {
+                return false;
             }
 
             //alert("EndDate=" + EndDate);
@@ -205,6 +225,7 @@
             frmdata.append('org_name', org_name);
             frmdata.append('start_date', StartDate);
             frmdata.append('end_date', EndDate);
+            frmdata.append('comments', Comments);
             docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_File");
 
             setTimeout(function() {
@@ -286,9 +307,13 @@
         }
     </div>
     <br /><br />
-    <div><div>    <b>Institution Name:</b>&#0160;</div><div>    <input type="text" name="str" id="txtStr" class="smallfont" size="58" title="Insert institution name to search" value="@ViewBag.Str" />
-        &#0160;
-        <button type="button" class="btn btn-primary eGrantsDocBtn" accesskey="S" title="Search by institution name [shift + alt + S]" onClick="return search_orgs();"><u>S</u>earch</button></div></div>
+    <div>
+        <div>    <b>Institution Name:</b>&#0160;</div><div>
+            <input type="text" name="str" id="txtStr" class="smallfont" size="58" title="Insert institution name to search" value="@ViewBag.Str" />
+            &#0160;
+            <button type="button" class="btn btn-primary eGrantsDocBtn" accesskey="S" title="Search by institution name [shift + alt + S]" onClick="return search_orgs();"><u>S</u>earch</button>
+        </div>
+    </div>
     <br /><br />
     <!--start show orgs list-->
     @if (Model.OrgList.Count > 0)
@@ -297,10 +322,10 @@
     }
     <!--end show orgs list-->
     <!--start show docs list-->
-@if (Model.Action != InstitutionalFilesPageAction.ShowOrgs && Model.OrgCategories.Count == 0)
-{
-    @Html.Partial("~/Egrants/Views/InstitutionalFiles_ShowDocs.cshtml", Model);
-}
+    @if (Model.Action != InstitutionalFilesPageAction.ShowOrgs && Model.OrgCategories.Count == 0)
+    {
+        @Html.Partial("~/Egrants/Views/InstitutionalFiles_ShowDocs.cshtml", Model);
+    }
     <!--end show docs list-->
     <!--start create new doc-->
     @if (Model.OrgCategories.Count > 0)
