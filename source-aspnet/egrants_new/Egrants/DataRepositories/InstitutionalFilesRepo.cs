@@ -46,38 +46,40 @@ namespace egrants_new.Egrants.Models
         }
 
         //to load all intitution list
-        public List<InstitutionalOrg> LoadOrgList(InstitutionalFilesPageAction action, string str, int index_id, int org_id, int doc_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
-        {
-            string act = "";
-            switch (action)
-            {
-                case InstitutionalFilesPageAction.ShowDocs:
-                    act = "show_docs";
-                    break;
-                case InstitutionalFilesPageAction.ShowOrgs:
-                    act = "show_orgs";
-                    break;
-                case InstitutionalFilesPageAction.CreateNew:
-                    act = "create_new";
-                    break;
-                default:
-                    break;
-            }
+        //public List<InstitutionalOrg> LoadOrgList(InstitutionalFilesPageAction action, string str, int index_id, int org_id, int doc_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
+        public List<InstitutionalOrg> LoadOrgList( int index_id)
 
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_files", conn);
+        {
+            //string act = "";
+            //switch (action)
+            //{
+            //    case InstitutionalFilesPageAction.ShowDocs:
+            //        act = "show_docs";
+            //        break;
+            //    case InstitutionalFilesPageAction.ShowOrgs:
+            //        act = "show_orgs";
+            //        break;
+            //    case InstitutionalFilesPageAction.CreateNew:
+            //        act = "create_new";
+            //        break;
+            //    default:
+            //        break;
+            //}
+
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_inst_files_show_orgs", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             //TODO:  This should branched to different Stored procedures based on the revision MAdhu does
-            cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
+            //cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
+            //cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
             cmd.Parameters.Add("@index_id", System.Data.SqlDbType.Int).Value = index_id;
-            cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
-            cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
-            cmd.Parameters.Add("@category_id", System.Data.SqlDbType.Int).Value = category_id;
-            cmd.Parameters.Add("@file_type", System.Data.SqlDbType.VarChar).Value = file_type;
-            cmd.Parameters.Add("@start_date", System.Data.SqlDbType.VarChar).Value = start_date;
-            cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
-            cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
+            //cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
+            //cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
+            //cmd.Parameters.Add("@category_id", System.Data.SqlDbType.Int).Value = category_id;
+            //cmd.Parameters.Add("@file_type", System.Data.SqlDbType.VarChar).Value = file_type;
+            //cmd.Parameters.Add("@start_date", System.Data.SqlDbType.VarChar).Value = start_date;
+            //cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
+            //cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
+            //cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
 
             conn.Open();
 
@@ -98,9 +100,37 @@ namespace egrants_new.Egrants.Models
             conn.Close();
             return OrgList;
         }
+        //sp_web_egrants_inst_files_search_orgs
 
+        public List<InstitutionalOrg> SearchOrgList(string search_str)
 
+        {
 
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_inst_files_search_orgs", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = search_str;
+
+            conn.Open();
+
+            var OrgList = new List<InstitutionalOrg>();
+            SqlDataReader rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                OrgList.Add(new InstitutionalOrg()
+                {
+                    OrgId = (int)rdr["org_id"],
+                    Org_name = rdr["org_name"]?.ToString(),
+                    created_by = rdr["created_by"]?.ToString(),
+                    created_date = rdr["created_date"]?.ToString(),
+                    end_date = rdr["end_date"]?.ToString(),
+                    sv_url = rdr["sv_url"]?.ToString()
+                });
+            }
+            conn.Close();
+            return OrgList;
+        }
+
+        //
         public InstitutionalOrg FindOrg( int org_id)
         {
 
@@ -133,38 +163,22 @@ namespace egrants_new.Egrants.Models
 
 
         //to load all intitutional files list   -   [sp_web_egrants_institutional_file_find_org]
-        public List<InstitutionalDocFiles> LoadOrgDocList(InstitutionalFilesPageAction action, string str, int index_id, int org_id, int doc_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
+        public List<InstitutionalDocFiles> LoadOrgDocList( int org_id)
         {
 
-            string act = "";
-            switch (action)
-            {
-                case InstitutionalFilesPageAction.ShowDocs:
-                    act = "show_docs";
-                    break;
-                case InstitutionalFilesPageAction.ShowOrgs:
-                    act = "show_orgs";
-                    break;
-                case InstitutionalFilesPageAction.CreateNew:
-                    act = "create_new";
-                    break;
-                default:
-                    break;
-            }
-
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_files", conn);
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_inst_files_show_docs", conn);
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
-            cmd.Parameters.Add("@index_id", System.Data.SqlDbType.Int).Value = index_id;
+            //cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
+            //cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
+            //cmd.Parameters.Add("@index_id", System.Data.SqlDbType.Int).Value = index_id;
             cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
-            cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
-            cmd.Parameters.Add("@category_id", System.Data.SqlDbType.Int).Value = category_id;
-            cmd.Parameters.Add("@file_type", System.Data.SqlDbType.VarChar).Value = file_type;
-            cmd.Parameters.Add("@start_date", System.Data.SqlDbType.VarChar).Value = start_date;
-            cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
-            cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
+            //cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
+            //cmd.Parameters.Add("@category_id", System.Data.SqlDbType.Int).Value = category_id;
+            //cmd.Parameters.Add("@file_type", System.Data.SqlDbType.VarChar).Value = file_type;
+            //cmd.Parameters.Add("@start_date", System.Data.SqlDbType.VarChar).Value = start_date;
+            //cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
+            //cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
+            //cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
 
             conn.Open();
 
@@ -181,7 +195,8 @@ namespace egrants_new.Egrants.Models
                     url = rdr["url"]?.ToString(),
                     start_date = rdr["start_date"]?.ToString(),
                     end_date = rdr["end_date"]?.ToString(),
-                    created_date = rdr["created_date"]?.ToString()
+                    created_date = rdr["created_date"]?.ToString(),
+                    comments = rdr["comments"]?.ToString()
                 });
             }
             conn.Close();
@@ -242,7 +257,7 @@ namespace egrants_new.Egrants.Models
         }
 
         //to create new institutional file and return document_id
-        public string GetDocID(int org_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
+        public string GetDocID(int org_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid, string comments)
         {
             System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_file_create", conn);
@@ -256,6 +271,7 @@ namespace egrants_new.Egrants.Models
             cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
             cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
             cmd.Parameters.Add("@document_id", System.Data.SqlDbType.VarChar, 100);
+            cmd.Parameters.Add("@comments", System.Data.SqlDbType.VarChar).Value = comments;
             cmd.Parameters["@document_id"].Direction = System.Data.ParameterDirection.Output;
             conn.Open();
 

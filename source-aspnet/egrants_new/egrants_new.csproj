@@ -472,6 +472,7 @@
     <Content Include="Egrants\Views\InstitutionalFiles_ShowDocs.cshtml" />
     <Content Include="Egrants\Views\InstitutionalFiles_CreateDocs.cshtml" />
     <Content Include="Egrants\Views\InstitutionalFiles_OrgList.cshtml" />
+    <Content Include="Egrants\Views\InstitutionalFiles_UpdateDocs.cshtml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />

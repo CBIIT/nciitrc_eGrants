@@ -3,7 +3,8 @@ SET QUOTED_IDENTIFIER OFF
 
 
 
-CREATE    PROCEDURE [dbo].[sp_web_egrants_inst_files_show_orgs]
+
+CREATE   PROCEDURE [dbo].[sp_web_egrants_inst_files_show_orgs]
 
 @index_id			int
 
@@ -19,7 +20,6 @@ SET NOCOUNT ON
 -------------------
 -- search_orgs:
 
-set @index_id = 1
 
 -- no need for comments here 
   Select om.org_id, UPPER(om.Org_name) as Org_Name, om.index_id, docs.created_by, docs.created_date, docs.end_date, docs.sv_url 
@@ -31,7 +31,6 @@ set @index_id = 1
 	where om.index_id = @index_id and dbo.fn_get_org_doc_count(om.org_id)>0
 	order by Org_Name
 
-print '[sp_web_egrants_inst_files_show_orgs2]'
 RETURN
 
 
