@@ -1,9 +1,7 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
-
-
-CREATE      PROCEDURE [dbo].[sp_web_egrants_inst_files_search_orgs]
+CREATE   PROCEDURE [dbo].[sp_web_egrants_inst_files_search_orgs]
 
 @str varchar(50)
 
@@ -30,17 +28,139 @@ SET @str=REPLACE(@str, '  ',' ')---reducing space
 --FROM dbo.Org_Master 
 --WHERE org_name like '%'+@str+'%'
 --ORDER BY Org_name
--- no comments reqd
-SELECT 1 as tag, org_id, UPPER(Org_name)AS org_name, null as created_by,null as created_date, null as end_date, null as sv_url
-FROM dbo.Org_Master
-WHERE org_name like '%'+@str+'%' 
-UNION
-SELECT 2 as tag, v.org_id, o.Org_name, created_by, v.created_date, end_date, url
-FROM vw_org_document as v, dbo.Org_Master as o
-WHERE o.org_name like '%'+@str+'%' and o.org_id=v.org_id and tobe_flagged=1 and end_date = (select dbo.fn_get_org_max_end_date(o.org_id))
-Order by Org_name
 
-print '[sp_web_egrants_inst_files_search_orgs]'
+
+
+-- no comments reqd
+--SELECT 1 as tag, org_id, UPPER(Org_name)AS org_name, null as created_by,null as created_date, null as end_date, null as sv_url
+--FROM dbo.Org_Master
+--WHERE org_name like '%'+@str+'%' 
+--UNION
+--SELECT 2 as tag, v.org_id, o.Org_name, created_by, v.created_date, end_date, url
+--FROM vw_org_document as v, dbo.Org_Master as o
+--WHERE o.org_name like '%'+@str+'%' and o.org_id=v.org_id and tobe_flagged=1 and end_date = (select dbo.fn_get_org_max_end_date(o.org_id))
+--Order by Org_name
+
+
+
+Select
+   om.org_id,
+   UPPER(om.Org_name) as Org_Name,
+   om.index_id,
+   svdocs.created_by as svcreated_by,
+   svdocs.created_date as svcreated_date,
+   svdocs.end_date as svend_date,
+   svdocs.sv_url,
+   fudocs.created_by as fucreated_by,
+   fudocs.created_date as fucreated_date,
+   fudocs.end_date as fuend_date,
+   fudocs.fu_url,
+   odocs.created_by as odcreated_by,
+   odocs.created_date odcreated_date,
+   odocs.end_date as odend_date,
+   odocs.od_url 
+from
+   org_master om 
+   -- Left join to bring the documents of type ??(2 here)
+   left join
+      (
+         Select
+            m.org_id,
+            max_end_date as end_date,
+            v.created_by,
+            v.created_date,
+            dbo.fn_get_local_image_server() + v.url as sv_url 
+         FROM
+            (
+               Select
+                  [org_id],
+                  max([end_date]) as max_end_date,
+				  max(category_id) as category_id -- doesn't matter all are same but need the aggregate function
+				  
+               from
+                  vw_org_document 
+               where
+                  category_id = 2 
+               group by
+                  org_id
+            )
+            m 
+            inner join
+               vw_org_document v 
+               on m.org_id = v.org_id 
+               and v.end_date = m.max_end_date
+			   and v.category_id = m.category_id
+      )
+      svdocs 
+      on om.org_id = svdocs.org_id 
+-- Left join to bring the documents of type ??(5 here)
+   left join
+      (
+         Select
+            m.org_id,
+            max_end_date as end_date,
+            v.created_by,
+            v.created_date,
+            dbo.fn_get_local_image_server() + v.url as fu_url 
+         FROM
+            (
+               Select
+                  [org_id],
+                  max([end_date]) as max_end_date,
+  				  max(category_id) as category_id -- doesn't matter all are same but need the aggregate function
+
+               from
+                  vw_org_document 
+               where
+                  category_id = 5 
+               group by
+                  org_id
+            )
+            m 
+            inner join
+               vw_org_document v 
+               on m.org_id = v.org_id 
+               and v.end_date = m.max_end_date
+			   and v.category_id = m.category_id
+      )
+      fudocs 
+      on om.org_id = fudocs.org_id 
+	  -- Left join to bring the documents of type ??(5 here)
+   left join
+      (
+         Select
+            m.org_id,
+            max_end_date as end_date,
+            v.created_by,
+            v.created_date,
+            dbo.fn_get_local_image_server() + v.url as od_url 
+         FROM
+            (
+               Select
+                  [org_id],
+                  max([end_date]) as max_end_date, 
+				  max(category_id) as category_id -- doesn't matter all are same but need the aggregate function
+
+               from
+                  vw_org_document 
+               where
+                  category_id = 6 
+               group by
+                  org_id
+            )
+            m 
+            inner join
+               vw_org_document v 
+               on m.org_id = v.org_id 
+               and v.end_date = m.max_end_date
+			   and v.category_id = m.category_id
+      )
+      odocs 
+      on om.org_id = odocs.org_id 
+where om.org_name like '%'+@str+'%'
+   and dbo.fn_get_org_doc_count(om.org_id) > 0 
+order by
+   Org_Name
 
 RETURN
 

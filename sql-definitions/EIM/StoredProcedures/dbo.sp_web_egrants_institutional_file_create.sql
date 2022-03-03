@@ -28,7 +28,8 @@ DECLARE
 @profile_id		int,
 @doc_id			int,
 @category_name	varchar(100),
-@file_location	varchar(200)
+@file_location	varchar(200),
+@tobe_flag char(1)
 
 
 /** find user info***/
@@ -37,13 +38,22 @@ SET @person_id=(SELECT person_id FROM vw_people WHERE userid=@Operator and profi
 
 SET @file_location='/data/funded/nci/institutional/'
 SET @file_type=SUBSTRING(@file_type,2,LEN(@file_type))
-SET @category_name=(select doctype_name from Org_Categories where doctype_id=@category_id)
+select @category_name= doctype_name , @tobe_flag = isNull(tobe_flagged,0) from Org_Categories where doctype_id=@category_id
 
+/*
 IF @category_name<>'Site Visit' 
 BEGIN
 SET @start_date=null
 SET @end_date=null
 END
+*/
+
+IF @tobe_flag<>'1'
+BEGIN
+SET @start_date=null
+SET @end_date=null
+END
+
 
 ----create new document 
 INSERT dbo.Org_Document(org_id,doctype_id,file_type,url,created_date,created_by_person_id,start_date_ShowFlag,end_date_showFlag,comments)

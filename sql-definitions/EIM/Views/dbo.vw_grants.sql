@@ -1,7 +1,8 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
 
-CREATE    VIEW [dbo].[vw_grants]
+
+CREATE     VIEW [dbo].[vw_grants]
 AS
 SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial_num, dbo.grants.mechanism_code, 
                       dbo.grants.admin_phs_org_code + RIGHT('00000' + CONVERT(varchar, dbo.grants.serial_num), 6) AS grant_num, 
@@ -66,7 +67,9 @@ SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial
 					  CASE WHEN STP_flag.STPFlag_cnt=0 or STP_flag.STPFlag_cnt is null THEN 'n' ELSE 'y' END AS STP_flag,
 					  CASE WHEN FDA_flag.FDAFlag_cnt=0 or FDA_flag.FDAFlag_cnt is null THEN 'n' ELSE 'y' END AS FDA_flag,
 					  CASE WHEN ARRA_flag.ARRAFlag_cnt=0 or ARRA_flag.ARRAFlag_cnt is null THEN 'n' ELSE 'y' END AS ARRA_flag,
-					  CASE WHEN DS_flag.DSFlag_cnt=0 or DS_flag.DSFlag_cnt is null THEN 'n' ELSE 'y' END AS DS_flag
+					  CASE WHEN DS_flag.DSFlag_cnt=0 or DS_flag.DSFlag_cnt is null THEN 'n' ELSE 'y' END AS DS_flag,
+					  CASE WHEN EXISTS(Select * from Org_Document od inner join Org_Master om on od.org_id = om.org_id where doctype_id = 5 and end_date_showFlag > GETDATE() and om.org_name = dbo.appls.org_name and disabled_date is null and disabled_by_person_id is null group by od.document_id) THEN 1 ELSE 0 END as Institutional_flag1,
+					  CASE WHEN EXISTS(Select * from Org_Document od inner join Org_Master om on od.org_id = om.org_id where doctype_id = 6 and end_date_showFlag > GETDATE() and om.org_name = dbo.appls.org_name and disabled_date is null and disabled_by_person_id is null group by od.document_id) THEN 1 ELSE 0 END as Institutional_flag2
 
 
 FROM         dbo.grants LEFT OUTER JOIN
