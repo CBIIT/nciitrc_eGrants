@@ -215,27 +215,17 @@ namespace egrants_new.Egrants.Models
         }
 
         //to disable an institutional file
-        public void DisableDoc(string act, string str, int index_id, int org_id, int doc_id, int category_id, string file_type, string start_date, string end_date, string ic, string userid)
+        public void DisableDoc(int doc_id, string userid)
         {
 
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_files", conn);
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_inst_files_disable_doc", conn);
             cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
-            cmd.Parameters.Add("@index_id", System.Data.SqlDbType.Int).Value = index_id;
-            cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
             cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
-            cmd.Parameters.Add("@category_id", System.Data.SqlDbType.Int).Value = category_id;
-            cmd.Parameters.Add("@file_type", System.Data.SqlDbType.VarChar).Value = file_type;
-            cmd.Parameters.Add("@start_date", System.Data.SqlDbType.VarChar).Value = start_date;
-            cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
-            cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
+            cmd.Parameters.Add("@person_id", System.Data.SqlDbType.VarChar).Value = userid;
 
             conn.Open();
 
-            SqlDataReader rdr = cmd.ExecuteReader();
+            cmd.ExecuteNonQuery();
 
             conn.Close();
         }
