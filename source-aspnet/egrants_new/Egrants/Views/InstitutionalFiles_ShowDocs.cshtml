@@ -48,11 +48,11 @@
 <div id="data_table">
     <table width="850" valign="left">
         <tr>
-            <td width="250"><b>Institution:&nbsp;@Model.SelectedInstitutionalOrg.Org_name</b></td>
+            <td width="250"><b>Institution:&nbsp;@Model.SelectedInstitutionalOrg.OrgName</b></td>
             <td width="150">
                 @if (Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
                 {
-                    <a href="JavaScript:to_create_doc('@Model.SelectedInstitutionalOrg.Org_name','@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
+                    <a href="JavaScript:to_create_doc('@Model.SelectedInstitutionalOrg.OrgName','@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
                 }
             </td>
         </tr><tr><td colspan="2">&nbsp;</td></tr>

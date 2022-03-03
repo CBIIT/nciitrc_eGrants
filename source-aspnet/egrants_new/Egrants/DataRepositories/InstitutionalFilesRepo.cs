@@ -90,11 +90,11 @@ namespace egrants_new.Egrants.Models
                 OrgList.Add(new InstitutionalOrg()
                 {
                     OrgId = (int)rdr["org_id"],
-                    Org_name = rdr["org_name"]?.ToString(),
-                    created_by = rdr["created_by"]?.ToString(),
-                    created_date= rdr["created_date"]?.ToString(),
-                    end_date = rdr["end_date"]?.ToString(),
-                    sv_url = rdr["sv_url"]?.ToString()
+                    OrgName = rdr["org_name"]?.ToString(),
+                    CreatedBy = rdr["created_by"]?.ToString(),
+                    CreatedDate= rdr["created_date"]?.ToString(),
+                    EndDate = rdr["end_date"]?.ToString(),
+                    SvUrl = rdr["sv_url"]?.ToString()
                 });
             }
             conn.Close();
@@ -119,11 +119,11 @@ namespace egrants_new.Egrants.Models
                 OrgList.Add(new InstitutionalOrg()
                 {
                     OrgId = (int)rdr["org_id"],
-                    Org_name = rdr["org_name"]?.ToString(),
-                    created_by = rdr["created_by"]?.ToString(),
-                    created_date = rdr["created_date"]?.ToString(),
-                    end_date = rdr["end_date"]?.ToString(),
-                    sv_url = rdr["sv_url"]?.ToString()
+                    OrgName = rdr["org_name"]?.ToString(),
+                    CreatedBy = rdr["created_by"]?.ToString(),
+                    CreatedDate = rdr["created_date"]?.ToString(),
+                    EndDate = rdr["end_date"]?.ToString(),
+                    SvUrl = rdr["sv_url"]?.ToString()
                 });
             }
             conn.Close();
@@ -149,11 +149,11 @@ namespace egrants_new.Egrants.Models
                 Org = new InstitutionalOrg()
                 {
                     OrgId = (int)rdr["org_id"],
-                    Org_name = rdr["org_name"]?.ToString(),
-                    created_by = rdr["created_by"]?.ToString(),
-                    created_date = rdr["created_date"]?.ToString(),
-                    end_date = rdr["end_date"]?.ToString(),
-                    sv_url = rdr["sv_url"]?.ToString()
+                    OrgName = rdr["org_name"]?.ToString(),
+                    CreatedBy = rdr["created_by"]?.ToString(),
+                    CreatedDate = rdr["created_date"]?.ToString(),
+                    EndDate = rdr["end_date"]?.ToString(),
+                    SvUrl = rdr["sv_url"]?.ToString()
                 };
             }
             conn.Close();
@@ -208,7 +208,7 @@ namespace egrants_new.Egrants.Models
         //to turn all categories for institutional file
         public List<InstitutionalOrgCategory> LoadOrgCategory()
         {
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT doctype_id AS category_id, doctype_name AS category_name, tobe_flagged AS tobe_flag, Flag_period FROM dbo.Org_Categories ORDER BY category_name", conn);
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT doctype_id AS category_id, doctype_name AS category_name, tobe_flagged AS tobe_flag, Flag_period, isnull(comments_required,0) as comments_required, active FROM dbo.Org_Categories where active=1  ORDER BY category_name ", conn);
             cmd.CommandType = CommandType.Text;
 
             conn.Open();
@@ -223,7 +223,10 @@ namespace egrants_new.Egrants.Models
                     category_name = rdr["category_name"]?.ToString(),
                     tobe_flag = rdr["tobe_flag"]?.ToString(),
                     flag_period = rdr["Flag_period"]?.ToString(),
-                    flag_data = rdr["tobe_flag"]?.ToString() + "_" + rdr["Flag_period"]?.ToString()
+                    flag_data = rdr["tobe_flag"]?.ToString() + "_" + rdr["Flag_period"]?.ToString(),
+                    require_comments =(bool) rdr["comments_required"],
+                    active = (bool)rdr["active"]
+
                 });
             }
             conn.Close();
