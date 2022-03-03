@@ -88,7 +88,7 @@ namespace egrants_new.Controllers
         {
             var _repo = new InstitutionalFilesRepo();
             //disable_doc
-            _repo.DisableDoc(act, "", 0, org_id, doc_id, 0, "", "", "", Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+            _repo.DisableDoc(doc_id,  Convert.ToString(Session["userid"]));
 
             ViewBag.Act = act;
             ViewBag.OrgID = org_id;
