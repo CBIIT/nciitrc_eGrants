@@ -6,7 +6,8 @@ CREATE TABLE [dbo].[Org_Categories](
 	[tobe_flagged] [char](1) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NOT NULL,
 	[icon_path] [varchar](200) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
 	[Flag_period] [int] NULL,
-	[comments_required] [bit] NULL
+	[comments_required] [bit] NULL,
+	[active] [bit] NULL
 ) ON [PRIMARY]
 
 GO

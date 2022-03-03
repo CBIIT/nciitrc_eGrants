@@ -50,36 +50,10 @@ namespace egrants_new.Egrants.Models
         public List<InstitutionalOrg> LoadOrgList( int index_id)
 
         {
-            //string act = "";
-            //switch (action)
-            //{
-            //    case InstitutionalFilesPageAction.ShowDocs:
-            //        act = "show_docs";
-            //        break;
-            //    case InstitutionalFilesPageAction.ShowOrgs:
-            //        act = "show_orgs";
-            //        break;
-            //    case InstitutionalFilesPageAction.CreateNew:
-            //        act = "create_new";
-            //        break;
-            //    default:
-            //        break;
-            //}
 
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_inst_files_show_orgs", conn);
             cmd.CommandType = CommandType.StoredProcedure;
-            //TODO:  This should branched to different Stored procedures based on the revision MAdhu does
-            //cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            //cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
             cmd.Parameters.Add("@index_id", System.Data.SqlDbType.Int).Value = index_id;
-            //cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
-            //cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
-            //cmd.Parameters.Add("@category_id", System.Data.SqlDbType.Int).Value = category_id;
-            //cmd.Parameters.Add("@file_type", System.Data.SqlDbType.VarChar).Value = file_type;
-            //cmd.Parameters.Add("@start_date", System.Data.SqlDbType.VarChar).Value = start_date;
-            //cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
-            //cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            //cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
 
             conn.Open();
 
@@ -91,11 +65,20 @@ namespace egrants_new.Egrants.Models
                 {
                     OrgId = (int)rdr["org_id"],
                     OrgName = rdr["org_name"]?.ToString(),
-                    CreatedBy = rdr["created_by"]?.ToString(),
-                    CreatedDate= rdr["created_date"]?.ToString(),
-                    EndDate = rdr["end_date"]?.ToString(),
-                    SvUrl = rdr["sv_url"]?.ToString()
+                    SVCreatedBy = rdr["svcreated_by"]?.ToString(),
+                    SVCreatedDate= rdr["svcreated_date"]?.ToString(),
+                    SVEndDate = rdr["svend_date"]?.ToString(),
+                    SvUrl = rdr["sv_url"]?.ToString(),
+                    FUCreatedBy = rdr["fucreated_by"]?.ToString(),
+                    FUCreatedDate = rdr["fucreated_date"]?.ToString(),
+                    FUEndDate = rdr["fuend_date"]?.ToString(),
+                    FUUrl = rdr["fu_url"]?.ToString(),
+                    ODCreatedBy = rdr["odcreated_by"]?.ToString(),
+                    ODCreatedDate = rdr["odcreated_date"]?.ToString(),
+                    ODEndDate = rdr["odend_date"]?.ToString(),
+                    ODUrl = rdr["od_url"]?.ToString()
                 });
+
             }
             conn.Close();
             return OrgList;
@@ -120,10 +103,18 @@ namespace egrants_new.Egrants.Models
                 {
                     OrgId = (int)rdr["org_id"],
                     OrgName = rdr["org_name"]?.ToString(),
-                    CreatedBy = rdr["created_by"]?.ToString(),
-                    CreatedDate = rdr["created_date"]?.ToString(),
-                    EndDate = rdr["end_date"]?.ToString(),
-                    SvUrl = rdr["sv_url"]?.ToString()
+                    SVCreatedBy = rdr["svcreated_by"]?.ToString(),
+                    SVCreatedDate = rdr["svcreated_date"]?.ToString(),
+                    SVEndDate = rdr["svend_date"]?.ToString(),
+                    SvUrl = rdr["sv_url"]?.ToString(),
+                    FUCreatedBy = rdr["fucreated_by"]?.ToString(),
+                    FUCreatedDate = rdr["fucreated_date"]?.ToString(),
+                    FUEndDate = rdr["fuend_date"]?.ToString(),
+                    FUUrl = rdr["fu_url"]?.ToString(),
+                    ODCreatedBy = rdr["odcreated_by"]?.ToString(),
+                    ODCreatedDate = rdr["odcreated_date"]?.ToString(),
+                    ODEndDate = rdr["odend_date"]?.ToString(),
+                    ODUrl = rdr["od_url"]?.ToString()
                 });
             }
             conn.Close();
@@ -150,9 +141,9 @@ namespace egrants_new.Egrants.Models
                 {
                     OrgId = (int)rdr["org_id"],
                     OrgName = rdr["org_name"]?.ToString(),
-                    CreatedBy = rdr["created_by"]?.ToString(),
-                    CreatedDate = rdr["created_date"]?.ToString(),
-                    EndDate = rdr["end_date"]?.ToString(),
+                    SVCreatedBy = rdr["created_by"]?.ToString(),
+                    SVCreatedDate = rdr["created_date"]?.ToString(),
+                    SVEndDate = rdr["end_date"]?.ToString(),
                     SvUrl = rdr["sv_url"]?.ToString()
                 };
             }
@@ -168,17 +159,7 @@ namespace egrants_new.Egrants.Models
 
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_inst_files_show_docs", conn);
             cmd.CommandType = CommandType.StoredProcedure;
-            //cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            //cmd.Parameters.Add("@str", System.Data.SqlDbType.VarChar).Value = str;
-            //cmd.Parameters.Add("@index_id", System.Data.SqlDbType.Int).Value = index_id;
             cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
-            //cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
-            //cmd.Parameters.Add("@category_id", System.Data.SqlDbType.Int).Value = category_id;
-            //cmd.Parameters.Add("@file_type", System.Data.SqlDbType.VarChar).Value = file_type;
-            //cmd.Parameters.Add("@start_date", System.Data.SqlDbType.VarChar).Value = start_date;
-            //cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
-            //cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            //cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
 
             conn.Open();
 

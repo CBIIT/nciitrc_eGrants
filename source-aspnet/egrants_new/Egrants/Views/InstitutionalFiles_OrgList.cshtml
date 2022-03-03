@@ -11,8 +11,20 @@
                         <a href="JavaScript:show_docs('@org.OrgId')" title="Click here to display documents list for @org.OrgName"><b>@org.OrgName</b></a>
                             @if (!string.IsNullOrWhiteSpace(org.SvUrl))
                             {
-                                <a target="_new" href="@org.SvUrl" title="Created by @org.CreatedBy at @org.CreatedDate and expired date will be @org.EndDate">
+                                <a target="_new" href="@org.SvUrl" title="Created by @org.SVCreatedBy at @org.SVCreatedDate and expired date will be @org.SVEndDate">
                                     <img style="height:16px; vertical-align:top;" src="~/Content/images/Site_Visit.png" />
+                                </a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(org.FUCreatedBy))
+                            {
+                                <a target="_new" href="@org.FUUrl" title="Created by @org.FUCreatedBy at @org.FUCreatedDate and expired date will be @org.FUEndDate">
+                                    <img style="height:16px; vertical-align:top;" src="~/Content/images/inst_icon_flag.png" />
+                                </a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(org.ODCreatedBy))
+                            {
+                                <a target="_new" href="@org.ODUrl" title="Created by @org.ODCreatedBy at @org.ODCreatedDate and expired date will be @org.ODEndDate">
+                                    <img style="height:16px; vertical-align:top;" src="~/Content/images/inst_icon.png" />
                                 </a>
                             }
                     </td>
