@@ -1,51 +1,128 @@
-﻿@model egrants_new.Egrants.Models.InstitutionallFilesPage
+﻿@*@using Newtonsoft.Json*@
+@model egrants_new.Egrants.Models.InstitutionallFilesPage
+@using System.Web.Script.Serialization
+<style>
+
+    table {
+        table-layout: fixed;
+    }
+
+    .not-shown {
+        display: block;
+        visibility: hidden;
+    }
+
+    .left-col {
+        width: 100px !important;
+    }
+
+    .right-col {
+        width: 700px !important;
+    }
+
+</style>
 
 <script>
 
-    function switch_upload_mode(act) {
-        if (act == "by_ddrop") {
-            document.getElementById("by_ddrop").style.display = "inline";
-            document.getElementById("by_asp").style.display = "none";
-            Init();
+        $(document).ready(function () {
+
+            $("#ddlCategories").on("change", function() {
+                select_category();
+            });
+
+        });
+
+        function switch_upload_mode(act) {
+            if (act == "by_ddrop") {
+                document.getElementById("by_ddrop").style.display = "inline";
+                document.getElementById("by_asp").style.display = "none";
+                Init();
+            }
+
+            if (act == "by_asp") {
+                document.getElementById("by_asp").style.display = "inline";
+                document.getElementById("by_ddrop").style.display = "none";
+            }
         }
 
-        if (act == "by_asp") {
-            document.getElementById("by_asp").style.display = "inline";
-            document.getElementById("by_ddrop").style.display = "none";
-        }
-    }
+        function select_category() {
+            if (document.getElementById("ddlCategories").selectedIndex == 0) {
+                alert("Please select category");
+                return false;
+            }
+            else {
+                //Find the div
+                var sf_block = $("#ShowFlag");
+                var c_block = $("#ShowComment");
+                var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
 
-    function select_category() {
-        if (document.getElementById("ddlCategories").selectedIndex == 0) {
-            alert("Please select category");
-            return false;
-        }
-        else {
-            var el = "ShowFlag";
-            var flag_data = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
-            var tobe_flag = flag_data.charAt(0);
-            var flag_period = flag_data.substring(2, (flag_data.length));
-
-            if (tobe_flag == 1) {
-                if (document.getElementById(el).style.display == 'none') {
-                    document.getElementById(el).style.display = "inline";
-
-                    //get tart day
-                    var currentDate = new Date();
-                    var currDay = currentDate.getDate();
-                    var currMonth = currentDate.getMonth() + 1;
-                    var currYear = currentDate.getFullYear();
-
-                    //get end date
-                    currMonth = Number(currMonth) + Number(flag_period);
-                    if (currMonth > 12) {
-                        currMonth = Number(currMonth) - 12;
-                        currYear = Number(currYear) + Number(1);
-                    }
-                    var end_date = currMonth + "/" + currDay + "/" + currYear;
-                    document.getElementById("txtEndDate").value = end_date;
+                @{
+                    var javaScriptSearilizer = new JavaScriptSerializer();
+                    var catArray = javaScriptSearilizer.Serialize(Model.OrgCategories.ToArray());
                 }
-            } else document.getElementById(el).style.display = "none";
+                var categories = @Html.Raw(catArray);
+
+                var category = categories.find(c => c.category_id === catId);
+
+            if (Number(category.tobe_flag) === 1) {
+                sf_block.removeClass("not-shown");
+                var flag_period = category.flag_period;
+
+                //get start day
+                var currentDate = new Date();
+                var currDay = currentDate.getDate();
+                var currMonth = currentDate.getMonth() + 1;
+                var currYear = currentDate.getFullYear();
+
+                //get end date
+                var addMonths = 0;
+                var addYears = 0
+                if (flag_period >= 12) {
+                    addYears = Math.floor(flag_period / 12);
+                    addMonths = (flag_period % 12);
+                    currMonth = currMonth + addMonths;
+                    currYear = currYear + addYears;
+                }
+
+                var end_date = currMonth + "/" + currDay + "/" + currYear;
+                document.getElementById("txtEndDate").value = end_date;
+
+            } else {
+                sf_block.addClass("not-shown");
+            }
+
+            if (Number(category.require_comments) === 1) {
+                c_block.removeClass("not-shown");
+            } else {
+                c_block.addClass("not-shown");
+                }
+
+            //var el = "ShowFlag";
+            //var flag_data = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
+            //var tobe_flag = flag_data.charAt(0);
+
+            //var flag_period = category.flag_period;
+
+            //if (tobe_flag == 1) {
+            //    if (document.getElementById(el).style.display == 'none') {
+            //        document.getElementById(el).style.display = "inline";
+
+            //        //get start day
+            //        var currentDate = new Date();
+            //        var currDay = currentDate.getDate();
+            //        var currMonth = currentDate.getMonth() + 1;
+            //        var currYear = currentDate.getFullYear();
+
+            //        //get end date
+            //        currMonth = Number(currMonth) + Number(flag_period);
+            //        if (currMonth > 12) {
+            //            currMonth = Number(currMonth) - 12;
+            //            currYear = Number(currYear) + Number(1);
+            //        }
+            //        var end_date = currMonth + "/" + currDay + "/" + currYear;
+            //        document.getElementById("txtEndDate").value = end_date;
+            //    }
+            //} else document.getElementById(el).style.display = "none";
         }
     }
 
@@ -117,8 +194,7 @@
         if (get_category_id() === false) {
             return false;
         } else
-
-            //find if to be flag
+        //find if to be flag
             var flag_data = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
         var tobe_flag = flag_data.charAt(0);
 
@@ -147,9 +223,10 @@
         frmdata.append('comments', Comments);
         docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_File");
 
-        setTimeout(function () {
-            refresh_after_upload(org_id, org_name);
-        }, 500);
+        setTimeout(function() {
+                refresh_after_upload(org_id, org_name);
+            },
+            500);
         //return true;
     }
 
@@ -157,8 +234,7 @@
         if (get_category_id() == false) {
             return false;
         } else
-
-            //find if to be flag
+        //find if to be flag
             var flag_data = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
         var tobe_flag = flag_data.charAt(0);
 
@@ -181,9 +257,10 @@
         frmdata.append('comments', Comments);
         docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_DDrop");
 
-        setTimeout(function () {
-            refresh_after_upload(org_id, org_name);
-        }, 500);
+        setTimeout(function() {
+                refresh_after_upload(org_id, org_name);
+            },
+            500);
         //return true;
     }
 
@@ -195,19 +272,19 @@
 <div>
     <table>
         <tr>
-            <td width="800">
-                <table width="800">
+            <td width="800px" class="text-left">
+                <table width="800px">
                     <tr height="20">
-                        <td width="100">
-                            <div class=""><b>Institute:</b></div>
+                        <td class="left-col">
+                            <b>Institute:</b>
                         </td>
-                        <td width="700">
-                            <b>@Model.SelectedInstitutionalOrg.Org_name</b>
+                        <td class="right-col">
+                            <b>@Model.SelectedInstitutionalOrg.OrgName</b>
                         </td>
                     </tr>
                     <tr height="20">
-                        <td><label for="Category"><b>Category:</b></label></td>
-                        <td>
+                        <td class="left-col"><label for="Category"><b>Category:</b></label></td>
+                        <td class="right-col">
                             <select name="category_id" id="ddlCategories" class="smallfont" size="1" title="Select category to create new document" OnChange="select_category()">
                                 <option value="0"></option>
                                 @foreach (var orgcategory in Model.OrgCategories)
@@ -217,34 +294,30 @@
                             </select>
                         </td>
                     </tr>
-                    <tr height="20">
-                        <td><label for="flag"><b>Show Flag:</b></label></td>
-                        <td>
-                            <div id="ShowFlag" style="display:none">
-                                <label for="start date"><b>From</b></label>
-                                &#0160;
-                                <input type="text" name="start_date" id="txtStartDate" class="smallfont" size="8" title="Insert start date" value="@Model.TodayText" />&#0160;
-                                <label for="end date"><b>To</b></label>&#0160;
-                                <input type="text" name="end_date" id="txtEndDate" class="smallfont" size="8" title="Insert end date" />
-                            </div>
+                    <tr height="20" id="ShowFlag" class="not-shown">
+                        <td class="left-col"><label for="flag"><b>Show Flag:</b></label></td>
+                        <td class="right-col">
+                            <label for="start date"><b>From</b></label>
+                            &#0160;
+                            <input type="text" name="start_date" id="txtStartDate" class="smallfont" size="8" title="Insert start date" value="@Model.TodayText" />&#0160;
+                            <label for="end date"><b>To</b></label>&#0160;
+                            <input type="text" name="end_date" id="txtEndDate" class="smallfont" size="8" title="Insert end date" />
                         </td>
                     </tr>
-                    <tr height="20">
-                        <td><label for="comments"><b>Comments:</b></label></td>
-                        <td>
-                            <div class="" id="comments_div">
+                    <tr id="ShowComment" height="20" class="not-shown">
+                        <td class="left-col"><label for="comments"><b>Comments:</b></label></td>
+                        <td class="right-col">
                                 <input type="textarea" id="comments" class="smallfont comment-textarea" size="8" title="" />
-                            </div>
                         </td>
                     </tr>
                     <tr>
-                        <td>
+                        <td class="left-col">
                             <!--show loading icon-->
                             <div class="loading" style="display:none">
                                 <img src="~/Content/images/Loading.gif" width="80" />
                             </div>
                         </td>
-                        <td>
+                        <td class="right-col">
                             <ul class="nav nav-tabs">
                                 <li class="active"><a href="Javascript:switch_upload_mode('by_ddrop')">Drag & Drop</a></li>
                                 <li></li>
@@ -258,7 +331,7 @@
                                         Drag-drop only one file here to upload
                                     </div>
                                     <br />
-                                    <button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.Org_name');" disabled="disabled"><u>C</u>reate New</button>
+                                    <button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName');" disabled="disabled"><u>C</u>reate New</button>
                                     <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
                                 </div>
                                 <!--end upload by drag drop-->
@@ -267,7 +340,7 @@
                                     <br />
                                     <input type="file" name="file" id="UploadFile" />
                                     <br />
-                                    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.Org_name')"><u>C</u>reate New</button>
+                                    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>C</u>reate New</button>
                                     <div style="display:inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
 
                                 </div>
@@ -284,9 +357,9 @@
                         </td>
                     </tr>
                     <tr>
-                        <td></td>
-                        <td>
-                            <button onclick="javascript: show_docs('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.Org_name')" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return previous page [alt + shift + R]"><u>R</u>eturn</button>&#0160;&#0160;
+                        <td class="left-col"></td>
+                        <td class="right-col">
+                            <button onclick="javascript: show_docs('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return previous page [alt + shift + R]"><u>R</u>eturn</button>&#0160;&#0160;
                             @if (ViewBag.FileUrl != null)
                             {
                                 <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file"><img src="../Content/images/check_doc_btn.png" style="height:35px;" title="Check Document" /></a>
@@ -297,18 +370,8 @@
                 </table>
             </td>
             <td>
-
                 <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
             </td>
         </tr>
     </table>
 </div>
-
-@*<a href="javascript:show_docs('@Convert.ToInt32(ViewBag.OrgID)', '@Convert.ToString(ViewBag.OrgName)')" title="Click here to return [shift + alt + R]">Return</a>
-    <br />
-    <b>@ViewBag.Message</b>
-    <br/>
-    if (ViewBag.FileUrl != null)
-    {
-        <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file">Check Uploaded File</a>
-    }*@

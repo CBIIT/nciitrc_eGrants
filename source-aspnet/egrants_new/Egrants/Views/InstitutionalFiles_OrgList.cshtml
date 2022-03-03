@@ -8,10 +8,10 @@
         {
                 <tr>
                     <td style="height:15px; width:500px;">
-                        <a href="JavaScript:show_docs('@org.OrgId')" title="Click here to display documents list for @org.Org_name"><b>@org.Org_name</b></a>
-                            @if (!string.IsNullOrWhiteSpace(org.sv_url))
+                        <a href="JavaScript:show_docs('@org.OrgId')" title="Click here to display documents list for @org.OrgName"><b>@org.OrgName</b></a>
+                            @if (!string.IsNullOrWhiteSpace(org.SvUrl))
                             {
-                                <a target="_new" href="@org.sv_url" title="Created by @org.created_by at @org.created_date and expired date will be @org.end_date">
+                                <a target="_new" href="@org.SvUrl" title="Created by @org.CreatedBy at @org.CreatedDate and expired date will be @org.EndDate">
                                     <img style="height:16px; vertical-align:top;" src="~/Content/images/Site_Visit.png" />
                                 </a>
                             }

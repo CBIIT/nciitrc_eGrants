@@ -5,10 +5,11 @@
         {
             public int Tag { get; set; }
             public int OrgId { get; set; }
-            public string Org_name { get; set; }
-            public string created_by { get; set; }
-            public string created_date { get; set; }
-            public string end_date { get; set; }
-            public string sv_url { get; set; }
+            public string OrgName { get; set; }
+            public string CreatedBy { get; set; }
+            public string CreatedDate { get; set; }
+            public string EndDate { get; set; }
+            public string SvUrl { get; set; }
+            public bool Active { get; set; }
         }
 }

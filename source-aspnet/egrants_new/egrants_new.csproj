@@ -291,6 +291,8 @@
     <Content Include="Content\images\icon-xls.gif" />
     <Content Include="Content\images\INFORM.ICO" />
     <Content Include="Content\images\inform.jpg" />
+    <Content Include="Content\images\inst_icon.png" />
+    <Content Include="Content\images\inst_icon_flag.png" />
     <Content Include="Content\images\katrina.gif" />
     <Content Include="Content\images\katrina_q.jpg" />
     <Content Include="Content\images\link_bg.gif" />

@@ -13,5 +13,6 @@ namespace egrants_new.Egrants.Models
         public string flag_period { get; set; }
         public string flag_data { get; set; }
         public bool require_comments { get; set; }
+        public bool active { get; set; }
     }
 }
