@@ -27,6 +27,5 @@ WHERE org_id=@org_id
 
 RETURN
 
-
 GO
 

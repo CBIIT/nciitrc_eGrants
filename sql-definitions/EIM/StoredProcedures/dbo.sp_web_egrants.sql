@@ -1,6 +1,8 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
+-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 
 
 CREATE   PROCEDURE [dbo].[sp_web_egrants]
@@ -526,6 +528,7 @@ FROM @d AS t, vw_appls a WHERE t.appl_id = a.appl_id group by t.appl_id
 ORDER BY tag,grant_id,support_year desc  ----added by Leon 5/11/2019 
 
 SET ANSI_NULLS OFF
+
 
 GO
 

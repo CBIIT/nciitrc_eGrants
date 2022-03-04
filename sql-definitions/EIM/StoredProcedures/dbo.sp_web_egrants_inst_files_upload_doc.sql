@@ -41,6 +41,5 @@ SELECT  @document_id=@@IDENTITY
 
 RETURN
 
-
 GO
 

@@ -2,6 +2,7 @@
 SET QUOTED_IDENTIFIER ON
 
 
+
 CREATE     VIEW [dbo].[vw_grants]
 AS
 SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial_num, dbo.grants.mechanism_code, 

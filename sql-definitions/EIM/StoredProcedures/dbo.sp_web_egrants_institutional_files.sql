@@ -168,6 +168,5 @@ SELECT  @document_id=@@IDENTITY
 RETURN exec dbo.sp_web_egrants_inst_files_upload_doc @org_id, @doc_id, @category_id, @file_type, @start_date, @end_date
                                                       
 
-
 GO
 

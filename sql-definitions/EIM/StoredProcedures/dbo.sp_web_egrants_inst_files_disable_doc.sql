@@ -3,7 +3,7 @@ SET QUOTED_IDENTIFIER OFF
 
 
 
-Create    PROCEDURE [dbo].[sp_web_egrants_inst_files_disable_doc]
+CREATE    PROCEDURE [dbo].[sp_web_egrants_inst_files_disable_doc]
 (
 @person_id	int,
 @doc_id		int
@@ -24,7 +24,6 @@ SET NOCOUNT ON
 update dbo.Org_Document set disabled_date=GETDATE(), disabled_by_person_id=@person_id where document_id=@doc_id	
 
 RETURN
-
 
 GO
 
