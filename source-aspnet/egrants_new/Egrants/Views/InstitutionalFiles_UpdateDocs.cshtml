@@ -44,6 +44,11 @@
 
             });
 
+            $("#btnUpdate").on("click", function() {
+                update_doc();
+
+            });
+
             load_doc(doc);
 
         });
@@ -64,18 +69,6 @@
 
     }
 
-        function switch_upload_mode(act) {
-            if (act == "by_ddrop") {
-                document.getElementById("by_ddrop").style.display = "inline";
-                document.getElementById("by_asp").style.display = "none";
-                Init();
-            }
-
-            if (act == "by_asp") {
-                document.getElementById("by_asp").style.display = "inline";
-                document.getElementById("by_ddrop").style.display = "none";
-            }
-        }
 
         function select_category() {
             if (document.getElementById("ddlCategories").selectedIndex == 0) {
@@ -187,6 +180,46 @@
         return true;
     }
 
+    function update_doc() {
+
+        //find category_id
+        if (get_category_id() === false) {
+            return false;
+        } else
+        //find if to be flag
+
+
+        //check start date and end date for site vist
+        if (Number(category.tobe_flag) === 1) {
+            if (check_date_range() === false) {
+                return false;
+            }
+        } else {
+            StartDate = "";
+            EndDate = "";
+        }
+        if (check_comment() == false) {
+            return false;
+        }
+
+        //alert("EndDate=" + EndDate);
+
+        var file = document.getElementById('UploadFile').files[0];
+        frmdata.append('file', file);
+        frmdata.append('category_id', Categoryid);
+        frmdata.append('org_id', org_id);
+        frmdata.append('org_name', org_name);
+        frmdata.append('start_date', StartDate);
+        frmdata.append('end_date', EndDate);
+        frmdata.append('comments', Comments);
+        docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_File");
+
+        setTimeout(function() {
+                refresh_after_upload(org_id, org_name);
+            },
+            500);
+        //return true;
+    }
 
 </script>
 
@@ -250,8 +283,7 @@
                         </td>
                         <td>
                             <div>
-                                <button type="button" id="btnUpdate" name="btnUpdate" class="btn btn-primary eGrantsDocBtn" accesskey="U" title="Click here to save updates [shift + alt + U]" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName');" disabled=""><u>S</u>ave Update</button>
-                                <div style="display: none">By clicking Save, I confirm that no sensitive PII or PHI is included in this file.</div>
+                                <button type="button" id="btnUpdate" name="btnUpdate" class="btn btn-primary eGrantsDocBtn" accesskey="U" title="Click here to save updates [shift + alt + U]" onclick=""><u>S</u>ave Update</button>
                             </div>
                         </td>
                     </tr>
