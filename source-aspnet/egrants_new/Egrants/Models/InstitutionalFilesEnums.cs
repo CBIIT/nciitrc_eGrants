@@ -10,6 +10,7 @@ namespace egrants_new.Egrants.Models
         ShowOrgs,
         ShowDocs,
         CreateNew,
-        SearchOrgs
+        SearchOrgs,
+        UpdateDoc
     }
 }

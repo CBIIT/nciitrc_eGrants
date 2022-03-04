@@ -110,7 +110,27 @@ namespace egrants_new.Controllers
                 Action = InstitutionalFilesPageAction.CreateNew,
                 CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
                 DocFiles = _repo.LoadOrgDocList(org_id),
-                OrgCategories = _repo.LoadOrgCategory(),
+                OrgCategories = _repo.LoadOrgCategory(true),
+                TodayText = System.DateTime.Now.ToShortDateString()
+            };
+
+            return View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
+        }
+
+        [HttpGet]
+        public ActionResult Show_Update_Doc(int doc_id, int org_id )
+        {
+            var _repo = new InstitutionalFilesRepo();
+            var selectedInstitutionalOrg = _repo.FindOrg(org_id);
+
+            var page = new InstitutionallFilesPage()
+            {
+                SelectedInstitutionalOrg = selectedInstitutionalOrg,
+                Action = InstitutionalFilesPageAction.UpdateDoc,
+                CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
+                SelectedDocFile = _repo.LoadOrgDocList(org_id).Where(d => d.DocumentId == doc_id).FirstOrDefault(),
+//                DocFiles = _repo.LoadOrgDocList(org_id).Where(d => d.DocumentId == doc_id).ToList(),
+                OrgCategories = _repo.LoadOrgCategory(false),
                 TodayText = System.DateTime.Now.ToShortDateString()
             };
 
@@ -186,5 +206,22 @@ namespace egrants_new.Controllers
                 ViewBag.Message = "You have not specified a file.";
             }
         }
+
+
+        [HttpPost]
+        public void Update_Doc(int category_id, string start_date, string end_date, string comments, int doc_id)
+        {
+            var _repo = new InstitutionalFilesRepo();
+            try
+            {
+                _repo.UpdateDocument(category_id, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]), comments);
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
     }
 }

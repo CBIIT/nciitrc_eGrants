@@ -12,7 +12,9 @@ CREATE TABLE [dbo].[Org_Document](
 	[created_by_person_id] [int] NULL,
 	[disabled_date] [smalldatetime] NULL,
 	[disabled_by_person_id] [int] NULL,
-	[comments] [varchar](256) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
+	[comments] [varchar](256) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL,
+	[updated_date] [smalldatetime] NULL,
+	[updated_by_person_id] [int] NULL
 ) ON [PRIMARY]
 
 GO
