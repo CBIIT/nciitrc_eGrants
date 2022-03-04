@@ -77,8 +77,12 @@
         function to_create_doc(org_name, org_id) {
             var url="@Url.Action("Show_Create_Doc", "InstitutionalFiles")?org_name=" + org_name + "&org_id=" + org_id;
             window.document.location.href = url;
-        }
+    }
 
+        function to_update_doc(doc_id, org_id) {
+            var url="@Url.Action("Show_Update_Doc", "InstitutionalFiles")?doc_id=" + doc_id + "&org_id=" + org_id;
+            window.document.location.href = url;
+        }
 
         function refresh_after_upload(org_id, org_name) {
             var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
@@ -141,9 +145,17 @@
     }
     <!--end show docs list-->
     <!--start create new doc-->
-    @if (Model.OrgCategories.Count > 0)
+    @if (Model.Action == InstitutionalFilesPageAction.CreateNew)
     {
         @Html.Partial("~/Egrants/Views/InstitutionalFiles_CreateDocs.cshtml", Model);
     }
     <!--end create new doc--->
+    
+    <!--start create new doc-->
+    @if (Model.Action == InstitutionalFilesPageAction.UpdateDoc)
+    {
+        @Html.Partial("~/Egrants/Views/InstitutionalFiles_UpdateDocs.cshtml", Model);
+    }
+    <!--end create new doc--->
+
 </div><!--end main-->

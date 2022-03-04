@@ -171,7 +171,7 @@ namespace egrants_new.Egrants.Models
                 {
                     org_id = rdr["org_id"]?.ToString(),
                     org_name = rdr["org_name"]?.ToString(),
-                    document_id = rdr["document_id"]?.ToString(),
+                    DocumentId = (int) rdr["document_id"],
                     category_name = rdr["category_name"]?.ToString(),
                     url = rdr["url"]?.ToString(),
                     start_date = rdr["start_date"]?.ToString(),
@@ -187,9 +187,10 @@ namespace egrants_new.Egrants.Models
 
 
         //to turn all categories for institutional file
-        public List<InstitutionalOrgCategory> LoadOrgCategory()
+        public List<InstitutionalOrgCategory> LoadOrgCategory(bool activeOnly)
         {
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT doctype_id AS category_id, doctype_name AS category_name, tobe_flagged AS tobe_flag, Flag_period, isnull(comments_required,0) as comments_required, active FROM dbo.Org_Categories where active=1  ORDER BY category_name ", conn);
+            string where = activeOnly ? "Where active = 1" : "";
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand($"SELECT doctype_id AS category_id, doctype_name AS category_name, tobe_flagged AS tobe_flag, Flag_period, isnull(comments_required,0) as comments_required, active FROM dbo.Org_Categories {where} ORDER BY category_name ", conn);
             cmd.CommandType = CommandType.Text;
 
             conn.Open();
@@ -257,5 +258,32 @@ namespace egrants_new.Egrants.Models
             var document_id = Convert.ToString(cmd.Parameters["@document_id"].Value);
             return document_id;
         }
+
+
+        public string UpdateDocument(int category_id, string start_date, string end_date, string ic, string userid, string comments)
+        {
+            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_file_update", conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+
+            cmd.Parameters.Add("@category_id", System.Data.SqlDbType.Int).Value = category_id;
+            cmd.Parameters.Add("@start_date", System.Data.SqlDbType.VarChar).Value = start_date;
+            cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
+            cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
+            cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
+            cmd.Parameters.Add("@document_id", System.Data.SqlDbType.VarChar, 100);
+            cmd.Parameters.Add("@comments", System.Data.SqlDbType.VarChar).Value = comments;
+            conn.Open();
+
+            cmd.ExecuteNonQuery();
+
+
+            conn.Close();
+
+            var document_id = Convert.ToString(cmd.Parameters["@document_id"].Value);
+            return document_id;
+        }
+
     }
 }

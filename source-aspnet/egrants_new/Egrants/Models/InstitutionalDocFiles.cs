@@ -5,7 +5,7 @@
             public int Tag { get; set; }
             public string org_id { get; set; }
             public string org_name { get; set; }
-            public string document_id { get; set; }
+            public int  DocumentId { get; set; }
             public string category_name { get; set; }
             public string url { get; set; }
             public string start_date { get; set; }
