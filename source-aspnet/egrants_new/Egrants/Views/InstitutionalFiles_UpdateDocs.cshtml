@@ -79,8 +79,8 @@
                 //Find the div
                 var sf_block = $("#ShowFlag");
                 var c_block = $("#ShowComment");
-                var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-                var category = categories.find(c => c.category_id === catId);
+                let catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+                let category = categories.find(c => c.category_id === catId);
 
                 if ((category.active != 1) && (category.category_name != doc.category_name )) {
                     alert("This lease select category");
@@ -168,7 +168,7 @@
 
     function check_comment() {
 
-        Comments = $("#comments").val();
+        var Comments = $("#comments").val();
         alert(Comments);
         var category = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
 
@@ -183,9 +183,8 @@
     function update_doc() {
 
         //find category_id
-        if (get_category_id() === false) {
-            return false;
-        } else
+        let catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        let category = categories.find(c => c.category_id === catId);
         //find if to be flag
 
 
