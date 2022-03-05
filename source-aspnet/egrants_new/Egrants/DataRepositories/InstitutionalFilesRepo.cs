@@ -222,7 +222,7 @@ namespace egrants_new.Egrants.Models
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_inst_files_disable_doc", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
-            cmd.Parameters.Add("@person_id", System.Data.SqlDbType.VarChar).Value = userid;
+            cmd.Parameters.Add("@user_id", System.Data.SqlDbType.VarChar).Value = userid;
 
             conn.Open();
 
