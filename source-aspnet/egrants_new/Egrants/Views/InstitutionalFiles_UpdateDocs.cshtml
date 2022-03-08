@@ -61,11 +61,13 @@
         $("#comments").val(doc.comments);
 
         var docCategory = categories.find(c => c.category_name === doc.category_name);
-        
+
         var categoryId = docCategory.category_id;
         $("#ddlCategories").val(docCategory.category_id);
         $("#txtStartDate").val(doc.start_date);
         $("#txtEndDate").val(doc.end_date);
+
+        check_ui();
 
 
     }
@@ -123,6 +125,64 @@
                 }
        }
     }
+
+
+    function check_ui() {
+
+        var sf_block = $("#ShowFlag");
+        var c_block = $("#ShowComment");
+        var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        var category = categories.find(c => c.category_id === catId);
+
+        if ((category.active != 1) && (category.category_name != doc.category_name )) {
+            alert("This lease select category");
+        }
+
+        if (Number(category.tobe_flag) === 1) {
+            sf_block.removeClass("not-shown");
+
+        } else {
+            sf_block.addClass("not-shown");
+        }
+
+        if (Number(category.require_comments) === 1) {
+            c_block.removeClass("not-shown");
+        } else {
+            c_block.addClass("not-shown");
+        }
+
+    }
+
+
+    function setDates() {
+
+        var flag_period = category.flag_period;
+
+        //get start day
+        var currentDate = new Date();
+        var currDay = currentDate.getDate();
+        var currMonth = currentDate.getMonth() + 1;
+        var currYear = currentDate.getFullYear();
+        var end_date = "";
+        //get end date
+        var addMonths = 0;
+        var addYears = 0
+        if (flag_period != "") {
+            addYears = Math.floor(flag_period / 12);
+            addMonths = (flag_period % 12);
+            currMonth = currMonth + addMonths;
+            currYear = currYear + addYears;
+            end_date = currMonth + "/" + currDay + "/" + currYear;
+        } else {
+            end_date = "";
+        }
+
+        document.getElementById("txtStartDate").value = currentDate;
+        document.getElementById("txtEndDate").value = end_date;
+
+
+        }
+
 
     function get_category_id() {
         if (document.getElementById("ddlCategories").selectedIndex == 0) {
@@ -260,7 +320,7 @@
                                         <option id="@orgcategory.flag_data" selected="selected" value="@orgcategory.category_id">@orgcategory.category_name</option>
 
                                     }
-                                    else if(orgcategory.active)
+                                    else if (orgcategory.active)
                                     {
                                         <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
 
@@ -301,7 +361,7 @@
                 </table>
             </td>
             <td>
-                <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
+                @*<div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>*@
         </tr>
     </table>
 </div>
