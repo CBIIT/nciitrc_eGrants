@@ -23,7 +23,7 @@
         border-bottom: 5px solid #FFFFFF;
     }
     table.paleBlueRows thead th {
-        font-size: 17px;
+        font-size: 12px;
         font-weight: bold;
         color: #FFFFFF;
         text-align: left;
@@ -62,7 +62,8 @@
                     <thead>
                     <tr>
                         <th width="150"><b>Document Name</b></></th>
-                        <th width="120"><b>Date</b></th>
+                        <th width="120"><b>Created Date</b></th>
+                        <th width="120"><b>Start Date</b></th>
                         <th width="120"><b>End Date</b></th>
                         <th width="250"><b>Comments</b></th>
                         <th class="action"><b>Update</b></th>
@@ -79,8 +80,9 @@
                                         <a href="JavaScript:show_doc('@doc.url')" title="Click here to display document">@doc.category_name</a>
                                     </td>
                                     <td>@doc.created_date</td>
+                                    <td>@doc.start_date</td>
                                     <td>@doc.end_date</td>
-                                    <td>@doc.comments</td>
+                                    <td class="text-wrap">@doc.comments</td>
                                     <td class="action">
                                         <a href="JavaScript:to_update_doc('@doc.DocumentId', '@doc.org_id', '@doc.org_name')" title="Click here to update this document">
                                             <img class="img_12_12" SRC="~/Content/images/Update File.png" />

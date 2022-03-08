@@ -1,10 +1,10 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
+GO
 
 
-
-CREATE        PROCEDURE [dbo].[sp_web_egrants_inst_files_disable_doc]
+CREATE   OR ALTER     PROCEDURE [dbo].[sp_web_egrants_inst_files_disable_doc]
 (
 @doc_id		int,
 @user_id varchar(50) = null,

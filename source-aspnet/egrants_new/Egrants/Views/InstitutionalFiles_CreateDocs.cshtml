@@ -152,11 +152,12 @@
     function check_comment() {
 
         Comments = $("#comments").val();
-        alert(Comments);
-        var category = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        //alert(Comments);
+        var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        var category = categories.find(c => c.category_id === catId);
 
-        if (Comments.length == 0 && (Categoryid == "3" || Categoryid == "2")) {
-            alert("The Comments are required for category " + category);
+        if (Comments.length == 0 && category.require_comments == 1) {
+            alert("The Comments are required for category " + category.category_name);
             return false;
         }
 
