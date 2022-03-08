@@ -35,6 +35,7 @@
     }
     var categories = @Html.Raw(catArray);
     var doc = @Html.Raw(selectedDoc);
+    var Comments = "";
 
 
         $(document).ready(function () {
@@ -60,7 +61,7 @@
         $("#comments").val(doc.comments);
 
         var docCategory = categories.find(c => c.category_name === doc.category_name);
-
+        
         var categoryId = docCategory.category_id;
         $("#ddlCategories").val(docCategory.category_id);
         $("#txtStartDate").val(doc.start_date);
@@ -79,8 +80,8 @@
                 //Find the div
                 var sf_block = $("#ShowFlag");
                 var c_block = $("#ShowComment");
-                let catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-                let category = categories.find(c => c.category_id === catId);
+                var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+                var category = categories.find(c => c.category_id === catId);
 
                 if ((category.active != 1) && (category.category_name != doc.category_name )) {
                     alert("This lease select category");
@@ -168,8 +169,8 @@
 
     function check_comment() {
 
-        var Comments = $("#comments").val();
-        alert(Comments);
+        Comments = $("#comments").val();
+        //alert(Comments);
         var category = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
 
         if (Comments.length == 0 && (Categoryid == "3" || Categoryid == "2")) {
@@ -183,8 +184,8 @@
     function update_doc() {
 
         //find category_id
-        let catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-        let category = categories.find(c => c.category_id === catId);
+        var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        var category = categories.find(c => c.category_id === catId);
         //find if to be flag
 
 
@@ -203,21 +204,32 @@
 
         //alert("EndDate=" + EndDate);
 
-        var file = document.getElementById('UploadFile').files[0];
-        frmdata.append('file', file);
-        frmdata.append('category_id', Categoryid);
-        frmdata.append('org_id', org_id);
-        frmdata.append('org_name', org_name);
+        frmdata.append('category_id', catId);
+        frmdata.append('org_id', doc.org_id);
+       // frmdata.append('org_name', org_name);
         frmdata.append('start_date', StartDate);
         frmdata.append('end_date', EndDate);
         frmdata.append('comments', Comments);
-        docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_File");
+        frmdata.append('doc_id', doc.DocumentId);
+        updatedoc(frmdata, "/InstitutionalFiles/Update_Doc");
 
-        setTimeout(function() {
-                refresh_after_upload(org_id, org_name);
-            },
-            500);
         //return true;
+    }
+
+    function updatedoc(frmdata, ctrAction)
+    {
+        $.ajax({
+            type: 'POST',
+            url: ctrAction,
+            data: frmdata,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                //add any update form visual changes here
+            }
+        });
+
+        location.href = 'Show_Docs?org_id=' + doc.org_id;
     }
 
 </script>

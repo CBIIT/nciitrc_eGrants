@@ -260,7 +260,7 @@ namespace egrants_new.Egrants.Models
         }
 
 
-        public string UpdateDocument(int category_id, string start_date, string end_date, string ic, string userid, string comments)
+        public string UpdateDocument(int doc_id, int category_id, string start_date, string end_date, string ic, string userid, string comments)
         {
             System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_file_update", conn);
@@ -272,7 +272,7 @@ namespace egrants_new.Egrants.Models
             cmd.Parameters.Add("@end_date", System.Data.SqlDbType.VarChar).Value = end_date;
             cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
             cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
-            cmd.Parameters.Add("@document_id", System.Data.SqlDbType.VarChar, 100);
+            cmd.Parameters.Add("@document_id", System.Data.SqlDbType.Int).Value = doc_id;
             cmd.Parameters.Add("@comments", System.Data.SqlDbType.VarChar).Value = comments;
             conn.Open();
 
