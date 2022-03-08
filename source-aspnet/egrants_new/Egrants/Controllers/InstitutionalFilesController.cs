@@ -214,7 +214,7 @@ namespace egrants_new.Controllers
             var _repo = new InstitutionalFilesRepo();
             try
             {
-                _repo.UpdateDocument(category_id, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]), comments);
+                _repo.UpdateDocument(doc_id,category_id, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]), comments);
 
             }
             catch (Exception ex)
