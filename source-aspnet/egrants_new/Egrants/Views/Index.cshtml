@@ -638,12 +638,10 @@
                                 </a>
                             </span>
                                 }
-                                @if (grant.institutional_flag2 == true)
+                                @if (grant.AnyOrgDoc == true)
                                 {
-                            <span style="margin-left: 10px;">
-                                <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.inst_flag2_url">
-                                    <img class="img_18_18" src="~/Content/images/inst_icon.png" style="margin-left: 15px" title="View Flagged Document for @grant.org_name" />
-                                </a>
+                                    <span style="margin-left: 10px;">
+                            <img class="img_18_18" src="~/Content/images/inst_icon.png" style="margin-left: 15px" title="There are Institutional File Documents for @grant.org_name" />
                             </span>
                                 }
                                 @if (grant.institutional_flag1 == true)
