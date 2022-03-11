@@ -37,7 +37,20 @@
 
        $('[data-toggle="popover"]').popover();
 
+        $('body').on('click', function (e) {
+            //did not click a popover toggle, or icon in popover toggle, or popover
+            if ($(e.target).data('toggle') !== 'popover'
+                && $(e.target).parents('[data-toggle="popover"]').length === 0
+                && $(e.target).parents('.popover.in').length === 0) { 
+                $('[data-toggle="popover"]').popover('hide');
+            }
         });
+
+        });
+
+    function closePopover() {
+        alert('Clicked the Popover');
+        }
 
         function load_default() {
             document.getElementById("index_list").style.display = "inline";
@@ -127,7 +140,7 @@
     </div>
     <br /><br />
     <div>
-        <div>    <b>Institution Name <a href="#" data-toggle="popover"  data-content="If institution does not exist on A-Z page, search for the name listed in IMPAC II to add files to it."><i class="glyphicon glyphicon-info-sign"></i></a> :</b>&#0160;</div><div>
+        <div>    <b>Institution Name <a href="#" data-toggle="popover" id="popover_window" data-content="If institution does not exist on A-Z page, search for the name listed in IMPAC II to add files to it."><i class="glyphicon glyphicon-info-sign"></i></a> :</b>&#0160;</div><div>
             <input type="text" name="str" id="txtStr" class="smallfont" size="58" title="Insert institution name to search" value="@ViewBag.Str" />
             &#0160;
             <button type="button" class="btn btn-primary eGrantsDocBtn" accesskey="S" title="Search by institution name [shift + alt + S]" onClick="return search_orgs();"><u>S</u>earch</button>
