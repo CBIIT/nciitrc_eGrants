@@ -45,6 +45,8 @@ namespace egrants_new.Egrants.Models
             public string adm_supp { get; set; }
             public bool institutional_flag1 { get; set; }
             public bool institutional_flag2 { get; set; }
+            public string inst_flag1_url { get; set; }
+            public bool AnyOrgDoc { get; set; }
 
         }
 
@@ -177,7 +179,9 @@ namespace egrants_new.Egrants.Models
                         grant.ds_flag = rdr["ds_flag"]?.ToString();
                         grant.adm_supp = rdr["adm_supp"]?.ToString();
                         grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true:false;
-                        grant.institutional_flag2 = rdr["institutional_flag2"].ToString() == "1" ? true:false;
+                        grant.AnyOrgDoc = (bool) rdr["institutional_flag2"];
+                        grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
+//                        grant.inst_flag2_url = rdr["inst_flag2_url"].ToString();
 
                         grantList.Add(grant);
                     }

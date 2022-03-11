@@ -582,7 +582,7 @@
                                 <div id="grantbar2" style="width:500px;">
                                     @Html.Partial("~/Egrants/Views/_egrants_showApplsList.cshtml", grant_id)
                                 </div >
-                            </div >
+                            </div>
                         }
                         </div >
                         <!--end grant zone-->
@@ -632,27 +632,27 @@
 
                                 @if (grant.sv_url != "")
                                 {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.sv_url">
-                                            <img class="img_18_18" src="~/Content/images/Site_Visit.png" style="margin-left:15px" title="View SV Document for @grant.org_name" />
-                                        </a>
-                                    </span>
-                                }
-                                @if (grant.institutional_flag1 == true)
-                                {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a target="_new" href="">
-                                            <img class="img_18_18" src="~/Content/images/inst_icon.png" style="margin-left:15px" title="View Flagged Document for @grant.org_name" />
-                                        </a>
-                                    </span>
+                            <span style="margin-left: 10px;">
+                                <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.sv_url">
+                                    <img class="img_18_18" src="~/Content/images/Site_Visit.png" style="margin-left: 15px" title="View SV Document for @grant.org_name" />
+                                </a>
+                            </span>
                                 }
                                 @if (grant.institutional_flag2 == true)
                                 {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a target="_new" href="">
-                                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" style="margin-left:15px" title="View Flagged Document for @grant.org_name" />
-                                        </a>
-                                    </span>
+                            <span style="margin-left: 10px;">
+                                <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.inst_flag2_url">
+                                    <img class="img_18_18" src="~/Content/images/inst_icon.png" style="margin-left: 15px" title="View Flagged Document for @grant.org_name" />
+                                </a>
+                            </span>
+                                }
+                                @if (grant.institutional_flag1 == true)
+                                {
+                            <span style="margin-left: 10px;">
+                                <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.inst_flag1_url">
+                                    <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" style="margin-left: 15px" title="View Flagged Document for @grant.org_name" />
+                                </a>
+                            </span>
                                 }
                         </div>
                         <!--end grant flags-->
