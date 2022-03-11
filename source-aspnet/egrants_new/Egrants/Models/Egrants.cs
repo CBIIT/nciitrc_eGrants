@@ -179,7 +179,7 @@ namespace egrants_new.Egrants.Models
                         grant.ds_flag = rdr["ds_flag"]?.ToString();
                         grant.adm_supp = rdr["adm_supp"]?.ToString();
                         grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true:false;
-                        grant.AnyOrgDoc = (bool) rdr["institutional_flag2"];
+                        grant.AnyOrgDoc =  rdr["institutional_flag2"].ToString() == "1" ? true : false; ;
                         grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
 //                        grant.inst_flag2_url = rdr["inst_flag2_url"].ToString();
 
