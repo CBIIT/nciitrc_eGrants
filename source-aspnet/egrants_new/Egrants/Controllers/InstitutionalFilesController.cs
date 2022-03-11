@@ -65,18 +65,18 @@ namespace egrants_new.Controllers
         }
 
         [HttpGet]
-        public ActionResult Show_Docs(int org_id, string org_name = "")
+        public ActionResult Show_Docs(int org_id = 0, string org_name = "")
         {
             var _repo = new InstitutionalFilesRepo();
 
-            var selectedInstitutionalOrg = _repo.FindOrg(org_id);
+            var selectedInstitutionalOrg = _repo.FindOrg(org_id,org_name);
 
             var page = new InstitutionallFilesPage()
             {
                 SelectedInstitutionalOrg = selectedInstitutionalOrg,
                 Action = InstitutionalFilesPageAction.ShowDocs,
                 CharacterIndices = _repo.LoadOrgNameCharacterIndices(),
-                DocFiles = _repo.LoadOrgDocList( org_id)
+                DocFiles = _repo.LoadOrgDocList( selectedInstitutionalOrg.OrgId)
 
             };
 
