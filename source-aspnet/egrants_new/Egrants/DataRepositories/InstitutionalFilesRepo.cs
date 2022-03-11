@@ -73,10 +73,7 @@ namespace egrants_new.Egrants.Models
                     FUCreatedDate = rdr["fucreated_date"]?.ToString(),
                     FUEndDate = rdr["fuend_date"]?.ToString(),
                     FUUrl = rdr["fu_url"]?.ToString(),
-                    ODCreatedBy = rdr["odcreated_by"]?.ToString(),
-                    ODCreatedDate = rdr["odcreated_date"]?.ToString(),
-                    ODEndDate = rdr["odend_date"]?.ToString(),
-                    ODUrl = rdr["od_url"]?.ToString()
+                    AnyOrgDoc = (bool)rdr["anyorgdoc"]
                 });
 
             }
@@ -111,10 +108,8 @@ namespace egrants_new.Egrants.Models
                     FUCreatedDate = rdr["fucreated_date"]?.ToString(),
                     FUEndDate = rdr["fuend_date"]?.ToString(),
                     FUUrl = rdr["fu_url"]?.ToString(),
-                    ODCreatedBy = rdr["odcreated_by"]?.ToString(),
-                    ODCreatedDate = rdr["odcreated_date"]?.ToString(),
-                    ODEndDate = rdr["odend_date"]?.ToString(),
-                    ODUrl = rdr["od_url"]?.ToString()
+                    AnyOrgDoc = (bool)rdr["anyorgdoc"]
+      
                 });
             }
             conn.Close();

@@ -15,10 +15,7 @@
         public string FUCreatedBy { get; set; }
         public string FUEndDate { get; set; }
         public string FUUrl { get; set; }
-        public string ODCreatedBy { get; set; }
-        public string ODCreatedDate { get; set; }
-        public string ODEndDate { get; set; }
-        public string ODUrl { get; set; }
+        public bool AnyOrgDoc { get; set; }
         public bool Active { get; set; }
     }
 }

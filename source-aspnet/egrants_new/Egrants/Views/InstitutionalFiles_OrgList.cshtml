@@ -21,11 +21,9 @@
                                     <img style="height:16px; vertical-align:top;" src="~/Content/images/inst_icon_flag.png" />
                                 </a>
                             }
-                            @if (!string.IsNullOrWhiteSpace(org.ODCreatedBy))
+                            @if (org.AnyOrgDoc)
                             {
-                                <a target="_new" href="@org.ODUrl" title="Created by @org.ODCreatedBy at @org.ODCreatedDate and expired date will be @org.ODEndDate">
                                     <img style="height:16px; vertical-align:top;" src="~/Content/images/inst_icon.png" />
-                                </a>
                             }
                     </td>
                 </tr>
