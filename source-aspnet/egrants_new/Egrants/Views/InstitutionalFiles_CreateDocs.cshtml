@@ -161,6 +161,11 @@
             return false;
         }
 
+        if (Comments.length > 50 && category.require_comments == 1) {
+            alert("The Comments are no to exceed 50 Characters");
+            return false;
+        }
+
         return true;
 
     }
