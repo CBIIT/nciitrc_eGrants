@@ -117,7 +117,7 @@ namespace egrants_new.Egrants.Models
         }
 
         //
-        public InstitutionalOrg FindOrg( int org_id)
+        public InstitutionalOrg FindOrg( int org_id, string org_name = "")
         {
 
             System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_institutional_file_find_org", conn);
@@ -125,6 +125,7 @@ namespace egrants_new.Egrants.Models
             //TODO:  This should branched to different Stored procedures based on the revision MAdhu does
 
             cmd.Parameters.Add("@org_id", System.Data.SqlDbType.Int).Value = org_id;
+            cmd.Parameters.Add("@org_name", System.Data.SqlDbType.VarChar).Value = org_name;
 
             conn.Open();
 
