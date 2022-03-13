@@ -635,26 +635,26 @@
 
                                 @if (grant.sv_url != "")
                                 {
-                                    <span style="margin-left: 10px;">
+                                    <span style="margin-left: 10px;width:80px;">
                                         <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.sv_url">
-                                            <img class="img_18_18" src="~/Content/images/Site_Visit.png" style="margin-left: 15px" title="View SV Document for @grant.org_name" />
+                                            <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name" />
                                         </a>
                                     </span>
                                 }
                                 @if (grant.institutional_flag1 == true)
                                 {
-                                    <span style="margin-left: 10px;">
+                                    <span style="margin-left: 10px;width:80px;">
                                         <a target="_new" href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
-                                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" style="margin-left: 15px" title="View Flagged Document for @grant.org_name" />
+                                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="View Flagged Document for @grant.org_name" />
                                         </a>
                                     </span>
                                 }
                                 else if (grant.AnyOrgDoc == true)
                                 {
 
-                                    <span style="margin-left: 10px;">
+                                    <span style="margin-left: 10px;width:80px;">
                                         <a target="_new" href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
-                                            <img class="img_18_18" src="~/Content/images/inst_icon.png" style="margin-left: 15px" title="There are Institutional File Documents for @grant.org_name" />
+                                            <img class="img_18_18" src="~/Content/images/inst_icon.png" title="There are Institutional File Documents for @grant.org_name" />
                                             </a>
                                     </span>
                                 }
