@@ -252,6 +252,10 @@
             EndDate = "";
         }
 
+        if (check_comment() == false) {
+            return false;
+        }
+
         frmdata.append('dropedfile', dropedfile);
         frmdata.append('category_id', Categoryid);
         frmdata.append('org_id', org_id);
