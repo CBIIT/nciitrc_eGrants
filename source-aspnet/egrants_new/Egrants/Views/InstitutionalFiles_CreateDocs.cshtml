@@ -28,12 +28,20 @@
 
 <script>
 
+    $(document).ready(function () {
+
+        $("#comments").on('keypress',function() {
+            check_comment_length();
+        });
+    });
+
 
     @{
         var javaScriptSearilizer = new JavaScriptSerializer();
         var catArray = javaScriptSearilizer.Serialize(Model.OrgCategories.ToArray());
     }
     var categories = @Html.Raw(catArray);
+    var Comments = "";
 
         function switch_upload_mode(act) {
             if (act == "by_ddrop") {
@@ -140,6 +148,24 @@
         return true;
     }
 
+
+
+    function check_comment_length() {
+
+        Comments = $("#comments").val();
+
+        if (Comments.length > 50) {
+            //alert("The Comments are not to exceed 50 Characters");
+            $("#comments").val(Comments.substr(0, 50));
+            $("#comment-warning").removeClass("not-shown");
+        }
+        else {
+            $("#comment-warning").addClass("not-shown");
+        }
+
+    }
+
+
     function check_comment() {
 
         Comments = $("#comments").val();
@@ -153,7 +179,7 @@
         }
 
         if (Comments.length > 50 && category.require_comments == 1) {
-            alert("The Comments are no to exceed 50 Characters");
+            alert("The Comments are not to exceed 50 Characters");
             return false;
         }
 
@@ -285,6 +311,7 @@
                         <td class="left-col"><label for="comments"><b>Comments:</b></label></td>
                         <td class="right-col">
                             <input type="textarea" id="comments" class="smallfont comment-textarea" size="8" title="" />
+                            <label id="comment-warning" class="text-danger not-shown" >Comment length cannot exceed 50 Characters.</label>
                         </td>
                     </tr>
                     <tr>
