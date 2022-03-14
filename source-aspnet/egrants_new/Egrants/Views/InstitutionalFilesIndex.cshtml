@@ -114,7 +114,16 @@
             }else url = docurl;
             //alert(url);
             window.open(url);
+    }
+
+
+
+
+    document.querySelector('#txtStr').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            search_orgs();
         }
+    });
 </script>
 
 <form name="frmGetInfo">

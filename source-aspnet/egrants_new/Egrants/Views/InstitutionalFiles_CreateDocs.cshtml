@@ -30,8 +30,8 @@
 
     $(document).ready(function () {
 
-        $("#comments").on('keypress',function() {
-            check_comment_length();
+        $("#comments").on('keypress',function(event) {
+            check_comment_length(event);
         });
     });
 
@@ -150,7 +150,7 @@
 
 
 
-    function check_comment_length() {
+    function check_comment_length(event) {
 
         Comments = $("#comments").val();
 
@@ -158,7 +158,7 @@
             //alert("The Comments are not to exceed 50 Characters");
             $("#comments").val(Comments.substr(0, 50));
             $("#comment-warning").removeClass("not-shown");
-            return false;
+            event.preventDefault();
         }
         else {
             $("#comment-warning").addClass("not-shown");
