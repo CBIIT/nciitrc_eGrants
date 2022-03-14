@@ -17,7 +17,7 @@
                             }
                             @if (!string.IsNullOrWhiteSpace(org.FUCreatedBy))
                             {
-                                <a target="_new" href="~/InstitutionalFiles/Show_Docs?org_name=@org.OrgName" title="Created by @org.FUCreatedBy at @org.FUCreatedDate and expired date will be @org.FUEndDate">
+                                <a target="_self" href="~/InstitutionalFiles/Show_Docs?org_name=@org.OrgName" title="Created by @org.FUCreatedBy at @org.FUCreatedDate and expired date will be @org.FUEndDate">
                                     <img style="height:16px; vertical-align:top;" src="~/Content/images/inst_icon_flag.png" />
                                 </a>
                             }
