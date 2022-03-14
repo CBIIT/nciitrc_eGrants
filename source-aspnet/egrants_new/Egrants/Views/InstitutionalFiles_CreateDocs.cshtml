@@ -154,10 +154,11 @@
 
         Comments = $("#comments").val();
 
-        if (Comments.length > 50) {
+        if (Comments.length >= 50) {
             //alert("The Comments are not to exceed 50 Characters");
-            $("#comments").val(Comments.substr(0, 49));
+            $("#comments").val(Comments.substr(0, 50));
             $("#comment-warning").removeClass("not-shown");
+            return false;
         }
         else {
             $("#comment-warning").addClass("not-shown");
