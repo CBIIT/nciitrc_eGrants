@@ -2,7 +2,7 @@
 SET QUOTED_IDENTIFIER OFF
 
 
-CREATE   PROCEDURE [dbo].[sp_web_egrants_institutional_file_update]
+CREATE     PROCEDURE [dbo].[sp_web_egrants_institutional_file_update]
 
 @category_id		int,
 @start_date			varchar(10),
@@ -15,9 +15,9 @@ CREATE   PROCEDURE [dbo].[sp_web_egrants_institutional_file_update]
 AS
 /************************************************************************************************************/
 /***									 										***/
-/***	Procedure Name:sp_web_egrants_institutional_file_create					***/
-/***	Description:create org files											***/
-/***	Created:	03/02/20	Madhu		create it for MVC					***/
+/***	Procedure Name:sp_web_egrants_institutional_file_update					***/
+/***	Description: update org files											***/
+/***	Created:	03/02/20	Madhu		created it for MVC					***/
 /************************************************************************************************************/
 SET NOCOUNT ON
 

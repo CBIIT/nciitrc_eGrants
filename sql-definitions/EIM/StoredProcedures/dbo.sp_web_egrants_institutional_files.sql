@@ -1,9 +1,7 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
-
-
-CREATE    PROCEDURE [dbo].[sp_web_egrants_institutional_files]
+CREATE   PROCEDURE [dbo].[sp_web_egrants_institutional_files]
 
 @act  				varchar(20),
 @str  				varchar(50),
@@ -20,7 +18,7 @@ CREATE    PROCEDURE [dbo].[sp_web_egrants_institutional_files]
 AS
 /************************************************************************************************************/
 /***									 									***/
-/***	Procedure Name:sp_web_org_files										***/
+/***	Procedure Name: sp_web_egrants_institutional_files					***/
 /***	Description:search, dispaly or edit files							***/
 /***	Created:	03/09/2016	Leon										***/
 /***	Modified:	03/09/2016	Leon										***/
@@ -82,7 +80,6 @@ set @index_id = 1
 	where om.index_id = @index_id and dbo.fn_get_org_doc_count(om.org_id)>0
 	order by Org_Name
 */
-print 'in show_orgs:'
 RETURN exec dbo.sp_web_egrants_inst_files_show_orgs @index_id
 
 ----------------------
@@ -111,7 +108,6 @@ WHERE o.org_name like '%'+@str+'%' and o.org_id=v.org_id and tobe_flagged=1 and 
 Order by Org_name
 */
 
-print 'search_orgs:'
 RETURN exec dbo.sp_web_egrants_inst_files_search_orgs @str
 
 ------------------------
@@ -121,7 +117,6 @@ show_docs:
 FROM dbo.vw_Org_Document 
 WHERE org_id=@org_id 
 */
-print 'show_docs'
 RETURN exec dbo.sp_web_egrants_inst_files_show_docs @org_id
 -------------------------
 disable_doc:
@@ -164,8 +159,9 @@ SELECT  @document_id=@@IDENTITY
 --select @xmlout
 
 --GOTO load_org
-
-RETURN exec dbo.sp_web_egrants_inst_files_upload_doc @org_id, @doc_id, @category_id, @file_type, @start_date, @end_date
+DECLARE @comments varchar(256)
+SET @comments = null
+RETURN exec dbo.sp_web_egrants_inst_files_upload_doc @org_id, @doc_id, @category_id, @file_type, @start_date, @end_date, @comments
                                                       
 
 GO

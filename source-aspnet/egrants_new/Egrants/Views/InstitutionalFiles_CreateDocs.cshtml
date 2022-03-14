@@ -35,15 +35,6 @@
     }
     var categories = @Html.Raw(catArray);
 
-
-        $(document).ready(function () {
-
-            $("#ddlCategories").on("change", function() {
-                select_category();
-            });
-
-        });
-
         function switch_upload_mode(act) {
             if (act == "by_ddrop") {
                 document.getElementById("by_ddrop").style.display = "inline";
@@ -108,7 +99,7 @@
 
     function get_category_id() {
         if (document.getElementById("ddlCategories").selectedIndex == 0) {
-            alert("Please select category");
+//            alert("Please select category");
             return false;
         } else Categoryid = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
         return true;

@@ -1,11 +1,6 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
 
-
-
-
-
-
 CREATE VIEW [dbo].[vw_org_document]
 AS
 SELECT     dbo.Org_Document.document_id, dbo.Org_Categories.doctype_name AS category_name, dbo.Org_Categories.active as active,
