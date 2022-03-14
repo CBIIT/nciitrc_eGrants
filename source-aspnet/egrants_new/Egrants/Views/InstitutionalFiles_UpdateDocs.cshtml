@@ -45,6 +45,11 @@
 
             });
 
+            $("#ddlCategories").on("change", function() {
+                select_category();
+
+            });
+
             $("#comments").on('keypress',function() {
                check_comment_length();
             });
