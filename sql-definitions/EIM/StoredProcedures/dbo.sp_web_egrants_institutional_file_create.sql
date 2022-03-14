@@ -2,7 +2,7 @@
 SET QUOTED_IDENTIFIER OFF
 
 
-CREATE   PROCEDURE [dbo].[sp_web_egrants_institutional_file_create]
+CREATE     PROCEDURE [dbo].[sp_web_egrants_institutional_file_create]
 
 @org_id				int,
 @category_id		int,

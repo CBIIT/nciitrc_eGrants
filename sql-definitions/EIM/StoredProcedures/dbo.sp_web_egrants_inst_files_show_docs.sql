@@ -1,12 +1,8 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
-
-
-
-CREATE      PROCEDURE [dbo].[sp_web_egrants_inst_files_show_docs]
+CREATE   PROCEDURE [dbo].[sp_web_egrants_inst_files_show_docs]
 @org_id	int
-
 
 AS
 /************************************************************************************************************/

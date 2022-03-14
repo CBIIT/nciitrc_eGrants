@@ -1,11 +1,7 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
-
-
-CREATE   PROCEDURE [dbo].[sp_web_egrants]
+CREATE       PROCEDURE [dbo].[sp_web_egrants]
 
 @str 			nvarchar(400),
 @grant_id 		int,
