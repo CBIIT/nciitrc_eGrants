@@ -45,6 +45,10 @@
 
             });
 
+            $("#comments").on('keypress',function() {
+               check_comment_length();
+            });
+
             load_doc(doc);
 
         });
@@ -213,6 +217,21 @@
         return true;
     }
 
+    function check_comment_length() {
+
+        Comments = $("#comments").val();
+
+        if (Comments.length > 50) {
+            //alert("The Comments are not to exceed 50 Characters");
+            $("#comments").val(Comments.substr(0, 50));
+            $("#comment-warning").removeClass("not-shown");
+        }
+        else {
+            $("#comment-warning").addClass("not-shown");
+        }
+
+    }
+
     function update_doc() {
 
         //find category_id
@@ -315,6 +334,7 @@
                         <td class="left-col"><label for="comments"><b>Comments:</b></label></td>
                         <td class="right-col">
                             <input type="textarea" id="comments" class="smallfont comment-textarea" size="8" title="" />
+                            <label id="comment-warning" class="text-danger not-shown">Comment length cannot exceed 50 Characters.</label>
                         </td>
                     </tr>
                     <tr>
