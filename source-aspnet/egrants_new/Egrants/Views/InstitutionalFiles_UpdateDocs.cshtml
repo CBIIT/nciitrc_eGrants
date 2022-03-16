@@ -36,6 +36,8 @@
     var categories = @Html.Raw(catArray);
     var doc = @Html.Raw(selectedDoc);
     var Comments = "";
+    var docCategory = null;
+    var catId = 0;
 
 
         $(document).ready(function () {
@@ -64,7 +66,7 @@
 
         $("#comments").val(doc.comments);
 
-        var docCategory = categories.find(c => c.category_name === doc.category_name);
+        docCategory = categories.find(c => c.category_name === doc.category_name);
 
         var categoryId = docCategory.category_id;
         $("#ddlCategories").val(docCategory.category_id);
@@ -84,35 +86,33 @@
         }
 
 
-        function select_category() {
-            if (document.getElementById("ddlCategories").selectedIndex == 0) {
-                alert("Please select category");
-                return false;
-            }
-            else {
-                //Find the div
-                check_ui();
-                setDates();
-            }
+    function select_category() {
+        if (document.getElementById("ddlCategories").selectedIndex == 0) {
+            alert("Please select category");
+            return false;
+        }
+        else
+        {
+        //Find the div
+            check_ui();
+            setDates();
+        }
     }
-
 
     function check_ui() {
 
         var sf_block = $("#ShowFlag");
         var c_block = $("#ShowComment");
-        var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-        var category = categories.find(c => c.category_id === catId);
+        get_category_id();
 
-        if (Number(category.tobe_flag) === 1) {
+        if (Number(docCategory.tobe_flag) === 1) {
             sf_block.removeClass("not-shown");
-
 
         } else {
             sf_block.addClass("not-shown");
         }
 
-        if (Number(category.require_comments) === 1) {
+        if (Number(docCategory.require_comments) === 1) {
             c_block.removeClass("not-shown");
         } else {
             c_block.addClass("not-shown");
@@ -123,7 +123,7 @@
 
     function setDates() {
 
-        var flag_period = category.flag_period;
+        var flag_period = docCategory.flag_period;
 
         //get start day
         var currentDate = new Date();
@@ -131,10 +131,11 @@
         var currMonth = currentDate.getMonth() + 1;
         var currYear = currentDate.getFullYear();
         var end_date = "";
+        var start_date = currMonth + "/" + currDay + "/" + currYear;    
         //get end date
         var addMonths = 0;
         var addYears = 0
-        if (flag_period == 1) {
+        if (Number(docCategory.tobe_flag) === 1) {
             addYears = Math.floor(flag_period / 12);
             addMonths = (flag_period % 12);
             currMonth = currMonth + addMonths;
@@ -144,9 +145,8 @@
             end_date = "";
         }
 
-        document.getElementById("txtStartDate").value = currentDate;
+        document.getElementById("txtStartDate").value = start_date;
         document.getElementById("txtEndDate").value = end_date;
-
 
         }
 
@@ -156,7 +156,8 @@
             alert("Please select category");
             return false;
         } else {
-            Categoryid = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+            catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+            docCategory = categories.find(c => c.category_id === catId);
             return true;
         }
 
@@ -241,13 +242,10 @@
     function update_doc() {
 
         //find category_id
-        var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-        var category = categories.find(c => c.category_id === catId);
-        //find if to be flag
-
+        get_category_id();
 
         //check start date and end date for site vist
-        if (Number(category.tobe_flag) === 1) {
+        if (Number(docCategory.tobe_flag) === 1) {
             if (check_date_range() === false) {
                 return false;
             }

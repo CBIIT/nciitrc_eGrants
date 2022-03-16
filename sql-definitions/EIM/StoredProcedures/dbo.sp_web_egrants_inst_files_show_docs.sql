@@ -1,7 +1,8 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
-CREATE   PROCEDURE [dbo].[sp_web_egrants_inst_files_show_docs]
+
+CREATE     PROCEDURE [dbo].[sp_web_egrants_inst_files_show_docs]
 @org_id	int
 
 AS
@@ -19,6 +20,7 @@ SET NOCOUNT ON
 SELECT org_id,org_name,document_id,category_name, url,[start_date],end_date,created_date, comments
 FROM dbo.vw_Org_Document 
 WHERE org_id=@org_id 
+ORDER BY CONVERT(datetime,created_date) ASC
 
 
 RETURN
