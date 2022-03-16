@@ -1,7 +1,12 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
-CREATE       PROCEDURE [dbo].[sp_web_egrants]
+
+
+
+
+
+CREATE           PROCEDURE [dbo].[sp_web_egrants]
 
 @str 			nvarchar(400),
 @grant_id 		int,
@@ -363,6 +368,7 @@ DS_flag as ds_flag,
 adm_supp,
 g.institutional_flag1,
 g.institutional_flag2,
+g.inst_flag1_url,
 --applsLayer              
 null			as appl_id,
 null			as full_grant_num,
@@ -383,8 +389,6 @@ null			as closeout_flag,
 null			as irppr_id,
 null            as can_add_doc,
 null			as can_add_funding, 
-CAST(0 as bit)			as institutional_flag1_appl,
-CAST(0 as bit)			as institutional_flag2_appl,
 ---docsLayer
 null			as docs_count
 FROM @g AS t inner join vw_grants g on t.grant_id=g.grant_id  
@@ -421,6 +425,7 @@ null,
 null,
 CAST(0 as bit),
 CAST(0 as bit),
+null,
 --applsLayer
 a.appl_id,
 full_grant_num,
@@ -453,8 +458,6 @@ WHEN @IC='NCI' and @position_id>=5 and admin_phs_org_code='CA'
 THEN 'y'
 ELSE 'n'
 END,
-CAST(1 as bit),  -- institutional_flag1,
-CAST(1 as bit), --  institutional_flag2,
 --docsLayer
 null
 FROM @a AS t,vw_appls a WHERE t.appl_id=a.appl_id ---order by support_year desc
@@ -491,6 +494,7 @@ null,
 null,
 CAST(0 as bit),
 CAST(0 as bit),
+null,
 --applsLayer
 t.appl_id,
 null,			---dbo.fn_appl_full_grant_num(t.appl_id),
@@ -514,8 +518,6 @@ null,
 null,
 null,
 null,
-CAST(0 as bit),  --inst_flag1
-CAST(0 as bit),   --inst_flag2
 --docsLayer
 count(t.document_id)
 --FROM @d AS t, egrants d WHERE t.document_id=d.document_id and t.appl_id IS NOT NULL group by t.appl_id

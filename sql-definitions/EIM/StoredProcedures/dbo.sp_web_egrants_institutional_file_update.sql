@@ -2,7 +2,8 @@
 SET QUOTED_IDENTIFIER OFF
 
 
-CREATE     PROCEDURE [dbo].[sp_web_egrants_institutional_file_update]
+
+CREATE       PROCEDURE [dbo].[sp_web_egrants_institutional_file_update]
 
 @category_id		int,
 @start_date			varchar(10),
@@ -27,7 +28,8 @@ DECLARE
 @doc_id			int,
 @category_name	varchar(100),
 @file_location	varchar(200),
-@tobe_flag char(1)
+@tobe_flag char(1),
+@comments_req  bit
 
 
 /** find user info***/
@@ -35,12 +37,17 @@ SET @profile_id=(select profile_id from profiles where [profile]=@ic)
 SET @person_id=(SELECT person_id FROM vw_people WHERE userid=@Operator and profile_id=@profile_id)
 
 SET @file_location='/data/funded/nci/institutional/'
-select @category_name= doctype_name , @tobe_flag = isNull(tobe_flagged,0) from Org_Categories where doctype_id=@category_id
+select @category_name= doctype_name , @tobe_flag = isNull(tobe_flagged,0), @comments_req = comments_required from Org_Categories where doctype_id=@category_id
 
 IF @tobe_flag<>'1'
 BEGIN
 SET @start_date=null
 SET @end_date=null
+END
+
+IF @comments_req <> 1
+BEGIN
+SET @comments = null
 END
 
 
