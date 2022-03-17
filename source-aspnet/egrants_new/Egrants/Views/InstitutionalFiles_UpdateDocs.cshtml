@@ -264,12 +264,12 @@
         //alert("EndDate=" + EndDate);
 
         frmdata.append('category_id', catId);
-        frmdata.append('org_id', doc.org_id);
+        frmdata.append('org_id', Doc.org_id);
        // frmdata.append('org_name', org_name);
         frmdata.append('start_date', StartDate);
         frmdata.append('end_date', EndDate);
         frmdata.append('comments', Comments);
-        frmdata.append('doc_id', doc.DocumentId);
+        frmdata.append('doc_id', Doc.DocumentId);
         updatedoc(frmdata, "/InstitutionalFiles/Update_Doc");
 
         //return true;
@@ -288,7 +288,7 @@
             }
         });
 
-        location.href = 'Show_Docs?org_id=' + doc.org_id;
+        location.href = 'Show_Docs?org_id=' + Doc.org_id;
     }
 
 </script>
