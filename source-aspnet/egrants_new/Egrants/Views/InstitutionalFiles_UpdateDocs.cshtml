@@ -34,9 +34,10 @@
         var selectedDoc = javaScriptSearilizer.Serialize(Model.SelectedDocFile);
     }
     var categories = @Html.Raw(catArray);
-    var doc = @Html.Raw(selectedDoc);
+    var Doc = @Html.Raw(selectedDoc);
     var Comments = "";
     var docCategory = null;
+  //  var category = null;
     var catId = 0;
 
 
@@ -56,19 +57,18 @@
                check_comment_length(event);
             });
 
-            load_doc(doc);
+            load_doc(Doc);
 
         });
 
 
     function load_doc(doc) {
 
-
         $("#comments").val(doc.comments);
 
         docCategory = categories.find(c => c.category_name === doc.category_name);
 
-        var categoryId = docCategory.category_id;
+        catId = docCategory.category_id;
         $("#ddlCategories").val(docCategory.category_id);
         $("#txtStartDate").val(doc.start_date);
         $("#txtEndDate").val(doc.end_date);
@@ -78,13 +78,12 @@
 
     }
 
-    function load_dates() {
+    function load_dates(doc) {
 
         $("#txtStartDate").val(doc.start_date);
         $("#txtEndDate").val(doc.end_date);
 
         }
-
 
     function select_category() {
         if (document.getElementById("ddlCategories").selectedIndex == 0) {
@@ -126,12 +125,16 @@
         var flag_period = docCategory.flag_period;
 
         //get start day
+
+        if (docCategory.category_id == catId) {
+            load_dates(Doc);
+        } else{
         var currentDate = new Date();
         var currDay = currentDate.getDate();
         var currMonth = currentDate.getMonth() + 1;
         var currYear = currentDate.getFullYear();
         var end_date = "";
-        var start_date = currMonth + "/" + currDay + "/" + currYear;    
+        var start_date = currMonth + "/" + currDay + "/" + currYear;
         //get end date
         var addMonths = 0;
         var addYears = 0
@@ -143,20 +146,21 @@
             end_date = currMonth + "/" + currDay + "/" + currYear;
         } else {
             end_date = "";
-        }
-
+            }
         document.getElementById("txtStartDate").value = start_date;
         document.getElementById("txtEndDate").value = end_date;
 
         }
 
+        }
+
 
     function get_category_id() {
-        if (document.getElementById("ddlCategories").selectedIndex == 0) {
+        catId = catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        if (catId == 0) {
             alert("Please select category");
             return false;
         } else {
-            catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
             docCategory = categories.find(c => c.category_id === catId);
             return true;
         }
