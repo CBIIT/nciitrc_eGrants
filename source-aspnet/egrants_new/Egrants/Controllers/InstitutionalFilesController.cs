@@ -219,7 +219,8 @@ namespace egrants_new.Controllers
             }
             catch (Exception ex)
             {
-
+                //TODO:  Present the user with an Error Message and show the same screen
+                //throw ex;
             }
         }
 
