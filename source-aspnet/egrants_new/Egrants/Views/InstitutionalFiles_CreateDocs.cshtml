@@ -7,9 +7,17 @@
         table-layout: fixed;
     }
 
+
+    .xrow {
+        line-height: 20px !important;
+    }
+
     .not-shown {
-        display: block;
         visibility: hidden;
+    }
+
+    .inline {
+        display: inline-block;
     }
 
     .left-col {
@@ -18,11 +26,11 @@
 
     .right-col {
         width: 700px !important;
+        display: inline;
     }
 
-    .comment-textarea {
-        width: 550px;
-        height: 40px;
+    .comment-text {
+        width: 200px;
     }
 </style>
 
@@ -35,6 +43,20 @@
         });
     });
 
+
+    //$('#txtStartDate').datepicker({
+    //    showOn: 'both',
+    //    buttonImage: '../Content/images/calendar.png'
+    //    //border: '0',
+    //    //border-color: 'white''
+    //});
+
+    //$('#txtEndDate').datepicker({
+    //    showOn: 'both',
+    //    buttonImage: '../Content/images/calendar.png'
+    //    //border: '0',
+    //    //border-color: 'white''
+    //});
 
     @{
         var javaScriptSearilizer = new JavaScriptSerializer();
@@ -64,7 +86,7 @@
             else {
                 //Find the div
                 var sf_block = $("#ShowFlag");
-                var c_block = $("#ShowComment");
+                var c_block = $("#comments");
                 var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
                 var category = categories.find(c => c.category_id === catId);
 
@@ -282,7 +304,7 @@
         <tr>
             <td width="800px" class="text-left">
                 <table width="800px">
-                    <tr height="20">
+                    <tr style="overflow: hidden; line-height: 20px !important;" class="xrow" >
                         <td class="left-col">
                             <b>Institute:</b>
                         </td>
@@ -290,7 +312,7 @@
                             <b>@Model.SelectedInstitutionalOrg.OrgName</b>
                         </td>
                     </tr>
-                    <tr height="20">
+                    <tr style="overflow: hidden; line-height: 20px !important;" class="xrow">
                         <td class="left-col"><label for="Category"><b>Category:</b></label></td>
                         <td class="right-col">
                             <select name="category_id" id="ddlCategories" class="smallfont" size="1" title="Select category to create new document" OnChange="select_category()">
@@ -300,23 +322,19 @@
                                     <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
                                 }
                             </select>
+                            <span><input type="text" class="comment-text not-shown" id="comments" class="smallfont " size="8" title="" />&nbsp;<label style="display: inline-block;" id="comment-warning" class="text-danger not-shown">Comment length cannot exceed 50 Characters.</label></span>
                         </td>
                     </tr>
-                    <tr height="20" id="ShowFlag" class="not-shown">
+                    <tr style="overflow: hidden; line-height: 20px !important;"   id="ShowFlag" class="xrow not-shown">
                         <td class="left-col"><label for="flag"><b>Show Flag:</b></label></td>
-                        <td class="right-col">
-                            <label for="start date"><b>From</b></label>
-                            &#0160;
-                            <input type="text" name="start_date" id="txtStartDate" class="smallfont" size="8" title="Insert start date" value="@Model.TodayText" />&#0160;
-                            <label for="end date"><b>To</b></label>&#0160;
-                            <input type="text" name="end_date" id="txtEndDate" class="smallfont" size="8" title="Insert end date" />
-                        </td>
-                    </tr>
-                    <tr id="ShowComment" height="20" class="not-shown">
-                        <td class="left-col"><label for="comments"><b>Comments:</b></label></td>
-                        <td class="right-col">
-                            <input type="textarea" id="comments" class="smallfont comment-textarea" size="8" title="" />
-                            <label id="comment-warning" class="text-danger not-shown" >Comment length cannot exceed 50 Characters.</label>
+                        <td class="right-col" width="600px">
+                            <div class="inline">
+                                <label for="start date"><b>From</b></label>
+                                &#0160;
+                                <input type="text" name="start_date" id="txtStartDate" class="smallfont" size="8" title="Insert start date" value="@Model.TodayText" />&#0160;
+                                <label for="end date"><b>To</b></label>&#0160;
+                                <input type="text" name="end_date" id="txtEndDate" class="smallfont" size="8" title="Insert end date" />
+                            </div>
                         </td>
                     </tr>
                     <tr>
