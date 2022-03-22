@@ -45,6 +45,7 @@
     var Doc = @Html.Raw(selectedDoc);
     var Comments = "";
     var docCategory = null;
+    var category = null;
   //  var category = null;
     var catId = 0;
 
@@ -75,6 +76,7 @@
         $("#comments").val(doc.comments);
 
         docCategory = categories.find(c => c.category_name === doc.category_name);
+        category = categories.find(c => c.category_name === doc.category_name);
 
         catId = docCategory.category_id;
         $("#ddlCategories").val(docCategory.category_id);
@@ -112,14 +114,14 @@
         var c_block = $("#comments");
         get_category_id();
 
-        if (Number(docCategory.tobe_flag) === 1) {
+        if (Number(category.tobe_flag) === 1) {
             sf_block.removeClass("not-shown");
 
         } else {
             sf_block.addClass("not-shown");
         }
 
-        if (Number(docCategory.require_comments) === 1) {
+        if (Number(category.require_comments) === 1) {
             c_block.removeClass("not-shown");
         } else {
             c_block.addClass("not-shown");
@@ -130,11 +132,11 @@
 
     function setDates() {
 
-        var flag_period = docCategory.flag_period;
+        var flag_period = category.flag_period;
 
         //get start day
 
-        if (docCategory.category_id == catId) {
+        if (docCategory.category_id == category.category_id) {
             load_dates(Doc);
         } else{
         var currentDate = new Date();
@@ -146,7 +148,7 @@
         //get end date
         var addMonths = 0;
         var addYears = 0
-        if (Number(docCategory.tobe_flag) === 1) {
+        if (Number(category.tobe_flag) === 1) {
             addYears = Math.floor(flag_period / 12);
             addMonths = (flag_period % 12);
             currMonth = currMonth + addMonths;
@@ -169,7 +171,7 @@
             alert("Please select category");
             return false;
         } else {
-            docCategory = categories.find(c => c.category_id === catId);
+            category = categories.find(c => c.category_id === catId);
             return true;
         }
 
@@ -257,7 +259,7 @@
         get_category_id();
 
         //check start date and end date for site vist
-        if (Number(docCategory.tobe_flag) === 1) {
+        if (Number(Category.tobe_flag) === 1) {
             if (check_date_range() === false) {
                 return false;
             }
