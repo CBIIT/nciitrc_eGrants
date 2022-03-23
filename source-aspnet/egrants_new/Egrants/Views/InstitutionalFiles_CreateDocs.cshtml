@@ -13,7 +13,7 @@
     }
 
     .not-shown {
-        visibility: hidden;
+        display: none;
     }
 
     .inline {
@@ -30,7 +30,7 @@
     }
 
     .comment-text {
-        width: 200px;
+        width: 310px;
     }
 </style>
 
@@ -322,7 +322,7 @@
                                     <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
                                 }
                             </select>
-                            <span><input type="text" class="comment-text not-shown" id="comments" class="smallfont " size="8" title="" />&nbsp;<label style="display: inline-block;" id="comment-warning" class="text-danger not-shown">Comment length cannot exceed 50 Characters.</label></span>
+                            <span><input type="text" class="comment-text not-shown" id="comments" class="smallfont " size="8" title="" />&nbsp;<label  id="comment-warning" class="text-danger not-shown">Comment length cannot exceed 50 Characters.</label></span>
                         </td>
                     </tr>
                     <tr style="overflow: hidden; line-height: 20px !important;"   id="ShowFlag" class="xrow not-shown">

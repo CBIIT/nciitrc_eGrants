@@ -114,7 +114,11 @@
                                     <td>
                                         <a href="JavaScript:show_doc('@doc.url')" title="Click here to display document">
                                             @{
-                                                var docCategoryName = doc.category_name + ":" + @doc.comments;
+                                                var docCategoryName = doc.category_name;
+                                                if (!string.IsNullOrWhiteSpace(@doc.comments))
+                                                {
+                                                    docCategoryName += ": " + doc.comments;
+                                                }
                                             }
                                             @docCategoryName
                                         </a>

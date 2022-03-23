@@ -54,9 +54,6 @@
 
         });
 
-    function closePopover() {
-        alert('Clicked the Popover');
-        }
 
         function load_default() {
             document.getElementById("index_list").style.display = "inline";
@@ -86,13 +83,15 @@
         }
 
         function show_docs(org_id, org_name) {
-            var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id+"&org_name="+org_name;
+            var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
             window.document.location.href = url;
-        }
+    }
 
-        function delete_doc(doc_id, category_name, org_id, org_name) {
+    function delete_doc(doc_id, category_name, org_id, org_name) {
+
+        if (confirm("Are you sure you wish to delete this file?")) {
             var url = "@Url.Action("Delete_Doc", "InstitutionalFiles")?act=disable_doc&doc_id=" + doc_id + "&org_id=" + org_id + "&org_name=" + org_name;
-            window.document.location.href = url;
+            window.document.location.href = url;}
         }
 
         function to_create_doc(org_name, org_id) {
