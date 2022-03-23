@@ -12,7 +12,7 @@
     }
 
     .not-shown {
-        visibility: hidden;
+        display: none;
     }
 
     .inline {
@@ -29,7 +29,7 @@
     }
 
     .comment-text {
-        width: 200px;
+        width: 310px;
     }
 </style>
 
@@ -54,12 +54,10 @@
 
             $("#btnUpdate").on("click", function() {
                 update_doc();
-
             });
 
             $("#ddlCategories").on("change", function() {
                 select_category();
-
             });
 
             $("#comments").on('keypress',function(event) {
@@ -294,11 +292,11 @@
             processData: false,
             contentType: false,
             success: function (data) {
-                //add any update form visual changes here
+                location.href = 'Show_Docs?org_id=' + Doc.org_id;
             }
         });
 
-        location.href = 'Show_Docs?org_id=' + Doc.org_id;
+       
     }
 
 </script>
@@ -336,7 +334,7 @@
                                     }
                                 }
                             </select>
-                            <span><input type="text" class="comment-text not-shown" id="comments" class="smallfont " size="8" title="" />&nbsp;<label style="display: inline-block;" id="comment-warning" class="text-danger not-shown">Comment length cannot exceed 50 Characters.</label></span>
+                            <span><input type="text" class="comment-text not-shown" id="comments" class="smallfont " size="8" title="" />&nbsp;<label id="comment-warning" class="text-danger not-shown">Comment length cannot exceed 50 Characters.</label></span>
                         </td>
                     </tr>
                     <tr height="20" id="ShowFlag" class="not-shown">
