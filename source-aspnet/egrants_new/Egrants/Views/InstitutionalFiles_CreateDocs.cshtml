@@ -30,7 +30,7 @@
     }
 
     .comment-text {
-        width: 310px;
+        width: 350px;
     }
 </style>
 
@@ -41,6 +41,15 @@
         $("#comments").on('keypress',function(event) {
             check_comment_length(event);
         });
+
+        //$("#comments").on('keydown',function(event) {
+        //    check_comment_length(event);
+        //});
+
+        $("#comments").on('keyup',function(event) {
+            check_comment_length(event);
+        });
+
     });
 
 
@@ -64,6 +73,7 @@
     }
     var categories = @Html.Raw(catArray);
     var Comments = "";
+    var category = null;
 
         function switch_upload_mode(act) {
             if (act == "by_ddrop") {
@@ -88,7 +98,7 @@
                 var sf_block = $("#ShowFlag");
                 var c_block = $("#comments");
                 var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-                var category = categories.find(c => c.category_id === catId);
+                category = categories.find(c => c.category_id === catId);
 
             if (Number(category.tobe_flag) === 1) {
                 sf_block.removeClass("not-shown");
@@ -124,15 +134,20 @@
             } else {
                 c_block.addClass("not-shown");
                 }
+                check_comment_length(null);
        }
     }
 
     function get_category_id() {
-        if (document.getElementById("ddlCategories").selectedIndex == 0) {
-//            alert("Please select category");
+        catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        if (catId == 0) {
+            alert("Please select category");
             return false;
-        } else Categoryid = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-        return true;
+        } else {
+            category = categories.find(c => c.category_id === catId);
+            return true;
+        }
+
     }
 
     function check_date_range() {
@@ -176,7 +191,7 @@
 
         Comments = $("#comments").val();
 
-        if (Comments.length >= 50) {
+        if (Comments.length >= 50 && category.require_comments == 1) {
             //alert("The Comments are not to exceed 50 Characters");
             $("#comments").val(Comments.substr(0, 50));
             $("#comment-warning").removeClass("not-shown");
@@ -202,7 +217,7 @@
         }
 
         if (Comments.length > 50 && category.require_comments == 1) {
-            alert("The Comments are not to exceed 50 Characters");
+            alert("The Comments are no to exceed 50 Characters");
             return false;
         }
 

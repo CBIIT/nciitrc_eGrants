@@ -29,7 +29,7 @@
     }
 
     .comment-text {
-        width: 310px;
+        width: 350px;
     }
 </style>
 
@@ -62,6 +62,10 @@
 
             $("#comments").on('keypress',function(event) {
                check_comment_length(event);
+            });
+
+            $("#comments").on('keyup',function(event) {
+                check_comment_length(event);
             });
 
             load_doc(Doc);
@@ -124,6 +128,7 @@
         } else {
             c_block.addClass("not-shown");
         }
+        check_comment_length(null);
 
     }
 
@@ -239,7 +244,7 @@
 
         Comments = $("#comments").val();
 
-        if (Comments.length >= 50) {
+        if (Comments.length >= 50 && category.require_comments == 1) {
             //alert("The Comments are not to exceed 50 Characters");
             $("#comments").val(Comments.substr(0, 50));
             $("#comment-warning").removeClass("not-shown");
