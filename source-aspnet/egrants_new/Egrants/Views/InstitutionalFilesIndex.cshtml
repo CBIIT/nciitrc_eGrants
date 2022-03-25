@@ -25,26 +25,24 @@
 <script language="JavaScript">
     var currenturl = window.document.location.href;
     var frmdata = new FormData();
-    var dropedfile;
-    var DropFileCount = 0;
     var Categoryid = 0;
     var StartDate = "";
     var EndDate = "";
     var Comments = "";
 
     $(document).ready(function () {
-        load_default();
 
-       $('[data-toggle="popover"]').popover();
 
-        $('body').on('click', function (e) {
-            //did not click a popover toggle, or icon in popover toggle, or popover
-            if ($(e.target).data('toggle') !== 'popover'
-                && $(e.target).parents('[data-toggle="popover"]').length === 0
-                && $(e.target).parents('.popover.in').length === 0) { 
-                $('[data-toggle="popover"]').popover('hide');
-            }
-        });
+       //$('[data-toggle="popover"]').popover();
+
+       // $('body').on('click', function (e) {
+       //     //did not click a popover toggle, or icon in popover toggle, or popover
+       //     if ($(e.target).data('toggle') !== 'popover'
+       //         && $(e.target).parents('[data-toggle="popover"]').length === 0
+       //         && $(e.target).parents('.popover.in').length === 0) { 
+       //         $('[data-toggle="popover"]').popover('hide');
+       //     }
+       // });
 
         //$('#txtStr').on('keypress', function (e) {
         //    if (e.key === 'Enter') {
@@ -54,17 +52,6 @@
 
         });
 
-
-        function load_default() {
-            document.getElementById("index_list").style.display = "inline";
-            var act = document.getElementById("hidACT").value;
-            if (act == "create new") {
-                var BrowserType = document.getElementById("hidBrowserType").value;
-                if (act == "create new" && BrowserType.indexOf("Chrome") != -1 || BrowserType.indexOf("IE") != -1 || BrowserType.indexOf("InternetExplorer") != -1) {
-                    switch_upload_mode("by_ddrop");
-                } else switch_upload_mode("by_asp");
-            }
-        }
 
         function search_orgs() {
             if (document.getElementById("txtStr").value == '') {
@@ -115,9 +102,118 @@
             window.open(url);
     }
 
+    function check_ui() {
+
+        var sf_block = $("#ShowFlag");
+        var c_block = $("#comments");
+        get_category_id();
+
+        if (Number(category.tobe_flag) === 1) {
+            sf_block.removeClass("not-shown");
+
+        } else {
+            sf_block.addClass("not-shown");
+        }
+
+        if (Number(category.require_comments) === 1) {
+            c_block.removeClass("not-shown");
+        } else {
+            c_block.addClass("not-shown");
+        }
+        check_comment_length(null);
+
+    }
 
 
+    function get_category_id() {
+        catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        if (catId == 0) {
+            alert("Please select category");
+            return false;
+        } else {
+            category = categories.find(c => c.category_id === catId);
+            return true;
+        }
 
+    }
+
+    function check_comment() {
+
+        Comments = $("#comments").val();
+        //alert(Comments);
+        var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+        var category = categories.find(c => c.category_id === catId);
+
+        if (Comments.length == 0 && category.require_comments == 1) {
+            alert("The Comments are required for category " + category.category_name);
+            return false;
+        }
+
+        if (Comments.length > 50 && category.require_comments == 1) {
+            alert("The Comments are no to exceed 50 Characters");
+            return false;
+        }
+
+        return true;
+
+    }
+
+
+    function check_comment_length(event) {
+
+        Comments = $("#comments").val();
+
+        if (Comments.length > 50 && category.require_comments == 1) {
+            //alert("The Comments are not to exceed 50 Characters");
+            $("#comments").val(Comments.substr(0, 50));
+            $("#comment-warning").removeClass("not-shown");
+            event.preventDefault();
+        }
+        else {
+            $("#comment-warning").addClass("not-shown");
+        }
+
+    }
+
+
+    function check_date_range() {
+        //check start date
+        if (document.getElementById("txtStartDate").value == '') {
+            alert("Please insert start date");
+            document.getElementById("txtStartDate").focus();
+            return false;
+        } else if (isDate(document.getElementById("txtStartDate").value) == false) {
+            document.getElementById("txtStartDate").value = "";
+            document.getElementById("txtStartDate").focus();
+            return false;
+        } else {
+            var start_date = new Date(document.getElementById("txtStartDate").value);
+        };
+
+        //check end date
+        if (document.getElementById("txtEndDate").value == '') {
+            alert("Please insert end date");
+            document.getElementById("txtEndDate").value = '';
+            document.getElementById("txtEndDate").focus();
+            return false;
+        } else if (isAnyDate(document.getElementById("txtEndDate").value) == false) {
+            document.getElementById("txtEndDate").value = '';
+            document.getElementById("txtEndDate").focus();
+            return false;
+        } else var end_date = new Date(document.getElementById("txtEndDate").value);
+
+        if (end_date <= start_date) {
+            alert("The end date should be later than start date");
+            document.getElementById("txtEndDate").value = '';
+            document.getElementById("txtEndDate").focus();
+            return false;
+        } else {
+            StartDate = document.getElementById("txtStartDate").value;
+            EndDate = document.getElementById("txtEndDate").value;
+            //alert("EndDate=" + EndDate);
+            return true;
+        }
+    }
 
 </script>
 
