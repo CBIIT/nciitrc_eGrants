@@ -311,7 +311,7 @@ namespace egrants_new.Integration.WebServices
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                   // throw ex;
                     //todo: handle exception
                 }
             }

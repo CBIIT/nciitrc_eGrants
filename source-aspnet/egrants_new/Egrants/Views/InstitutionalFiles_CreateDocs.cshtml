@@ -35,16 +35,25 @@
 </style>
 
 <script>
+    @{
+        var javaScriptSearilizer = new JavaScriptSerializer();
+        var catArray = javaScriptSearilizer.Serialize(Model.OrgCategories.ToArray());
+    }
+   
+    var dropedfile;
+    var DropFileCount = 0;
+    var categories = @Html.Raw(catArray);
+    var Comments = "";
+    var category = null;
 
     $(document).ready(function () {
+        load_default();
 
         $("#comments").on('keypress',function(event) {
             check_comment_length(event);
         });
 
-        //$("#comments").on('keydown',function(event) {
-        //    check_comment_length(event);
-        //});
+        switch_upload_mode('by_ddrop');
 
         $("#comments").on('keyup',function(event) {
             check_comment_length(event);
@@ -52,6 +61,19 @@
 
     });
 
+    
+
+    function load_default() {
+        document.getElementById("index_list").style.display = "inline";
+        var act = document.getElementById("hidACT").value;
+        var act = "create new";
+        if (act == "create new") {
+            var BrowserType = document.getElementById("hidBrowserType").value;
+            if (act == "create new" && BrowserType.indexOf("Chrome") != -1 || BrowserType.indexOf("IE") != -1 || BrowserType.indexOf("InternetExplorer") != -1) {
+                switch_upload_mode("by_ddrop");
+            } else switch_upload_mode("by_asp");
+        }
+    }
 
     //$('#txtStartDate').datepicker({
     //    showOn: 'both',
@@ -67,38 +89,33 @@
     //    //border-color: 'white''
     //});
 
-    @{
-        var javaScriptSearilizer = new JavaScriptSerializer();
-        var catArray = javaScriptSearilizer.Serialize(Model.OrgCategories.ToArray());
-    }
-    var categories = @Html.Raw(catArray);
-    var Comments = "";
-    var category = null;
 
-        function switch_upload_mode(act) {
-            if (act == "by_ddrop") {
-                document.getElementById("by_ddrop").style.display = "inline";
-                document.getElementById("by_asp").style.display = "none";
-                Init();
-            }
 
-            if (act == "by_asp") {
-                document.getElementById("by_asp").style.display = "inline";
-                document.getElementById("by_ddrop").style.display = "none";
-            }
+
+    function switch_upload_mode(act) {
+        if (act == "by_ddrop") {
+            document.getElementById("by_ddrop").style.display = "inline";
+            document.getElementById("by_asp").style.display = "none";
+            Init();
         }
 
-        function select_category() {
-            if (document.getElementById("ddlCategories").selectedIndex == 0) {
-                alert("Please select category");
-                return false;
-            }
-            else {
-                //Find the div
-                var sf_block = $("#ShowFlag");
-                var c_block = $("#comments");
-                var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-                category = categories.find(c => c.category_id === catId);
+        if (act == "by_asp") {
+            document.getElementById("by_asp").style.display = "inline";
+            document.getElementById("by_ddrop").style.display = "none";
+        }
+    }
+
+    function select_category() {
+        if (document.getElementById("ddlCategories").selectedIndex == 0) {
+            alert("Please select category");
+            return false;
+        }
+        else {
+            //Find the div
+            var sf_block = $("#ShowFlag");
+            var c_block = $("#comments");
+            var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+            category = categories.find(c => c.category_id === catId);
 
             if (Number(category.tobe_flag) === 1) {
                 sf_block.removeClass("not-shown");
@@ -121,7 +138,7 @@
                     end_date = currMonth + "/" + currDay + "/" + currYear;
                 } else {
                     end_date = "";
-                    }
+                }
 
                 document.getElementById("txtEndDate").value = end_date;
 
@@ -133,97 +150,13 @@
                 c_block.removeClass("not-shown");
             } else {
                 c_block.addClass("not-shown");
-                }
-                check_comment_length(null);
-       }
-    }
-
-    function get_category_id() {
-        catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-        if (catId == 0) {
-            alert("Please select category");
-            return false;
-        } else {
-            category = categories.find(c => c.category_id === catId);
-            return true;
+            }
+            check_comment_length(null);
         }
-
-    }
-
-    function check_date_range() {
-        //check start date
-        if (document.getElementById("txtStartDate").value == '') {
-            alert("Please insert start date");
-            document.getElementById("txtStartDate").focus();
-            return false;
-        } else if (isDate(document.getElementById("txtStartDate").value) == false) {
-            document.getElementById("txtStartDate").value = "";
-            document.getElementById("txtStartDate").focus();
-            return false;
-        } else var start_date = new Date(document.getElementById("txtStartDate").value);
-
-        //check end date
-        if (document.getElementById("txtEndDate").value == '') {
-            alert("Please insert end date");
-            document.getElementById("txtEndDate").value = '';
-            document.getElementById("txtEndDate").focus();
-            return false;
-        } else if (isAnyDate(document.getElementById("txtEndDate").value) == false) {
-            document.getElementById("txtEndDate").value = '';
-            document.getElementById("txtEndDate").focus();
-            return false;
-        } else var end_date = new Date(document.getElementById("txtEndDate").value);
-
-        if (end_date <= start_date) {
-            alert("The end date should be later than start date");
-            document.getElementById("txtEndDate").value = '';
-            document.getElementById("txtEndDate").focus();
-            return false;
-        } else StartDate = document.getElementById("txtStartDate").value;
-        EndDate = document.getElementById("txtEndDate").value;
-        //alert("EndDate=" + EndDate);
-        return true;
     }
 
 
-
-    function check_comment_length(event) {
-
-        Comments = $("#comments").val();
-
-        if (Comments.length >= 50 && category.require_comments == 1) {
-            //alert("The Comments are not to exceed 50 Characters");
-            $("#comments").val(Comments.substr(0, 50));
-            $("#comment-warning").removeClass("not-shown");
-            event.preventDefault();
-        }
-        else {
-            $("#comment-warning").addClass("not-shown");
-        }
-
-    }
-
-
-    function check_comment() {
-
-        Comments = $("#comments").val();
-        //alert(Comments);
-        var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-        var category = categories.find(c => c.category_id === catId);
-
-        if (Comments.length == 0 && category.require_comments == 1) {
-            alert("The Comments are required for category " + category.category_name);
-            return false;
-        }
-
-        if (Comments.length > 50 && category.require_comments == 1) {
-            alert("The Comments are no to exceed 50 Characters");
-            return false;
-        }
-
-        return true;
-
-    }
+    
 
     function create_doc_by_file(org_id, org_name) {
         //check loacte file, file type and file size
