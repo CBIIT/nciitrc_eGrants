@@ -95,7 +95,7 @@
         <tr>
             <td width="250"><b>Institution:&nbsp;@Model.SelectedInstitutionalOrg.OrgName</b></td>
             <td width="150" class="text-right">
-                @if (Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
+                @if (Convert.ToInt16(Session["position_id"]) != 1 && Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
                 {
                     <a href="JavaScript:to_create_doc('@Model.SelectedInstitutionalOrg.OrgName','@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
                 }
@@ -111,8 +111,11 @@
                             <th width="100"><b>Flag Start</b></th>
                             <th width="100"><b>Flag End</b></th>
                             @*<th width="250"><b>Comments</b></th>*@
-                            <th width="75" class="text-center"><b>Update</b></th>
-                            <th width="75" class="text-center"><b>Delete</b></th>
+                            @if (Convert.ToInt16(Session["position_id"]) != 1)
+                            {
+                                <th width="75" class="text-center"><b>Update</b></th>
+                                <th width="75" class="text-center"><b>Delete</b></th>
+                            }
                         </tr>
                     </thead>
                     <tbody>
@@ -140,16 +143,19 @@
                                     <td>@doc.start_date</td>
                                     <td>@doc.end_date</td>
                                     @*<td class="text-wrap">@doc.comments</td>*@
-                                    <td class="text-center">
-                                        <a href="JavaScript:to_update_doc('@doc.DocumentId', '@doc.org_id', '@doc.org_name')" title="Click here to update this document">
-                                            <img class="img_12_12" SRC="~/Content/images/Update File.png" />
-                                        </a>
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="JavaScript:delete_doc('@doc.DocumentId', '@doc.category_name','@doc.org_id', '@doc.org_name')" title="Click here to delete this document">
-                                            <img class="img_12_12" SRC="~/Content/images/Clear.jpg" />
-                                        </a>
-                                    </td>
+                                    @if (Convert.ToInt16(Session["position_id"]) != 1)
+                                    {
+                                        <td class="text-center">
+                                            <a href="JavaScript:to_update_doc('@doc.DocumentId', '@doc.org_id', '@doc.org_name')" title="Click here to update this document">
+                                                <img class="img_12_12" SRC="~/Content/images/Update File.png" />
+                                            </a>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="JavaScript:delete_doc('@doc.DocumentId', '@doc.category_name','@doc.org_id', '@doc.org_name')" title="Click here to delete this document">
+                                                <img class="img_12_12" SRC="~/Content/images/Clear.jpg" />
+                                            </a>
+                                        </td>
+                                    }
                                 </tr>
                             }
                         }
