@@ -138,9 +138,11 @@
         catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
         if (catId == 0) {
             alert("Please select category");
+            $("#btnUpdate").prop("disabled", true);
             return false;
         } else {
             category = categories.find(c => c.category_id === catId);
+            $("#btnUpdate").prop("disabled", false);
             return true;
         }
 

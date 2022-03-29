@@ -177,7 +177,7 @@ namespace egrants_new.Controllers
         {
             var _repo = new InstitutionalFilesRepo();
             //ViewBag.Act = "create new";
-            if (file != null && file.ContentLength > 0)
+            if (file != null && file.ContentLength > 0 && category_id != 0)
                 try
                 {
                     //get file name and file Extension
@@ -203,7 +203,7 @@ namespace egrants_new.Controllers
                 }
             else
             {
-                ViewBag.Message = "You have not specified a file.";
+                ViewBag.Message = "You have not specified information correctly.";
             }
         }
 
@@ -214,7 +214,13 @@ namespace egrants_new.Controllers
             var _repo = new InstitutionalFilesRepo();
             try
             {
-                _repo.UpdateDocument(doc_id,category_id, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]), comments);
+                if(category_id != 0)
+                {
+                    _repo.UpdateDocument(doc_id, category_id, start_date, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]), comments);
+                }else
+                {
+                    ViewBag.Message = "You have not specified information correctly.";
+                }
 
             }
             catch (Exception ex)
