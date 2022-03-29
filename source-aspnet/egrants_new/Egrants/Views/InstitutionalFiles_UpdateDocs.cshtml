@@ -38,16 +38,13 @@
 
     @{
         var javaScriptSearilizer = new JavaScriptSerializer();
-        var catArray = javaScriptSearilizer.Serialize(Model.OrgCategories.ToArray());
         var selectedDoc = javaScriptSearilizer.Serialize(Model.SelectedDocFile);
     }
-    var categories = @Html.Raw(catArray);
+
     var Doc = @Html.Raw(selectedDoc);
-    var Comments = "";
     var docCategory = null;
     var category = null;
-  //  var category = null;
-    var catId = 0;
+
 
 
         $(document).ready(function () {

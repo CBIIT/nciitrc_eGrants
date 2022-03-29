@@ -76,7 +76,7 @@
 <script>
     function delete_doc(doc_id, category_name, org_id, org_name) {
 
-        if (confirm("Are you sure you wish to delete the selected document?")) {
+        if (confirm("Are you sure that you want to delete selected document(s)?")) {
             var url = "@Url.Action("Delete_Doc", "InstitutionalFiles")?act=disable_doc&doc_id=" + doc_id + "&org_id=" + org_id + "&org_name=" + org_name;
             window.document.location.href = url;}
     }
