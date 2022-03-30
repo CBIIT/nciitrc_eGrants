@@ -1,9 +1,7 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
-
-
-CREATE   PROCEDURE [dbo].[sp_web_egrants]
+CREATE           PROCEDURE [dbo].[sp_web_egrants]
 
 @str 			nvarchar(400),
 @grant_id 		int,
@@ -363,6 +361,9 @@ MS_flag	as ms_flag,
 OD_flag as od_flag,
 DS_flag as ds_flag,
 adm_supp,
+g.institutional_flag1,
+g.institutional_flag2,
+g.inst_flag1_url,
 --applsLayer              
 null			as appl_id,
 null			as full_grant_num,
@@ -385,7 +386,7 @@ null            as can_add_doc,
 null			as can_add_funding, 
 ---docsLayer
 null			as docs_count
-FROM @g AS t,vw_grants g WHERE t.grant_id=g.grant_id 
+FROM @g AS t inner join vw_grants g on t.grant_id=g.grant_id  
 
 UNION ALL
 
@@ -416,6 +417,9 @@ null,
 null,
 null,
 null,
+null,
+CAST(0 as bit),
+CAST(0 as bit),
 null,
 --applsLayer
 a.appl_id,
@@ -483,6 +487,9 @@ null,
 null,
 null,
 null,
+CAST(0 as bit),
+CAST(0 as bit),
+null,
 --applsLayer
 t.appl_id,
 null,			---dbo.fn_appl_full_grant_num(t.appl_id),
@@ -514,6 +521,7 @@ FROM @d AS t, vw_appls a WHERE t.appl_id = a.appl_id group by t.appl_id
 ORDER BY tag,grant_id,support_year desc  ----added by Leon 5/11/2019 
 
 SET ANSI_NULLS OFF
+
 
 GO
 

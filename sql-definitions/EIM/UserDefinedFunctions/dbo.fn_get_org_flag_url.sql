@@ -1,24 +1,21 @@
 ﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER ON
+SET QUOTED_IDENTIFIER OFF
 
-create FUNCTION [dbo].[fn_get_org_flag_url] (@org_name varchar(200))
-  
+CREATE FUNCTION [dbo].[fn_get_org_flag_url] (@org_name varchar(200))
+
 RETURNS varchar(100) AS 
 
 BEGIN 
 
 RETURN 
 (
-select url from vw_org_document
-where org_name =@org_name and end_date=(
-	select MAX(end_date)
-	from vw_Org_Document 
-	where org_name =@org_name and tobe_flagged=1
-	group by category_id
-	) 
+select top 1 url from vw_org_document v
+where org_name =@org_name and convert(date,end_date) >= convert(date,GETDATE()) AND v.category_name = 'Site Visit'
+ORDER BY end_date DESC 	
 )
 
 END
+
 
 
 GO
