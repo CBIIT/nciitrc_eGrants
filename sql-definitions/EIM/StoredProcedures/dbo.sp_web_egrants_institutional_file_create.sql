@@ -1,7 +1,8 @@
 ﻿SET ANSI_NULLS OFF
 SET QUOTED_IDENTIFIER OFF
 
-CREATE PROCEDURE [dbo].[sp_web_egrants_institutional_file_create]
+
+CREATE     PROCEDURE [dbo].[sp_web_egrants_institutional_file_create]
 
 @org_id				int,
 @category_id		int,
@@ -10,13 +11,14 @@ CREATE PROCEDURE [dbo].[sp_web_egrants_institutional_file_create]
 @end_date			varchar(10),
 @ic  				varchar(10),
 @operator 			varchar(50),
+@comments			varchar(256),
 @document_id		varchar(10) OUTPUT
 
 AS
 /************************************************************************************************************/
 /***									 										***/
-/***	Procedure Name:sp_web_org_files											***/
-/***	Description:create org files											***/
+/***	Procedure Name:sp_web_egrants_institutional_file_create					***/
+/***	Description:create org files										***/
 /***	Created:	01/10/2017	Leon	create it for MVC						***/
 /************************************************************************************************************/
 SET NOCOUNT ON
@@ -26,7 +28,8 @@ DECLARE
 @profile_id		int,
 @doc_id			int,
 @category_name	varchar(100),
-@file_location	varchar(200)
+@file_location	varchar(200),
+@tobe_flag char(1)
 
 
 /** find user info***/
@@ -35,17 +38,26 @@ SET @person_id=(SELECT person_id FROM vw_people WHERE userid=@Operator and profi
 
 SET @file_location='/data/funded/nci/institutional/'
 SET @file_type=SUBSTRING(@file_type,2,LEN(@file_type))
-SET @category_name=(select doctype_name from Org_Categories where doctype_id=@category_id)
+select @category_name= doctype_name , @tobe_flag = isNull(tobe_flagged,0) from Org_Categories where doctype_id=@category_id
 
+/*
 IF @category_name<>'Site Visit' 
 BEGIN
 SET @start_date=null
 SET @end_date=null
 END
+*/
+
+IF @tobe_flag<>'1'
+BEGIN
+SET @start_date=null
+SET @end_date=null
+END
+
 
 ----create new document 
-INSERT dbo.Org_Document(org_id,doctype_id,file_type,url,created_date,created_by_person_id,start_date_ShowFlag,end_date_showFlag)
-SELECT @org_id,@category_id,@file_type,'to be updated',getdate(),@person_id,ISNULL(@start_date,null),ISNULL(@end_date,null)
+INSERT dbo.Org_Document(org_id,doctype_id,file_type,url,created_date,created_by_person_id,start_date_ShowFlag,end_date_showFlag,comments)
+SELECT @org_id,@category_id,@file_type,'to be updated',getdate(),@person_id,ISNULL(@start_date,null),ISNULL(@end_date,null),@comments
 
 SET @doc_id=@@IDENTITY
 
@@ -54,6 +66,7 @@ UPDATE dbo.Org_Document SET url=@file_location + convert(varchar,@doc_id) + '.' 
 SELECT @document_id=convert(varchar, @doc_id) 
 
 RETURN
+
 
 GO
 

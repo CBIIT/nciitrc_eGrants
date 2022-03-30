@@ -1,8 +1,7 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
 
-
-CREATE    VIEW [dbo].[vw_grants]
+CREATE     VIEW [dbo].[vw_grants]
 AS
 SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial_num, dbo.grants.mechanism_code, 
                       dbo.grants.admin_phs_org_code + RIGHT('00000' + CONVERT(varchar, dbo.grants.serial_num), 6) AS grant_num, 
@@ -47,7 +46,6 @@ SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial
 
 
 					  dbo.appls.first_name+' '+dbo.appls.last_name as current_pi_name,dbo.appls.pi_email_addr as current_pi_email_address,
-					  --dbo.appls.gs_full_name as current_spec_name,
 
 					  (SELECT TOP 1  RESP_SPEC_FULL_NAME_CODE
 					   FROM      Grant_Contacts_PD_GS 
@@ -59,32 +57,21 @@ SELECT     dbo.grants.grant_id, dbo.grants.admin_phs_org_code, dbo.grants.serial
 						WHERE  SERIAL_NUM = grants.SERIAL_NUM and ADMIN_PHS_ORG_CODE = grants.ADMIN_PHS_ORG_CODE
 						ORDER BY SUPPORT_YEAR DESC, ACTION_FY DESC, SUFFIX_CODE DESC) as current_spec_email_address,
 
-
-					  /*** 6/7/2019 : IMRAN
-  					  CASE WHEN dbo.appls.gs_full_name IS NULL THEN
-					  (SELECT TOP 1 GS_FULL_NAME FROM APPLS WHERE grant_id=dbo.grants.grant_id AND GS_FULL_NAME IS NOT NULL
-					  order by fy DESC,support_year DESC,suffix_code DESC) ELSE dbo.appls.gs_full_name END AS current_spec_name,
-
-					  --dbo.appls.gs_email_address as current_spec_email_address,
-					  CASE WHEN dbo.appls.gs_email_address IS NULL THEN
-					  (SELECT TOP 1 GS_EMAIL_ADDRESS FROM APPLS WHERE grant_id=dbo.grants.grant_id AND GS_EMAIL_ADDRESS IS NOT NULL  
-					  order by fy DESC,support_year DESC,suffix_code DESC) ELSE dbo.appls.gs_email_address END AS current_spec_email_address,
-					  ***/
-
 					  CASE WHEN dbo.appls.bo_email_address IS NULL THEN 
 					   (SELECT TOP 1 BO_EMAIL_ADDRESS FROM APPLS WHERE grant_id=dbo.grants.grant_id AND BO_EMAIL_ADDRESS IS NOT NULL 
 					   order by fy DESC,support_year DESC,suffix_code DESC) ELSE dbo.appls.bo_email_address END AS current_bo_email_address,
-					  --dbo.appls.bo_email_address as current_bo_email_address,
-
-					  --dbo.Grant_Contacts_Detail.current_pd_name,dbo.Grant_Contacts_Detail.current_pd_email_address,dbo.Grant_Contacts_Detail.current_pi_name,dbo.Grant_Contacts_Detail.current_pi_email_address,
-					  --dbo.Grant_Contacts_Detail.current_spec_name,dbo.Grant_Contacts_Detail.current_spec_email_address,dbo.Grant_Contacts_Detail.current_bo_email_address,
 					  
 					  CASE WHEN MS_flag.MSFlag_cnt=0 or MS_flag.MSFlag_cnt is null THEN 'n' ELSE 'y' END AS MS_flag,
 					  CASE WHEN OD_flag.ODFlag_cnt=0 or OD_flag.ODFlag_cnt is null THEN 'n' ELSE 'y' END AS OD_flag,
 					  CASE WHEN STP_flag.STPFlag_cnt=0 or STP_flag.STPFlag_cnt is null THEN 'n' ELSE 'y' END AS STP_flag,
 					  CASE WHEN FDA_flag.FDAFlag_cnt=0 or FDA_flag.FDAFlag_cnt is null THEN 'n' ELSE 'y' END AS FDA_flag,
 					  CASE WHEN ARRA_flag.ARRAFlag_cnt=0 or ARRA_flag.ARRAFlag_cnt is null THEN 'n' ELSE 'y' END AS ARRA_flag,
-					  CASE WHEN DS_flag.DSFlag_cnt=0 or DS_flag.DSFlag_cnt is null THEN 'n' ELSE 'y' END AS DS_flag
+					  CASE WHEN DS_flag.DSFlag_cnt=0 or DS_flag.DSFlag_cnt is null THEN 'n' ELSE 'y' END AS DS_flag,
+					  CASE WHEN EXISTS(Select document_id from vw_org_document od inner join Org_Master om on od.org_id = om.org_id where category_name = 'Follow-Up' and CONVERT(date,end_date_showFlag) >= CONVERT(date,GETDATE()) and om.org_name = dbo.appls.org_name group by od.document_id) THEN 1 ELSE 0 END as Institutional_flag1,
+					  CASE WHEN EXISTS(Select org_id from vw_org_document vod where vod.Org_name =  dbo.appls.org_name) THEN 1 ELSE 0 END as Institutional_flag2,
+					  (Select top 1 url from vw_org_document od where category_name = 'Follow-Up' and end_date_showFlag >= GETDATE() and org_name = dbo.appls.org_name order by end_date_showFlag DESC ) as inst_flag1_url
+
+
 
 
 FROM         dbo.grants LEFT OUTER JOIN
