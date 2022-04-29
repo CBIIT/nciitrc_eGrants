@@ -24,7 +24,9 @@ namespace egrants_new
         string userid;
         string ic;
 
-        //This event raised when the application starts up and application domain is created.
+        /// <summary>
+        /// This event raised when the application starts up and application domain is created.
+        /// </summary>
         protected void Application_Start()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -39,16 +41,21 @@ namespace egrants_new
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
             HangfireAspNet.Use(GetHangfireServers);
-            var wsCronExp = ConfigurationManager.AppSettings["IntegrationCheckCronExp"];
-            var notifierCronExp = ConfigurationManager.AppSettings["NotificationCronExp"];
-            var sqlNotifierTime = ConfigurationManager.AppSettings["SQLErrorCronExp"];
 
-            /// Create the Background job
+            var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
+            var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
+            var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
+
+            // create the Background job
             RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
             RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
-     //       RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
+            
+            // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
         }
 
+        /// <summary>
+        /// Gets the user id.
+        /// </summary>
         protected string UserID
         {
             get
@@ -61,6 +68,13 @@ namespace egrants_new
                 return userid;
             }
         }
+
+        /// <summary>
+        /// The get hangfire servers.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="IEnumerable"/>.
+        /// </returns>
         private IEnumerable<IDisposable> GetHangfireServers()
         {
             // Hangfire.
@@ -83,6 +97,9 @@ namespace egrants_new
             yield return new BackgroundJobServer();
         }
 
+        /// <summary>
+        /// Gets the ic.
+        /// </summary>
         protected string IC
         {
             get
@@ -113,6 +130,9 @@ namespace egrants_new
             }
         }
 
+        /// <summary>
+        /// Gets the browser type.
+        /// </summary>
         protected string BrowserType
         {
             get
@@ -121,7 +141,15 @@ namespace egrants_new
             }
         }
 
-        //This event is used to determine user permissions and give authorization rights to user. 
+        /// <summary>
+        /// This event is used to determine user permissions and give authorization rights to user. 
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
         protected void Application_AuthorizeRequest(Object sender, EventArgs e)
         {
             userid = UserID;
@@ -132,9 +160,17 @@ namespace egrants_new
             {
                 Response.Redirect("~/Shared/Views/egrants_default.htm");
             }
-        }     
+        }
 
-        //This event raised for each time a new session begins, This is a good place to put code that is session-specific.
+        /// <summary>
+        /// This event raised for each time a new session begins, This is a good place to put code that is session-specific.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
         protected void Session_Start(object sender, EventArgs e)
         {
             // Code that runs when a new session is started---added 11_21_2018
@@ -147,10 +183,13 @@ namespace egrants_new
             check_user_type();      
         }
 
+        /// <summary>
+        /// The check_user_type.
+        /// </summary>
         protected void check_user_type()
         {
             var usertype = Models.EgrantsCommon.UserType(Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
-            //Session.Add("UserType", usertype);
+            // Session.Add("UserType", usertype);
             if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
             {
                 Response.Redirect("~/Shared/Views/egrants_default.htm");
@@ -161,6 +200,12 @@ namespace egrants_new
             }
         }
 
+        /// <summary>
+        /// The check_user_validation.
+        /// </summary>
+        /// <param name="usertype">
+        /// The usertype.
+        /// </param>
         protected void check_user_validation(string usertype)
         {
             //set all profiles for user
@@ -177,7 +222,7 @@ namespace egrants_new
                 Session.Add("Menus", usr.menulist);
             }
 
-            //check user validation
+            // check user validation
             if (Session["Validation"].ToString() != "OK")
             {
                 Response.Redirect("~/Shared/Views/egrants_default.htm");
@@ -210,7 +255,15 @@ namespace egrants_new
 
         }
 
-        //This event raised whenever an unhandled exception occurs in the application. This provides an opportunity to implement generic application-wide error handling.
+        /// <summary>
+        /// This event raised whenever an unhandled exception occurs in the application. This provides an opportunity to implement generic application-wide error handling.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
         protected void Application_Error(object sender, EventArgs e)
         {
             // Code that runs when an unhandled error occurs
@@ -250,12 +303,38 @@ namespace egrants_new
             //string err = "Error in: " + Request.Url.ToString() + ". Error Message:" + objErr.Message.ToString();
         }
 
-        //This event called when session of user ends.
+        /// <summary>
+        ///  This event called when session of user ends.
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
         protected void Session_End(object sender, EventArgs e)
         {
             Application.Lock();
             Application["UsersOnline"] = (int)Application["UsersOnline"] - 1;
             Application.UnLock();
+        }
+
+        /// <summary>
+        /// The Application_EndRequest is called 
+        /// </summary>
+        /// <param name="sender">
+        /// The sender.
+        /// </param>
+        /// <param name="e">
+        /// The e.
+        /// </param>
+        protected void Application_EndRequest(object sender, EventArgs e)
+        {
+            // Iterate through any cookies found in the Response object.
+            foreach (string cookieName in this.Response.Cookies.AllKeys)
+            {
+                Response.Cookies[cookieName].Secure = true;
+            }
         }
 
         // Create our own utility for exceptions 
@@ -309,7 +388,12 @@ namespace egrants_new
                 sw.Close();
             }
 
-            // Notify System Operators about an exception 
+            /// <summary>
+            /// Notify System Operators about an exception 
+            /// </summary>
+            /// <param name="exc">
+            /// The exc.
+            /// </param>
             public static void NotifySystemOps(Exception exc)
             {
                 // Include code for notifying IT system operators
