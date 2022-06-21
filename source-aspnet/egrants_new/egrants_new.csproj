@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -26,6 +27,7 @@
     </NuGetPackageImportStamp>
     <Use64BitIISExpress />
     <WebGreaseLibPath>..\packages\WebGrease.1.5.2\lib</WebGreaseLibPath>
+    <TypeScriptToolsVersion>4.4</TypeScriptToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -187,21 +189,11 @@
   <ItemGroup>
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
-    <Content Include="Content\bootstrap-grid.rtl.css" />
-    <Content Include="Content\bootstrap-grid.rtl.min.css" />
     <Content Include="Content\bootstrap-reboot.css" />
     <Content Include="Content\bootstrap-reboot.min.css" />
-    <Content Include="Content\bootstrap-reboot.rtl.css" />
-    <Content Include="Content\bootstrap-reboot.rtl.min.css" />
-    <Content Include="Content\bootstrap-utilities.css" />
-    <Content Include="Content\bootstrap-utilities.min.css" />
-    <Content Include="Content\bootstrap-utilities.rtl.css" />
-    <Content Include="Content\bootstrap-utilities.rtl.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.min_5_31.css" />
-    <Content Include="Content\bootstrap.rtl.css" />
-    <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\dataTables.bootstrap.min.css" />
     <Content Include="Content\dataTables.bootstrap.min.js" />
     <Content Include="Content\dataTables.bootstrap4.min.js" />
@@ -484,12 +476,6 @@
     <Content Include="scripts\ai.0.15.0-build58334.js" />
     <Content Include="scripts\ai.0.15.0-build58334.min.js" />
     <Content Include="scripts\bluebird.js" />
-    <Content Include="scripts\bootstrap.bundle.js" />
-    <Content Include="scripts\bootstrap.bundle.min.js" />
-    <Content Include="scripts\bootstrap.esm.js" />
-    <Content Include="scripts\bootstrap.esm.min.js" />
-    <Content Include="scripts\bootstrap.js" />
-    <Content Include="scripts\bootstrap.min.js" />
     <Content Include="Content\Grant Review Certification Form.pdf" />
     <Content Include="Content\eGrants Category Glossary.docx" />
     <Content Include="Egrants\Views\Go_to_Default.cshtml" />
@@ -523,20 +509,10 @@
     <Content Include="Egrants\Views\InstitutionalFiles_CreateDocs.cshtml" />
     <Content Include="Egrants\Views\InstitutionalFiles_OrgList.cshtml" />
     <Content Include="Egrants\Views\InstitutionalFiles_UpdateDocs.cshtml" />
-    <Content Include="Content\bootstrap.rtl.min.css.map" />
-    <Content Include="Content\bootstrap.rtl.css.map" />
     <Content Include="Content\bootstrap.min.css.map" />
     <Content Include="Content\bootstrap.css.map" />
-    <Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-utilities.rtl.css.map" />
-    <Content Include="Content\bootstrap-utilities.min.css.map" />
-    <Content Include="Content\bootstrap-utilities.css.map" />
-    <Content Include="Content\bootstrap-reboot.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-reboot.rtl.css.map" />
     <Content Include="Content\bootstrap-reboot.min.css.map" />
     <Content Include="Content\bootstrap-reboot.css.map" />
-    <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
     <None Include="packages.config" />
@@ -547,25 +523,112 @@
     <None Include="Properties\PublishProfiles\ProdNew.pubxml" />
     <None Include="Properties\PublishProfiles\Test.pubxml" />
     <None Include="Properties\PublishProfiles\Test45.pubxml" />
+    <Content Include="scripts\bootstrap.bundle.js" />
+    <Content Include="scripts\bootstrap.bundle.min.js" />
+    <Content Include="scripts\bootstrap.js" />
+    <Content Include="scripts\bootstrap.min.js" />
+    <Content Include="scripts\esm\popper-utils.js" />
+    <Content Include="scripts\esm\popper-utils.min.js" />
+    <Content Include="scripts\esm\popper.js" />
+    <Content Include="scripts\esm\popper.min.js" />
+    <Content Include="scripts\index.js.flow" />
+    <Content Include="scripts\esm\popper.min.js.map" />
+    <Content Include="scripts\esm\popper.js.map" />
+    <Content Include="scripts\esm\popper-utils.min.js.map" />
+    <Content Include="scripts\esm\popper-utils.js.map" />
     <Content Include="scripts\bootstrap.min.js.map" />
     <Content Include="scripts\bootstrap.js.map" />
-    <Content Include="scripts\bootstrap.esm.min.js.map" />
-    <Content Include="scripts\bootstrap.esm.js.map" />
     <Content Include="scripts\bootstrap.bundle.min.js.map" />
     <Content Include="scripts\bootstrap.bundle.js.map" />
     <None Include="scripts\jquery-1.9.1.intellisense.js" />
     <Content Include="scripts\EgrantsToggle_to_be_deleted.js" />
+    <None Include="scripts\jquery-3.0.0-vsdoc.js" />
+    <Content Include="scripts\jquery-3.0.0.js" />
+    <Content Include="scripts\jquery-3.0.0.min.js" />
+    <Content Include="scripts\jquery-3.0.0.slim.js" />
+    <Content Include="scripts\jquery-3.0.0.slim.min.js" />
     <Content Include="scripts\jquery-ui.min.js" />
     <Content Include="scripts\jquery-uiAyu.js" />
     <Content Include="scripts\jquery.min.js" />
     <Content Include="scripts\EgrantsCatsZone.js" />
     <Content Include="scripts\locatefile.js" />
+    <Content Include="scripts\popper-utils.js" />
+    <Content Include="scripts\popper-utils.min.js" />
+    <Content Include="scripts\popper.js" />
+    <Content Include="scripts\popper.min.js" />
     <Content Include="scripts\ProgressBar.js" />
     <Content Include="scripts\dragdrop.js" />
     <Content Include="scripts\jquery-1.7.2.js" />
     <Content Include="scripts\jquery-1.9.1.js" />
     <Content Include="scripts\jquery.validate.js" />
     <Content Include="scripts\EgrantsQC.js" />
+    <Content Include="scripts\src\index.js" />
+    <Content Include="scripts\src\methods\defaults.js" />
+    <Content Include="scripts\src\methods\destroy.js" />
+    <Content Include="scripts\src\methods\disableEventListeners.js" />
+    <Content Include="scripts\src\methods\enableEventListeners.js" />
+    <Content Include="scripts\src\methods\placements.js" />
+    <Content Include="scripts\src\methods\update.js" />
+    <Content Include="scripts\src\modifiers\applyStyle.js" />
+    <Content Include="scripts\src\modifiers\arrow.js" />
+    <Content Include="scripts\src\modifiers\computeStyle.js" />
+    <Content Include="scripts\src\modifiers\flip.js" />
+    <Content Include="scripts\src\modifiers\hide.js" />
+    <Content Include="scripts\src\modifiers\index.js" />
+    <Content Include="scripts\src\modifiers\inner.js" />
+    <Content Include="scripts\src\modifiers\keepTogether.js" />
+    <Content Include="scripts\src\modifiers\offset.js" />
+    <Content Include="scripts\src\modifiers\preventOverflow.js" />
+    <Content Include="scripts\src\modifiers\shift.js" />
+    <Content Include="scripts\src\utils\clockwise.js" />
+    <Content Include="scripts\src\utils\computeAutoPlacement.js" />
+    <Content Include="scripts\src\utils\debounce.js" />
+    <Content Include="scripts\src\utils\find.js" />
+    <Content Include="scripts\src\utils\findCommonOffsetParent.js" />
+    <Content Include="scripts\src\utils\findIndex.js" />
+    <Content Include="scripts\src\utils\getBordersSize.js" />
+    <Content Include="scripts\src\utils\getBoundaries.js" />
+    <Content Include="scripts\src\utils\getBoundingClientRect.js" />
+    <Content Include="scripts\src\utils\getClientRect.js" />
+    <Content Include="scripts\src\utils\getFixedPositionOffsetParent.js" />
+    <Content Include="scripts\src\utils\getOffsetParent.js" />
+    <Content Include="scripts\src\utils\getOffsetRect.js" />
+    <Content Include="scripts\src\utils\getOffsetRectRelativeToArbitraryNode.js" />
+    <Content Include="scripts\src\utils\getOppositePlacement.js" />
+    <Content Include="scripts\src\utils\getOppositeVariation.js" />
+    <Content Include="scripts\src\utils\getOuterSizes.js" />
+    <Content Include="scripts\src\utils\getParentNode.js" />
+    <Content Include="scripts\src\utils\getPopperOffsets.js" />
+    <Content Include="scripts\src\utils\getReferenceNode.js" />
+    <Content Include="scripts\src\utils\getReferenceOffsets.js" />
+    <Content Include="scripts\src\utils\getRoot.js" />
+    <Content Include="scripts\src\utils\getRoundedOffsets.js" />
+    <Content Include="scripts\src\utils\getScroll.js" />
+    <Content Include="scripts\src\utils\getScrollParent.js" />
+    <Content Include="scripts\src\utils\getStyleComputedProperty.js" />
+    <Content Include="scripts\src\utils\getSupportedPropertyName.js" />
+    <Content Include="scripts\src\utils\getViewportOffsetRectRelativeToArtbitraryNode.js" />
+    <Content Include="scripts\src\utils\getWindow.js" />
+    <Content Include="scripts\src\utils\getWindowSizes.js" />
+    <Content Include="scripts\src\utils\includeScroll.js" />
+    <Content Include="scripts\src\utils\index.js" />
+    <Content Include="scripts\src\utils\isBrowser.js" />
+    <Content Include="scripts\src\utils\isFixed.js" />
+    <Content Include="scripts\src\utils\isFunction.js" />
+    <Content Include="scripts\src\utils\isIE.js" />
+    <Content Include="scripts\src\utils\isModifierEnabled.js" />
+    <Content Include="scripts\src\utils\isModifierRequired.js" />
+    <Content Include="scripts\src\utils\isNumeric.js" />
+    <Content Include="scripts\src\utils\isOffsetContainer.js" />
+    <Content Include="scripts\src\utils\removeEventListeners.js" />
+    <Content Include="scripts\src\utils\runModifiers.js" />
+    <Content Include="scripts\src\utils\setAttributes.js" />
+    <Content Include="scripts\src\utils\setStyles.js" />
+    <Content Include="scripts\src\utils\setupEventListeners.js" />
+    <Content Include="scripts\umd\popper-utils.js" />
+    <Content Include="scripts\umd\popper-utils.min.js" />
+    <Content Include="scripts\umd\popper.js" />
+    <Content Include="scripts\umd\popper.min.js" />
     <Content Include="scripts\validation.js" />
     <Content Include="DefaultRedirectErrorPage.aspx" />
     <Content Include="Http404ErrorPage.aspx" />
@@ -586,6 +649,18 @@
     <Content Include="HttpErrorPage.aspx" />
     <Content Include="Shared\Views\Go_to_Default.cshtml" />
     <Content Include="Shared\Views\_egrants_header.cshtml" />
+    <Content Include="scripts\jquery-3.0.0.slim.min.map" />
+    <Content Include="scripts\jquery-3.0.0.min.map" />
+    <Content Include="scripts\umd\popper.min.js.map" />
+    <Content Include="scripts\umd\popper.js.map" />
+    <Content Include="scripts\umd\popper.js.flow" />
+    <Content Include="scripts\umd\popper-utils.min.js.map" />
+    <Content Include="scripts\umd\popper-utils.js.map" />
+    <Content Include="scripts\README.md" />
+    <Content Include="scripts\popper.min.js.map" />
+    <Content Include="scripts\popper.js.map" />
+    <Content Include="scripts\popper-utils.min.js.map" />
+    <Content Include="scripts\popper-utils.js.map" />
     <None Include="Web.config">
       <SubType>Designer</SubType>
     </None>
@@ -729,6 +804,12 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="scripts\index.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -737,6 +818,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <ProjectExtensions>
