@@ -13,10 +13,10 @@
     <title></title>
 
     <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
-    <link href="~/Content/bootstrap.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
 
-    <script src="~/scripts/jquery-1.9.1.js"></script>
-    <script src="~/scripts/bootstrap.js"></script>
+    <script src="~/scripts/jquery.min.js"></script>
+    <script src="~/scripts/bootstrap.min.js"></script>
     <script src="~/scripts/validation.js"></script>
     @*<script src="~/scripts/bootstrap.min.js"></script>*@
     <script>
@@ -61,19 +61,19 @@
 
     </script>
     <style>
-        .navbar-default {
-            border-bottom: none !important;         
-        }
-
-        .navbar {
-            background-color: #808080 !important;
-        }
-
-        .navbar .nav li span {
-            color: #ffffff !important;
-            font: Arial !important;
-            font-size: large !important;
-        }
+        /* .navbar-default { */
+        /*     border-bottom: none !important;          */
+        /* } */
+        /* */
+        /* .navbar { */
+        /*     background-color: #808080 !important; */
+        /* } */
+        /* */
+        /* .navbar .nav li span { */
+        /*     color: #ffffff !important; */
+        /*     font: Arial !important; */
+        /*     font-size: large !important; */
+        /* } */
 
         #loginas {
             color: dimgray !important;
@@ -91,9 +91,9 @@
             border-top: 4px solid white !important;
         }
 
-        .eGrantsDDbkgrnd {
-            background-color: #808080 !important;
-        }
+        /* .eGrantsDDbkgrnd { */
+        /*     background-color: #808080 !important; */
+        /* } */
 
         .eGrantsUpldBtnColor {       
             background-color: #1D8215 !important;  
@@ -147,11 +147,14 @@
     </div>
     <div class="row">
         <div class="col-lg-12">
-           <nav class="navbar navbar-expand-lg navbar-light bg-light">
+           <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
               @if (Convert.ToInt16(Session["position_id"]) >= 1)
               {
-                 <a href="#" title="Quick Links [shift + alt + L]" accesskey="L" Onclick="toggleleftpanel()" id="QuickLinksS"><span>Quick Links</span><span class="caret eGrantsWhiteTxt"></span></a>
+                 <a class="navbar-brand" href="#" title="Quick Links [shift + alt + L]" accesskey="L" Onclick="toggleleftpanel()" id="QuickLinksS">Quick Links</a>
               }
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavBar" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                 <span class="navbar-toggler-icon"></span>
+              </button>
               <div class="collapse navbar-collapse" id="mainNavBar">
                  <ul class="navbar-nav mr-auto">
                     @* <li> *@
@@ -171,23 +174,28 @@
                                 string[] str = s.ToString().Split('|');
                                 if (c.Length > 1)
                                 {
-                                   <li class="nav-item"><a class="nav-link" title="@str[0] [shift + alt + @str[1]]" accesskey="@str[1]" target="_top" href="@Url.Action("Index", c.ToString().Replace(" ", ""))"><span>@c</span></a></li>
+                                   <li class="nav-item"><a class="nav-link" title="@str[0] [shift + alt + @str[1]]" accesskey="@str[1]" target="_top" href="@Url.Action("Index", c.ToString().Replace(" ", ""))">@c</a></li>
                                 }
                              }
                           }
                        }
                     }
-                    <li class="nav-item"><a class="nav-link" title="Institutional Files [shift + alt + F]" accesskey="F" target="_top" href="@Url.Action("Index", "InstitutionalFiles")"><span>Institutional Files</span></a></li>
+                    <li class="nav-item"><a class="nav-link" title="Institutional Files [shift + alt + F]" accesskey="F" target="_top" href="@Url.Action("Index", "InstitutionalFiles")">Institutional Files</a></li>
+                    @* <span>Institutional Files</span> *@
+
                     <li class="nav-item dropdown">
-                       <a class="nav-link dropdown-toggle eGrantsDDbkgrnd" id="navDropDown1" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Resources [shift + alt + R]"><span>Resources</span><span class="caret eGrantsWhiteTxt"></span></a>
-                       <div class="dropdown-menu" aria-labelledby="navDropDown1">
+                       <a class="nav-link dropdown-toggle" id="navDropDown" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Resources [shift + alt + R]">
+                          Resources
+                          @* <span>Resources</span><span class="caret eGrantsWhiteTxt"></span> *@
+                       </a>
+                       <div class="dropdown-menu" aria-labelledby="navDropDown">
                           <a class="dropdown-item" target="_new" href="~/Content/eGrants Category Glossary.docx" title="eGrants Glossary">eGrants Glossary</a>
                           <a class="dropdown-item" target="_new" href="~/Content/access_number2.pdf" title="Accession">Accession</a>
                           <a class="dropdown-item" target="_self" href="~/EgrantsFunding/funding_index" title="Funding Files">Funding Files</a>
                        </div>
                     </li>
                     <li class="nav-item dropdown">
-                       <a href="#" class="nav-link dropdown-toggle" id="navDropDown2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="H" title="Help [shift + alt + H]"><span>Help</span><span class="caret eGrantsWhiteTxt"></span></a>
+                       <a href="#" class="nav-link dropdown-toggle" id="navDropDown2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="H" title="Help [shift + alt + H]">Help</a>
                        <div class="dropdown-menu" aria-labelledby="navDropDown2">
                           <a class="dropdown-item" href="mailto:egrantsissues@mail.nih.gov" title="Send email to Technical Support Team">Technical Support</a>
                           <a class="dropdown-item" target="_new" href="~/Content/eGrants Help Guide.pdf" title="Help Guide">Help Guide</a>
@@ -206,20 +214,20 @@
             @if (Convert.ToInt16(Session["position_id"]) >=2)
             {
                 <ul class="nav nav-pills nav-stacked" id="leftpanelS">
-                    <li><a target="_blank" href="https://nciconnect.nci.nih.gov/sites/oga/SitePages/Home.aspx" title="my OGA">myOGA</a></li>
+                    <li class="nav-item"><a class="nav-link" target="_blank" href="https://nciconnect.nci.nih.gov/sites/oga/SitePages/Home.aspx" title="my OGA">myOGA</a></li>
                    
-                    <li><a target="_blank" href="https://apps.era.nih.gov/gmii/search/view.era?menu_itemPath=36" title="eRA GM">eRA GM</a></li>
+                    <li class="nav-item"><a class="nav-link" target="_blank" href="https://apps.era.nih.gov/gmii/search/view.era?menu_itemPath=36" title="eRA GM">eRA GM</a></li>
                  
-                    <li><a target="_blank" href="https://pms.psc.gov/" title="PMS">PMS</a></li>                
+                    <li class="nav-item"><a class="nav-link" target="_blank" href="https://pms.psc.gov/" title="PMS">PMS</a></li>                
                 </ul>
             }
 
             @if (Convert.ToInt16(Session["position_id"]) == 1)
             {
                 <ul class="nav nav-pills nav-stacked" id="leftpanelP">
-                    <li><a target="_blank" href="https://apps.era.nih.gov/pmm/search.era" title="PMM">PMM</a></li>
+                    <li class="nav-item"><a class="nav-link" target="_blank" href="https://apps.era.nih.gov/pmm/search.era" title="PMM">PMM</a></li>
                   
-                    <li><a target="_blank" href="https://apps.era.nih.gov/qvr/web/home_main.cfm" title="QVR">QVR</a></li>
+                    <li class="nav-item"><a class="nav-link" target="_blank" href="https://apps.era.nih.gov/qvr/web/home_main.cfm" title="QVR">QVR</a></li>
                 
                     @*<li class="divider"></li>*@
                 </ul>
