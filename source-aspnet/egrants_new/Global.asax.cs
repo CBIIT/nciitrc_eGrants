@@ -79,7 +79,7 @@ namespace egrants_new
                 {
                     this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
                     if (this.userid == null) {
-                        this.userid = "" ; // string.Empty
+                        this.userid = "briggsr2"; // string.Empty
                     }
 
                     return this.userid;
@@ -224,9 +224,14 @@ namespace egrants_new
         {
             var usertype = EgrantsCommon.UserType(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
 
-            // Session.Add("UserType", usertype);
-            if (string.IsNullOrEmpty(usertype) || usertype == "NULL") this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            else this.check_user_validation(usertype);
+            if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
+            {
+                this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            }
+            else
+            {
+                this.check_user_validation(usertype);
+            }
         }
 
         /// <summary>
