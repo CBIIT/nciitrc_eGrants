@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using System.Data;
-using System.Web.Script.Serialization;
-using System.Text.RegularExpressions;
 using System.Configuration;
 using System.Data.SqlClient;
 using egrants_new.Models;
 using egrants_new.Egrants.Models;
-using System.Web;
+//using System.Text.Json;
+
+using Newtonsoft.Json;
 
 namespace egrants_new.Controllers
 {
@@ -44,17 +44,18 @@ namespace egrants_new.Controllers
         //get all appls list for appls toggle by grant_id
         public string LoadAllAppls(int grant_id)
         {
-            List<string> applslist = EgrantsAppl.GetAllAppls(grant_id);
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            return js.Serialize(applslist);
+            List<string> list = EgrantsAppl.GetAllAppls(grant_id);
+            
+            //JavaScriptSerializer js = new JavaScriptSerializer();
+            return JsonConvert.SerializeObject(list);//Serialize(applslist);
         }
 
         //get 12 appls list for appls toggle by grant_id
         public string LoadDefaultAppls(int grant_id)
         {
-            List<string> applslist = EgrantsAppl.GetDefaultAppls(grant_id);
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            return js.Serialize(applslist);
+            List<string> list = EgrantsAppl.GetDefaultAppls(grant_id);
+            //JavaScriptSerializer js = new JavaScriptSerializer();
+            return JsonConvert.SerializeObject(list);
         }
 
         //get appls list with documents by (admin_code and serial_num) commented out by Leon at 3/15/2019
@@ -68,25 +69,25 @@ namespace egrants_new.Controllers
         //get appls list with documents by (admin_code and serial_num) added by Ayu at 3/15/2019
         public string LoadYears(string fy = null, string mechanism = null, string admin_code = null, string serial_num = null)   //string fy, string mechan, s
         {
-            List<string> yearlist = Egrants.Models.Egrants.GetYearList(fy, mechanism, admin_code, serial_num);
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            return js.Serialize(yearlist);
+            List<string> list = Egrants.Models.Egrants.GetYearList(fy, mechanism, admin_code, serial_num);
+            //JavaScriptSerializer js = new JavaScriptSerializer();
+            return JsonConvert.SerializeObject(list);
         }
 
         //load all appls list with or without documents
         public string GetAllApplsList(string admin_code, string serial_num)   //string fy, string mechan, s
         {
-            List<string> yearlist = Egrants.Models.EgrantsAppl.GetAllApplsList(admin_code, serial_num);
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            return js.Serialize(yearlist);
+            List<string> list = Egrants.Models.EgrantsAppl.GetAllApplsList(admin_code, serial_num);
+            //JavaScriptSerializer js = new JavaScriptSerializer();
+            return JsonConvert.SerializeObject(list);
         }
         
         //get category list by grant_id and years
         public string LoadCategories(int grant_id, string years)
         {
-            List<string> CategoryList = Egrants.Models.Egrants.GetCategoryList(grant_id, years);
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            return js.Serialize(CategoryList);
+            List<string> list = Egrants.Models.Egrants.GetCategoryList(grant_id, years);
+            //JavaScriptSerializer js = new JavaScriptSerializer();
+            return JsonConvert.SerializeObject(list);
         }
 
         public ActionResult by_str(string str, string mode = null)
