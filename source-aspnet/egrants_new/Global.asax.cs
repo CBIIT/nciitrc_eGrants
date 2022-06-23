@@ -79,7 +79,7 @@ namespace egrants_new
                 {
                     this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
                     if (this.userid == null) {
-                        this.userid = "briggsr2"; // string.Empty
+                        this.userid = ""; // string.Empty
                     }
 
                     return this.userid;
