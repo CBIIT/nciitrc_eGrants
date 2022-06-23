@@ -819,6 +819,11 @@
     <Content Include="scripts\bootstrap.js.map" />
     <Content Include="scripts\bootstrap.bundle.min.js.map" />
     <Content Include="scripts\bootstrap.bundle.js.map" />
+    <None Include="scripts\jquery-3.6.0.intellisense.js" />
+    <Content Include="scripts\jquery-3.6.0.js" />
+    <Content Include="scripts\jquery-3.6.0.min.js" />
+    <Content Include="scripts\jquery-3.6.0.slim.js" />
+    <Content Include="scripts\jquery-3.6.0.slim.min.js" />
     <Content Include="scripts\jquery-ui.min.js" />
     <Content Include="scripts\jquery.min.js" />
     <Content Include="scripts\EgrantsCatsZone.js" />
@@ -934,6 +939,8 @@
     <Content Include="scripts\popper-utils.js.map" />
     <Content Include="scripts\moment.min.js.map" />
     <Content Include="scripts\moment-with-locales.min.js.map" />
+    <Content Include="scripts\jquery-3.6.0.slim.min.map" />
+    <Content Include="scripts\jquery-3.6.0.min.map" />
     <None Include="Web.config">
       <SubType>Designer</SubType>
     </None>
