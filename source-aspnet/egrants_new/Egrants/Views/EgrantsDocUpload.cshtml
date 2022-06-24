@@ -199,11 +199,11 @@
         <b id="page_title">Replace Document</b>
     </div>
     <form name="frmGetInfo">
-        <input type="hidden" id="hidApplID" name="appl_id" value="@ViewBag.ApplId" />
-        <input type="hidden" id="hidDocID" name="document_id" value="@ViewBag.DocId" />
-        <input type="hidden" id="hidDocDate" name="document_date" value="@ViewBag.DocDate" />
-        <input type="hidden" id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
-        <input type="hidden" id="hidEgrantsEmail" name="egrants_email" value=@Convert.ToString(Session["egrantsDocEmail"])>
+        <input type="text" hidden id="hidApplID" name="appl_id" value="@ViewBag.ApplId" />
+        <input type="text" hidden id="hidDocID" name="document_id" value="@ViewBag.DocId" />
+        <input type="text" hidden id="hidDocDate" name="document_date" value="@ViewBag.DocDate" />
+        <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
+        <input type="text" hidden id="hidEgrantsEmail" name="egrants_email" value=@Convert.ToString(Session["egrantsDocEmail"])>
     </form>
 
     <!--start upload document-->
