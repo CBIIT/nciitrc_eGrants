@@ -116,8 +116,8 @@
 
     <div id="main" style="margin:0;padding:0;">
         <form name="frmGetInfo">
-            <input type="hidden" id="hidDocID" name="document_id" value="@ViewBag.DocId" />
-            <input type="hidden" id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
+            <input type="text" hidden id="hidDocID" name="document_id" value="@ViewBag.DocId" />
+            <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
         </form>
 
         <!--start upload document-->

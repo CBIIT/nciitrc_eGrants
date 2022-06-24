@@ -147,9 +147,9 @@
 </script>
 
 <form name="frmInfo">
-    <input type="hidden" id="hidStartDate" value="@ViewBag.StartDate" />
-    <input type="hidden" id="hidEndDate" value="@ViewBag.EndDate" />
-    <input type="hidden" id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" />
+    <input type="text" hidden id="hidStartDate" value="@ViewBag.StartDate" />
+    <input type="text" hidden id="hidEndDate" value="@ViewBag.EndDate" />
+    <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" />
 </form>
 
 <div id="main">

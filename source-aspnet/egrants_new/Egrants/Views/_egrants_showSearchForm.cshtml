@@ -204,8 +204,7 @@
             $('#SerialNumber').val('');
             $('#SerialNumber').attr('disabled', true);
             $('#Year').empty();
-            $('#Year').attr('disabled', true);
-            //$('#searchfilter').children().attr('disabled', true);
+           $('#Year').attr('disabled', true);
         });
     });
 
@@ -223,7 +222,6 @@
             $('#SerialNumber').attr('disabled', true);
             $('#Year').empty();
             $('#Year').attr('disabled', true);
-            //$('#searchfilter').children().attr('disabled', true);
         });
     });
 
@@ -244,7 +242,6 @@
                 $('#Year').empty();
                 $('#Year').attr('disabled', false);
                 $('#txtKW').val('');
-                //$('#searchfilter').children().attr('disabled', false);
             });
     });
 
@@ -254,7 +251,6 @@
             {
                 AdminCode = $('#AdminCode').val();
                 Mechanism = $('#Mechanism').val();
-                //SerialNumber = Number($('#SerialNumber').change().val().toString());
                 SerialNumber = $('#SerialNumber').change().val();
                 FiscalYear = $('#FiscalYear').val();
 
@@ -274,7 +270,6 @@
                         var AdminCode = $('#AdminCode').change().val();
                         var Mechanism = $('#Mechanism').change().val();
                         var SerialNumber = $('#SerialNumber').change().val();
-                        //var SerialNumber = Number($('#SerialNumber').change().val().toString());
                         var FiscalYear = $('#FiscalYear').change().val();
                         //alert(Mechanism);
                         $('#FiscalYear').autocomplete({
@@ -304,7 +299,6 @@
                         var AdminCode = $('#AdminCode').change().val();
                         var Mechanism = $('#Mechanism').change().val();
                         var SerialNumber = $('#SerialNumber').change().val();
-                        //var SerialNumber = Number($('#SerialNumber').change().val().toString());
                         var FiscalYear = $('#FiscalYear').change().val();
                         //Mechanism = "R56";
                         //alert(Mechanism);
@@ -342,68 +336,186 @@
         document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
     } /*--Ayu*/
 
+
 </script>
-<div id="searchform" style="display:inline; float:left; width:900px;">
-    <form name="GetFiltersInfo">
-        <input type="hidden" id="hidFilterFY" name="FY" value="@ViewBag.FilterFY" />
-        <input type="hidden" id="hidFilterMechanism" name="FY" value="@ViewBag.FilterMechanism" />
-    </form>
-    @*<br/>*@
+@*<div id="searchform" style="display: inline; float: left; width: 900px;">*@
+<div id="searchform">
+   <form name="GetFiltersInfo">
+      <input type="text" id="hidFilterFY" name="FY" value="@ViewBag.FilterFY" hidden />
+      <input type="text" id="hidFilterMechanism" name="FY" value="@ViewBag.FilterMechanism" hidden />
+   </form>
+   @*<br/>*@
 
-    @if (ViewBag.grantlayer != null && ViewBag.grantlayer.Count > 0)
-    {
-        @*<img name="Dividing line" style="width:900px; height:5px; border-top:double; border-top-color:currentColor;padding:5px" />*@
-        <div id="Dividing line" style="border-top:double; min-height:15px; width:900px;  float:left; display:inline;"></div><br />
-    }
+   @if (ViewBag.grantlayer != null && ViewBag.grantlayer.Count > 0)
+   {
+      <div id="Dividing line" style="border-top: double; min-height: 15px; width: 900px; float: left; display: inline;"></div><br />
+   }
+   
+   @* <form onSubmit="return search()" method="get" action="~/Egrants/by_str"> *@
+   @*    <div class="form-row"> *@
+   @*       <div class="col"> *@
+   @*          <input type="text" class="form-control" placeholder="First name"> *@
+   @*       </div> *@
+   @*       <div class="col"> *@
+   @*          <input type="text" class="form-control" placeholder="Last name"> *@
+   @*       </div> *@
+   @*    </div> *@
+   @* </form> *@
 
-    <form class="form-horizontal" name="frmSearch" onSubmit="return search()" method="get" action="~/Egrants/by_str">
-        <fieldset>
-            <div class="form-inline">
-                @*style="margin:15px"*@
-                <label for="search" id="lblSearch">Keyword Search:</label>
-                <input type="text" id="txtKW" name="str" class="form-control" style="height:30px; width:430px; align-self:center" placeholder="Serial #, Grant #, PI name etc." title="Enter Key Word to search" />
-                <button type="button" id="btnsearch" style="border-radius:5px;background-color:#4169e1;font-size:medium;height:35px;width:80px;margin-left:135px" accesskey="S" class="btn btn-primary btn-sm" onclick="JavaScript:return search()"><u>S</u>earch</button>&#0160;@*@*title="Search by Key Word or Filters [shift + alt + S]" Ayu*@
-                <button type="button" id="btnclear" style="border-radius:5px;background-color:#4169e1;font-size:medium;height:35px;width:90px;margin-left:20px" accesskey="C" class="btn btn-primary btn-sm" title="Reset Search Input"><u>C</u>lear</button>
-                <br />
-            </div>
-            @*&#0160;&#0160;&#0160;&#0160;<b>OR</b> style="margin:15px;"*@
-            <div class="form-inline" id="searchfilter">
-                <div><b style="color:darkblue">OR</b></div>
-                <div>
-                    <label style="margin-left:80px"><b>FY</b></label>
-                    <label style="margin-left:40px"><b>Mechanism</b></label>
-                    <label style="margin-left:40px"><b>IC</b></label>
-                    <label style="margin-left:50px"><b>Serial Number</b></label>
-                    <label style="margin-left:100px"><b>Year</b></label>
-                </div>
-                <div>
-                    <b>@Html.Label("Filters:")</b>
-                    @Html.TextBox("FiscalYear", "", new { @class = "form-control", style = "width:80px;height=10px;margin-right:10px", placeholder = "FY" })
-                    @Html.TextBox("Mechanism", "", new { @class = "form-control", style = "width:80px;height=10px;margin-right:10px", placeholder = "Mechanism" })
-                    <select name="admincode" id="AdminCode" class="form-control" style="width:75px; height:35px;margin-right:10px" size="1" title="Select admin phs org code">
-                        <option id="0" value=""></option>
-                        @foreach (var AdminCodes in ViewBag.ICList)
-                        {
-                            <option value="@AdminCodes.admin_phs_org_code">@AdminCodes.admin_phs_org_code</option>
-                        }
-                    </select>
-                    @Html.TextBox("SerialNumber", "", new { @class = "form-control", style = "width:110px;height=10px;margin-right:10px", placeholder = "Serial No" })
-                    @Html.DropDownList("Year", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:200px; height=10px; font-size:16px;", onchange = "show_appl()" })
-                    @if (Convert.ToInt16(Session["position_id"]) > 1)
-                    {
-                        <button type="button" style="border-radius:5px;background-color:#008b8b;font-size:medium; height:35px;width:150px;margin-left:80px" accesskey="O" class="btn btn-primary btn-sm" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button>  @*Ayu*@
-                    }
-                </div>
-            </div>
-            <br />
-        </fieldset>
-    </form>
+   <form name="frmSearch" onSubmit="return search()" method="get" action="~/Egrants/by_str">
+      
 
-    @if (ViewBag.grantlayer != null && ViewBag.grantlayer.Count > 0)
-    {
-        @*<img name="Dividing line" style="width:900px; height:5px;border-bottom:groove; border-color:darkgrey;padding:5px" />*@
-        <div id="Dividing line" style="border-bottom:groove; border-color:darkgrey;  width:900px; padding-left:20px; float:left; "></div>
-    }
+      @* <fieldset> *@
+      @* <div class="form-inline"> *@
+      <!--<table class="table table-sm table-borderless">-->
+      @* <caption>* Select QC reason and assign it to particular specialist</caption> *@
+      <!--<thead>
+      <tr>
+         <th scope="col">Search for Grant:</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+         <td>
+         </td>
+      </tr>
+      </tbody>
+      </table>-->
+
+
+      <div class="form-inline">
+         @* <div class="form-group"> *@
+         <label class="my-1 mr-2" for="txtKW"><b>Keyword Search</b></label>
+         <input type="text" id="txtKW" name="str" class="form-control my-1 mr-sm-2" placeholder="Serial #, Grant #, PI Name etc..." title="Enter Keyword to search"/>
+         <button type="button" id="btnsearch" accesskey="S" class="btn btn-primary my-1 mr-2" onclick="JavaScript:return search()"><u>S</u>earch</button>
+         <button type="button" id="btnclear" accesskey="C" class="btn btn-primary my-1" title="Reset Search Input"><u>C</u>lear</button>
+        @* </div> *@
+      </div>
+      <div class="form-row">
+         <label><strong>Filters</strong></label>
+   </div>
+
+      <div class="form-row">
+         <div class="form-inline">
+            <label style = "width:80px;margin-right:10px"><b>FY</b></label>
+            <label style = "width:100px;margin-right:10px"><b>Mechanism</b></label>
+            <label style = "width:75px;margin-right:10px"><b>IC</b></label>
+            <label style = "width:150px;margin-right:10px"><b>Serial Number</b></label>
+            <label style = "width:200px;"><b>Year</b></label>
+         </div>
+      </div>
+
+      <div class="form-inline">
+         @Html.TextBox("FiscalYear", "", new { @class = "form-control", style = "width:80px;margin-right:10px;margin-bottom:5px", placeholder = "FY" })
+         @Html.TextBox("Mechanism", "", new { @class = "form-control", style = "width:100px;margin-right:10px;margin-bottom:5px", placeholder = "Mechanism" })
+         <select name="admincode" id="AdminCode" class="form-control" style="width: 75px; margin-right: 10px; margin-bottom: 5px" size="1" title="Select admin phs org code">
+            <option id="0" value=""></option>
+            @foreach (var AdminCodes in ViewBag.ICList)
+            {
+               <option value="@AdminCodes.admin_phs_org_code">@AdminCodes.admin_phs_org_code</option>
+            }
+         </select>
+         @Html.TextBox("SerialNumber", "", new { @class = "form-control", style = "width:150px;height=10px;margin-right:10px;margin-bottom:5px", placeholder = "Serial No" })
+         @Html.DropDownList("Year", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:200px; height=10px;;margin-bottom:5px", onchange = "show_appl()" })
+         @if (Convert.ToInt16(Session["position_id"]) > 1)
+         {
+            <button type="button" style="border-radius: 5px; background-color: #008b8b; font-size: medium; height: 35px; width: 150px; margin-left: 80px; margin-bottom: 5px" accesskey="O" class="btn btn-primary btn-sm" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button> @*Ayu*@
+         }
+      </div>
+
+      @* <div class="form-row"> *@
+      @*    <div class="form-inline"> *@
+      @*      <label><strong>FY</strong></label> *@
+      @*       @Html.TextBox("FiscalYear", "", new { @class = "form-control", style = "width:80px;margin-right:10px", placeholder = "FY" }) *@
+      @*    </div> *@
+      @*    <div class="col align-items-center"> *@
+      @*       <label><strong>FY</strong></label> *@
+      @*       @Html.TextBox("FiscalYear", "", new { @class = "form-control", style = "width:80px;margin-right:10px", placeholder = "FY" }) *@
+      @*    </div> *@
+      @*    <div class="col"> *@
+      @*       <label><strong>Mechanism</strong></label> *@
+      @*       @Html.TextBox("Mechanism", "", new { @class = "form-control", style = "width:80px;margin-right:10px", placeholder = "Mechanism" }) *@
+      @*    </div> *@
+      @*    <div class="col"> *@
+      @*       <label><strong>IC</strong></label> *@
+      @*       <select name="admincode" id="AdminCode" class="form-control" style="width: 75px; margin-right: 10px" size="1" title="Select admin phs org code"> *@
+      @*          <option id="0" value=""></option> *@
+      @*          @foreach (var AdminCodes in ViewBag.ICList) *@
+      @*          { *@
+      @*             <option value="@AdminCodes.admin_phs_org_code">@AdminCodes.admin_phs_org_code</option> *@
+      @*          } *@
+      @*       </select> *@
+      @*    </div> *@
+      @*    <div class="col"> *@
+      @*       <label><strong>Serial Number</strong></label> *@
+      @*       @Html.TextBox("SerialNumber", "", new { @class = "form-control", style = "width:110px;height=10px;margin-right:10px", placeholder = "Serial No" }) *@
+      @*    </div> *@
+      @*    <div class="col"> *@
+      @*       <label><strong>Year</strong></label> *@
+      @*       @Html.DropDownList("Year", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:200px; height=10px; font-size:16px;", onchange = "show_appl()" }) *@
+      @*       @if (Convert.ToInt16(Session["position_id"]) > 1) *@
+      @*       { *@
+      @*          <button type="button" style="border-radius: 5px; background-color: #008b8b; font-size: medium; height: 35px; width: 150px; margin-left: 80px" accesskey="O" class="btn btn-primary btn-sm" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button> $1$Ayu#1# *@
+      @*       } *@
+      @*    </div> *@
+
+      @* </div> *@
+         @* <div class="form-group"> *@
+         @*    <label style="margin-left: 80px"><b>FY</b></label> *@
+         @*    <label style="margin-left: 40px"><b>Mechanism</b></label> *@
+         @*    <label style="margin-left: 40px"><b>IC</b></label> *@
+         @*    <label style="margin-left: 50px"><b>Serial Number</b></label> *@
+         @*    <label style="margin-left: 100px"><b>Year</b></label> *@
+         @* </div> *@
+      @* </div> *@
+         @* <div class="form-group row col-auto"> *@
+         @*    <button type="button" id="btnsearch" accesskey="S" class="btn btn-primary" onclick="JavaScript:return search()"><u>S</u>earch</button> *@
+         @*    <button type="button" id="btnclear" accesskey="C" class="btn btn-primary" title="Reset Search Input"><u>C</u>lear</button> *@
+         @* </div> *@
+
+         @* <label for="txtKW" id="lblSearch">Keyword Search: </label> *@
+         @* <input type="text" id="txtKW" name="str" class="form-control" style="width: 430px;" placeholder="Serial #, Grant #, PI name etc." title="Enter Key Word to search"/> *@
+         @* <button type="button" id="btnsearch" accesskey="S" class="btn btn-primary" onclick="JavaScript:return search()"><u>S</u>earch</button>&#0160;@#1#*title="Search by Key Word or Filters [shift + alt + S]" Ayu#1# *@
+         @* <button type="button" id="btnclear" accesskey="C" class="btn btn-primary" title="Reset Search Input"><u>C</u>lear</button> *@
+         @* <br /> *@
+      @* </div> *@
+      @*&#0160;&#0160;&#0160;&#0160;<b>OR</b> style="margin:15px;"*@
+    @*  <div class="form-inline" id="searchfilter">*@
+         @*<div><b style="color: darkblue">OR</b></div>
+         <div>
+            <label style="margin-left: 80px"><b>FY</b></label>
+            <label style="margin-left: 40px"><b>Mechanism</b></label>
+            <label style="margin-left: 40px"><b>IC</b></label>
+            <label style="margin-left: 50px"><b>Serial Number</b></label>
+            <label style="margin-left: 100px"><b>Year</b></label>
+         </div>
+         <div>*@
+            @* <b>@Html.Label("Filters:")</b> *@
+            @* @Html.TextBox("FiscalYear", "", new { @class = "form-control", style = "width:80px;height=10px;margin-right:10px", placeholder = "FY" }) *@
+            @* @Html.TextBox("Mechanism", "", new { @class = "form-control", style = "width:80px;height=10px;margin-right:10px", placeholder = "Mechanism" })*@
+            @*<select name="admincode" id="AdminCode" class="form-control" style="width: 75px; height: 35px; margin-right: 10px" size="1" title="Select admin phs org code">
+         <option id="0" value=""></option>
+         @foreach (var AdminCodes in ViewBag.ICList)
+         {
+            <option value="@AdminCodes.admin_phs_org_code">@AdminCodes.admin_phs_org_code</option>
+         }
+      </select>*@
+            @*  @Html.TextBox("SerialNumber", "", new { @class = "form-control", style = "width:110px;height=10px;margin-right:10px", placeholder = "Serial No" })*@
+            @* @Html.DropDownList("Year", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:200px; height=10px; font-size:16px;", onchange = "show_appl()" })*@
+            @*   @if (Convert.ToInt16(Session["position_id"]) > 1)
+      @*  {
+        @*   <button type="button" style="border-radius: 5px; background-color: #008b8b; font-size: medium; height: 35px; width: 150px; margin-left: 80px" accesskey="O" class="btn btn-primary btn-sm" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button> @*Ayu*@
+           @*  } *@
+         @*</div>*@
+      @*</div>
+      <br/>*@
+      @* </fieldset> *@
+</form>
+
+   @if (ViewBag.grantlayer != null && ViewBag.grantlayer.Count > 0)
+   {
+      <div id="Dividing line" style="border-bottom: groove; border-color: darkgrey; width: 900px; padding-left: 20px; float: left;"></div>
+   }
 </div>
 
 <!--end egrants searching-->

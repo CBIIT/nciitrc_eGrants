@@ -318,15 +318,15 @@
 <div id="main" style="margin:0;padding:0;">
     <div id="caption" style="margin:0;padding:0;"><b id="page_title">Add New Document</b></div>
     <form name="frmGetInfo">
-        <input type="hidden" id="hidAct" name="act" value="create_new" />
-        <input type="hidden" id="hidAppl_id" name="appl_id" value="@ViewBag.applid" />
-        <input type="hidden" id="hidAdmincode" name="admin_code" value="@ViewBag.admincode" />
-        <input type="hidden" id="hidSerialnum" name="serial_num" value="@ViewBag.serialnum" />
-        <input type="hidden" id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
-        <input type="hidden" id="hidEgrantsemail" name="egrants_email" value=@Convert.ToString(Session["egrantsDocEmail"])>
-        <input type="hidden" id="hidMax_Categoryid" name="max_categoryid" value="@ViewBag.MaxCategoryid" />
-        <input type="hidden" id="hidPrevious_url" name="previous_url" value="@ViewBag.Previousurl" />
-        <input type="hidden" id="hidPossionID" name="position_id" value=@Convert.ToString(Session["position_id"]) />
+        <input type="text" hidden id="hidAct" name="act" value="create_new" />
+        <input type="text" hidden id="hidAppl_id" name="appl_id" value="@ViewBag.applid" />
+        <input type="text" hidden id="hidAdmincode" name="admin_code" value="@ViewBag.admincode" />
+        <input type="text" hidden id="hidSerialnum" name="serial_num" value="@ViewBag.serialnum" />
+        <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
+        <input type="text" hidden id="hidEgrantsemail" name="egrants_email" value=@Convert.ToString(Session["egrantsDocEmail"])>
+        <input type="text" hidden id="hidMax_Categoryid" name="max_categoryid" value="@ViewBag.MaxCategoryid" />
+        <input type="text" hidden id="hidPrevious_url" name="previous_url" value="@ViewBag.Previousurl" />
+        <input type="text" hidden id="hidPossionID" name="position_id" value=@Convert.ToString(Session["position_id"]) />
     </form>
 
     <!--start search form to create or update-->

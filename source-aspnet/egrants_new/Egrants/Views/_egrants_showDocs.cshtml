@@ -130,7 +130,7 @@
 </script>
 @{
     var appl_id = Model;
-    <div id="overlay"><img style="width:150px; height:150px; margin-left:400px; margin-top:150px;" src="../Content/images/Loading.gif" /></div>
+    <div id="overlay"><img style="width:150px; height:150px; margin-left:400px; margin-top:150px;" src="~/Content/images/Loading.gif" /></div>
 
     <div id="data_table">
         <div class="container">
@@ -145,13 +145,13 @@
                                     <div id='show_qc_all_@appl_id' style='display:none;'>
                                         @*class="show_qc_all"*@
                                         <a class='showmodeall' href='javascript:void(0);' title='show all qc mode'>
-                                            <img name='show_qc_all' style="height:30px;" src='../Content/images/plus.png' />
+                                            <img name='show_qc_all' style="height:30px;" src='~/Content/images/plus.png' />
                                         </a>
                                     </div>
                                     <div id='hide_qc_all_@appl_id' style='display:none;'>
                                         @*class="hide_qc_all"*@
                                         <a class='hidemodeall' href='javascript:void(0);' title='hide all qc mode'>
-                                            <img name='hide_qc_all' style="height:30px;" src='../Content/images/minus.png' />
+                                            <img name='hide_qc_all' style="height:30px;" src='~/Content/images/minus.png' />
                                         </a>
                                     </div>
                                 }

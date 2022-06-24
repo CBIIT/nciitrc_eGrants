@@ -229,9 +229,9 @@
 </script>
 
 <form name="frmGetInfo">
-    <input type="hidden" id="hidACT" name="act" value="@ViewBag.Act" />
-    <input type="hidden" id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
-    <input type="hidden" id="hidImageServer" name="MImageServer" value="@Convert.ToString(Session["ImageServer"])" />
+    <input type="text" hidden id="hidACT" name="act" value="@ViewBag.Act" />
+    <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
+    <input type="text" hidden id="hidImageServer" name="MImageServer" value="@Convert.ToString(Session["ImageServer"])" />
 </form>
 
 <div id="main">

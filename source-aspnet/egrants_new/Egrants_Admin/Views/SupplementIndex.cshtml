@@ -177,8 +177,8 @@
 <div id="main">
     <!--start main-->
     <form name="frmGetInfo">
-        <input type="hidden" id="hidSerialNum" name="SerialNum" value="@ViewBag.SerialNum" />
-        <input type="hidden" id="hidReturnNotice" name="ReturnNotice" value="@ViewBag.ReturnNotice" />
+        <input type="text" hidden id="hidSerialNum" name="SerialNum" value="@ViewBag.SerialNum" />
+        <input type="text" hidden id="hidReturnNotice" name="ReturnNotice" value="@ViewBag.ReturnNotice" />
     </form>
     <div>
         @Html.Partial("~/Egrants_Admin/Views/_AdminMenuIndex.cshtml")
