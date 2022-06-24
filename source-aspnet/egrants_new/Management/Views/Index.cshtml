@@ -65,20 +65,24 @@
          @Html.ActionLink("Document Transaction Report", "index", "DocTransactionReport", new { area = "Management" }, null)&#0160;&#47;
          @Html.ActionLink("System Report", "index", "SystemReport", new { area = "Management" }, null)
       </div>
-      <div id="caption"><b id="page_title">QC Assignment Report</b></div>
       <br />
+      <div id="caption">
+         <b id="page_title">QC Assignment Report</b>
+      </div>
       <div id="report" class="form-inline">
-         <table id="modify">
+         <table class="table table-hover table-sm">
+            <caption>* Select QC reason and assign it to particular specialist</caption>
             <thead>
-               <tr style="height: 30px">
-                  <td colspan="3" style="vertical-align: central">* Select QC reason and assign it to particular specialist.</td>
+            <tr>
+                  <th scope="col">QC Reason:</th>
+                  <th scope="col">QC Person:</th>
+                  <th scope="col"></th>
                </tr>
             </thead>
             <tbody>
                <tr>
-                  <td width="350">
-                     <label id="lblReason" for="ddlQCreason" class="my-1 mr-2"><b>QC Reason:</b></label>&#0160;&#0160;
-                     <select name="qc_reason" id="ddlQCreason" class="custom-select my-1 mr-sm-2 form-control" style="width: 150px; height: 30px;" size="1" title="Select a qc reason from list">
+                  <td>
+                     <select name="qc_reason" id="ddlQCreason" class="custom-select my-1 mr-sm-2 form-control" title="Select a qc reason from list">
                         <option selected></option>
                         @foreach (var item in ViewBag.QCReasons)
                         {
@@ -88,9 +92,8 @@
                         }
                      </select>
                   </td>
-                  <td width="450">
-                     <label id="lblReason"><b>QC Person:</b></label>&#0160;&#0160;
-                     <select name="qc_person_id" id="ddlQCperson" class="form-control" style="width: 250px; height: 30px;" size="1" title="Select a qc person from list">
+                  <td>
+                     <select name="qc_person_id" id="ddlQCperson" class="custom-select my-1 mr-sm-2 form-control" title="Select a qc person from list">
                         <option selected></option>
                         @foreach (var item in ViewBag.Specialists)
                         {
@@ -100,15 +103,15 @@
                         }
                      </select>
                   </td>
-                  <td width="100">
-                     <button AccessKey="A" ID="btnAssign" class="btn btn-primary btn-sm" title="Click to add person for QC [shift + alt + A]" OnClick="to_assign();">
+                  <td>
+                     <button AccessKey="A" ID="btnAssign" class="btn btn-primary my-1 mr-sm-2" title="Click to add person for QC [shift + alt + A]" OnClick="to_assign();">
                         <U>A</U>ssign
                      </button>
                   </td>
                </tr>
                @foreach (var item in ViewBag.QCPersons)
                {
-                  <tr style="height: 20px">
+                  <tr>
                      <td>@item.qc_reason:</td>
                      <td>@item.person_name</td>
                      <td>
@@ -118,25 +121,29 @@
                      </td>
                   </tr>
                }
-               <tr style="height: 30px"><td colspan="3"></td></tr>
             </tbody>
          </table>
       </div>
-
-      <div><b id="page_title">QC Route Report</b></div>
+   
       <br />
+
+      <div>
+         <b id="page_title">QC Route Report</b>
+      </div>
       <div id="report" class="form-inline">
-         <table id="modify">
+         @*<table id="modify">*@
+         <table class="table table-hover table-sm">
+            <caption>* Select specialist name and percent of documents, route them to another specialist for QC.</caption>
             <thead>
-               <tr style="height: 30px">
-                  <td colspan="3" style="vertical-align: central">* Select specialist name and percent of documents, route them to another specialist for QC.</td>
-               </tr>
-            </thead>
+            <tr>
+               <th scope="col">From:</th>
+               <th scope="col">To:</th>
+               <th scope="col"></th>
+            </tr>
             <tbody>
                <tr>
-                  <td width="350">
-                     <label id="lblFrom"><b>From:</b></label>
-                     <select name="person_id" id="ddlFromPerson" class="form-control" style="width: 200px; height: 30px;" size="1" title="Select a qc person from list">
+                  <td>
+                     <select name="person_id" id="ddlFromPerson" class="custom-select my-1 mr-sm-2 form-control" title="Select a qc person from list">
                         <option selected></option>
                         @foreach (var item in ViewBag.Specialists)
                         {
@@ -144,16 +151,15 @@
                         }
                      </select>
                   </td>
-                  <td width="500">
-                     <label id="lblTo"><b>To:</b></label>&#0160;&#0160;
-                     <select name="qc_person_id" id="ddlToPerson" class="form-control" style="width: 200px; height: 30px;" size="1" title="Select a qc person from list">
+                  <td>
+                     <select name="qc_person_id" id="ddlToPerson" class="custom-select my-1 mr-sm-2 form-control" title="Select a qc person from list">
                         <option selected></option>
                         @foreach (var item in ViewBag.Specialists)
                         {
                            <option value=@item.person_id>@item.person_name</option>
                         }
                      </select>
-                     <select name="percent" id="ddlPercent" class="form-control" style="width: 80px; height: 30px;" title="Select percent">
+                     <select name="percent" id="ddlPercent" class="custom-select my-1 mr-sm-2 form-control" title="Select percent">
                         <option selected></option>
                         <option Value="100">100%</option>
                         <option Value="50">50%</option>
@@ -161,26 +167,25 @@
                         <option Value="10">10%</option>
                      </select>
                   </td>
-                  <td width="100">
-                     <button AccessKey="R" ID="btnRoute" class="btn btn-primary btn-sm" title="Click to route [shift + alt + R]" OnClick="to_route();">
+                  <td>
+                     <button AccessKey="R" ID="btnRoute"class="btn btn-primary my-1 mr-sm-2" title="Click to route [shift + alt + R]" OnClick="to_route();">
                         <U>R</U>oute
                      </button>
                   </td>
                </tr>
-               <tr style="height: 30px">
+               <tr>
                   <td><b>Specialist Name</b></td>
                   <td><b>Documents to QC</b></td>
                   <td><b>Days in</b></td>
                </tr>
                @foreach (var item in ViewBag.QCReport)
                {
-                  <tr style="height: 20px">
+                  <tr>
                      <td>@item.qc_person_name</td>
                      <td>@item.files_to_qc</td>
                      <td>@item.qc_days</td>
                   </tr>
                }
-               <tr style="height: 30px"><td colspan="2"></td></tr>
             </tbody>
          </table>
       </div>
