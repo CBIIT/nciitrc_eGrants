@@ -210,7 +210,7 @@
     <Content Include="Content\bootstrap-reboot.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
-    <Content Include="Content\dataTables.bootstrap.min.css" />
+    <Content Include="Content\dataTables.bootstrap4.min.css" />
     <Content Include="Content\egrants.css" />
     <Content Include="Content\explanation.htm" />
     <Content Include="Content\images\accordion_index.jpg" />
