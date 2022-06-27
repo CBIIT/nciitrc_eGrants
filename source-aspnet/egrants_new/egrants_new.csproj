@@ -540,7 +540,6 @@
     <Content Include="Egrants\Views\_egrants_showSearchForm.cshtml" />
     <Content Include="Egrants\Views\_egrants_showApplsToggle_Horizontal.cshtml" />
     <Content Include="Egrants\Views\_egrants_showApplsToggle.cshtml" />
-    <Content Include="Egrants\Views\_egrants_showDocs_5_31.cshtml" />
     <Content Include="Egrants\Views\_egrants_showAppl.cshtml" />
     <Content Include="Egrants\Views\EgrantsDocCreate.cshtml" />
     <Content Include="Egrants\Views\EgrantsDocUpload.cshtml" />
@@ -577,6 +576,7 @@
     <Content Include="scripts\bootstrap.js" />
     <Content Include="scripts\bootstrap.min.js" />
     <Content Include="scripts\Chart.min.js" />
+    <Content Include="scripts\dataTables.bootstrap4.min.js" />
     <Content Include="scripts\datetime-moment.js" />
     <Content Include="scripts\esm\popper-utils.js" />
     <Content Include="scripts\esm\popper-utils.min.js" />
