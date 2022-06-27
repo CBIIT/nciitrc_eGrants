@@ -1,328 +1,370 @@
-﻿
-@{
-    ViewBag.Title = "eGrants [Funding Master]";
-    Layout = "~/Shared/Views/_egrants_header.cshtml";
+﻿@{
+   ViewBag.Title = "eGrants [Funding Master]";
+   Layout = "~/Shared/Views/_egrants_header.cshtml";
+
 }
 
-    <script language="JavaScript">
-        var currenturl = window.document.location.href;
-        var index = currenturl.indexOf("EgrantsFunding");
-        var webroot = currenturl.substring(0, index);
-        var d = new Date();
-        var y = d.getFullYear();
+<script language="JavaScript">
+   var currenturl = window.document.location.href;
+   var index = currenturl.indexOf("EgrantsFunding");
+   var webroot = currenturl.substring(0, index);
+   var d = new Date();
+   var y = d.getFullYear();
 
-        function search() {
-            if (document.getElementById("txtKeyWord").value == "") {
-                alert("Please insert serial number to search.");
-                document.getElementById("txtKeyWord").focus();
-                return false;
+   function search() {
+      if (document.getElementById("txtKeyWord").value == "") {
+         alert("Please insert serial number to search.");
+         document.getElementById("txtKeyWord").focus();
+         return false;
+      }
+
+      if (isNaN(document.getElementById("txtKeyWord").value) == true) {
+         alert("Please insert only serial number to search.");
+         document.getElementById("txtKeyWord").value = "";
+         document.getElementById("txtKeyWord").focus();
+         return false;
+      } else var str = document.getElementById("txtKeyWord").value;
+      var fy = document.getElementById("hidFY").value;
+
+      var url = "@Url.Action("view_search", "EgrantsFunding")?serial_num=" + str + "&fy=" + fy;
+      //alert(url);
+      window.self.location = url;
+   }
+
+   function display(act) {
+      //to expand all
+      if (act == 'expand') {
+         for (var i = 1; i < document.getElementById("hidCategoriesTotal").value; i++) {
+            var el = "cat_" + i;
+            var icon = "icon_" + i;
+
+            if (document.getElementById(el) != null) {
+               if (document.getElementById(el).style.display == "none") {
+                  document.getElementById(el).style.display = "inline";
+                  document.getElementById(icon).src = webroot + "Content/images/opened.jpg";
+               }
             }
+         }
+      }
 
-            if (isNaN(document.getElementById("txtKeyWord").value) == true) {
-                alert("Please insert only serial number to search.");
-                document.getElementById("txtKeyWord").value = "";
-                document.getElementById("txtKeyWord").focus();
-                return false;
-            } else var str = document.getElementById("txtKeyWord").value;
-            var fy = document.getElementById("hidFY").value;
+      //to collapos all
+      if (act == 'collapos') {
+         for (var i = 1; i < document.getElementById("hidCategoriesTotal").value; i++) {
+            var el = "cat_" + i;
+            var icon = "icon_" + i;
 
-            var url = "@Url.Action("view_search", "EgrantsFunding")?serial_num=" + str + "&fy=" + fy;
-            //alert(url);
-            window.self.location = url;
-        }
-
-        function display(act) {
-            //to expand all
-            if (act == 'expand') {
-                for (var i = 1; i < document.getElementById("hidCategoriesTotal").value; i++) {
-                    var el = "cat_" + i;
-                    var icon = "icon_" + i;
-
-                    if (document.getElementById(el) != null) {
-                        if (document.getElementById(el).style.display == "none") {
-                            document.getElementById(el).style.display = "inline";
-                            document.getElementById(icon).src = webroot + "Content/images/opened.jpg";
-                        }
-                    }
-                }
+            if (document.getElementById(el) != null) {
+               if (document.getElementById(el).style.display == "inline") {
+                  document.getElementById(el).style.display = "none";
+                  document.getElementById(icon).src = webroot + "Content/images/closed.jpg";
+               }
             }
+         }
+      }
+   }
 
-            //to collapos all
-            if (act == 'collapos') {
-                for (var i = 1; i < document.getElementById("hidCategoriesTotal").value; i++) {
-                    var el = "cat_" + i;
-                    var icon = "icon_" + i;
+   function show_cat(catid, levelid) {
+      var icon = "icon_" + catid;
+      var el = "cat_" + catid;
+      if (document.getElementById(el).style.display == "none") {
+         document.getElementById(el).style.display = "inline";
+         document.getElementById(icon).src = webroot + "Content/images/opened.jpg";
+      } else if (document.getElementById(el).style.display == 'inline') {
+         document.getElementById(el).style.display = "none";
+         document.getElementById(icon).src = webroot + "Content/images/closed.jpg";
+      } else document.getElementById(el).style.display = "none";
+   }
 
-                    if (document.getElementById(el) != null) {
-                        if (document.getElementById(el).style.display == "inline") {
-                            document.getElementById(el).style.display = "none";
-                            document.getElementById(icon).src = webroot + "Content/images/closed.jpg";
-                        }
-                    }
-                }
+   function hide_cat(catid, levelid) {
+      for (var i = 1; i < document.getElementById("hidCategoriesTotal").value; i++) {
+         var icon = "icon_" + i;
+         var el = "cat_" + i;
+         if (i != catid && document.all(el) != null) {
+            document.getElementById(icon).src = webroot + "Content/images/closed.jpg";
+            if (document.getElementById(el).style.display == "inline") {
+               document.getElementById(el).style.display = "none";
             }
-        }
+         }
+      }
+   }
 
-        function show_cat(catid, levelid) {
-            var icon = "icon_" + catid;
-            var el = "cat_" + catid;
-            if (document.getElementById(el).style.display == "none") {
-                document.getElementById(el).style.display = "inline";
-                document.getElementById(icon).src = webroot + "Content/images/opened.jpg";
-            } else if (document.getElementById(el).style.display == 'inline') {
-                document.getElementById(el).style.display = "none";
-                document.getElementById(icon).src = webroot + "Content/images/closed.jpg";
-            } else document.getElementById(el).style.display = "none";
-        }
+   function to_edit(docid, applid) {
+      var url = "@Url.Action("doc_edit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=to_edit&appl_id=" + applid + "&doc_id=" + docid;
+      window.self.location.href = url;
+   }
 
-        function hide_cat(catid, levelid) {
-            for (var i = 1; i < document.getElementById("hidCategoriesTotal").value; i++) {
-                var icon = "icon_" + i;
-                var el = "cat_" + i;
-                if (i != catid && document.all(el) != null) {
-                    document.getElementById(icon).src = webroot + "Content/images/closed.jpg";
-                    if (document.getElementById(el).style.display == "inline") {
-                        document.getElementById(el).style.display = "none";
-                    }
-                }
-            }
-        }
+   function back_to_funding_index() {
+      var url = "@Url.Action("funding_index", "EgrantsFunding")";
+      //alert(url);
+      window.self.location = url;
+   }
 
-        function to_edit(docid, applid) {
-            var url = "@Url.Action("doc_edit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=to_edit&appl_id=" + applid + "&doc_id=" + docid;
-            window.self.location.href = url;
-        }
+   function show_doc(docurl) {
+      var ImageServer = document.getElementById("hidImageServer").value;
+      //alert(docurl);
+      if (docurl.substring(0, 5) == "/data") {
+         var url = ImageServer + docurl.substring(1, docurl.length);
+      } else if (docurl.substring(0, 5) == "data/") {
+         var url = ImageServer + docurl;
+      } else url = docurl;
+      //alert(url);
+      window.open(url);
+   }
+</script>
 
-        function back_to_funding_index() {
-            var url = "@Url.Action("funding_index", "EgrantsFunding")";
-            //alert(url);
-            window.self.location = url;
-        }
+<form name="frmGetInfo">
+   <input type="text" hidden id="hidFY" name="fy" value="@ViewBag.FY"/>
+   <input type="text" hidden id="hidCategoriesTotal" name="Categories_total" value="@ViewBag.MaxCategoryid"/>
+   <input type="text" hidden id="hidImageServer" name="MImageServer" value="@Convert.ToString(Session["ImageServer"])"/>
+</form>
 
-        function show_doc(docurl) {
-            var ImageServer = document.getElementById("hidImageServer").value;
-            //alert(docurl);
-            if (docurl.substring(0, 5) == "/data") {
-                var url = ImageServer + docurl.substring(1, docurl.length);
-            } else if (docurl.substring(0, 5) == "data/") {
-                var url = ImageServer + docurl;
-            } else url = docurl;
-            //alert(url);
-            window.open(url);
-        }
-    </script>
+<div id="main">
+<!--start main-->
+<div id="caption">
+   <b id="page_title">FY @ViewBag.FY Master Funding Files </b>
+</div>
+<br/>
+<a href="JavaScript:back_to_funding_index()">
+   <b>NCI Funding Files Index</b>
+</a>
+<br/><br/>
 
-    <form name="frmGetInfo">
-        <input type="text" hidden id="hidFY" name="fy" value="@ViewBag.FY" />
-        <input type="text" hidden id="hidCategoriesTotal" name="Categories_total" value="@ViewBag.MaxCategoryid" />
-        <input type="text" hidden id="hidImageServer" name="MImageServer" value="@Convert.ToString(Session["ImageServer"])" />
-    </form>
-
-    <div id="main">
-        <!--start main-->
-        <div id="caption"><b id="page_title">FY @ViewBag.FY Master Funding Files </b></div>
-        <br />
-        <a href="JavaScript:back_to_funding_index()"><b>NCI Funding Files Index</b></a>
-        <br /><br />
-
-        <table id="report">
-            <thead>
-                <tr>
-                    <td colspan="5" height="10"></td>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td width="10"></td>
-                    <td colspan="4">Please insert only the serial number (eq 23506)</td>
-                </tr>
-                <tr>
-                    <td width="10"></td>
-                    <td width="50"><input type="text" name="str" id="txtKeyWord" class="form-control" style="height:30px; width:80px;" value="@ViewBag.SearchStr" title="Insert serial number to search" /></td>
-                    <td width="50"><button type="button" accesskey="S" class="btn btn-primary btn-sm" title="Search by serial number [shift + alt + S]" onclick="JavaScript:search();"><u>S</u>earch</button></td>
-                    <td width="50"><a target="_self" title="View all funding documents" href="~/EgrantsFunding/ViewAll?fy=@ViewBag.FY"><b>View All</b></a></td>
-                    <td width="350"><a target="_self" title="View arra funding documents" href="~/EgrantsFunding/view_arra?fy=@ViewBag.FY"><b>View ARRA</b></a></td>
-                </tr>
-                <tr><td colspan="5" height="20"></td></tr>
-            </tbody>
-        </table>
-        <br />
-        <!--start show bar-->
-        <div class="menu" id="show_bar" style="display:inline">
-            <b>Display Style:</b>&#0160;
-            <a title="Expand all funding categories" href="JavaScript:display('expand')"><b>Expand All</b></a>
-            &#0160;&#0160;
-            <a title="Collapse all funding categories" href="JavaScript:display('collapos')"><b>Collapse All</b></a>
-        </div>
-        <!--end show_bar-->
-        <br /><br /><!--start load funding categories-->
-        <div>
-            @if (ViewBag.FundingCategories != null)
+<table id="report">
+   <thead>
+   <tr>
+      <td colspan="5" height="10"></td>
+   </tr>
+   </thead>
+   <tbody>
+   <tr>
+      <td width="10"></td>
+      <td colspan="4">Please insert only the serial number (eq 23506)</td>
+   </tr>
+   <tr>
+      <td width="10"></td>
+      <td width="50">
+         <input type="text" name="str" id="txtKeyWord" class="form-control" style="height: 30px; width: 80px;" value="@ViewBag.SearchStr" title="Insert serial number to search"/>
+      </td>
+      <td width="50">
+         <button type="button" accesskey="S" class="btn btn-primary btn-sm" title="Search by serial number [shift + alt + S]" onclick="JavaScript:search();"><u>S</u>earch</button>
+      </td>
+      <td width="50">
+         <a target="_self" title="View all funding documents" href="~/EgrantsFunding/ViewAll?fy=@ViewBag.FY">
+            <b>View All</b>
+         </a>
+      </td>
+      <td width="350">
+         <a target="_self" title="View arra funding documents" href="~/EgrantsFunding/view_arra?fy=@ViewBag.FY">
+            <b>View ARRA</b>
+         </a>
+      </td>
+   </tr>
+   <tr>
+      <td colspan="5" height="20"></td>
+   </tr>
+   </tbody>
+</table>
+<br/>
+<!--start show bar-->
+<div class="menu" id="show_bar" style="display: inline">
+   <b>Display Style:</b>&#0160;
+   <a title="Expand all funding categories" href="JavaScript:display('expand')">
+      <b>Expand All</b>
+   </a>
+   &#0160;&#0160;
+   <a title="Collapse all funding categories" href="JavaScript:display('collapos')">
+      <b>Collapse All</b>
+   </a>
+</div>
+<!--end show_bar-->
+<br/><br/><!--start load funding categories-->
+<div>
+   @if (ViewBag.FundingCategories != null)
+   {
+      <!--start load all categories-->
+      foreach (var categories in ViewBag.FundingCategories)
+      {
+         <!--start load categories level 1-->
+         if (Convert.ToChar(categories.level_id) == '1')
+         {
+            int Category_1 = Convert.ToInt16(categories.category_id);
+            if (Convert.ToInt16(categories.doc_count) == 0)
             {
-                <!--start load all categories-->
-                foreach (var categories in ViewBag.FundingCategories)
-                {
-                    <!--start load categories level 1-->
-                    if (Convert.ToChar(categories.level_id) == '1')
-                    {
-                        int Category_1 = Convert.ToInt16(categories.category_id);
-                        if (Convert.ToInt16(categories.doc_count) == 0)
+               <b>&#0160;&#0160;&#0160;&#0160 &#0160;@categories.category_name</b>
+               <br/>
+            }
+            else
+            {
+               <a href="JavaScript:show_cat(@categories.category_id,1)">
+                  <img class="img_10_10" alt="Click to open/close all documents for this category" id="icon_@categories.category_id" src="~/content/images/closed.jpg" vertical-align="text-top"/>
+                  &#0160;&#0160;@categories.category_name
+               </a>
+               <br/>
+
+               <div class="menu" id="cat_@categories.category_id" style="display: none">
+                  @foreach (var doc_1 in ViewBag.FundingDocuments)
+                  {
+                     if (Convert.ToInt16(doc_1.category_id) == Category_1)
+                     {
+                        if (Convert.ToChar(doc_1.arra_flag) == 'y')
                         {
-                            <b>&#0160;&#0160;&#0160;&#0160 &#0160;@categories.category_name</b><br />
+                           <b>&#0160;&#0160;&#0160;</b>
+                           <img class="img_10_10" src="~/Content/images/Dollar.jpg" alt="Recovery Act Grant" vertical-align="text-top"/>
+                           <a href="Javascript:show_doc('@doc_1.url')" title="click here to display funding document">@doc_1.doc_label</a>
+                           <b>
+                              &#0160;&#0160;&#0160;
+                              <a title="to edit this document" href="JavaScript:to_edit('@doc_1.document_id','@doc_1.appl_id')">Edit</a>
+                           </b>
+                           <br/>
                         }
                         else
                         {
-                            <a href="JavaScript:show_cat(@categories.category_id,1)">
-                                <img class="img_10_10" alt="Click to open/close all documents for this category" id="icon_@categories.category_id" src="~/content/images/closed.jpg" vertical-align="text-top" />
-                                &#0160;&#0160;@categories.category_name
-                            </a><br />
+                           <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
+                           <a href="Javascript:show_doc('@doc_1.url')" title="click here to display funding document">@doc_1.doc_label</a>
+                           if (Convert.ToInt16(Session["position_id"]) >= 2)
+                           {
+                              <b>
+                                 &#0160;&#0160;&#0160;&#0160;
+                                 <a title="to edit this document" href="JavaScript:to_edit('@doc_1.document_id','@doc_1.appl_id')">Edit</a>
+                              </b>
+                           }
 
-                            <div class="menu" id="cat_@categories.category_id" style="display:none">
-                                @foreach (var doc_1 in ViewBag.FundingDocuments)
-                            {
-                                if (Convert.ToInt16(doc_1.category_id) == Category_1)
-                                {
-                                    if (Convert.ToChar(doc_1.arra_flag) == 'y')
-                                    {
-                                            <b>&#0160;&#0160;&#0160;</b>
-                                            <img class="img_10_10" src="~/Content/images/Dollar.jpg" alt="Recovery Act Grant" vertical-align="text-top" />
-                                            <a href="Javascript:show_doc('@doc_1.url')" title="click here to display funding document">@doc_1.doc_label</a>
-                                            <b>
-                                                &#0160;&#0160;&#0160;
-                                                <a title="to edit this document" href="JavaScript:to_edit('@doc_1.document_id','@doc_1.appl_id')">Edit</a>
-                                            </b>
-                                            <br />
-                                        }
-                                        else
-                                        {
-                                            <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
-                                            <a href="Javascript:show_doc('@doc_1.url')" title="click here to display funding document">@doc_1.doc_label</a>
-                                            if (Convert.ToInt16(Session["position_id"]) >= 2)
-                                            {
-                                                <b>
-                                                    &#0160;&#0160;&#0160;&#0160;
-                                                    <a title="to edit this document" href="JavaScript:to_edit('@doc_1.document_id','@doc_1.appl_id')">Edit</a>
-                                                </b>
-                                            }
-                                            <br />
-                                        }
-                                    }
-                                }
-                            </div>
+                           <br/>
                         }
-                    }<!--end load categories level 1-->
-
-                    <!--start load categories level 2-->
-                    if (Convert.ToChar(categories.level_id) == '2')
-                    {
-                        int parent_2 = Convert.ToInt16(categories.category_id);
-                        <a href="JavaScript:show_cat(@categories.category_id, 2)" alt="Click to open/close all documents for this category">
-                            <img class="img_10_10" src="~/Content/images/closed.jpg" id="icon_@categories.category_id" vertical-align="text-top" />
-                            &#0160;&#0160;@categories.category_name
-                        </a><br />
-
-                        <div class="menu" id="cat_@categories.category_id" style="display:none">
-
-                            <!--start load categories level 3 -->
-                            @foreach (var category_2 in ViewBag.FundingCategories)
-                            {
-                                int parent_3 = Convert.ToInt16(category_2.category_id);
-                                if (Convert.ToChar(category_2.level_id) == '3' && Convert.ToInt16(category_2.parent_id) == parent_2)
-                                {
-                                    if (Convert.ToInt16(category_2.doc_count) == 0)
-                                    {
-                                        <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>@category_2.category_name<br />
-                                    }
-                                    else
-                                    {
-                                        <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
-                                        <a href="JavaScript:show_cat(@category_2.category_id, 3)" alt="Click to open/close all documents for this category">
-                                            <img class="img_10_10" src="~/Content/images/closed.jpg" id="icon_@category_2.category_id" vertical-align="text-top" />
-                                            &#0160;&#0160;@category_2.category_name
-                                        </a><br />
-                                        <div class="menu" id="cat_@category_2.category_id" style="display:none">
-                                            <!--start load docs for categories level 3 -->
-                                            @foreach (var doc_2 in ViewBag.FundingDocuments)
-                                            {
-                                                if (Convert.ToInt16(doc_2.category_id) == parent_3)
-                                                {
-                                                    <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
-                                                    <a href="Javascript:show_doc('@doc_2.url')" title="click here to display funding document">@doc_2.doc_label</a>
-                                                    if (Convert.ToInt16(Session["position_id"]) >= 2)
-                                                    {
-                                                        <b>
-                                                            &#0160;&#0160;&#0160;&#0160;
-                                                            <a title="to edit this document" href="JavaScript:to_edit('@doc_2.document_id','@doc_2.appl_id')">Edit</a>
-                                                        </b>
-                                                    }
-                                                    <br />
-                                                }
-                                            }<!--end load docs for categories level 3 -->
-                                        </div>
-                                    }
-                                }<!--end load categories level 3 -->
-                            }
-                            <!--start load categories level 4 -->
-                            @foreach (var category_4 in ViewBag.FundingCategories)
-                            {
-                                if (Convert.ToChar(category_4.level_id) == '4' && Convert.ToInt16(category_4.parent_id) == parent_2)
-                                {
-                                    int parent_4 = Convert.ToInt16(category_4.category_id);
-                                    <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
-                                    <a href="JavaScript:show_cat(@category_4.category_id, 4)" alt="Click to open/close all documents for this category">
-                                        <img class="img_10_10" src="~/Content/images/closed.jpg" id="icon_@category_4.category_id" vertical-align="text-top" />
-                                        &#0160;&#0160;@category_4.category_name
-                                    </a><br />
-
-                                    <div class="menu" id="cat_@category_4.category_id" style="display:none">
-                                        @foreach (var category_5 in ViewBag.FundingCategories)
-                                        {
-                                            int parent_5 = Convert.ToInt16(category_5.category_id);
-                                            if (Convert.ToChar(category_5.level_id) == '5' && Convert.ToInt16(category_5.parent_id) == parent_4)
-                                            {
-                                                if (Convert.ToInt16(category_5.doc_count) == 0)
-                                                {
-                                                    <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>@category_5.category_name
-                                                }
-                                                else
-                                                {
-                                                    <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
-                                                    <a href="JavaScript:show_cat(@category_5.category_id, 5)" alt="Click to open/close all documents for this category">
-                                                        <img class="img_10_10" src="~/Content/images/closed.jpg" id="icon_@category_5.category_id" vertical-align="text-top" />
-                                                        &#0160;&#0160;@category_5.category_name
-                                                    </a><br />
-
-                                                    <div class="menu" id="cat_@category_5.category_id" style="display:none">
-                                                        <!--start load docs for categories level 5 -->
-                                                        @foreach (var doc_5 in ViewBag.FundingDocuments)
-                                                        {
-                                                            if (Convert.ToInt16(doc_5.category_id) == parent_5)
-                                                            {
-                                                                <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
-                                                                <a href="Javascript:show_doc('@doc_5.url')" title="click here to display funding document">@doc_5.doc_label</a>
-                                                                if (Convert.ToInt16(Session["position_id"]) >= 2)
-                                                                {
-                                                                    <b>
-                                                                        &#0160;&#0160;&#0160;&#0160;
-                                                                        <a title="to edit this document" href="JavaScript:to_edit('@doc_5.document_id','@doc_5.appl_id')">Edit</a>
-                                                                    </b>
-                                                                }
-                                                                <br />
-                                                            }
-                                                        }<!--end load docs for categories level 5 -->
-                                                    </div>
-                                                }
-                                            }
-                                        }
-                                    </div>
-                                }
-                            }
-                            <!--end load categories level 4 -->
-                        </div>
-                    }<!--end load categories level 2-->
-                }<!--end load all categories-->
+                     }
+                  }
+               </div>
             }
-        </div><!--end load funding categories-->
-        <br />
-    </div><!--end main-->
+         }
 
+         <!--end load categories level 1-->
+
+         <!--start load categories level 2-->
+         if (Convert.ToChar(categories.level_id) == '2')
+         {
+            int parent_2 = Convert.ToInt16(categories.category_id);
+            <a href="JavaScript:show_cat(@categories.category_id, 2)" alt="Click to open/close all documents for this category">
+               <img class="img_10_10" src="~/Content/images/closed.jpg" id="icon_@categories.category_id" vertical-align="text-top"/>
+               &#0160;&#0160;@categories.category_name
+            </a>
+            <br/>
+
+            <div class="menu" id="cat_@categories.category_id" style="display: none">
+
+               <!--start load categories level 3 -->
+               @foreach (var category_2 in ViewBag.FundingCategories)
+               {
+                  int parent_3 = Convert.ToInt16(category_2.category_id);
+                  if (Convert.ToChar(category_2.level_id) == '3' && Convert.ToInt16(category_2.parent_id) == parent_2)
+                  {
+                     if (Convert.ToInt16(category_2.doc_count) == 0)
+                     {
+                        <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
+                        @category_2.category_name<br/>
+                     }
+                     else
+                     {
+                        <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
+                        <a href="JavaScript:show_cat(@category_2.category_id, 3)" alt="Click to open/close all documents for this category">
+                           <img class="img_10_10" src="~/Content/images/closed.jpg" id="icon_@category_2.category_id" vertical-align="text-top"/>
+                           &#0160;&#0160;@category_2.category_name
+                        </a>
+                        <br/>
+                        <div class="menu" id="cat_@category_2.category_id" style="display: none">
+                           <!--start load docs for categories level 3 -->
+                           @foreach (var doc_2 in ViewBag.FundingDocuments)
+                           {
+                              if (Convert.ToInt16(doc_2.category_id) == parent_3)
+                              {
+                                 <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
+                                 <a href="Javascript:show_doc('@doc_2.url')" title="click here to display funding document">@doc_2.doc_label</a>
+                                 if (Convert.ToInt16(Session["position_id"]) >= 2)
+                                 {
+                                    <b>
+                                       &#0160;&#0160;&#0160;&#0160;
+                                       <a title="to edit this document" href="JavaScript:to_edit('@doc_2.document_id','@doc_2.appl_id')">Edit</a>
+                                    </b>
+                                 }
+
+                                 <br/>
+                              }
+                           }
+                           <!--end load docs for categories level 3 -->
+                        </div>
+                     }
+                  }
+
+                  <!--end load categories level 3 -->
+               }
+               <!--start load categories level 4 -->
+               @foreach (var category_4 in ViewBag.FundingCategories)
+               {
+                  if (Convert.ToChar(category_4.level_id) == '4' && Convert.ToInt16(category_4.parent_id) == parent_2)
+                  {
+                     int parent_4 = Convert.ToInt16(category_4.category_id);
+                     <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
+                     <a href="JavaScript:show_cat(@category_4.category_id, 4)" alt="Click to open/close all documents for this category">
+                        <img class="img_10_10" src="~/Content/images/closed.jpg" id="icon_@category_4.category_id" vertical-align="text-top"/>
+                        &#0160;&#0160;@category_4.category_name
+                     </a>
+                     <br/>
+
+                     <div class="menu" id="cat_@category_4.category_id" style="display: none">
+                        @foreach (var category_5 in ViewBag.FundingCategories)
+                        {
+                           int parent_5 = Convert.ToInt16(category_5.category_id);
+                           if (Convert.ToChar(category_5.level_id) == '5' && Convert.ToInt16(category_5.parent_id) == parent_4)
+                           {
+                              if (Convert.ToInt16(category_5.doc_count) == 0)
+                              {
+                                 <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
+                                 @category_5.category_name
+                              }
+                              else
+                              {
+                                 <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
+                                 <a href="JavaScript:show_cat(@category_5.category_id, 5)" alt="Click to open/close all documents for this category">
+                                    <img class="img_10_10" src="~/Content/images/closed.jpg" id="icon_@category_5.category_id" vertical-align="text-top"/>
+                                    &#0160;&#0160;@category_5.category_name
+                                 </a>
+                                 <br/>
+
+                                 <div class="menu" id="cat_@category_5.category_id" style="display: none">
+                                    <!--start load docs for categories level 5 -->
+                                    @foreach (var doc_5 in ViewBag.FundingDocuments)
+                                    {
+                                       if (Convert.ToInt16(doc_5.category_id) == parent_5)
+                                       {
+                                          <b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;</b>
+                                          <a href="Javascript:show_doc('@doc_5.url')" title="click here to display funding document">@doc_5.doc_label</a>
+                                          if (Convert.ToInt16(Session["position_id"]) >= 2)
+                                          {
+                                             <b>
+                                                &#0160;&#0160;&#0160;&#0160;
+                                                <a title="to edit this document" href="JavaScript:to_edit('@doc_5.document_id','@doc_5.appl_id')">Edit</a>
+                                             </b>
+                                          }
+
+                                          <br/>
+                                       }
+                                    }
+                                    <!--end load docs for categories level 5 -->
+                                 </div>
+                              }
+                           }
+                        }
+                     </div>
+                  }
+               }
+               <!--end load categories level 4 -->
+            </div>
+         }
+
+         <!--end load categories level 2-->
+      }
+
+      <!--end load all categories-->
+   }
+</div><!--end load funding categories-->
+<br/>
+</div><!--end main-->
