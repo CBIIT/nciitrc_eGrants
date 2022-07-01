@@ -12,7 +12,7 @@
 // 
 // <Description of the file>
 // 
-// This source is subject to the NIH Softwre License.
+// This source is subject to the NIH Software License.
 // See https://ncihub.org/resources/899/download/Guidelines_for_Releasing_Research_Software_04062015.pdf
 // All other rights reserved.
 // 

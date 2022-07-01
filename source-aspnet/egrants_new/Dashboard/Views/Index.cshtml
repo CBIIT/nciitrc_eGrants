@@ -19,7 +19,7 @@
             $('#AdminCode').val();
         }
         else {
-            $('#AdminCode').val('CA')
+           $('#AdminCode').val('CA');
         }       
     }
 
@@ -132,7 +132,7 @@
                             <tr>
                                 <td></td>
                                 <td colspan="3" style="vertical-align:top; text-align:right">
-                                    <img width="14" height="14" border="0" hspace="2" src="~/Content/images/clear.jpg" title="close side nav" onClick="JavaScript:close_nav()" />
+                                    <img width="14" height="14" border="0" hspace="2" src="~/Content/images/clear.jpg" title="close side nav" onClick="close_nav();" />
                                 </td>
                                 <td></td>
                             </tr>
@@ -141,7 +141,7 @@
                             {
                                 <tr>
                                     <td></td>
-                                    <td align="right">@widget.widget_title</td>
+                                    <td>@widget.widget_title</td>
                                     <td></td>
                                     <td alighn="left">
                                         @if (Convert.ToChar(widget.selected) == 'y')
