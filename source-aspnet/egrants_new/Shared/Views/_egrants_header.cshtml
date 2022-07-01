@@ -89,11 +89,6 @@
       .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
          color: #555 !important;
       }
-      /* .navbar .nav li span { */
-      /*    color: #ffffff !important; */
-      /*    font: Arial !important; */
-      /*    font-size: large !important; */
-      /* } */
 
       #loginas {
          color: dimgray !important;
@@ -105,11 +100,11 @@
 
       #loginas a { color: blue !important; }
 
-      .eGrantsWhiteTxt { border-top: 4px solid white !important; }
+      /* .eGrantsWhiteTxt { border-top: 4px solid white !important; } */
 
-      .eGrantsDDbkgrnd { background-color: #808080 !important; }
+      /* .eGrantsDDbkgrnd { background-color: #808080 !important; } */
 
-      .eGrantsUpldBtnColor { background-color: #1D8215 !important; }
+      /* .eGrantsUpldBtnColor { background-color: #1D8215 !important; } */
 
       .eGrantsReturnBtn {
          /*font-size:medium;*/
@@ -163,10 +158,6 @@
 <div class="row">
    <div class="col-lg-12">
       <nav class="navbar-expand-sm navbar-expand-md navbar-expand-lg navbar navbar-light"> @*navbar-dark bg-dark">*@
-         @* @if (Convert.ToInt16(Session["position_id"]) >= 1) *@
-         @* { *@
-         @*    <a class="navbar-brand" href="#" title="Quick Links [shift + alt + L]" accesskey="L" Onclick="toggleleftpanel()" id="QuickLinksS">Quick Links</a> *@
-         @* } *@
          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavBar" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
          </button>
@@ -175,13 +166,8 @@
 
                <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle" id="navDrop" Onclick="toggleleftpanel()" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Quick Links [shift + alt + L]">
-                     <span>Quick Links</span><span class="eGrantsWhiteTxt"></span>
-                  @* <span>Resources</span><span class="caret eGrantsWhiteTxt"></span> *@
+                     Quick Links
                   </a>
-                  @* @if (Convert.ToInt16(Session["position_id"]) >= 1) *@
-                  @* { *@
-                  @*    <a href="#" title="Quick Links [shift + alt + L]" accesskey="L" Onclick="toggleleftpanel()" id="QuickLinksS"><span>Quick Links</span><span class="caret eGrantsWhiteTxt"></span></a> *@
-                  @* } *@
                </li>
 
                @{
@@ -195,7 +181,7 @@
                            if (c.Length > 1)
                            {
                               <li class="nav-item">
-                                 <a class="nav-link" title="@str[0] [shift + alt + @str[1]]" accesskey="@str[1]" target="_top" href="@Url.Action("Index", c.Replace(" ", string.Empty))"><span>@c</span></a>
+                                 <a class="nav-link" title="@str[0] [shift + alt + @str[1]]" accesskey="@str[1]" target="_top" href="@Url.Action("Index", c.Replace(" ", string.Empty))">@c</a>
                               </li>
                            }
                         }
@@ -206,12 +192,10 @@
                <li class="nav-item">
                   <a class="nav-link" title="Institutional Files [shift + alt + F]" accesskey="F" target="_top" href="@Url.Action("Index", "InstitutionalFiles")">Institutional Files</a>
                </li>
-               @* <span>Institutional Files</span> *@
 
                <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle" id="navDropDown" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Resources [shift + alt + R]">
                      Resources
-                     @* <span>Resources</span><span class="caret eGrantsWhiteTxt"></span> *@
                   </a>
                   <div class="dropdown-menu shadow p-3 mb-5 bg-white rounded" aria-labelledby="navDropDown">
                      <a class="dropdown-item" target="_new" href="~/Content/eGrants Category Glossary.docx" title="eGrants Glossary">eGrants Glossary</a>

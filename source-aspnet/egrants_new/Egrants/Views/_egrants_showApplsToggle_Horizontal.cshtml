@@ -51,11 +51,11 @@ int show_appls = 0;
         <!--to show defualt 12 appls only-->
         @if (ViewBag.ApplCount > 12)
         {
-            <a href="Javascript:toggle_appls_mode_switch('defualt_appls')"><img class="img_18_18" src="../Content/images/minus.png" title="to show defualt 12 appls" /></a>
+            <a href="Javascript:toggle_appls_mode_switch('defualt_appls')"><img class="img_18_18" src="~/Content/images/minus.png" title="to show defualt 12 appls" /></a>
                     @*<a href="Javascript:show_toggle_appls('@ViewBag.GrantID','12')"><img class="img_18_18" src="../Content/images/minus.png" title="to show defualt 12 appls" /></a>*@
         }
         <!--to search-->
-        <a href="JavaScript:search_by_toggle()" title="search by selected appls and categories"><img style='width:30px' src="../Content/images/searchicon.png" /></a>
+        <a href="JavaScript:search_by_toggle()" title="search by selected appls and categories"><img style='width:30px' src="~/Content/images/searchicon.png" /></a>
     </div>
 
     <!--show defualt 12 appls only-->
@@ -112,10 +112,10 @@ int show_appls = 0;
         <!--to show all appls-->
         @if (ViewBag.ApplCount > 12)
         {
-            <a href="Javascript:toggle_appls_mode_switch('all_appls')"><img class='img_20_20' src='../Content/images/plus.png' title='to show all appls' /></a>                
+            <a href="Javascript:toggle_appls_mode_switch('all_appls')"><img class='img_20_20' src='~/Content/images/plus.png' title='to show all appls' /></a>                
         }
         <!--to search-->
-        <a href="JavaScript:search_by_toggle()" title="search by selected appls and categories"><img style="width:30px" src="../Content/images/searchicon.png" /></a>
+        <a href="JavaScript:search_by_toggle()" title="search by selected appls and categories"><img style="width:30px" src="~/Content/images/searchicon.png" /></a>
     </div>
 </div>
 }

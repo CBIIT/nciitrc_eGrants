@@ -194,11 +194,11 @@
             <div style="display:inline; float:left;">
                 @*position:absolute; bottom:0;*@
                 <!--to search-->
-                <a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style='width:30px; margin-left:20px' src="../Content/images/searchicon.png" /></a>
+                <a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style='width:30px; margin-left:20px' src="~/Content/images/searchicon.png" /></a>
                 <span>&#0160;&#0160;</span>
                 @if (ViewBag.ApplCount > 12)
                 {
-                    <a href="Javascript:toggle_appls_mode_switch('defualt_appls')"><img src="../Content/images/minus.png" title="Only View 12 Grant Years" style="height:40px" /></a>
+                    <a href="Javascript:toggle_appls_mode_switch('defualt_appls')"><img src="~/Content/images/minus.png" title="Only View 12 Grant Years" style="height:40px" /></a>
                 }
             </div>       
         </div>
@@ -369,12 +369,12 @@
        </div>
           <div style="display:inline; float:left;">
              <!--to search-->
-             <a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style="width:30px; margin-left:20px" src="../Content/images/searchicon.png" /></a>
+             <a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style="width:30px; margin-left:20px" src="~/Content/images/searchicon.png" /></a>
              <span>&#0160;&#0160;</span>
              <!--to show all appls-->
              @if (ViewBag.ApplCount > 12)
              {
-                <a href="Javascript:toggle_appls_mode_switch('all_appls')"><img src='../Content/images/plus.png' title='View All Grant Years' style="height:40px;" /></a>
+                <a href="Javascript:toggle_appls_mode_switch('all_appls')"><img src='~/Content/images/plus.png' title='View All Grant Years' style="height:40px;" /></a>
              }
           </div>
        </div>
