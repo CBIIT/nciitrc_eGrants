@@ -1,13 +1,15 @@
 ﻿ @{
     @*<div id="toggle_cats" width="1000" style="border-bottom:groove; border-top:double; padding-bottom:5px;min-height:50px; width:900px; padding-left:20px; float:left; display:none;">*@
     <div id="toggle_cats" style="border-bottom:groove; border-top:double; border-top-color:currentColor; width:900px; padding-left:30px; float:left; display:none; float:left;">
-        <input type="checkbox" style="margin-left:16px" id="all_toggle_cats" onClick="JavaScript:select_all_toggle_cats()" /><span>&#0160;&#0160;</span><b>Select All</b>
-        <div style="float:left; display:inline; width:900px;">
-            <div class="col-md-4" id="cats_column_1" style="display:inline"></div>
-            <div class="col-md-4" id="cats_column_2" style="display:inline"></div>
-            <div class="col-md-4" id="cats_column_3" style="display:inline"></div>
-        </div>
-        <div style="display:inline; float:left; width:900px; margin-left:15px;"><a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style="vertical-align:middle; width:30px" src="../Content/images/searchicon.png" /></a></div>
+       <input type="checkbox" style="margin-left:16px" id="all_toggle_cats" onClick="JavaScript:select_all_toggle_cats()" /><span>&#0160;&#0160;</span><b>Select All</b>
+       <div style="float: left; display: inline; width: 900px;">
+          <div class="row">
+             <div class="col-sm" id="cats_column_1" style="display: inline"></div>
+             <div class="col-sm" id="cats_column_2" style="display: inline"></div>
+             <div class="col-sm" id="cats_column_3" style="display: inline"></div>
+         </div>
+       <div style="display:inline; float:left; width:900px; margin-left:15px;"><a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style="vertical-align:middle; width:30px" src="~/Content/images/searchicon.png" /></a></div>
+       </div>
     </div>
 }
 
