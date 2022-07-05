@@ -500,12 +500,14 @@
                     <!--end search bar-->
                     <!--start show category zone-->
                     <div id="cats_zone_@grant.grant_id" class="cats_zone" style="width:900px; border-bottom:groove; border-top:groove; border-color:darkgrey; padding-bottom:5px; min-height:50px; padding-left:20px; float:left; display:none;">
-                        <span>&#0160;&#0160;&#0160;&#0160;</span><input type="checkbox" id="all_cats_@grant.grant_id" onClick="JavaScript:select_all_cats_zone(@grant.grant_id)" /><span>&#0160;&#0160;</span><b>Select All</b><br />
-                        <div id="catlist_@Convert.ToString(grant.grant_id)" style="float:left; display:inline; width:900px;">
-                            <div class="col-md-4" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display:inline"></div>
-                            <div class="col-md-4" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display:inline"></div>
-                            <div class="col-md-4" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display:inline"></div>
-                        </div>
+                        <input type="checkbox" id="all_cats_@grant.grant_id" onClick="JavaScript:select_all_cats_zone(@grant.grant_id)" /><span>&#0160;&#0160;</span><b>Select All</b><br />
+                       <div id="catlist_@Convert.ToString(grant.grant_id)" style="float: left; display: inline; width: 900px;">
+                          <div class="row">
+                          <div class="col-sm" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                          <div class="col-sm" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                             <div class="col-sm" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                    </div>
+                       </div>
                     </div>
                     <!--end show category zone-->
                     <br />
