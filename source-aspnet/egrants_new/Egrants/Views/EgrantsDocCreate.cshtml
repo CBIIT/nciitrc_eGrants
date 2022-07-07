@@ -116,7 +116,8 @@
             document.getElementById("by_file").style.display = "inline";
             document.getElementById("by_ddrop").style.display = "none";
             document.getElementById("by_email").style.display = "none";
-            document.getElementById("btnFileUpload").style.display = "inline";
+           document.getElementById("btnFileUpload").style.display = "inline";
+            Init();
         }
 
         if (act == "by_email") {
@@ -352,7 +353,7 @@
                                 <div id="dropArea">Drag-drop only one file here to upload</div>
                                 <br />
                                 <span>
-                                    <button type="button" style="display:inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
+                                    <button type="button" style="display:inline" name="CreatByDdrop" id="btnDragdrop" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
                                     By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
                                 </span>
                             </div>
@@ -387,9 +388,15 @@
                         <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
                         <b id="done"><span id="mssg"></span></b>
                     </td>
-                    <td valign="top" style="width: 400px;  padding-left: 50px;">
-                       <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br></br><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
-                    </td>
+                    <td valign="top" style="width: 400px; padding-left: 50px;">
+  
+                       <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal;;">
+                          <div class="text-justify m-4">
+                          <br></br>
+                          <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
+                       </div>
+                    </div>
+                       </td>
                 </tr>
             </tbody>
         </table>

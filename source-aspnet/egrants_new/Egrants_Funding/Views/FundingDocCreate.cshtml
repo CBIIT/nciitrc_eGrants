@@ -10,8 +10,8 @@
 <link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
 <script src="~/scripts/dragdrop.js"></script>
 <script src="~/scripts/ProgressBar.js"></script>
-<link href="~/Content/jquery-ui.min.css" rel="stylesheet" />
-<script src="~/scripts/jquery-ui-1.13.1.min.js"></script>
+ <link href="~/Content/jquery-ui.min.css" rel="stylesheet" /> 
+ <script src="~/scripts/jquery-ui-1.13.1.min.js"></script> 
 
 <style>
    body {
@@ -105,7 +105,7 @@
       if (act == "by_ddrop") {
          document.getElementById("by_ddrop").style.display = "inline";
          document.getElementById("by_file").style.display = "none";
-         document.getElementById("by_email").style.display = "none";
+//         document.getElementById("by_email").style.display = "none";
          document.getElementById("btnDragdrop").style.display = "inline";
          Init();
       }
@@ -113,12 +113,12 @@
       if (act == "by_file") {
          document.getElementById("by_file").style.display = "inline";
          document.getElementById("by_ddrop").style.display = "none";
-         document.getElementById("by_email").style.display = "none";
+//         document.getElementById("by_email").style.display = "none";
          document.getElementById("btnFileUpload").style.display = "inline";
       }
 
       if (act == "by_email") {
-         document.getElementById("by_email").style.display = "inline";
+//         document.getElementById("by_email").style.display = "inline";
          document.getElementById("by_ddrop").style.display = "none";
          document.getElementById("by_file").style.display = "none";
          document.getElementById("btnEmail").style.display = "inline";
@@ -534,13 +534,29 @@
          return true;
       }
    }
+
+   //to highlight selected tab
+   function Docreate(evt, tabs) {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+         tabcontent[i].style.display = "none";
+
+      }
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+         tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(tabs).style.display = "block";
+      evt.currentTarget.className += " active";
+   }
 </script>
 
 
 
 <div id="main" style="margin:0;padding:0;">
    <div id="caption" style="margin:0;padding:0;">
-      <b id="page_title">Upload Funding Document</b><br />
+      <b id="page_title">Add Funding Document</b><br />
    </div>
    <form name="frmGetInfo">
       <input type="text" hidden id="hidAdmin_code" name="admin_code" value="@ViewBag.admincode" />
@@ -550,19 +566,21 @@
       <input type="text" hidden id="hidPrevious_url" name="previous_url" value="@ViewBag.Previousurl" />
    </form>
 
-<div class="form-inline" style="margin: 0; padding: 0;">
-   <table>
-      <tr>
-         <td width="800">
-            <table width="800">
-               <thead>
+@*<div class="form-inline" style="margin: 0; padding: 0;">*@
+<div id="content" style="margin: 0; padding: 0;">
+   <div class="form-inline" style="margin: 0; padding: 0;">
+      <table>
+         <tr>
+            <td width="800">
+               <table width="800">
+                  <thead>
+                     <tr>
+                        <td colspan="4" class="bg_grey">Select the category, insert date & select File Name, then click Create New</td>
+                     </tr>
+                  </thead>
+                  <tbody>
                   <tr>
-                     <td colspan="6" class="bg_grey">Select the category, insert date & select File Name, then click Create New</td>
-                  </tr>
-               </thead>
-               <tbody>
-                  <tr>
-                     <td width="100">
+                     <td width="80" class="float-left my-4">
                         <label for="Institute">
                            <b>Institute:</b>
                         </label>
@@ -587,23 +605,25 @@
                         </select>
                      </td>
                      <td width="150">
-                        <label for="Serial Number">
+                        <label for="txtSerialnum">
                            <b>Serial Number:</b>
                         </label>
                      </td>
                      <td width="100">
                         <input name="serial_num" type="text" id="txtSerialnum" class="form-control" style="width: 80px;" title="Insert serial number" value="@ViewBag.serialnum" />&#0160;
                      </td>
-                     <td width="150">
+                  </tr>
+                  <tr>
+                     <td width="80"></td>
+                     <td colspan="3">
                         <button name="load appls" id="btnLoadAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="E" OnClick="return load_appls();" title="Click here to load available appls [shift + alt + E]"><u>E</u>nter to see available appls</button>
-                     </td>
-                     <td width="150">
+
                         <button name="get more grant" id="btnAddAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="L" OnClick="return get_docid();" title="Click here to add available appls [shift + alt + A]"><u>L</u>ink to more grants</button>
                      </td>
                   </tr>
                   <tr>
-                     <td width="100">
-                        <label for="Full Grant Number">
+                     <td>
+                        <label for="Full Grant Number"  class="float-left my-4">
                            <b>Grant:</b>
                         </label>
                      </td>
@@ -612,61 +632,12 @@
                      </td>
                   </tr>
                   <tr>
-                     <td width="100">
-                        <label for="Category Name">
+                     <td>
+                        <label for="Category Name" class="float-left my-4">
                            <b>Category:</b>
                         </label>
                      </td>
-                     <td colspan ="3">
-                        @* <select name="category_id" id="ddlCategories" class="form-control" style="width: 250px;" size="1" title="select category" onchange="show_sub_category()"> *@
-                        @*    <option>Select a category</option> *@
-                        @*    @foreach (var main_category in ViewBag.CategoryList) *@
-                        @*    { *@
-                        @*       <option id="@main_category.category_id" value="@main_category.input_type@main_category.input_constraint">@main_category.category_name</option> *@
-                        @*    } *@
-                        @* </select> *@
-                        @* *@
-                        @* @foreach (var maincategory in ViewBag.CategoryList) *@
-                        @* { *@
-                        @*    if (maincategory.input_type == "D" || maincategory.input_type == "T") *@
-                        @*    { *@
-                        @*       <div id="sub_category_@maincategory.category_id" class="sub_category" style="display: none"> *@
-                        @*          @if (maincategory.input_type == "D") *@
-                        @*          { *@
-                        @*             <select name="sub_category" id="D_@maincategory.category_id" class="form-control" style="width: 200px; height: 32px;" title="select sub category"> *@
-                        @*                <option></option> *@
-                        @*                @foreach (var SubCategory in ViewBag.SubCategoryList) *@
-                        @*                { *@
-                        @*                   if (SubCategory.parent_category_id == maincategory.category_id) *@
-                        @*                   { *@
-                        @*                      <option value="@SubCategory.sub_category_name">@SubCategory.sub_category_name</option> *@
-                        @*                   } *@
-                        @*                } *@
-                        @*                } *@
-                        @*             </select> *@
-                        @*          } *@
-                        @* *@
-                        @*          @if (maincategory.input_type == "T") *@
-                        @*          { *@
-                        @*             <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control" style="height: 32px; width: 250px;" title="Insert sub category" oninput="JavaScript:return check_sub_category_length(@maincategory.category_id)" /> *@
-                        @*             if (Convert.ToInt16(maincategory.input_constraint) == 0) *@
-                        @*             { *@
-                        @*                <span>&#0160;&#0160;(35 char max)<b> Optional</b></span> *@
-                        @*             } *@
-                        @*             else *@
-                        @*             { *@
-                        @*                <span>&#0160;&#0160;(35 char max)</span> *@
-                        @*             } *@
-                        @*          } *@
-                        @* *@
-                        @* *@
-                        @*       </div> *@
-                        @*    } *@
-                        @* } *@
-
-
-
-                        @* <div style="display: inline; vertical-align: top;"> *@
+                     <td colspan="3">
                         <select name="category_id" id="ddlCategories" class="form-control" style="width: 250px;" size="6" title="select category">
                            @foreach (var category1 in ViewBag.CategoryList)
                            {
@@ -688,178 +659,94 @@
                               }
                            }
                         </select>
-                        @* </div> *@
-
-                      <div style="display: inline-block; vertical-align: top;">
-                        <input name="sub_category" type="text" id="txtSubCategory" class="form-control" style="width: 200px; vertical-align: top;" aria-describedby="emailHelp" title="Insert sub category" />
-                        <small id="emailHelp" class="form-text text-muted">(35 char max) Optional</small>
-                        @* <span>(35 char max)<b> Optional</b></span> *@
+                        <div style="display: inline-block; vertical-align: top;">
+                           <input name="sub_category" type="text" id="txtSubCategory" class="form-control" style="width: 200px; vertical-align: top;" aria-describedby="emailHelp" title="Insert sub category" />
+                           <small id="emailHelp" class="form-text text-muted">(35 char max) Optional</small>
                         </div>
                      </td>
                   </tr>
                   <tr>
                      <td>
-                        <label for="Document Date">
+                        <label for="Document Date" class="float-left my-4">
                            <b>Date:</b>
                         </label>
                      </td>
-                     <td>
-                        @*value="@System.DateTime.Today.ToString("MM/dd/yyyy")"  class="datepicker"*@
+                     <td colspan="3">
                         <input type="text" class="form-control" name="docdate" id="txtDocumentdate" style="width: 120px;" title="Insert document date" /> @*onchange="DateFormat()"*@
-                        @*<span class="glyphicon glyphicon-calendar"></span>*@
                      </td>
-
-
-                     @* <td> *@
-                     @*    <label for="Document Date"> *@
-                     @*       <b>Date:</b> *@
-                     @*    </label> *@
-                     @* </td> *@
-                     @* <td> *@
-                     @*    <input name="document_date" id="txtDocumentdate" type="text" class="form-control" style="width: 120px;" value="@System.DateTime.Today.ToString("MM/dd/yyyy")" title="Insert document date"> *@
-                     @* </td> *@
                   </tr>
-                  @* <tr> *@
-                  @*    <td> *@
-                  @*       <!--show loading icon--> *@
-                  @*       <div class="loading" style="display: none"> *@
-                  @*          <img src="~/Content/images/Loading.gif" width="50" /> *@
-                  @*       </div> *@
-                  @*    </td> *@
-                  @*    <td valign="top"> *@
-                  @*       <br /> *@
-                  @*       <ul class="nav nav-tabs"> *@
-                  @*          <li class="active"> *@
-                  @*             <a href="Javascript:switch_upload_mode('by_ddrop')">Drag & Drop</a> *@
-                  @*          </li> *@
-                  @*          <li></li> *@
-                  @*          <li class="active"> *@
-                  @*             <a href="Javascript:switch_upload_mode('by_file')">Locate File and Upload</a> *@
-                  @*          </li> *@
-                  @*       </ul> *@
-                  @*       <div class="tab-content" id="myTabContent" style="margin: 0; padding: 0;"> *@
-                  @*          <!--start upload by drag drop --> *@
-                  @*          <div class="tab-pane fade active in" id="by_ddrop" style="display: none; margin: 0; padding: 0;"> *@
-                  @*             <br /> *@
-                  @*             <div id="dropArea">Drag-drop only one file here to upload</div><br /> *@
-                  @*             <button type="button" name="CreatByDdrop" id="btnDragdrop" accesskey="N" disabled="disabled" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_ddrop();">Create <u>N</u>ew</button> *@
-                  @*             <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div> *@
-                  @* *@
-                  @*          </div> *@
-                  @*          <!--end upload by drag drop--> *@
-                  @*          <!--start upload by file--> *@
-                  @*          <div class="tab-pane fade active in" id="by_file" style="display: none; margin: 0; padding: 0;"> *@
-                  @*             <br /> *@
-                  @*             <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px;" /><br /> *@
-                  @*             <button type="button" name="CreatByFile" id="btnFileUpload" accesskey="N" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_file();">Create <u>N</u>ew</button> *@
-                  @*             <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div> *@
-                  @* *@
-                  @*          </div> *@
-                  @*          <br /> *@
-                  @*          <div style="padding-top: 15px;"> *@
-                  @*             <button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160; *@
-                  @*             <a target="_new" href="#" id="notice" style="visibility: hidden"> *@
-                  @*                <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /> *@
-                  @*             </a> *@
-                  @*             <b id="done"> *@
-                  @*                <span id="mssg"></span> *@
-                  @*             </b> *@
-                  @*          </div> *@
-                  @*          <!--end upload by file--> *@
-                  @*          <!--show progress bar--> *@
-                  @*          <div class="progress" style="display: none; margin: 0; padding: 0;"> *@
-                  @*             <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div> *@
-                  @*          </div> *@
-                  @*          <!--end progress bar--> *@
-                  @*       </div> *@
-                  @*    </td> *@
-                  @*    <td style="width: 400px; padding-left: 50px;"> *@
-                  @*       <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div> *@
-                  @*    </td> *@
-                  @* </tr> *@
-                  @* <tr> *@
-                  @*    <td></td> *@
-                  @*    <td> *@
-                  @*    </td> *@
-                  @* </tr> *@
-               </tbody>
-            </table>
-         </td>
-         <!--        <td><div  valign="top" style="  box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 330px; height:260px; line-height: normal; font-style: normal; vertical-align:	text-top; padding-left: 15px;  "><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants.  More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td> -->
-      </tr>
-   </table>
-   <table width="1024">
-      <tbody>
-         <tr>
-            <!--show loading icon-->
-            <td width="80">
-               <div class="loading" style="display: none">
-                  <img src="~/Content/images/Loading.gif" width="50"/>
-               </div>
+                  </tbody>
+               </table>
             </td>
-            <td width="700" valign="top">
-
-               <div class="tab" style="width:498px">
-                  <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop'); Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
-                  <button class="tablinks" onclick="Docreate(event, 'btnFileUpload'); Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
-                  <button class="tablinks" onclick="Docreate(event, 'btnEmail'); Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
-               </div>
-               <div id="myTabContent" style="width: 700px;">
-                  <!--start upload by drag drop -->
-                  <div class="tabcontent " id="by_ddrop" style="display:none">
-                     <br />
-                     <div id="dropArea">Drag-drop only one file here to upload</div>
-                     <br />
-                     <span>
-                        <button type="button" style="display:inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
-                        By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
-                     </span>
-                  </div>
-                  <!--end upload by drag drop-->
-                  <!--start upload by file-->
-                  @* <div class="tab-pane fade active in" id="by_file" style="display: none; margin: 0; padding: 0;"> *@
-                  @*    <br /> *@
-                  @*    <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px;" /><br /> *@
-                  @*    <button type="button" name="CreatByFile" id="btnFileUpload" accesskey="N" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_file();">Create <u>N</u>ew</button> *@
-                  @*    <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div> *@
-                  @* </div> *@
-
-                  <div class="tabcontent" id="by_file" style="display:none">
-                     <br />
-                     <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br />
-                     <div style="display:inline"><button style="display:inline" type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to create new funding document [shift + alt + N]">Create <u>N</u>ew</button>
-                        </div>
-                     <div style="display:inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div>
-                  </div>
-                  <!--end upload by file-->
-                  <!--start upload by email-->
-                  <div class="tabcontent" id="by_email" style="display:none">
-                     <br /><br />
-                     &#0160;&#0160;1. After grant year, category and date are entered/confirmed, click the &#0160;&#0160;<br /><br />
-                     &#0160;&#0160;&#0160;&#0160;&#0160;&#0160;"Upload via Email" button to open an email window.<br /><br /><br />
-                     &#0160;&#0160;2. Attach the document (<b>do not</b> change the subject) and click send.<br /><br /><br />
-                     <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return create_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
-                     <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-
-                  </div>
-                  <!--end upload by email-->
-                  <br /><br />
-                  <!--show progress bar-->
-                  <div class="progress" style="display:none">
-                     <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; margin:0; padding:0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                  </div>
-                  <!--end progress bar-->
-               </div><!--end myTabContent-->
-               <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
-               <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
-               <b id="done"><span id="mssg"></span></b>
-            </td>
-            <td valign="top" style="width: 400px;  padding-left: 50px;">
-               <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
-            </td>
+            <!--        <td><div  valign="top" style="  box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 330px; height:260px; line-height: normal; font-style: normal; vertical-align:	text-top; padding-left: 15px;  "><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants.  More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td> -->
          </tr>
+      </table>
+   </div>
+   <table width="1024" class="container">
+      <tbody>
+      <tr>
+         <!--show loading icon-->
+         <td width="50">
+            <div class="loading" style="display: none">
+               <img src="~/Content/images/Loading.gif" width="50"/>
+            </div>
+         </td>
+         <td width="700" valign="top">
+
+            <div class="tab" style="width:336px">
+               <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop'); switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
+               <button class="tablinks" onclick="Docreate(event, 'btnFileUpload'); switch_upload_mode('by_file')">Locate File and Upload</button>
+               @* <button class="tablinks" onclick="Docreate(event, 'btnEmail'); Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button> *@
+            </div>
+            <div id="myTabContent" style="width: 700px;">
+
+               <!--start upload by drag drop -->
+               <div class="tabcontent " id="by_ddrop" style="display: none">
+                  <br/>
+                  <div id="dropArea">Drag-drop only one file here to upload</div>
+                  <br/>
+                  <span>
+                     <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]"><u>A</u>dd</button>&#0160;&#0160;
+                     By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
+                  </span>
+               </div>
+               <!--end upload by drag drop-->
+
+               <!--start upload by file-->
+               <div class="tabcontent" id="by_file" style="display: none">
+                  <br/>
+                  <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px; margin: 5px" /><br/><br/>
+                  <div style="display: inline"><button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document">Add</button></div>
+                  <div style="display: inline">By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>
+               </div>
+               <!--end upload by file-->
+
+               <br/><br/>
+
+               <!--show progress bar-->
+               <div class="progress" style="display: none">
+                  <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+               </div>
+               <!--end progress bar-->
+
+            </div><!--end myTabContent-->
+            <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+            <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
+            <b id="done"><span id="mssg"></span></b>
+         </td>
+         <td valign="top" style="width: 400px;  padding-left: 50px;">
+            <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal;">
+              
+               <div class="text-justify m-4">
+                  <br/><br />
+                  <p><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
+               </div>
+            </div>
+         </td>
+      </tr>
       </tbody>
    </table>
+</div>
 </div>
    <!--end create funding doc-->
    @*<div id="footer" style="margin:0; padding:0;">
@@ -868,7 +755,7 @@
           <a target="_new" href="#" id="notice" style="visibility:hidden"><b>Check uploaded file</b></a><br /><br /><br />
       </div>*@
 
-</div><!--end main-->
+<!--end main-->
 
 <script type="text/javascript">
 
@@ -878,23 +765,4 @@
       buttonImage: '../Content/images/calendar.png',
       buttonText: "Calendar"
    });
-
-
-   //$("#txtDocumentdate").datetimepicker({
-   //    timepicker: false
-   //});
-
-   //function DateFormat() {
-   //    //alert(document.getElementById("txtDocumentdate").value);
-   //    if (document.getElementById("txtDocumentdate").value !="" && (document.getElementById("txtDocumentdate").value).length > 10){
-   //        var original_date = (document.getElementById("txtDocumentdate").value).substring(0, 10);
-   //        var yyyy = original_date.substring(0, 4);
-   //        var mm = original_date.substring(5, 7);
-   //        var dd = original_date.substring(8, 10);
-   //        var formated_date = mm + "/" + dd + "/" + yyyy;
-   //        //document.getElementById("txtDocumentdate").value = original_date;
-   //        document.getElementById("txtDocumentdate").value = formated_date;
-   //        return false;
-   //    }
-   //}
 </script>
