@@ -1054,7 +1054,6 @@ namespace egrants_new.Egrants.Models
                 cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
                 cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
 
-                // cmd.CommandTimeout = 120;
                 conn.Open();
 
                 grantlayerproperty = null;

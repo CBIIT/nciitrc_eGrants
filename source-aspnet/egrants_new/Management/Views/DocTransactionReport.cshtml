@@ -329,7 +329,7 @@
                <td colspan="3">
                   <div id="ShowSearch" style="display: none" class="align-content-center">
                      <label for="txtStartDay" class="float-left align-middle my-1 mr-sm-2">From:</label>
-                     <input type="text" class="form-control float-left  my-1 mr-sm-2" name="docdate" id="txtStartDay" style="width: 120px;" title="Insert document date"/>
+                     <input type="text" class="form-control float-left  my-1" name="docdate" id="txtStartDay" style="width: 120px;" title="Insert document date"/>
                      <script type="text/javascript">
 
                         $('#txtStartDay').datepicker({
@@ -342,8 +342,8 @@
 
                      @* <input type="text" id="txtStartDay" class="form-control" style="width: 100px;" value="@ViewBag.StartDate" />&#0160;(mm/dd/yyyy) *@
                      @* &#0160;&#0160;&#0160;&#0160; *@
-                     <label for="txtEndDay" class="float-left my-1 mr-sm-2">To:</label>
-                     <input type="text" class="form-control float-left my-1 mr-sm-2" name="docdate" id="txtEndDay" style="width: 120px;" title="Insert document date"/>
+                     <label for="txtEndDay" class="float-left my-1 mx-2">To:</label>
+                     <input type="text" class="form-control float-left my-1" name="docdate" id="txtEndDay" style="width: 120px;" title="Insert document date"/>
                      <script type="text/javascript">
                         $('#txtEndDay').datepicker({
 //                        showOn: "both",
@@ -354,7 +354,7 @@
                      </script>
                      @* <input type="text" id="txtEndDay" class="form-control" style="width: 100px;" value="@ViewBag.EndDate" />&#0160;(mm/dd/yyyy) *@
                      @* &#0160;&#0160; *@
-                     <button accesskey="V" class="btn btn-primary float-left my-1 mr-sm-2" id="btnCreatReport" title="Click  to Search [shift + alt + V]" onclick="return create_report()"><u>V</u>iew Report</button>
+                     <button accesskey="V" class="btn btn-primary float-left my-1 mx-2" id="btnCreatReport" title="Click  to Search [shift + alt + V]" onclick="return create_report()"><u>V</u>iew Report</button>
                   </div>
                </td>
             </tr>

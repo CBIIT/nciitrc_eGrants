@@ -1,317 +1,423 @@
 ﻿@{
-    ViewBag.Title = "eGrants [Document Upload Module]";
-    Layout = "~/Shared/Views/_egrants_header.cshtml";
+   ViewBag.Title = "eGrants [Document Upload Module]";
+   Layout = "~/Shared/Views/_egrants_header.cshtml";
 }
 
 <link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
 <script src="~/scripts/dragdrop.js"></script>
 <script src="~/scripts/ProgressBar.js"></script>
+@* <link href="~/Content/jquery-ui.min.css" rel="stylesheet" /> *@
+@* <script src="~/scripts/jquery-ui-1.13.1.min.js"></script> *@
 
 <style>
-    body {
-        font-family: Arial;
-    }
+   body {
+      font-family: Arial;
+   }
 
-    /* Style the tab */
-    .tab {
-        overflow: hidden;
-        border: 1px solid #ccc;
-        background-color: #f1f1f1;
-    }
+   /* Style the tab */
 
-        /* Style the buttons inside the tab */
-        .tab button {
-            background-color: inherit;
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 14px 16px;
-            transition: 0.3s;
-            font-size: 17px;
-        }
+   .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+   }
 
-            /* Change background color of buttons on hover */
-            .tab button:hover {
-                background-color: #ddd;
-            }
+      /* Style the buttons inside the tab */
 
-            /* Create an active/current tablink class */
-            .tab button.active {
-                background-color: #ccc;
-            }
+      .tab button {
+         background-color: inherit;
+         float: left;
+         border: none;
+         outline: none;
+         cursor: pointer;
+         padding: 14px 16px;
+         transition: 0.3s;
+         font-size: 17px;
+      }
+
+         /* Change background color of buttons on hover */
+
+         .tab button:hover {
+            background-color: #ddd;
+         }
+
+         /* Create an active/current tablink class */
+
+         .tab button.active {
+            background-color: #ccc;
+         }
 
 
-    /* Style the tab content */
-    .tabcontent {
-        /*display: none;
+   /* Style the tab content */
+
+   .tabcontent {
+      /*display: none;
         padding: 6px 12px;
         border: 1px solid #ccc;
         border-top: none;*/
-    }
+   }
 </style>
 
 <script language="javascript" type="text/javascript">
-    //var currenturl = window.document.location.href;
-    var appl_id;
-    var document_id;
-    var document_date;
+   //var currenturl = window.document.location.href;
+   var appl_id;
+   var document_id;
+   var document_date;
 
-    $(document).ready(function () {
-        set_default();
-    });
+   $(document).ready(function () {
+      set_default();
+   });
 
-    function set_default() {
-        //get doc data
-        document_id = document.getElementById('hidDocID').value;
-        appl_id = document.getElementById('hidApplID').value;
-        document_date = document.getElementById('hidDocDate').value;
+   function set_default() {
+      //get doc data
+      document_id = document.getElementById('hidDocID').value;
+      appl_id = document.getElementById('hidApplID').value;
+      document_date = document.getElementById('hidDocDate').value;
 
-        switch_upload_mode("by_ddrop");
-        //var BrowserType = document.getElementById("hidBrowserType").value;
-        ////alert(BrowserType);
-        //if (BrowserType.indexOf("Chrome") != -1) {
-        //    switch_upload_mode("by_file");
-        //} else switch_upload_mode("by_ddrop");
+      switch_upload_mode("by_ddrop");
+      //var BrowserType = document.getElementById("hidBrowserType").value;
+      ////alert(BrowserType);
+      //if (BrowserType.indexOf("Chrome") != -1) {
+      //    switch_upload_mode("by_file");
+      //} else switch_upload_mode("by_ddrop");
 
-        //$('#btnFileUpload').attr("disabled", "disabled");
-    }
+      //$('#btnFileUpload').attr("disabled", "disabled");
+   }
 
-    function switch_upload_mode(act) {
-        if (act == "by_ddrop") {
-            document.getElementById("by_ddrop").style.display = "inline";
-            document.getElementById("by_file").style.display = "none";
-            document.getElementById("by_email").style.display = "none";
-            document.getElementById("btnDragdrop").style.display = "inline";
-            Init();
-        }
+   function switch_upload_mode(act) {
+      if (act == "by_ddrop") {
+         document.getElementById("by_ddrop").style.display = "inline";
+         document.getElementById("by_file").style.display = "none";
+         document.getElementById("by_email").style.display = "none";
+         document.getElementById("btnDragdrop").style.display = "inline";
+         Init();
+      }
 
-        if (act == "by_file") {
-            document.getElementById("by_file").style.display = "inline";
-            document.getElementById("by_ddrop").style.display = "none";
-            document.getElementById("by_email").style.display = "none";
-            document.getElementById("btnFileUpload").style.display = "inline";
-        }
+      if (act == "by_file") {
+         document.getElementById("by_file").style.display = "inline";
+         document.getElementById("by_ddrop").style.display = "none";
+         document.getElementById("by_email").style.display = "none";
+         document.getElementById("btnFileUpload").style.display = "inline";
+      }
 
-        if (act == "by_email") {
-            document.getElementById("by_email").style.display = "inline";
-            document.getElementById("by_ddrop").style.display = "none";
-            document.getElementById("by_file").style.display = "none";
-            document.getElementById("btnEmail").style.display = "inline";
-        }
-    }
+      if (act == "by_email") {
+         document.getElementById("by_email").style.display = "inline";
+         document.getElementById("by_ddrop").style.display = "none";
+         document.getElementById("by_file").style.display = "none";
+         document.getElementById("btnEmail").style.display = "inline";
+      }
+   }
 
-    function clear_message(type) {
-        //clear all message
-        $("#mssg").css('display', 'none');
-        $('#notice').css('visibility', 'hidden');
-        //if (type == "by_file") {
-        //    document.getElementById("UploadFile").value = "";
-        //}
-    }
+   function clear_message(type) {
+      //clear all message
+      $("#mssg").css('display', 'none');
+      $('#notice').css('visibility', 'hidden');
+      //if (type == "by_file") {
+      //    document.getElementById("UploadFile").value = "";
+      //}
+   }
 
-    function upload_by_ddrop() {
-        var frmdata = new FormData();
+   function upload_by_ddrop() {
+      var frmdata = new FormData();
 
-        frmdata.append('dropedfile', dropedfile);
-        frmdata.append('doc_id', document_id);
-        docupload(frmdata, "/EgrantsDoc/doc_upload_by_ddrop");
-        //$('#btnDragdrop').attr("disabled", "disabled");
-        //document.getElementById("btnDragdrop").disabled = "disabled";
-        clear_all("by_dd");
-    }
+      frmdata.append('dropedfile', dropedfile);
+      frmdata.append('doc_id', document_id);
+      docupload(frmdata, "/EgrantsDoc/doc_upload_by_ddrop");
+      //$('#btnDragdrop').attr("disabled", "disabled");
+      //document.getElementById("btnDragdrop").disabled = "disabled";
+      clear_all("by_dd");
+   }
 
-    function upload_by_file() {
-        if (check_file() == false) {
-            return false;
-        } else var file = document.getElementById('UploadFile').files[0];
-        var frmdata = new FormData();
-        var document_id = document.getElementById('hidDocID').value;
+   function upload_by_file() {
+      if (check_file() == false) {
+         return false;
+      } else var file = document.getElementById('UploadFile').files[0];
+      var frmdata = new FormData();
+      var document_id = document.getElementById('hidDocID').value;
 
-        frmdata.append('file', file);
-        frmdata.append('doc_id', document_id);
-        docupload(frmdata, "/EgrantsDoc/doc_upload_by_file");
-        //$('#btnFileUpload').attr("disabled", "disabled");
-        clear_all("by_file");
-    }
+      frmdata.append('file', file);
+      frmdata.append('doc_id', document_id);
+      docupload(frmdata, "/EgrantsDoc/doc_upload_by_file");
+      //$('#btnFileUpload').attr("disabled", "disabled");
+      clear_all("by_file");
+   }
 
-    function upload_by_email() {
-        var email_address = document.getElementById("hidEgrantsEmail").value;
-        var email_body = "Before sending the email:%0D%0A %0D%0A 1. Attach the document to upload to this email.%0D%0A ";
-        email_body = email_body + " 2. If necessary, change the document date in the subject line (maintain the date format mm/dd/yyyy).%0D%0A ";
-        email_body = email_body + " 3. Send the email. %0D%0A %0D%0A  Changing any other information in the Subject: or the To: lines will cause an unsuccessful upload.%0D%0A %0D%0A ";
-        email_body = email_body + " Note:There may be a time delay of up to 15 minutes before the uploaded file is available for your review.";
-        var email_subject = "applid=" + appl_id + ", documentid=" + document_id + ", documentdate=" + document_date + ", extract=2";
-        var maillink = "mailto:" + email_address + "?subject=" + email_subject + "&body=" + email_body;
-        window.open(maillink, "_self");
-    }
+   function upload_by_email() {
+      var email_address = document.getElementById("hidEgrantsEmail").value;
+      var email_body = "Before sending the email:%0D%0A %0D%0A 1. Attach the document to upload to this email.%0D%0A ";
+      email_body = email_body + " 2. If necessary, change the document date in the subject line (maintain the date format mm/dd/yyyy).%0D%0A ";
+      email_body = email_body + " 3. Send the email. %0D%0A %0D%0A  Changing any other information in the Subject: or the To: lines will cause an unsuccessful upload.%0D%0A %0D%0A ";
+      email_body = email_body + " Note:There may be a time delay of up to 15 minutes before the uploaded file is available for your review.";
+      var email_subject = "applid=" + appl_id + ", documentid=" + document_id + ", documentdate=" + document_date + ", extract=2";
+      var maillink = "mailto:" + email_address + "?subject=" + email_subject + "&body=" + email_body;
+      window.open(maillink, "_self");
+   }
 
-    function clear_all(act) {
-        if (act == "by_file") {
-            document.getElementById("btnFileUpload").disabled = "disabled";
-        } else if (act == "by_dd") {
-            document.getElementById("btnDragdrop").disabled = "disabled";
-        }
-    }
+   function clear_all(act) {
+      if (act == "by_file") {
+         document.getElementById("btnFileUpload").disabled = "disabled";
+      } else if (act == "by_dd") {
+         document.getElementById("btnDragdrop").disabled = "disabled";
+      }
+   }
 
-    function back() {
-        if ('referrer' in document) {
-            window.location = document.referrer;
-        } else {
-            window.history.back();
-        }
-        //window.history.back();
-        //window.close();
-        //window.opener.location.reload(false);
-    }
+   function back() {
+      if ('referrer' in document) {
+         window.location = document.referrer;
+      } else {
+         window.history.back();
+      }
+      //window.history.back();
+      //window.close();
+      //window.opener.location.reload(false);
+   }
 
-    function active_btnFileUpload() {
-        if (document.getElementById("btnFileUpload").disabled == true) {
-            document.getElementById("btnFileUpload").disabled = false;
-        }
-    }
+   function active_btnFileUpload() {
+      if (document.getElementById("btnFileUpload").disabled == true) {
+         document.getElementById("btnFileUpload").disabled = false;
+      }
+   }
 
-    //to highlight selected tab
-    function Docreate(evt, tabs) {
-        var i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
+   //to highlight selected tab
+   function Docreate(evt, tabs) {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+         tabcontent[i].style.display = "none";
 
-        }
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(tabs).style.display = "block";
-        evt.currentTarget.className += " active";
+      }
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+         tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(tabs).style.display = "block";
+      evt.currentTarget.className += " active";
 
-    }
+   }
 
-    //$(window).unload(function () {
-    //    back();
-    //});
+   //$(window).unload(function () {
+   //    back();
+   //});
 
 </script>
 
-<div id="main" style="margin:0;padding:0;">
-    <div id="caption">
-        <b id="page_title">Replace Document</b>
-    </div>
-    <form name="frmGetInfo">
-        <input type="text" hidden id="hidApplID" name="appl_id" value="@ViewBag.ApplId" />
-        <input type="text" hidden id="hidDocID" name="document_id" value="@ViewBag.DocId" />
-        <input type="text" hidden id="hidDocDate" name="document_date" value="@ViewBag.DocDate" />
-        <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
-        <input type="text" hidden id="hidEgrantsEmail" name="egrants_email" value=@Convert.ToString(Session["egrantsDocEmail"])>
-    </form>
+<div id="main" style="margin: 0; padding: 0;">
+   <div id="caption">
+      <b id="page_title">Replace Document</b>
+   </div>
+   <form name="frmGetInfo">
+      <input type="text" hidden id="hidApplID" name="appl_id" value="@ViewBag.ApplId" />
+      <input type="text" hidden id="hidDocID" name="document_id" value="@ViewBag.DocId" />
+      <input type="text" hidden id="hidDocDate" name="document_date" value="@ViewBag.DocDate" />
+      <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
+      <input type="text" hidden id="hidEgrantsEmail" name="egrants_email" value=@Convert.ToString(Session["egrantsDocEmail"])>
+   </form>
 
-    <!--start upload document-->
-    <div id="content" style="margin:0; padding:0;">
-        <table>
+   <!--start upload document-->
+   <div id="content" style="margin: 0; padding: 0;">
+      <table>
+         <tr>
+            <td width="800">
+               <table width="800">
+                  <thead>
+                     <tr>
+                        <td colspan="2" height="20"></td>
+                     </tr>
+                     <tr>
+                        <td colspan="2" height="20"><b>Grant:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@ViewBag.FullGrantNum </td>
+                     </tr>
+                     <tr>
+                        <td colspan="2" height="20"><b>Category:</b>&#0160;&#0160;@ViewBag.DocName </td>
+                     </tr>
+                     <tr>
+                        <td colspan="2" height="20"><b>Date:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@ViewBag.DocDate</td>
+                     </tr>
+                     <tr>
+                        <td colspan="2" height="20"></td>
+                     </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+               </table>
+            </td>
+         </tr>
+      </table>
+      <table width="1024">
+         <tbody>
             <tr>
-                <td >
-                    <table >
-                        <thead>
-                            <tr><td colspan="2" height="20"></td></tr>
-                            <tr><td colspan="2" height="20"><b>Grant:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@ViewBag.FullGrantNum </td></tr>
-                            <tr><td colspan="2" height="20"><b>Category:</b>&#0160;&#0160;@ViewBag.DocName </td></tr>
-                            <tr><td colspan="2" height="20"><b>Date:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@ViewBag.DocDate</td></tr>
-                            <tr><td colspan="2" height="20"></td></tr>
-                        </thead>
-                        <tbody>
-                            <tr >
-                                <!--show loading icon-->
-                                <td  valign="middle">
-                                    @*<ul class="nav nav-tabs">
-                                            <li class="active" id="li_ddrop"><a href="Javascript:switch_upload_mode('by_ddrop')">Drag & Drop</a></li>
-                                            <li></li>
-                                            <li class="active" id="li_file"><a href="Javascript:switch_upload_mode('by_file')">Locate File and Upload</a></li>
-                                            <li></li>
-                                            <li class="active" id="li_email"><a href="Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</a></li>
-                                        </ul>*@
-                                    <div class="tab" style="width:499px">
-                                        <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop'); Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
+               <!--show loading icon-->
+               <td width="80"><div class="loading" style="display:none"><img src="~/Content/images/Loading.gif" width="50" /></div></td>
+               <td width="700" valign="top">
 
-                                        <button class="tablinks" onclick="Docreate(event, 'btnFileUpload'); Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
+                  <div class="tab" style="width: 498px">
+                     <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
 
-                                        <button class="tablinks" onclick="Docreate(event, 'btnEmail'); Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
-                                    </div>
-                                    <div class="tab-content" id="myTabContent">
-                                        <!--start upload by drag drop -->
-                                        <div class="tab-pane fade active in" id="by_ddrop" style="display:none">
-                                            <br />
-                                            <div id="dropArea">Drag-drop only one file here to upload</div><br />
-                                            <div style="width: 650px;">
-                                                <span><button type="button" style="display:inline" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;
-                                                @*<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn"  accesskey="C" title="Click here to cancel upload [shift + alt + C]" onclick="return back()"><u>C</u>ancel</button>*@
-                                                <div style="display:inline">  By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                                                </span>
-                                                </div>
-                                        </div>
-                                        <!--end upload by drag drop-->
-                                        <!--start upload by file-->
-                                        <div class="tab-pane fade active in" id="by_file" style="display:none">
-                                            <div>
-                                                <br />
-                                                <input type="file" name="file" id="UploadFile" style="width:550px; height:30px;" onchange="active_btnFileUpload()" /><br />
-                                                <span style="width: 450px;">
-                                                    <button type="button"  style="display:inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;
-                                                    @*<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn" onclick="return back()"  accesskey="C" title="Click here to cancel upload [shift + alt + C]"><u>C</u>ancel</button>*@
-                                                    <div style="display:inline">  By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <!--end upload by file-->
-                                        <!--start upload by email-->
-                                        <div class="tab-pane fade active in" id="by_email" style="display:none">
-                                            <br />
-                                            <label style="width:500px"><b>How to Upload Via Email?</b></label><br /><br />
-                                            <br />
-                                            &#0160;&#0160;1. Click the button "Upload Via Email" to open an email window.<br /><br />
-                                            &#0160;&#0160;2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
-                                            <br />
-                                            <span style="width: 450px;">
-                                                <button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_email()" AccessKey="U" title="Click here to upload document by email [shift + alt + U]">
-                                                    <u>U</u>pload Via Email
-                                                </button>
-                                                <div style="display:inline">  By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                                            </span>
-                                        </div>
-                                        <!--end upload by email-->
-                                    </div>
-                                </td>
-                                <td width="80"><div class="loading" style="display:none"><img src="~/Content/images/Loading.gif" width="50" /></div></td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" height="10">
-                                    <!--show progress bar -->
-                                    <div class="progress" style="display:none">
-                                        <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; margin:0; padding:0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <!--end progress bar-->
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
-                                    <a target="_new" href="#" id="notice" style="visibility:hidden"><img src="~/Content/images/check_doc_btn.png" style="height:35px;" title="Check Document" /></a>
-                                    <b id="done"><span id="mssg"></span></b>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-               <td  style=" padding-left: 1px;" ><div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br/> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td>
+                     <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
+
+                     <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
+                  </div>
+                  <div id="myTabContent" style="width: 700px;">
+                     <!--start upload by drag drop -->
+                     <div class="tabcontent" id="by_ddrop" style="display: none">
+                        <br />
+                        <div id="dropArea">Drag-drop only one file here to upload</div><br />
+                        <button type="button"  name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>
+                        <div class="mt-1 font-weight-light">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                     </div>
+                     <!--end upload by drag drop-->
+                     <!--start upload by file-->
+                     <div class="tabcontent"  id="by_file" style="display: none">
+                        <div>
+                           <br />
+                           <input type="file" name="file" id="UploadFile" style="width: 550px; height: 30px;" onchange="active_btnFileUpload()" /><br />
+
+                              <button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;
+                              <div class="mt-1"> By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>
+   
+                        </div>
+                     </div>
+                     <div class="tabcontent" id="by_email" style="display:none">
+                        <br /><br />
+                        1. Click the button "Upload Via Email" to open an email window.<br /><br />
+                        2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
+                        <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return upload_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
+                        <div class="mt-1">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+
+                     </div>
+                     <!--end upload by email-->
+                     <br /><br />
+                     <!--show progress bar-->
+                     <div class="progress" style="display:none">
+                        <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; margin:0; padding:0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                     </div>
+                     <!--end progress bar-->
+                  </div><!--end myTabContent-->
+                  <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+                  <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
+                  <b id="done"><span id="mssg"></span></b>
+               </td>
+               <td valign="top" style="width: 400px;  padding-left: 50px;">
+                  <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
+               </td>
             </tr>
-        </table>
-    </div><!--end content-->
+         </tbody>
+      </table>
+      @* <table width="1024"> *@
+      @*    <tbody> *@
+      @*       <tr> *@
+      @*          <!--show loading icon--> *@
+      @*          <td width="80"> *@
+      @*             <div class="loading" style="display: none"> *@
+      @*                <img src="~/Content/images/Loading.gif" width="50" /> *@
+      @*             </div> *@
+      @*          </td> *@
+      @*          <td width="700" valign="top"> *@
+      @*             <div class="tab" style="width: 498px"> *@
+      @*                <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button> *@
+      @* *@
+      @*                <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button> *@
+      @* *@
+      @*                <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button> *@
+      @*             </div> *@
+      @*             <div class="tab-content" id="myTabContent" style="width: 700px;"> *@
+      @*                <!--start upload by drag drop --> *@
+      @*                <div class="tab-pane fade active in" id="by_ddrop" style="display: none"> *@
+      @*                   <br /> *@
+      @*                   <div id="dropArea">Drag-drop only one file here to upload</div><br /> *@
+      @*                   <div style="width: 650px;"> *@
+      @*                      <span> *@
+      @*                         <button type="button" style="display: inline" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160; *@
+      @*                         $1$<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn"  accesskey="C" title="Click here to cancel upload [shift + alt + C]" onclick="return back()"><u>C</u>ancel</button>#1# *@
+      @*                         <div style="display: inline"> By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div> *@
+      @*                      </span> *@
+      @*                   </div> *@
+      @*                </div> *@
+      @*                <!--end upload by drag drop--> *@
+      @*                <!--start upload by file--> *@
+      @*                <div class="tab-pane fade active in" id="by_file" style="display: none"> *@
+      @*                   <div> *@
+      @*                      <br /> *@
+      @*                      <input type="file" name="file" id="UploadFile" style="width: 550px; height: 30px;" onchange="active_btnFileUpload()" /><br /> *@
+      @*                      <span style="width: 450px;"> *@
+      @*                         <button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160; *@
+      @*                         $1$<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn" onclick="return back()"  accesskey="C" title="Click here to cancel upload [shift + alt + C]"><u>C</u>ancel</button>#1# *@
+      @*                         <div style="display: inline"> By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div> *@
+      @*                      </span> *@
+      @*                   </div> *@
+      @*                </div> *@
+      @*                <!--end upload by file--> *@
+      @*                <!--start upload by email--> *@
+      @*                <div class="tab-pane fade active in" id="by_email" style="display: none"> *@
+      @*                   <br /> *@
+      @*                   <label style="width: 500px"> *@
+      @*                      <b>How to Upload Via Email?</b> *@
+      @*                   </label><br /><br /> *@
+      @*                   <br /> *@
+      @*                   &#0160;&#0160;1. Click the button "Upload Via Email" to open an email window.<br /><br /> *@
+      @*                   &#0160;&#0160;2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br /> *@
+      @*                   <br /> *@
+      @*                   <span style="width: 450px;"> *@
+      @*                      <button type="button" style="display: inline" name="CreatByEmail" id="btnEmail" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_email()" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"> *@
+      @*                         <u>U</u>pload Via Email *@
+      @*                      </button> *@
+      @*                      <div style="display: inline"> By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div> *@
+      @*                   </span> *@
+      @*                </div> *@
+      @*                <!--end upload by email--> *@
+      @*                <br /><br /> *@
+      @*                <!--show progress bar--> *@
+      @*                <div class="progress" style="display: none"> *@
+      @*                   <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div> *@
+      @*                </div> *@
+      @*                <!--end progress bar--> *@
+      @*             </div><!--end myTabContent--> *@
+      @*             <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160; *@
+      @*             <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a> *@
+      @*             <b id="done"><span id="mssg"></span></b> *@
+      @*          </td> *@
+      @*          <td valign="top" style="width: 400px; padding-left: 50px;"> *@
+      @*             <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div> *@
+      @*          </td> *@
+      @*       </tr> *@
+      @*    </tbody> *@
+      @* </table> *@
+   </div>
+
+   @*                         <td colspan="2" height="10"> *@
+   @*                            <!--show progress bar --> *@
+   @*                            <div class="progress" style="display: none"> *@
+   @*                               <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div> *@
+   @*                            </div> *@
+   @*                            <!--end progress bar--> *@
+   @*                         </td> *@
+   @*                         <!--end upload by email--> *@
+   @*                      </div> *@
+   @* *@
+   @*                   <td colspan="2"> *@
+   @*                      <button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160; *@
+   @*                      <a target="_new" href="#" id="notice" style="visibility: hidden"> *@
+   @*                         <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/> *@
+   @*                      </a> *@
+   @*                      <b id="done"> *@
+   @*                         <span id="mssg"></span> *@
+   @*                      </b> *@
+   @*                   </td> *@
+   @*                $1$ </tr> #1# *@
+   @*                </tbody> *@
+   @*             </table> *@
+   @*          </td> *@
+   @*          <td style="padding-left: 1px;"> *@
+   @*             <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br /> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div> *@
+   @*          </td> *@
+   @*       </tr> *@
+   @*    </table> *@
+   @* </div><!--end content--> *@
 </div><!--end main-->
 @*btn btn-secondary*@
 
 @*<div id="footer" style="margin:0; padding:0;">
-        <b id="done"><span id="mssg"></span></b><br />
-        <center><button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button></center><br />
-        <a target="_new" href="#" id="notice" style="visibility:hidden"><b>Check uploaded file</b></a><br />
-    </div>*@
+       <b id="done"><span id="mssg"></span></b><br />
+       <center><button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button></center><br />
+       <a target="_new" href="#" id="notice" style="visibility:hidden"><b>Check uploaded file</b></a><br />
+   </div>*@
 

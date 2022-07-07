@@ -52,7 +52,6 @@ using Hangfire.SqlServer;
 
 #endregion
 
-//using egrants_new.App_Start;
 namespace egrants_new
 {
     /// <summary>
@@ -317,7 +316,7 @@ namespace egrants_new
                     return;
 
                 // Redirect HTTP errors to HttpError page
-                this.Server.Transfer("HttpErrorPage.aspx");
+                this.Server.Transfer("~/HttpErrorPage.aspx");
             }
 
             // For other kinds of errors give the user some information
@@ -397,7 +396,7 @@ namespace egrants_new
             {
                 // Include enterprise logic for logging exceptions 
                 // Get the absolute path to the log file 
-                var logFile = "App_Data/ErrorLog.txt";
+                var logFile = "~/App_Data/ErrorLog.txt";
                 logFile = HttpContext.Current.Server.MapPath(logFile);
 
                 // if (!File.Exists(logFile))
