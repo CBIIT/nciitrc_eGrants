@@ -243,12 +243,12 @@
                <tbody>
                   <tr>
                      <td width="80">
-                        <label for="Institute">
+                        <label for="Institute" class="float-left my-4">
                            <b>Institute:</b>
                         </label>
                      </td>
                      <td width="80">
-                        <select name="admin_code" id="ddlAdmincodes" class="form-control" style="width: 80px;" size="1" title="Select admin phs org code">
+                        <select name="admin_code" id="ddlAdmincodes" class="form-control" style="width: 80px;" title="Select admin phs org code">
                            @foreach (var AdminCode in ViewBag.AdminCodeList)
                            {
                               if (ViewBag.admincode != null && Convert.ToString(ViewBag.admincode) == AdminCode.admin_phs_org_code)
@@ -273,36 +273,18 @@
                      <td width="80">
                         <button type="button" id="btnSearch" name="search" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="S" OnClick="return load_appls();" title="Click here to load grant years [shift + alt + S]"><u>S</u>earch</button>
                      </td>
-                     @* <td width="720"> *@
-                     @* <select name="admin_code" id="ddlAdmincodes" class="form-control" style="width: 80px;" size="1" title="Select admin phs org code"> *@
-                     @*     @foreach (var AdminCode in ViewBag.AdminCodeList) *@
-                     @*     { *@
-                     @*         if (ViewBag.admincode != null && Convert.ToString(ViewBag.admincode) == AdminCode.admin_phs_org_code) *@
-                     @*         { *@
-                     @*             <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option> *@
-                     @*         } *@
-                     @*         else if (ViewBag.admincode == null && AdminCode.profile != null && Convert.ToString(AdminCode.profile) == Session["ic"].ToString().ToUpper()) *@
-                     @*         { *@
-                     @*             <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option> *@
-                     @*         } *@
-                     @*     } *@
-                     @* </select>$1$&#0160;#1# *@
-                     @* <label for="txtSerialnum"><b>Serial Number:</b></label>$1$&#0160;#1# *@
-                     @* <input type="text" id="txtSerialnum" name="serial_num" class="form-control" style="width: 80px; height: 32px;" title="Insert serial number" value="@ViewBag.serialnum"/>&#0160; *@
-                     @* <button type="button" id="btnSearch" name="search" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="S" OnClick="return load_appls();" title="Click here to load grant years [shift + alt + S]"><u>S</u>earch</button> *@
-                     @* </td> *@
                   </tr>
                   <tr>
                      <td colspan="5" class="bg_grey">Confirm/Select Grant Year, select applicable Category and Date before clicking @ViewBag.Act.<br /></td>
                   </tr>
                   <tr>
                      <td>
-                        <label for="Full Grant Number">
+                        <label for="Full Grant Number" class="float-left my-4">
                            <b>Grant:</b>
                         </label>
                      </td>
                      <td>
-                        @Html.DropDownList("ddlAppls", new List<SelectListItem> { new SelectListItem { Text = string.Empty, Value = "-1" } }, new { @class = "form-control", style = "width:250px;", onchange = "create_new_appl(this)", title = "Select a grant year" })
+                        @Html.DropDownList("ddlAppls", new List<SelectListItem> { new SelectListItem { Text = string.Empty, Value = "-1" } }, new { @class = "form-control my-1", style = "width:250px;", onchange = "create_new_appl(this)", title = "Select a grant year" })
 
                         @*<div style="float: right; align-items: center; "><a target="_new" href="~/Content/eGrants Category Glossary.docx" title="show eGrants Category Glossary">eGrants Category Glossary</a></div>*@
 
@@ -314,79 +296,74 @@
                      </td>
 
                   </tr>
-                  <tr>
-                     <td>
-                        <label for="Category Name">
-                           <b>Category:</b>
-                        </label>
-                     </td>
-                     <td colspan="5">
-                        <select name="category_id" id="ddlCategories" class="form-control" style="width: 250px;" size="1" title="select category" onchange="show_sub_category()">
-                           <option>Select a category</option>
-                           @foreach (var main_category in ViewBag.CategoryList)
-                           {
-                              <option id="@main_category.category_id" value="@main_category.input_type@main_category.input_constraint">@main_category.category_name</option>
-                           }
-                        </select>
-
-                        @foreach (var maincategory in ViewBag.CategoryList)
+               <tr>
+                  <td colspan="1">
+                     <label for="Category Name" class="float-left my-4">
+                        <b>Category:</b>
+                     </label>
+                  </td>
+                  <td colspan="1">
+                     <select name="category_id" id="ddlCategories" class="form-control my-1" style="width: 250px;" title="select category" onchange="show_sub_category()">
+                        <option>Select a category</option>
+                        @foreach (var main_category in ViewBag.CategoryList)
                         {
-                           if (maincategory.input_type == "D" || maincategory.input_type == "T")
-                           {
-                              <div id="sub_category_@maincategory.category_id" class="sub_category" style="display: none">
-                                 @if (maincategory.input_type == "D")
-                                 {
-                                    <select name="sub_category" id="D_@maincategory.category_id" class="form-control" style="width: 200px;" title="select sub category">
-                                       <option></option>
-                                       @foreach (var SubCategory in ViewBag.SubCategoryList)
-                                       {
-                                          if (SubCategory.parent_category_id == maincategory.category_id)
-                                          {
-                                             <option value="@SubCategory.sub_category_name">@SubCategory.sub_category_name</option>
-                                          }
-                                       }
-
-                                    </select>
-                                 }
-
-                                 @if (maincategory.input_type == "T")
-                                 {
-
-                                    <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control" style="width: 250px;" title="Insert sub category" oninput="JavaScript:return check_sub_category_length(@maincategory.category_id)" />
-                                    if (Convert.ToInt16(maincategory.input_constraint) == 0)
-                                    {
-                                       <small id="T_@maincategory.category_id" class="form-text text-muted">(35 char max) Optional</small>
-                                    }
-                                    else
-                                    {
-                                       <span>(35 char max)</span>
-                                    }
-                                 }
-
-
-                              </div>
-                           }
+                           <option id="@main_category.category_id" value="@main_category.input_type@main_category.input_constraint">@main_category.category_name</option>
                         }
+                     </select>
+                  </td>
+                  <td colspan="3" class="my-5">
+                     @foreach (var maincategory in ViewBag.CategoryList)
+                     {
+                        if (maincategory.input_type == "D" || maincategory.input_type == "T")
+                        {
+                           <div id="sub_category_@maincategory.category_id" class="sub_category" style="display: none">
+                              @if (maincategory.input_type == "D")
+                              {
+                                 <select name="sub_category" id="D_@maincategory.category_id" class="form-control" style="width: 200px;" title="select sub category">
+                                    <option></option>
+                                    @foreach (var SubCategory in ViewBag.SubCategoryList)
+                                    {
+                                       if (SubCategory.parent_category_id == maincategory.category_id)
+                                       {
+                                          <option value="@SubCategory.sub_category_name">@SubCategory.sub_category_name</option>
+                                       }
+                                    }
 
+                                 </select>
+                              }
 
-                     </td>
-                  </tr>
+                              @if (maincategory.input_type == "T")
+                              {
+
+                                 <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control" style="width: 250px;" title="Insert sub category" oninput="JavaScript:return check_sub_category_length(@maincategory.category_id)"/>
+                                 if (Convert.ToInt16(maincategory.input_constraint) == 0)
+                                 {
+                                          @*<footer id="T_@maincategory.category_id">Someone famous in <cite title="Source Title">Source Title</cite></footer>*@
+                                    <small id="T_@maincategory.category_id" class="form-text text-muted">(35 char max) Optional</small>
+                                 }
+                                 else
+                                 {
+                                    <span>(35 char max)</span>
+                                 }
+                              }
+                           </div>
+                        }
+                     }
+                  </td>
+               </tr>
                   <tr>
                      <td>
-                        <label for="Document Date">
+                        <label for="Document Date" class="float-left my-4">
                            <b>Date:</b>
                         </label>
                      </td>
                      <td>
-                        @*value="@System.DateTime.Today.ToString("MM/dd/yyyy")"  class="datepicker"*@
-                        <input type="text" class="form-control" name="docdate" id="txtDocumentdate" style="width: 120px;" title="Insert document date" /> @*onchange="DateFormat()"*@
-                        @*<span class="glyphicon glyphicon-calendar"></span>*@
+                        <input type="text" class="form-control my-1" name="docdate" id="txtDocumentdate" style="width: 120px;" title="Insert document date" /> @*onchange="DateFormat()"*@
                      </td>
                   </tr>
                </tbody>
             </table>
          </td>
-         <!--        <td><div  valign="top" style="  box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 330px; height:260px; line-height: normal; font-style: normal; vertical-align:	text-top; padding-left: 15px;  "><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants.  More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div></td> -->
       </tr>
    </table>
 </div>
@@ -401,23 +378,4 @@
       //border: '0',
       //border-color: 'white''
    });
-
-
-   //$("#txtDocumentdate").datetimepicker({
-   //    timepicker: false
-   //});
-
-   //function DateFormat() {
-   //    //alert(document.getElementById("txtDocumentdate").value);
-   //    if (document.getElementById("txtDocumentdate").value !="" && (document.getElementById("txtDocumentdate").value).length > 10){
-   //        var original_date = (document.getElementById("txtDocumentdate").value).substring(0, 10);
-   //        var yyyy = original_date.substring(0, 4);
-   //        var mm = original_date.substring(5, 7);
-   //        var dd = original_date.substring(8, 10);
-   //        var formated_date = mm + "/" + dd + "/" + yyyy;
-   //        //document.getElementById("txtDocumentdate").value = original_date;
-   //        document.getElementById("txtDocumentdate").value = formated_date;
-   //        return false;
-   //    }
-   //}
 </script>

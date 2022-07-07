@@ -66,16 +66,19 @@
 
       .navbar { background-color: #808080 !important; }
 
-      /* .navbar .navbar-nav > li .navbar-item , */
-      /* .navbar .navbar-brand{ */
-      /*    color: red; */
-      /* } */
-      /* .nav-link { */
-      /*    color: white !important; */
-      /* } */
+      .navbar .nav > li > a, 
+      .navbar .nav > li > a:first-letter,
+      .navbar .nav > li.current-menu-item > a,
+      .navbar .nav > li.current-menu-ancestor > a {
+            display: inline;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: large !important;
+            padding: 50px 20px;
+         }
 
       .navbar-light .navbar-brand {
          color: #FFFFFF;
+         padding-right: 50px
       }
 
       .navbar-light .navbar-nav .active>.nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .show>.nav-link {
@@ -98,24 +101,31 @@
          text-align: right !important;
       }
 
+      body {
+         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+         font-size: 90% !important;
+         /* font-size:medium */
+      }
+
       #loginas a { color: blue !important; }
 
-      /* .eGrantsWhiteTxt { border-top: 4px solid white !important; } */
+      .eGrantsWhiteTxt { border-top: 4px solid white !important; }
 
-      /* .eGrantsDDbkgrnd { background-color: #808080 !important; } */
+      .eGrantsDDbkgrnd { background-color: #808080 !important; }
 
-      /* .eGrantsUpldBtnColor { background-color: #1D8215 !important; } */
+      .eGrantsUpldBtnColor { background-color: #1D8215 !important; }
 
       .eGrantsReturnBtn {
-         /*font-size:medium;*/
+         font-size:medium;
          border: none;
          color: white;
          background-color: #808080;
       }
 
       .eGrantsDocBtn {
-         /*font-size:medium;*/
+         font-size:medium;
          background-color: #4169e1;
+         
       }
 
       /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
@@ -133,7 +143,7 @@
          cursor: pointer; /* Add a mouse pointer on hover */
          padding: 15px; /* Some padding */
          border-radius: 10px; /* Rounded corners */
-         /*font-size: 18px;*//* Increase font size */
+         font-size: 18px;/* Increase font size  
       }
 
       #myBtn:hover { /*--Ayu*/
@@ -157,7 +167,7 @@
 </div>
 <div class="row">
    <div class="col-lg-12">
-      <nav class="navbar-expand-sm navbar-expand-md navbar-expand-lg navbar navbar-light"> @*navbar-dark bg-dark">*@
+      <nav class="navbar navbar-expand-sm navbar-expand-md navbar-expand-lg  navbar-light"> @*navbar-dark bg-dark">*@
          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavBar" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
          </button>

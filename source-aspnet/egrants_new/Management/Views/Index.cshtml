@@ -71,18 +71,21 @@
       </div>
       <div id="report" class="form-inline">
          <table class="table table-hover table-sm">
-            <caption>* Select QC reason and assign it to particular specialist</caption>
+
             <thead>
             <tr>
-                  <th scope="col">QC Reason:</th>
-                  <th scope="col">QC Person:</th>
-                  <th scope="col"></th>
-               </tr>
+               <th colspan="3"><div class="text-muted font-weight-normal">* Select QC reason and assign it to particular specialist</div></th>
+            </tr>
+            <tr>
+               <th scope="col">QC Reason:</th>
+               <th scope="col">QC Person:</th>
+               <th scope="col"></th>
+            </tr>
             </thead>
             <tbody>
                <tr>
                   <td>
-                     <select name="qc_reason" id="ddlQCreason" class="my-1 mr-sm-2 form-control" title="Select a qc reason from list">
+                     <select name="qc_reason" id="ddlQCreason" class="my-1 form-control" title="Select a qc reason from list">
                         <option selected></option>
                         @foreach (var item in ViewBag.QCReasons)
                         {
@@ -93,7 +96,7 @@
                      </select>
                   </td>
                   <td>
-                     <select name="qc_person_id" id="ddlQCperson" class="my-1 mr-sm-2 form-control" title="Select a qc person from list">
+                     <select name="qc_person_id" id="ddlQCperson" class="my-1 form-control" title="Select a qc person from list">
                         <option selected></option>
                         @foreach (var item in ViewBag.Specialists)
                         {
@@ -104,7 +107,7 @@
                      </select>
                   </td>
                   <td>
-                     <button AccessKey="A" ID="btnAssign" class="btn btn-primary my-1 mr-sm-2" title="Click to add person for QC [shift + alt + A]" OnClick="to_assign();">
+                     <button AccessKey="A" ID="btnAssign" class="btn btn-primary my-1" title="Click to add person for QC [shift + alt + A]" OnClick="to_assign();">
                         <U>A</U>ssign
                      </button>
                   </td>
@@ -133,17 +136,20 @@
       <div id="report" class="form-inline">
          @*<table id="modify">*@
          <table class="table table-hover table-sm">
-            <caption>* Select specialist name and percent of documents, route them to another specialist for QC.</caption>
             <thead>
+            <tr>
+               <th colspan="3"><div class="text-muted font-weight-normal">* Select specialist name and percent of documents, route them to another specialist for QC</div></th>
+            </tr>
             <tr>
                <th scope="col">From:</th>
                <th scope="col">To:</th>
-               <th scope="col"></th>
+               <td></td>
+               <th></th>
             </tr>
             <tbody>
                <tr>
                   <td>
-                     <select name="person_id" id="ddlFromPerson" class="my-1 mr-sm-2 form-control" title="Select a qc person from list">
+                     <select name="person_id" id="ddlFromPerson" class="form-control my-1" title="Select a qc person from list">
                         <option selected></option>
                         @foreach (var item in ViewBag.Specialists)
                         {
@@ -152,14 +158,17 @@
                      </select>
                   </td>
                   <td>
-                     <select name="qc_person_id" id="ddlToPerson" class="my-1 mr-sm-2 form-control" title="Select a qc person from list">
+                     <select name="qc_person_id" id="ddlToPerson" class="form-control my-1" title="Select a qc person from list">
                         <option selected></option>
                         @foreach (var item in ViewBag.Specialists)
                         {
                            <option value=@item.person_id>@item.person_name</option>
                         }
                      </select>
-                     <select name="percent" id="ddlPercent" class="my-1 mr-sm-2 form-control" title="Select percent">
+
+                  </td>
+                  <td>
+                     <select name="percent" id="ddlPercent" class="form-control my-1" title="Select percent">
                         <option selected></option>
                         <option Value="100">100%</option>
                         <option Value="50">50%</option>
@@ -168,7 +177,7 @@
                      </select>
                   </td>
                   <td>
-                     <button AccessKey="R" ID="btnRoute"class="btn btn-primary my-1 mr-sm-2" title="Click to route [shift + alt + R]" OnClick="to_route();">
+                     <button AccessKey="R" ID="btnRoute"class="btn btn-primary my-1" title="Click to route [shift + alt + R]" OnClick="to_route();">
                         <U>R</U>oute
                      </button>
                   </td>
@@ -176,14 +185,18 @@
                <tr>
                   <td><b>Specialist Name</b></td>
                   <td><b>Documents to QC</b></td>
+ 
                   <td><b>Days in</b></td>
+                  <td></td>
                </tr>
                @foreach (var item in ViewBag.QCReport)
                {
                   <tr>
                      <td>@item.qc_person_name</td>
                      <td>@item.files_to_qc</td>
+
                      <td>@item.qc_days</td>
+                     <td></td>
                   </tr>
                }
             </tbody>

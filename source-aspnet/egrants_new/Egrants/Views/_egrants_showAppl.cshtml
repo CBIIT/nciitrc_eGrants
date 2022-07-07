@@ -108,7 +108,7 @@ foreach (var appl in ViewBag.appllayer)
                     <!--start create new doc and new funding doc-->
                         if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
                         {
-                            <button type="button" accesskey="O" class="btn btn-sm" style="background-color: #008b8b; color: #FFF; width: 150px;" title="Click here to add new document [shift + alt + O]" onclick="Javascript:create_new_doc('doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add D<u>o</u>cument</button>
+                            <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:150px;" title="Click here to add new document [shift + alt + O]" onclick="Javascript:create_new_doc('doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add D<u>o</u>cument</button>
                         }
                     }
 
@@ -116,7 +116,7 @@ foreach (var appl in ViewBag.appllayer)
                     {
                         if (appl.can_add_funding == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
                         {
-                            <button type="button" accesskey="F" class="btn btn-sm" style="background-color:#008b8b; color:#FFF; width:200px;" title="Click here to add new funding document [shift + alt + F]" onclick="Javascript:create_new_doc('funding_doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add <u>F</u>unding Document</button>
+                            <button type="button" accesskey="F" class="btn btn-sm  btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:200px;" title="Click here to add new funding document [shift + alt + F]" onclick="Javascript:create_new_doc('funding_doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add <u>F</u>unding Document</button>
                         }
                     }
                 </div><!--end create new buttons-->
