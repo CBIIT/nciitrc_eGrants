@@ -359,7 +359,7 @@
          <button type="button" id="btnclear" accesskey="C" class="btn btn-primary btn-sm eGrantsDocBtn" style="font-size: medium; width: 90px; margin-left: 20px" title="Reset Search Input"><u>C</u>lear</button>
       </div>
       <div class="form-row" >
-         <label><strong>OR</strong></label>
+         <label style="color: #4169e1"><strong>OR</strong></label>
       </div>
       <div class="form-row">
          <div class="form-inline">
@@ -387,7 +387,7 @@
          @Html.DropDownList("Year", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:200px; height=10px; margin-bottom:5px", onchange = "show_appl()" })
          @if (Convert.ToInt16(Session["position_id"]) > 1)
          {
-            <button type="button" style="font-size: medium; width: 150px; margin-left: 80px; margin-bottom: 5px" accesskey="O" class="btn btn-sm btn-success rounded float-right" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button> @*Ayu*@
+      <button type="button" style="font-size: medium; width: 150px; margin-left: 80px; margin-bottom: 5px; background-color:#008b8b;" accesskey="O" class="btn btn-sm btn-success rounded float-right" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button> @*Ayu*@
          }
       </div>
 

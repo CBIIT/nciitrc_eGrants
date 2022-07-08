@@ -47,7 +47,32 @@
             background-color: #ccc;
          }
 
-
+   input[type="file"] {
+      display: none;
+   }
+   .custom-file-upload {
+      border: 1px solid #ccc;
+      display: inline-block;
+      padding: 6px 12px;
+      cursor: pointer;
+   }
+   
+   .fileUpload {
+      position: relative;
+      overflow: hidden;
+      margin: 10px;
+   }
+   .fileUpload input.upload {
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin: 0;
+      padding: 0;
+      font-size: 20px;
+      cursor: pointer;
+      opacity: 0;
+      filter: alpha(opacity=0);
+   }
    /* Style the tab content */
 
    .tabcontent {
@@ -66,6 +91,33 @@
 
    $(document).ready(function () {
       set_default();
+
+      //below code executes on file input change and append name in text control
+    
+   });
+
+   // This code will attach `fileselect` event to all file inputs on the page
+   $(document).on('change', ':file', function() {
+      var input = $(this),
+         numFiles = input.get(0).files ? input.get(0).files.length : 1,
+         label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+      input.trigger('fileselect', [numFiles, label]);
+
+      document.getElementById("by_ddrop").style.display = "inline";
+   });
+
+
+   $(':file').on('fileselect', function(event, numFiles, label) {
+
+      var input = $(this).parents('.input-group').find(':text'),
+         log = numFiles > 1 ? numFiles + ' files selected' : label;
+
+      if( input.length ) {
+         input.val(log);
+      } else {
+         if( log ) alert(log);
+      }
+
    });
 
    function set_default() {
@@ -261,28 +313,52 @@
                      <div class="tabcontent" id="by_ddrop" style="display: none">
                         <br />
                         <div id="dropArea">Drag-drop only one file here to upload</div><br />
-                        <button type="button"  name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>
-                        <div class="mt-1 font-weight-light">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                        <div style="display:inline"><button type="button" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button> </div>
+                        <div style="display:inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                      </div>
                      <!--end upload by drag drop-->
                      <!--start upload by file-->
                      <div class="tabcontent"  id="by_file" style="display: none">
-                        <div>
-                           <br />
-                           <input type="file" name="file" id="UploadFile" style="width: 550px; height: 30px;" onchange="active_btnFileUpload()" /><br />
-
-                              <button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;
-                              <div class="mt-1"> By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-   
+                         <br />
+                         @* <label for="file-upload" class="custom-file-upload">  *@
+                         @*    Browse  *@
+                         @* </label>  *@
+                         @* <input id="file-upload" type="file"/>  *@
+                         @* <input id="uploadFile" placeholder="Select a file" disabled="disabled" />  *@
+                        
+                        @* <div class="col-lg-6 col-sm-6 col-12"> *@
+                        @* *@
+                        <div class="input-group">
+                           <label class="input-group-btn">
+                              <span class="btn btn-primary">
+                                 Browse&hellip; <input type="file" style="display: none;" multiple>
+                              </span>
+                           </label>
+                           <input type="text" class="form-control" readonly>
                         </div>
+                        @* *@
+                        @* </div> *@
+
+                         @* <div class="fileUpload btn btn-info" > *@
+                         @*    <span>Browse</span> *@
+                         @*    <input id="uploadBtn" type="file" class="upload" /> *@
+                         @*    <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
+                         @*    <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div> *@
+                         @* *@
+                         @* </div> *@
+
+                         <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> 
+                        <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
+                        <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                      </div>
+                     <!--end upload by file-->
+                     <!--start upload by email-->
                      <div class="tabcontent" id="by_email" style="display:none">
                         <br /><br />
                         1. Click the button "Upload Via Email" to open an email window.<br /><br />
                         2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
                         <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return upload_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
-                        <div class="mt-1">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-
+                        <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                      </div>
                      <!--end upload by email-->
                      <br /><br />

@@ -421,6 +421,8 @@
     <Content Include="Content\images\sign_todd.jpg" />
     <Content Include="Content\images\sign_wanda.jpg" />
     <Content Include="Content\images\Site_Visit.png" />
+    <Content Include="Content\images\sort-alpha-down.svg" />
+    <Content Include="Content\images\sort-alpha-up.svg" />
     <Content Include="Content\images\sort.gif" />
     <Content Include="Content\images\sort.jpg" />
     <Content Include="Content\images\sorting_aesc.gif" />
@@ -524,6 +526,7 @@
     <Content Include="Content\themes\base\tabs.css" />
     <Content Include="Content\themes\base\theme.css" />
     <Content Include="Content\themes\base\tooltip.css" />
+    <Content Include="EmailBodyTemplate.html" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="getEraDocuments.dll" />
     <Content Include="Global.asax" />
