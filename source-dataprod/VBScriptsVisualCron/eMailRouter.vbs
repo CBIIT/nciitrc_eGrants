@@ -557,14 +557,83 @@ Sub Process (dirpath,oConn,oRS)
 					END IF
 					Set OutMail=nothing								
 				END IF
-																							   
+																							  
+				'' If this is a PRAM Requested or a FRAM Requested
+			ELSEIF InStr(v_SubLine,"FRAM Requested") > 0 OR InStr(v_SubLine, "PRAM Requested") > 0   Then  
 
-			ELSEIF InStr(v_SubLine,"Imran") > 0 Then
-				''wscript.echo "FOUND Imran->"&v_SubLine		
+				replysubj = ""
+				
+				IF InStr(v_SubLine,"FRAM Requested") > 0 Then  
+					'' get the appl id from the grant number in the subject line
+					IF  len(Trim(v_SubLine))<>0  THEN
+						applid=getApplid(removespcharacters(v_SubLine),oConn)
+					END IF
+					'' set the applid, category, subcategory and the extract type to 1
+					replysubj = "applid=" & applid & ", category=FRAM, sub=Request, extract=1, " & CItem.subject
+				ELSEIF InStr(v_SubLine,"PRAM Requested") > 0 Then
+					'' get the appl id from the grant number in the subject line
+					IF  len(Trim(v_SubLine))<>0  THEN
+						applid=getApplid(removespcharacters(v_SubLine),oConn)
+					END IF
+					replysubj = "applid=" & applid & ", category=PRAM, sub=Request, extract=1, " & CItem.subject
+				END If
+
+				Set OutMail = CItem.Forward
+					
+				IF (dBug="n") Then								
+					With OutMail
+						.Recipients.Add("efile@mail.nih.gov")
+						.Recipients.Add("eGrantsDev@mail.nih.gov")
+						.Recipients.Add("eGrantsTest1@mail.nih.gov")
+						.Recipients.Add("eGrantsStage@mail.nih.gov")
+					
+						.Subject = replysubj 
+						.Send
+					End With
+				ELSE
+					''wscript.echo "DON'T WANT THIS" & v_SubLine
+					With OutMail
+						.Recipients.Add("leul.ayana@nih.gov")
+						.Subject = replysubj 
+						.Send
+					End With					
+				END IF
+				Set OutMail=nothing	
+			'' for ACR we want to make sure the subject has these two strings in it
+			ELSEIF InStr(v_SubLine,"CHANGE_NOTICE_FOR") > 0 AND InStr(v_SubLine, "Application is withdrawn request") > 0   Then  
+		
+				'' get the appl id from the grant number in the subject line
+				IF  len(Trim(v_SubLine))<>0  THEN
+					applid = getApplid(removespcharacters(v_SubLine),oConn)
+				END IF
+				
+				'' set the applid, category, subcategory and the extract type to 1
+				replysubj = "applid=" & applid & ", category=eRA Notification, sub=Application Withdrawn, extract=1, " & CItem.subject
+
+				Set OutMail = CItem.Forward
+				IF (dBug="n") Then								
+					With OutMail
+						.Recipients.Add("efile@mail.nih.gov")
+						.Recipients.Add("eGrantsDev@mail.nih.gov")
+						.Recipients.Add("eGrantsTest1@mail.nih.gov")
+						.Recipients.Add("eGrantsStage@mail.nih.gov")
+						
+						.Subject = replysubj 
+						.Send
+					End With
+				ELSE
+					With OutMail
+						.Recipients.Add("leul.ayana@nih.gov")
+						
+						.Subject = replysubj 
+						.Send
+					End With						
+				END IF
+				Set OutMail=nothing														   		
 			End If
 		END IF	'''''((InStr(v_SubLine,"Undeliverable: ") < 1)) Then
-	itmscncnt=itmscncnt+1
-	CItem.Move(OldFldr)	
+			itmscncnt=itmscncnt+1
+			CItem.Move(OldFldr)	
 	
 			processTimeStamp=Now
 			If Err.Number <> 0 Then
