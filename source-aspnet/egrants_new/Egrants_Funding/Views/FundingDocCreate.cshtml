@@ -342,7 +342,7 @@
       // check file, file type and file size
       if (check_file() == false) {
          return false;
-      } else var file = document.getElementById('UploadFile').files[0];
+      } else var file = document.getElementById('customFile').files[0];
 
       frmdata.append('file', file);
       frmdata.append('appl_id', Applid);
@@ -702,8 +702,12 @@
 
                <!--start upload by file-->
                <div class="tabcontent" id="by_file" style="display: none">
-                  <br/>
-                  <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px; margin: 5px" /><br/><br/>
+                  @* <br/> *@
+                  @* <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px; margin: 5px" /><br/><br/> *@
+                  <div class="custom-file my-2"> @*style="width: 700px">*@
+                     <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                     <label class="custom-file-label" for="customFile">Choose file...</label>
+                  </div>
                   <div style="display: inline"><button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document">Add</button></div>
                   <div style="display: inline">By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>
                </div>

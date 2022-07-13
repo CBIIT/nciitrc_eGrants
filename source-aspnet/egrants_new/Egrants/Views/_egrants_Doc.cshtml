@@ -335,15 +335,18 @@
                               @if (maincategory.input_type == "T")
                               {
 
-                                 <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control" style="width: 250px;" title="Insert sub category" oninput="JavaScript:return check_sub_category_length(@maincategory.category_id)"/>
+                                 <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control mt-2" style="width: 250px;" title="Insert sub category" oninput="JavaScript:return check_sub_category_length(@maincategory.category_id)"/>
                                  if (Convert.ToInt16(maincategory.input_constraint) == 0)
                                  {
-                                          @*<footer id="T_@maincategory.category_id">Someone famous in <cite title="Source Title">Source Title</cite></footer>*@
-                                    <small id="T_@maincategory.category_id" class="form-text text-muted">(35 char max) Optional</small>
+                                    <div>
+                                       <span id="T_@maincategory.category_id" class="small form-text text-muted">(35 char max) Optional</span>
+                                    </div>
                                  }
                                  else
                                  {
-                                    <span>(35 char max)</span>
+                                    <div>
+                                       <span class="small form-text text-muted">(35 char max)</span>
+                                    </div>
                                  }
                               }
                            </div>
