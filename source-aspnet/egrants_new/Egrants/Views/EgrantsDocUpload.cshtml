@@ -6,8 +6,7 @@
 <link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
 <script src="~/scripts/dragdrop.js"></script>
 <script src="~/scripts/ProgressBar.js"></script>
-@* <link href="~/Content/jquery-ui.min.css" rel="stylesheet" /> *@
-@* <script src="~/scripts/jquery-ui-1.13.1.min.js"></script> *@
+<script src="~/scripts/bs-custom-file-input.min.js"></script>
 
 <style>
    body {
@@ -50,29 +49,31 @@
    input[type="file"] {
       display: none;
    }
+
    .custom-file-upload {
       border: 1px solid #ccc;
       display: inline-block;
       padding: 6px 12px;
       cursor: pointer;
    }
-   
+
    .fileUpload {
       position: relative;
       overflow: hidden;
       margin: 10px;
    }
-   .fileUpload input.upload {
-      position: absolute;
-      top: 0;
-      right: 0;
-      margin: 0;
-      padding: 0;
-      font-size: 20px;
-      cursor: pointer;
-      opacity: 0;
-      filter: alpha(opacity=0);
-   }
+
+      .fileUpload input.upload {
+         position: absolute;
+         top: 0;
+         right: 0;
+         margin: 0;
+         padding: 0;
+         font-size: 20px;
+         cursor: pointer;
+         opacity: 0;
+         filter: alpha(opacity=0);
+      }
    /* Style the tab content */
 
    .tabcontent {
@@ -91,34 +92,34 @@
 
    $(document).ready(function () {
       set_default();
-
+      bsCustomFileInput.init();
       //below code executes on file input change and append name in text control
-    
+
    });
 
    // This code will attach `fileselect` event to all file inputs on the page
-   $(document).on('change', ':file', function() {
-      var input = $(this),
-         numFiles = input.get(0).files ? input.get(0).files.length : 1,
-         label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-      input.trigger('fileselect', [numFiles, label]);
-
-      document.getElementById("by_ddrop").style.display = "inline";
-   });
-
-
-   $(':file').on('fileselect', function(event, numFiles, label) {
-
-      var input = $(this).parents('.input-group').find(':text'),
-         log = numFiles > 1 ? numFiles + ' files selected' : label;
-
-      if( input.length ) {
-         input.val(log);
-      } else {
-         if( log ) alert(log);
-      }
-
-   });
+//   $(document).on('change', ':file', function () {
+//      var input = $(this),
+//         numFiles = input.get(0).files ? input.get(0).files.length : 1,
+//         label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+//      input.trigger('fileselect', [numFiles, label]);
+//
+//      document.getElementById("by_ddrop").style.display = "inline";
+//   });
+//
+//
+//   $(':file').on('fileselect', function (event, numFiles, label) {
+//
+//      var input = $(this).parents('.input-group').find(':text'),
+//         log = numFiles > 1 ? numFiles + ' files selected' : label;
+//
+//      if (input.length) {
+//         input.val(log);
+//      } else {
+//         if (log) alert(log);
+//      }
+//
+//   });
 
    function set_default() {
       //get doc data
@@ -164,9 +165,6 @@
       //clear all message
       $("#mssg").css('display', 'none');
       $('#notice').css('visibility', 'hidden');
-      //if (type == "by_file") {
-      //    document.getElementById("UploadFile").value = "";
-      //}
    }
 
    function upload_by_ddrop() {
@@ -183,7 +181,7 @@
    function upload_by_file() {
       if (check_file() == false) {
          return false;
-      } else var file = document.getElementById('UploadFile').files[0];
+      } else var file = document.getElementById('customFile').files[0];
       var frmdata = new FormData();
       var document_id = document.getElementById('hidDocID').value;
 
@@ -318,36 +316,14 @@
                      </div>
                      <!--end upload by drag drop-->
                      <!--start upload by file-->
-                     <div class="tabcontent"  id="by_file" style="display: none">
-                         <br />
-                         @* <label for="file-upload" class="custom-file-upload">  *@
-                         @*    Browse  *@
-                         @* </label>  *@
-                         @* <input id="file-upload" type="file"/>  *@
-                         @* <input id="uploadFile" placeholder="Select a file" disabled="disabled" />  *@
-                        
-                        @* <div class="col-lg-6 col-sm-6 col-12"> *@
-                        @* *@
-                        <div class="input-group">
-                           <label class="input-group-btn">
-                              <span class="btn btn-primary">
-                                 Browse&hellip; <input type="file" style="display: none;" multiple>
-                              </span>
-                           </label>
-                           <input type="text" class="form-control" readonly>
+                     <div class="tabcontent" id="by_file" style="display: none">
+
+                        <div class="custom-file my-2"> @*style="width: 700px">*@
+                           <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                           <label class="custom-file-label" for="customFile">Choose file...</label>
                         </div>
-                        @* *@
-                        @* </div> *@
 
-                         @* <div class="fileUpload btn btn-info" > *@
-                         @*    <span>Browse</span> *@
-                         @*    <input id="uploadBtn" type="file" class="upload" /> *@
-                         @*    <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
-                         @*    <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div> *@
-                         @* *@
-                         @* </div> *@
-
-                         <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> 
+                        @* <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
                         <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
                         <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                      </div>
@@ -375,9 +351,9 @@
                <td valign="top" style="width: 400px; padding-left: 50px;">
 
                   <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;">
-                  <div class="text-justify m-4">
-                     <br/>
-                     <br/><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
+                     <div class="text-justify m-4">
+                        <br />
+                        <br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
                      </div>
                   </div>
 

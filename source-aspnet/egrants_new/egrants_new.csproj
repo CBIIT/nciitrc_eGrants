@@ -597,6 +597,7 @@
     <Content Include="scripts\bootstrap.bundle.min.js" />
     <Content Include="scripts\bootstrap.js" />
     <Content Include="scripts\bootstrap.min.js" />
+    <Content Include="scripts\bs-custom-file-input.min.js" />
     <Content Include="scripts\Chart.min.js" />
     <Content Include="scripts\dataTables.bootstrap4.min.js" />
     <Content Include="scripts\datetime-moment.js" />

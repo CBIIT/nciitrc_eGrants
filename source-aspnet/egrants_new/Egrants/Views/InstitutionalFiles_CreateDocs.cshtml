@@ -74,31 +74,59 @@
 
 <script>
 
-    var dropedfile;
-    var DropFileCount = 0;
+   var dropedfile;
+   var DropFileCount = 0;
 
-    $(document).ready(function () {
-        load_default();
+   $(document).ready(function () {
+      load_default();
 
-        $("#comments").on('keypress',function(event) {
-            check_comment_length(event);
-        });
+      $("#comments").on('keypress',function(event) {
+         check_comment_length(event);
+      });
 
-        switch_upload_mode('by_ddrop');
-        Init();
+      switch_upload_mode('by_ddrop');
+      Init();
 
-        $("#comments").on('keyup',function(event) {
-            check_comment_length(event);
-        });
+      $("#comments").on('keyup',function(event) {
+         check_comment_length(event);
+      });
 
-    });
+   });
 
-//    function back() {
-//       // back to Previous page
-//       var previous_url = document.getElementById("hidPrevious_url").value;
-//       window.self.location = previous_url;
-//    }
+   $(function()
+   {
+      $('#TestId').keyup(function(e)
+      {
+         var maxLength = 10;
+         var textlength = this.value.length;
+         if (textlength >= maxLength)
+         {
+            $('#charStatus').html('50 Char Max');
+            this.value = this.value.substring(0, maxLength);
+            e.preventDefault();
+         }
+         if (textlength <= maxLength)
+         {
+            $('#charStatus').html('');
+         }
+      });
+   });
 
+   function check_comment_length(event) {
+
+      Comments = $("#comments").val();
+
+      if (Comments.length > 50 && category.require_comments == 1) {
+         //alert("The Comments are not to exceed 50 Characters");
+         $("#comments").val(Comments.substr(0, 50));
+         $("#comment-warning").removeClass("not-shown");
+         event.preventDefault();
+      }
+      else {
+         $("#comment-warning").addClass("not-shown");
+      }
+
+   }
     function load_default() {
         document.getElementById("index_list").style.display = "inline";
         var act = document.getElementById("hidACT").value;
@@ -236,7 +264,7 @@
 
         //alert("EndDate=" + EndDate);
 
-        var file = document.getElementById('UploadFile').files[0];
+       var file = document.getElementById('customFile').files[0];
         frmdata.append('file', file);
         frmdata.append('category_id', catId);
         frmdata.append('org_id', org_id);
@@ -305,7 +333,26 @@
        }
        document.getElementById(tabs).style.display = "block";
        evt.currentTarget.className += " active";
-    }
+   }
+
+   // Example starter JavaScript for disabling form submissions if there are invalid fields
+   (function() {
+      'use strict';
+      window.addEventListener('load', function() {
+         // Fetch all the forms we want to apply custom Bootstrap validation styles to
+         var forms = document.getElementsByClassName('needs-validation');
+         // Loop over them and prevent submission
+         var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+               if (form.checkValidity() === false) {
+                  event.preventDefault();
+                  event.stopPropagation();
+               }
+               form.classList.add('was-validated');
+            }, false);
+         });
+      }, false);
+   })();
 </script>
 
 <link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
@@ -319,44 +366,46 @@
    <div class="form-inline" style="margin: 0; padding: 0;">
       <table width="800px">
          <tbody>
-            <tr>
-               <td width="100px">
-                  <label class="float-left"><b>Institute:</b></label>
-               </td>
-               <td class="my-4">
-                  <label class="float-left"><b>@Model.SelectedInstitutionalOrg.OrgName</b></label>
-               </td>
-            </tr>
-            <tr>
-               <td width="100px">
-                  <label for="ddlCategories" class="float-left "><b>Category:</b></label>
-               </td>
-               <td class="float-left">
-                  <select name="category_id" class="form-control my-2 float-left" id="ddlCategories" title="Select category to create new document" OnChange="select_category()">
-                     <option value="0"></option>
-                     @foreach (var orgcategory in Model.OrgCategories)
-                     {
-                        <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
-                     }
-                  </select>
-               </td>
-               <td id="commentsblock" class="not-shown float-left">
-                  <input type="text" class="form-control m-2 float-left" id="comments" name="comments" width="200" title="" />
-                  <small id="comment-warning m-2" class="text-muted not-shown">50 char max</small>
-               </td>
-            </tr>
-            <tr id="ShowFlag" class="not-shown">
-               <td>
-                  <label class="float-left"><b>Show Flag:</b></label>
-               </td>
-               <td colspan="2">
-                  <label for="txtStartDate" class="float-left mt-4"><b>From</b></label>
-                  <input type="text" class="float-left m-2 form-control" name="start_date" id="txtStartDate" title="Insert start date" value="@Model.TodayText" />
-                  <label for="txtEndDate" class="float-left mt-4"><b>To</b></label>
-                  <input type="text" class="float-left m-2 form-control" name="end_date" id="txtEndDate" title="Insert end date" />
+         <tr>
+            <td width="100px">
+               <label class="float-left"><b>Institute:</b></label>
+            </td>
+            <td class="my-4">
+               <label class="float-left"><b>@Model.SelectedInstitutionalOrg.OrgName</b></label>
+            </td>
+         </tr>
+         <tr>
+            <td width="100px">
+               <label for="ddlCategories" class="float-left "><b>Category:</b></label>
+            </td>
+            <td class="float-left">
+               <select name="category_id" class="form-control my-2 float-left" id="ddlCategories" title="Select category to create new document" OnChange="select_category()">
+                  <option value="0"></option>
+                  @foreach (var orgcategory in Model.OrgCategories)
+                  {
+                     <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
+                  }
+               </select>
+            </td>
+            <td id="commentsblock" class="not-shown float-left">
+               <input type="text" class="form-control m-2 float-left" style="width: 350px" id="TestId" name="comments" title=""/>
+               <div>
+                  <span class="small m-2 text-muted" id="charStatus"></span>
+               </div>
+           </td>
+         </tr>
+         <tr id="ShowFlag" class="not-shown">
+            <td>
+               <label class="float-left"><b>Show Flag:</b></label>
+            </td>
+            <td colspan="2">
+               <label for="txtStartDate" class="float-left mt-4"><b>From</b></label>
+               <input type="text" class="float-left m-2 form-control" name="start_date" id="txtStartDate" title="Insert start date" value="@Model.TodayText" />
+               <label for="txtEndDate" class="float-left mt-4"><b>To</b></label>
+               <input type="text" class="float-left m-2 form-control" name="end_date" id="txtEndDate" title="Insert end date" />
 
-               </td>
-            </tr>
+            </td>
+         </tr>
          </tbody>
       </table>
    </div>
@@ -373,7 +422,6 @@
                </div>
 
                <div id="myTabContent" style="width: 700px;">
-                  @* <div class="tab-content" id="TabUploadContent"> *@
                   <!--start upload by drag drop -->
                   <div class="tabcontent" id="by_ddrop" style="display: none">
                      <br />
@@ -382,42 +430,22 @@
                      <div style="display:inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                   </div>
                   <!--end upload by drag drop-->
-                  @* <!--start upload by drag drop --> *@
-                  @* <div class="tab-pane fade active in" id="by_ddrop" style="display: inline"> *@
-                  @*    <br /> *@
-                  @*    <div id="dropArea"> *@
-                  @*       Drag-drop only one file here to upload *@
-                  @*    </div> *@
-                  @*    <br /> *@
-                  @*    <button type="button" id="btnDragdrop" name="btnCreateNew" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName');" disabled="disabled"><u>C</u>reate New</button> *@
-                  @*    <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div> *@
-                  @* </div> *@
-                  @* <!--end upload by drag drop--> *@
+                  @* <div class="form-inline" style="margin: 0; padding: 0;"> *@
 
                   <!--start upload by file-->
                   <div class="tabcontent" id="by_asp" style="display: none">
-                     <br />
-                     <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px; margin: 5px" /><br /><br />
+                     @* <br /> *@
+                     @*    <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px; margin: 5px" /><br /><br /> *@
+                     <div class="custom-file my-2"> @*style="width: 700px">*@
+                        <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                        <label class="custom-file-label" for="customFile">Choose file...</label>
+                     </div>
                      <div style="display: inline"><button style="display: inline" type="button" name="btnCreate" id="btnFileUpload" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>C</u>reate New</button> </div>
                      <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
                   </div>
                   <!--end upload by file-->
-                  @* *@
-                  @* <div class="tab-pane fade active in" id="by_asp" style="display: none"> *@
-                  @*    <br /> *@
-                  @*    <input type="file" name="file" id="UploadFile" /> *@
-                  @*    <br /> *@
-                  @*    <button type="button" id="btnFileUpload" name="btnCreate" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>C</u>reate New</button> *@
-                  @*    <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div> *@
-                  @* *@
                   @* </div> *@
-
-                  @*<br />*@
-                  <!--end upload by file-->
-                  <!--start progree bar-->
-                  @*<br />*@
                   <br /><br />
-
                   <!--show progress bar-->
                   <div class="progress" style="display: none">
                      <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
@@ -433,7 +461,6 @@
 
 
             <td>
-               @* <button onclick="javascript: show_docs('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return previous page [alt + shift + R]"><u>R</u>eturn</button>&#0160;&#0160; *@
                @if (ViewBag.FileUrl != null)
                {
                   <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
