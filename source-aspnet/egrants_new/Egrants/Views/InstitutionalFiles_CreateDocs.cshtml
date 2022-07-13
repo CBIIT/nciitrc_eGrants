@@ -317,9 +317,6 @@
 
 <div id="content" style="margin: 0; padding: 0;">
    <div class="form-inline" style="margin: 0; padding: 0;">
-      @* <table> *@
-      @*    <tr> *@
-      @*       <td width="800px"> *@
       <table width="800px">
          <tbody>
             <tr>
@@ -342,10 +339,6 @@
                         <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
                      }
                   </select>
-
-                  @* <input type="text" class="not-shown form-control m-2" id="comments" name="comments" width="200" title="" /> *@
-                  @* <small id="comment-warning" class="text-muted not-shown">(50 char max) Optional</small> *@
-
                </td>
                <td id="commentsblock" class="not-shown float-left">
                   <input type="text" class="form-control m-2 float-left" id="comments" name="comments" width="200" title="" />
@@ -366,9 +359,6 @@
             </tr>
          </tbody>
       </table>
-      @*       </td> *@
-      @* *@
-      @* </table> *@
    </div>
    <div style="height:20px"></div>
    <table width="1024" class="container">
@@ -388,7 +378,7 @@
                   <div class="tabcontent" id="by_ddrop" style="display: none">
                      <br />
                      <div id="dropArea">Drag-drop only one file here to upload</div><br />
-                     <div style="display:inline"><button type="button" name="btnCreateNew" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName');" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button> </div>
+                     <div style="display:inline"><button type="button" name="btnCreateNew" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName');" accesskey="C" title="Click here to create new [shift + alt + C]"><u>C</u>reate New</button> </div>
                      <div style="display:inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                   </div>
                   <!--end upload by drag drop-->
