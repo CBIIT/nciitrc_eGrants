@@ -3,13 +3,10 @@
     Layout = "~/Shared/Views/_egrants_header.cshtml";
 }
 
-@using egrants_new.Controllers;
-@using egrants_new.Egrants.Models;
-@using System.Web.SessionState;
-
 <link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
 <script src="~/scripts/dragdrop.js"></script>
 <script src="~/scripts/ProgressBar.js"></script>
+<script src="~/scripts/bs-custom-file-input.min.js"></script>
 
 <style>
     body {
@@ -60,8 +57,9 @@
     var input_constraint;
     //var frmdata = new FormData();
 
-    $(document).ready(function () {
-        set_default();
+   $(document).ready(function () {
+      bsCustomFileInput.init();
+      set_default();
     });
 
     function set_default() {
@@ -361,7 +359,7 @@
                             <!--start upload by file-->
                             <div class="tabcontent" id="by_file" style="display:none">
                                <div class="custom-file my-2"> @*style="width: 700px">*@
-                                  <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                                  <input type="file" class="custom-file-input" id="customFile">
                                   <label class="custom-file-label" for="customFile">Choose file...</label>
                                </div>
                                 @* <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br /> *@

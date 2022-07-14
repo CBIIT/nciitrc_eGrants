@@ -281,7 +281,6 @@ namespace egrants_new.Models
             return Positions;
         }
 
-        // load Coordinators
         /// <summary>
         /// The load coordinators.
         /// </summary>
@@ -319,8 +318,7 @@ namespace egrants_new.Models
             var cmd = new SqlCommand(
                 "select distinct admin_phs_org_code, case when admin_phs_org_code = 'ca' then 'NCI' else null end as profile "
               + " from grants ORDER BY admin_phs_org_code",
-                conn
-            );
+                conn);
 
             // System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT DISTINCT a.admin_phs_org_code, p.profile as profile " +
             // " FROM vw_appls a LEFT OUTER JOIN profiles p ON a.admin_phs_org_code = p.admin_phs_org_code ORDER BY a.admin_phs_org_code", conn);
