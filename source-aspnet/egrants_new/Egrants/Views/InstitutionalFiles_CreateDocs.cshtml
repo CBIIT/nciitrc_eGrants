@@ -81,77 +81,28 @@
       load_default();
       bsCustomFileInput.init();
 
-//      $("#comments").on('keypress',function(event) {
-//         var maxLength = 10;
-//         var textlength = this.value.length;
-//         if (textlength >= maxLength)
-//         {
-//            $('#charStatus').html('50 Char Max');
-//            this.value = this.value.substring(0, maxLength);
-//            event.preventDefault();
-//         }
-//
-//         if (textlength <= maxLength)
-//         {
-//            $('#charStatus').html('');
-//         }
-//      });
-
       switch_upload_mode('by_ddrop');
       Init();
+   });
 
-//      $("#comments").on('keyup',function(event) {
-//         var maxLength = 10;
+//   $(function()
+//   {
+//      $('#comments').keyup(function(e)
+//      {
+//         var maxLength = 50;
 //         var textlength = this.value.length;
 //         if (textlength >= maxLength)
 //         {
 //            $('#charStatus').html('50 Char Max');
 //            this.value = this.value.substring(0, maxLength);
-//            event.preventDefault();
+//            e.preventDefault();
 //         }
-//
 //         if (textlength <= maxLength)
 //         {
 //            $('#charStatus').html('');
 //         }
 //      });
-
-   });
-
-//   function check_comment_length_thisform(event) {
-//      var maxLength = 10;
-//      var textlength = this.value.length;
-//      if (textlength >= maxLength)
-//      {
-//         $('#charStatus').html('50 Char Max');
-//         this.value = this.value.substring(0, maxLength);
-//         event.preventDefault();
-//      }
-//
-//      if (textlength <= maxLength)
-//      {
-//         $('#charStatus').html('');
-//      }
-//   }
-
-   $(function()
-   {
-      $('#comments').keyup(function(e)
-      {
-         var maxLength = 10;
-         var textlength = this.value.length;
-         if (textlength >= maxLength)
-         {
-            $('#charStatus').html('50 Char Max');
-            this.value = this.value.substring(0, maxLength);
-            e.preventDefault();
-         }
-         if (textlength <= maxLength)
-         {
-            $('#charStatus').html('');
-         }
-      });
-   });
+//   });
 
     function load_default() {
         document.getElementById("index_list").style.display = "inline";
@@ -346,25 +297,6 @@
        document.getElementById(tabs).style.display = "block";
        evt.currentTarget.className += " active";
    }
-
-//   // Example starter JavaScript for disabling form submissions if there are invalid fields
-//   (function() {
-//      'use strict';
-//      window.addEventListener('load', function() {
-//         // Fetch all the forms we want to apply custom Bootstrap validation styles to
-//         var forms = document.getElementsByClassName('needs-validation');
-//         // Loop over them and prevent submission
-//         var validation = Array.prototype.filter.call(forms, function(form) {
-//            form.addEventListener('submit', function(event) {
-//               if (form.checkValidity() === false) {
-//                  event.preventDefault();
-//                  event.stopPropagation();
-//               }
-//               form.classList.add('was-validated');
-//            }, false);
-//         });
-//      }, false);
-//   })();
 </script>
 
 <link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
@@ -401,9 +333,9 @@
                </select>
             </td>
             <td id="commentsblock" class="not-shown float-left">
-               <input type="text" class="form-control m-2 float-left" style="width: 350px" id="comments" size="8" title=""/>
+               <input type="text" class="form-control m-2 float-left" style="width: 350px" id="comments" size="8" maxlength="50" title=""/>
                <div>
-                  <span class="small m-2 text-muted" id="charStatus"></span>
+                  <span class="small m-2 text-muted" id="charStatus">50 Char Max</span>
                </div>
            </td>
          </tr>
@@ -447,8 +379,6 @@
 
                   <!--start upload by file-->
                   <div class="tabcontent" id="by_asp" style="display: none">
-                     @* <br /> *@
-                     @*    <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px; margin: 5px" /><br /><br /> *@
                      <div class="custom-file my-2"> @*style="width: 700px">*@
                         <input type="file" class="custom-file-input" id="customFile">
                         <label class="custom-file-label" for="customFile">Choose file...</label>
@@ -457,7 +387,8 @@
                      <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
                   </div>
                   <!--end upload by file-->
-                  @* </div> *@
+
+
                   <br /><br />
                   <!--show progress bar-->
                   <div class="progress" style="display: none">
@@ -478,17 +409,14 @@
                {
                   <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
                }
-               <b>@ViewBag.Message</b>
-            <td valign="top" style="width: 400px;  padding-left: 50px;">
+            <b>@ViewBag.Message</b>
 
-
-               <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal;">
-                  <div class="text-justify m-4">
-                     <br><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
-                  </div>
+            <td style="width: 400px;  padding-left: 50px;">
+               <div class="text-justify p-4" style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 240px; line-height: normal; font-style: normal;">
+                  <p><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
                </div>
             </td>
          </tr>
       </tbody>
    </table>
-</div>
+</div> <!-- end content -->
