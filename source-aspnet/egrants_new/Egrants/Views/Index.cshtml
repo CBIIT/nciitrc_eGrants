@@ -477,7 +477,7 @@
 
                         <a class="btn btn-default" style="background-color:#808080; color:white" id="all_appl" href="javascript:getByAll(@grant.grant_id)" title="View Categories and Grant Years for @grant.grant_num">All</a><span>&#0160;</span>
 
-                        <label style="margin-left:10px; font-size:medium;"># of Grant Years</label>
+                       <label style="margin-left:10px; font-size:medium;"><strong># of Grant Years</strong></label>
                         <input type="text" id="txtYears_@grant.grant_id" name="years_@grant.grant_id" class="form-control" style="width:50px; height:35px; display:inline;" placeholder="Yrs" onkeyup="return checkYears(event, @Convert.ToInt32(grant.grant_id))" /> @*onkeyup="if (event.keyCode == 13) return checkYears(@Convert.ToInt32(grant.grant_id))"*@
 
                         @if (ViewBag.SelectedCats != "" && ViewBag.SelectedCats != null)

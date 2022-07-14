@@ -79,23 +79,64 @@
 
    $(document).ready(function () {
       load_default();
+      bsCustomFileInput.init();
 
-      $("#comments").on('keypress',function(event) {
-         check_comment_length(event);
-      });
+//      $("#comments").on('keypress',function(event) {
+//         var maxLength = 10;
+//         var textlength = this.value.length;
+//         if (textlength >= maxLength)
+//         {
+//            $('#charStatus').html('50 Char Max');
+//            this.value = this.value.substring(0, maxLength);
+//            event.preventDefault();
+//         }
+//
+//         if (textlength <= maxLength)
+//         {
+//            $('#charStatus').html('');
+//         }
+//      });
 
       switch_upload_mode('by_ddrop');
       Init();
 
-      $("#comments").on('keyup',function(event) {
-         check_comment_length(event);
-      });
+//      $("#comments").on('keyup',function(event) {
+//         var maxLength = 10;
+//         var textlength = this.value.length;
+//         if (textlength >= maxLength)
+//         {
+//            $('#charStatus').html('50 Char Max');
+//            this.value = this.value.substring(0, maxLength);
+//            event.preventDefault();
+//         }
+//
+//         if (textlength <= maxLength)
+//         {
+//            $('#charStatus').html('');
+//         }
+//      });
 
    });
 
+//   function check_comment_length_thisform(event) {
+//      var maxLength = 10;
+//      var textlength = this.value.length;
+//      if (textlength >= maxLength)
+//      {
+//         $('#charStatus').html('50 Char Max');
+//         this.value = this.value.substring(0, maxLength);
+//         event.preventDefault();
+//      }
+//
+//      if (textlength <= maxLength)
+//      {
+//         $('#charStatus').html('');
+//      }
+//   }
+
    $(function()
    {
-      $('#TestId').keyup(function(e)
+      $('#comments').keyup(function(e)
       {
          var maxLength = 10;
          var textlength = this.value.length;
@@ -112,21 +153,6 @@
       });
    });
 
-   function check_comment_length(event) {
-
-      Comments = $("#comments").val();
-
-      if (Comments.length > 50 && category.require_comments == 1) {
-         //alert("The Comments are not to exceed 50 Characters");
-         $("#comments").val(Comments.substr(0, 50));
-         $("#comment-warning").removeClass("not-shown");
-         event.preventDefault();
-      }
-      else {
-         $("#comment-warning").addClass("not-shown");
-      }
-
-   }
     function load_default() {
         document.getElementById("index_list").style.display = "inline";
         var act = document.getElementById("hidACT").value;
@@ -138,20 +164,6 @@
             } else switch_upload_mode("by_asp");
         }
     }
-
-    //$('#txtStartDate').datepicker({
-    //    showOn: 'both',
-    //    buttonImage: '../Content/images/calendar.png'
-    //    //border: '0',
-    //    //border-color: 'white''
-    //});
-
-    //$('#txtEndDate').datepicker({
-    //    showOn: 'both',
-    //    buttonImage: '../Content/images/calendar.png'
-    //    //border: '0',
-    //    //border-color: 'white''
-    //});
 
     function switch_upload_mode(act) {
        if (act == "by_ddrop") {
@@ -335,24 +347,24 @@
        evt.currentTarget.className += " active";
    }
 
-   // Example starter JavaScript for disabling form submissions if there are invalid fields
-   (function() {
-      'use strict';
-      window.addEventListener('load', function() {
-         // Fetch all the forms we want to apply custom Bootstrap validation styles to
-         var forms = document.getElementsByClassName('needs-validation');
-         // Loop over them and prevent submission
-         var validation = Array.prototype.filter.call(forms, function(form) {
-            form.addEventListener('submit', function(event) {
-               if (form.checkValidity() === false) {
-                  event.preventDefault();
-                  event.stopPropagation();
-               }
-               form.classList.add('was-validated');
-            }, false);
-         });
-      }, false);
-   })();
+//   // Example starter JavaScript for disabling form submissions if there are invalid fields
+//   (function() {
+//      'use strict';
+//      window.addEventListener('load', function() {
+//         // Fetch all the forms we want to apply custom Bootstrap validation styles to
+//         var forms = document.getElementsByClassName('needs-validation');
+//         // Loop over them and prevent submission
+//         var validation = Array.prototype.filter.call(forms, function(form) {
+//            form.addEventListener('submit', function(event) {
+//               if (form.checkValidity() === false) {
+//                  event.preventDefault();
+//                  event.stopPropagation();
+//               }
+//               form.classList.add('was-validated');
+//            }, false);
+//         });
+//      }, false);
+//   })();
 </script>
 
 <link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
@@ -360,6 +372,7 @@
 <script src="~/scripts/ProgressBar.js"></script>
 <link href="~/Content/jquery-ui.min.css" rel="stylesheet" /> 
 <script src="~/scripts/jquery-ui-1.13.1.min.js"></script> 
+<script src="~/scripts/bs-custom-file-input.min.js"></script>
 
 
 <div id="content" style="margin: 0; padding: 0;">
@@ -379,7 +392,7 @@
                <label for="ddlCategories" class="float-left "><b>Category:</b></label>
             </td>
             <td class="float-left">
-               <select name="category_id" class="form-control my-2 float-left" id="ddlCategories" title="Select category to create new document" OnChange="select_category()">
+               <select name="category_id" class="form-control my-2 float-left" id="ddlCategories" size="1" title="Select category to create new document" OnChange="select_category()">
                   <option value="0"></option>
                   @foreach (var orgcategory in Model.OrgCategories)
                   {
@@ -388,7 +401,7 @@
                </select>
             </td>
             <td id="commentsblock" class="not-shown float-left">
-               <input type="text" class="form-control m-2 float-left" style="width: 350px" id="TestId" name="comments" title=""/>
+               <input type="text" class="form-control m-2 float-left" style="width: 350px" id="comments" size="8" title=""/>
                <div>
                   <span class="small m-2 text-muted" id="charStatus"></span>
                </div>
@@ -400,9 +413,9 @@
             </td>
             <td colspan="2">
                <label for="txtStartDate" class="float-left mt-4"><b>From</b></label>
-               <input type="text" class="float-left m-2 form-control" name="start_date" id="txtStartDate" title="Insert start date" value="@Model.TodayText" />
+               <input type="text" class="float-left m-2 form-control" name="start_date" id="txtStartDate" title="Insert start date" size="8" value="@Model.TodayText" />
                <label for="txtEndDate" class="float-left mt-4"><b>To</b></label>
-               <input type="text" class="float-left m-2 form-control" name="end_date" id="txtEndDate" title="Insert end date" />
+               <input type="text" class="float-left m-2 form-control" name="end_date" id="txtEndDate" title="Insert end date" size="8"/>
 
             </td>
          </tr>
@@ -437,10 +450,10 @@
                      @* <br /> *@
                      @*    <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px; margin: 5px" /><br /><br /> *@
                      <div class="custom-file my-2"> @*style="width: 700px">*@
-                        <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                        <input type="file" class="custom-file-input" id="customFile">
                         <label class="custom-file-label" for="customFile">Choose file...</label>
                      </div>
-                     <div style="display: inline"><button style="display: inline" type="button" name="btnCreate" id="btnFileUpload" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>C</u>reate New</button> </div>
+                     <div style="display: inline"><button style="display: inline" type="button" name="btnCreate" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>C</u>reate New</button> </div>
                      <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
                   </div>
                   <!--end upload by file-->
