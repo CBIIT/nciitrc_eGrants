@@ -315,7 +315,7 @@
 </script>
 
 <div id="main" style="margin:0;padding:0;">
-    <div id="caption" style="margin:0;padding:0;"><b id="page_title">Add New Document</b></div>
+    <div id="caption" style="margin:0;padding:0;"><strong id="page_title">Add New Document</strong></div>
     <form name="frmGetInfo">
         <input type="text" hidden id="hidAct" name="act" value="create_new" />
         <input type="text" hidden id="hidAppl_id" name="appl_id" value="@ViewBag.applid" />
@@ -329,77 +329,77 @@
     </form>
 
     <!--start search form to create or update-->
-    <div id="content" style="margin:0; padding:0;">
-        @Html.Partial("~/Egrants/Views/_egrants_Doc.cshtml")
+    <div id="content" style="margin: 0; padding: 0;">
 
-        <table width="1024">
-            <tbody>
-                <tr>
-                    <!--show loading icon-->
-                    <td width="80"><div class="loading" style="display:none"><img src="~/Content/images/Loading.gif" width="50" /></div></td>
-                    <td width="700" valign="top">
+       @Html.Partial("~/Egrants/Views/_egrants_Doc.cshtml")
 
-                        <div class="tab" style="width:498px">
-                            <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop'); Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
-                            <button class="tablinks" onclick="Docreate(event, 'btnFileUpload'); Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
-                            <button class="tablinks" onclick="Docreate(event, 'btnEmail'); Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
-                        </div>
-                        <div id="myTabContent" style="width: 700px;">
-                            <!--start upload by drag drop -->
-                            <div class="tabcontent " id="by_ddrop" style="display:none">
-                                <br />
-                                <div id="dropArea">Drag-drop only one file here to upload</div>
-                                <br />
-                                <span>
-                                    <button type="button" style="display:inline" name="CreatByDdrop" id="btnDragdrop" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
-                                    By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
-                                </span>
-                            </div>
-                            <!--end upload by drag drop-->
-                            <!--start upload by file-->
-                            <div class="tabcontent" id="by_file" style="display:none">
-                               <div class="custom-file my-2"> @*style="width: 700px">*@
-                                  <input type="file" class="custom-file-input" id="customFile">
-                                  <label class="custom-file-label" for="customFile">Choose file...</label>
-                               </div>
-                                @* <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br /> *@
-                                <div style="display:inline"><button style="display:inline" type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to upload document [shift + alt + D]">A<u>d</u>d</button></div>
-                                <div style="display:inline">By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>
-                            </div>
-                            <!--end upload by file-->
-                            <!--start upload by email-->
-                            <div class="tabcontent" id="by_email" style="display:none">
-                                <br /><br />
-                                &#0160;&#0160;1. After grant year, category and date are entered/confirmed, click the &#0160;&#0160;<br /><br />
-                                &#0160;&#0160;&#0160;&#0160;&#0160;&#0160;"Upload via Email" button to open an email window.<br /><br /><br />
-                                &#0160;&#0160;2. Attach the document (<b>do not</b> change the subject) and click send.<br /><br /><br />
-                                <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return create_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
-                                <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+       <table width="1024">
+          <tbody>
+          <tr>
+             <!--show loading icon-->
+             <td width="80">
+                <div class="loading" style="display: none"><img src="~/Content/images/Loading.gif" width="50"/></div></td>
+             <td width="700" valign="top">
 
-                            </div>
-                            <!--end upload by email-->
-                            <br /><br />
-                            <!--show progress bar-->
-                            <div class="progress" style="display:none">
-                                <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; margin:0; padding:0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <!--end progress bar-->
-                        </div><!--end myTabContent-->
-                        <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
-                        <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
-                        <b id="done"><span id="mssg"></span></b>
-                    </td>
-                    <td valign="top" style="width: 400px; padding-left: 50px;">
-  
-                       <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal;;">
-                          <div class="text-justify m-4">
-                          <br></br>
-                          <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
-                       </div>
-                    </div>
-                       </td>
-                </tr>
-            </tbody>
-        </table>
+                <div class="tab" style="width: 498px">
+                   <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
+                   <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
+                   <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
+                </div>
+                <div id="myTabContent" style="width: 700px;">
+                   <!--start upload by drag drop -->
+                   <div class="tabcontent " id="by_ddrop" style="display: none">
+                      <br/>
+                      <div id="dropArea">Drag-drop only one file here to upload</div>
+                      <br/>
+                      <span>
+                         <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
+                         By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
+                      </span>
+                   </div>
+                   <!--end upload by drag drop-->
+                   <!--start upload by file-->
+                   <div class="tabcontent" id="by_file" style="display: none">
+                      <div class="custom-file my-2"> @*style="width: 700px">*@
+                         <input type="file" class="custom-file-input" id="customFile">
+                         <label class="custom-file-label" for="customFile">Choose file...</label>
+                      </div>
+                      @* <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br /> *@
+                      <div style="display: inline"><button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to upload document [shift + alt + D]">A<u>d</u>d</button></div>
+                      <div style="display: inline">By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>
+                   </div>
+                   <!--end upload by file-->
+                   <!--start upload by email-->
+                   <div class="tabcontent" id="by_email" style="display: none">
+                      <br/><br/>
+                      &#0160;&#0160;1. After grant year, category and date are entered/confirmed, click the &#0160;&#0160;<br/><br/>
+                      &#0160;&#0160;&#0160;&#0160;&#0160;&#0160;"Upload via Email" button to open an email window.<br/><br/><br/>
+                      &#0160;&#0160;2. Attach the document (<strong>do not</strong> change the subject) and click send.<br/><br/><br/>
+                      <div style="display: inline"><button type="button" style="display: inline" name="CreatByEmail" id="btnEmail" onclick="return create_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
+                      <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+
+                   </div>
+                   <!--end upload by email-->
+                   <br/><br/>
+                   <!--show progress bar-->
+                   <div class="progress" style="display: none">
+                      <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                   </div>
+                   <!--end progress bar-->
+                </div><!--end myTabContent-->
+                <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+                <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/></a>
+                <strong id="done"><span id="mssg"></span></strong>
+             </td>
+             <td valign="top" style="width: 400px; padding-left: 50px;">
+                <div class="text-justify p-4" style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 240px; line-height: normal; font-style: normal; ;">
+                   @* <span class="text-justify align-content-center m-4"> *@
+                   <strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
+                   @* </span> *@
+                </div>
+             </td>
+          </tr>
+          </tbody>
+       </table>
     </div><!--end content-->
 </div><!--end main-->

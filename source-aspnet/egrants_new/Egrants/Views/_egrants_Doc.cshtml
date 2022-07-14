@@ -71,20 +71,6 @@
          });
    }
 
-   function check_sub_category_length(category_id) {
-      //alert("on change");
-      var el = "T_" + category_id;
-      if (document.getElementById(el).value != "") {
-         var sub_cat = document.getElementById(el).value;
-         if (sub_cat.length > 35) {
-            alert("The maximum value for sub category should be less than 35 characters");
-            document.getElementById(el).value = "";
-            document.getElementById(el).onfocus;
-            return false;
-         }
-      }
-   }
-
    function show_sub_category() {
       //enable btnFileUpload button and file
       if (document.getElementById("btnFileUpload") != null && document.getElementById("btnFileUpload").disabled == true) {
@@ -323,7 +309,7 @@
 
                               @if (maincategory.input_type == "T")
                               {
-                                 <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control float-left mt-3 ml-2" style="width: 390px;" title="Insert sub category" oninput="JavaScript:return check_sub_category_length(@maincategory.category_id)"/>
+                                 <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control float-left mt-3 ml-2" maxlength="35" style="width: 390px;" title="Insert sub category"/>
                                  if (Convert.ToInt16(maincategory.input_constraint) == 0)
                                  {
                                     <div>

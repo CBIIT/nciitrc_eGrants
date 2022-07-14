@@ -318,7 +318,8 @@
                      <!--start upload by file-->
                      <div class="tabcontent" id="by_file" style="display: none">
 
-                        <div class="custom-file my-2"> @*style="width: 700px">*@
+                        <div class="custom-file my-2">
+                           @*style="width: 700px">*@
                            <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
                            <label class="custom-file-label" for="customFile">Choose file...</label>
                         </div>
@@ -348,135 +349,13 @@
                   <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
                   <b id="done"><span id="mssg"></span></b>
                </td>
-               <td valign="top" style="width: 400px; padding-left: 50px;">
-
-                  <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;">
-                     <div class="text-justify m-4">
-                        <br />
-                        <br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
-                     </div>
+               <td style="width: 400px; padding-left: 50px;">
+                  <div class="text-justify p-4" style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 240px; line-height: normal; font-style: normal;">
+                     <p><strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
                   </div>
-
                </td>
             </tr>
          </tbody>
       </table>
-      @* <table width="1024"> *@
-      @*    <tbody> *@
-      @*       <tr> *@
-      @*          <!--show loading icon--> *@
-      @*          <td width="80"> *@
-      @*             <div class="loading" style="display: none"> *@
-      @*                <img src="~/Content/images/Loading.gif" width="50" /> *@
-      @*             </div> *@
-      @*          </td> *@
-      @*          <td width="700" valign="top"> *@
-      @*             <div class="tab" style="width: 498px"> *@
-      @*                <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button> *@
-      @* *@
-      @*                <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button> *@
-      @* *@
-      @*                <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button> *@
-      @*             </div> *@
-      @*             <div class="tab-content" id="myTabContent" style="width: 700px;"> *@
-      @*                <!--start upload by drag drop --> *@
-      @*                <div class="tab-pane fade active in" id="by_ddrop" style="display: none"> *@
-      @*                   <br /> *@
-      @*                   <div id="dropArea">Drag-drop only one file here to upload</div><br /> *@
-      @*                   <div style="width: 650px;"> *@
-      @*                      <span> *@
-      @*                         <button type="button" style="display: inline" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160; *@
-      @*                         $1$<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn"  accesskey="C" title="Click here to cancel upload [shift + alt + C]" onclick="return back()"><u>C</u>ancel</button>#1# *@
-      @*                         <div style="display: inline"> By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div> *@
-      @*                      </span> *@
-      @*                   </div> *@
-      @*                </div> *@
-      @*                <!--end upload by drag drop--> *@
-      @*                <!--start upload by file--> *@
-      @*                <div class="tab-pane fade active in" id="by_file" style="display: none"> *@
-      @*                   <div> *@
-      @*                      <br /> *@
-      @*                      <input type="file" name="file" id="UploadFile" style="width: 550px; height: 30px;" onchange="active_btnFileUpload()" /><br /> *@
-      @*                      <span style="width: 450px;"> *@
-      @*                         <button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160; *@
-      @*                         $1$<button type="button" name="Cancel" id="btnCancel" class="btn btn-primary eGrantsDocBtn" onclick="return back()"  accesskey="C" title="Click here to cancel upload [shift + alt + C]"><u>C</u>ancel</button>#1# *@
-      @*                         <div style="display: inline"> By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div> *@
-      @*                      </span> *@
-      @*                   </div> *@
-      @*                </div> *@
-      @*                <!--end upload by file--> *@
-      @*                <!--start upload by email--> *@
-      @*                <div class="tab-pane fade active in" id="by_email" style="display: none"> *@
-      @*                   <br /> *@
-      @*                   <label style="width: 500px"> *@
-      @*                      <b>How to Upload Via Email?</b> *@
-      @*                   </label><br /><br /> *@
-      @*                   <br /> *@
-      @*                   &#0160;&#0160;1. Click the button "Upload Via Email" to open an email window.<br /><br /> *@
-      @*                   &#0160;&#0160;2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br /> *@
-      @*                   <br /> *@
-      @*                   <span style="width: 450px;"> *@
-      @*                      <button type="button" style="display: inline" name="CreatByEmail" id="btnEmail" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_email()" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"> *@
-      @*                         <u>U</u>pload Via Email *@
-      @*                      </button> *@
-      @*                      <div style="display: inline"> By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div> *@
-      @*                   </span> *@
-      @*                </div> *@
-      @*                <!--end upload by email--> *@
-      @*                <br /><br /> *@
-      @*                <!--show progress bar--> *@
-      @*                <div class="progress" style="display: none"> *@
-      @*                   <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div> *@
-      @*                </div> *@
-      @*                <!--end progress bar--> *@
-      @*             </div><!--end myTabContent--> *@
-      @*             <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160; *@
-      @*             <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a> *@
-      @*             <b id="done"><span id="mssg"></span></b> *@
-      @*          </td> *@
-      @*          <td valign="top" style="width: 400px; padding-left: 50px;"> *@
-      @*             <div style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br /><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div> *@
-      @*          </td> *@
-      @*       </tr> *@
-      @*    </tbody> *@
-      @* </table> *@
-   </div>
-
-   @*                         <td colspan="2" height="10"> *@
-   @*                            <!--show progress bar --> *@
-   @*                            <div class="progress" style="display: none"> *@
-   @*                               <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div> *@
-   @*                            </div> *@
-   @*                            <!--end progress bar--> *@
-   @*                         </td> *@
-   @*                         <!--end upload by email--> *@
-   @*                      </div> *@
-   @* *@
-   @*                   <td colspan="2"> *@
-   @*                      <button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160; *@
-   @*                      <a target="_new" href="#" id="notice" style="visibility: hidden"> *@
-   @*                         <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/> *@
-   @*                      </a> *@
-   @*                      <b id="done"> *@
-   @*                         <span id="mssg"></span> *@
-   @*                      </b> *@
-   @*                   </td> *@
-   @*                $1$ </tr> #1# *@
-   @*                </tbody> *@
-   @*             </table> *@
-   @*          </td> *@
-   @*          <td style="padding-left: 1px;"> *@
-   @*             <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br /> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div> *@
-   @*          </td> *@
-   @*       </tr> *@
-   @*    </table> *@
-   @* </div><!--end content--> *@
+   </div><!--end content-->
 </div><!--end main-->
-@*btn btn-secondary*@
-
-@*<div id="footer" style="margin:0; padding:0;">
-       <b id="done"><span id="mssg"></span></b><br />
-       <center><button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button></center><br />
-       <a target="_new" href="#" id="notice" style="visibility:hidden"><b>Check uploaded file</b></a><br />
-   </div>*@
-
