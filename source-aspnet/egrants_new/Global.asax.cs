@@ -93,20 +93,21 @@ namespace egrants_new
             get
                 {
                     this.ic = this.Context.Request.ServerVariables["HEADER_USER_SUB_ORG"];
-                    if (this.ic == null) this.ic = "NCI"; // nci
 
-                    // commen ted out by Leon at 7/31/2019
-                    // if (userid == "wilburns" || userid == "agarwalraj" || userid == "canariaca" || userid == "silkensens" || userid == "hallettkl")
-                    // {
-                    // ic = "nci";
-                    // } 
-                    // return ic;             
+                    if (this.ic == null)
+                    {
+                        this.ic = "NCI"; // nci           
+                    }
 
                     // check exception user and who's ic not as nci
                     if (this.ic != "nci" && this.ic != "NCI")
                     {
                         var userexception = EgrantsCommon.CheckUsersException(this.userid);
-                        if (userexception == 1) this.ic = "nci";
+
+                        if (userexception == 1)
+                        {
+                            this.ic = "nci";
+                        }
                     }
 
                     return this.ic;
@@ -168,8 +169,7 @@ namespace egrants_new
                                             QueuePollInterval = TimeSpan.Zero,
                                             UseRecommendedIsolationLevel = true,
                                             DisableGlobalLocks = true
-                                        }
-                                );
+                                        });
 
             yield return new BackgroundJobServer();
         }
@@ -257,8 +257,14 @@ namespace egrants_new
             }
 
             // check user validation
-            if (this.Session["Validation"].ToString() != "OK") this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            else this.check_user_profile(usertype);
+            if (this.Session["Validation"].ToString() != "OK")
+            {
+                this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            }
+            else
+            {
+                this.check_user_profile(usertype);
+            }
         }
 
         /// <summary>
@@ -313,8 +319,10 @@ namespace egrants_new
                 // ignore these here to simulate what would happen
                 // if a global.asax handler were not implemented.
                 if (exc.Message.Contains("NoCatch") || exc.Message.Contains("maxUrlLength"))
+                {
                     return;
-
+                }
+                    
                 // Redirect HTTP errors to HttpError page
                 this.Server.Transfer("~/HttpErrorPage.aspx");
             }
@@ -326,7 +334,7 @@ namespace egrants_new
             this.Response.Write("Return to the <a href='Default.aspx'>" + "Default Page</a>\n");
 
             // Log the exception and notify system operators
-            ExceptionUtility.LogException(exc, "DefaultPage");
+            ExceptionUtility.LogException(exc, "~/DefaultPage");
             ExceptionUtility.NotifySystemOps(exc);
 
             // Clear the error from the server
