@@ -166,18 +166,18 @@
                 <tbody>
                     <tr>
                         <td>
-                            <b>
+                        
                                 &#0160;&#0160;&#0160;&#0160;Assign the responsible parties (PD, Specialist, or individuals) to Administrative supplements notifications or PA# <br />
                                 &#0160;&#0160;&#0160;&#0160;and then assign an email template to this whole selection, so that when a notification comes to system it could send<br />
                                 &#0160;&#0160;&#0160;&#0160;email to these people. Setting end date will not send emails after that date.
-                            </b><br /><br />
+                          <br /><br />
                         </td>
                     </tr>
                     <tr><td><center><b id="cover_font">Create New Workflow</b></center></td></tr>
                     <tr>
                         <td height="30" style="vertical-align:bottom">
                             <center>
-                                <label for="select pa"><b>Select PA:</b></label>&#0160;&#0160;
+                                <label for="select pa">Select PA:</label>&#0160;&#0160;
                                 <select id="ddlPAList" name="PAList" class="form-control" style="height:30px; width:150px;" title="Select PA to edit" onchange="email_rule_act('show_pa');">
                                     <option></option>
                                     @foreach (var emailrules in ViewBag.EmailRules)
