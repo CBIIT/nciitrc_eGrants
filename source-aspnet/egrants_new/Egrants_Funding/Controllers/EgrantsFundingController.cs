@@ -49,7 +49,7 @@ using egrants_new.Models;
 namespace egrants_new.Controllers
 {
     /// <summary>
-    /// The egrants funding controller.
+    ///     The egrants funding controller.
     /// </summary>
     public class EgrantsFundingController : Controller
     {
@@ -60,7 +60,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult Index(int fy)
         {
@@ -103,10 +103,10 @@ namespace egrants_new.Controllers
         }
 
         /// <summary>
-        /// The funding_index.
+        ///     The funding_index.
         /// </summary>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        ///     The <see cref="ActionResult" /> .
         /// </returns>
         public ActionResult funding_index()
         {
@@ -123,7 +123,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult view_search(int serial_num, int fy)
         {
@@ -143,8 +143,7 @@ namespace egrants_new.Controllers
                 serial_num,
                 fy,
                 Convert.ToString(this.Session["ic"]),
-                Convert.ToString(this.Session["userid"])
-            );
+                Convert.ToString(this.Session["userid"]));
 
             return this.View("~/Egrants_Funding/Views/FundingMaster.cshtml");
         }
@@ -156,7 +155,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult ViewAll(int fy)
         {
@@ -175,8 +174,7 @@ namespace egrants_new.Controllers
                 0,
                 fy,
                 Convert.ToString(this.Session["ic"]),
-                Convert.ToString(this.Session["userid"])
-            );
+                Convert.ToString(this.Session["userid"]));
 
             return this.View("~/Egrants_Funding/Views/FundingMaster.cshtml");
         }
@@ -188,7 +186,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult view_arra(int fy)
         {
@@ -207,8 +205,7 @@ namespace egrants_new.Controllers
                 0,
                 fy,
                 Convert.ToString(this.Session["ic"]),
-                Convert.ToString(this.Session["userid"])
-            );
+                Convert.ToString(this.Session["userid"]));
 
             return this.View("~/Egrants_Funding/Views/FundingMaster.cshtml");
         }
@@ -220,7 +217,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult view_edit(int fy)
         {
@@ -233,8 +230,7 @@ namespace egrants_new.Controllers
                 0,
                 fy,
                 Convert.ToString(this.Session["ic"]),
-                Convert.ToString(this.Session["userid"])
-            );
+                Convert.ToString(this.Session["userid"]));
 
             return this.View("~/Egrants_Funding/Views/FundingDocEdit.cshtml");
         }
@@ -255,7 +251,7 @@ namespace egrants_new.Controllers
         /// The previous_url.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult funding_doc_default(string admin_code, int serial_num, int appl_id, string previous_url = null)
         {
@@ -285,7 +281,7 @@ namespace egrants_new.Controllers
         /// The previous_url.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult load_appls(string admin_code, int serial_num, string previous_url = null)
         {
@@ -320,7 +316,7 @@ namespace egrants_new.Controllers
         /// The sub_category.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         [HttpPost]
         public ActionResult doc_create_by_ddrop(
@@ -349,8 +345,7 @@ namespace egrants_new.Controllers
                         sub_category,
                         fileExtension,
                         Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"])
-                    );
+                        Convert.ToString(this.Session["userid"]));
 
                     if (Convert.ToInt32(document_id) > 9999)
                         docName = "0" + document_id + fileExtension;
@@ -404,7 +399,7 @@ namespace egrants_new.Controllers
         /// The sub_category.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         [HttpPost]
         public ActionResult doc_create_by_file(HttpPostedFileBase file, int appl_id, int category_id, string document_date, string sub_category)
@@ -428,8 +423,7 @@ namespace egrants_new.Controllers
                         sub_category,
                         fileExtension,
                         Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"])
-                    );
+                        Convert.ToString(this.Session["userid"]));
 
                     if (Convert.ToInt32(document_id) > 9999)
                         docName = "0" + document_id + fileExtension;
@@ -479,7 +473,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult doc_edit(string act, int appl_id, int doc_id, int fy)
         {
@@ -495,8 +489,7 @@ namespace egrants_new.Controllers
                 0,
                 fy,
                 Convert.ToString(this.Session["ic"]),
-                Convert.ToString(this.Session["userid"])
-            );
+                Convert.ToString(this.Session["userid"]));
 
             return this.View("~/Egrants_Funding/Views/FundingDocEdit.cshtml");
         }
@@ -514,7 +507,7 @@ namespace egrants_new.Controllers
         /// The serial_num.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult doc_create(int appl_id, string admin_code, int serial_num)
         {
@@ -550,7 +543,7 @@ namespace egrants_new.Controllers
         /// The file.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult doc_add(int appl_id, string file)
         {
@@ -583,7 +576,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult load_doc_appls(int serial_num, string admin_code, int doc_id, int fy)
         {
@@ -616,7 +609,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult appl_edit_default(int doc_id, int fy)
         {
@@ -652,7 +645,7 @@ namespace egrants_new.Controllers
         /// The fy.
         /// </param>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/> .
         /// </returns>
         public ActionResult appl_edit(string act, int appl_id, int doc_id, int fy)
         {

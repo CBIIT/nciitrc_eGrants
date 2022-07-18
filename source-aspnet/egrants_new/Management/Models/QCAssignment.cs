@@ -12,7 +12,7 @@
 // 
 // <Description of the file>
 // 
-// This source is subject to the NIH Software License.
+// This source is subject to the NIH Softwre License.
 // See https://ncihub.org/resources/899/download/Guidelines_for_Releasing_Research_Software_04062015.pdf
 // All other rights reserved.
 // 
@@ -71,9 +71,7 @@ namespace egrants_new.Models
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-            {
                 qcReasons.Add(new QCReasons { qc_reason = rdr["qc_reason"].ToString() });
-            }
 
             return qcReasons;
         }
@@ -103,7 +101,6 @@ namespace egrants_new.Models
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-            {
                 qcPeasons.Add(
                     new QCPersons
                         {
@@ -112,7 +109,6 @@ namespace egrants_new.Models
                             person_id = rdr["person_id"].ToString(),
                             person_name = rdr["person_name"].ToString()
                         });
-            }
 
             return qcPeasons;
         }
@@ -146,8 +142,7 @@ namespace egrants_new.Models
             Select qc.files_to_qc, qc.qc_days,
             qc.qc_person_id, COALESCE(vp.person_name, CAST(qc.qc_person_id as varchar(10))) as qc_person_name
             from qc inner join vw_people vp on qc.qc_person_id = vp.person_id",
-                conn
-            );
+                conn);
 
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
@@ -164,8 +159,7 @@ namespace egrants_new.Models
                             qc_person_id = rdr["qc_person_id"].ToString(),
                             qc_person_name = rdr["qc_person_name"].ToString(),
                             qc_days = rdr["qc_days"].ToString()
-                        }
-                );
+                        });
 
             return QCReport;
         }
