@@ -73,7 +73,7 @@
                         <legend style="font-size:medium">&#0160;&#0160;* This page is designed to force entry of appls that can not be found in IMPAC.</legend>
                         <div class="form-group">
                             <lable for="appltype">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable>
-                            <select name="appl_type" id="ddlAppltype" class="form-control" style="width:60px; height:30px;" title="select appl type">
+                            <select name="appl_type" id="ddlAppltype" class="form-control" style="width:60px;" title="select appl type">
                                 <option></option>
                                 @foreach (var ApplType in ViewBag.ApplTypeList)
                                 {
@@ -82,7 +82,7 @@
                             </select>
                             &#0160;&#0160;
                             <lable for="activitycode"><b>Activity Code:</b></lable>
-                            <select name="activity_code" id="ddlActivitycode" class="form-control" style="width:80px; height:30px;" title="select activity code">
+                            <select name="activity_code" id="ddlActivitycode" class="form-control" style="width:80px;" title="select activity code">
                                 <option></option>
                                 @foreach (var ActivityCode in ViewBag.ActivityCodeList)
                                 {
@@ -95,11 +95,11 @@
                         <br />
                         <div class="form-group">
                             <lable for="supportyear">&#0160;&#0160;&#0160;&#0160;<b>Year:</b></lable>
-                            <input type="text" id="txtSupportyear" name="support_year" class="form-control" style="height:30px; width:50px;" title="Insert Grant Year" />
+                            <input type="text" id="txtSupportyear" name="support_year" class="form-control" style="width:50px;" title="Insert Grant Year" />
                             &#0160;&#0160;&#0160;&#0160;&#0160;
                             <lable for="suffix_code" class="control-label"><b>Suffix Code:</b></lable>
                             &#0160;&#0160;
-                            <input type="text" id="txtSuffixcode" name="suffix_code" class="form-control" style="height:30px; width:80px;" title="Insert Suffix Code" />
+                            <input type="text" id="txtSuffixcode" name="suffix_code" class="form-control" style="width:80px;" title="Insert Suffix Code" />
                             &#0160;&#0160;
                             <input type="button" name="Show_Progress_Bar" id="btnProgressBar" class="upload-span" style="display:none" />
                             <button type="button" name="submit" accesskey="C" class="btn btn-primary btn-sm" onclick="return add_new();" title="Click here to create new grant year [shift + alt + C]"><u>C</u>reate New</button>
