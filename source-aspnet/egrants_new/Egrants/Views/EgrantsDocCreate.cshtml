@@ -312,6 +312,11 @@
         evt.currentTarget.className += " active";
     }
 
+    function active_btnFileUpload() {
+       if (document.getElementById("btnFileUpload").disabled == true) {
+          document.getElementById("btnFileUpload").disabled = false;
+       }
+    }
 </script>
 
 <div id="main" style="margin:0;padding:0;">
@@ -353,7 +358,7 @@
                       <div id="dropArea">Drag-drop only one file here to upload</div>
                       <br/>
                       <span>
-                         <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
+                         <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
                          By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
                       </span>
                    </div>
@@ -361,7 +366,7 @@
                    <!--start upload by file-->
                    <div class="tabcontent" id="by_file" style="display: none">
                       <div class="custom-file my-2"> @*style="width: 700px">*@
-                         <input type="file" class="custom-file-input" id="customFile">
+                         <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
                          <label class="custom-file-label" for="customFile">Choose file...</label>
                       </div>
                       @* <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br /> *@
@@ -392,7 +397,7 @@
                 <strong id="done"><span id="mssg"></span></strong>
              </td>
              <td valign="top" style="width: 400px; padding-left: 50px;">
-                <div class="text-justify p-4" style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 240px; line-height: normal; font-style: normal; ;">
+                <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal; ;">
                    @* <span class="text-justify align-content-center m-4"> *@
                    <strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
                    @* </span> *@

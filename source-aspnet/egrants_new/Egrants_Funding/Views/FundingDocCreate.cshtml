@@ -389,6 +389,12 @@
       document.getElementById(tabs).style.display = "block";
       evt.currentTarget.className += " active";
    }
+
+   function active_btnFileUpload() {
+      if (document.getElementById("btnFileUpload").disabled == true) {
+         document.getElementById("btnFileUpload").disabled = false;
+      }
+   }
 </script>
 
 
@@ -526,9 +532,9 @@
 
             <td width="700" valign="top">
 
-               <div class="tab" style="width: 336px">
-                  <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
-                  <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');switch_upload_mode('by_file')">Locate File and Upload</button>
+               <div class="tab" style="width: 402px">
+                  <button class="tablinks active" style="width:150px" onclick="Docreate(event, 'btnDragdrop');switch_upload_mode('by_ddrop')" id="li_ddrop">Drag & Drop</button>
+                  <button class="tablinks" style="width:250px" onclick="Docreate(event, 'btnFileUpload');switch_upload_mode('by_file')">Locate File and Upload</button>
                </div>
 
                <div id="myTabContent" style="width: 700px;">
@@ -547,11 +553,11 @@
                   <!--start upload by file-->
                   <div class="tabcontent" id="by_file" style="display: none">
                      <div class="custom-file my-2">
-                        <input type="file" class="custom-file-input" id="customFile">
+                        <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
                         <label class="custom-file-label" for="customFile">Choose file...</label>
                      </div>
                      <div style="display: inline">
-                        <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" accesskey="N" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
+                        <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" accesskey="N" disabled="disabled" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
                      </div>
                      <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
                   </div>
@@ -575,7 +581,7 @@
                </b>
             </td>
             <td style="width: 400px; padding-left: 50px;">
-               <div class="text-justify p-4" style="box-shadow: 0 3px 10px rgb(0 24 0 / 0.5); width: 350px; height: 240px; line-height: normal; font-style: normal;">
+               <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
                   <p><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
                </div>
             </td>
