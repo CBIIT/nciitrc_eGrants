@@ -61,7 +61,7 @@
                 } else var etbody = get_et_body();
 
                 if (etname != '' && etsubject != '' && etbody != '') {
-                    if (confirm('Are you sure that you want to ' + act + ' this eamil template ?')) {
+                    if (confirm('Are you sure that you want to ' + act + ' this email template ?')) {
                         var url="@Url.Action("Create_Email_Template", "Supplement")?name=" + etname + "&subject=" + etsubject + "&detail=" + etbody;
                         //alert(url);
                         window.document.location.href = url;
