@@ -203,7 +203,15 @@ function CheckACMusername(username, stringtype){
 function file_type(filelocation){
     var dot = filelocation.lastIndexOf(".");
     var filetype = filelocation.substr(dot + 1, filelocation.length);
-    if (filetype == 'pdf' || filetype == 'xls' || filetype == 'xlsx' || filetype == 'xlsm' || filetype == 'txt' || filetype == 'doc' || filetype == 'docx' || filetype == 'msg') {
+    var fileTypeLowerCase = filetype.toLowerCase();
+    if (fileTypeLowerCase == 'pdf' ||
+        fileTypeLowerCase == 'xls' ||
+        fileTypeLowerCase == 'xlsx' ||
+        fileTypeLowerCase == 'xlsm' ||
+        fileTypeLowerCase == 'txt' ||
+        fileTypeLowerCase == 'doc' ||
+        fileTypeLowerCase == 'docx' || 
+        fileTypeLowerCase == 'msg') {
         return filetype;
     }
     else return 'false';
