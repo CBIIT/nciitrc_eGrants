@@ -210,11 +210,12 @@ function file_type(filelocation){
         fileTypeLowerCase == 'xlsm' ||
         fileTypeLowerCase == 'txt' ||
         fileTypeLowerCase == 'doc' ||
-        fileTypeLowerCase == 'docx' || 
+        fileTypeLowerCase == 'docx' ||
         fileTypeLowerCase == 'msg') {
         return filetype;
+    } else {
+        return 'false';
     }
-    else return 'false';
 }
 
 /*check selected file for upload */
