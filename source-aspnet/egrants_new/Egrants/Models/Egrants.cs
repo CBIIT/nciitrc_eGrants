@@ -94,8 +94,7 @@ namespace egrants_new.Egrants.Models
                             total_pages = rdr["total_pages"]?.ToString(),
                             tab_number = rdr["tab_number"]?.ToString(),
                             page_number = rdr["page_number"]?.ToString()
-                        }
-                );
+                        });
 
             conn.Close();
 
@@ -124,11 +123,12 @@ namespace egrants_new.Egrants.Models
 
             conn.Open();
 
-            var StopNotice = new List<StopNotice>();
+            var list = new List<StopNotice>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                StopNotice.Add(
+            {
+                list.Add(
                     new StopNotice
                         {
                             appl_id = rdr["appl_id"]?.ToString(),
@@ -136,12 +136,12 @@ namespace egrants_new.Egrants.Models
                             closeout_fsr_code = rdr["closeout_fsr_code"]?.ToString(),
                             final_invention_stmnt_code = rdr["final_invention_stmnt_code"]?.ToString(),
                             final_report_date = rdr["final_report_date"]?.ToString()
-                        }
-                );
+                        });
+            }
 
             conn.Close();
 
-            return StopNotice;
+            return list;
         }
 
         /// <summary>
@@ -197,11 +197,12 @@ namespace egrants_new.Egrants.Models
             cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
             conn.Open();
 
-            var Supplement = new List<supplement>();
+            var list = new List<supplement>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                Supplement.Add(
+            {
+                list.Add(
                     new supplement
                         {
                             tag = rdr["tag"]?.ToString(),
@@ -219,12 +220,12 @@ namespace egrants_new.Egrants.Models
                             url = rdr["url"]?.ToString(),
                             moved_date = rdr["moved_date"]?.ToString(),
                             moved_by = rdr["moved_by"]?.ToString()
-                        }
-                );
+                        });
+            }
 
             conn.Close();
 
-            return Supplement;
+            return list;
         }
 
         // Phase2
@@ -236,7 +237,7 @@ namespace egrants_new.Egrants.Models
         /// </returns>
         public static List<string> GetICList()
         {
-            var IC_list = new List<string>();
+            var list = new List<string>();
 
             using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
             {
@@ -247,13 +248,13 @@ namespace egrants_new.Egrants.Models
                 var rdr = cmd.ExecuteReader();
 
                 while (rdr.Read())
-                    IC_list.Add(rdr[0].ToString());
+                    list.Add(rdr[0].ToString());
 
                 // added by Leon 5/11/2019
                 conn.Close();
             }
 
-            return IC_list;
+            return list;
         }
 
         // search by filters
@@ -460,8 +461,7 @@ namespace egrants_new.Egrants.Models
             {
                 var cmd = new SqlCommand(
                     "select category_name from categories where category_id in (" + categories + ") order by category_name",
-                    conn
-                );
+                    conn);
 
                 cmd.CommandType = CommandType.Text;
                 cmd.Parameters.AddWithValue("@categories", categories);
@@ -521,9 +521,8 @@ namespace egrants_new.Egrants.Models
             }
         }
 
-        // check if this grant_id is existing in grants table, added by Leon 7/10/2019
         /// <summary>
-        /// The check grant id.
+        /// Check if this grant_id is existing in grants table, added by Leon 7/10/2019
         /// </summary>
         /// <param name="grant_id">
         /// The grant_id.
@@ -540,15 +539,17 @@ namespace egrants_new.Egrants.Models
                 cmd.Parameters.Add("@grant_id", SqlDbType.Int).Value = grant_id;
 
                 conn.Open();
-                var isexisting = 0;
+                var exists = 0;
                 var rdr = cmd.ExecuteReader();
 
                 while (rdr.Read())
-                    isexisting = Convert.ToInt32(rdr["count_id"]);
+                {
+                    exists = Convert.ToInt32(rdr["count_id"]);
+                }
 
                 conn.Close();
 
-                return isexisting;
+                return exists;
             }
         }
 

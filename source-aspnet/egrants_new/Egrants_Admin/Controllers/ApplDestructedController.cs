@@ -109,13 +109,19 @@ namespace egrants_new.Controllers
             this.ViewBag.SearchYear = year;
 
             if (status != string.Empty)
+            {
                 this.ViewBag.StatusCode = status;
+            }
 
             if (exception != string.Empty)
+            {
                 this.ViewBag.ExceptionCode = exception;
+            }
 
             if (str != string.Empty)
+            {
                 this.ViewBag.Str = str;
+            }
 
             // check access permission
             this.ViewBag.Processable = ApplDestructed.CheckPermission(year, Convert.ToString(this.Session["userid"]));
