@@ -6,7 +6,7 @@
 <script src="~/scripts/dataTables.bootstrap4.min.js"></script>
 
 <!-- Bootstrap Font Icon CSS -->
- <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css">
+<link rel="stylesheet" href="~/Content/bootstrap-icons.min.css">
 
 <style>
     table.dataTable thead th { 
@@ -47,7 +47,7 @@
       display: inline;
       color: black;
    } 
-    /* when the datatable column is in asc or des sort mode, hide the updown arrow*/
+    /* when the datatable column is in asc or des sort mode, hide the updown arrow */
     table.dataTable thead .sorting_asc .bi-arrow-down-up {
        display: none;
     }
@@ -90,7 +90,7 @@
       left: 0px;
       z-index: 99999;
       background-color: white;
-      filter: alpha(opacity=75);
+      /* filter: alpha( opacity=75 ); */
       opacity: 0.75;
       display: none;
    }
@@ -113,7 +113,7 @@
 
    function show_qc(document_id, type) {
       document_id = document_id.split("_")[2];
-      //var el = document_id;
+      // var el = document_id;
       if (type == 1) {
          if (document.getElementById("qc_checkbox_" + document_id)) {
             document.getElementById("qc_checkbox_" + document_id).style.display = "inline";
@@ -223,7 +223,7 @@
          </div>
       </div>
       <script language="javascript" type="text/javascript">
-         //start load document dat to datatable
+         // start load document dat to data table
          $("#overlay").show();
 
          $(document).ready(function () {
@@ -246,7 +246,7 @@
                   },
                   'dateNonStandard-desc': function(a, b) {
                      var x = Date.parse(a);
-                     var y = Date.parse(b);
+                     var y = Date.parse(btour);
                      if (x == y) {
                         return 0;
                      }
@@ -259,14 +259,14 @@
                   }
                });
             var table = $("#loadgrid_" + @appl_id).DataTable({
-               "paging": false, //for reinitialise
-               "searching": false, //for reinitialise
+               "paging": false, // for reinitialize
+               "searching": false, // for reinitialize
                "ordering": true,
-               "order": [[2, 'asc']], //desc
-               "processing": true, //for show progress bar
-               "serverSide": false, //for process server side
-               "filter": true, //this is for disable filter (search box)
-               "orderMulti": false, //for disable multiple column at once
+               "order": [[2, 'asc']], // desc
+               "processing": true, // for show progress bar
+               "serverSide": false, // for process server side
+               "filter": true, // this is for disable filter (search box)
+               "orderMulti": false, // for disable multiple column at once
                "bInfo": false,
                "initComplete": function(settings, json) {
                   var info = this.api().page.info();
@@ -303,7 +303,7 @@
                "columns": [
                   {
                      "className": 'details-control',
-                     //show qc icon and checkbox
+                     // show qc icon and checkbox
                      "render": function(data, type, full, meta) {
                         if (document.getElementById("hidPositionID").value >= 2 && full.can_qc == "y") {
                            if (full.can_store == "y") {
@@ -316,7 +316,6 @@
                                  full.document_id +
                                  "' class='hide_qc' style='width:30px; display:none'>" +
                                  "<a class='hidemode' href='javascript:void(0);' title='hide qc mode'>" +
-                                 "<span>&nbsp;</span>" +
                                  "<img name='hide_qc' style='height:30px;' src='../Content/images/minus.png'/></a></div>" +
                                  "<div id='qc_checkbox_" +
                                  full.document_id +
@@ -342,7 +341,7 @@
                      }
                   },
                   {
-                     //show document_name with url
+                     // show document_name with url
                      "render": function(data, type, full, meta) {
                         if (full.frc_destroyed == 0) {
                            if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
@@ -379,7 +378,7 @@
                   },
                   { "data": "page_count", "autoWidth": true },
                   {
-                     //replace document image
+                     // replace document image
                      "render": function(data, type, full, meta) {
                         if (document.getElementById("hidPositionID").value >= 2 && full.can_upload == "y" && full.frc_destroyed == 0) {
                            return "<a href='JavaScript:upload_doc(" + full.document_id + ")' title='Replace Document'><img class='img_14_14' src='../Content/images/upl.png' /></a>";
@@ -387,7 +386,7 @@
                      }
                   },
                   {
-                     //update document index
+                     // update document index
                      "render": function(data, type, full, meta) {
                         if (document.getElementById("hidPositionID").value >= 2 && full.can_modify_index == "y" && full.frc_destroyed == 0) {
                            return "<a href='JavaScript:update_doc(" + full.document_id + ")' title='Update Document'><img class='img_16_16' src='../Content/images/Update File.png'/></a>";
@@ -395,7 +394,7 @@
                      }
                   },
                   {
-                     //report document error
+                     // report document error
                      "render": function(data, type, full, meta) {
                         if (full.can_qc == "y" && full.frc_destroyed == 0) {
                            return "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='error' data-assigned-id='" + full.document_id + "' title='Report problem with document'><img class='img_16_16' src='../Content/images/Report Doc Error.png'/></a>";
@@ -407,7 +406,7 @@
 
             var mode = document.getElementById("hidMode").value;
             if (mode == "qc") {
-               //show all qc options
+               // show all qc options
                setTimeout(function() {
                      var cnt = 0;
                      $.each($('#loadgrid_' + @appl_id + ' a.showmode'),
@@ -432,7 +431,7 @@
                            inputs[i].style.display = "inline";
                         } else continue;
                      }
-                     //show check box
+                     // show check box
                      for (var i = 0; i < inputs.length; i++) {
                         if (inputs[i].className == 'qc_checkbox') {
                            inputs[i].style.display = "inline";
@@ -442,7 +441,7 @@
                   4000);
             }
 
-            //show qc mode all
+            // show qc mode all
             $('#loadgrid_' + @appl_id + ' thead').on('click',
                'a.showmodeall',
                function() {
@@ -458,7 +457,7 @@
                   $('#hide_qc_all_' + @appl_id).show();
                });
 
-            //hide qc mode all
+            // hide qc mode all
             $('#loadgrid_' + @appl_id + ' thead').on('click',
                'a.hidemodeall',
                function() {
@@ -492,12 +491,12 @@
                   row.child(format(row.data())).hide();
                });
 
-            //show bootstrapt modal
+            // show bootstrap modal
             $('#loadgrid_' + @appl_id + ' tbody').on('click',
                'a.NormalModal',
                function() {
                   var act = $(this).data('id');
-                  //show all FFRs or closeout notification for this appl
+                  // show all FFRs or closeout notification for this appl
                   if (act == "fsr" || act == "closeout") {
                      var appl_id = $(this).data('assigned-id');
                      var route = '@Url.Action("impac_docs", "EgrantsDoc")?act=' + act + '&appl_id=' + appl_id;
@@ -507,19 +506,20 @@
                      } else modal_title = "Show All FFR(s)";
                   }
 
-                  //show doc attachment
+                  // show doc attachment
                   if (act == "attachments") {
                      var document_id = $(this).data('assigned-id');
                      var route = '@Url.Action("doc_attachments", "EgrantsDoc")?document_id=' + document_id;
                      modal_title = "Attachments";
                   }
 
-                  //report error
+                  // report error
                   if (act == "error") {
                      var document_id = $(this).data('assigned-id');
                      var route = '@Url.Action("ReportErrorIndex", "EgrantsDoc")?document_id=' + document_id;
                      modal_title = "Report Document Error";
                   }
+
                   $('#NormalModalTitle').html(modal_title);
                   $('#NormalModalPartial').load(route);
                });
@@ -547,43 +547,49 @@
          function format(d) {
             var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
             str = str + 'Created On ' + d.created_date + ' by ' + d.created_by;
+
             if (d.file_modified_by != "") {
                str = str + '; Document uploaded On ' + d.file_modified_date;
                str = str + ' by ' + d.file_modified_by;
             }
+
             if (d.modified_by != "") {
                str = str + '; Updated On ' + d.modified_date;
                str = str + ' by ' + d.modified_by;
             }
+
             if (d.problem_msg != "" && d.qc_date != "") {
                str = str + '; Error Reported by ' + d.problem_reported_by;
                str = str + ':<b id="error">' + d.problem_msg + '</b>';
             }
-            //str = str + '</div><div style="float:left; width:850px; display:inline;">';
+
             if (d.can_store == 'y' || d.can_restore == 'y' || d.can_delete == "y") {
                str = str + '<br/><span style= "margin-left:0px;">';
-               //show store option
+
+               // show store option
                if (d.can_store == 'y') {
                   var act = "to store";
                   str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Store</a><span style="padding-left:50px;"/>';
                   str = str + '<a href="JavaScript:multiple_act(\'' + act + '\')">Stored Selected</a><span style="padding-left:50px;"/>';
                }
-               //show restore option
+
+               // show restore option
                if (d.can_restore == 'y') {
                   var act = "to restore";
                   str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Restore Original</a><span style="padding-left:50px;"/>';
                }
-               //show delete option
+
+               // show delete option
                if (d.can_delete == "y") {
                   var act = "to delete";
                   str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Delete</a>';
                }
+
                str = str + '</span>';
             }
             str = str + '</div>';
-            //display all qc options
+            // display all qc options
             return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:900px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../Content/images/Loading.gif"/></div>' + str + '</div>';
-            //return '<div class="processing" id="' + "process_" + d.document_id + '" style="width:35px; display:none; float:left;"><img style="width:33px; height:33px; margin-left:5px;" src="../Content/images/Loading.gif"/></div><div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:right; width:850px;">' + str + '</div>';
          }
 
          window.onload = function() {

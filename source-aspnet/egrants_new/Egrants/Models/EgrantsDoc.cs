@@ -213,8 +213,7 @@ namespace egrants_new.Egrants.Models
 
             while (rdr.Read())
                 UserList.Add(
-                    new EgrantsCommon.EgrantsUsers { person_id = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() }
-                );
+                    new EgrantsCommon.EgrantsUsers { person_id = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
 
             conn.Close();
 
@@ -263,8 +262,7 @@ namespace egrants_new.Egrants.Models
 
             var cmd = new SqlCommand(
                 "select category_id, category_name,package,input_type,input_constraint from vw_categories where ic=@ic and can_upload='yes' order by category_name",
-                conn
-            );
+                conn);
 
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic; // Session["ic"];
@@ -283,8 +281,7 @@ namespace egrants_new.Egrants.Models
                             package = rdr["package"]?.ToString(),
                             input_type = rdr["input_type"]?.ToString(),
                             input_constraint = rdr["input_constraint"]?.ToString()
-                        }
-                );
+                        });
 
             conn.Close();
 

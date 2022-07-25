@@ -45,15 +45,15 @@ using System.Data.SqlClient;
 namespace egrants_new.Egrants_Admin.Models
 {
     /// <summary>
-    /// The flag maintenance.
+    ///     The flag maintenance.
     /// </summary>
     public class FlagMaintenance
     {
         /// <summary>
-        /// The load flag types.
+        ///     The load flag types.
         /// </summary>
         /// <returns>
-        /// The <see cref="List"/>.
+        ///     The <see cref="System.Collections.Generic.List`1" /> .
         /// </returns>
         public static List<FlagTypes> LoadFlagTypes()
         {
@@ -106,7 +106,7 @@ namespace egrants_new.Egrants_Admin.Models
         /// The userid.
         /// </param>
         /// <returns>
-        /// The <see cref="List"/>.
+        /// The <see cref="System.Collections.Generic.List`1"/> .
         /// </returns>
         public static List<Flags> LoadFlags(
             string act,
@@ -181,7 +181,7 @@ namespace egrants_new.Egrants_Admin.Models
         /// The userid.
         /// </param>
         /// <returns>
-        /// The <see cref="List"/>.
+        /// The <see cref="System.Collections.Generic.List`1"/> .
         /// </returns>
         public static List<ApplFlags> LoadAppls(
             string act,
@@ -269,104 +269,104 @@ namespace egrants_new.Egrants_Admin.Models
         }
 
         /// <summary>
-        /// The flag types.
+        ///     The flag types.
         /// </summary>
         public class FlagTypes
         {
             /// <summary>
-            /// Gets or sets the flag_type.
+            ///     Gets or sets the flag_type.
             /// </summary>
             public string flag_type { get; set; }
 
             /// <summary>
-            /// Gets or sets the flag_application.
+            ///     Gets or sets the flag_application.
             /// </summary>
             public string flag_application { get; set; }
         }
 
         /// <summary>
-        /// The flags.
+        ///     The flags.
         /// </summary>
         public class Flags
         {
             /// <summary>
-            /// Gets or sets the gf_id.
+            ///     Gets or sets the gf_id.
             /// </summary>
             public string gf_id { get; set; }
 
             /// <summary>
-            /// Gets or sets the serial_num.
+            ///     Gets or sets the serial_num.
             /// </summary>
             public string serial_num { get; set; }
 
             /// <summary>
-            /// Gets or sets the grant_id.
+            ///     Gets or sets the grant_id.
             /// </summary>
             public string grant_id { get; set; }
 
             /// <summary>
-            /// Gets or sets the appl_id.
+            ///     Gets or sets the appl_id.
             /// </summary>
             public string appl_id { get; set; }
 
             /// <summary>
-            /// Gets or sets the grant_num.
+            ///     Gets or sets the grant_num.
             /// </summary>
             public string grant_num { get; set; }
 
             /// <summary>
-            /// Gets or sets the full_grant_num.
+            ///     Gets or sets the full_grant_num.
             /// </summary>
             public string full_grant_num { get; set; }
 
             /// <summary>
-            /// Gets or sets the flag.
+            ///     Gets or sets the flag.
             /// </summary>
             public string flag { get; set; }
 
             /// <summary>
-            /// Gets or sets the flag_type.
+            ///     Gets or sets the flag_type.
             /// </summary>
             public string flag_type { get; set; }
 
             /// <summary>
-            /// Gets or sets the flag_application.
+            ///     Gets or sets the flag_application.
             /// </summary>
             public string flag_application { get; set; }
 
             /// <summary>
-            /// Gets or sets the flag_icon_namepath.
+            ///     Gets or sets the flag_icon_namepath.
             /// </summary>
             public string flag_icon_namepath { get; set; }
         }
 
         /// <summary>
-        /// The appl flags.
+        ///     The appl flags.
         /// </summary>
         public class ApplFlags
         {
             /// <summary>
-            /// Gets or sets the appl_id.
+            ///     Gets or sets the appl_id.
             /// </summary>
             public string appl_id { get; set; }
 
             /// <summary>
-            /// Gets or sets the fgn.
+            ///     Gets or sets the fgn.
             /// </summary>
             public string fgn { get; set; }
 
             /// <summary>
-            /// Gets or sets the creator.
+            ///     Gets or sets the creator.
             /// </summary>
             public string creator { get; set; }
 
             /// <summary>
-            /// Gets or sets the created_date.
+            ///     Gets or sets the created_date.
             /// </summary>
             public string created_date { get; set; }
 
             /// <summary>
-            /// Gets or sets the exclusion_reason.
+            ///     Gets or sets the exclusion_reason.
             /// </summary>
             public string exclusion_reason { get; set; }
         }

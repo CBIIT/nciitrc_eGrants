@@ -49,7 +49,6 @@ namespace egrants_new.Controllers
     /// </summary>
     public class AdminController : Controller
     {
-        // GET: Admin
         /// <summary>
         /// The index.
         /// </summary>

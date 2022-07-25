@@ -1,5 +1,5 @@
 ﻿@using System.Web.Script.Serialization
-@model egrants_new.Egrants.Models.InstitutionallFilesPage
+@model egrants_new.Egrants.Models.InstitutionalFilesPage
 
 <style>
    table { table-layout: fixed; }
@@ -25,6 +25,7 @@
    @{
       var javaScriptSearilizer = new JavaScriptSerializer();
       var selectedDoc = javaScriptSearilizer.Serialize(Model.SelectedDocFile);
+
    }
 
    var Doc = @Html.Raw(selectedDoc);
