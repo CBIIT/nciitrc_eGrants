@@ -1,9 +1,13 @@
 ﻿@model egrants_new.Egrants.Models.InstitutionalFilesPage
 <style>
 
-   .not-shown { display: none; }
+   .not-shown {
+      display: none;
+   }
 
-   body { font-family: Arial; }
+   body {
+      font-family: Arial;
+   }
 
    /* Style the tab */
 
@@ -13,26 +17,30 @@
       background-color: #f1f1f1;
    }
 
-   /* Style the buttons inside the tab */
+      /* Style the buttons inside the tab */
 
-   .tab button {
-      background-color: inherit;
-      float: left;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      padding: 14px 16px;
-      transition: 0.3s;
-      font-size: 17px;
-   }
+      .tab button {
+         background-color: inherit;
+         float: left;
+         border: none;
+         outline: none;
+         cursor: pointer;
+         padding: 14px 16px;
+         transition: 0.3s;
+         font-size: 17px;
+      }
 
-   /* Change background color of buttons on hover */
+         /* Change background color of buttons on hover */
 
-   .tab button:hover { background-color: #ddd; }
+         .tab button:hover {
+            background-color: #ddd;
+         }
 
-   /* Create an active/current tablink class */
+         /* Create an active/current tablink class */
 
-   .tab button.active { background-color: #ccc; }
+         .tab button.active {
+            background-color: #ccc;
+         }
 
    /* Style the tab content */
 
@@ -49,7 +57,7 @@
    var dropedfile;
    var DropFileCount = 0;
 
-   $(document).ready(function() {
+   $(document).ready(function () {
       load_default();
       bsCustomFileInput.init();
 
@@ -144,7 +152,7 @@
       if (get_category_id() === false) {
          return false;
       } else
-      //find if to be flag
+         //find if to be flag
          var flag_data = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
       var tobe_flag = flag_data.charAt(0);
 
@@ -173,9 +181,9 @@
       frmdata.append('comments', Comments);
       docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_File");
 
-      setTimeout(function() {
-            refresh_after_upload(org_id, org_name);
-         },
+      setTimeout(function () {
+         refresh_after_upload(org_id, org_name);
+      },
          500);
       //return true;
    }
@@ -184,7 +192,7 @@
       if (get_category_id() == false) {
          return false;
       } else
-      //find if to be flag
+         //find if to be flag
          var flag_data = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
       var tobe_flag = flag_data.charAt(0);
 
@@ -211,9 +219,9 @@
       frmdata.append('comments', Comments);
       docupload(frmdata, "/InstitutionalFiles/Create_Doc_by_DDrop");
 
-      setTimeout(function() {
-            refresh_after_upload(org_id, org_name);
-         },
+      setTimeout(function () {
+         refresh_after_upload(org_id, org_name);
+      },
          500);
       //return true;
    }
@@ -241,10 +249,10 @@
    }
 </script>
 
-<link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css"/>
+<link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
 <script src="~/scripts/dragdrop.js"></script>
 <script src="~/scripts/ProgressBar.js"></script>
-<link href="~/Content/jquery-ui.min.css" rel="stylesheet"/>
+<link href="~/Content/jquery-ui.min.css" rel="stylesheet" />
 <script src="~/scripts/jquery-ui-1.13.1.min.js"></script>
 <script src="~/scripts/bs-custom-file-input.min.js"></script>
 
@@ -253,134 +261,133 @@
    <div class="form-inline" style="margin: 0; padding: 0;">
       <table width="800px">
          <tbody>
-         <tr>
-            <td width="100px">
-               <label class="float-left">
-                  <b>Institute:</b>
-               </label>
-            </td>
-            <td class="my-4">
-               <label class="float-left">
-                  <b>@Model.SelectedInstitutionalOrg.OrgName</b>
-               </label>
-            </td>
-         </tr>
-         <tr>
-            <td width="100px">
-               <label for="ddlCategories" class="float-left ">
-                  <b>Category:</b>
-               </label>
-            </td>
-            <td class="float-left">
-               <select name="category_id" class="form-control my-2 float-left" id="ddlCategories" size="1" title="Select category to create new document" OnChange="select_category()">
-                  <option value="0"></option>
-                  @foreach (var orgcategory in Model.OrgCategories)
-                  {
-                     <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
-                  }
-               </select>
-            </td>
-            <td id="commentsblock" class="not-shown float-left">
-               <input type="text" class="form-control m-2 float-left" style="width: 350px" id="comments" size="8" maxlength="50" title=""/>
-               <div>
-                  <span class="small m-2 text-muted" id="charStatus">50 Char Max</span>
-               </div>
-            </td>
-         </tr>
-         <tr id="ShowFlag" class="not-shown">
-            <td>
-               <label class="float-left">
-                  <b>Show Flag:</b>
-               </label>
-            </td>
-            <td colspan="2">
-               <label for="txtStartDate" class="float-left mt-4">
-                  <b>From</b>
-               </label>
-               <input type="text" class="float-left m-2 form-control" name="start_date" id="txtStartDate" title="Insert start date" size="8" value="@Model.TodayText"/>
-               <label for="txtEndDate" class="float-left mt-4">
-                  <b>To</b>
-               </label>
-               <input type="text" class="float-left m-2 form-control" name="end_date" id="txtEndDate" title="Insert end date" size="8"/>
+            <tr>
+               <td width="100px">
+                  <label class="float-left">
+                     <b>Institute:</b>
+                  </label>
+               </td>
+               <td class="my-4">
+                  <label class="float-left">
+                     <b>@Model.SelectedInstitutionalOrg.OrgName</b>
+                  </label>
+               </td>
+            </tr>
+            <tr>
+               <td width="100px">
+                  <label for="ddlCategories" class="float-left ">
+                     <b>Category:</b>
+                  </label>
+               </td>
+               <td class="float-left">
+                  <select name="category_id" class="form-control my-2 float-left" id="ddlCategories" size="1" title="Select category to create new document" OnChange="select_category()">
+                     <option value="0"></option>
+                     @foreach (var orgcategory in Model.OrgCategories)
+                     {
+                        <option id="@orgcategory.flag_data" value="@orgcategory.category_id">@orgcategory.category_name</option>
+                     }
+                  </select>
+               </td>
+               <td id="commentsblock" class="not-shown float-left">
+                  <input type="text" class="form-control ml-1 mt-2 mb-1 float-left" style="width: 380px" id="comments" size="8" maxlength="50" title="" />
+                  <div>
+                     <span class="small m-1 text-muted" id="charStatus">50 Char Max</span>
+                  </div>
+               </td>
+            </tr>
+            <tr id="ShowFlag" class="not-shown">
+               <td>
+                  <label class="float-left">
+                     <b>Show Flag:</b>
+                  </label>
+               </td>
+               <td colspan="2">
+                  <label for="txtStartDate" class="float-left mt-4">
+                     <b>From</b>
+                  </label>
+                  <input type="text" class="float-left m-2 form-control" name="start_date" id="txtStartDate" title="Insert start date" size="8" value="@Model.TodayText" />
+                  <label for="txtEndDate" class="float-left mt-4">
+                     <b>To</b>
+                  </label>
+                  <input type="text" class="float-left m-2 form-control" name="end_date" id="txtEndDate" title="Insert end date" size="8" />
 
-            </td>
-         </tr>
+               </td>
+            </tr>
          </tbody>
       </table>
    </div>
    <div style="height: 20px"></div>
    <table width="1024" class="container">
       <tbody>
-      <tr>
-         <!--show loading icon-->
-         <td width="80">
-            <div class="loading" style="display: none">
-               <img src="~/Content/images/Loading.gif" width="50"/>
-            </div>
-         </td>
-         <td width="700" valign="top">
-            <div class="tab" style="width: 402px">
-               <button class="tablinks active" style="width: 150px" onclick="Docreate(event, 'btnDragdrop');switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
-               <button class="tablinks" style="width: 250px" onclick="Docreate(event, 'btnFileUpload');switch_upload_mode('by_asp')">Locate File and Upload</button>
-            </div>
-
-            <div id="myTabContent" style="width: 700px;">
-               <!--start upload by drag drop -->
-               <div class="tabcontent" id="by_ddrop" style="display: none">
-                  <br/>
-                  <div id="dropArea">Drag-drop only one file here to upload</div><br/>
-                  <div style="display: inline">
-                     <button type="button" name="btnCreateNew" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName');" accesskey="C" title="Click here to create new [shift + alt + C]"><u>C</u>reate New</button>
-                  </div>
-                  <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+         <tr>
+            <!--show loading icon-->
+            <td width="80">
+               <div class="loading" style="display: none">
+                  <img src="~/Content/images/Loading.gif" width="50" />
                </div>
-               <!--end upload by drag drop-->
-
-               <!--start upload by file-->
-               <div class="tabcontent" id="by_asp" style="display: none">
-                  <div class="custom-file my-2">
-                     <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
-                     <label class="custom-file-label" for="customFile">Choose file...</label>
-                  </div>
-                  <div style="display: inline">
-                     <button style="display: inline" type="button" name="btnCreate" id="btnFileUpload" disabled="disabled" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>C</u>reate New</button>
-                  </div>
-                  <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+            </td>
+            <td width="700" valign="top">
+               <div class="tab" style="width: 402px">
+                  <button class="tablinks active" style="width: 150px" onclick="Docreate(event, 'btnDragdrop');switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
+                  <button class="tablinks" style="width: 250px" onclick="Docreate(event, 'btnFileUpload');switch_upload_mode('by_asp')">Locate File and Upload</button>
                </div>
-               <!--end upload by file-->
-               <br/><br/>
-               <!--show progress bar-->
-               <div class="progress" style="display: none">
-                  <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+               <div id="myTabContent" style="width: 700px;">
+                  <!--start upload by drag drop -->
+                  <div class="tabcontent" id="by_ddrop" style="display: none">
+                     <br />
+                     <div id="dropArea">Drag-drop only one file here to upload</div><br />
+                     <div style="display: inline">
+                        <button type="button" name="btnCreateNew" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return create_doc_by_ddrop('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName');" accesskey="C" title="Click here to create new [shift + alt + C]"><u>C</u>reate New</button>
+                     </div>
+                     <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                  </div>
+                  <!--end upload by drag drop-->
+                  <!--start upload by file-->
+                  <div class="tabcontent" id="by_asp" style="display: none">
+                     <div class="custom-file my-2">
+                        <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                        <label class="custom-file-label" for="customFile">Choose file...</label>
+                     </div>
+                     <div style="display: inline">
+                        <button style="display: inline" type="button" name="btnCreate" id="btnFileUpload" disabled="disabled" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>C</u>reate New</button>
+                     </div>
+                     <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+                  </div>
+                  <!--end upload by file-->
+                  <br /><br />
+                  <!--show progress bar-->
+                  <div class="progress" style="display: none">
+                     <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <!--end progress bar-->
+
+               </div><!--end myTabContent-->
+               <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="javascript: show_docs('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>R</u>eturn to Institutional File</button>&#0160;&#0160;
+               <a target="_new" href="#" id="notice" style="visibility: hidden">
+                  <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
+               </a>
+               <b id="done">
+                  <span id="mssg"></span>
+               </b>
+            </td>
+
+
+            <td>
+               @if (ViewBag.FileUrl != null)
+               {
+                  <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file">
+                     <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
+                  </a>
+               }
+               <b>@ViewBag.Message</b>
+
+            <td style="width: 400px; padding-left: 50px;">
+               <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
+                  <p><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
                </div>
-               <!--end progress bar-->
-
-            </div><!--end myTabContent-->
-            <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="javascript: show_docs('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>R</u>eturn to Institutional File</button>&#0160;&#0160;
-            <a target="_new" href="#" id="notice" style="visibility: hidden">
-               <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/>
-            </a>
-            <b id="done">
-               <span id="mssg"></span>
-            </b>
-         </td>
-
-
-         <td>
-         @if (ViewBag.FileUrl != null)
-         {
-            <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file">
-               <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/>
-            </a>
-         }
-         <b>@ViewBag.Message</b>
-
-         <td style="width: 400px; padding-left: 50px;">
-            <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
-               <p><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
-            </div>
-         </td>
-      </tr>
+            </td>
+         </tr>
       </tbody>
    </table>
 </div> <!-- end content -->
