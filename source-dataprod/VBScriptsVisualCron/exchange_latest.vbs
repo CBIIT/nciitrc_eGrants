@@ -201,7 +201,7 @@ Sub Process(dirpath,oConn)
 
 			IF extract="1" THEN    '''===Extract body only
 				IF (len(applid)=0) THEN	movetoqc="yes" ELSE movetoqc="no" END IF
-				If(category="PublicAccess") Then
+				If(category = "PublicAccess")  Then
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)					
 					IF Documentid = "" Then

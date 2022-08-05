@@ -218,7 +218,7 @@ Sub Process(dirpath,oConn)
 					ELSE
 						Call saveMailAsPdf(citem, Documentid)
 					End If					
-				ELSEIF (Category = "JIT Info") THEN 'AND (subcat="Reminder") THEN
+				ELSEIF (category = "JIT Info") OR (category = "CT.gov") THEN
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
 					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
