@@ -64,7 +64,7 @@ function FileSelectHandler(e) {
 
     if (dropedfiles.length = 1) {
 
-        var dropedfile = dropedfiles[0];
+        dropedfile = dropedfiles[0];
 
         var filext = dropedfile.name.split('.').pop();
 
@@ -95,6 +95,8 @@ function FileSelectHandler(e) {
 
     ParseFile(dropedfile);
     //$('#dropArea').removeClass('active-drop');
+    console.log('Bytes Loaded: ' + dropedfile);
+
     $('#btnDragdrop').attr('disabled', false);
 }
 
