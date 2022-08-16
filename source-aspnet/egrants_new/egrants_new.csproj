@@ -609,8 +609,8 @@
     <Content Include="scripts\bs-custom-file-input.min.js.map" />
     <Content Include="scripts\bs-custom-file-input.js.map" />
     <None Include="scripts\jquery.intellisense.js" />
-    <Content Include="scripts\jquery-ui.js" />
-    <Content Include="scripts\jquery-ui.min.js" />
+    <Content Include="scripts\jquery-ui-1.13.2.js" />
+    <Content Include="scripts\jquery-ui-1.13.2.min.js" />
     <Content Include="scripts\jquery.js" />
     <Content Include="scripts\jquery.min.js" />
     <Content Include="scripts\jquery.slim.js" />
