@@ -742,7 +742,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="ChatHub.cs" />
     <Compile Include="CustomRazorViewEngine.cs" />
     <Compile Include="Dashboard\Controllers\ReminderController.cs" />
     <Compile Include="Dashboard\Controllers\DashboardController.cs" />
