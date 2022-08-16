@@ -37,11 +37,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Mime;
+using System.Security.Cryptography.X509Certificates;
 using System.Web.Mvc;
+using System.Web.UI.WebControls;
 
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
@@ -96,9 +104,181 @@ namespace egrants_new.Controllers
             return this.View("~/Egrants/Views/Index.cshtml");
         }
 
-        // get all appls list for appls toggle by grant_id
+        protected void btnDownload_Click(object sender, EventArgs e) 
+        {
+            Console.Write("Hello");
+            // ZipFile multipleFiles = new ZipFile();
+            //
+            // Response.AddHeader("Content-Disposition", "attachment; filename=DownloadedFile.zip");
+            // Response.ContentType = "application/zip";
+            //
+            // foreach (ListItem fileName in checkBoxList.Items)       
+            // {
+            //     if (fileName.Selected)   
+            //     { 
+            //         string filePath = Server.MapPath("~/csharpdotnetfreak.blogspot.com" + fileName.Value);
+            //         
+            //         multipleFiles.AddFile(filePath, string.Empty);
+            //     }
+            // }
+            //
+            // multipleFiles.Save(Response.OutputStream);
+        }
+
+        // public ActionResult Chat()
+        // {
+        //     return this.View();
+        // }
+
         /// <summary>
-        /// The load all appls.
+        /// Gets the filename from the URL path
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private static string GetFileNameFromUrl(string url)
+        {
+            string baseUrl = new Uri(url).GetLeftPart(System.UriPartial.Authority);
+            Uri uri;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
+                uri = new Uri(new Uri(baseUrl), url);
+
+            return Path.GetFileName(uri.LocalPath);
+        }
+
+        public string IsDownloadForm(IEnumerable<string> listOfUrl)
+        {
+            var serverPath = ConfigurationManager.ConnectionStrings["ImageServer"].ToString();
+            Uri serverUri = new Uri(serverPath);
+
+            Dictionary<string,string> fileDictionary = new Dictionary<string,string>();
+
+            foreach (var url in listOfUrl)
+            {
+                try
+                {
+                    // if this is a file on the eGrants fileserver
+                    if (url.Contains("https://s2s."))
+                    {
+                        var uri = new Uri(url);
+
+                        // obtain the document url from the remote system
+                        var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+                        var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+                        var certificate = new X509Certificate2(cerUri, certPass);
+
+                        var webRequest = (HttpWebRequest)WebRequest.Create(uri);
+                        webRequest.KeepAlive = false;
+                        webRequest.Method = "GET";
+                        webRequest.AllowAutoRedirect = false;
+                        webRequest.ClientCertificates.Add(certificate);
+
+                        var webResponse = (HttpWebResponse)webRequest.GetResponse();
+
+                        using (var postStream = webResponse.GetResponseStream())
+                        {
+                            if (postStream == null)
+                            {
+                                throw new Exception("The stream was empty!");
+                            }
+
+                            string downloadUrl;
+
+                            using (var reader = new StreamReader(postStream))
+                            {
+                                downloadUrl = reader.ReadToEnd();
+                            }
+
+                            Uri downloadUri = new Uri(downloadUrl);
+
+                            // string filename = Path.GetFileName(downloadUri.LocalPath);
+
+                            // use the custom WebClient so that the Cert is used
+                            using (var myWebClient = new MyWebClient())
+                            {
+                                // string filename = System.IO.Path.GetFileName(downloadUri.LocalPath);
+                                //Uri uri = new Uri(myWebClient..Url.AbsoluteUri);
+                                myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                                //Stream myStream = myWebClient.OpenRead(downloadUrl);
+                                //
+                                // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                                //
+                                // ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                                //
+                                string tmpFileName = Path.GetTempFileName();
+                                // string tmpFilePath = Path.GetTempPath();
+
+                                // Concatenate the domain with the Web resource filename.
+                                Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, downloadUrl);
+
+                                // Download the Web resource and save it into the current filesystem folder.
+                                myWebClient.DownloadFile(downloadUrl, tmpFileName);
+
+                                var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+
+                                ContentDisposition contentDisposition = new ContentDisposition(disposition);
+
+                                string filename = contentDisposition.FileName;
+
+                                Console.WriteLine("Adding Dictionary Record: " + filename + ":" + tmpFileName);
+                                fileDictionary.Add(filename, tmpFileName);
+
+                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
+
+                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Uri uri;
+
+                        if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
+                        {
+                            uri = new Uri(serverUri, url);
+                        }
+
+                        using (var myWebClient = new MyWebClient())
+                        {
+                            string tmpFileName = Path.GetTempFileName();
+                            // string tmpFilePath = Path.GetTempPath();
+
+                            //string filename = Path.GetFileName(uri.LocalPath);
+
+                            Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
+
+                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                            // Download the Web resource and save it into the temp folder in local filesystem folder.
+                            myWebClient.DownloadFile(uri, tmpFileName);
+
+                            var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+
+                            ContentDisposition contentDisposition = new ContentDisposition(disposition);
+
+                            string filename = contentDisposition.FileName;
+
+                            Console.WriteLine("Adding Dictionary Record: " + filename + ":" + tmpFileName);
+                            fileDictionary.Add(filename, tmpFileName);
+
+                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, uri.OriginalString);
+                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
+                        }
+                    }
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine("Item Error : " + err.ToString());
+                }
+            }
+
+            // zip files and then return to webpage
+
+            return "AValueRB";
+        }
+
+        /// <summary>
+        /// Get all appls list for appls toggle by grant_id
         /// </summary>
         /// <param name="grant_id">
         /// The grant_id.
@@ -969,5 +1149,33 @@ namespace egrants_new.Controllers
 
             return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
         }
+    }
+
+    class MyWebClient : WebClient
+    {
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            var cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+            var cert_pass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+            var certificate = new X509Certificate2(cert_url, cert_pass);
+
+            HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
+            request.ClientCertificates.Add(certificate);
+
+   
+            return request;
+        }
+
+        // protected override void DownloadFile(string address, string filename)
+        // {
+        //     var cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+        //     var cert_pass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+        //     var certificate = new X509Certificate2(cert_url, cert_pass);
+        //
+        //     base.DownloadFile(address);
+        //     HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
+        //     request.ClientCertificates.Add(certificate);
+        //     return request;
+        // }
     }
 }

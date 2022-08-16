@@ -1,0 +1,135 @@
+﻿<!--start display appls -->
+@{
+
+var grant_id = Model;
+
+//loop with each appl
+foreach (var appl in ViewBag.appllayer)
+{    
+    <!--start all appls for one grant-->
+    <div id="appls_@grant_id" style="float:left; width:900px;">           
+    @if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id))  //&& Convert.ToInt32(appl.doc_count) > 0 || Convert.ToInt16(appl.closeout_notcount) > 0
+    {
+        int appl_id = Convert.ToInt32(appl.appl_id);
+        var doc_count = 0;
+
+        //check if with docs for this appl
+        foreach (var doc in ViewBag.doclayer)
+        {
+            if (Convert.ToInt32(doc.appl_id) == appl_id)
+            {
+                doc_count = Convert.ToInt16(doc.docs_count);
+            }
+        }
+
+        <!--start show single appl data-->
+        if (doc_count >= 1)
+        {
+            <!--start appl header-->
+                <!--start show full_grant_num-->
+                <div style="float:left; margin-left:15px; display:inline;"><a href="Javascript:by_appl(@appl.appl_id)" title="View All Documents for @appl.full_grant_num" style="vertical-align:bottom;"><b style="font-size:medium;">@appl.full_grant_num</b></a></div>
+                <!--start show flags-->
+                <div id="flags_@appl_id" style="float:left;display:inline;">
+                   @if (Convert.ToString(appl.appl_ds_flag) == "y")
+                   {
+                    <img src="~/Content/images/flag_ds.jpg" style="margin-left:5px; height:16px; display:inline" title="Diversity Supplement Funded Grant" />
+                   }
+                   
+                    @if (Convert.ToString(appl.appl_fda_flag) == "y")
+                   {
+                    <img src="~/Content/images/flag_fda.jpg" style="margin-left:5px; height:16px; display:inline" title="FDA Grant" />
+                   }
+
+                    @if (Convert.ToString(appl.appl_ms_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_ms.jpg" style="margin-left:5px; height:16px; display:inline" title="Moonshot Funded Grant" />
+                    }
+
+                    @if (Convert.ToString(appl.appl_od_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
+                    }
+               
+                    @if (appl.deleted_by_impac == "y")
+                    {
+                        <img src="~/Content/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
+                    }
+
+                    @if (appl.competing == "yes")
+                    {
+                        <img src="~/Content/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
+                    }
+
+                    @if (Convert.ToInt16(appl.appl_type_code) == 4)
+                    {
+                        <img src="~/Content/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
+                    }
+
+                    @if (Convert.ToInt16(appl.appl_type_code) == 7)
+                    {
+                        <img src="~/Content/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
+                    }
+                </div>
+                <!--end show flags-->
+                <!--start notice for PD-->
+                <div id="notice_for_PD" style="display:inline;">
+                    @if (Convert.ToInt16(appl.frc_destroyed) == 1)
+                    {
+                        <span style="float:right;"><Font color="red">OGA Material in this grant has been destroyed in <br />accordance with retention policies</Font></span>
+                    }
+                    else if (Convert.ToInt16(appl.frc_destroyed) == 0)
+                    {
+                        if (Convert.ToInt16(Session["position_id"]) == 1)
+                        {
+                            <span style="width:500px; float:right;">
+                                @if (Convert.ToString(appl.closeout_flag) == "f")
+                                {
+                                <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Acceptance</b></a>
+                                }
+                                @if (Convert.ToString(appl.closeout_flag) == "i")
+                                {
+                                <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to FPR Close Out IRPPR Aceptance Module"><b>IRPPR Acceptance</b></a>
+                                }
+                                @if (Convert.ToString(appl.closeout_flag) == "fi")
+                                {
+                                <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Acceptance</b></a>
+                                <b>&nbsp;&nbsp;</b>
+                                <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to FPR Close Out IRPPR Aceptance Module"><b>IRPPR Acceptance</b></a>
+                                }
+                            </span>
+                        }
+                    }
+                </div>
+                <!--end notice for PD-->
+                <!--start create new buttons-->
+                <div id="create new buttons" style="float:right; display:inline;">
+                    @* @if (Convert.ToInt16(Session["position_id"]) > 1) *@
+                    @* { *@
+                    @* <!--start create new download doc--> *@
+                    @*     if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0) *@
+                    @*     { *@
+                    @*        <button type="button" accesskey="D" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:150px;" title="Click here to download documents selected [shift + alt + O]" onclick="Javascript:downloadDocs('doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')"><u>D</u>ownload</button> *@
+                    @*     } *@
+                    @* } *@
+
+                    @* @if (Convert.ToInt16(Session["position_id"]) > 2) *@
+                    @* { *@
+                    @*     if (appl.can_add_funding == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0) *@
+                    @*     { *@
+                    @*         <button type="button" accesskey="F" class="btn btn-sm  btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:200px;" title="Click here to add new funding document [shift + alt + F]" onclick="Javascript:create_new_doc('funding_doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add <u>F</u>unding Document</button> *@
+                    @*     } *@
+                    @* } *@
+                </div><!--end create new buttons-->
+            <!--end appl header-->    
+            <!--start show dos-->
+            @Html.Partial("~/Egrants/Views/Download/_egrants_showDocsDownload.cshtml", appl_id)
+            <div id="doc" style="height:20px"></div><!--add space for each appls-->
+            <!--end show dos-->           
+        <!--end show single appl data-->
+        }
+    }           
+    </div>
+    <!--end all appls for one grant-->
+    }
+}
+<!--end show appls-->
