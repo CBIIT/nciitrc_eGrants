@@ -13,6 +13,7 @@ namespace egrants_new
         {
             // Any connection or hub wire up and configuration should go here
            // app.MapSignalR();
+           Console.WriteLine("Test");
         }
     }
 }
