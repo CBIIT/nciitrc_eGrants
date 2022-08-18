@@ -46,6 +46,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
 using System.Web.Mvc;
@@ -131,31 +132,44 @@ namespace egrants_new.Controllers
         // }
 
         /// <summary>
-        /// Gets the filename from the URL path
+        /// HttpPost
+        /// Download the files to the temp directory from the links checked on the page. Then return the stream of bytes to the calling method.
         /// </summary>
-        /// <param name="url"></param>
+        /// <param name="appl"></param>
+        /// <param name="listOfUrl"></param>
         /// <returns></returns>
-        private static string GetFileNameFromUrl(string url)
-        {
-            string baseUrl = new Uri(url).GetLeftPart(System.UriPartial.Authority);
-            Uri uri;
-            if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
-                uri = new Uri(new Uri(baseUrl), url);
-
-            return Path.GetFileName(uri.LocalPath);
-        }
-
-        public string IsDownloadForm(IEnumerable<string> listOfUrl)
+        public ActionResult IsDownloadForm(string appl, IEnumerable<string> listOfUrl)
         {
             var serverPath = ConfigurationManager.ConnectionStrings["ImageServer"].ToString();
             Uri serverUri = new Uri(serverPath);
 
-            Dictionary<string,string> fileDictionary = new Dictionary<string,string>();
+            // create the temp path and
+            string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
+
+            // create or return an existing directory to hold the downloaded files
+            DirectoryInfo directoryInfo = Directory.CreateDirectory(downloadDirectory);
+
+            // delete all the files in this directory if there are any
+            foreach (FileInfo file in directoryInfo.GetFiles())
+            {
+                file.Delete();
+            }
+
+            // delete all the folders in this directory if there are any
+            foreach (DirectoryInfo dir in directoryInfo.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+
+            var grantId = this.ViewBag.GrantID;
 
             foreach (var url in listOfUrl)
             {
                 try
                 {
+                    // get a temp file to save the downloaded file
+                    string tmpFileName = Path.GetTempFileName(); 
+
                     // if this is a file on the eGrants fileserver
                     if (url.Contains("https://s2s."))
                     {
@@ -188,25 +202,10 @@ namespace egrants_new.Controllers
                                 downloadUrl = reader.ReadToEnd();
                             }
 
-                            Uri downloadUri = new Uri(downloadUrl);
-
-                            // string filename = Path.GetFileName(downloadUri.LocalPath);
-
                             // use the custom WebClient so that the Cert is used
                             using (var myWebClient = new MyWebClient())
                             {
-                                // string filename = System.IO.Path.GetFileName(downloadUri.LocalPath);
-                                //Uri uri = new Uri(myWebClient..Url.AbsoluteUri);
                                 myWebClient.Credentials = CredentialCache.DefaultCredentials;
-
-                                //Stream myStream = myWebClient.OpenRead(downloadUrl);
-                                //
-                                // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-                                //
-                                // ContentDisposition contentDisposition = new ContentDisposition(disposition);
-                                //
-                                string tmpFileName = Path.GetTempFileName();
-                                // string tmpFilePath = Path.GetTempPath();
 
                                 // Concatenate the domain with the Web resource filename.
                                 Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, downloadUrl);
@@ -214,14 +213,13 @@ namespace egrants_new.Controllers
                                 // Download the Web resource and save it into the current filesystem folder.
                                 myWebClient.DownloadFile(downloadUrl, tmpFileName);
 
+                                // get the filename from the content-disposition header of the downloaded file
                                 var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-
                                 ContentDisposition contentDisposition = new ContentDisposition(disposition);
-
                                 string filename = contentDisposition.FileName;
 
-                                Console.WriteLine("Adding Dictionary Record: " + filename + ":" + tmpFileName);
-                                fileDictionary.Add(filename, tmpFileName);
+                                // move the file from the temp file to a file with the filename in the downloadDirectory
+                                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
 
                                 Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
 
@@ -240,26 +238,19 @@ namespace egrants_new.Controllers
 
                         using (var myWebClient = new MyWebClient())
                         {
-                            string tmpFileName = Path.GetTempFileName();
-                            // string tmpFilePath = Path.GetTempPath();
-
-                            //string filename = Path.GetFileName(uri.LocalPath);
+                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
-
-                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
                             // Download the Web resource and save it into the temp folder in local filesystem folder.
                             myWebClient.DownloadFile(uri, tmpFileName);
 
                             var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-
                             ContentDisposition contentDisposition = new ContentDisposition(disposition);
-
                             string filename = contentDisposition.FileName;
 
-                            Console.WriteLine("Adding Dictionary Record: " + filename + ":" + tmpFileName);
-                            fileDictionary.Add(filename, tmpFileName);
+                            // move the file from the temp file to a file with the filename in the downloadDirectory
+                            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
 
                             Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, uri.OriginalString);
                             Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
@@ -272,9 +263,67 @@ namespace egrants_new.Controllers
                 }
             }
 
-            // zip files and then return to webpage
+            string handle = Guid.NewGuid().ToString();
 
-            return "AValueRB";
+            string zipFileName = "ApplId_" + appl + ".zip";
+            string zipFileNameWithPath = Path.Combine(Path.GetTempPath(), zipFileName);
+
+            try
+            {
+                // if the zip file exists delete it
+                if (System.IO.File.Exists(zipFileNameWithPath))
+                {
+                    System.IO.File.Delete(zipFileNameWithPath);
+                }
+
+                // zip the contents of the downloadDirectory to the zipPath
+                ZipFile.CreateFromDirectory(downloadDirectory, zipFileNameWithPath);
+
+                using (MemoryStream ms = new MemoryStream())
+                using (FileStream file = new FileStream(zipFileNameWithPath, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] bytes = new byte[file.Length];
+                    file.Read(bytes, 0, (int)file.Length);
+                    ms.Write(bytes, 0, (int)file.Length);
+                    TempData[handle] = ms.ToArray();
+                }
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("Error Tryng to Zip or Serve Zip file: " + err.ToString());
+            }
+
+            return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
+        }
+
+        [HttpGet]
+        public virtual ActionResult Download(string fileGuid, string fileName)
+        {
+        
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+
+                var cd = new ContentDisposition
+                             {
+                                 // for example foo.bak
+                                 FileName = fileName,
+
+                                 // always prompt the user for downloading, set to true if you want 
+                                 // the browser to try to show the file inline
+                                 Inline = false,
+                             };
+
+                Response.AppendHeader("Content-Disposition", cd.ToString());
+
+                return File(data, "application/zip");
+            }
+            else
+            {
+                // Problem - Log the error, generate a blank file,
+                //           redirect to another controller action - whatever fits with your application
+                return new EmptyResult();
+            }
         }
 
         /// <summary>
