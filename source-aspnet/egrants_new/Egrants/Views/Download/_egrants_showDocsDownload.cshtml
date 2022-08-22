@@ -767,14 +767,15 @@
                         url: "/Egrants/IsDownloadForm",
                         data: JSON.stringify(dataToSend),
                         success: function(data) {
-                           console.log("SUCCESS: " + data);
+                           console.log("SUCCESS: " + JSON.stringify(data));
+                         //  data.downloadModel.handle;
                            //console.log(data.FileGuid);
                            //console.log(data.FileName);
                           //var response = JSON.parse(data);
 
                            //console.log(response.FileGuid);
                           // console.log(response.FileName);
-                           window.location = '/Egrants/Download?fileGuid=' + data.FileGuid  + '&filename=' + data.FileName;
+                           window.location = '/Egrants/Download?fileGuid=' + data.Handle + '&filename=' + data.ZipFilename;
                         },
                         error: function(resp) {
                            console.log("ERROR: " + resp);
