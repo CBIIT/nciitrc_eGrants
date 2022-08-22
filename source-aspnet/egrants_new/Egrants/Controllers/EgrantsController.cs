@@ -49,6 +49,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.UI.WebControls;
 
@@ -57,10 +59,37 @@ using egrants_new.Models;
 
 using Newtonsoft.Json;
 
+//using Newtonsoft.Json;
+
 #endregion
 
 namespace egrants_new.Controllers
 {
+    public class DownloadModel
+    {
+        /// <summary>
+        /// Gets or sets the appl_id.
+        /// </summary>
+        public string ApplId { get; set; }
+
+        public string Handle { get; set; }
+
+        public string ZipFilename { get; set; }
+
+        public string ZipError { get; set; }
+
+        public List<DownloadData> DownloadDataList { get; set; }
+    }
+
+    public class DownloadData
+    {
+        public string Url { get; set; }
+
+        public string FileDownloaded { get; set; }
+
+        public string Error { get; set; }
+    }
+
     /// <summary>
     /// The egrants controller.
     /// </summary>
@@ -140,8 +169,10 @@ namespace egrants_new.Controllers
         /// <returns></returns>
         public ActionResult IsDownloadForm(string appl, IEnumerable<string> listOfUrl)
         {
-            var serverPath = ConfigurationManager.ConnectionStrings["ImageServer"].ToString();
-            Uri serverUri = new Uri(serverPath);
+            // var serverPath = ConfigurationManager.ConnectionStrings["ImageServer"].ToString();
+            //  Uri serverUri = new Uri(serverPath);
+            DownloadModel downloadModel = new DownloadModel();
+            downloadModel.ApplId = appl;
 
             // create the temp path and
             string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
@@ -161,12 +192,17 @@ namespace egrants_new.Controllers
                 dir.Delete(true);
             }
 
-            var grantId = this.ViewBag.GrantID;
-            
+            // var grantId = this.ViewBag.GrantID;
+            DownloadData downloadData = new DownloadData();
+
             foreach (var url in listOfUrl)
             {
                 try
                 {
+                    downloadModel.DownloadDataList = new List<DownloadData>();
+                    downloadData = new DownloadData();
+                    downloadData.Url = url;
+                   
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
 
@@ -252,8 +288,8 @@ namespace egrants_new.Controllers
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
-
-                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
+                                downloadData.FileDownloaded = filename;
+                               Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
 
                                 Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
                             }
@@ -286,12 +322,12 @@ namespace egrants_new.Controllers
                     }
                     else
                     {
-                        Uri uri;
+                        var uri = new Uri(url);
 
-                        if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
-                        {
-                            uri = new Uri(serverUri, url);
-                        }
+                       // if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
+                       // {
+                        //    uri = new Uri(serverUri, url);
+                       // }
 
                         // X509Certificate2 cert = PickCertificate();
                         //
@@ -324,7 +360,7 @@ namespace egrants_new.Controllers
 
                         using (var myWebClient = new MyWebClient())
                         {
-                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                          //  myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
@@ -337,7 +373,7 @@ namespace egrants_new.Controllers
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
-
+                            downloadData.FileDownloaded = filename;
                             Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, uri.OriginalString);
                             Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
                         }
@@ -345,15 +381,24 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception err)
                 {
+                    //throw err;
+
+                    //return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
                     Console.WriteLine("Item Error : " + err.ToString());
+                    downloadData.Error = "FILE ERROR: " + err.ToString();
                 }
+
+                downloadModel.DownloadDataList.Add(downloadData);
             }
 
             string handle = Guid.NewGuid().ToString();
+            downloadModel.Handle = handle;
 
             string zipFileName = "ApplId_" + appl + ".zip";
             string zipFileNameWithPath = Path.Combine(Path.GetTempPath(), zipFileName);
-
+            
+            downloadModel.ZipFilename = zipFileName;
+            
             try
             {
                 // if the zip file exists delete it
@@ -377,28 +422,51 @@ namespace egrants_new.Controllers
             catch (Exception err)
             {
                 Console.WriteLine("Error Tryng to Zip or Serve Zip file: " + err.ToString());
+                downloadModel.ZipError = "ZIP ERROR: " + err.ToString();
             }
 
-            return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
+            return Json(downloadModel, JsonRequestBehavior.AllowGet);
+            //return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
         }
 
-        public static X509Certificate2 PickCertificate()
+        // public static X509Certificate2 PickCertificate()
+        // {
+        //     X509Certificate2 cert;
+        //     var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+        //
+        //     store.Open(OpenFlags.ReadOnly);
+        //
+        //     if (store.Certificates.Count == 1)
+        //         cert = store.Certificates[0];
+        //     else
+        //         cert = X509Certificate2UI.SelectFromCollection(store.Certificates, "Caption", "Message", X509SelectionFlag.SingleSelection)[0];
+        //
+        //     store.Close();
+        //     return cert;
+        // }
+
+        /// <summary>  
+        /// Override the JSON Result with Max integer JSON lenght  
+        /// </summary>  
+        /// <param name="data">Data</param>  
+        /// <param name="contentType">Content Type</param>  
+        /// <param name="contentEncoding">Content Encoding</param>  
+        /// <param name="behavior">Behavior</param>  
+        /// <returns>As JsonResult</returns>  
+        protected override JsonResult Json(object data, string contentType,
+                                           Encoding contentEncoding, JsonRequestBehavior behavior)
         {
-            X509Certificate2 cert;
-            var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-
-            store.Open(OpenFlags.ReadOnly);
-
-            if (store.Certificates.Count == 1)
-                cert = store.Certificates[0];
-            else
-                cert = X509Certificate2UI.SelectFromCollection(store.Certificates, "Caption", "Message", X509SelectionFlag.SingleSelection)[0];
-
-            store.Close();
-            return cert;
+            return new JsonResult()
+                       {
+                           Data = data,
+                           ContentType = contentType,
+                           ContentEncoding = contentEncoding,
+                           JsonRequestBehavior = behavior,
+                           MaxJsonLength = Int32.MaxValue
+                       };
         }
 
-        [HttpGet]
+        // [HttpGet]
         public virtual ActionResult Download(string fileGuid, string fileName)
         {
         
