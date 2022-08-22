@@ -767,7 +767,7 @@
                         url: "/Egrants/IsDownloadForm",
                         data: JSON.stringify(dataToSend),
                         success: function(data) {
-                           console.log(data);
+                           console.log("SUCCESS: " + data);
                            //console.log(data.FileGuid);
                            //console.log(data.FileName);
                           //var response = JSON.parse(data);
@@ -777,7 +777,7 @@
                            window.location = '/Egrants/Download?fileGuid=' + data.FileGuid  + '&filename=' + data.FileName;
                         },
                         error: function(resp) {
-                           console.log(resp);
+                           console.log("ERROR: " + resp);
                         }
                      });
             });
