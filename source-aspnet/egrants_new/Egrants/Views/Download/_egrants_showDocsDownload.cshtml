@@ -343,86 +343,69 @@
                   //console.log("Json: " + JSON.stringify(json));
 //                  console.log("Grant: " + ViewBag.);
                   var api = this.api();
+                  console.log(this.api());
                   //api.$('#loadgrid_' + @appl_id).click(function () {
-                  api.$('.showmode').click(function () {
-                     
-                     console.log("Tablerow clicky: " + this.innerHTML);
-
-                     var isAllChecked = true;
-                     
-                     $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
-                        function () {
-                           if ($('.showmode').enabled && !$('.showmode').checked) {
-                              //document.getElementById(data.document_id).enabled
-                              isAllChecked = false;
-                           } 
-                           console.log("DocId? :" + json.document_id);
-                        });
-
-                     if (isAllChecked) {
-                        api.$('.qc_checkbox_all_10439806' + @appl_id).checked = true;
+//                  api.$('.showmode').click(function () {
+//
+//                     console.log("Tablerow clicky: " + this.innerHTML);
+//
+//                     var isAllChecked = true;
+//
+//                     $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+//                        function () {
+//                           if (!$(this).prop('disabled') && !$(this).prop('checked')) {
+//                              isAllChecked = false;
+//                           }
+//                        });
+//
+//                     if (isAllChecked) {
+//                        $('#checkboxall_' + @appl_id).prop('checked', true);
+//                     } else {
+//                        $('#checkboxall_' + @appl_id).prop('checked', false);
+//                     }
+//                  });
+                  //api.$('#loadgrid_' + @appl_id + ' input.showmode').click(function () {
+                  api.$('#loadgrid_' + @appl_id).click(function () {
+                     if ($(this).attr('disabled') == "disabled" ) {
+                        return false;
                      }
+                     console.log("test");
+//                     var tr = $(this).closest('tr');
+//                     console.log("tr: " + tr);
+//                     var row = table.row(tr);
+//
+//
+//                     var data = row.data();
+//
+//                     // console.log(data);
+//
+//                     row.child(format(data)).show();
+//                     tr.next('tr').addClass(tr.attr('class'));
 
-                     console.log("AllChecked? :" + this.checked);
-                     //api.search(this.innerHTML).draw();
+
                   });
 
-                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
-                     function () {
-                        if ($(this).attr('disabled') == "disabled" ) {
-                           return false;
-                        }
-
-                        var tr = $(this).closest('tr');
-                        console.log("tr: " + tr);
-                        var row = table.row(tr);
-
-
-                        var data = row.data();
-
-                        // console.log(data);
-
-                        row.child(format(data)).show();
-                        tr.next('tr').addClass(tr.attr('class'));
-                  });
-
-                  $.each($('#loadgrid_' + @appl_id + ' input.showmodeall'),
-                     function () {
-                        document.getElementById("checkboxall_" + @appl_id).checked = true;
-                     });
-
-                  // show qc mode all
-                  $('#loadgrid_' + @appl_id + ' thead').on('click','input.showmodeall',
-                     function() {
-                        $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
-                           function () {
-                              if ($(this).attr('disabled') == "disabled" ) {
-                                 return false;
-                              }
-
-                              var tr = $(this).closest('tr');
-                              var row = table.row(tr);
+//                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+//                     function () {
+//                        if ($(this).attr('disabled') == "disabled" ) {
+//                           return false;
+//                        }
+//
+//                        var tr = $(this).closest('tr');
+//                        console.log("tr: " + tr);
+//                        var row = table.row(tr);
+//
+//
+//                        var data = row.data();
+//
+//                        // console.log(data);
+//
+//                        row.child(format(data)).show();
+//                        tr.next('tr').addClass(tr.attr('class'));
+//                  });
 
 
-                              var data = row.data();
 
-                              // console.log(data);
-
-                              row.child(format(row.data())).show();
-                              tr.next('tr').addClass(tr.attr('class'));
-
-                              var elm = document.getElementById(data.document_id);
-
-                              if (document.getElementById("checkboxall_" + @appl_id).checked) {
-                                 elm.checked = true;
-                                 //  console.log("Checked");
-                              }
-                              if (!document.getElementById("checkboxall_" + @appl_id).checked) {
-                                 elm.checked = false;
-                                 //  console.log("Unchecked");
-                              }
-                           });
-                     });
 
                 //  $.each(api.$('tr' + @appl_id + ' input.showmode'),
 //                  api.$('#41407254').click(function () {
@@ -445,8 +428,8 @@
                },
                "stripeClasses": ['odd-row', 'even-row'],
                "columnDefs": [
-                  { "width": "55%", "targets": 1 },
-                  { "width": "5%", "targets": 0 },
+                  { "width": "75%", "targets": 1 },
+//                  { "width": "5%", "targets": 0 },
                   {
                      "targets": [0],
                      "orderable": false
@@ -560,7 +543,7 @@
                            } else {
 
 
-                              var str = "<div><a href=JavaScript:show_doc(\"" + full.url + "\") title=\"show document\" class=\"float-left\" >" + full.document_name + "</a></div>";
+                              var str = "<a href=JavaScript:show_doc(\"" + full.url + "\") title=\"show document\">" + full.document_name + "</a>";
 
                            //   console.log(full);
                               //str = str +
@@ -701,52 +684,102 @@
 //               // ... do something with data(), or row.node(), etc
 //            } );
 
-            $('#downloadData').on('click', function () {
-               var listOfUrls = new Array();
-               console.log(@appl_id);
-
-               // loop through each datatable and add the checked items to a list
+            // when a user checks the checkbox in the header all row checkboxs are checked
+            $('#loadgrid_' + @appl_id + ' thead').on('click', 'input.showmodeall', function () {
+               var isAllChecked = $(this).prop('checked');
                $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
                   function () {
-                     var tr = $(this).closest('tr');
-                     var row = table.row(tr);
-                     var data = row.data();
-                     var elm = document.getElementById(data.document_id);
-                     if (elm.checked) {
-                        listOfUrls.push(data.url);
+                     console.log(isAllChecked);
+                     // skip the item if it is disabled
+                     if ($(this).prop('disabled')) {
+                        return false;
                      }
-               });
-
-               // create an object of appl_id and list of urls to send to save method
-               var datToSend = {};
-               datToSend.appl = @appl_id;
-               datToSend.listOfUrl = listOfUrls;
-
-               console.log("Data To C# = " + JSON.stringify(listOfUrls));
-
-               $.ajax(
-                  {
-                     cache: false,
-                     async: true,
-                     type: 'POST',
-                     dataType: 'JSON',
-                     contentType: 'application/json; charset=utf=8',
-                     url: "/Egrants/IsDownloadForm",
-                     data: JSON.stringify(datToSend),
-                     success: function(data) {
-                        console.log(data);
-                        console.log(data.FileGuid);
-                        console.log(data.FileName);
-                       // var response = JSON.parse(data);
-
-                       // console.log(response.FileGuid);
-                       // console.log(response.FileName);
-                        window.location = '/Egrants/Download?fileGuid=' + data.FileGuid  + '&filename=' + data.FileName;
-                     },
-                     error: function(resp) {
-                        console.log(resp);
+                     // check the box if all should be checked or uncheck if all should be unchecked
+                     if (isAllChecked) {
+                        $(this).prop('checked', true);
+                     } else {
+                        $(this).prop('checked', false);
                      }
                   });
+            });
+
+            // when the user clicks on a row's checkbox
+            $('#loadgrid_' + @appl_id + ' tbody').on('click',
+               'input.showmode',
+               function() {
+                  //$('.showmode').on('click', (function () {
+
+                  //console.log("Tablerow clicky: " + this.innerHTML);
+
+                  // assume all are checked
+                  var isAllChecked = true;
+
+                  // if anyone is not checked set the flag to false
+                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+                     function() {
+                        if (!$(this).prop('disabled') && !$(this).prop('checked')) {
+                           isAllChecked = false;
+                        }
+                     });
+
+                  // if all checkboxes are checked, check the header checkbox
+                  if (isAllChecked) {
+                     $('#checkboxall_' + @appl_id).prop('checked', true);
+                  } else {
+                     $('#checkboxall_' + @appl_id).prop('checked', false);
+                  }
+               });
+
+            // when the user clicks the download button get all the rows that are checked
+            $('#downloadData').on('click',
+               function() {
+                  var list = new Array();
+                  console.log(@appl_id);
+
+                  // loop through each datatable row and add the checked items to a list
+                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+                     function () {
+                        var tr = $(this).closest('tr');
+                        var row = table.row(tr);
+
+                        var data = row.data();
+                        // if the row is checked add the url to the list of data
+                        if ($(this).prop('checked')) {
+                           list.push(data.url);
+                        }
+                  });
+
+                  // create an object of appl_id and list of urls to send to save method
+                  var dataToSend = {};
+                  dataToSend.appl = @appl_id;
+                  dataToSend.listOfUrl = list;
+
+                  console.log("Data To C# = " + JSON.stringify(list));
+
+                     // post the data to the server
+                  $.ajax(
+                     {
+                        cache: false,
+                        async: true,
+                        type: 'POST',
+                        dataType: 'JSON',
+                        contentType: 'application/json; charset=utf=8',
+                        url: "/Egrants/IsDownloadForm",
+                        data: JSON.stringify(dataToSend),
+                        success: function(data) {
+                           console.log(data);
+                           //console.log(data.FileGuid);
+                           //console.log(data.FileName);
+                          //var response = JSON.parse(data);
+
+                           //console.log(response.FileGuid);
+                          // console.log(response.FileName);
+                           window.location = '/Egrants/Download?fileGuid=' + data.FileGuid  + '&filename=' + data.FileName;
+                        },
+                        error: function(resp) {
+                           console.log(resp);
+                        }
+                     });
             });
 
             // show qc mode all
@@ -768,37 +801,34 @@
 //                  });
 
             // show qc mode all
-            $('#loadgrid_' + @appl_id + ' thead').on('click','input.showmodeall',
-               function() {
-                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
-                     function () {
-                        if ($(this).attr('disabled') == "disabled" ) {
-                           return false;
-                        }
-
-                        var tr = $(this).closest('tr');
-                         var row = table.row(tr);
-
-
-                        var data = row.data();
-
-                       // console.log(data);
-
-                        row.child(format(row.data())).show();
-                        tr.next('tr').addClass(tr.attr('class'));
-
-                        var elm = document.getElementById(data.document_id);
-
-                        if (document.getElementById("checkboxall_" + @appl_id).checked) {
-                           elm.checked = true;
-                         //  console.log("Checked");
-                        }
-                        if (!document.getElementById("checkboxall_" + @appl_id).checked) {
-                           elm.checked = false;
-                         //  console.log("Unchecked");
-                        }
-                  });
-               });
+//            $('#loadgrid_' + @appl_id + ' thead').on('click','input.showmodeall',
+//               function() {
+//                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+//                     function () {
+//                        if ($(this).attr('disabled') == "disabled" ) {
+//                           return false;
+//                        }
+//
+//                        var tr = $(this).closest('tr');
+//                         var row = table.row(tr);
+//
+//                        var data = row.data();
+//
+//                        row.child(format(row.data())).show();
+//                        tr.next('tr').addClass(tr.attr('class'));
+//
+//                        var elm = $(data.document_id);
+//
+//                        if ($('#checkboxall_' + @appl_id).prop('checked')) {
+//                           elm.checked = true;
+//                         //  console.log("Checked");
+//                        }
+//                        if (!$('checkboxall_' + @appl_id).prop('checked')) {
+//                           elm.checked = false;
+//                         //  console.log("Unchecked");
+//                        }
+//                  });
+//               });
 
 
 
@@ -845,42 +875,42 @@
 //            var mode = document.getElementById("hidMode").value;
  //           if (mode != "qc") {
                // show all qc options
-            setTimeout(function () {
-                  console.log("Firing JS setTimeout");
-                     var cnt = 0;
-                     $.each($('#loadgrid_' + @appl_id + ' a.showmode'),
-                        function () {
-                           console.log(cnt);
-                           var tr = $(this).closest('tr');
-                           var row = table.row(tr);
-                           show_qc($(this).closest('div').attr('id'), 1);
-                           row.child(format(row.data())).show();
-                           tr.next('tr').addClass(tr.attr('class'));
-                           cnt++;
-                        });
-                  if (cnt > 1) {
-                        $('#show_qc_all_' + @appl_id).hide();
-                        $('#hide_qc_all_' + @appl_id).show();
-                  }
-
-                     var inputs = document.getElementsByTagName("div");
-                     // show minus icon
-                     for (var i = 0; i < inputs.length; i++) {
-                        if (inputs[i].className == 'show_qc') {
-                           inputs[i].style.display = "none";
-                        } else if (inputs[i].className == 'hide_qc') {
-                           inputs[i].style.display = "inline";
-                        } else continue;
-                  }
-
-                     // show check box
-                     for (var i = 0; i < inputs.length; i++) {
-                        if (inputs[i].className == 'qc_checkbox') {
-                           inputs[i].style.display = "inline";
-                        } else continue;
-                     }
-                  },
-                  4000);
+//            setTimeout(function () {
+//                  console.log("Firing JS setTimeout");
+//                     var cnt = 0;
+//                     $.each($('#loadgrid_' + @appl_id + ' a.showmode'),
+//                        function () {
+//                           console.log(cnt);
+//                           var tr = $(this).closest('tr');
+//                           var row = table.row(tr);
+//                           show_qc($(this).closest('div').attr('id'), 1);
+//                           row.child(format(row.data())).show();
+//                           tr.next('tr').addClass(tr.attr('class'));
+//                           cnt++;
+//                        });
+//                  if (cnt > 1) {
+//                        $('#show_qc_all_' + @appl_id).hide();
+//                        $('#hide_qc_all_' + @appl_id).show();
+//                  }
+//
+//                     var inputs = document.getElementsByTagName("div");
+//                     // show minus icon
+//                     for (var i = 0; i < inputs.length; i++) {
+//                        if (inputs[i].className == 'show_qc') {
+//                           inputs[i].style.display = "none";
+//                        } else if (inputs[i].className == 'hide_qc') {
+//                           inputs[i].style.display = "inline";
+//                        } else continue;
+//                  }
+//
+//                     // show check box
+//                     for (var i = 0; i < inputs.length; i++) {
+//                        if (inputs[i].className == 'qc_checkbox') {
+//                           inputs[i].style.display = "inline";
+//                        } else continue;
+//                     }
+//                  },
+//                  4000);
 //            }
 //
 //            $('#loadgrid_' + @appl_id + ' tbody').on('change',
@@ -1001,60 +1031,9 @@
                 });*@
          });
 
-
-         /* Formatting function for row details   margin-left:65px;*/
-         function formatDetails(d) {
-            var str = "<div class=\"float-left\">";
-               //'float:left;">';
-            str = str + 'Created On ' + d.created_date + ' by ' + d.created_by;
-
-            if (d.file_modified_by != "") {
-               str = str + '; Document uploaded On ' + d.file_modified_date;
-               str = str + ' by ' + d.file_modified_by;
-            }
-
-            if (d.modified_by != "") {
-               str = str + '; Updated On ' + d.modified_date;
-               str = str + ' by ' + d.modified_by;
-            }
-
-            if (d.problem_msg != "" && d.qc_date != "") {
-               str = str + '; Error Reported by ' + d.problem_reported_by;
-               str = str + ':<b id="error">' + d.problem_msg + '</b>';
-            }
-
-            //            if (d.can_store == 'y' || d.can_restore == 'y' || d.can_delete == "y") {
-            //               str = str + '<br/><span style= "margin-left:0px;">';
-            //
-            //               // show store option
-            //               if (d.can_store == 'y') {
-            //                  var act = "to store";
-            //                  str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Store</a><span style="padding-left:50px;"/>';
-            //                  str = str + '<a href="JavaScript:multiple_act(\'' + act + '\')">Stored Selected</a><span style="padding-left:50px;"/>';
-            //               }
-            //
-            //               // show restore option
-            //               if (d.can_restore == 'y') {
-            //                  var act = "to restore";
-            //                  str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Restore Original</a><span style="padding-left:50px;"/>';
-            //               }
-            //
-            //               // show delete option
-            //               if (d.can_delete == "y") {
-            //                  var act = "to delete";
-            //                  str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Delete</a>';
-            //               }
-            //
-            //               str = str + '</span>';
-            //            }
-            str = str + '</div>';
-            // display all qc options
-            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:900px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../Content/images/Loading.gif"/></div>' + str + '</div>';
-         }
-
          /* Formatting function for row details   margin-left:65px;*/
          function format(d) {
-            var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:left; display:inline;">';
+            var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
             str = str + 'Created On ' + d.created_date + ' by ' + d.created_by;
 
             if (d.file_modified_by != "") {
@@ -1098,7 +1077,7 @@
 //            }
             str = str + '</div>';
             // display all qc options
-            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:900px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../Content/images/Loading.gif"/></div>' + str + '</div>';
+            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:880px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../Content/images/Loading.gif"/></div>' + str + '</div>';
          }
 
          window.onload = function() {
