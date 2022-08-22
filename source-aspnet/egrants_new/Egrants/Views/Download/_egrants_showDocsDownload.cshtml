@@ -365,11 +365,11 @@
 //                     }
 //                  });
                   //api.$('#loadgrid_' + @appl_id + ' input.showmode').click(function () {
-                  api.$('#loadgrid_' + @appl_id).click(function () {
-                     if ($(this).attr('disabled') == "disabled" ) {
-                        return false;
-                     }
-                     console.log("test");
+          //        api.$('#loadgrid_' + @appl_id).click(function () {
+            //         if ($(this).attr('disabled') == "disabled" ) {
+             //           return false;
+              //       }
+              //       console.log("test");
 //                     var tr = $(this).closest('tr');
 //                     console.log("tr: " + tr);
 //                     var row = table.row(tr);
@@ -383,26 +383,26 @@
 //                     tr.next('tr').addClass(tr.attr('class'));
 
 
-                  });
+               //   });
 
-//                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
-//                     function () {
-//                        if ($(this).attr('disabled') == "disabled" ) {
-//                           return false;
-//                        }
-//
-//                        var tr = $(this).closest('tr');
-//                        console.log("tr: " + tr);
-//                        var row = table.row(tr);
-//
-//
-//                        var data = row.data();
-//
-//                        // console.log(data);
-//
-//                        row.child(format(data)).show();
-//                        tr.next('tr').addClass(tr.attr('class'));
-//                  });
+                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+                     function () {
+                        if ($(this).attr('disabled') == "disabled" ) {
+                           return false;
+                        }
+
+                        var tr = $(this).closest('tr');
+                        console.log("tr: " + tr);
+                        var row = table.row(tr);
+
+
+                        var data = row.data();
+
+                        // console.log(data);
+
+                        row.child(format(data)).show();
+                        tr.next('tr').addClass(tr.attr('class'));
+                  });
 
 
 
