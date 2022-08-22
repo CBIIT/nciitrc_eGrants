@@ -162,19 +162,52 @@ namespace egrants_new.Controllers
             }
 
             var grantId = this.ViewBag.GrantID;
-
+            
             foreach (var url in listOfUrl)
             {
                 try
                 {
                     // get a temp file to save the downloaded file
-                    string tmpFileName = Path.GetTempFileName(); 
+                    string tmpFileName = Path.GetTempFileName();
+
+                    //
+                    // if (url.Contains("https://s2s."))
+                    // {
+                    //     string urlt = "https://s2s.stage.era.nih.gov/docservice/dataservices/document/applId/87654321/GI";
+                    //     using (var myWebClient = new MyWebClient())
+                    //     {
+                    //         myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                    //
+                    //         // Concatenate the domain with the Web resource filename.
+                    //         Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, urlt);
+                    //
+                    //         // Download the Web resource and save it into the current filesystem folder.
+                    //         myWebClient.DownloadFile(urlt, tmpFileName);
+                    //
+                    //         // get the filename from the content-disposition header of the downloaded file
+                    //         var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                    //         ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                    //         string filename = contentDisposition.FileName;
+                    //
+                    //         // move the file from the temp file to a file with the filename in the downloadDirectory
+                    //         System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
+                    //
+                    //         Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, urlt);
+                    //
+                    //         Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
+                    //     }
+                    //
+                    //
+                    // }
 
                     // if this is a file on the eGrants fileserver
                     if (url.Contains("https://s2s."))
                     {
                         var uri = new Uri(url);
 
+                        //string urlt = "https://s2s.stage.era.nih.gov/docservice/dataservices/document/applId/87654321/GI";
+                       // uri = new Uri("https://s2s.stage.era.nih.gov/docservice/dataservices/document/applId/87654321/GI");
+                      
                         // obtain the document url from the remote system
                         var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
                         var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
@@ -202,7 +235,6 @@ namespace egrants_new.Controllers
                                 downloadUrl = reader.ReadToEnd();
                             }
 
-                            // use the custom WebClient so that the Cert is used
                             using (var myWebClient = new MyWebClient())
                             {
                                 myWebClient.Credentials = CredentialCache.DefaultCredentials;
@@ -225,6 +257,31 @@ namespace egrants_new.Controllers
 
                                 Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
                             }
+
+
+                            // // use the custom WebClient so that the Cert is used
+                            // using (var myWebClient = new MyWebClient())
+                            // {
+                            //     myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                            //
+                            //     // Concatenate the domain with the Web resource filename.
+                            //     Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, downloadUrl);
+                            //
+                            //     // Download the Web resource and save it into the current filesystem folder.
+                            //     myWebClient.DownloadFile(downloadUrl, tmpFileName);
+                            //
+                            //     // get the filename from the content-disposition header of the downloaded file
+                            //     var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                            //     ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                            //     string filename = contentDisposition.FileName;
+                            //
+                            //     // move the file from the temp file to a file with the filename in the downloadDirectory
+                            //     System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
+                            //
+                            //     Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
+                            //
+                            //     Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
+                            // }
                         }
                     }
                     else
@@ -235,6 +292,35 @@ namespace egrants_new.Controllers
                         {
                             uri = new Uri(serverUri, url);
                         }
+
+                        // X509Certificate2 cert = PickCertificate();
+                        //
+                        // var webResponse = (HttpWebRequest)WebRequest.Create(uri);
+                        //
+                        // webResponse.CookieContainer = new CookieContainer();
+                        // webResponse.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0";
+                        // webResponse.Method = "GET";
+                        // webResponse.ClientCertificates.Add(cert);
+                        // webResponse.UseDefaultCredentials = true;
+                        //
+                        // ServicePointManager.ServerCertificateValidationCallback = (c, certificate, chain, errors) => true;
+                        //
+                        // var res = (HttpWebResponse)webResponse.GetResponse();
+                        //
+                        // using (var postStream = res.GetResponseStream())
+                        // {
+                        //     if (postStream == null)
+                        //     {
+                        //         throw new Exception("The stream was empty!");
+                        //     }
+                        //
+                        //     string downloadedData;
+                        //
+                        //     using (var reader = new StreamReader(postStream))
+                        //     {
+                        //         downloadedData = reader.ReadToEnd();
+                        //     }
+                        // }
 
                         using (var myWebClient = new MyWebClient())
                         {
@@ -294,6 +380,22 @@ namespace egrants_new.Controllers
             }
 
             return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
+        }
+
+        public static X509Certificate2 PickCertificate()
+        {
+            X509Certificate2 cert;
+            var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+
+            store.Open(OpenFlags.ReadOnly);
+
+            if (store.Certificates.Count == 1)
+                cert = store.Certificates[0];
+            else
+                cert = X509Certificate2UI.SelectFromCollection(store.Certificates, "Caption", "Message", X509SelectionFlag.SingleSelection)[0];
+
+            store.Close();
+            return cert;
         }
 
         [HttpGet]
