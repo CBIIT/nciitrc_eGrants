@@ -56,7 +56,6 @@ using System.Web.UI.WebControls;
 
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
-
 using Newtonsoft.Json;
 
 //using Newtonsoft.Json;
@@ -137,28 +136,7 @@ namespace egrants_new.Controllers
         protected void btnDownload_Click(object sender, EventArgs e) 
         {
             Console.Write("Hello");
-            // ZipFile multipleFiles = new ZipFile();
-            //
-            // Response.AddHeader("Content-Disposition", "attachment; filename=DownloadedFile.zip");
-            // Response.ContentType = "application/zip";
-            //
-            // foreach (ListItem fileName in checkBoxList.Items)       
-            // {
-            //     if (fileName.Selected)   
-            //     { 
-            //         string filePath = Server.MapPath("~/csharpdotnetfreak.blogspot.com" + fileName.Value);
-            //         
-            //         multipleFiles.AddFile(filePath, string.Empty);
-            //     }
-            // }
-            //
-            // multipleFiles.Save(Response.OutputStream);
         }
-
-        // public ActionResult Chat()
-        // {
-        //     return this.View();
-        // }
 
         /// <summary>
         /// HttpPost
@@ -202,48 +180,15 @@ namespace egrants_new.Controllers
                     downloadModel.DownloadDataList = new List<DownloadData>();
                     downloadData = new DownloadData();
                     downloadData.Url = url;
-                   
+
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
-
-                    //
-                    // if (url.Contains("https://s2s."))
-                    // {
-                    //     string urlt = "https://s2s.stage.era.nih.gov/docservice/dataservices/document/applId/87654321/GI";
-                    //     using (var myWebClient = new MyWebClient())
-                    //     {
-                    //         myWebClient.Credentials = CredentialCache.DefaultCredentials;
-                    //
-                    //         // Concatenate the domain with the Web resource filename.
-                    //         Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, urlt);
-                    //
-                    //         // Download the Web resource and save it into the current filesystem folder.
-                    //         myWebClient.DownloadFile(urlt, tmpFileName);
-                    //
-                    //         // get the filename from the content-disposition header of the downloaded file
-                    //         var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-                    //         ContentDisposition contentDisposition = new ContentDisposition(disposition);
-                    //         string filename = contentDisposition.FileName;
-                    //
-                    //         // move the file from the temp file to a file with the filename in the downloadDirectory
-                    //         System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
-                    //
-                    //         Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, urlt);
-                    //
-                    //         Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
-                    //     }
-                    //
-                    //
-                    // }
 
                     // if this is a file on the eGrants fileserver
                     if (url.Contains("https://s2s."))
                     {
                         var uri = new Uri(url);
 
-                        //string urlt = "https://s2s.stage.era.nih.gov/docservice/dataservices/document/applId/87654321/GI";
-                       // uri = new Uri("https://s2s.stage.era.nih.gov/docservice/dataservices/document/applId/87654321/GI");
-                      
                         // obtain the document url from the remote system
                         var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
                         var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
@@ -289,7 +234,7 @@ namespace egrants_new.Controllers
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
                                 downloadData.FileDownloaded = filename;
-                               Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
+                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
 
                                 Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
                             }
@@ -322,12 +267,14 @@ namespace egrants_new.Controllers
                     }
                     else
                     {
-                        var uri = new Uri(url);
+                        Uri uri;// = new Uri(url);
 
-                       // if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
-                       // {
-                        //    uri = new Uri(serverUri, url);
-                       // }
+                        if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
+                        {
+                            var imageServer = new Uri(ConfigurationManager.ConnectionStrings["ImageServer"].ToString());
+
+                            uri = new Uri(imageServer, url);
+                        }
 
                         // X509Certificate2 cert = PickCertificate();
                         //
@@ -358,11 +305,42 @@ namespace egrants_new.Controllers
                         //     }
                         // }
 
-                        using (var myWebClient = new MyWebClient())
+
+
+
+                        var webRequest = (HttpWebRequest)WebRequest.Create(uri);
+                        webRequest.KeepAlive = false;
+                        webRequest.Method = "GET";
+                        webRequest.AllowAutoRedirect = false;
+
+                        var webResponse = (HttpWebResponse)webRequest.GetResponse();
+
+                        using (var postStream = webResponse.GetResponseStream())
                         {
-                          //  myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                            if (postStream == null)
+                            {
+                                throw new Exception("The stream was empty!");
+                            }
+
+                            string downloadUrl;
+
+                            // using (var reader = new StreamReader(postStream))
+                            // {
+                            //     TempData[tmpFileName] = reader.ReadToEnd();
+                            // }
+                        }
+
+                        using (var myWebClient = new WebClient())
+                        {
+                            //  myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
+
+                            using (MemoryStream memoryStream = new MemoryStream(myWebClient.DownloadData(uri)))
+                            {
+                                System.IO.File.WriteAllBytes(tmpFileName, memoryStream.ToArray());
+                            }
+
 
                             // Download the Web resource and save it into the temp folder in local filesystem folder.
                             myWebClient.DownloadFile(uri, tmpFileName);
@@ -377,6 +355,7 @@ namespace egrants_new.Controllers
                             Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, uri.OriginalString);
                             Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
                         }
+
                     }
                 }
                 catch (Exception err)
@@ -398,7 +377,27 @@ namespace egrants_new.Controllers
             string zipFileNameWithPath = Path.Combine(Path.GetTempPath(), zipFileName);
             
             downloadModel.ZipFilename = zipFileName;
-            
+
+            // using (var memoryStream = new MemoryStream())
+            // {
+            //     using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            //     {
+            //         var demoFile = archive.CreateEntry("foo.txt");
+            //
+            //         using (var entryStream = demoFile.Open())
+            //         using (var streamWriter = new StreamWriter(entryStream))
+            //         {
+            //             streamWriter.Write("Bar!");
+            //         }
+            //     }
+            //
+            //     using (var fileStream = new FileStream(@"C:\Temp\test.zip", FileMode.Create))
+            //     {
+            //         memoryStream.Seek(0, SeekOrigin.Begin);
+            //         memoryStream.CopyTo(fileStream);
+            //     }
+            // }
+
             try
             {
                 // if the zip file exists delete it
