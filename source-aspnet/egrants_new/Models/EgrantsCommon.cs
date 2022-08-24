@@ -48,7 +48,7 @@ namespace egrants_new.Models
     /// <summary>
     ///     The egrants common.
     /// </summary>
-    public class EgrantsCommon
+    public partial class EgrantsCommon
     {
 
         // check user validation
@@ -248,7 +248,7 @@ namespace egrants_new.Models
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                Specialists.Add(new EgrantsUsers { person_id = rdr["person_id"].ToString(), person_name = rdr["person_name"].ToString() });
+                Specialists.Add(new EgrantsUsers { PersonId = rdr["person_id"].ToString(), person_name = rdr["person_name"].ToString() });
 
             conn.Close();
 
@@ -262,18 +262,18 @@ namespace egrants_new.Models
         /// <returns>
         ///     The <see cref="System.Collections.Generic.List`1" /> .
         /// </returns>
-        public static List<positions> LoadPositions()
+        public static List<Position> LoadPositions()
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("select position_id, position_name from people_positions order by position_id", conn);
             cmd.CommandType = CommandType.Text;
             conn.Open();
 
-            var Positions = new List<positions>();
+            var Positions = new List<Position>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                Positions.Add(new positions { position_id = rdr["position_id"].ToString(), position_name = rdr["position_name"].ToString() });
+                Positions.Add(new Position { PositionId = rdr["position_id"].ToString(), PositionName = rdr["position_name"].ToString() });
 
             conn.Close();
 
@@ -297,7 +297,7 @@ namespace egrants_new.Models
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                Coordinators.Add(new EgrantsUsers { person_id = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
+                Coordinators.Add(new EgrantsUsers { PersonId = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
 
             conn.Close();
 
@@ -390,9 +390,9 @@ namespace egrants_new.Models
                 Profiles.Add(
                     new Profiles
                         {
-                            profile_id = rdr["profile_id"]?.ToString(),
-                            profile = rdr["profile"]?.ToString(),
-                            admin_phs_org_code = rdr["admin_phs_org_code"]?.ToString()
+                            ProfileId = rdr["profile_id"]?.ToString(),
+                            Profile = rdr["profile"]?.ToString(),
+                            AdminPhsOrgCode = rdr["admin_phs_org_code"]?.ToString()
                         });
 
             conn.Close();
@@ -429,9 +429,9 @@ namespace egrants_new.Models
                 AdminMenu.Add(
                     new AdminMenus
                         {
-                            menu_id = rdr["menu_id"]?.ToString(),
-                            menu_title = rdr["menu_title"]?.ToString(),
-                            menu_action = rdr["menu_action"]?.ToString()
+                            MenuId = rdr["menu_id"]?.ToString(),
+                            MenuTitle = rdr["menu_title"]?.ToString(),
+                            MenuAction = rdr["menu_action"]?.ToString()
                         });
 
             conn.Close();
@@ -507,368 +507,44 @@ namespace egrants_new.Models
         }
 
         /// <summary>
-        ///     The user.
-        /// </summary>
-        public class User
-        {
-            /// <summary>
-            ///     Gets or sets the person id.
-            /// </summary>
-            public int personID { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the position id.
-            /// </summary>
-            public int positionID { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the is coordinator.
-            /// </summary>
-            public int isCoordinator { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the person name.
-            /// </summary>
-            public string PersonName { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the user id.
-            /// </summary>
-            public string UserId { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the person email.
-            /// </summary>
-            public string PersonEmail { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the validation.
-            /// </summary>
-            public string Validation { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the menulist.
-            /// </summary>
-            public string menulist { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the ic.
-            /// </summary>
-            public string ic { get; set; }
-        }
-
-        /// <summary>
-        ///     The sm variable.
-        /// </summary>
-        public class SMVariable
-        {
-            /// <summary>
-            ///     Gets or sets the loginid.
-            /// </summary>
-            public string loginid { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the ic.
-            /// </summary>
-            public string ic { get; set; }
-        }
-
-        /// <summary>
-        ///     The egrants users.
-        /// </summary>
-        public class EgrantsUsers
-        {
-            /// <summary>
-            ///     Gets or sets the character_index.
-            /// </summary>
-            public string character_index { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the person_id.
-            /// </summary>
-            public string person_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the person_name.
-            /// </summary>
-            public string person_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the userid.
-            /// </summary>
-            public string userid { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the first_name.
-            /// </summary>
-            public string first_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the middle_name.
-            /// </summary>
-            public string middle_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the last_name.
-            /// </summary>
-            public string last_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the phone_number.
-            /// </summary>
-            public string phone_number { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the email_address.
-            /// </summary>
-            public string email_address { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the profile_id.
-            /// </summary>
-            public string profile_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the position_id.
-            /// </summary>
-            public string position_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the position_name.
-            /// </summary>
-            public string position_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the active.
-            /// </summary>
-            public string active { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the ic.
-            /// </summary>
-            public string ic { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the application_type.
-            /// </summary>
-            public string application_type { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the is_coordinator.
-            /// </summary>
-            public string is_coordinator { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the coordinator_id.
-            /// </summary>
-            public string coordinator_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the can_admin.
-            /// </summary>
-            public string can_admin { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the can_egrants.
-            /// </summary>
-            public string can_egrants { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the can_dashboard.
-            /// </summary>
-            public string can_dashboard { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the can_coordinator.
-            /// </summary>
-            public string can_coordinator { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the can_docman.
-            /// </summary>
-            public string can_docman { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the can_cft.
-            /// </summary>
-            public string can_cft { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the can_mgt.
-            /// </summary>
-            public string can_mgt { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the can_iccoord.
-            /// </summary>
-            public string can_iccoord { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the start_date.
-            /// </summary>
-            public string start_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the end_date.
-            /// </summary>
-            public string end_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the create_date.
-            /// </summary>
-            public string create_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the create_by.
-            /// </summary>
-            public string create_by { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the last_update_date.
-            /// </summary>
-            public string last_update_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the last_update_by.
-            /// </summary>
-            public string last_update_by { get; set; }
-        }
-
-        /// <summary>
-        ///     The positions.
-        /// </summary>
-        public class positions
-        {
-            /// <summary>
-            ///     Gets or sets the position_id.
-            /// </summary>
-            public string position_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the position_name.
-            /// </summary>
-            public string position_name { get; set; }
-        }
-
-        /// <summary>
-        ///     The admin codes.
-        /// </summary>
-        public class AdminCodes
-        {
-            /// <summary>
-            ///     Gets or sets the profile.
-            /// </summary>
-            public string profile { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the admin_phs_org_code.
-            /// </summary>
-            public string admin_phs_org_code { get; set; }
-        }
-
-        /// <summary>
-        ///     The character index.
-        /// </summary>
-        public class CharacterIndex
-        {
-            /// <summary>
-            ///     Gets or sets the index_id.
-            /// </summary>
-            public string index_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the character_index.
-            /// </summary>
-            public string character_index { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the index_seq.
-            /// </summary>
-            public string index_seq { get; set; }
-        }
-
-        // load profile list
-        /// <summary>
-        ///     The profiles.
-        /// </summary>
-        public class Profiles
-        {
-            /// <summary>
-            ///     Gets or sets the profile_id.
-            /// </summary>
-            public string profile_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the profile.
-            /// </summary>
-            public string profile { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the admin_phs_org_code.
-            /// </summary>
-            public string admin_phs_org_code { get; set; }
-        }
-
-        /// <summary>
-        ///     The admin menus.
-        /// </summary>
-        public class AdminMenus
-        {
-            /// <summary>
-            ///     Gets or sets the menu_id.
-            /// </summary>
-            public string menu_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the menu_title.
-            /// </summary>
-            public string menu_title { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the menu_action.
-            /// </summary>
-            public string menu_action { get; set; }
-        }
-
-        /// <summary>
         ///     The pagination.
         /// </summary>
-        public class Pagination
-        {
-            /// <summary>
-            ///     Gets or sets the tag.
-            /// </summary>
-            public string tag { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the parent.
-            /// </summary>
-            public string parent { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the total_counts.
-            /// </summary>
-            public string total_counts { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the total_tabs.
-            /// </summary>
-            public string total_tabs { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the total_pages.
-            /// </summary>
-            public string total_pages { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the tab_number.
-            /// </summary>
-            public string tab_number { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the page_number.
-            /// </summary>
-            public string page_number { get; set; }
-        }
+        // public class Pagination
+        // {
+        //     /// <summary>
+        //     ///     Gets or sets the tag.
+        //     /// </summary>
+        //     public string tag { get; set; }
+        //
+        //     /// <summary>
+        //     ///     Gets or sets the parent.
+        //     /// </summary>
+        //     public string parent { get; set; }
+        //
+        //     /// <summary>
+        //     ///     Gets or sets the total_counts.
+        //     /// </summary>
+        //     public string total_counts { get; set; }
+        //
+        //     /// <summary>
+        //     ///     Gets or sets the total_tabs.
+        //     /// </summary>
+        //     public string total_tabs { get; set; }
+        //
+        //     /// <summary>
+        //     ///     Gets or sets the total_pages.
+        //     /// </summary>
+        //     public string total_pages { get; set; }
+        //
+        //     /// <summary>
+        //     ///     Gets or sets the tab_number.
+        //     /// </summary>
+        //     public string tab_number { get; set; }
+        //
+        //     /// <summary>
+        //     ///     Gets or sets the page_number.
+        //     /// </summary>
+        //     public string page_number { get; set; }
+        // }
     }
 }
