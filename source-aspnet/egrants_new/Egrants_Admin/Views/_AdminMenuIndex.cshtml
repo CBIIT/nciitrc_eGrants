@@ -1,4 +1,5 @@
-﻿<script language="JavaScript">
+﻿@using egrants_new.Controllers
+<script language="JavaScript">
     function run_menu() {      
         if (document.getElementById("ddlMenus").selectedIndex != 0) {      
             var ActionController = document.getElementById("ddlMenus").options[document.getElementById("ddlMenus").selectedIndex].value;
@@ -15,7 +16,7 @@
         <option></option>
         @foreach (var item in ViewBag.AdminMenu)
         {
-            <option value="@item.menu_action" id="@item.menu_id">@item.menu_title</option>
+            <option value="@item.MenuAction" id="@item.MenuId">@item.MenuTitle</option>
         }
     </select>
 </div><!--end main-->
