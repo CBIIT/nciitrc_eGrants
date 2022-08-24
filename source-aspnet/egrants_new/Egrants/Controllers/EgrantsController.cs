@@ -355,8 +355,10 @@ namespace egrants_new.Controllers
                             // }
                             // CookieContainer cookieContainer = new CookieContainer();
                             // cookieContainer.Add(Request.Cookies["userName"].Value);
-
+                            //myWebClient.Headers.Add("header_sm_user", Session.);
+                            myWebClient.Headers.Add("header_sm_user", Session["userid"].ToString());
                             myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
+                            myWebClient.Headers.Add("NIHSMSESSION", Request.Cookies["NIHSMSESSION"].Value);
                             //myWebClient.Credentials = CredentialCache.DefaultCredentials;
                             //myWebClient.Credentials = 
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
