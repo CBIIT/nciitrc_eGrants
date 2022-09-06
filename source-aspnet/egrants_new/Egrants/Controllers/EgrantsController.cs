@@ -48,6 +48,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using System.Net.Security;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web;
@@ -65,31 +67,6 @@ using Newtonsoft.Json;
 
 namespace egrants_new.Controllers
 {
-    public class DownloadModel
-    {
-        /// <summary>
-        /// Gets or sets the appl_id.
-        /// </summary>
-        public string ApplId { get; set; }
-
-        public string Handle { get; set; }
-
-        public string ZipFilename { get; set; }
-
-        public string ZipError { get; set; }
-
-        public List<DownloadData> DownloadDataList { get; set; }
-    }
-
-    public class DownloadData
-    {
-        public string Url { get; set; }
-
-        public string FileDownloaded { get; set; }
-
-        public string Error { get; set; }
-    }
-
     /// <summary>
     /// The egrants controller.
     /// </summary>
@@ -148,10 +125,11 @@ namespace egrants_new.Controllers
         /// <returns></returns>
         public ActionResult IsDownloadForm(string appl, IEnumerable<string> listOfUrl)
         {
-            // var serverPath = ConfigurationManager.ConnectionStrings["ImageServer"].ToString();
-            //  Uri serverUri = new Uri(serverPath);
             DownloadModel downloadModel = new DownloadModel();
             downloadModel.ApplId = appl;
+            downloadModel.NumFailed = 0;
+            downloadModel.NumSucceeded = 0;
+            downloadModel.NumToDownload = listOfUrl.Count();
 
             // create the temp path and
             string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
@@ -235,11 +213,14 @@ namespace egrants_new.Controllers
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
                                 downloadData.FileDownloaded = filename;
+                      
                                 Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
 
                                 Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
                             }
                         }
+
+                        downloadModel.NumSucceeded += 1;
                     }
                     else
                     {
@@ -254,37 +235,38 @@ namespace egrants_new.Controllers
 
                         // X509Certificate2 cert = PickCertificate();
                         //
-                        // var webResponse = (HttpWebRequest)WebRequest.Create(uri);
-                        //
-                        // webResponse.CookieContainer = new CookieContainer();
-                        // webResponse.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0";
-                        // webResponse.Method = "GET";
-                        // webResponse.ClientCertificates.Add(cert);
-                        // webResponse.UseDefaultCredentials = true;
-                        //
-                        // ServicePointManager.ServerCertificateValidationCallback = (c, certificate, chain, errors) => true;
-                        //
-                        // var res = (HttpWebResponse)webResponse.GetResponse();
-                        //
-                        // using (var postStream = res.GetResponseStream())
-                        // {
-                        //     if (postStream == null)
-                        //     {
-                        //         throw new Exception("The stream was empty!");
-                        //     }
-                        //
-                        //     string downloadedData;
-                        //
-                        //     using (var reader = new StreamReader(postStream))
-                        //     {
-                        //         downloadedData = reader.ReadToEnd();
-                        //     }
-                        // }
+                        var webResponse = (HttpWebRequest)WebRequest.Create(uri);
+                        webResponse.AllowAutoRedirect = false;
+                        
+                        webResponse.CookieContainer = new CookieContainer();
+                        webResponse.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0";
+                        webResponse.Method = "GET";
+                       // webResponse.ClientCertificates.Add(cert);
+                        webResponse.UseDefaultCredentials = true;
+                        
+                        ServicePointManager.ServerCertificateValidationCallback = (c, certificate, chain, errors) => true;
+                        
+                        var res = (HttpWebResponse)webResponse.GetResponse();
+                        
+                        using (var postStream = res.GetResponseStream())
+                        {
+                            if (postStream == null)
+                            {
+                                throw new Exception("The stream was empty!");
+                            }
+                        
+                            string downloadedData;
+                        
+                            using (var reader = new StreamReader(postStream))
+                            {
+                                downloadedData = reader.ReadToEnd();
+                            }
+                        }
 
                         // CookieContainer cookies = new CookieContainer();
                         //
                         // int bytesProcessed = 0;
-                       // var webRequest = (HttpWebRequest)WebRequest.Create(uri);
+                        // var webRequest = (HttpWebRequest)WebRequest.Create(uri);
                         //webRequest.CookieContainer = cookies;
 
 
@@ -323,30 +305,34 @@ namespace egrants_new.Controllers
                         //             while (bytesRead > 0);
                         //     }
                         // }
-                    
-                    //  using (var postStream = webResponse.GetResponseStream())
-                    //  {
-                    //    if (postStream == null)
-                    //    {
-                    //       throw new Exception("The stream was empty!");
-                    //   }
 
-                    // string downloadUrl;
+                        //  using (var postStream = webResponse.GetResponseStream())
+                        //  {
+                        //    if (postStream == null)
+                        //    {
+                        //       throw new Exception("The stream was empty!");
+                        //   }
 
-                    // using (var reader = new StreamReader(postStream))
-                    //         {
-                    //             //TempData[tmpFileName] = reader.ReadToEnd();
-                    //             //MemoryStream ms = new MemoryStream(buffer);
-                    //             //write to file
-                    //             FileStream file = new FileStream("d:\\file.txt", FileMode.Create, FileAccess.Write);
-                    //             ms.WriteTo(file);
-                    //             file.Close();
-                    //             ms.Close();
-                    //         }
-                    //     }
+                        // string downloadUrl;
 
+                        // using (var reader = new StreamReader(postStream))
+                        //         {
+                        //             //TempData[tmpFileName] = reader.ReadToEnd();
+                        //             //MemoryStream ms = new MemoryStream(buffer);
+                        //             //write to file
+                        //             FileStream file = new FileStream("d:\\file.txt", FileMode.Create, FileAccess.Write);
+                        //             ms.WriteTo(file);
+                        //             file.Close();
+                        //             ms.Close();
+                        //         }
+                        //     }
+                        
+
+                        //ServicePointManager.ServerCertificateValidationCallback += ValidateRemoteCertificate;
+                        //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12; //TLS 1.2
                         using (var myWebClient = new WebClient())
                         {
+
                             // HttpCookieCollection cookieCollection =  Request.Cookies;
 
                             ////foreach (var cookie in Request.Cookies)
@@ -356,19 +342,38 @@ namespace egrants_new.Controllers
                             // CookieContainer cookieContainer = new CookieContainer();
                             // cookieContainer.Add(Request.Cookies["userName"].Value);
                             //myWebClient.Headers.Add("header_sm_user", Session.);
-                            myWebClient.Headers.Add("header_sm_user", Session["userid"].ToString());
-                            myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
-                            myWebClient.Headers.Add("NIHSMSESSION", Request.Cookies["NIHSMSESSION"].Value);
+
+                            // for(int i=0; i < Request.Headers.Count; i++)
+                            // {
+                            //     myWebClient.Headers.Add(Request.Headers.GetKey(i), Request.Headers.Get(i));
+                            // }
+                            //myWebClient.Credentials = Request.ClientCertificate;
                             //myWebClient.Credentials = CredentialCache.DefaultCredentials;
-                            //myWebClient.Credentials = 
+
+                            myWebClient.UseDefaultCredentials = true;
+                            myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
+                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                            foreach (var header in Request.Headers)
+                            {
+                                Console.WriteLine("Header: " + header.ToString());
+                            }
+
+                           // myWebClient.Headers.Add("header_sm_user", Session["userid"].ToString());
+                            myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
+                           // myWebClient.Headers.Add("NIHSMSESSION", Request.Cookies["NIHSMSESSION"].Value);
+                            //myWebClient.Headers.Add("_ga", Request.Cookies["_ga"].Value);
+                            //myWebClient.Headers.Add("_ga_HCESKCGBTM", Request.Cookies["_ga_HCESKCGBTM"].Value);
+                            //myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                            //myWebClient.Credentials =
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
                             // using (MemoryStream memoryStream = new MemoryStream(myWebClient.DownloadData(uri)))
                             // {
                             //     System.IO.File.WriteAllBytes(tmpFileName, memoryStream.ToArray());
                             // }
-
-
+                          //  myWebClient.Credentials = new NetworkCredential(userName, password, domainName);
+                          //  myWebClient..AllowAutoRedirect = true;
                             // Download the Web resource and save it into the temp folder in local filesystem folder.
                             myWebClient.DownloadFile(uri, tmpFileName);
                            // var result = myWebClient.DownloadData(uri);
@@ -380,6 +385,7 @@ namespace egrants_new.Controllers
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
                             downloadData.FileDownloaded = filename;
+                            downloadModel.NumSucceeded += 1;
                             Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, uri.OriginalString);
                             Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
                         }
@@ -388,11 +394,9 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception err)
                 {
-                    //throw err;
-
-                    //return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
                     Console.WriteLine("Item Error : " + err.ToString());
                     downloadData.Error = "FILE ERROR: " + err.ToString();
+                    downloadModel.NumFailed += 1;
                 }
 
                 downloadModel.DownloadDataList.Add(downloadData);
@@ -456,6 +460,28 @@ namespace egrants_new.Controllers
             //return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
         }
 
+
+        private void CertThing()
+        {
+
+        }
+        /// <summary>
+        /// Certificate validation callback.
+        /// </summary>
+        private static bool ValidateRemoteCertificate(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
+        {
+            // If the certificate is a valid, signed certificate, return true.
+            if (error == System.Net.Security.SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            Console.WriteLine("X509Certificate [{0}] Policy Error: '{1}'",
+                cert.Subject,
+                error.ToString());
+
+            return false;
+        }
         // public static X509Certificate2 PickCertificate()
         // {
         //     X509Certificate2 cert;
@@ -807,8 +833,10 @@ namespace egrants_new.Controllers
 
                         // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
                         foreach (var appl in this.ViewBag.appllayer)
+                        {
                             if (app.Any(n => n == appl.appl_id))
                                 appllist.Add(appl);
+                        }
 
                         this.ViewBag.appllayer = appllist;
                     }
