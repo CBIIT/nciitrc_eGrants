@@ -534,6 +534,7 @@
     <Content Include="Integration\SQL_Scripts\sp_web_service_call_url.sql" />
     <Content Include="Integration\SQL_Scripts\sp_web_service_trigger_webservices.sql" />
     <Content Include="Integration\EmailBodyTemplate.html" />
+    <Content Include="scripts\Blob.js" />
     <Content Include="scripts\bluebird.js" />
     <Content Include="Content\Grant Review Certification Form.pdf" />
     <Content Include="Content\eGrants Category Glossary.docx" />
@@ -598,6 +599,8 @@
     <Content Include="scripts\esm\popper-utils.min.js" />
     <Content Include="scripts\esm\popper.js" />
     <Content Include="scripts\esm\popper.min.js" />
+    <Content Include="scripts\FileSaver.js" />
+    <Content Include="scripts\FileSaver.min.js" />
     <Content Include="scripts\index.js.flow" />
     <Content Include="scripts\esm\popper.min.js.map" />
     <Content Include="scripts\esm\popper.js.map" />
@@ -609,6 +612,7 @@
     <Content Include="scripts\bootstrap.bundle.js.map" />
     <Content Include="scripts\bs-custom-file-input.min.js.map" />
     <Content Include="scripts\bs-custom-file-input.js.map" />
+    <Content Include="scripts\FileSaver.min.js.map" />
     <None Include="scripts\jquery.intellisense.js" />
     <Content Include="scripts\jquery-ui-1.13.2.js" />
     <Content Include="scripts\jquery-ui-1.13.2.min.js" />
@@ -723,8 +727,6 @@
     <Content Include="Shared\Views\_egrants_header.cshtml" />
     <Content Include="scripts\jquery.slim.min.map" />
     <Content Include="scripts\jquery.min.map" />
-    <Content Include="scripts\moment.min.js.map" />
-    <Content Include="scripts\moment-with-locales.min.js.map" />
     <Content Include="scripts\umd\popper.min.js.map" />
     <Content Include="scripts\umd\popper.js.map" />
     <Content Include="scripts\umd\popper.js.flow" />
@@ -735,6 +737,8 @@
     <Content Include="scripts\popper.js.map" />
     <Content Include="scripts\popper-utils.min.js.map" />
     <Content Include="scripts\popper-utils.js.map" />
+    <Content Include="scripts\moment.min.js.map" />
+    <Content Include="scripts\moment-with-locales.min.js.map" />
     <None Include="Web.config">
       <SubType>Designer</SubType>
     </None>
@@ -748,9 +752,9 @@
     <Compile Include="Dashboard\Controllers\DashboardController.cs" />
     <Compile Include="Dashboard\Models\Reminder.cs" />
     <Compile Include="Dashboard\Models\Dashboard.cs" />
+    <Compile Include="Egrants\Models\DownloadModel.cs" />
     <Compile Include="Egrants\Controllers\EgrantsController.cs" />
     <Compile Include="Egrants\Controllers\EgrantsDocController.cs" />
-    <Compile Include="Egrants\Models\DownloadModel.cs" />
     <Compile Include="Egrants\Models\InstitutionalFilesEnums.cs" />
     <Compile Include="Egrants\Models\InstitutionalFilesPage.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrgCategory.cs" />
@@ -882,6 +886,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\Images\" />
+    <Folder Include="Authentication\" />
     <Folder Include="Integration\Controllers\" />
   </ItemGroup>
   <ItemGroup>
