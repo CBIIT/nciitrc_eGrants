@@ -61,7 +61,7 @@
                 } else var etbody = get_et_body();
 
                 if (etname != '' && etsubject != '' && etbody != '') {
-                    if (confirm('Are you sure that you want to ' + act + ' this eamil template ?')) {
+                    if (confirm('Are you sure that you want to ' + act + ' this email template ?')) {
                         var url="@Url.Action("Create_Email_Template", "Supplement")?name=" + etname + "&subject=" + etsubject + "&detail=" + etbody;
                         //alert(url);
                         window.document.location.href = url;
@@ -117,9 +117,9 @@
 <div id="main">
     <!--start main-->
     <form name="frmGetInfo">
-        <input type="hidden" id="hidID" name="id" value="@ViewBag.ID" />
-        <input type="hidden" id="hidAct" name="act" value="@ViewBag.Act" />
-        <input type="hidden" id="hidReturnNotice" name="ReturnNotice" value="@ViewBag.ReturnNotice" />
+        <input type="text" hidden id="hidID" name="id" value="@ViewBag.ID" />
+        <input type="text" hidden id="hidAct" name="act" value="@ViewBag.Act" />
+        <input type="text" hidden id="hidReturnNotice" name="ReturnNotice" value="@ViewBag.ReturnNotice" />
     </form>
 
     <div>
