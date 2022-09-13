@@ -1,25 +1,26 @@
 ﻿@{
-    ViewBag.Title = "eGrants [Default]";
+   ViewBag.Title = "eGrants [Default]";
+
 }
 <!DOCTYPE html>
 <html>
-<head>    
-    <script language="JavaScript" type="text/javascript">
-        function go_to_default() {         
-            var UserType = document.getElementById("hidUserType").value;         
-            if (UserType == "d") {
-                var url="@Url.Action("Index","Docman")";
-            } else var url = "@Url.Action("Index","Egrants")";
+<head>
+   <script language='JavaScript' type='text/javascript'>
+      function go_to_default() {
+         var UserType = document.getElementById("hidUserType").value;
+         if (UserType == "d") {
+            var url = "@Url.Action("Index", "Docman")";
+         } else var url = "@Url.Action("Index", "")";
 
-            window.document.location.href = url;
-        }
-    </script>
+         window.document.location.href = url;
+      }
+   </script>
 
 </head>
 <body onload="go_to_default()">
-    <form id="frmGetInfo" >
-        <input type="hidden" id="hidUserType" name="UserType" value="@Session["UserType"]"/>    
-    </form>
+<form id="frmGetInfo">
+   <input type="text" hidden id="hidUserType" name="UserType" value="@Session["UserType"]"/>
+</form>
 </body>
 </html>
 

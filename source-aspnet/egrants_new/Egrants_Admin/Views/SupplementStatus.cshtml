@@ -111,8 +111,8 @@
 
 <div id="main"><!--start main-->
     <form name="frmGetInfo">
-        <input type="hidden" id="hidSerialNum" name="SerialNum" value="@ViewBag.SerialNum" />
-        <input type="hidden" id="hidID" name="ID" value="@ViewBag.ID" />
+        <input type="text" hidden id="hidSerialNum" name="SerialNum" value="@ViewBag.SerialNum" />
+        <input type="text" hidden id="hidID" name="ID" value="@ViewBag.ID" />
     </form>
     <div>
         @Html.Partial("~/Egrants_Admin/Views/_AdminMenuIndex.cshtml")
@@ -156,15 +156,15 @@
 
 <tr><td height="10" colspan="9"></td></tr>
 <tr class="bg_grey">
-	<td align="center" width="50"><lable for="email"><b>Email</b></lable></td>
-	<td align="center" width="80"><lable for="Position"><b>Position</b></lable></td>
-	<td align="center" width="100"><lable for="Name"><b>Name</b></lable></td>
-	<td align="center" width="100"><lable for="Email"><b>Email Address</b></lable></td>
-	<td align="center" width="100"><lable for="Created Date"><b>Created Date</b></lable></td>
-	<td align="center" width="100"><lable for="Emailed Date"><b>Emailed Date</b></lable></td>
-	<td align="center" width="80"><lable for="Status"><b>Status</b></lable></td>
-	<td align="center" width="100"><lable for="Reply Date"><b>Reply Date</b></lable></td>
-	<td align="center" width="80"><lable for="Reply Status"><b>Reply Status</b></lable></td>
+	<td align="center" width="50"><label for="email"><b>Email</b></label></td>
+	<td align="center" width="80"><label for="Position"><b>Position</b></label></td>
+	<td align="center" width="100"><label for="Name"><b>Name</b></label></td>
+	<td align="center" width="100"><label for="Email"><b>Email Address</b></label></td>
+	<td align="center" width="100"><label for="Created Date"><b>Created Date</b></label></td>
+	<td align="center" width="100"><label for="Emailed Date"><b>Emailed Date</b></label></td>
+	<td align="center" width="80"><label for="Status"><b>Status</b></label></td>
+	<td align="center" width="100"><label for="Reply Date"><b>Reply Date</b></label></td>
+	<td align="center" width="80"><label for="Reply Status"><b>Reply Status</b></label></td>
 </tr>
 
  @if (ViewBag.EmailStatus != null) {
@@ -185,11 +185,15 @@
 	
     @if (ViewBag.EmailStatus.Count >= 1)
     {
-        <tr><td colspan="6"></td><td colspan="3">
-		    <a href="JavaScript:to_open()" title="open form to resent Notification">To Resend this Notification...</a>
-	    </td></tr>
+       <tr>
+          <td colspan="9" class="text-right">
+             <a href="JavaScript:to_open()" title="open form to resent Notification">To Resend this Notification...</a>
+          </td>
+       </tr>
     }
-    <tr><td height="10" colspan="9"></td></tr>
+<tr>
+   <td height="10" colspan="9"></td>
+</tr>
 </table>
 
     <div class="form-inline modify" id="resent_1" style="display:none">
@@ -203,12 +207,12 @@
             </tr>
             <tr><td colspan="4"></td></tr>
             <tr>
-                <td><lable for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable></td>
-                <td><lable for="position"><b>Position:</b></lable></td>
-                <td><lable for="name"><b>Name:</b></lable></td>
-                <td><lable for="address"><b>Address:</b></lable></td>
+                <td><label for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></label></td>
+                <td><label for="position"><b>Position:</b></label></td>
+                <td><label for="name"><b>Name:</b></label></td>
+                <td><label for="address"><b>Address:</b></label></td>
                 <td>
-                    <img class="img_16_16" src="../Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(1)" />
+                    <img class="img_16_16" src="~/Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(1)" />
                 </td>
             </tr>
             <tr>
@@ -248,11 +252,11 @@
                     <td width="20"></td>
                 </tr>
                 <tr>
-                    <td><lable for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable></td>
-                    <td><lable for="position"><b>Position:</b></lable></td>
-                    <td><lable for="name"><b>Name:</b></lable></td>
-                    <td><lable for="address"><b>Address:</b></lable></td>
-                    <td><img class="img_16_16" src="../Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(2)" /></td>
+                    <td><label for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></label></td>
+                    <td><label for="position"><b>Position:</b></label></td>
+                    <td><label for="name"><b>Name:</b></label></td>
+                    <td><label for="address"><b>Address:</b></label></td>
+                    <td><img class="img_16_16" src="~/Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(2)" /></td>
                 </tr>
                 <tr>
                     <td>
@@ -292,11 +296,11 @@
                     <td width="20"></td>
                 </tr>
                 <tr>
-                    <td><lable for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable></td>
-                    <td><lable for="position"><b>Position:</b></lable></td>
-                    <td><lable for="name"><b>Name:</b></lable></td>
-                    <td><lable for="address"><b>Address:</b></lable></td>
-                    <td><img class="img_16_16" src="../Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(3)" /></td>
+                    <td><label for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></label></td>
+                    <td><label for="position"><b>Position:</b></label></td>
+                    <td><label for="name"><b>Name:</b></label></td>
+                    <td><label for="address"><b>Address:</b></label></td>
+                    <td><img class="img_16_16" src="~/Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(3)" /></td>
                 </tr>
                 <tr>
                     <td>
@@ -336,11 +340,11 @@
                     <td width="20"></td>
                 </tr>
                 <tr>
-                    <td><lable for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable></td>
-                    <td><lable for="position"><b>Position:</b></lable></td>
-                    <td><lable for="name"><b>Name:</b></lable></td>
-                    <td><lable for="address"><b>Address:</b></lable></td>
-                    <td><img class="img_16_16" src="../Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(4)" /></td>
+                    <td><label for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></label></td>
+                    <td><label for="position"><b>Position:</b></label></td>
+                    <td><label for="name"><b>Name:</b></label></td>
+                    <td><label for="address"><b>Address:</b></label></td>
+                    <td><img class="img_16_16" src="~/Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(4)" /></td>
                 </tr>
                 <tr>
                     <td>
@@ -380,11 +384,11 @@
                     <td width="20"></td>
                 </tr>
                 <tr>
-                    <td><lable for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable></td>
-                    <td><lable for="position"><b>Position:</b></lable></td>
-                    <td><lable for="name"><b>Name:</b></lable></td>
-                    <td><lable for="address"><b>Address:</b></lable></td>
-                    <td><img class="img_16_16" src="../Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(5)" /></td>
+                    <td><label for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></label></td>
+                    <td><label for="position"><b>Position:</b></label></td>
+                    <td><label for="name"><b>Name:</b></label></td>
+                    <td><label for="address"><b>Address:</b></label></td>
+                    <td><img class="img_16_16" src="~/Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(5)" /></td>
                 </tr>
                 <tr>
                     <td>
@@ -423,11 +427,11 @@
                     <td width="20"></td>
                 </tr>
                 <tr>
-                    <td><lable for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable></td>
-                    <td><lable for="position"><b>Position:</b></lable></td>
-                    <td><lable for="name"><b>Name:</b></lable></td>
-                    <td><lable for="address"><b>Address:</b></lable></td>
-                    <td><img class="img_16_16" src="../Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(6)" /></td>
+                    <td><label for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></label></td>
+                    <td><label for="position"><b>Position:</b></label></td>
+                    <td><label for="name"><b>Name:</b></label></td>
+                    <td><label for="address"><b>Address:</b></label></td>
+                    <td><img class="img_16_16" src="~/Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(6)" /></td>
                 </tr>
                 <tr>
                     <td>
@@ -466,11 +470,11 @@
                     <td width="20"></td>
                 </tr>
                 <tr>
-                    <td><lable for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></lable></td>
-                    <td><lable for="position"><b>Position:</b></lable></td>
-                    <td><lable for="name"><b>Name:</b></lable></td>
-                    <td><lable for="address"><b>Address:</b></lable></td>
-                    <td><img class="img_16_16" src="../Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(7)" /></td>
+                    <td><label for="type">&#0160;&#0160;&#0160;&#0160;<b>Type:</b></label></td>
+                    <td><label for="position"><b>Position:</b></label></td>
+                    <td><label for="name"><b>Name:</b></label></td>
+                    <td><label for="address"><b>Address:</b></label></td>
+                    <td><img class="img_16_16" src="~/Content/images/closebtn.gif" title="close" onclick="JavaScript:to_close(7)" /></td>
                 </tr>
                 <tr>
                     <td>

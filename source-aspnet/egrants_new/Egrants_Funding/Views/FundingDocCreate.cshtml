@@ -1,455 +1,604 @@
 ﻿@{
-    ViewBag.Title = "egrants [Funding Document Create]";
-    Layout = "~/Shared/Views/_egrants_header.cshtml";
-}
+   ViewBag.Title = "egrants [Funding Document Create]";
+   Layout = "~/Shared/Views/_egrants_header.cshtml";
 
-@using egrants_new.Controllers;
-@using egrants_new.Egrants_Funding.Models;
+}
 @using System.Web.SessionState;
 
-<style>
-    .nav-tabs > li > a:hover {
-        color: #ffffff;
-        background-color: #808080 !important;
-    }
-
-    .nav-tabs > li > a:focus {
-        color: #ffffff;
-        background-color: #808080 !important;
-    }
-</style>
-
-<link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
+<link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css"/>
 <script src="~/scripts/dragdrop.js"></script>
 <script src="~/scripts/ProgressBar.js"></script>
+<link href="~/Content/jquery-ui.min.css" rel="stylesheet"/>
+<script src="~/scripts/jquery-ui-1.13.1.min.js"></script>
+<script src="~/scripts/bs-custom-file-input.min.js"></script>
+
+<style>
+   body { font-family: Arial; }
+
+   /* Style the tab */
+
+   .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+   }
+
+   /* Style the buttons inside the tab */
+
+   .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: 0.3s;
+      font-size: 17px;
+   }
+
+   /* Change background color of buttons on hover */
+
+   .tab button:hover { background-color: #ddd; }
+
+   /* Create an active/current tablink class */
+
+   .tab button.active { background-color: #ccc; }
+
+   /* Style the tab content */
+
+   .tabcontent {
+      /*display: none;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-top: none;*/
+   }
+</style>
 
 <script language="javascript">
-        //var currenturl = window.document.location.href;
-        var AdminCode = "";
-        var SerialNum = 0;
-        var Applid = 0;
-        var Categoryid = 0;
-        var SubCategory = "";
-        var DocDate = "";
-        var frmdata = new FormData();
+   var AdminCode = "";
+   var SerialNum = 0;
+   var Applid = 0;
+   var Categoryid = 0;
+   var SubCategory = "";
+   var DocDate = "";
+   var frmdata = new FormData();
 
-        $(document).ready(function () {           
-            set_default();           
-        });
+   var input_string;
 
-        function set_default() {
-            //set default upload mode
-            //var BrowserType = document.getElementById("hidBrowserType").value;
-            //alert(BrowserType);
-            //if (BrowserType.indexOf("Chrome") != -1 || BrowserType.indexOf("IE") != -1 || BrowserType.indexOf("InternetExplorer") != -1) {
-            //    switch_upload_mode("by_ddrop");
-            //} else switch_upload_mode("by_file");
-            switch_upload_mode("by_ddrop");
+   $(document).ready(function() {
+      bsCustomFileInput.init();
+      set_default();
+   });
 
-            //alert(document.getElementById("hidAppl_id").value)
-            if (document.getElementById("hidAppl_id").value != "") {
-                load_appls();
-                var myVar = setTimeout(function () { selected_appl() }, 500);
+   function set_default() {
+      switch_upload_mode("by_ddrop");
+
+      if (document.getElementById("hidAppl_id").value != "") {
+         load_appls();
+         var myVar = setTimeout(function() { selected_appl() }, 500);
+      }
+   }
+
+   function switch_upload_mode(act) {
+      if (act == "by_ddrop") {
+         document.getElementById("by_ddrop").style.display = "inline";
+         document.getElementById("by_file").style.display = "none";
+         document.getElementById("btnDragdrop").style.display = "inline";
+         Init();
+      }
+
+      if (act == "by_file") {
+         document.getElementById("by_file").style.display = "inline";
+         document.getElementById("by_ddrop").style.display = "none";
+         document.getElementById("btnFileUpload").style.display = "inline";
+      }
+
+      if (act == "by_email") {
+         document.getElementById("by_ddrop").style.display = "none";
+         document.getElementById("by_file").style.display = "none";
+         document.getElementById("btnEmail").style.display = "inline";
+      }
+   }
+
+   function create_new_appl(object) {
+      if (object.options[object.selectedIndex].value == 'CreateGrantYear') {
+         AdminCode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+
+         if (document.getElementById("txtSerialnum").value == "") {
+            alert("Please insert serial number");
+            document.getElementById("txtSerialnum").focus();
+            document.getElementById("ddlAppls").options[0].selected = "selected";
+            return false;
+         } else if (isInteger(document.getElementById("txtSerialnum").value) == false) {
+            alert("Please insert correct serial number");
+            document.getElementById("txtSerialnum").value = "";
+            document.getElementById("txtSerialnum").focus();
+            document.getElementById("ddlAppls").options[0].selected = "selected";
+            return false;
+         } else SerialNum = document.getElementById("txtSerialnum").value;
+
+         var url = "@Url.Action("appl_create_default", "EgrantsDoc")?admin_code=" + AdminCode + "&serial_num=" + SerialNum;
+         window.open(url, "NewAPPL", "toolbar=0,menubar=0,location=0,status=0,width=800,height=400,scrollbars=yes,left=200,top=200");
+      }
+   }
+
+   function load_appls() {
+      AdminCode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+
+      if (document.getElementById("txtSerialnum").value == "") {
+         alert("Please insert serial number");
+         document.getElementById("txtSerialnum").focus();
+         return false;
+      } else if (isInteger(document.getElementById("txtSerialnum").value) == false) {
+         alert("Please insert correct serial number");
+         document.getElementById("txtSerialnum").value = "";
+         document.getElementById("txtSerialnum").focus();
+         return false;
+      } else SerialNum = document.getElementById("txtSerialnum").value;
+
+      $.ajax(
+         {
+            type: 'POST',
+            url: "/Egrants/LoadYears",
+            data: { admin_code: AdminCode, serial_num: SerialNum },
+            success: function(resp) {
+               var jsonobj = JSON.parse(resp);
+               $('#ddlAppls').empty();
+               $('#ddlAppls').append('<option value=' + -1 + '>' + 'Select grant year' + '</option>');
+               $.each(jsonobj,
+                  function(index, element) {
+                     var SplitPoint = element.indexOf(":");
+                     var full_grant_num = element.substring(0, SplitPoint);
+                     var appl_id = element.substring(SplitPoint + 1, element.length);
+                     $('#ddlAppls').append('<option value=' + appl_id + ' id=' + appl_id + '>' + full_grant_num + '</option>');
+                  });
+
+               //add create appl option
+               $('#ddlAppls').append('<option value=CreateGrantYear>Create grant year</option>');
             }
-        }
+         });
+   }
 
-        function switch_upload_mode(act) {
-            if (act == "by_ddrop") {
-                document.getElementById("by_ddrop").style.display = "inline";
-                document.getElementById("by_file").style.display = "none";
-                Init();
-            }
+   //set selected appl_id
+   function selected_appl() {
+      var appl_id = document.getElementById("hidAppl_id").value;
+      //alert(appl_id);
+      $("#ddlAppls").val(appl_id);
+   }
 
-            if (act == "by_file") {
-                document.getElementById("by_file").style.display = "inline";
-                document.getElementById("by_ddrop").style.display = "none";
-            }
-        }
+   function get_appl() {
+      if (document.getElementById("ddlAppls").selectedIndex == 0) {
+         alert("Please select grant year");
+         return false;
+      } else if (document.getElementById("ddlAppls").selectedIndex == (document.getElementById("ddlAppls").length - 1)) {
+         alert("Please select grant year");
+         return false;
+      } else Applid = document.getElementById("ddlAppls").options[document.getElementById("ddlAppls").selectedIndex].id;
+      return true;
+   }
 
-        function create_new_appl(object) {
-            if (object.options[object.selectedIndex].value == 'CreateGrantYear') {
-                AdminCode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+   function get_category_id() {
+      if (document.getElementById("ddlCategories").selectedIndex == -1) {
+         alert("Please select category");
+         return false;
+      } else if (document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value == 2) {
+         alert("Please select correct category");
+         return false;
+      } else Categoryid = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
+      return true;
+   }
 
-                if (document.getElementById("txtSerialnum").value == "") {
-                    alert("Please insert serial number");
-                    document.getElementById("txtSerialnum").focus();
-                    document.getElementById("ddlAppls").options[0].selected = "selected";
-                    return false;
-                } else if (isInteger(document.getElementById("txtSerialnum").value) == false) {
-                    alert("Please insert correct serial number");
-                    document.getElementById("txtSerialnum").value = "";
-                    document.getElementById("txtSerialnum").focus();
-                    document.getElementById("ddlAppls").options[0].selected = "selected";
-                    return false;
-                }else SerialNum = document.getElementById("txtSerialnum").value;
+   function get_sub_category() {
+      if (document.getElementById("txtSubCategory").value != "") {
+         SubCategory = document.getElementById("txtSubCategory").value;
 
-                var url = "@Url.Action("appl_create_default", "EgrantsDoc")?admin_code=" + AdminCode + "&serial_num=" + SerialNum;
-                window.open(url, "NewAPPL", "toolbar=0,menubar=0,location=0,status=0,width=800,height=400,scrollbars=yes,left=200,top=200");
-            }
-        }
+         if (SubCategory.length > 35) {
+            alert("The maximum value for sub category should be less than 35 characters");
+            document.getElementById("txtSubCategory").value = "";
+            document.getElementById("txtSubCategory").focus();
+            SubCategory = "";
+            return false;
+         }
+      } else {
+         SubCategory = "";
+         return true;
+      }
+   }
 
-        function load_appls() {
-            AdminCode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+   function check_sub_category_length(category_id) {
+      //alert("on change");
+      var el = "T_" + category_id;
+      if (document.getElementById(el).value != "") {
+         var sub_cat = document.getElementById(el).value;
+         if (sub_cat.length > 35) {
+            alert("The maximum value for sub category should be less than 35 characters");
+            document.getElementById(el).value = "";
+            document.getElementById(el).onfocus;
+            return false;
+         }
+      }
+   }
 
-            if (document.getElementById("txtSerialnum").value == "") {
-                alert("Please insert serial number");
-                document.getElementById("txtSerialnum").focus();
-                return false;
-            } else if (isInteger(document.getElementById("txtSerialnum").value) == false) {
-                alert("Please insert correct serial number");
-                document.getElementById("txtSerialnum").value = "";
-                document.getElementById("txtSerialnum").focus();
-                return false;
-            } else SerialNum = document.getElementById("txtSerialnum").value;
+   function show_sub_category() {
+      //enable btnFileUpload button and file
+      if (document.getElementById("btnFileUpload") != null && document.getElementById("btnFileUpload").disabled == true) {
+         document.getElementById("btnFileUpload").disabled = false;
+      }
 
-            $.ajax(
-            {
-                type: 'POST',
-                url: "/Egrants/LoadYears",
-                data: { admin_code: AdminCode, serial_num: SerialNum },  //fy: fy, mechan: mechan,
-                success: function (resp) {
-                    //sessionStorage.year = resp;
-                    var jsonobj = JSON.parse(resp);
-                    //alert(jsonobj);
-                    $('#ddlAppls').empty();
-                    $('#ddlAppls').append('<option value=' + -1 + '>' + 'Select grant year' + '</option>');
-                    $.each(jsonobj, function (index, element) {
-                        var SplitPoint = element.indexOf(":");
-                        var full_grant_num = element.substring(0, SplitPoint);
-                        var appl_id = element.substring(SplitPoint + 1, element.length);
-                        //alert(element);
-                        $('#ddlAppls').append('<option value=' + appl_id + ' id=' + appl_id + '>' + full_grant_num + '</option>');
-                    });
+      var MaxCategoryid = document.getElementById("hidMax_Categoryid").value;
 
-                    //add create appl option
-                    $('#ddlAppls').append('<option value=CreateGrantYear>Create grant year</option>');
-                }
-            });      
-        }
+      //hide all
+      for (var i = 1; i <= MaxCategoryid; i++) {
+         var el = "sub_category_" + i;
+         if (document.getElementById(el) != null) {
+            document.getElementById(el).style.display = "none";
+         }
+      }
 
-        //set selected appl_id
-        function selected_appl() {
-            var appl_id = document.getElementById("hidAppl_id").value;
-            //alert(appl_id);
-            $("#ddlAppls").val(appl_id);
-        }
+      var category_id = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
+      var inputstring = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+      var inputtype = inputstring.charAt(0);
 
-        function get_appl() {
-            if (document.getElementById("ddlAppls").selectedIndex == 0) {
-                alert("Please select grant year");
-                return false;
-            } else if (document.getElementById("ddlAppls").selectedIndex == (document.getElementById("ddlAppls").length - 1)) {
-                alert("Please select grant year");
-                return false;
-            } else  Applid = document.getElementById("ddlAppls").options[document.getElementById("ddlAppls").selectedIndex].id;
-                    return true;
-        }
+      //display one 
+      var el = "sub_category_" + category_id;
+      if (document.getElementById(el) != null) {
+         document.getElementById(el).style.display = "inline";
+      }
 
-        function get_category_id() {
-            if (document.getElementById("ddlCategories").selectedIndex == -1) {
-                alert("Please select category");
-                return false;
-            } else if (document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value == 2) {
-                alert("Please select correct category");
-                return false;
-            } else  Categoryid = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
-                    return true;
-        }
+      //clear value for sub category
+      if (inputtype == "T") {
+         var el = "T_" + category_id;
+         document.getElementById(el).value = "";
+      } else if (inputtype == "D") {
+         var el = "D_" + category_id;
+         var el = "D_" + category_id;
+         document.getElementById(el).selectedIndex = 0;
+      }
+   }
 
-        function get_sub_category() {
-            if (document.getElementById("txtSubCategory").value != "") {
-                SubCategory = document.getElementById("txtSubCategory").value;
+   function get_document_date() {
+      if (document.getElementById("txtDocumentdate").value == "") {
+         alert("Please insert document date");
+         document.getElementById("txtDocumentdate").focus();
+         return false;
+      } else if (document.getElementById("txtDocumentdate").value.charAt(4) == '/') {
+         var year = document.getElementById("txtDocumentdate").value.substring(0, 4);
+         var month = document.getElementById("txtDocumentdate").value.substring(5, 7);
+         var day = document.getElementById("txtDocumentdate").value.substring(8, 10);
+         doc_date = month + "/" + day + "/" + year;
+      } else doc_date = document.getElementById("txtDocumentdate").value;
 
-                if (SubCategory.length > 35) {
-                    alert("The maximum value for sub category should be less than 35 characters");
-                    document.getElementById("txtSubCategory").value = "";
-                    document.getElementById("txtSubCategory").focus();
-                    SubCategory = "";
-                    return false;
-                }
-            }
-            else{
-                SubCategory = "";
-                return true;
-            }
-        }
+      //check date format
+      if (isDate(doc_date) == false) {
+         document.getElementById("txtDocumentdate").value = "";
+         document.getElementById("txtDocumentdate").focus();
+         return false;
+      } else DocDate = doc_date;
+      return true;
+   }
 
-        function get_document_date() {
-            if (document.getElementById("txtDocumentdate").value == "") {
-                alert("Please insert document date");
-                document.getElementById("txtDocumentdate").focus();
-                return false;
-            } else if (isDate(document.getElementById("txtDocumentdate").value) == false) {
-                document.getElementById("txtDocumentdate").value = "";
-                document.getElementById("txtDocumentdate").focus();
-                return false;
-            } else  DocDate = document.getElementById("txtDocumentdate").value;
-                    return true;
-        }
+   function create_by_file() {
+      // check appl_id
+      if (get_appl() == false) {
+         return false;
+      }
 
-        function create_by_file() {           
-            //check appl_id
-            if (get_appl() == false) {
-                return false;
-            }
+      // check category_id
+      if (get_category_id() == false) {
+         return false;
+      }
 
-            //check category_id
-            if (get_category_id() == false) {
-                return false;
-            }
+      // sheck sub string
+      if (get_sub_category() == false) {
+         return false;
+      }
 
-            //sheck sub string
-            if (get_sub_category() == false) {
-                return false;
-            }
+      // check document_date
+      if (get_document_date() == false) {
+         return false;
+      }
 
-            //check document_date
-            if (get_document_date() == false) {
-                return false;
-            }
+      // check file, file type and file size
+      if (check_file() == false) {
+         return false;
+      } else var file = document.getElementById('customFile').files[0];
 
-            //check file, file type and file size
-            if (check_file() == false) {
-                return false;
-            } else var file = document.getElementById('UploadFile').files[0];
+      frmdata.append('file', file);
+      frmdata.append('appl_id', Applid);
+      frmdata.append('category_id', Categoryid);
+      frmdata.append('document_date', DocDate);
+      frmdata.append('sub_category', SubCategory);
 
-            frmdata.append('file', file);
-            frmdata.append('appl_id', Applid);
-            frmdata.append('category_id', Categoryid);
-            frmdata.append('document_date', DocDate);
-            frmdata.append('sub_category', SubCategory);
+      docupload(frmdata, "/EgrantsFunding/doc_create_by_file");
+      $('#btnFileUpload').attr("disabled", "disabled");
+   }
 
-            docupload(frmdata, "/EgrantsFunding/doc_create_by_file");
-            $('#btnFileUpload').attr("disabled", "disabled");
+   function create_by_ddrop() {
+      // check appl_id
+      if (get_appl() == false) {
+         return false;
+      }
 
-            //back();
-            //return true;
-        }
+      // check category_id
+      if (get_category_id() == false) {
+         return false;
+      }
 
-        function create_by_ddrop(){
-            //check appl_id
-            if (get_appl() == false) {
-                return false;
-            }
+      // check sub string
+      if (get_sub_category() == false) {
+         return false;
+      }
 
-            //check category_id
-            if (get_category_id() == false) {
-                return false;
-            }
+      // check document_date
+      if (get_document_date() == false) {
+         return false;
+      }
 
-            //sheck sub string
-            if (get_sub_category() == false) {
-                return false;
-            }
+      frmdata.append('dropedfile', dropedfile);
+      frmdata.append('appl_id', Applid);
+      frmdata.append('category_id', Categoryid);
+      frmdata.append('document_date', DocDate);
+      frmdata.append('sub_category', SubCategory);
 
-            //check document_date
-            if (get_document_date() == false) {
-                return false;
-            }
+      docupload(frmdata, "/EgrantsFunding/doc_create_by_ddrop");
+      $('#btnDragdrop').attr("disabled", "disabled");
+   }
 
-            frmdata.append('dropedfile', dropedfile);
-            frmdata.append('appl_id', Applid);
-            frmdata.append('category_id', Categoryid);
-            frmdata.append('document_date', DocDate);
-            frmdata.append('sub_category', SubCategory);
+   function back() {
+      // back to Previous page
+      var previous_url = document.getElementById("hidPrevious_url").value;
+      window.self.location = previous_url;
+   }
 
-            docupload(frmdata, "/EgrantsFunding/doc_create_by_ddrop");
-            $('#btnDragdrop').attr("disabled", "disabled");
-            //back();
-            //return true;
-        }
+   function get_docid() {
+      var stringurl = document.getElementById("notice").href;
+      if (stringurl.length > 100) {
+         alert("Please create new funding document first");
+         return false;
+      } else {
+         // to get document_id
+         var startpoint = stringurl.lastIndexOf("/");
+         var endpoint = stringurl.lastIndexOf(".");
+         var docid = stringurl.substring(startpoint + 1, endpoint);
+         // to get fiscal year
+         var d = new Date();
+         var y = d.getFullYear();
+         var m = d.getMonth();
+         if (m > 9) {
+            y = y + 1;
+         }
 
-        function back() {
-            //back to Previous page
-            var previous_url = document.getElementById("hidPrevious_url").value;
-            //alert(previous_url);
-            window.self.location = previous_url;       
-        }
+         var url = "@Url.Action("appl_edit_default", "EgrantsFunding")?doc_id=" + docid + "&fy=" + y;
+         window.self.location.href = url;
+         return true;
+      }
+   }
 
-        function get_docid() {
-            var stringurl = document.getElementById("notice").href;
-            if (stringurl.length > 100){
-                    alert("Please create new funding document first");
-                    return false;
-            }
-            else
-            {
-                //to get document_id
-                var startpoint = stringurl.lastIndexOf("/");
-                var endpoint = stringurl.lastIndexOf(".");
-                var docid = stringurl.substring(startpoint + 1, endpoint);
-                //to get fiscal year
-                var d = new Date();
-                var y = d.getFullYear();
-                var m = d.getMonth();
-                if (m > 9) {
-                    y = y + 1;
-                }
+   //to highlight selected tab
+   function Docreate(evt, tabs) {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+         tabcontent[i].style.display = "none";
 
-                var url = "@Url.Action("appl_edit_default", "EgrantsFunding")?doc_id=" + docid + "&fy=" + y;
-                window.self.location.href = url;
-                return true;
-            }
-        }
+      }
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+         tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(tabs).style.display = "block";
+      evt.currentTarget.className += " active";
+   }
+
+   function active_btnFileUpload() {
+      if (document.getElementById("btnFileUpload").disabled == true) {
+         document.getElementById("btnFileUpload").disabled = false;
+      }
+   }
 </script>
 
-<form name="frmGetInfo">
-    <input type="hidden" id="hidAdmin_code" name="admin_code" value="@ViewBag.admincode" />
-    <input type="hidden" id="hidSerial_num" name="serial_num" value="@ViewBag.serialnum" />
-    <input type="hidden" id="hidAppl_id" name="appl_id" value="@ViewBag.applid" />
-    <input type="hidden" id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
-    <input type="hidden" id="hidPrevious_url" name="previous_url" value="@ViewBag.Previousurl" />
-</form>
 
-<div id="main">
-    <div id="caption">
-        <b id="page_title">Upload Funding Document</b><br />
-    </div>
+<div id="main" style="margin: 0; padding: 0;">
+   <div id="caption" style="margin: 0; padding: 0;">
+      <b id="page_title">Add Funding Document</b><br/>
+   </div>
+   <form name="frmGetInfo">
+      <input type="text" hidden id="hidAdmin_code" name="admin_code" value="@ViewBag.admincode"/>
+      <input type="text" hidden id="hidSerial_num" name="serial_num" value="@ViewBag.serialnum"/>
+      <input type="text" hidden id="hidAppl_id" name="appl_id" value="@ViewBag.applid"/>
+      <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])"/>
+      <input type="text" hidden id="hidPrevious_url" name="previous_url" value="@ViewBag.Previousurl"/>
+   </form>
 
-    <div class="form-inline">
-        <table width="800">
+   @*<div class="form-inline" style="margin: 0; padding: 0;">*@
+   <div id="content" style="margin: 0; padding: 0;">
+      <div class="form-inline" style="margin: 0; padding: 0;">
+         <table width="800">
             <thead>
-                <tr>
-                    <td colspan="2" class="bg_grey" height="30px">&#0160;&#0160;* Select the category, insert date & select File Name, then click Create New</td>
-                </tr>
             </thead>
             <tbody>
-                <tr height="30px">
-                    <td width="100"><label for="Institute"><b>Institute:</b></label></td>
-                    <td width="800">
-                        <select name="admin_code" id="ddlAdmincodes" class="form-control" style="width:80px; height:30px;" size="1" title="Select admin phs org code">
-                            @foreach (var AdminCode in ViewBag.AdminCodeList)
-                            {
-                                if (AdminCode.profile != null && Convert.ToString(AdminCode.profile) == Convert.ToString(Session["ic"]))
-                                {
-                                    <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option>
-                                }
-                                else if (Convert.ToString(ViewBag.admincode) == AdminCode.admin_phs_org_code)
-                                {
-                                    <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option>
-                                }
-                                else
-                                {
-                                    <option value="@AdminCode.admin_phs_org_code">@AdminCode.admin_phs_org_code</option>
-                                }
-                            }
-                        </select>
-                        <label for="Serial Number"><b>Serial Number:</b></label>
-                        <input name="serial_num" type="text" id="txtSerialnum" class="form-control" style="height:30px; width:80px;" title="Insert serial number" value="@ViewBag.serialnum" />&#0160;
-                        <button name="load appls" id="btnLoadAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="E" OnClick="return load_appls();" title="Click here to load availabel appls [shift + alt + E]"><u>E</u>nter to see availabel appls</button>
-                        <button name="get more grant" id="btnAddAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="L" OnClick="return get_docid();" title="Click here to add availabel appls [shift + alt + A]"><u>L</u>ink to more grants</button>
-                        @*<button name="load appls" id="btnLoadAppls" class="btn-primary btn-sm" style="font-size:medium;background-color:#4169e1;" AccessKey="E" OnClick="return load_appls();" title="Click here to load availabel appls [shift + alt + E]"><u>E</u>nter to see availabel appls</button> 
-                        <button name="get more grant" id="btnAddAppls" class="btn-primary btn-sm" AccessKey="L" style="font-size:medium;background-color:#4169e1;" OnClick="return get_docid();" title="Click here to add availabel appls [shift + alt + A]"><u>L</u>ink to more grants</button>  *@
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="Full Grant Number"><b>Grant:</b></label></td>
-                    <td>
-                        @Html.DropDownList("ddlAppls", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:250px;height=6px", onchange = "create_new_appl(this)", title = "Select a grant year" })                        
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="Category Name"><b>Category:</b></label></td>
-                    <td>
-                        <div  style="display: inline; vertical-align: top;">
-                            <select name="category_id" id="ddlCategories" class="form-control" style="width: 270px;" size="6" title="select category">
-                                @foreach (var category1 in ViewBag.CategoryList)
-                                {
-                                    if (Convert.ToInt32(category1.level_id) == 1)
-                                    {
-                                        <option id="@category1.category_id" value="@category1.level_id">@category1.category_name</option>
-                                    }
+            <tr>
+            <tr>
+               <td colspan="2" class="bg_grey p-2">Select the category, insert date & select File Name, then click Create New</td>
+            </tr>
+            <tr>
+               <td width="100">
+                  <label class="float-left mt-2" for="ddlAdmincodes codes">
+                     <strong>Institute:</strong>
+                  </label>
+               </td>
+               <td>
+                  <select name="admin_code" id="ddlAdmincodes" class="form-control float-left mt-2" style="width: 80px;" size="1" title="Select admin phs org code">
+                     @foreach (var adminCode in ViewBag.AdminCodeList)
+                     {
+                        if (adminCode.profile != null && Convert.ToString(adminCode.profile) == Convert.ToString(Session["ic"]))
+                        {
+                           <option value="@adminCode.admin_phs_org_code" selected>@adminCode.admin_phs_org_code</option>
+                        }
+                        else if (Convert.ToString(ViewBag.admincode) == adminCode.admin_phs_org_code)
+                        {
+                           <option value="@adminCode.admin_phs_org_code" selected>@adminCode.admin_phs_org_code</option>
+                        }
+                        else
+                        {
+                           <option value="@adminCode.admin_phs_org_code">@adminCode.admin_phs_org_code</option>
+                        }
+                     }
+                  </select>
 
-                                    if (Convert.ToInt32(category1.level_id) == 2)
-                                    {
-                                        <option id="@category1.category_id" value="@category1.level_id">@category1.category_name---</option>
-                                        foreach (var category3 in ViewBag.CategoryList)
-                                        {
-                                            if (Convert.ToInt32(category3.level_id) > 2 && category3.parent_id != null && Convert.ToInt32(category3.parent_id) == Convert.ToInt32(category1.category_id))
-                                            {
-                                                <option id="@category3.category_id" value="@category3.level_id">&#0160;&#0160;&#0160;&#0160;@category3.category_name</option>
-                                            }
-                                        }
-                                    }
-                                }
-                            </select>
-                        </div>
-                        &#0160;
-                        <div style="display: inline; vertical-align: top;">
-                            <input name="sub_category" type="text" id="txtSubCategory" class="form-control" style="height: 30px; width: 200px; vertical-align: top;" title="Insert sub category"/><span>&#0160;&#0160;(35 char max)<b> Optional</b></span>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="Document Date"><b>Date:</b></label></td>
-                    <td><input name="document_date" id="txtDocumentdate" type="text" class="form-control" style="width:100px;height:30px;" value="@System.DateTime.Today.ToString("MM/dd/yyyy")" title="Insert document date"></td>
-                </tr>
-                <tr>
-                    <td>
-                        <!--show loading icon-->
-                        <div class="loading" style="display:none"><img src="~/Content/images/Loading.gif" width="50" /></div>
-                    </td>
-                    <td valign="top">
-                        <br />
-                        <ul class="nav nav-tabs">
-                            <li class="active"><a href="Javascript:switch_upload_mode('by_ddrop')">Drag & Drop</a></li>
-                            <li></li>
-                            <li class="active"><a href="Javascript:switch_upload_mode('by_file')">Locate File and Upload</a></li>
-                        </ul>
-                        <div class="tab-content" id="myTabContent" style="margin: 0; padding: 0;">
-                            <!--start upload by drag drop -->
-                            <div class="tab-pane fade active in" id="by_ddrop" style="display: none; margin: 0; padding: 0;">
-                                <br/>
-                                <div id="dropArea">Drag-drop only one file here to upload</div><br/>
-                                <button type="button" name="CreatByDdrop" id="btnDragdrop" accesskey="N" disabled="disabled" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_ddrop();">Create <u>N</u>ew</button>
-                                <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div>
+                  <label class="float-left mt-2 px-3" style="padding-top: 10px"for="txtSerialnum">
+                     <strong>Serial Number:</strong>
+                  </label>
 
-                            </div>
-                            <!--end upload by drag drop-->
-                            <!--start upload by file-->
-                            <div class="tab-pane fade active in" id="by_file" style="display: none; margin: 0; padding: 0;">
-                                <br/>
-                                <input type="file" name="file" id="UploadFile" style="width: 650px; height: 30px;"/><br/>
-                                <button type="button" name="CreatByFile" id="btnFileUpload" accesskey="N" class="btn btn-primary btn-sm eGrantsDocBtn" title="Click here to create new funding document [shift + alt + N]" onclick="return create_by_file();">Create <u>N</u>ew</button>
-                                <div style="display: inline">By clicking Create, I confirm that no sensitive PII or PHI is included in this file.</div>
+                  <input name="serial_num" type="text" id="txtSerialnum" class="form-control float-left mt-2" style="width: 80px;" title="Insert serial number" value="@ViewBag.serialnum"/>
 
-                            </div>
-                            <br/>
-                            <div style="padding-top: 15px;"><button type="button" id="btnBack" class="btn btn-primary eGrantsReturnBtn" accesskey="R" title="Click here to return original page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
-                                <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="../Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/></a>
-                                <b id="done"><span id="mssg"></span></b> </div>
-                            <!--end upload by file-->
+                  <button name="load appls" id="btnLoadAppls" class="btn btn-primary btn-sm eGrantsDocBtn float-left mx-4 mt-2" AccessKey="E" OnClick="return load_appls();" title="Click here to load available appls [shift + alt + E]"><u>E</u>nter to see available appls</button>
+               </td>
+            </tr>
+            <tr>
+               <td>
+               </td>
+               <td>
+                  <button name="get more grant" id="btnAddAppls" class="btn btn-primary btn-sm eGrantsDocBtn" AccessKey="L" OnClick="return get_docid();" title="Click here to add available appls [shift + alt + A]"><u>L</u>ink to more grants</button>
 
-                            <!--show progress bar-->
-                            <div class="progress" style="display: none; margin: 0; padding: 0;">
-                                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <!--end progress bar-->
-                        </div>
-                    </td>
-                    <td  style="width: 400px;  padding-left: 50px;" >
-                        <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
-                    </td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>
-                            
-                    </td>
-                </tr>
+               </td>
+            </tr>
+            <tr>
+               <td>
+                  <label for="Full Grant Number" class="float-left my-4">
+                     <b>Grant:</b>
+                  </label>
+               </td>
+               <td>
+                  @Html.DropDownList("ddlAppls", new List<SelectListItem> { new SelectListItem { Text = string.Empty, Value = "-1" } }, new { @class = "form-control", style = "width:250px;height=6px", onchange = "create_new_appl(this)", title = "Select a grant year" })
+               </td>
+            </tr>
+            <tr>
+               <td>
+                  <label for="Category Name" class="float-left my-4">
+                     <b>Category:</b>
+                  </label>
+               </td>
+               <td>
+                  <select name="category_id" id="ddlCategories" class="form-control" style="width: 250px;" size="6" title="select category">
+                     @foreach (var category1 in ViewBag.CategoryList)
+                     {
+                        if (Convert.ToInt32(category1.level_id) == 1)
+                        {
+                           <option id="@category1.category_id" value="@category1.level_id">@category1.category_name</option>
+                        }
+
+                        if (Convert.ToInt32(category1.level_id) == 2)
+                        {
+                           <option id="@category1.category_id" value="@category1.level_id">@category1.category_name---</option>
+                           foreach (var category3 in ViewBag.CategoryList)
+                           {
+                              if (Convert.ToInt32(category3.level_id) > 2 && category3.parent_id != null && Convert.ToInt32(category3.parent_id) == Convert.ToInt32(category1.category_id))
+                              {
+                                 <option id="@category3.category_id" value="@category3.level_id">&#0160;&#0160;&#0160;@category3.category_name</option>
+                              }
+                           }
+                        }
+                     }
+                  </select>
+                  <div style="display: inline-block; vertical-align: top;">
+                     <input name="sub_category" type="text" maxlength="35" id="txtSubCategory" class="form-control" style="width: 340px; vertical-align: top;" aria-describedby="emailHelp" title="Insert sub category"/>
+                     <small id="emailHelp" class="form-text text-muted">(35 char max) Optional</small>
+                  </div>
+               </td>
+            </tr>
+            <tr>
+               <td>
+                  <label for="txtDocumentdate" class="float-left my-4">
+                     <b>Date:</b>
+                  </label>
+               </td>
+               <td>
+                  <input type="text" class="form-control" name="docdate" id="txtDocumentdate" style="width: 120px;" title="Insert document date"/> @*onchange="DateFormat()"*@
+               </td>
+            </tr>
             </tbody>
-        </table>
-    </div>
-    <!--end create funding doc-->
+         </table>
+      </div>
+      <table width="1024" class="container">
+         <tbody>
+         <tr>
+            <!--show loading icon-->
+            <td width="50">
+               <div class="loading" style="display: none">
+                  <img src="~/Content/images/Loading.gif" width="50"/>
+               </div>
+            </td>
 
-    @*<div id="footer" style="margin:0; padding:0;">
-        <b id="done"><span id="mssg"></span></b><br />
-        <a accesskey="B" href="Javascript:back()" title="Click here to return original page [alt + shift + B]"><b id="note" style="color:red">Return</b></a>&#0160;&#0160;&#0160;&#0160;
-        <a target="_new" href="#" id="notice" style="visibility:hidden"><b>Check uploaded file</b></a><br /><br /><br />
-    </div>*@
+            <td width="700" valign="top">
 
-</div><!--end main-->
+               <div class="tab" style="width: 402px">
+                  <button class="tablinks active" style="width:150px" onclick="Docreate(event, 'btnDragdrop');switch_upload_mode('by_ddrop')" id="li_ddrop">Drag & Drop</button>
+                  <button class="tablinks" style="width:250px" onclick="Docreate(event, 'btnFileUpload');switch_upload_mode('by_file')">Locate File and Upload</button>
+               </div>
 
+               <div id="myTabContent" style="width: 700px;">
+                  <!--start upload by drag drop -->
+                  <div class="tabcontent " id="by_ddrop" style="display: none">
+                     <br/>
+                     <div id="dropArea">Drag-drop only one file here to upload</div>
+                     <br/>
+                     <span>
+                        <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" accesskey="N" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
+                        By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
+                     </span>
+                  </div>
+                  <!--end upload by drag drop-->
 
+                  <!--start upload by file-->
+                  <div class="tabcontent" id="by_file" style="display: none">
+                     <div class="custom-file my-2">
+                        <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                        <label class="custom-file-label" for="customFile">Choose file...</label>
+                     </div>
+                     <div style="display: inline">
+                        <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" accesskey="N" disabled="disabled" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
+                     </div>
+                     <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+                  </div>
+                  <!--end upload by file-->
 
+                  <br/><br/>
 
+                  <!--show progress bar-->
+                  <div class="progress" style="display: none">
+                     <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <!--end progress bar-->
+
+               </div><!--end myTabContent-->
+               <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+               <a target="_new" href="#" id="notice" style="visibility: hidden">
+                  <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/>
+               </a>
+               <b id="done">
+                  <span id="mssg"></span>
+               </b>
+            </td>
+            <td style="width: 400px; padding-left: 50px;">
+               <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
+                  <p><b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
+               </div>
+            </td>
+         </tr>
+         </tbody>
+      </table>
+   </div>
+</div>
+<!--end create funding doc-->
+<!--end main-->
+
+<script type="text/javascript">
+
+   $('#txtDocumentdate').datepicker({
+      showOn: "both",
+      buttonImageOnly: true,
+      buttonImage: '../Content/images/calendar.png',
+      buttonText: "Calendar"
+   });
+</script>
