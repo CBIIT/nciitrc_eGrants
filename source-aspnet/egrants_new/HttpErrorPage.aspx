@@ -1,4 +1,5 @@
 ﻿<%@ Page Language="C#" %>
+<%@ Import Namespace="egrants_new" %>
 
 <script runat="server">
     protected HttpException ex = null;
@@ -20,8 +21,8 @@
                 (httpCode, "Safe message for unexpected HTTP codes.", ex);
 
         // Log the exception and notify system operators
-        ExceptionUtility.LogException(ex, "HttpErrorPage");
-        ExceptionUtility.NotifySystemOps(ex);
+        MvcApplication.ExceptionUtility.LogException(ex, "HttpErrorPage");
+        MvcApplication.ExceptionUtility.NotifySystemOps(ex);
 
         // Fill the page fields
         exMessage.Text = ex.Message;

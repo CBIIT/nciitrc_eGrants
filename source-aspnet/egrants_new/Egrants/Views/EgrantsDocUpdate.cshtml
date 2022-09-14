@@ -120,18 +120,18 @@
 
 <!--load data for current document-->
 <form name="frmGetInfo">
-    <input type="hidden" id="hidStatus" name="status" value="@ViewBag.Status" />
-    <input type="hidden" id="hidAdmin_code" name="admin_code" value="@ViewBag.admincode" />
-    <input type="hidden" id="hidSerial_num" name="serial_num" value="@ViewBag.serialnum" />
-    <input type="hidden" id="hidMax_Categoryid" name="max_categoryid" value="@ViewBag.MaxCategoryid" />
-    <input type="hidden" id="hidAct" name="act" value="modify" />
-    <input type="hidden" id="hidAppl_id" name="appl_id" value="@ViewBag.applid" />
-    <input type="hidden" id="hidDocument_id" name="document_id" value="@ViewBag.docid" />
-    <input type="hidden" id="hidDocument_date" name="document_date" value="@ViewBag.docdate" />
-    <input type="hidden" id="hidCategory_id" name="category_id" value="@ViewBag.categoryid" />
-    <input type="hidden" id="hidSub_category" name="sub_category" value="@ViewBag.subcategory" />
-    <input type="hidden" id="hidPrevious_url" name="previous_url" value="@ViewBag.Previousurl" />
-    <input type="hidden" id="hidPossionID" name="position_id" value=@Convert.ToString(Session["position_id"]) />
+    <input type="text" hidden id="hidStatus" name="status" value="@ViewBag.Status" />
+    <input type="text" hidden id="hidAdmin_code" name="admin_code" value="@ViewBag.admincode" />
+    <input type="text" hidden id="hidSerial_num" name="serial_num" value="@ViewBag.serialnum" />
+    <input type="text" hidden id="hidMax_Categoryid" name="max_categoryid" value="@ViewBag.MaxCategoryid" />
+    <input type="text" hidden id="hidAct" name="act" value="modify" />
+    <input type="text" hidden id="hidAppl_id" name="appl_id" value="@ViewBag.applid" />
+    <input type="text" hidden id="hidDocument_id" name="document_id" value="@ViewBag.docid" />
+    <input type="text" hidden id="hidDocument_date" name="document_date" value="@ViewBag.docdate" />
+    <input type="text" hidden id="hidCategory_id" name="category_id" value="@ViewBag.categoryid" />
+    <input type="text" hidden id="hidSub_category" name="sub_category" value="@ViewBag.subcategory" />
+    <input type="text" hidden id="hidPrevious_url" name="previous_url" value="@ViewBag.Previousurl" />
+    <input type="text" hidden id="hidPossionID" name="position_id" value=@Convert.ToString(Session["position_id"]) />
 </form>
 
 <div id="main" style="margin: 0; padding: 0;">
@@ -160,7 +160,9 @@
                 </div>
             </td>
             <td style="width: 400px;  padding-left: 50px;">
-                <div valign="top" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.5); width: 350px; height: 260px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;"><br></br> <b>Reminder:</b> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</div>
+               <div class="text-justify p-4" valign="top" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal; vertical-align: text-top; padding-left: 15px;">
+                  <strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
+               </div>
             </td>
         </tr>
     </table>

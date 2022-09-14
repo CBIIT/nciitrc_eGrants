@@ -6,20 +6,20 @@
         {
             if (Convert.ToString(Avgtime.ALLOWED_RELEASE_DAYS) == "TYPE 1,2")
             {
-                <input type="hidden" name="type1_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" />
-                <input type="hidden" name="type1_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)"/>
+                <input type="text" name="type1_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" hidden/>
+                <input type="text" name="type1_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)" hidden/>
             }
 
             if (Convert.ToString(Avgtime.ALLOWED_RELEASE_DAYS) == "TYPE 5")
             {
-                <input type="hidden" name="type5_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" />
-                <input type="hidden" name="type5_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)" />
+                <input type="text" name="type5_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" hidden/>
+                <input type="text" name="type5_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)" hidden/>
             }
 
             if (Convert.ToString(Avgtime.ALLOWED_RELEASE_DAYS) == "OTHERS")
             {
-                <input type="hidden" name="others_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" />
-                <input type="hidden" name="others_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)" />
+                <input type="text" name="others_avg" value="@Convert.ToInt16(Avgtime.AVG_DAYSTAKEN)" hidden/>
+                <input type="text" name="others_count" value="@Convert.ToInt16(Avgtime.GRANT_COUNT)" hidden/>
             }
 
         }
