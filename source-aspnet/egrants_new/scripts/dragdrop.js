@@ -63,12 +63,16 @@ function FileSelectHandler(e) {
     }
 
     if (dropedfiles.length = 1) {
+
         dropedfile = dropedfiles[0];
+
         var filext = dropedfile.name.split('.').pop();
         var fileExtLowerCase = filext.toLowerCase();
+
         $('#dropArea').addClass('active-drop');
         // alert(filext);
-        var extArr = ['pdf',  'xls', 'xlsm', 'xlsx', 'txt','doc', 'docx', 'msg'];
+        var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
+
         if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
             alert("The file type is not acceptable. Please upload files only with extension of 'pdf','xls','xlsx','xlsm','txt','doc','docx' or 'msg'");
             $('#dropArea').removeClass('active-drop');
@@ -89,6 +93,8 @@ function FileSelectHandler(e) {
 
     ParseFile(dropedfile);
     //$('#dropArea').removeClass('active-drop');
+    console.log('Bytes Loaded: ' + dropedfile);
+
     $('#btnDragdrop').attr('disabled', false);
 }
 

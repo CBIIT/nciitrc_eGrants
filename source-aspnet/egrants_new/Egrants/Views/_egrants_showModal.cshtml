@@ -2,10 +2,6 @@
     ViewBag.Title = "eGrants [Show Popup Modal]";
 }
 
-@*<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>*@
-@*<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>*@
-@*<script src="~/scripts/bootstrap-3.3.7.min.js"></script>*@
-
 <style>
      .modal {
   	    text-align: center;
@@ -135,47 +131,37 @@
     //});
 </script>
 
-@*<div class="container">*@
-    <!--display normal modal-->
-    <div id="NormalModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
-            @*modal-lg*@
-            @*<div class="vertical-alignment-helper">
-                <div class="modal-dialog modal-lg vertical-align-center">*@
+<div id="NormalModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h3 class="modal-title w-100 text-center" id="NormalModalTitle"></h3>
+            <button type="button" class="close float-right" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+ 
+         </div>
+         <div class="modal-body">
+            <div id="NormalModalPartial"></div>
+         </div>
+      </div>
+   </div>
+</div>
 
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h3 class="modal-title" id="NormalModalTitle"></h3>
-                        </div>
-                        <div class="modal-body">
-                            <div id="NormalModalPartial"></div>
-                        </div>
-                        @*<div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        </div>*@
-                    </div>
-                @*</div>
-            </div>*@
-        </div>
-    </div>
             <!--display medium modal-->
-            <div id="MediumModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h3 class="modal-title" id="MediumModalTitle"></h3>
-                        </div>
-                        <div class="modal-body">
-                            <div id="MediumModalPartial"></div>
-                        </div>
-                        @*<div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        </div>*@
-                    </div>
-                </div>
-            </div>
+<div id="MediumModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3 class="modal-title" id="MediumModalTitle"></h3>
+         </div>
+         <div class="modal-body">
+            <div id="MediumModalPartial"></div>
+         </div>
+      </div>
+   </div>
+</div>
 
             <!--display large modal-->
             @*<div id="LargeModal" class="modal modal-wide fade" data-keyboard="false" data-backdrop="static" role="dialog">
