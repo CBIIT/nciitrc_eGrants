@@ -37,16 +37,31 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Net.Security;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Web;
+using System.Web.Helpers;
 using System.Web.Mvc;
+using System.Web.UI.WebControls;
 
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
-
 using Newtonsoft.Json;
+
+//using Newtonsoft.Json;
 
 #endregion
 
@@ -96,9 +111,446 @@ namespace egrants_new.Controllers
             return this.View("~/Egrants/Views/Index.cshtml");
         }
 
-        // get all appls list for appls toggle by grant_id
+        protected void btnDownload_Click(object sender, EventArgs e) 
+        {
+            Console.Write("Hello");
+        }
+
         /// <summary>
-        /// The load all appls.
+        /// HttpPost
+        /// Download the files to the temp directory from the links checked on the page. Then return the stream of bytes to the calling method.
+        /// </summary>
+        /// <param name="appl"></param>
+        /// <param name="listOfUrl"></param>
+        /// <returns></returns>
+        public ActionResult IsDownloadForm(string appl, IEnumerable<string> listOfUrl)
+        {
+            DownloadModel downloadModel = new DownloadModel();
+            downloadModel.ApplId = appl;
+            downloadModel.NumFailed = 0;
+            downloadModel.NumSucceeded = 0;
+            downloadModel.NumToDownload = listOfUrl.Count();
+
+            // create the temp path and
+            string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
+
+            // create or return an existing directory to hold the downloaded files
+            DirectoryInfo directoryInfo = Directory.CreateDirectory(downloadDirectory);
+
+            // delete all the files in this directory if there are any
+            foreach (FileInfo file in directoryInfo.GetFiles())
+            {
+                file.Delete();
+            }
+
+            // delete all the folders in this directory if there are any
+            foreach (DirectoryInfo dir in directoryInfo.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+
+            // var grantId = this.ViewBag.GrantID;
+            DownloadData downloadData = new DownloadData();
+
+            foreach (var url in listOfUrl)
+            {
+                try
+                {
+                    downloadModel.DownloadDataList = new List<DownloadData>();
+                    downloadData = new DownloadData();
+                    downloadData.Url = url;
+
+                    // get a temp file to save the downloaded file
+                    string tmpFileName = Path.GetTempFileName();
+
+                    // if this is a file on the eGrants fileserver
+                    if (url.Contains("https://s2s."))
+                    {
+                        var uri = new Uri(url);
+
+                        // obtain the document url from the remote system
+                        var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+                        var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+                        var certificate = new X509Certificate2(cerUri, certPass);
+
+                        var webRequest = (HttpWebRequest)WebRequest.Create(uri);
+                        webRequest.KeepAlive = false;
+                        webRequest.Method = "GET";
+                        webRequest.AllowAutoRedirect = false;
+                        webRequest.ClientCertificates.Add(certificate);
+
+                        var webResponse = (HttpWebResponse)webRequest.GetResponse();
+
+                        using (var postStream = webResponse.GetResponseStream())
+                        {
+                            if (postStream == null)
+                            {
+                                throw new Exception("The stream was empty!");
+                            }
+
+                            string downloadUrl;
+
+                            using (var reader = new StreamReader(postStream))
+                            {
+                                downloadUrl = reader.ReadToEnd();
+                            }
+
+                            using (var myWebClient = new MyWebClient())
+                            {
+                                myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                                // Concatenate the domain with the Web resource filename.
+                                Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, downloadUrl);
+
+                                // Download the Web resource and save it into the current filesystem folder.
+                                myWebClient.DownloadFile(downloadUrl, tmpFileName);
+
+                                // get the filename from the content-disposition header of the downloaded file
+                                var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                                ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                                string filename = contentDisposition.FileName;
+
+                                // move the file from the temp file to a file with the filename in the downloadDirectory
+                                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
+                                downloadData.FileDownloaded = filename;
+                      
+                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
+
+                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
+                            }
+                        }
+
+                        downloadModel.NumSucceeded += 1;
+                    }
+                    else
+                    {
+                        Uri uri;
+
+                        if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
+                        {
+                            var imageServer = new Uri(this.Session["ImageServer"].ToString());
+
+                            uri = new Uri(imageServer, url);
+                        }
+
+                        // X509Certificate2 cert = PickCertificate();
+                        //
+                        var webResponse = (HttpWebRequest)WebRequest.Create(uri);
+                        webResponse.AllowAutoRedirect = false;
+                        
+                        webResponse.CookieContainer = new CookieContainer();
+                        webResponse.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0";
+                        webResponse.Method = "GET";
+                       // webResponse.ClientCertificates.Add(cert);
+                        webResponse.UseDefaultCredentials = true;
+                        
+                        ServicePointManager.ServerCertificateValidationCallback = (c, certificate, chain, errors) => true;
+                        
+                        var res = (HttpWebResponse)webResponse.GetResponse();
+                        
+                        using (var postStream = res.GetResponseStream())
+                        {
+                            if (postStream == null)
+                            {
+                                throw new Exception("The stream was empty!");
+                            }
+                        
+                            string downloadedData;
+                        
+                            using (var reader = new StreamReader(postStream))
+                            {
+                                downloadedData = reader.ReadToEnd();
+                            }
+                        }
+
+                        // CookieContainer cookies = new CookieContainer();
+                        //
+                        // int bytesProcessed = 0;
+                        // var webRequest = (HttpWebRequest)WebRequest.Create(uri);
+                        //webRequest.CookieContainer = cookies;
+
+
+                        // webRequest.KeepAlive = false;
+                        //webRequest.Method = "GET";
+                        //webRequest.AllowAutoRedirect = false;
+
+                        //
+                        // var webResponse = (HttpWebResponse)webRequest.GetResponse();
+                        //  if (webResponse != null)
+                        // {
+                        //     // Once the WebResponse object has been retrieved,
+                        //     // get the stream object associated with the response's data
+                        //     using (Stream remoteStream = webResponse.GetResponseStream())
+                        //     // Create the local file
+                        //     using (Stream localStream = System.IO.File.Create(tmpFileName))
+                        //     {
+                        //
+                        //             // Allocate a 1k buffer
+                        //             byte[] buffer = new byte[1024];
+                        //             int bytesRead;
+                        //
+                        //             // Simple do/while loop to read from stream until
+                        //             // no bytes are returned
+                        //             do
+                        //             {
+                        //                 // Read data (up to 1k) from the stream
+                        //                 bytesRead = remoteStream.Read(buffer, 0, buffer.Length);
+                        //
+                        //                 // Write the data to the local file
+                        //                 localStream.Write(buffer, 0, bytesRead);
+                        //
+                        //                 // Increment total bytes processed
+                        //                 bytesProcessed += bytesRead;
+                        //             }
+                        //             while (bytesRead > 0);
+                        //     }
+                        // }
+
+                        //  using (var postStream = webResponse.GetResponseStream())
+                        //  {
+                        //    if (postStream == null)
+                        //    {
+                        //       throw new Exception("The stream was empty!");
+                        //   }
+
+                        // string downloadUrl;
+
+                        // using (var reader = new StreamReader(postStream))
+                        //         {
+                        //             //TempData[tmpFileName] = reader.ReadToEnd();
+                        //             //MemoryStream ms = new MemoryStream(buffer);
+                        //             //write to file
+                        //             FileStream file = new FileStream("d:\\file.txt", FileMode.Create, FileAccess.Write);
+                        //             ms.WriteTo(file);
+                        //             file.Close();
+                        //             ms.Close();
+                        //         }
+                        //     }
+                        
+
+                        //ServicePointManager.ServerCertificateValidationCallback += ValidateRemoteCertificate;
+                        //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12; //TLS 1.2
+                        using (var myWebClient = new WebClient())
+                        {
+
+                            // HttpCookieCollection cookieCollection =  Request.Cookies;
+
+                            ////foreach (var cookie in Request.Cookies)
+                            //{
+                            //myWebClient.Headers.Add(HttpRequestHeader.Cookie, cookie.);
+                            // }
+                            // CookieContainer cookieContainer = new CookieContainer();
+                            // cookieContainer.Add(Request.Cookies["userName"].Value);
+                            //myWebClient.Headers.Add("header_sm_user", Session.);
+
+                            // for(int i=0; i < Request.Headers.Count; i++)
+                            // {
+                            //     myWebClient.Headers.Add(Request.Headers.GetKey(i), Request.Headers.Get(i));
+                            // }
+                            //myWebClient.Credentials = Request.ClientCertificate;
+                            //myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                            myWebClient.UseDefaultCredentials = true;
+                            myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
+                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                            foreach (var header in Request.Headers)
+                            {
+                                Console.WriteLine("Header: " + header.ToString());
+                            }
+
+                           // myWebClient.Headers.Add("header_sm_user", Session["userid"].ToString());
+                            myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
+                           // myWebClient.Headers.Add("NIHSMSESSION", Request.Cookies["NIHSMSESSION"].Value);
+                            //myWebClient.Headers.Add("_ga", Request.Cookies["_ga"].Value);
+                            //myWebClient.Headers.Add("_ga_HCESKCGBTM", Request.Cookies["_ga_HCESKCGBTM"].Value);
+                            //myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                            //myWebClient.Credentials =
+                            Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
+
+                            // using (MemoryStream memoryStream = new MemoryStream(myWebClient.DownloadData(uri)))
+                            // {
+                            //     System.IO.File.WriteAllBytes(tmpFileName, memoryStream.ToArray());
+                            // }
+                          //  myWebClient.Credentials = new NetworkCredential(userName, password, domainName);
+                          //  myWebClient..AllowAutoRedirect = true;
+                            // Download the Web resource and save it into the temp folder in local filesystem folder.
+                            myWebClient.DownloadFile(uri, tmpFileName);
+                           // var result = myWebClient.DownloadData(uri);
+                          
+                            var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                            ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                            string filename = contentDisposition.FileName;
+
+                            // move the file from the temp file to a file with the filename in the downloadDirectory
+                            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
+                            downloadData.FileDownloaded = filename;
+                            downloadModel.NumSucceeded += 1;
+                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, uri.OriginalString);
+                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
+                        }
+
+                    }
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine("Item Error : " + err.ToString());
+                    downloadData.Error = "FILE ERROR: " + err.ToString();
+                    downloadModel.NumFailed += 1;
+                }
+
+                downloadModel.DownloadDataList.Add(downloadData);
+            }
+
+            string handle = Guid.NewGuid().ToString();
+            downloadModel.Handle = handle;
+
+            string zipFileName = "ApplId_" + appl + ".zip";
+            string zipFileNameWithPath = Path.Combine(Path.GetTempPath(), zipFileName);
+            
+            downloadModel.ZipFilename = zipFileName;
+
+            // using (var memoryStream = new MemoryStream())
+            // {
+            //     using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            //     {
+            //         var demoFile = archive.CreateEntry("foo.txt");
+            //
+            //         using (var entryStream = demoFile.Open())
+            //         using (var streamWriter = new StreamWriter(entryStream))
+            //         {
+            //             streamWriter.Write("Bar!");
+            //         }
+            //     }
+            //
+            //     using (var fileStream = new FileStream(@"C:\Temp\test.zip", FileMode.Create))
+            //     {
+            //         memoryStream.Seek(0, SeekOrigin.Begin);
+            //         memoryStream.CopyTo(fileStream);
+            //     }
+            // }
+
+            try
+            {
+                // if the zip file exists delete it
+                if (System.IO.File.Exists(zipFileNameWithPath))
+                {
+                    System.IO.File.Delete(zipFileNameWithPath);
+                }
+
+                // zip the contents of the downloadDirectory to the zipPath
+                ZipFile.CreateFromDirectory(downloadDirectory, zipFileNameWithPath);
+
+                using (MemoryStream ms = new MemoryStream())
+                using (FileStream file = new FileStream(zipFileNameWithPath, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] bytes = new byte[file.Length];
+                    file.Read(bytes, 0, (int)file.Length);
+                    ms.Write(bytes, 0, (int)file.Length);
+                    TempData[handle] = ms.ToArray();
+                }
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("Error Tryng to Zip or Serve Zip file: " + err.ToString());
+                downloadModel.ZipError = "ZIP ERROR: " + err.ToString();
+            }
+
+            return Json(downloadModel, JsonRequestBehavior.AllowGet);
+            //return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
+        }
+
+
+        private void CertThing()
+        {
+
+        }
+        /// <summary>
+        /// Certificate validation callback.
+        /// </summary>
+        private static bool ValidateRemoteCertificate(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
+        {
+            // If the certificate is a valid, signed certificate, return true.
+            if (error == System.Net.Security.SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            Console.WriteLine("X509Certificate [{0}] Policy Error: '{1}'",
+                cert.Subject,
+                error.ToString());
+
+            return false;
+        }
+        // public static X509Certificate2 PickCertificate()
+        // {
+        //     X509Certificate2 cert;
+        //     var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+        //
+        //     store.Open(OpenFlags.ReadOnly);
+        //
+        //     if (store.Certificates.Count == 1)
+        //         cert = store.Certificates[0];
+        //     else
+        //         cert = X509Certificate2UI.SelectFromCollection(store.Certificates, "Caption", "Message", X509SelectionFlag.SingleSelection)[0];
+        //
+        //     store.Close();
+        //     return cert;
+        // }
+
+        /// <summary>  
+        /// Override the JSON Result with Max integer JSON lenght  
+        /// </summary>  
+        /// <param name="data">Data</param>  
+        /// <param name="contentType">Content Type</param>  
+        /// <param name="contentEncoding">Content Encoding</param>  
+        /// <param name="behavior">Behavior</param>  
+        /// <returns>As JsonResult</returns>  
+        protected override JsonResult Json(object data, string contentType,
+                                           Encoding contentEncoding, JsonRequestBehavior behavior)
+        {
+            return new JsonResult()
+                       {
+                           Data = data,
+                           ContentType = contentType,
+                           ContentEncoding = contentEncoding,
+                           JsonRequestBehavior = behavior,
+                           MaxJsonLength = Int32.MaxValue
+                       };
+        }
+
+        // [HttpGet]
+        public virtual ActionResult Download(string fileGuid, string fileName)
+        {
+        
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+
+                var cd = new ContentDisposition
+                             {
+                                 // for example foo.bak
+                                 FileName = fileName,
+
+                                 // always prompt the user for downloading, set to true if you want 
+                                 // the browser to try to show the file inline
+                                 Inline = false,
+                             };
+
+                Response.AppendHeader("Content-Disposition", cd.ToString());
+
+                return File(data, "application/zip");
+            }
+            else
+            {
+                // Problem - Log the error, generate a blank file,
+                //           redirect to another controller action - whatever fits with your application
+                return new EmptyResult();
+            }
+        }
+
+        /// <summary>
+        /// Get all appls list for appls toggle by grant_id
         /// </summary>
         /// <param name="grant_id">
         /// The grant_id.
@@ -381,8 +833,10 @@ namespace egrants_new.Controllers
 
                         // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
                         foreach (var appl in this.ViewBag.appllayer)
+                        {
                             if (app.Any(n => n == appl.appl_id))
                                 appllist.Add(appl);
+                        }
 
                         this.ViewBag.appllayer = appllist;
                     }
@@ -969,5 +1423,62 @@ namespace egrants_new.Controllers
 
             return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
         }
+    }
+
+    class MyWebClient : WebClient
+    {
+        // public MyWebClient(CookieContainer container)
+        // {
+        //     this.container = container;
+        // }
+        //
+        // public CookieContainer CookieContainer
+        // {
+        //     get { return container; }
+        //     set { container = value; }
+        // }
+        //
+        // private CookieContainer container = new CookieContainer();
+
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            var cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+            var cert_pass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+            var certificate = new X509Certificate2(cert_url, cert_pass);
+
+            HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
+            
+            if (request != null)
+            {
+        //        request.CookieContainer = container;
+                request.ClientCertificates.Add(certificate);
+            }
+    
+            return request;
+        }
+        //
+        // protected override WebResponse GetWebResponse(WebRequest request, IAsyncResult result)
+        // {
+        //     WebResponse response = base.GetWebResponse(request, result);
+        //     ReadCookies(response);
+        //     return response;
+        // }
+        //
+        // protected override WebResponse GetWebResponse(WebRequest request)
+        // {
+        //     WebResponse response = base.GetWebResponse(request);
+        //     ReadCookies(response);
+        //     return response;
+        // }
+        //
+        // private void ReadCookies(WebResponse r)
+        // {
+        //     var response = r as HttpWebResponse;
+        //     if (response != null)
+        //     {
+        //         CookieCollection cookies = response.Cookies;
+        //         container.Add(cookies);
+        //     }
+        // }
     }
 }
