@@ -91,113 +91,126 @@
     </script>
 
     <form name="frmGetInfo">      
-        <input type="hidden" id="hidFY" name="fy" value="@ViewBag.FY" />
-        <input type="hidden" id="hidDocid" name="doc_id" value="@ViewBag.Docid" />
+        <input type="text" hidden id="hidFY" name="fy" value="@ViewBag.FY" />
+        <input type="text" hidden id="hidDocid" name="doc_id" value="@ViewBag.Docid" />
     </form>
    
 <!--start main-->
-<div id="main">
-    <div id="caption"><b id="page_title">Edit Funding Document for Appl </b></div>
-    <br />
-    <a href="JavaScript:back_to_funding_index()"><b>NCI Funding Files Index</b></a>
-    <br /><br />
-    <!--start search appl-->
-    <div class="form-inline">
-        <table>
-            <thead>
+    <div id="main">
+       <div id="caption">
+          <strong id="page_title">Edit Funding Document for Appl</strong>
+       </div>
+       <br />
+       <a href="JavaScript:back_to_funding_index()">
+          <strong>NCI Funding Files Index</strong>
+       </a>
+       <br /><br />
+       <!--start search appl-->
+       <div class="form-inline">
+          <table width="800">
+             <thead>
                 <tr>
-                    <td colspan="2" class="bg_grey" height="30px">&#0160;&#0160;* Select admin phs org code, inset serial number and press Check Available Grants<br /></td>
+                   <td colspan="2" class="bg_grey p-1">* Select admin phs org code, inset serial number and press Check Available Grants<br /></td>
                 </tr>
-            </thead>
-            <tbody>
+             </thead>
+             <tbody>
                 <tr>
-                    <td width="80"><label for="ic"><b>Institute:</b></label></td>
-                    <td width="700">
-                        <select name="admin_code" id="ddlAdmincodes" class="form-control" style="width:80px; height:30px;" size="1" title="Select admin phs org code">
-                            @foreach (var ic in ViewBag.AdminCodeList)
+                   <td width="100">
+                      <label class="float-left ml-2 mt-2" for="ic">
+                         <strong>Institute:</strong>
+                      </label>
+                   </td>
+                   <td>
+                      <select name="admin_code" id="ddlAdmincodes" class="form-control float-left my-2" style="width:80px;" size="1" title="Select admin phs org code">
+                         @foreach (var ic in ViewBag.AdminCodeList)
+                         {
+                            if (ic.profile != null && Convert.ToString(ic.profile) == Convert.ToString(Session["ic"]))
                             {
-                                if (ic.profile != null && Convert.ToString(ic.profile) == Convert.ToString(Session["ic"]))
-                                {
-                                    <option value="@ic.admin_phs_org_code" selected>@ic.admin_phs_org_code</option>
-                                }
-                                else if (Convert.ToString(ViewBag.admincode) == ic.admin_phs_org_code)
-                                {
-                                    <option value="@ic.admin_phs_org_code">@ic.admin_phs_org_code</option>
-                                }
-                                else
-                                {
-                                    <option value="@ic.admin_phs_org_code">@ic.admin_phs_org_code</option>
-                                }
+                               <option value="@ic.admin_phs_org_code" selected>@ic.admin_phs_org_code</option>
                             }
-                        </select>
-                        &#0160;
-                        <label for="serial num"><b>Serial Number:</b></label>
-                        &#0160;
-                        <input name="serial_num" type="text" id="txtSerialnum" class="form-control" style="height:30px; width:80px;" title="Insert serial number" value="@ViewBag.SerialNum" />
-                        &#0160;
-                        <button type="button" name="load appls" id="btnLoadAppls" class="btn btn-primary btn-sm" AccessKey="C" OnClick="return load_doc_appls();" title="Click here to load available appls [shift + alt + C]">
-                            <U>C</U>heck Available Grants
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <!--end search appl-->
-    <!--start add or delete appl-->
-    <div class="form-inline">
-        <table>
-            <thead>
-                <tr>
-                    <td colspan="2" class="bg_grey" height="30px">&#0160;&#0160;* Select grant year and add it for this funding document<br /></td>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td width="80"><label for="grant"><b>Grant:</b></label></td>
-                    <td width="700">
-                        <select name="appl_id" id="ddlAppls" class="form-control" style="width:180px; height:30px;" onChange="create_new_appl(this)" title="Select here to create new grant year">
-                            <option value="select grant year">Select gant year</option>
-                            @if (ViewBag.GrantYearList != null)
+                            else if (Convert.ToString(ViewBag.admincode) == ic.admin_phs_org_code)
                             {
-                                foreach (var appls in ViewBag.GrantYearList)
-                                {
-                                    <option value="@appls.appl_id">@appls.full_grant_num</option>
-                                }
+                               <option value="@ic.admin_phs_org_code">@ic.admin_phs_org_code</option>
                             }
-                            <option value="CreateGrantYear">Create grant year</option>
-                        </select>
-                        &#0160;&#0160;
-                        <button type="button" class="btn btn-primary btn-sm" AccessKey="N" OnClick="return appl_add();" title="Add available appl [shift + alt + N]">
-                            Add <u>N</u>ew Appl
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <br />
-        <b>This funding document has been applied to:</b><br />
-        <table>
-            <thead>
-                <tr>
-                    <td width="200"></td>
-                    <td width="150"></td>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var docappls in ViewBag.DocAppls)
-            {
-                <tr>
-                    <td>
-                        <a href="Javascript:by_appl(@docappls.appl_id)" title="Click here to show funding documents from @docappls.appl_id">@docappls.full_grant_num</a>
-                    </td>
-                    <td>
-                        <a href="JavaScript:appl_delete(@docappls.appl_id)">Delete</a>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div> <!--end add or delete appl-->
-</div><!--end main-->
+                            else
+                            {
+                               <option value="@ic.admin_phs_org_code">@ic.admin_phs_org_code</option>
+                            }
+                         }
+                      </select>
 
+                      <label class="float-left mt-3 pl-4" for="txtSerialnum"><strong>Serial Number:</strong></label>
+
+                      <input name="serial_num" type="text" id="txtSerialnum" class="form-control float-left my-2 ml-2" style="width:80px;" title="Insert serial number" value="@ViewBag.SerialNum" />
+
+                      <button type="button" name="load appls" id="btnLoadAppls" class="btn btn-primary btn-sm float-left my-2 ml-3" AccessKey="C" OnClick="return load_doc_appls();" title="Click here to load available appls [shift + alt + C]">
+                         <U>C</U>heck Available Grants
+                      </button>
+                   </td>
+                </tr>
+             </tbody>
+          </table>
+       </div>
+       <!-- end search appl -->
+       <!-- start add or delete appl -->
+       <div class="form-inline">
+          <table width="800">
+             @* <thead> *@
+             @*    <tr> *@
+             @*       <td colspan="2" class="bg_grey pl-3">* Select grant year and add it for this funding document<br /></td> *@
+             @*    </tr> *@
+             @* </thead> *@
+             <tbody>
+             <tr>
+                <td colspan="2" class="bg_grey p-1">* Select grant year and add it for this funding document<br /></td>
+             </tr>
+             <tr>
+                <td width="100"><label class="float-left my-2" for="ddlAppls"><b>Grant:</b></label></td>
+                <td>
+                   <select name="appl_id" id="ddlAppls" class="form-control float-left my-2" style="width: 180px;" onChange="create_new_appl(this)" title="Select here to create new grant year">
+                      <option value="select grant year">Select grant year</option>
+                      @if (ViewBag.GrantYearList != null)
+                      {
+                         foreach (var appls in ViewBag.GrantYearList)
+                         {
+                            <option value="@appls.appl_id">@appls.full_grant_num</option>
+                         }
+                      }
+                      <option value="CreateGrantYear">Create grant year</option>
+                   </select>
+
+                   <button type="button" class="btn btn-primary btn-sm float-left my-2 ml-3" AccessKey="N" OnClick="return appl_add();" title="Add available appl [shift + alt + N]">
+                      Add <u>N</u>ew Appl
+                   </button>
+                </td>
+             </tr>
+             </tbody>
+          </table>
+       </div>
+       <br />
+       <b>This funding document has been applied to:</b><br />
+       <div class="d-block">
+          <table>
+             <thead>
+                <tr>
+                   <td width="200"></td>
+                   <td width="150"></td>
+                </tr>
+             </thead>
+             <tbody>
+                @foreach (var docappls in ViewBag.DocAppls)
+                {
+                   <tr>
+                      <td>
+                         <a href="Javascript:by_appl(@docappls.appl_id)" title="Click here to show funding documents from @docappls.appl_id">@docappls.full_grant_num</a>
+                      </td>
+                      <td>
+                         <a href="JavaScript:appl_delete(@docappls.appl_id)">Delete</a>
+                      </td>
+                   </tr>
+                }
+             </tbody>
+          </table>
+       </div> <!--end add or delete appl-->
+    </div><!--end main-->
+   
