@@ -270,13 +270,13 @@ body {
 }
 
 #content table {
-	align:		    left;
+	/* align:		    left; */
 	width:		    770px;
 	text-align:	    left;
 	line-height:	0.6em;
 	border-collapse:collapse;
-	cellspacing:	0; 
-	cellpadding:	0;
+	/* cellspacing:	0;  */
+	/* cellpadding:	0; */
 }
 
 /*Execution time */
@@ -294,7 +294,7 @@ body {
 	padding-top:	10px;
 	padding-left:	10px;
 	text-align:	    left;
-	text-valign:	bottom;	
+	/* text-valign:	bottom;	 */
 	vertical-align:	bottom;
 	width:		    700px;
 }
