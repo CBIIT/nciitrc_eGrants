@@ -207,7 +207,6 @@ function file_type(filelocation) {
     var filetype = filelocation.substr(dot + 1, filelocation.length);
 
     var fileTypeLowerCase = filetype.toLowerCase();
-
     if (fileTypeLowerCase == 'pdf' ||
         fileTypeLowerCase == 'xls' ||
         fileTypeLowerCase == 'xlsx' ||
@@ -216,7 +215,6 @@ function file_type(filelocation) {
         fileTypeLowerCase == 'doc' ||
         fileTypeLowerCase == 'docx' ||
         fileTypeLowerCase == 'msg') {
-
         return filetype;
     } else {
 
@@ -235,6 +233,7 @@ function file_type(filelocation) {
 //    } else {
 //         return 'false';
 //    }
+
 }
 
 /*check selected file for upload */
