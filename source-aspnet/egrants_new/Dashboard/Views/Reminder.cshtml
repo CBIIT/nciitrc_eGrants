@@ -175,13 +175,13 @@ function close_window(){
 <body onload="show_default();">
 
 <form name="frmGetInfo">
-    <input type="hidden" id="hidAct" name="act" value="@ViewBag.Act" />
+    <input type="text" id="hidAct" name="act" value="@ViewBag.Act" hidden/>
     @if (@ViewBag.Appl != null)
     {
         foreach (var appl in ViewBag.Appl)
         {
-            <input type="hidden" id="hidAssignDate" name="AssignDate" value="@appl.assign_date"/>
-            <input type="hidden" id="hidDueDate" name="DueDate" value="@appl.due_date" />
+            <input type="text" id="hidAssignDate" name="AssignDate" value="@appl.assign_date" hidden/>
+            <input type="text" id="hidDueDate" name="DueDate" value="@appl.due_date" hidden />
         }
     }
 </form>

@@ -171,9 +171,9 @@
 <body onload="Setfocus() ">*@
 <div id="main">
     <form name="frmGetInfo">
-        <input type="hidden" name="grant_id" value="@ViewBag.GrantID" />
-        <input type="hidden" name="status" value="@ViewBag.Status" />
-        <input type="hidden" id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" />  
+        <input type="text" hidden name="grant_id" value="@ViewBag.GrantID" />
+        <input type="text" hidden name="status" value="@ViewBag.Status" />
+        <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" />  
     </form>
 
     <div id="caption" style="padding:  10px 20px;">

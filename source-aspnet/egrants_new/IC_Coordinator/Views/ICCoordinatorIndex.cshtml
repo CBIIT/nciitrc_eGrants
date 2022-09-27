@@ -54,9 +54,9 @@
 </script>
 
 <form name="frmGetInfo">
-    <input type="hidden" id="hidPersonID" name="PersonID" value="@Convert.ToString(Session["Personid"])" />
-    <input type="hidden" id="hidPossionID" name="PositionID" value="@Convert.ToString(Session["position_id"])" />
-    <input type="hidden" id="hidCoordinatorID" name="CoordinatorID" value="@ViewBag.CoordinatorID" />
+    <input type="text" hidden id="hidPersonID" name="PersonID" value="@Convert.ToString(Session["Personid"])" />
+    <input type="text" hidden id="hidPossionID" name="PositionID" value="@Convert.ToString(Session["position_id"])" />
+    <input type="text" hidden id="hidCoordinatorID" name="CoordinatorID" value="@ViewBag.CoordinatorID" />
 </form>
 
 <!--start mian-->

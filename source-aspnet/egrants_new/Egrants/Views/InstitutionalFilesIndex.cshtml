@@ -1,285 +1,260 @@
 ﻿@using System.Web.Script.Serialization
 @using egrants_new.Egrants.Models
-@model egrants_new.Egrants.Models.InstitutionallFilesPage
+@model InstitutionalFilesPage
 @{
-    ViewBag.Title = "egrants [Institutional Files]";
-    Layout = "~/Shared/Views/_egrants_header.cshtml";
+   ViewBag.Title = "egrants [Institutional Files]";
+   Layout = "~/Shared/Views/_egrants_header.cshtml";
+
+
 }
-@*<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">*@
-<link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
-<script src="~/scripts/dragdrop.js"></script>
-<script src="~/scripts/ProgressBar.js"></script>
 
 <style>
-    .nav-tabs > li > a:hover {
-        color: #ffffff;
-        background-color: #808080 !important;
-    }
+   .nav-tabs > li > a:hover {
+      color: #ffffff;
+      background-color: #808080 !important;
+   }
 
-    .nav-tabs > li > a:focus {
-        color: #ffffff;
-        background-color: #808080 !important;
-    }
+   .nav-tabs > li > a:focus {
+      color: #ffffff;
+      background-color: #808080 !important;
+   }
 
 </style>
 
 @{
-    var javaScriptSearilizer = new JavaScriptSerializer();
-    var catArray = javaScriptSearilizer.Serialize(Model.OrgCategories.ToArray());
+   var javaScriptSearilizer = new JavaScriptSerializer();
+   var catArray = javaScriptSearilizer.Serialize(Model.OrgCategories.ToArray());
+
 }
 <script language="JavaScript">
-    var categories = @Html.Raw(catArray);
-    var currenturl = window.document.location.href;
-    var frmdata = new FormData();
-    var Categoryid = 0;
-    var StartDate = "";
-    var EndDate = "";
-    var Comments = "";
-    var catId = 0;
-    var category = null;
+   var categories = @Html.Raw(catArray);
+   var currenturl = window.document.location.href;
+   var frmdata = new FormData();
+   var Categoryid = 0;
+   var StartDate = "";
+   var EndDate = "";
+   var Comments = "";
+   var catId = 0;
+   var category = null;
+
+   function search_orgs() {
+      if (document.getElementById("txtStr").value == '') {
+         alert("Please insert institution name to search");
+         document.getElementById("txtStr").focus();
+         return false;
+      } else var search_str = document.getElementById("txtStr").value;
+
+      var url = "@Url.Action("Search_Orgs", "InstitutionalFiles")?str=" + search_str;
+      window.document.location.href = url;
+   }
+
+   function show_orgs(index_id) {
+      var url = "@Url.Action("Show_Orgs", "InstitutionalFiles")?index_id=" + index_id;
+      window.document.location.href = url;
+   }
+
+   function show_docs(org_id, org_name) {
+      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
+      window.document.location.href = url;
+   }
 
 
-    $(document).ready(function () {
+   function to_create_doc(org_name, org_id) {
+      var url = "@Url.Action("Show_Create_Doc", "InstitutionalFiles")?org_name=" + org_name + "&org_id=" + org_id;
+      window.document.location.href = url;
+   }
+
+   function to_update_doc(doc_id, org_id) {
+      var url = "@Url.Action("Show_Update_Doc", "InstitutionalFiles")?doc_id=" + doc_id + "&org_id=" + org_id;
+      window.document.location.href = url;
+   }
+
+   function refresh_after_upload(org_id, org_name) {
+      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
+      window.document.location.href = url;
+   }
+
+   function show_doc(docurl) {
+      var ImageServer = document.getElementById("hidImageServer").value;
+      //alert(docurl);
+      if (docurl.substring(0, 5) == "/data") {
+         var url = ImageServer + docurl.substring(1, docurl.length);
+      } else if (docurl.substring(0, 5) == "data/") {
+         var url = ImageServer + docurl;
+      } else url = docurl;
+      //alert(url);
+      window.open(url);
+   }
+
+   function check_ui() {
+
+      var sf_block = $("#ShowFlag");
+      var c_block = $("#comments");
+      get_category_id();
+
+      if (Number(category.tobe_flag) === 1) {
+         sf_block.removeClass("not-shown");
+
+      } else {
+         sf_block.addClass("not-shown");
+      }
+
+      if (Number(category.require_comments) === 1) {
+         c_block.removeClass("not-shown");
+      } else {
+         c_block.addClass("not-shown");
+      }
+      check_comment_length(null);
+
+   }
 
 
-        //$('[data-toggle="popover"]').popover();
+   function get_category_id() {
+      catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+      if (catId == 0) {
+         alert("Please select category");
+         $("#btnUpdate").prop("disabled", true);
+         return false;
+      } else {
+         category = categories.find(c => c.category_id === catId);
+         $("#btnUpdate").prop("disabled", false);
+         return true;
+      }
 
-        // $('body').on('click', function (e) {
-        //     //did not click a popover toggle, or icon in popover toggle, or popover
-        //     if ($(e.target).data('toggle') !== 'popover'
-        //         && $(e.target).parents('[data-toggle="popover"]').length === 0
-        //         && $(e.target).parents('.popover.in').length === 0) { 
-        //         $('[data-toggle="popover"]').popover('hide');
-        //     }
-        // });
+   }
 
-        //$('#txtStr').on('keypress', function (e) {
-        //    if (e.key === 'Enter') {
-        //        search_orgs();
-        //    }
-        //});
+   function check_comment() {
 
-    });
+      Comments = $("#comments").val();
+      //alert(Comments);
+      var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+      var category = categories.find(c => c.category_id === catId);
 
+      if (Comments.length == 0 && category.require_comments == 1) {
+         alert("The Comments are required for category " + category.category_name);
+         return false;
+      }
 
-    function search_orgs() {
-        if (document.getElementById("txtStr").value == '') {
-            alert("Please insert institution name to search");
-            document.getElementById("txtStr").focus();
-            return false;
-        } else var search_str = document.getElementById("txtStr").value;
+      if (Comments.length > 50 && category.require_comments == 1) {
+         alert("The Comments are no to exceed 50 Characters");
+         return false;
+      }
 
-        var url = "@Url.Action("Search_Orgs", "InstitutionalFiles")?str=" + search_str;
-        window.document.location.href = url;
-    }
+      return true;
 
-    function show_orgs(index_id) {
-        var url = "@Url.Action("Show_Orgs", "InstitutionalFiles")?index_id=" + index_id;
-        window.document.location.href = url;
-    }
+   }
 
-    function show_docs(org_id, org_name) {
-        var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
-        window.document.location.href = url;
-    }
+   function check_comment_length(event) {
 
+      Comments = $("#comments").val();
 
-    function to_create_doc(org_name, org_id) {
-        var url="@Url.Action("Show_Create_Doc", "InstitutionalFiles")?org_name=" + org_name + "&org_id=" + org_id;
-        window.document.location.href = url;
-    }
+      if (Comments.length > 50 && category.require_comments == 1) {
+         //alert("The Comments are not to exceed 50 Characters");
+         $("#comments").val(Comments.substr(0, 50));
+         $("#comment-warning").removeClass("not-shown");
+         event.preventDefault();
+      } else {
+         $("#comment-warning").addClass("not-shown");
+      }
 
-    function to_update_doc(doc_id, org_id) {
-        var url="@Url.Action("Show_Update_Doc", "InstitutionalFiles")?doc_id=" + doc_id + "&org_id=" + org_id;
-        window.document.location.href = url;
-    }
+   }
 
-    function refresh_after_upload(org_id, org_name) {
-        var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
-        window.document.location.href = url;
-    }
+   function check_date_range() {
+      //check start date
+      if (document.getElementById("txtStartDate").value == '') {
+         alert("Please insert start date");
+         document.getElementById("txtStartDate").focus();
+         return false;
+      } else if (isDate(document.getElementById("txtStartDate").value) == false) {
+         document.getElementById("txtStartDate").value = "";
+         document.getElementById("txtStartDate").focus();
+         return false;
+      } else {
+         var start_date = new Date(document.getElementById("txtStartDate").value);
+      };
 
-    function show_doc(docurl) {
-        var ImageServer = document.getElementById("hidImageServer").value;
-        //alert(docurl);
-        if (docurl.substring(0, 5) == "/data") {
-            var url = ImageServer + docurl.substring(1, docurl.length);
-        }else if (docurl.substring(0, 5) == "data/") {
-            var url = ImageServer + docurl;
-        }else url = docurl;
-        //alert(url);
-        window.open(url);
-    }
+      //check end date
+      if (document.getElementById("txtEndDate").value == '') {
+         alert("Please insert end date");
+         document.getElementById("txtEndDate").value = '';
+         document.getElementById("txtEndDate").focus();
+         return false;
+      } else if (isAnyDate(document.getElementById("txtEndDate").value) == false) {
+         document.getElementById("txtEndDate").value = '';
+         document.getElementById("txtEndDate").focus();
+         return false;
+      } else var end_date = new Date(document.getElementById("txtEndDate").value);
 
-    function check_ui() {
-
-        var sf_block = $("#ShowFlag");
-        var c_block = $("#comments");
-        get_category_id();
-
-        if (Number(category.tobe_flag) === 1) {
-            sf_block.removeClass("not-shown");
-
-        } else {
-            sf_block.addClass("not-shown");
-        }
-
-        if (Number(category.require_comments) === 1) {
-            c_block.removeClass("not-shown");
-        } else {
-            c_block.addClass("not-shown");
-        }
-        check_comment_length(null);
-
-    }
-
-
-    function get_category_id() {
-        catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-        if (catId == 0) {
-            alert("Please select category");
-            $("#btnUpdate").prop("disabled", true);
-            return false;
-        } else {
-            category = categories.find(c => c.category_id === catId);
-            $("#btnUpdate").prop("disabled", false);
-            return true;
-        }
-
-    }
-
-    function check_comment() {
-
-        Comments = $("#comments").val();
-        //alert(Comments);
-        var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
-        var category = categories.find(c => c.category_id === catId);
-
-        if (Comments.length == 0 && category.require_comments == 1) {
-            alert("The Comments are required for category " + category.category_name);
-            return false;
-        }
-
-        if (Comments.length > 50 && category.require_comments == 1) {
-            alert("The Comments are no to exceed 50 Characters");
-            return false;
-        }
-
-        return true;
-
-    }
-
-
-    function check_comment_length(event) {
-
-        Comments = $("#comments").val();
-
-        if (Comments.length > 50 && category.require_comments == 1) {
-            //alert("The Comments are not to exceed 50 Characters");
-            $("#comments").val(Comments.substr(0, 50));
-            $("#comment-warning").removeClass("not-shown");
-            event.preventDefault();
-        }
-        else {
-            $("#comment-warning").addClass("not-shown");
-        }
-
-    }
-
-
-    function check_date_range() {
-        //check start date
-        if (document.getElementById("txtStartDate").value == '') {
-            alert("Please insert start date");
-            document.getElementById("txtStartDate").focus();
-            return false;
-        } else if (isDate(document.getElementById("txtStartDate").value) == false) {
-            document.getElementById("txtStartDate").value = "";
-            document.getElementById("txtStartDate").focus();
-            return false;
-        } else {
-            var start_date = new Date(document.getElementById("txtStartDate").value);
-        };
-
-        //check end date
-        if (document.getElementById("txtEndDate").value == '') {
-            alert("Please insert end date");
-            document.getElementById("txtEndDate").value = '';
-            document.getElementById("txtEndDate").focus();
-            return false;
-        } else if (isAnyDate(document.getElementById("txtEndDate").value) == false) {
-            document.getElementById("txtEndDate").value = '';
-            document.getElementById("txtEndDate").focus();
-            return false;
-        } else var end_date = new Date(document.getElementById("txtEndDate").value);
-
-        if (end_date <= start_date) {
-            alert("The end date should be later than start date");
-            document.getElementById("txtEndDate").value = '';
-            document.getElementById("txtEndDate").focus();
-            return false;
-        } else {
-            StartDate = document.getElementById("txtStartDate").value;
-            EndDate = document.getElementById("txtEndDate").value;
-            //alert("EndDate=" + EndDate);
-            return true;
-        }
-    }
+      if (end_date <= start_date) {
+         alert("The end date should be later than start date");
+         document.getElementById("txtEndDate").value = '';
+         document.getElementById("txtEndDate").focus();
+         return false;
+      } else {
+         StartDate = document.getElementById("txtStartDate").value;
+         EndDate = document.getElementById("txtEndDate").value;
+         //alert("EndDate=" + EndDate);
+         return true;
+      }
+   }
 
 </script>
 
 <form name="frmGetInfo">
-    <input type="hidden" id="hidACT" name="act" value="@ViewBag.Act" />
-    <input type="hidden" id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])" />
-    <input type="hidden" id="hidImageServer" name="MImageServer" value="@Convert.ToString(Session["ImageServer"])" />
+   <input type="text" hidden id="hidACT" name="act" value="@ViewBag.Act"/>
+   <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Convert.ToString(Session["browser"])"/>
+   <input type="text" hidden id="hidImageServer" name="MImageServer" value="@Convert.ToString(Session["ImageServer"])"/>
 </form>
 
 <div id="main">
-    <!--start main-->
-    <div id="caption"><b id="page_title">Institution Master List</b></div>
+   <!--start main-->
+   <div id="caption">
+      <b id="page_title">Institution Master List</b>
+   </div>
 
-    <div id="index_list" >
-        <b>Index:</b>
-        @foreach (var index in Model.CharacterIndices)
-        {
-            <div id="index.index_id" style="display:inline">
-                <a href="JavaScript:show_orgs(@index.IndexId)" title="Search Institution Files with @index.CharacterIndex">
-                    <b>@char.ToUpper(index.CharacterIndex[0])</b>&#0160;
-                </a>
-            </div>
-        }
-    </div>
-    <div>
-        <div>    <span><b>Institution Name:</b>&#0160;<input type="text" name="str" id="txtStr" class="smallfont" size="58" title="Insert institution name to search. If institution does not exist on A-Z page, search for the name listed in IMPAC II to add files to it." value="@ViewBag.Str" /></span>
-    &#0160;
-    <button type="button" class="btn btn-primary eGrantsDocBtn" accesskey="S" title="Search by institution name [shift + alt + S]" onClick="return search_orgs();"><u>S</u>earch</button>
-        </div>
-        <br/>
-    </div>
-    <!--start show orgs list-->
-    @if (Model.OrgList.Count > 0)
-    {
-        @Html.Partial("~/Egrants/Views/InstitutionalFiles_OrgList.cshtml", Model.OrgList);
-    }
-    <!--end show orgs list-->
-    <!--start show docs list-->
-    @if (Model.Action != InstitutionalFilesPageAction.ShowOrgs && Model.OrgCategories.Count == 0)
-    {
-        @Html.Partial("~/Egrants/Views/InstitutionalFiles_ShowDocs.cshtml", Model);
-    }
-    <!--end show docs list-->
-    <!--start create new doc-->
-    @if (Model.Action == InstitutionalFilesPageAction.CreateNew)
-    {
-        @Html.Partial("~/Egrants/Views/InstitutionalFiles_CreateDocs.cshtml", Model);
-    }
-    <!--end create new doc--->
-    
-    <!--start create new doc-->
-    @if (Model.Action == InstitutionalFilesPageAction.UpdateDoc)
-    {
-        @Html.Partial("~/Egrants/Views/InstitutionalFiles_UpdateDocs.cshtml", Model);
-    }
-    <!--end create new doc--->
+   <div id="index_list">
+      <b>Index:</b>
+      @foreach (var index in Model.CharacterIndices)
+      {
+         <div id="index.index_id" style="display: inline">
+            <a href="JavaScript:show_orgs(@index.IndexId)" title="Search Institution Files with @index.CharacterIndex">
+               <b>@char.ToUpper(index.CharacterIndex[0])</b>&#0160;
+            </a>
+         </div>
+      }
+   </div>
+   <div>
+      <div>
+         <span><b>Institution Name:</b>&#0160;<input type="text" name="str" id="txtStr" class="smallfont" size="58" title="Insert institution name to search. If institution does not exist on A-Z page, search for the name listed in IMPAC II to add files to it." value="@ViewBag.Str"/></span>
+         &#0160;
+         <button type="button" class="btn btn-primary eGrantsDocBtn" accesskey="S" title="Search by institution name [shift + alt + S]" onClick="return search_orgs();"><u>S</u>earch</button>
+      </div>
+      <br/>
+   </div>
+   <!--start show orgs list-->
+   @if (Model.OrgList.Count > 0)
+   {
+      @Html.Partial("~/Egrants/Views/InstitutionalFiles_OrgList.cshtml", Model.OrgList)
+   }
+   <!--end show orgs list-->
+   <!--start show docs list-->
+   @if (Model.Action != InstitutionalFilesPageAction.ShowOrgs && Model.OrgCategories.Count == 0)
+   {
+      @Html.Partial("~/Egrants/Views/InstitutionalFiles_ShowDocs.cshtml", Model)
+   }
+   <!--end show docs list-->
+   <!--start create new doc-->
+   @if (Model.Action == InstitutionalFilesPageAction.CreateNew)
+   {
+      @Html.Partial("~/Egrants/Views/InstitutionalFiles_CreateDocs.cshtml", Model)
+   }
+   <!--end create new doc--->
+
+   <!--start create new doc-->
+   @if (Model.Action == InstitutionalFilesPageAction.UpdateDoc)
+   {
+      @Html.Partial("~/Egrants/Views/InstitutionalFiles_UpdateDocs.cshtml", Model)
+   }
+   <!--end create new doc--->
 
 </div><!--end main-->
