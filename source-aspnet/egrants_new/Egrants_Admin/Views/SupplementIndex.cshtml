@@ -1,7 +1,34 @@
 ﻿@{
-    ViewBag.Title = "egrants [Supplement Index]";
-    Layout = "~/Shared/Views/_egrants_header.cshtml";
+   ViewBag.Title = "egrants [Supplement Index]";
+   Layout = "~/Shared/Views/_egrants_header.cshtml";
 }
+
+<style type="text/css">
+   .webgrid-table {
+      width: 100%;
+      display: table;
+      background-color: white;
+   }
+
+   .webgrid-header {
+      color: #FFFFFF;
+      padding-bottom: 4px;
+      padding-top: 5px;
+      text-align: left;
+   }
+
+   .webgrid-footer {
+   }
+
+   .webgrid-row-style {
+      padding: 3px 7px 2px;
+   }
+
+   .webgrid-alternating-row {
+      background-color: #EAF2D3;
+      padding: 3px 7px 2px;
+   }
+</style>
 
 <script language="JavaScript">
     var currenturl = window.document.location.href;
@@ -175,68 +202,72 @@
 </script>
 
 <div id="main">
-    <!--start main-->
-    <form name="frmGetInfo">
-        <input type="hidden" id="hidSerialNum" name="SerialNum" value="@ViewBag.SerialNum" />
-        <input type="hidden" id="hidReturnNotice" name="ReturnNotice" value="@ViewBag.ReturnNotice" />
-    </form>
-    <div>
-        @Html.Partial("~/Egrants_Admin/Views/_AdminMenuIndex.cshtml")
-    </div>
-    <div id="caption">
-        <b id="page_title">Admin Supplement</b><br />
-        @Html.ActionLink("eRA Notification", "Index", "Supplement", new { area = "Egrants_Admin" }, null) |
-        @Html.ActionLink("Email Template", "Load_Email_Template", "Supplement", new { area = "Egrants_Admin" }, null) |
-        @Html.ActionLink("Workflow", "Load_Workflow", "Supplement", new { area = "Egrants_Admin" }, null)
-    </div>
-    <div class="form-inline">
-        <lable for="serial number"><b>Serial Number:</b></lable>&#0160;
-        <input type="text" id="txtSerialNum" class="form-control" style="height:30px; width:120px;" title="Insert serial number to search" />&#0160;
-        <button AccessKey="S" class="btn btn-primary btn-sm" title="search by serial number[shift + alt + S]" onclick="return to_search()">
-            <U>S</U>earch
-        </button>&#0160;&#0160;( searching by serail number only )
-    </div>
+   <!--start main-->
+   <form name="frmGetInfo">
+      <input type="text" hidden id="hidSerialNum" name="SerialNum" value="@ViewBag.SerialNum" />
+      <input type="text" hidden id="hidReturnNotice" name="ReturnNotice" value="@ViewBag.ReturnNotice" />
+   </form>
+   <div>
+      @Html.Partial("~/Egrants_Admin/Views/_AdminMenuIndex.cshtml")
+   </div>
+   <div id="caption">
+      <b id="page_title">Admin Supplement</b><br />
+      @Html.ActionLink("eRA Notification", "Index", "Supplement", new { area = "Egrants_Admin" }, null) |
+      @Html.ActionLink("Email Template", "Load_Email_Template", "Supplement", new { area = "Egrants_Admin" }, null) |
+      @Html.ActionLink("Workflow", "Load_Workflow", "Supplement", new { area = "Egrants_Admin" }, null)
+   </div>
+   <div class="form-inline">
+      <lable for="serial number"><b>Serial Number:</b></lable>&#0160;
+      <input type="text" id="txtSerialNum" class="form-control" style="height:30px; width:120px;" title="Insert serial number to search" />&#0160;
+      <button AccessKey="S" class="btn btn-primary btn-sm" title="search by serial number[shift + alt + S]" onclick="return to_search()">
+         <U>S</U>earch
+      </button>&#0160;&#0160;( searching by serial number only )
+   </div>
 </div><!--end main-->
-<div style="width:900px;" class="form-inline">
-    @if (ViewBag.Notifications != null)
-    {
-        <b>Found @Convert.ToDecimal(ViewBag.Notifications.Count).ToString("#,##0") records</b>
-        if (ViewBag.Notifications.Count > 50)
-        {<b>, 50 records per page. Page:</b>}
+<div style="width:900px;" class="float-left">
+   @if (ViewBag.Notifications != null)
+   {
 
-        var Notifications = new WebGrid(ViewBag.Notifications, rowsPerPage: 50);
-        @Notifications.Pager(WebGridPagerModes.Numeric)
-        @Notifications.GetHtml(
-            tableStyle: "webgrid-table",
-            headerStyle: "webgrid-header",
-            footerStyle: "webgrid-footer",
-            rowStyle: "webgrid-odd-row-style",
-            alternatingRowStyle: "webgrid-even-row-style",
-            selectedRowStyle: "webgrid-selected-row",
-            numericLinksCount: 10,
+      <b>Found @Convert.ToDecimal(ViewBag.Notifications.Count).ToString("#,##0") records</b>
 
-        columns: Notifications.Columns(
+      if (ViewBag.Notifications.Count > 50)
+      {
+         <b>, 50 records per page. Page:</b>
+      }
+
+      var Notifications = new WebGrid(ViewBag.Notifications, rowsPerPage: 50);
+      @Notifications.Pager(WebGridPagerModes.Numeric)
+      @Notifications.GetHtml(
+         tableStyle: "webgrid-table",
+         headerStyle: "webgrid-header",
+         footerStyle: "webgrid-footer",
+         rowStyle: "webgrid-odd-row-style",
+         alternatingRowStyle: "webgrid-even-row-style",
+         selectedRowStyle: "webgrid-selected-row",
+         numericLinksCount: 10,
+
+         columns: Notifications.Columns(
             Notifications.Column("full_grant_num", "Grant Number",
-                format: @<text><a href="JavaScript:show_appl(@item.appl_id)">@item.full_grant_num</a>
-                <input type="text" id="txtFGN_@item.id" class="form-control grantnum" style="height:30px; width:150px; display:none" value="@item.full_grant_num" />
-                </text>, style: "col-xxlarg", canSort: true),
-            Notifications.Column("pa", "PA ",
-                 format: @<text><span id="labPA_@item.id" style="display:inline"><label id="lblPA">@item.pa</label></span>
-                <input type="text" id="txtPA_@item.id" class="form-control pa" style="height:30px; width:80px; display:none" value="@item.pa" />
-                </text>, style: "col-larg", canSort: true),
-            Notifications.Column("NotRcvd_dt", "Recieved", null, style: "col-med", canSort: true),
-            Notifications.Column("created_date", "Created", null, style: "col-med", canSort: true),
-            Notifications.Column("", "Edit", format: @<text><center>
-                    <button class="btn btn-primary btn-sm edit" style="display:inline" id="edit_@item.id" onclick="JavaScript:to_edit(@item.id)">Edit</button>
-                    <button class="btn btn-primary btn-sm save" style="display:none" id="save_@item.id" onclick="JavaScript:to_save(@item.id)">Save</button>&#0160;
-                    <button class="btn btn-primary btn-sm cancel" style="display:none" id="cancel_@item.id" onclick="JavaScript:to_cancel(@item.id)">Cancel</button>
-                </center></text>, style: "col-larg", canSort: false),
-            Notifications.Column("", "Action", format: @<text>
-                <button class="btn btn-primary btn-sm" id="delete_@item.id" onclick="JavaScript:to_delete('@item.id', '@item.full_grant_num')">Delete</button>&#0160;
-                <button class="btn btn-primary btn-sm" id="review_@item.id" onclick="JavaScript:to_review(@item.id)">Review</button>
-            </text>, style: "col-larg", canSort: false)
-            )
-        )
-    }
-
+               format: @<text><a href="JavaScript:show_appl(@item.appl_id)">@item.full_grant_num</a>
+               <input type="text" id="txtFGN_@item.id" class="form-control grantnum" style="height:30px; width:150px; display:none" value="@item.full_grant_num" />
+               </text>, style: "col-xxlarg", canSort: true),
+Notifications.Column("pa", "PA ",
+format: @<text><span id="labPA_@item.id" style="display:inline"><label id="lblPA">@item.pa</label></span>
+<input type="text" id="txtPA_@item.id" class="form-control pa" style="height:30px; width:80px; display:none" value="@item.pa" />
+</text>, style: "col-larg", canSort: true),
+Notifications.Column("NotRcvd_dt", "Recieved", null, style: "col-med", canSort: true),
+Notifications.Column("created_date", "Created", null, style: "col-med", canSort: true),
+Notifications.Column("", "Edit", format: @<text>
+   <button class="btn btn-primary btn-sm edit" style="display:inline" id="edit_@item.id" onclick="JavaScript:to_edit(@item.id)">Edit</button>
+   <button class="btn btn-primary btn-sm save" style="display:none" id="save_@item.id" onclick="JavaScript:to_save(@item.id)">Save</button>&#0160;
+   <button class="btn btn-primary btn-sm cancel" style="display:none" id="cancel_@item.id" onclick="JavaScript:to_cancel(@item.id)">Cancel</button>
+</text>, style: "col-larg", canSort: false),
+Notifications.Column("", "Action", format: @<text>
+      <button class="btn btn-primary btn-sm" id="delete_@item.id" onclick="JavaScript:to_delete('@item.id', '@item.full_grant_num')">Delete</button>&#0160;
+      <button class="btn btn-primary btn-sm" id="review_@item.id" onclick="JavaScript:to_review(@item.id)">Review</button>
+</text>, style: "col-larg", canSort: false)
+)
+)
+   }
+   @* </div> *@
 </div>

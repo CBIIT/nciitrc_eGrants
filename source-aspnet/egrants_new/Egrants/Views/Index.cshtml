@@ -3,7 +3,7 @@
     Layout = "~/Shared/Views/_egrants_header.cshtml";
 }
 
-<link href="~/Content/jquery-ui.css" rel="stylesheet" />
+<link href="~/Content/jquery-ui.min.css" rel="stylesheet" />
 @*for JavaScript Autocomlete *@
 
 <script src="~/scripts/EgrantsCatsZone.js"></script>
@@ -13,7 +13,7 @@
 
 <script src="~/scripts/bluebird.js"></script>
 @*for JavaScript promise *@
-<script src="~/scripts/jquery-ui.min.js"></script>
+<script src="~/scripts/jquery-ui-1.13.1.min.js"></script>
 @*for JavaScript Autocomlete *@
 
 <script language="JavaScript" type="text/javascript">
@@ -354,34 +354,34 @@
 
 <!--start save all data from server-->
 <form name="frmGetInfo">
-    <input type="hidden" id="hidCurrentTab" name="CurrentTab" value="@ViewBag.CurrentTab" />
-    <input type="hidden" id="hidPageNum" name="CurrentPage" value="@ViewBag.CurrentPage" />
-    <input type="hidden" id="hidSearchStr" name="SearchStr" value="@ViewBag.Str" />
-    <input type="hidden" id="hidSearchType" name="SearchType" value="@ViewBag.SearchStyle" />
-    <input type="hidden" id="hidMode" name="Mode" value="@ViewBag.Mode" />
+    <input type="text" hidden id="hidCurrentTab" name="CurrentTab" value="@ViewBag.CurrentTab" />
+    <input type="text" hidden id="hidPageNum" name="CurrentPage" value="@ViewBag.CurrentPage" />
+    <input type="text" hidden id="hidSearchStr" name="SearchStr" value="@ViewBag.Str" />
+    <input type="text" hidden id="hidSearchType" name="SearchType" value="@ViewBag.SearchStyle" />
+    <input type="text" hidden id="hidMode" name="Mode" value="@ViewBag.Mode" />
 
-    <input type="hidden" id="hidGrantID" name="GrantID" value="@ViewBag.GrantID" />
-    <input type="hidden" id="hidPackage" name="Package" value="@ViewBag.Package" />
-    <input type="hidden" id="hidApplID" name="ApplID" value="@ViewBag.ApplID" />
-    <input type="hidden" id="hidApplCount" name="ApplCount" value="@ViewBag.ApplCount" />
-    <input type="hidden" id="hidDocCount" name="DocCount" value="@ViewBag.DocCount" />
+    <input type="text" hidden id="hidGrantID" name="GrantID" value="@ViewBag.GrantID" />
+    <input type="text" hidden id="hidPackage" name="Package" value="@ViewBag.Package" />
+    <input type="text" hidden id="hidApplID" name="ApplID" value="@ViewBag.ApplID" />
+    <input type="text" hidden id="hidApplCount" name="ApplCount" value="@ViewBag.ApplCount" />
+    <input type="text" hidden id="hidDocCount" name="DocCount" value="@ViewBag.DocCount" />
 
-    @*<input type="hidden" id="hidSort" name="DocSort" value="@ViewBag.DocSort" />*@
-    @*<input type="hidden" id="hidApplsAll" name="ApplAll" value="@ViewBag.ApplsAll" /> --commented by Leon 4/1/2019*@
+    @*<input type="text" hidden id="hidSort" name="DocSort" value="@ViewBag.DocSort" />*@
+    @*<input type="text" hidden id="hidApplsAll" name="ApplAll" value="@ViewBag.ApplsAll" /> --commented by Leon 4/1/2019*@
 
-    <input type="hidden" id="hidSelectedYears" name="FY" value="@ViewBag.SelectedYears" />
-    <input type="hidden" id="hidSelectedCats" name="SelectedCats" value="@ViewBag.SelectedCats" />
-    <input type="hidden" id="hidSelectedCategories" name="SelectedCategories" value="@ViewBag.SelectedCategories" />
-    <input type="hidden" id="hidSelectedAppls" name="SelectedAppls" value="@ViewBag.SelectedAppls" />
+    <input type="text" hidden id="hidSelectedYears" name="FY" value="@ViewBag.SelectedYears" />
+    <input type="text" hidden id="hidSelectedCats" name="SelectedCats" value="@ViewBag.SelectedCats" />
+    <input type="text" hidden id="hidSelectedCategories" name="SelectedCategories" value="@ViewBag.SelectedCategories" />
+    <input type="text" hidden id="hidSelectedAppls" name="SelectedAppls" value="@ViewBag.SelectedAppls" />
 
-    <input type="hidden" id="hidFilterFY" name="FilterFY" value="@ViewBag.FilterFY" />
-    <input type="hidden" id="hidFilterMechanism" name="FilterMechanism" value="@ViewBag.FilterMechanism" />
-    <input type="hidden" id="hidFilterAdminCode" name="FilterAdminCode" value="@ViewBag.FilterAdminCode" />
-    <input type="hidden" id="hidFilterSerialNumber" name="FilterSerialNumber" value="@ViewBag.FilterSerialNumber" />
+    <input type="text" hidden id="hidFilterFY" name="FilterFY" value="@ViewBag.FilterFY" />
+    <input type="text" hidden id="hidFilterMechanism" name="FilterMechanism" value="@ViewBag.FilterMechanism" />
+    <input type="text" hidden id="hidFilterAdminCode" name="FilterAdminCode" value="@ViewBag.FilterAdminCode" />
+    <input type="text" hidden id="hidFilterSerialNumber" name="FilterSerialNumber" value="@ViewBag.FilterSerialNumber" />
 
-    <input type="hidden" id="hidPositionID" name="position_id" value="@Convert.ToInt16(Session["position_id"])" />
-    <input type="hidden" id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" />
-    <input type="hidden" id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(Session["egrantsDocEmail"])" />
+    <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt16(Session["position_id"])" />
+    <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" />
+    <input type="text" hidden id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(Session["egrantsDocEmail"])" />
 </form>
 <!--end save all data from server-->
 <!--start main-->
@@ -477,7 +477,7 @@
 
                         <a class="btn btn-default" style="background-color:#808080; color:white" id="all_appl" href="javascript:getByAll(@grant.grant_id)" title="View Categories and Grant Years for @grant.grant_num">All</a><span>&#0160;</span>
 
-                        <label style="margin-left:10px; font-size:medium;"># of Grant Years</label>
+                       <label style="margin-left:10px; font-size:medium;"><strong># of Grant Years</strong></label>
                         <input type="text" id="txtYears_@grant.grant_id" name="years_@grant.grant_id" class="form-control" style="width:50px; height:35px; display:inline;" placeholder="Yrs" onkeyup="return checkYears(event, @Convert.ToInt32(grant.grant_id))" /> @*onkeyup="if (event.keyCode == 13) return checkYears(@Convert.ToInt32(grant.grant_id))"*@
 
                         @if (ViewBag.SelectedCats != "" && ViewBag.SelectedCats != null)
@@ -500,12 +500,14 @@
                     <!--end search bar-->
                     <!--start show category zone-->
                     <div id="cats_zone_@grant.grant_id" class="cats_zone" style="width:900px; border-bottom:groove; border-top:groove; border-color:darkgrey; padding-bottom:5px; min-height:50px; padding-left:20px; float:left; display:none;">
-                        <span>&#0160;&#0160;&#0160;&#0160;</span><input type="checkbox" id="all_cats_@grant.grant_id" onClick="JavaScript:select_all_cats_zone(@grant.grant_id)" /><span>&#0160;&#0160;</span><b>Select All</b><br />
-                        <div id="catlist_@Convert.ToString(grant.grant_id)" style="float:left; display:inline; width:900px;">
-                            <div class="col-md-4" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display:inline"></div>
-                            <div class="col-md-4" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display:inline"></div>
-                            <div class="col-md-4" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display:inline"></div>
-                        </div>
+                        <input type="checkbox" id="all_cats_@grant.grant_id" onClick="JavaScript:select_all_cats_zone(@grant.grant_id)" /><span>&#0160;&#0160;</span><b>Select All</b><br />
+                       <div id="catlist_@Convert.ToString(grant.grant_id)" style="float: left; display: inline; width: 900px;">
+                          <div class="row">
+                          <div class="col-sm" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                          <div class="col-sm" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                             <div class="col-sm" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                    </div>
+                       </div>
                     </div>
                     <!--end show category zone-->
                     <br />
