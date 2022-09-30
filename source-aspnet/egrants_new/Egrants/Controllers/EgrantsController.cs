@@ -378,9 +378,9 @@ namespace egrants_new.Controllers
                             myWebClient.DownloadFile(uri, tmpFileName);
                            // var result = myWebClient.DownloadData(uri);
                           
-                            var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-                            ContentDisposition contentDisposition = new ContentDisposition(disposition);
-                            string filename = contentDisposition.FileName;
+                            //var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                            //ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                            string filename = System.IO.Path.GetFileName(uri.LocalPath);
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
