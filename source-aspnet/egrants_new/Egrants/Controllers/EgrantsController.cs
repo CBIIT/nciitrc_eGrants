@@ -232,16 +232,13 @@ namespace egrants_new.Controllers
 
                             uri = new Uri(imageServer, url);
                         }
-
-                        // X509Certificate2 cert = PickCertificate();
-                        //
+                        
                         var webResponse = (HttpWebRequest)WebRequest.Create(uri);
                         webResponse.AllowAutoRedirect = false;
                         
                         webResponse.CookieContainer = new CookieContainer();
                         webResponse.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0";
                         webResponse.Method = "GET";
-                       // webResponse.ClientCertificates.Add(cert);
                         webResponse.UseDefaultCredentials = true;
                         
                         ServicePointManager.ServerCertificateValidationCallback = (c, certificate, chain, errors) => true;
@@ -263,92 +260,8 @@ namespace egrants_new.Controllers
                             }
                         }
 
-                        // CookieContainer cookies = new CookieContainer();
-                        //
-                        // int bytesProcessed = 0;
-                        // var webRequest = (HttpWebRequest)WebRequest.Create(uri);
-                        //webRequest.CookieContainer = cookies;
-
-
-                        // webRequest.KeepAlive = false;
-                        //webRequest.Method = "GET";
-                        //webRequest.AllowAutoRedirect = false;
-
-                        //
-                        // var webResponse = (HttpWebResponse)webRequest.GetResponse();
-                        //  if (webResponse != null)
-                        // {
-                        //     // Once the WebResponse object has been retrieved,
-                        //     // get the stream object associated with the response's data
-                        //     using (Stream remoteStream = webResponse.GetResponseStream())
-                        //     // Create the local file
-                        //     using (Stream localStream = System.IO.File.Create(tmpFileName))
-                        //     {
-                        //
-                        //             // Allocate a 1k buffer
-                        //             byte[] buffer = new byte[1024];
-                        //             int bytesRead;
-                        //
-                        //             // Simple do/while loop to read from stream until
-                        //             // no bytes are returned
-                        //             do
-                        //             {
-                        //                 // Read data (up to 1k) from the stream
-                        //                 bytesRead = remoteStream.Read(buffer, 0, buffer.Length);
-                        //
-                        //                 // Write the data to the local file
-                        //                 localStream.Write(buffer, 0, bytesRead);
-                        //
-                        //                 // Increment total bytes processed
-                        //                 bytesProcessed += bytesRead;
-                        //             }
-                        //             while (bytesRead > 0);
-                        //     }
-                        // }
-
-                        //  using (var postStream = webResponse.GetResponseStream())
-                        //  {
-                        //    if (postStream == null)
-                        //    {
-                        //       throw new Exception("The stream was empty!");
-                        //   }
-
-                        // string downloadUrl;
-
-                        // using (var reader = new StreamReader(postStream))
-                        //         {
-                        //             //TempData[tmpFileName] = reader.ReadToEnd();
-                        //             //MemoryStream ms = new MemoryStream(buffer);
-                        //             //write to file
-                        //             FileStream file = new FileStream("d:\\file.txt", FileMode.Create, FileAccess.Write);
-                        //             ms.WriteTo(file);
-                        //             file.Close();
-                        //             ms.Close();
-                        //         }
-                        //     }
-                        
-
-                        //ServicePointManager.ServerCertificateValidationCallback += ValidateRemoteCertificate;
-                        //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12; //TLS 1.2
                         using (var myWebClient = new WebClient())
                         {
-
-                            // HttpCookieCollection cookieCollection =  Request.Cookies;
-
-                            ////foreach (var cookie in Request.Cookies)
-                            //{
-                            //myWebClient.Headers.Add(HttpRequestHeader.Cookie, cookie.);
-                            // }
-                            // CookieContainer cookieContainer = new CookieContainer();
-                            // cookieContainer.Add(Request.Cookies["userName"].Value);
-                            //myWebClient.Headers.Add("header_sm_user", Session.);
-
-                            // for(int i=0; i < Request.Headers.Count; i++)
-                            // {
-                            //     myWebClient.Headers.Add(Request.Headers.GetKey(i), Request.Headers.Get(i));
-                            // }
-                            //myWebClient.Credentials = Request.ClientCertificate;
-                            //myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
                             myWebClient.UseDefaultCredentials = true;
                             myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
@@ -359,27 +272,10 @@ namespace egrants_new.Controllers
                                 Console.WriteLine("Header: " + header.ToString());
                             }
 
-                           // myWebClient.Headers.Add("header_sm_user", Session["userid"].ToString());
                             myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
-                           // myWebClient.Headers.Add("NIHSMSESSION", Request.Cookies["NIHSMSESSION"].Value);
-                            //myWebClient.Headers.Add("_ga", Request.Cookies["_ga"].Value);
-                            //myWebClient.Headers.Add("_ga_HCESKCGBTM", Request.Cookies["_ga_HCESKCGBTM"].Value);
-                            //myWebClient.Credentials = CredentialCache.DefaultCredentials;
-                            //myWebClient.Credentials =
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
-                            // using (MemoryStream memoryStream = new MemoryStream(myWebClient.DownloadData(uri)))
-                            // {
-                            //     System.IO.File.WriteAllBytes(tmpFileName, memoryStream.ToArray());
-                            // }
-                          //  myWebClient.Credentials = new NetworkCredential(userName, password, domainName);
-                          //  myWebClient..AllowAutoRedirect = true;
-                            // Download the Web resource and save it into the temp folder in local filesystem folder.
                             myWebClient.DownloadFile(uri, tmpFileName);
-                           // var result = myWebClient.DownloadData(uri);
-                          
-                            //var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-                            //ContentDisposition contentDisposition = new ContentDisposition(disposition);
                             string filename = System.IO.Path.GetFileName(uri.LocalPath);
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
@@ -389,7 +285,6 @@ namespace egrants_new.Controllers
                             Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, uri.OriginalString);
                             Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
                         }
-
                     }
                 }
                 catch (Exception err)
