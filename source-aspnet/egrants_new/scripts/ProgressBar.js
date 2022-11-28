@@ -42,7 +42,7 @@
             $("#UploadFile").val("");
             $('#reload').css('visibility', 'visible');
             $(".custom-file-label").text('Choose file...');
-            $(".custom-file-input").prop("disabled", true);
+          //  $(".custom-file-input").prop("disabled", true);
             if (data.message == 'please waiting window refresh...' && percent == 100) {
                 refresh();
             }
