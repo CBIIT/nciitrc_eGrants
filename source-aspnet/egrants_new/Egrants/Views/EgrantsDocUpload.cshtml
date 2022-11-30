@@ -317,15 +317,15 @@
                      <!--end upload by drag drop-->
                      <!--start upload by file-->
                      <div class="tabcontent" id="by_file" style="display: none">
-
-                        <div class="custom-file my-2">
-                           <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
-                           <label class="custom-file-label" for="customFile">Choose file...</label>
-                        </div>
-
-                        @* <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
-                        <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
-                        <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                        <form>
+                           <div class="custom-file my-2">
+                              <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                              <label class="custom-file-label" for="customFile">Choose file...</label>
+                           </div>
+                        </form>
+                           @* <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
+                           <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
+                           <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                      </div>
                      <!--end upload by file-->
                      <!--start upload by email-->
