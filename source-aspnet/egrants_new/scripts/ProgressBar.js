@@ -41,8 +41,29 @@
             $(".loading").css('display', 'none');
             $("#UploadFile").val("");
             $('#reload').css('visibility', 'visible');
-            $(".custom-file-label").text('Choose file...');
-          //  $(".custom-file-input").prop("disabled", true);
+         //   $(".custom-file-label").text('Choose file...');
+            //$(".custom-file-input").prop("disabled", true);
+        //    function resetFile() {
+
+                $(".custom-file-label").text('Choose file...');
+                var es = document.forms[1].elements;
+                clearInputFile(es[0]);
+          //  }
+
+            function clearInputFile(f) {
+                if (f.value) {
+                    try {
+                        f.value = ''; //for IE11, latest Chrome/Firefox/Opera...
+                    } catch (err) {
+                    }
+                    if (f.value) { //for IE5 ~ IE10
+                        var form = document.createElement('form'), ref = f.nextSibling;
+                        form.appendChild(f);
+                        form.reset();
+                        ref.parentNode.insertBefore(f, ref);
+                    }
+                }
+            }
             if (data.message == 'please waiting window refresh...' && percent == 100) {
                 refresh();
             }

@@ -247,7 +247,7 @@
         var today = (month) + "/" + (day) + "/" + now.getFullYear();
         document.getElementById("txtDocumentdate").value = today;
 
-        if (act == "by_file") {
+       if (act == "by_file") {
             document.getElementById("btnFileUpload").disabled = "disabled";
         } else if (act == "by_dd") {
             document.getElementById("btnDragdrop").disabled = "disabled";
@@ -256,6 +256,28 @@
         document.getElementById("ddlCategories").selectedIndex = 0;
         $(".sub_category").css('display', 'none');
     }
+
+  // function resetFile() {
+      
+  //    $(".custom-file-label").text('Choose file...');
+  //    var es = $.forms[1].elements;
+  //       clearInputFile(es[0]);
+  //}
+
+  //  function clearInputFile(f){
+  //     if(f.value){
+  //        try{
+  //           f.value = ''; //for IE11, latest Chrome/Firefox/Opera...
+  //        }catch(err){
+  //        }
+  //        if(f.value){ //for IE5 ~ IE10
+  //           var form = document.createElement('form'), ref = f.nextSibling;
+  //           form.appendChild(f);
+  //           form.reset();
+  //           ref.parentNode.insertBefore(f,ref);
+  //        }
+  //     }
+  // }
 
     function create_by_email() {
         //check appl_id
@@ -365,10 +387,13 @@
                    <!--end upload by drag drop-->
                    <!--start upload by file-->
                    <div class="tabcontent" id="by_file" style="display: none">
-                      <div class="custom-file my-2"> @*style="width: 700px">*@
-                         <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
-                         <label class="custom-file-label" for="customFile">Choose file...</label>
-                      </div>
+                      
+                     <form>
+                        <div class="custom-file my-2"> @*style="width: 700px">*@
+                           <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                           <label class="custom-file-label" for="customFile">Choose file...</label>
+                        </div>
+                     </form>
                       @* <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br /> *@
                       <div style="display: inline"><button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to Add document [shift + alt + D]">A<u>d</u>d</button></div>
                       <div style="display: inline">By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>

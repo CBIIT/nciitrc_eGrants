@@ -584,14 +584,16 @@
                      <!--end upload by drag drop-->
                      <!--start upload by file-->
                      <div class="tabcontent" id="by_file" style="display: none">
+                        <form>
                         <div class="custom-file my-2">
                            <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
                            <label class="custom-file-label" for="customFile">Choose file...</label>
                         </div>
-                        <div style="display: inline">
-                           <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" accesskey="N" disabled="disabled" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
-                        </div>
-                        <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
+                        </form>
+                           <div style="display: inline">
+                              <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" accesskey="N" disabled="disabled" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
+                           </div>
+                           <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
                      </div>
                      <!--end upload by file-->
 
