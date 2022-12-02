@@ -38,8 +38,10 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -49,6 +51,8 @@ using egrants_new.Models;
 
 using Hangfire;
 using Hangfire.SqlServer;
+
+//using Microsoft.ApplicationInsights.Extensibility;
 
 #endregion
 
@@ -102,9 +106,9 @@ namespace egrants_new
                     // check exception user and who's ic not as nci
                     if (this.ic != "nci" && this.ic != "NCI")
                     {
-                        var userexception = EgrantsCommon.CheckUsersException(this.userid);
+                        var usersException = EgrantsCommon.CheckUsersException(this.userid);
 
-                        if (userexception == 1)
+                        if (usersException == 1)
                         {
                             this.ic = "nci";
                         }
@@ -125,6 +129,9 @@ namespace egrants_new
         /// </summary>
         protected void Application_Start()
         {
+
+            //TelemetryConfiguration.Active.DisableTelemetry = true;
+
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             this.Application["UsersOnline"] = 0;
 
@@ -156,7 +163,6 @@ namespace egrants_new
         /// </returns>
         private IEnumerable<IDisposable> GetHangfireServers()
         {
-            // Hangfire.
             var conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
 
             GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer()
@@ -190,8 +196,12 @@ namespace egrants_new
             this.ic = this.IC;
 
             // Response.Write(userid + ", " + ic);
-            var uservalidation = EgrantsCommon.CheckUserValidation(this.ic, this.userid);
-            if (uservalidation == 0) this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            var userValidation = EgrantsCommon.CheckUserValidation(this.ic, this.userid);
+
+            if (userValidation == 0)
+            {
+                this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            }
         }
 
         /// <summary>
@@ -213,34 +223,16 @@ namespace egrants_new
             this.Session["ic"] = this.IC;
             this.Session["browser"] = this.BrowserType;
 
-            this.check_user_type();
-        }
-
-        /// <summary>
-        ///     The check_user_type.
-        /// </summary>
-        protected void check_user_type()
-        {
             var usertype = EgrantsCommon.UserType(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
+
 
             if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
             {
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            }
-            else
-            {
-                this.check_user_validation(usertype);
-            }
-        }
 
-        /// <summary>
-        /// The check_user_validation.
-        /// </summary>
-        /// <param name="usertype">
-        /// The usertype.
-        /// </param>
-        protected void check_user_validation(string usertype)
-        {
+                return;
+            }
+
             // set all profiles for user
             var users = EgrantsCommon.uservar(Convert.ToString(this.Session["userid"]), Convert.ToString(this.Session["ic"]), usertype);
 
@@ -260,21 +252,10 @@ namespace egrants_new
             if (this.Session["Validation"].ToString() != "OK")
             {
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            }
-            else
-            {
-                this.check_user_profile(usertype);
-            }
-        }
 
-        /// <summary>
-        /// The check_user_profile.
-        /// </summary>
-        /// <param name="usertype">
-        /// The usertype.
-        /// </param>
-        protected void check_user_profile(string usertype)
-        {
+                return;
+            }
+
             // get link and server from web.config file
             // Session["server"] = ConfigurationManager.ConnectionStrings["Server"].ConnectionString;
             this.Session["webgrant"] = ConfigurationManager.ConnectionStrings["webgrant"].ConnectionString;
@@ -291,7 +272,86 @@ namespace egrants_new
             this.Session["closeoutAcceptance"] = ConfigurationManager.ConnectionStrings["closeoutAcceptance"].ConnectionString;
             this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
             this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
+
+            //this.Session["test"] = "Hello";
         }
+
+        /// <summary>
+        ///     The check_user_type.
+        /// </summary>
+        // protected void check_user_type()
+        // {
+        //     var usertype = EgrantsCommon.UserType(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
+        //
+        //     if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
+        //     {
+        //         this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+        //     }
+        //     else
+        //     {
+        //         this.check_user_validation(usertype);
+        //     }
+        // }
+        //
+        // /// <summary>
+        // /// The check_user_validation.
+        // /// </summary>
+        // /// <param name="usertype">
+        // /// The usertype.
+        // /// </param>
+        // protected void check_user_validation(string usertype)
+        // {
+        //     // set all profiles for user
+        //     var users = EgrantsCommon.uservar(Convert.ToString(this.Session["userid"]), Convert.ToString(this.Session["ic"]), usertype);
+        //
+        //     foreach (var usr in users)
+        //     {
+        //         this.Session.Add("Validation", usr.Validation);
+        //         this.Session.Add("userid", usr.UserId);
+        //         this.Session.Add("ic", usr.ic);
+        //         this.Session.Add("Personid", usr.personID);
+        //         this.Session.Add("position_id", usr.positionID);
+        //         this.Session.Add("UserName", usr.PersonName);
+        //         this.Session.Add("UserEmail", usr.PersonEmail);
+        //         this.Session.Add("Menus", usr.menulist);
+        //     }
+        //
+        //     // check user validation
+        //     if (this.Session["Validation"].ToString() != "OK")
+        //     {
+        //         this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+        //     }
+        //     else
+        //     {
+        //         this.check_user_profile(usertype);
+        //     }
+        // }
+        //
+        // /// <summary>
+        // /// The check_user_profile.
+        // /// </summary>
+        // /// <param name="usertype">
+        // /// The usertype.
+        // /// </param>
+        // protected void check_user_profile(string usertype)
+        // {
+        //     // get link and server from web.config file
+        //     // Session["server"] = ConfigurationManager.ConnectionStrings["Server"].ConnectionString;
+        //     this.Session["webgrant"] = ConfigurationManager.ConnectionStrings["webgrant"].ConnectionString;
+        //     this.Session["ImageServer"] = ConfigurationManager.ConnectionStrings["ImageServer"].ConnectionString;
+        //
+        //     // for egrants
+        //     this.Session["dashboard"] = 0;
+        //     this.Session["egrantsDocNew"] = ConfigurationManager.ConnectionStrings["egrantsDocNew"].ConnectionString;
+        //     this.Session["egrantsDocModify"] = ConfigurationManager.ConnectionStrings["egrantsDocModify"].ConnectionString;
+        //     this.Session["egrantsFunding"] = ConfigurationManager.ConnectionStrings["egrantsFunding"].ConnectionString;
+        //     this.Session["egrantsInst"] = ConfigurationManager.ConnectionStrings["egrantsInst"].ConnectionString;
+        //     this.Session["egrantsDocEmail"] = ConfigurationManager.ConnectionStrings["egrantsDocEmail"].ConnectionString;
+        //
+        //     this.Session["closeoutAcceptance"] = ConfigurationManager.ConnectionStrings["closeoutAcceptance"].ConnectionString;
+        //     this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
+        //     this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
+        // }
 
         /// <summary>
         /// This event raised whenever an unhandled exception occurs in the
@@ -373,7 +433,10 @@ namespace egrants_new
         protected void Application_EndRequest(object sender, EventArgs e)
         {
             // Iterate through any cookies found in the Response object.
-            foreach (var cookieName in this.Response.Cookies.AllKeys) this.Response.Cookies[cookieName].Secure = true;
+            foreach (var cookieName in this.Response.Cookies.AllKeys)
+            {
+                this.Response.Cookies[cookieName].Secure = true;
+            }
         }
 
         // Create our own utility for exceptions 
