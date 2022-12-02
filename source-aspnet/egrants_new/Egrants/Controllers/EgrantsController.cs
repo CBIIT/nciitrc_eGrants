@@ -222,6 +222,14 @@ namespace egrants_new.Controllers
 
                         downloadModel.NumSucceeded += 1;
                     }
+
+                    if (url.Contains("https://i2e"))
+                    {
+
+                        Console.WriteLine("We should never hit this....");
+
+                        throw new Exception("We found an i2e path and these should not be included in downloads");
+                    }
                     else
                     {
                         Uri uri;
@@ -276,7 +284,11 @@ namespace egrants_new.Controllers
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
                             myWebClient.DownloadFile(uri, tmpFileName);
-                            string filename = System.IO.Path.GetFileName(uri.LocalPath);
+                            //string filename = System.IO.Path.GetFileName(uri.LocalPath);
+
+                            var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                            ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                            string filename = contentDisposition.FileName;
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));

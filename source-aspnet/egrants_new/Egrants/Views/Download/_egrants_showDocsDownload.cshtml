@@ -476,7 +476,8 @@
                               full.document_id +
                               "\"" +
                               " title=\"Check here to select this document for download\" " +
-                              ((full.document_date == "") ? "disabled" : "enabled") + "/></div>";
+                              //((full.document_date == "") ? "disabled" : "enabled") + 
+                              ((full.url.substring(0, 11) == "https://i2e" ? "disabled" : "enabled")) + "/></div>";
                       //  }
 //                           "onchange=\"check_changed_row(" + full.document_id + ")\"/></div>";
 //                           } else {
@@ -680,14 +681,13 @@
                   function () {
                      console.log(isAllChecked);
                      // skip the item if it is disabled
-                     if ($(this).prop('disabled')) {
-                        return false;
-                     }
-                     // check the box if all should be checked or uncheck if all should be unchecked
-                     if (isAllChecked) {
-                        $(this).prop('checked', true);
-                     } else {
-                        $(this).prop('checked', false);
+                     if (!$(this).prop('disabled')) {
+                        // check the box if all should be checked or uncheck if all should be unchecked
+                        if (isAllChecked) {
+                           $(this).prop('checked', true);
+                        } else {
+                           $(this).prop('checked', false);
+                        }
                      }
                   });
             });
@@ -1023,7 +1023,7 @@
 
          /* Formatting function for row details   margin-left:65px;*/
          function format(d) {
-            var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+            var str = '<div>' // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
             str = str + 'Created On ' + d.created_date + ' by ' + d.created_by;
 
             if (d.file_modified_by != "") {
