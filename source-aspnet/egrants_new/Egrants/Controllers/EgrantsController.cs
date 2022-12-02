@@ -284,11 +284,11 @@ namespace egrants_new.Controllers
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
                             myWebClient.DownloadFile(uri, tmpFileName);
-                            //string filename = System.IO.Path.GetFileName(uri.LocalPath);
+                            string filename = System.IO.Path.GetFileName(uri.LocalPath);
 
-                            var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-                            ContentDisposition contentDisposition = new ContentDisposition(disposition);
-                            string filename = contentDisposition.FileName;
+                            // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                            // ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                            // string filename = contentDisposition.FileName;
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
