@@ -1,0 +1,199 @@
+﻿#region FileHeader
+
+// /****************************** Module Header ******************************\
+// Module Name:  EgrantsCommon.cs
+// Solution: egrants_new
+// Project:  egrants_new
+// Created: 2022-05-05
+// Contributors:
+//      - Briggs, Robin (NIH/NCI) [C] - briggsr2
+//      -
+// Copyright (c) National Institute of Health
+// 
+// <Description of the file>
+// 
+// This source is subject to the NIH Softwre License.
+// See https://ncihub.org/resources/899/download/Guidelines_for_Releasing_Research_Software_04062015.pdf
+// All other rights reserved.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT ARE DISCLAIMED. IN NO EVENT SHALL THE NATIONAL
+// CANCER INSTITUTE (THE PROVIDER), THE NATIONAL INSTITUTES OF HEALTH, THE
+// U.S. GOVERNMENT OR THE INDIVIDUAL DEVELOPERS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// \***************************************************************************/
+
+#endregion
+
+namespace egrants_new.Models
+{
+
+    /// <summary>
+    ///     The egrants users.
+    /// </summary>
+    public class EgrantsUsers
+    {
+        /// <summary>
+        ///     Gets or sets the character_index.
+        /// </summary>
+       // public string character_index { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the person_id.
+        /// </summary>
+        public string PersonId { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the person_name.
+        /// </summary>
+        public string person_name { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the userid.
+        /// </summary>
+        public string userid { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the first_name.
+        /// </summary>
+        public string first_name { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the middle_name.
+        /// </summary>
+        public string middle_name { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the last_name.
+        /// </summary>
+        public string last_name { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the phone_number.
+        /// </summary>
+        public string phone_number { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the email_address.
+        /// </summary>
+        public string email_address { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the profile_id.
+        /// </summary>
+        public string profile_id { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the position_id.
+        /// </summary>
+        public string position_id { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the position_name.
+        /// </summary>
+        public string position_name { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the active.
+        /// </summary>
+        public string active { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the ic.
+        /// </summary>
+        public string ic { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the application_type.
+        /// </summary>
+        public string application_type { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the is_coordinator.
+        /// </summary>
+        public string is_coordinator { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the coordinator_id.
+        /// </summary>
+        public string coordinator_id { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the can_admin.
+        /// </summary>
+        public string can_admin { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the can_egrants.
+        /// </summary>
+        public string can_egrants { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the can_dashboard.
+        /// </summary>
+        public string can_dashboard { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the can_coordinator.
+        /// </summary>
+        public string can_coordinator { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the can_docman.
+        /// </summary>
+        public string can_docman { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the can_cft.
+        /// </summary>
+        public string can_cft { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the can_mgt.
+        /// </summary>
+        public string can_mgt { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the can_iccoord.
+        /// </summary>
+        public string can_iccoord { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the start_date.
+        /// </summary>
+        public string start_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the end_date.
+        /// </summary>
+        public string end_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the create_date.
+        /// </summary>
+        public string create_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the create_by.
+        /// </summary>
+        public string create_by { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the last_update_date.
+        /// </summary>
+        public string last_update_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the last_update_by.
+        /// </summary>
+        public string last_update_by { get; set; }
+    }
+}

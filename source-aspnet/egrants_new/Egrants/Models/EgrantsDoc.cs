@@ -198,14 +198,14 @@ namespace egrants_new.Egrants.Models
         /// <returns>
         ///     The <see cref="System.Collections.Generic.List`1" /> .
         /// </returns>
-        public static List<EgrantsCommon.EgrantsUsers> LoadUsers(string ic)
+        public static List<EgrantsUsers> LoadUsers(string ic)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
             var cmd = new SqlCommand("select person_id, person_name from vw_people where position_id>1 and ic=@ic order by person_name", conn);
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
 
-            var UserList = new List<EgrantsCommon.EgrantsUsers>();
+            var UserList = new List<EgrantsUsers>();
             conn.Open();
 
             cmd.CommandTimeout = 120;
@@ -213,7 +213,7 @@ namespace egrants_new.Egrants.Models
 
             while (rdr.Read())
                 UserList.Add(
-                    new EgrantsCommon.EgrantsUsers { person_id = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
+                    new EgrantsUsers { PersonId = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
 
             conn.Close();
 
