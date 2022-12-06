@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  EgrantsController.cs
+// Module Name:  Pagination.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-05
+// Created: 2022-12-02
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,54 +33,46 @@
 
 #endregion
 
-#region
-
-using System.Collections.Generic;
-
-//using Newtonsoft.Json;
-
-#endregion
-
-namespace egrants_new.Models
+namespace egrants_new.Egrants.Models
 {
-    public class PageDownloadModel
+    /// <summary>
+    ///     The pagination.
+    /// </summary>
+    public class Pagination
     {
         /// <summary>
-        /// Gets or sets the appl_id.
+        ///     Gets or sets the tag.
         /// </summary>
-        public int ApplId { get; set; }
+        public string tag { get; set; }
 
-        public string FullGrantNumber { get; set; }
-    }
-
-    public class DownloadModel
-    {
         /// <summary>
-        /// Gets or sets the appl_id.
+        ///     Gets or sets the parent.
         /// </summary>
-        public string ApplId { get; set; }
+        public string parent { get; set; }
 
-        public int NumToDownload { get; set; }
+        /// <summary>
+        ///     Gets or sets the total_grants.
+        /// </summary>
+        public string total_grants { get; set; }
 
-        public int NumSucceeded { get; set; }
+        /// <summary>
+        ///     Gets or sets the total_tabs.
+        /// </summary>
+        public string total_tabs { get; set; }
 
-        public int NumFailed { get; set; }
+        /// <summary>
+        ///     Gets or sets the total_pages.
+        /// </summary>
+        public string total_pages { get; set; }
 
-        public string Handle { get; set; }
+        /// <summary>
+        ///     Gets or sets the tab_number.
+        /// </summary>
+        public string tab_number { get; set; }
 
-        public string ZipFilename { get; set; }
-
-        public string ZipError { get; set; }
-
-        public List<DownloadData> DownloadDataList { get; set; }
-    }
-
-    public class DownloadData
-    {
-        public string Url { get; set; }
-
-        public string FileDownloaded { get; set; }
-
-        public string Error { get; set; }
+        /// <summary>
+        ///     Gets or sets the page_number.
+        /// </summary>
+        public string page_number { get; set; }
     }
 }

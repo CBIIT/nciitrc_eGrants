@@ -1,0 +1,220 @@
+﻿#region FileHeader
+
+// /****************************** Module Header ******************************\
+// Module Name:  Search.cs
+// Solution: egrants_new
+// Project:  egrants_new
+// Created: 2022-12-02
+// Contributors:
+//      - Briggs, Robin (NIH/NCI) [C] - briggsr2
+//      -
+// Copyright (c) National Institute of Health
+// 
+// <Description of the file>
+// 
+// This source is subject to the NIH Softwre License.
+// See https://ncihub.org/resources/899/download/Guidelines_for_Releasing_Research_Software_04062015.pdf
+// All other rights reserved.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT ARE DISCLAIMED. IN NO EVENT SHALL THE NATIONAL
+// CANCER INSTITUTE (THE PROVIDER), THE NATIONAL INSTITUTES OF HEALTH, THE
+// U.S. GOVERNMENT OR THE INDIVIDUAL DEVELOPERS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// \***************************************************************************/
+
+#endregion
+
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+
+#endregion
+
+namespace egrants_new.Egrants.Models
+{
+    /// <summary>
+    ///     The search.
+    /// </summary>
+    public static class Search
+    {
+        /// <summary>
+        ///     Gets or sets the grantlayerproperty.
+        /// </summary>
+        public static List<GrantLayer> grantlayerproperty { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the appllayerproperty.
+        /// </summary>
+        public static List<ApplLayerObject> appllayerproperty { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the doclayerproperty.
+        /// </summary>
+        public static List<doclayer> doclayerproperty { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the doclayerproperty_era.
+        /// </summary>
+        public static List<doclayer> doclayerproperty_era { get; set; }
+
+        /// <summary>
+        /// The egrants_search.
+        /// </summary>
+        /// <param name="str">
+        /// The str.
+        /// </param>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <param name="package">
+        /// The package.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="current_page">
+        /// The current_page.
+        /// </param>
+        /// <param name="browser">
+        /// The browser.
+        /// </param>
+        /// <param name="ic">
+        /// The ic.
+        /// </param>
+        /// <param name="userid">
+        /// The userid.
+        /// </param>
+        public static void egrants_search(
+            string str,
+            int grant_id,
+            string package,
+            int appl_id,
+            int current_page,
+            string browser,
+            string ic,
+            string userid)
+        {
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            var cmd = new SqlCommand("dbo.sp_web_egrants", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add("@str", SqlDbType.NVarChar).Value = str;
+            cmd.Parameters.Add("@grant_id", SqlDbType.Int).Value = grant_id;
+            cmd.Parameters.Add("@package", SqlDbType.VarChar).Value = package;
+            cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = appl_id;
+            cmd.Parameters.Add("@current_page", SqlDbType.Int).Value = current_page;
+            cmd.Parameters.Add("@browser", SqlDbType.VarChar).Value = browser;
+            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+            cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+
+            conn.Open();
+
+            grantlayerproperty = null;
+            appllayerproperty = null;
+            doclayerproperty = null;
+
+            var grantList = new List<GrantLayer>();
+            var applList = new List<ApplLayerObject>();
+            var docList = new List<doclayer>();
+
+            var rdr = cmd.ExecuteReader();
+
+            var tag = 0;
+
+            while (rdr.Read())
+            {
+                tag = Convert.ToInt32(rdr["tag"]);
+
+                if (tag == 1)
+                {
+                    var grant = new GrantLayer();
+                    grant.grant_id = rdr["grant_id"]?.ToString();
+                    grant.org_name = rdr["org_name"]?.ToString();
+                    grant.serial_num = rdr["serial_num"]?.ToString();
+                    grant.grant_num = string.Concat(rdr["admin_phs_org_code"] + Convert.ToInt32(rdr["serial_num"]).ToString("000000"));
+                    grant.former_grant_num = rdr["former_grant_num"]?.ToString();
+                    grant.latest_full_grant_num = rdr["latest_full_grant_num"]?.ToString();
+                    grant.admin_phs_org_code = rdr["admin_phs_org_code"]?.ToString();
+                    grant.project_title = rdr["project_title"]?.ToString();
+                    grant.pi_name = rdr["pi_name"]?.ToString();
+                    grant.prog_class_code = rdr["prog_class_code"]?.ToString();
+                    grant.all_activity_code = rdr["all_activity_code"]?.ToString();
+                    grant.current_pi_name = rdr["current_pi_name"]?.ToString();
+                    grant.current_pi_email_address = rdr["current_pi_email_address"]?.ToString();
+                    grant.current_pd_name = rdr["current_pd_name"]?.ToString();
+                    grant.current_pd_email_address = rdr["current_pd_email_address"]?.ToString();
+                    grant.current_spec_name = rdr["current_spec_name"]?.ToString();
+                    grant.current_spec_email_address = rdr["current_spec_email_address"]?.ToString();
+                    grant.current_bo_email_address = rdr["current_bo_email_address"]?.ToString();
+                    grant.sv_url = rdr["sv_url"]?.ToString();
+                    grant.arra_flag = rdr["arra_flag"]?.ToString();
+                    grant.fda_flag = rdr["fda_flag"]?.ToString();
+                    grant.stop_flag = rdr["stop_flag"]?.ToString();
+                    grant.ms_flag = rdr["ms_flag"]?.ToString();
+                    grant.od_flag = rdr["od_flag"]?.ToString();
+                    grant.ds_flag = rdr["ds_flag"]?.ToString();
+                    grant.adm_supp = rdr["adm_supp"]?.ToString();
+                    grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true : false;
+                    grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
+
+                    grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
+
+                    // grant.inst_flag2_url = rdr["inst_flag2_url"].ToString();
+                    grantList.Add(grant);
+                }
+                else if (tag == 2)
+                {
+                    var appl = new ApplLayerObject();
+                    appl.grant_id = rdr["grant_id"]?.ToString();
+                    appl.appl_id = rdr["appl_id"]?.ToString();
+                    appl.appl_type_code = rdr["appl_type_code"]?.ToString();
+                    appl.full_grant_num = rdr["full_grant_num"]?.ToString();
+                    appl.support_year = rdr["support_year"]?.ToString();
+                    appl.deleted_by_impac = rdr["deleted_by_impac"]?.ToString();
+                    appl.doc_count = rdr["doc_count"]?.ToString();
+                    appl.closeout_notcount = rdr["closeout_notcount"]?.ToString();
+                    appl.can_add_doc = rdr["can_add_doc"]?.ToString();
+                    appl.competing = rdr["competing"]?.ToString();
+                    appl.fsr_count = rdr["fsr_count"]?.ToString();
+                    appl.frc_destroyed = rdr["frc_destroyed"]?.ToString();
+                    appl.appl_fda_flag = rdr["appl_fda_flag"]?.ToString();
+                    appl.appl_ms_flag = rdr["appl_ms_flag"]?.ToString();
+                    appl.appl_od_flag = rdr["appl_od_flag"]?.ToString();
+                    appl.appl_ds_flag = rdr["appl_ds_flag"]?.ToString();
+                    appl.closeout_flag = rdr["closeout_flag"]?.ToString();
+                    appl.irppr_id = rdr["irppr_id"]?.ToString();
+                    appl.can_add_funding = rdr["can_add_funding"]?.ToString();
+
+                    applList.Add(appl);
+                }
+                else if (tag == 3)
+                {
+                    var doc = new doclayer();
+                    doc.appl_id = rdr["appl_id"]?.ToString();
+                    doc.docs_count = rdr["docs_count"]?.ToString();
+
+                    docList.Add(doc);
+                }
+            }
+
+            // added by Leon 5/11/2019
+            conn.Close();
+
+            grantlayerproperty = grantList;
+            appllayerproperty = applList;
+            doclayerproperty = docList;
+        }
+    }
+}

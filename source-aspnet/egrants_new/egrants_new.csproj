@@ -773,9 +773,12 @@
     <Compile Include="Dashboard\Controllers\DashboardController.cs" />
     <Compile Include="Dashboard\Models\Reminder.cs" />
     <Compile Include="Dashboard\Models\Dashboard.cs" />
+    <Compile Include="Egrants\Models\ApplLayerObject.cs" />
+    <Compile Include="Egrants\Models\doclayer.cs" />
     <Compile Include="Egrants\Models\DownloadModel.cs" />
     <Compile Include="Egrants\Controllers\EgrantsController.cs" />
     <Compile Include="Egrants\Controllers\EgrantsDocController.cs" />
+    <Compile Include="Egrants\Models\GrantLayer.cs" />
     <Compile Include="Egrants\Models\InstitutionalFilesEnums.cs" />
     <Compile Include="Egrants\Models\InstitutionalFilesPage.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrgCategory.cs" />
@@ -786,6 +789,11 @@
     <Compile Include="Egrants\DataRepositories\InstitutionalFilesRepo.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrg.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrgNameIndex.cs" />
+    <Compile Include="Egrants\Models\Pagination.cs" />
+    <Compile Include="Egrants\Models\Search.cs" />
+    <Compile Include="Egrants\Models\Search_by_appl_id.cs" />
+    <Compile Include="Egrants\Models\StopNoticeObject.cs" />
+    <Compile Include="Egrants\Models\SupplementObject.cs" />
     <Compile Include="Egrants_Admin\Controllers\ApplDestructedController.cs" />
     <Compile Include="Egrants_Admin\Controllers\EgrantsAccessController.cs" />
     <Compile Include="Egrants_Admin\Controllers\SupplementController.cs" />
