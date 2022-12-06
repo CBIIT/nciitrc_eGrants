@@ -234,11 +234,20 @@ namespace egrants_new.Controllers
 
                                 if (fullGrantNumber.Length == 15)
                                 {
-                                    newFileName = fullGrantNumber.Remove(0, 1) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                                    newFileName = fullGrantNumber.Remove(0, 1) + "-" + split[1];
+
+                                    if (split[2].Length > 0)
+                                    {
+                                        newFileName += " - " + split[2] + fi.Extension;
+                                    }
                                 }
                                 if (fullGrantNumber.Length > 15)
                                 {
-                                    newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                                    newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1];
+                                    if (split[2].Length > 0)
+                                    {
+                                        newFileName += " - " + split[2] + fi.Extension;
+                                    }
                                 }
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
@@ -306,11 +315,6 @@ namespace egrants_new.Controllers
                             myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
                             myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
-                            // foreach (var header in Request.Headers)
-                            // {
-                            //     Console.WriteLine("Header: " + header.ToString());
-                            // }
-
                             myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
@@ -322,16 +326,20 @@ namespace egrants_new.Controllers
 
                             if (fullGrantNumber.Length == 15)
                             {
-                               newFileName = fullGrantNumber.Remove(0, 1) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                                newFileName = fullGrantNumber.Remove(0, 1) + "-" + split[1];
+                                if (split[2].Length > 0)
+                                {
+                                    newFileName += " - " + split[2] + fi.Extension;
+                                }
                             }
                             if (fullGrantNumber.Length > 15)
                             {
-                                newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                                newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1];
+                                if (split[2].Length > 0)
+                                {
+                                    newFileName += " - " + split[2] + fi.Extension;
+                                }
                             }
-
-                            // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-                            // ContentDisposition contentDisposition = new ContentDisposition(disposition);
-                            // string filename = contentDisposition.FileName;
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
