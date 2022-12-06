@@ -222,14 +222,26 @@ namespace egrants_new.Controllers
 
                                 // Download the Web resource and save it into the current filesystem folder.
                                 myWebClient.DownloadFile(downloadUrl, tmpFileName);
-                                string filename = Path.GetFileName(uri.LocalPath);
-                                FileInfo fi = new FileInfo(filename);
-                                // // get the filename from the content-disposition header of the downloaded file
-                                // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-                                // ContentDisposition contentDisposition = new ContentDisposition(disposition);
-                                // string filename = contentDisposition.FileName;
+                               // string filename = Path.GetFileName(uri.LocalPath);
 
-                                var newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                                // // get the filename from the content-disposition header of the downloaded file
+                                var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                                ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                                string filename = contentDisposition.FileName;
+                                FileInfo fi = new FileInfo(filename);
+
+                                string newFileName = string.Empty;
+
+                                if (fullGrantNumber.Length == 15)
+                                {
+                                    newFileName = fullGrantNumber.Remove(0, 1) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                                }
+                                if (fullGrantNumber.Length > 15)
+                                {
+                                    newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                                }
+
+                                newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
@@ -307,7 +319,18 @@ namespace egrants_new.Controllers
                             myWebClient.DownloadFile(uri, tmpFileName);
                             string filename = Path.GetFileName(uri.LocalPath);
                             FileInfo fi = new FileInfo(filename);
-                            var newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
+
+                            string newFileName = string.Empty;
+
+                            if (fullGrantNumber.Length == 15)
+                            {
+                               newFileName = fullGrantNumber.Remove(0, 1) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                            }
+                            if (fullGrantNumber.Length > 15)
+                            {
+                                newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
+                            }
+
                             // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
                             // ContentDisposition contentDisposition = new ContentDisposition(disposition);
                             // string filename = contentDisposition.FileName;
