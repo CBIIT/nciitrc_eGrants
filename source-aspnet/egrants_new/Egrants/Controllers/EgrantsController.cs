@@ -105,6 +105,7 @@ namespace egrants_new.Controllers
             // return RedirectToAction("Index", "ICCoordinator", new { area = "IC_Coordinator" });
             // }
 
+
             // retuen IC list
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
@@ -123,13 +124,20 @@ namespace egrants_new.Controllers
         /// <param name="appl"></param>
         /// <param name="listOfUrl"></param>
         /// <returns></returns>
-        public ActionResult IsDownloadForm(string appl, IEnumerable<string> listOfUrl)
+        public ActionResult IsDownloadForm(string appl, 
+                                           string fullGrantNumber, IList<string> listOfUrl)
         {
+            // 1 - trim the first character in the full grant number
+            // 2 - trim the characters in full grant number year, and anything after trim
+
             DownloadModel downloadModel = new DownloadModel();
             downloadModel.ApplId = appl;
             downloadModel.NumFailed = 0;
             downloadModel.NumSucceeded = 0;
             downloadModel.NumToDownload = listOfUrl.Count();
+  
+   
+            var viewBag = this.ViewBag;
 
             // create the temp path and
             string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
@@ -152,10 +160,20 @@ namespace egrants_new.Controllers
             // var grantId = this.ViewBag.GrantID;
             DownloadData downloadData = new DownloadData();
 
-            foreach (var url in listOfUrl)
+
+            // foreach (var url in listOfUrl)
+            // {
+            //     var split = url.Split(new char[]{'|'}, StringSplitOptions.None);
+            // }
+
+
+            foreach (var dataInput in listOfUrl)
             {
                 try
                 {
+                    var split = dataInput.Split(new char[] { '|' }, StringSplitOptions.None);
+                    var url = split[0];
+
                     downloadModel.DownloadDataList = new List<DownloadData>();
                     downloadData = new DownloadData();
                     downloadData.Url = url;
@@ -204,19 +222,21 @@ namespace egrants_new.Controllers
 
                                 // Download the Web resource and save it into the current filesystem folder.
                                 myWebClient.DownloadFile(downloadUrl, tmpFileName);
+                                string filename = Path.GetFileName(uri.LocalPath);
+                                // // get the filename from the content-disposition header of the downloaded file
+                                // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                                // ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                                // string filename = contentDisposition.FileName;
 
-                                // get the filename from the content-disposition header of the downloaded file
-                                var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
-                                ContentDisposition contentDisposition = new ContentDisposition(disposition);
-                                string filename = contentDisposition.FileName;
+                                var newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + ":" + split[2];
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
-                                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
-                                downloadData.FileDownloaded = filename;
+                                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                                downloadData.FileDownloaded = newFileName;
                       
-                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, downloadUrl);
+                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, downloadUrl);
 
-                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
+                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                             }
                         }
 
@@ -284,18 +304,19 @@ namespace egrants_new.Controllers
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
                             myWebClient.DownloadFile(uri, tmpFileName);
-                            string filename = System.IO.Path.GetFileName(uri.LocalPath);
+                            string filename = Path.GetFileName(uri.LocalPath);
 
+                            var newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + ":" + split[2];
                             // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
                             // ContentDisposition contentDisposition = new ContentDisposition(disposition);
                             // string filename = contentDisposition.FileName;
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
-                            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, filename));
-                            downloadData.FileDownloaded = filename;
+                            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                            downloadData.FileDownloaded = newFileName;
                             downloadModel.NumSucceeded += 1;
-                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", filename, uri.OriginalString);
-                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + filename);
+                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
+                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                         }
                     }
                 }
@@ -366,44 +387,6 @@ namespace egrants_new.Controllers
             return Json(downloadModel, JsonRequestBehavior.AllowGet);
             //return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
         }
-
-
-        private void CertThing()
-        {
-
-        }
-        /// <summary>
-        /// Certificate validation callback.
-        /// </summary>
-        private static bool ValidateRemoteCertificate(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
-        {
-            // If the certificate is a valid, signed certificate, return true.
-            if (error == System.Net.Security.SslPolicyErrors.None)
-            {
-                return true;
-            }
-
-            Console.WriteLine("X509Certificate [{0}] Policy Error: '{1}'",
-                cert.Subject,
-                error.ToString());
-
-            return false;
-        }
-        // public static X509Certificate2 PickCertificate()
-        // {
-        //     X509Certificate2 cert;
-        //     var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-        //
-        //     store.Open(OpenFlags.ReadOnly);
-        //
-        //     if (store.Certificates.Count == 1)
-        //         cert = store.Certificates[0];
-        //     else
-        //         cert = X509Certificate2UI.SelectFromCollection(store.Certificates, "Caption", "Message", X509SelectionFlag.SingleSelection)[0];
-        //
-        //     store.Close();
-        //     return cert;
-        // }
 
         /// <summary>  
         /// Override the JSON Result with Max integer JSON lenght  
@@ -519,13 +502,13 @@ namespace egrants_new.Controllers
         /// The <see cref="string"/>.
         /// </returns>
         public string LoadYears(
-            string fy = null,
+            string fiscalYear = null,
             string mechanism = null,
-            string admin_code = null,
-            string serial_num = null)
+            string adminCode = null,
+            string serialNumber = null)
         {
             // string fy, string mechan, s
-            var list = Egrants.Models.Egrants.GetYearList(fy, mechanism, admin_code, serial_num);
+            var list = Egrants.Models.Egrants.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
             return JsonConvert.SerializeObject(list);
@@ -604,7 +587,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.SearchStyle = "by_str";
 
                 // load data           
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     str,
                     0,
                     string.Empty,
@@ -614,13 +597,13 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                if (Egrants.Models.Egrants.Search.grantlayerproperty != null)
+                if (Search.grantlayerproperty != null)
                 {
-                    this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                    this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
+                    this.ViewBag.grantlayer = Search.grantlayerproperty;
+                    this.ViewBag.appllayer = Search.appllayerproperty;
                     this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                    this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
-                    this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+                    this.ViewBag.appllayer_All = Search.appllayerproperty;
+                    this.ViewBag.doclayer = Search.doclayerproperty;
                     this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                     // show pagination
@@ -696,7 +679,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.SelectedCategories = Egrants.Models.Egrants.Get_CategoryName_by_id(categories);
 
                 // load data from DB
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     string.Empty,
                     grant_id,
                     package,
@@ -706,11 +689,11 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
-                this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
+                this.ViewBag.grantlayer = Search.grantlayerproperty;
+                this.ViewBag.appllayer_All = Search.appllayerproperty;
+                this.ViewBag.appllayer = Search.appllayerproperty;
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+                this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                 // set appls_lis for searching by flag_type
@@ -731,7 +714,7 @@ namespace egrants_new.Controllers
                 // reset appllayer and limit show appls if appls_list with search parameters
                 if (appls_list != null && appls_list != "All" && appls_list != "all")
                 {
-                    var appllist = new List<Egrants.Models.Egrants.appllayer>();
+                    var appllist = new List<ApplLayerObject>();
 
                     // for more than one appl
                     if (appls_list.IndexOf(',') > 1)
@@ -798,6 +781,7 @@ namespace egrants_new.Controllers
                 if (str != null)
                     this.ViewBag.Str = str;
 
+
                 this.ViewBag.Mode = mode;
                 this.ViewBag.SearchStyle = "by_appl";
                 this.ViewBag.ApplID = appl_id;
@@ -807,7 +791,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.SelectedAppls = appl_id.ToString();
 
                 // load data from DB
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     string.Empty,
                     0,
                     string.Empty,
@@ -817,11 +801,11 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
-                this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+                this.ViewBag.grantlayer = Search.grantlayerproperty;
+                this.ViewBag.appllayer = Search.appllayerproperty;
+                this.ViewBag.appllayer_All = Search.appllayerproperty;
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+                this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                 // ViewBag.doclayer_All = ViewBag.doclayer;--commented by leon 4/1/2019
@@ -859,7 +843,7 @@ namespace egrants_new.Controllers
             this.ViewBag.SearchStyle = "by_qc";
 
             // load data
-            Egrants.Models.Egrants.Search.egrants_search(
+            Search.egrants_search(
                 "qc",
                 0,
                 string.Empty,
@@ -869,11 +853,11 @@ namespace egrants_new.Controllers
                 Convert.ToString(this.Session["ic"]),
                 Convert.ToString(this.Session["userid"]));
 
-            this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-            this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
-            this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+            this.ViewBag.grantlayer = Search.grantlayerproperty;
+            this.ViewBag.appllayer = Search.appllayerproperty;
+            this.ViewBag.appllayer_All = Search.appllayerproperty;
             this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-            this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+            this.ViewBag.doclayer = Search.doclayerproperty;
             this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
             this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
@@ -893,26 +877,26 @@ namespace egrants_new.Controllers
         /// <summary>
         /// The by_filters.
         /// </summary>
-        /// <param name="fy">
-        /// The fy.
+        /// <param name="fiscalYear">
+        /// The fiscalYear.
         /// </param>
         /// <param name="mechanism">
         /// The mechanism.
         /// </param>
-        /// <param name="admincode">
-        /// The admincode.
+        /// <param name="adminCode">
+        /// The adminCode.
         /// </param>
-        /// <param name="serialnum">
-        /// The serialnum.
+        /// <param name="serialNumber">
+        /// The serialNumber.
         /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public ActionResult by_filters(int fy = 0, string mechanism = null, string admincode = null, int serialnum = 0)
+        public ActionResult by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialNumber = 0)
         {
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
-            if (fy == 0 && string.IsNullOrEmpty(mechanism) && serialnum == 0) /*string.IsNullOrEmpty(admincode) &&*/
+            if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNumber == 0) /*string.IsNullOrEmpty(admincode) &&*/
             {
                 this.ViewBag.Message = "No data found for the search";
                 this.ViewBag.grantlayer = null;
@@ -925,29 +909,33 @@ namespace egrants_new.Controllers
                 this.ViewBag.CurrentPage = 1;
 
                 // create return value
-                if (fy != 0)
-                    this.ViewBag.FilterFY = fy;
+                if (fiscalYear != 0)
+                {
+                    this.ViewBag.FilterFY = fiscalYear;
+                }
                 else
+                {
                     this.ViewBag.FilterFY = string.Empty;
+                }
 
-                if (serialnum != 0)
-                    this.ViewBag.FilterSerialNumber = serialnum;
+                if (serialNumber != 0)
+                    this.ViewBag.FilterSerialNumber = serialNumber;
 
                 this.ViewBag.FilterMechanism = mechanism;
-                this.ViewBag.FilterAdminCode = admincode;
+                this.ViewBag.FilterAdminCode = adminCode;
 
                 // create filters search sql query
                 var FilterSearchQuery = Egrants.Models.Egrants.GetSearchQuery(
-                    fy,
+                    fiscalYear,
                     mechanism,
-                    admincode,
-                    serialnum,
+                    adminCode,
+                    serialNumber,
                     1,
                     Convert.ToString(this.Session["browser"]),
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     FilterSearchQuery,
                     0,
                     package,
@@ -957,12 +945,12 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                if (Egrants.Models.Egrants.Search.grantlayerproperty != null)
+                if (Search.grantlayerproperty != null)
                 {
-                    this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                    this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
+                    this.ViewBag.grantlayer = Search.grantlayerproperty;
+                    this.ViewBag.appllayer = Search.appllayerproperty;
                     this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                    this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+                    this.ViewBag.appllayer_All = Search.appllayerproperty;
 
                     // show pagination
                     this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
@@ -1012,15 +1000,15 @@ namespace egrants_new.Controllers
             int tab_num = 0,
             int page_num = 0,
             string package = null,
-            int fy = 0,
+            int fiscalYear = 0,
             string mechanism = null,
-            string admincode = null,
-            int serialnum = 0)
+            string adminCode = null,
+            int serialNumber = 0)
         {
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
             /*string.IsNullOrEmpty(admincode) &&*/
-            if (fy == 0 && string.IsNullOrEmpty(mechanism) && serialnum == 0)
+            if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNumber == 0)
             {
                 this.ViewBag.Message = "No data found for the search";
                 this.ViewBag.grantlayer = null;
@@ -1037,30 +1025,30 @@ namespace egrants_new.Controllers
                 this.ViewBag.CurrentPage = page_num;
 
                 // create return value
-                if (fy != 0)
-                    this.ViewBag.FilterFY = fy;
+                if (fiscalYear != 0)
+                    this.ViewBag.FilterFY = fiscalYear;
                 else
                     this.ViewBag.FilterFY = string.Empty;
 
                 this.ViewBag.FilterMechanism = mechanism;
-                this.ViewBag.FilterAdminCode = admincode;
+                this.ViewBag.FilterAdminCode = adminCode;
 
-                if (serialnum != 0)
-                    this.ViewBag.FilterSerialNumber = serialnum;
+                if (serialNumber != 0)
+                    this.ViewBag.FilterSerialNumber = serialNumber;
 
                 // create filters search sql query
                 var FilterSearchQuery = Egrants.Models.Egrants.GetSearchQuery(
-                    fy,
+                    fiscalYear,
                     mechanism,
-                    admincode,
-                    serialnum,
+                    adminCode,
+                    serialNumber,
                     page_num,
                     Convert.ToString(this.Session["browser"]),
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
                 // load data
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     FilterSearchQuery,
                     0,
                     package,
@@ -1070,9 +1058,9 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
-                this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+                this.ViewBag.grantlayer = Search.grantlayerproperty;
+                this.ViewBag.appllayer = Search.appllayerproperty;
+                this.ViewBag.appllayer_All = Search.appllayerproperty;
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
 
                 // show Pagination 
@@ -1129,7 +1117,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.Str = str;
                 this.ViewBag.Mode = mode;
 
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     str,
                     0,
                     string.Empty,
@@ -1139,11 +1127,11 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
-                this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+                this.ViewBag.grantlayer = Search.grantlayerproperty;
+                this.ViewBag.appllayer = Search.appllayerproperty;
+                this.ViewBag.appllayer_All = Search.appllayerproperty;
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+                this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                 if (str == "qc")
@@ -1274,16 +1262,16 @@ namespace egrants_new.Controllers
         /// </returns>
         public JsonResult LoadDocsGrid(int appl_id, string search_type = null, string category_list = null, string mode = null)
         {
-            Egrants.Models.Egrants.Search_by_appl_id.LoadDocs(
+            Search_by_appl_id.LoadDocs(
                 appl_id,
                 search_type,
                 category_list,
                 Convert.ToString(this.Session["ic"]),
                 Convert.ToString(this.Session["userid"]));
 
-            this.ViewBag.doclayer = Egrants.Models.Egrants.Search_by_appl_id.doclayerproperty;
+            this.ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
 
-            // ViewBag.doclayer = Egrants.Models.Egrants.Search_by_appl_id.doclayerproperty.ToList();
+            // ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
             dynamic res = new { data = this.ViewBag.doclayer };
 
             return Json(res, JsonRequestBehavior.AllowGet);

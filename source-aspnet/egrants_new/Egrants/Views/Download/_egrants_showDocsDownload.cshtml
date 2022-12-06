@@ -147,8 +147,8 @@
       var previous_url = encodeURIComponent(currenturl);
       console.log(appl_id);
     //  var table = $('#loadgrid_' + appl_id).DataTable();
-      var table = document.getElementById("loadgrid_" + appl_id);
-      var tr = $('#loadgrid_' + appl_id).closest('tr');
+      var table = document.getElementById("loadgridDownload_" + appl_id);
+      var tr = $('#loadgridDownload_' + appl_id).closest('tr');
       var row = table.row(tr);
       var data = row.data();
       console.log(data);
@@ -174,19 +174,18 @@
 //   }
 </script>
 @{
-    var appl_id = Model;
-
+    var model = @Html.Raw(Json.Encode(Model));
+    //  var model2 = @Model;
+   // var myObj = Json.Decode(model);
+    var appl_id = @Html.Raw(Model.ApplId);
+   var fullGrantNumber = Model.FullGrantNumber;
+ //   var fullGrantNumber = model.FullGrantNumber.ToString();
+    //var appl_id = "@Html.Raw(Model.ApplId)";
+    //  var fullGrantNumber = model.FullGrantNumber;
+    //  var fullGrantNumber = "@Model.FullGrantNumber";
    <div id="overlay">
       <img style="width: 150px; height: 150px; margin-left: 400px; margin-top: 150px;" src="~/Content/images/Loading.gif" />
    </div>
-
-   @* <div class="container"> *@
-   @*    <input type="text" id="message" /> *@
-   @*    <input type="button" id="sendmessage" value="Send" /> *@
-   @*    <input type="hidden" id="displayname" /> *@
-   @*    <ul id="discussion"> *@
-   @*    </ul> *@
-   @* </div> *@
 
    <div id="create new buttons" style="float:right; display:inline;">
       <button type="button" id="downloadData" accesskey="D" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
@@ -198,7 +197,7 @@
       <div class="container">
          <br />
          <div style="width: 880px;  float:left">
-            <table id="loadgrid_@appl_id" class="" style="width: 100%">
+            <table id="loadgridDownload_@appl_id" class="" style="width: 100%">
                <thead>
                   <tr>
                      <th>
@@ -314,7 +313,7 @@
                      }
                   }
                });
-            var table = $("#loadgrid_" + @appl_id).DataTable({
+            var table = $("#loadgridDownload_" + @appl_id).DataTable({
                "paging": false, // for reinitialize
                "searching": false, // for reinitialize
                "ordering": true,
@@ -374,7 +373,7 @@
 
                //   });
 
-                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+                  $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                      function () {
                         if ($(this).attr('disabled') == "disabled" ) {
                            return false;
@@ -418,7 +417,7 @@
                "stripeClasses": ['odd-row', 'even-row'],
                "columnDefs": [
                   { "width": "75%", "targets": 1 },
-//                  { "width": "5%", "targets": 0 },
+                  { "width": "5%", "targets": 0 },
                   {
                      "targets": [0],
                      "orderable": false
@@ -476,7 +475,7 @@
                               full.document_id +
                               "\"" +
                               " title=\"Check here to select this document for download\" " +
-                              //((full.document_date == "") ? "disabled" : "enabled") + 
+                              //((full.document_date == "") ? "disabled" : "enabled") +
                               ((full.url.substring(0, 11) == "https://i2e" ? "disabled" : "enabled")) + "/></div>";
                       //  }
 //                           "onchange=\"check_changed_row(" + full.document_id + ")\"/></div>";
@@ -559,7 +558,7 @@
                            }
                         },
                      "autoWidth": true
-                  }
+                  },
 //                  { "data": "page_count", "autoWidth": true },
 //                  {
 //                     // replace document image
@@ -588,96 +587,11 @@
                ]
             });
 
-//               $(function () {
-//      // Reference the auto-generated proxy for the hub.
-//      var chat = $.connection.chatHub;
-//      // Create a function that the hub can call back to display messages.
-//      chat.client.addNewMessageToPage = function (name, message) {
-//         // Add the message to the page.
-//         $('#discussion').append('<li><strong>' + htmlEncode(name)
-//            + '</strong>: ' + htmlEncode(message) + '</li>');
-//      };
-//      // Get the user name and store it to prepend to messages.
-//     // $('#displayname').val(prompt('Enter your name:', ''));
-//      // Set initial focus to message input box.
-//      //$('#message').focus();
-//      // Start the connection.
-//      $.connection.hub.start().done(function () {
-//         $('#sendmessage').click(function () {
-//            // Call the Send method on the hub.
-//            chat.server.send($('robin').val(), $('#message').val());
-//            // Clear text box and reset focus for next comment.
-//            $('#message').val('').focus();
-//         });
-//      });
-//   });
-
-//            table.on('stateLoaded', (e, settings, data) => {
-//               for(var i = 0; i < data.childRows.length; i++) {
-//                  var row = table.row(data.childRows[i]);
-//                  row.child(format(row.data())).show();
-//               }
-//            })
-
-//            table.rows().every( function () {
-//                  var r = this.data();
-//                  if (r.ID == pId) {
-//                     console.log(r);
-//                     r.DATA_ORA_ULTIMI =  dToday;
-//                  }
-//                  this.invalidate();
-//               }
-//            )
-//            table.draw();
-
-//            $('.add-row').on('click', function() {
-//               id = 0;
-//               name = $('#name').val();
-//               email = $('#email').val();
-//               cno = $('#cno').val();
-//               bdy = $('#bday').val();
-//
-//               t.row.add([
-//                  name,
-//                  email,
-//                  cno,
-//                  bdy,
-//                  '<button class ="btn btn-danger del">Delete</button>' + '' + '<button class="btn btn-warning upd" data-id="'+$('#example').DataTable().rows().count()+'">Edit</button>'
-//
-//
-//
-//
-//
-//               ]).draw(false);
-//               $("#name").val('');
-//               $("#email").val('');
-//               $("#cno").val('');
-//               $("#bday").val('');
-//
-//            });
-
-//            function check_changed_row(documentId) {
-//               console.log("Click Boom: " + documentId);
-//      table.row( ':eq(0)' ).child( [
-//            'First child row',
-//            'Second child row',
-//            'Third child row'
-//         ] )
-//         .show();
-//            }
-//            table.rows().eq(0).each( function ( index ) {
-//               var row = table.row( index );
-//
-//               var data = row.data();
-//               console.log("Is this working");
-//               console.log("MyData: " + data);
-//               // ... do something with data(), or row.node(), etc
-//            } );
 
             // when a user checks the checkbox in the header all row checkboxs are checked
-            $('#loadgrid_' + @appl_id + ' thead').on('click', 'input.showmodeall', function () {
+            $('#loadgridDownload_' + @appl_id + ' thead').on('click', 'input.showmodeall', function () {
                var isAllChecked = $(this).prop('checked');
-               $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+               $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                   function () {
                      console.log(isAllChecked);
                      // skip the item if it is disabled
@@ -693,7 +607,7 @@
             });
 
             // when the user clicks on a row's checkbox
-            $('#loadgrid_' + @appl_id + ' tbody').on('click',
+            $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                'input.showmode',
                function() {
                   //$('.showmode').on('click', (function () {
@@ -704,7 +618,7 @@
                   var isAllChecked = true;
 
                   // if anyone is not checked set the flag to false
-                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+                  $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                      function() {
                         if (!$(this).prop('disabled') && !$(this).prop('checked')) {
                            isAllChecked = false;
@@ -721,26 +635,33 @@
 
             // when the user clicks the download button get all the rows that are checked
             $('#downloadData').on('click',
-               function() {
-                  var list = new Array();
-                  console.log(@appl_id);
+               function () {
+                  // create an object of appl_id and list of urls to send to save method
+                  var dataToSend = {};
+                  dataToSend.appl = @appl_id;
+                  dataToSend.fullGrantNumber = "@fullGrantNumber";
 
+
+                  var list = new Array();
+                // console.log(@appl_id);
+                //  console.log("@fullGrantNumber");
                   // loop through each datatable row and add the checked items to a list
-                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
+                  $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                      function () {
                         var tr = $(this).closest('tr');
                         var row = table.row(tr);
 
                         var data = row.data();
+
+                        console.log(data);
                         // if the row is checked add the url to the list of data
                         if ($(this).prop('checked')) {
-                           list.push(data.url);
+                          // dataToSend.catagoeryName = data.category_name;
+                          //dataToSend.subCategoryName = data.sub_category_name;
+                           list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name);
                         }
                   });
 
-                  // create an object of appl_id and list of urls to send to save method
-                  var dataToSend = {};
-                  dataToSend.appl = @appl_id;
                   dataToSend.listOfUrl = list;
 
                   console.log("Data To C# = " + JSON.stringify(list));
@@ -772,204 +693,9 @@
                      });
             });
 
-            // show qc mode all
-//            $('#loadgrid_' + @appl_id).on('stateLoaded',
-//               function (e, settings, data) {
-//                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
-//                     function() {
-//                        for (var i = 0; i < data.childRows.length; i++) {
-//                           var row = table.row(data.childRows[i]);
-//                           row.child(format(row.data())).show();
-//                        });
-//               });
-
-//               $.each($('#loadgrid_' + @appl_id + ' input.showmodeall'),
-//                  function () {
-//                   //  document.getElementById("checkboxall_" + @appl_id).checked = true;
-//                     document.getElementById("checkboxall_" + @appl_id).dispatchEvent(new Event("change"));
-//                     document.getElementById("checkboxall_" + @appl_id).click();
-//                  });
-
-            // show qc mode all
-//            $('#loadgrid_' + @appl_id + ' thead').on('click','input.showmodeall',
-//               function() {
-//                  $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
-//                     function () {
-//                        if ($(this).attr('disabled') == "disabled" ) {
-//                           return false;
-//                        }
-//
-//                        var tr = $(this).closest('tr');
-//                         var row = table.row(tr);
-//
-//                        var data = row.data();
-//
-//                        row.child(format(row.data())).show();
-//                        tr.next('tr').addClass(tr.attr('class'));
-//
-//                        var elm = $(data.document_id);
-//
-//                        if ($('#checkboxall_' + @appl_id).prop('checked')) {
-//                           elm.checked = true;
-//                         //  console.log("Checked");
-//                        }
-//                        if (!$('checkboxall_' + @appl_id).prop('checked')) {
-//                           elm.checked = false;
-//                         //  console.log("Unchecked");
-//                        }
-//                  });
-//               });
-
-
-
-
-//            var table = $('#loadgrid_' + @appl_id).DataTable();
-//
-//            $('#example tbody').on('click', 'td.details-control', function () {
-//               var tr = $(this).parents('tr');
-//               var row = table.row( tr );
-//
-//               if ( row.child.isShown() ) {
-//                  // This row is already open - close it
-//                  row.child.hide();
-//                  tr.removeClass('shown');
-//               }
-//               else {
-//                  // Open this row (the format() function would return the data to be shown)
-//                  row.child( format(row.data()) ).show();
-//                  tr.addClass('shown');
-//               }
-//            });
-//            $('#loadgrid_' + @appl_id + ' tbody').on('click',
-//               'td.details-control',
-//               function() {
-//                  $.each($('#loadgrid_' + @appl_id + 'td.details-control'),
-//                     function () {
-//                        console.log(cnt);
-//                        var tr = $(this).closest('tr');
-////               var tr = $(this).parents('tr');
-//               var row = table.row( tr );
-//
-//               if ( row.child.isShown() ) {
-//                  // This row is already open - close it
-//                  row.child.hide();
-//                  tr.removeClass('shown');
-//               }
-//               else {
-//                  // Open this row (the format() function would return the data to be shown)
-//                  row.child( format(row.data()) ).show();
-//                  tr.addClass('shown');
-//               }
-//                     });
-//               });
-//            var mode = document.getElementById("hidMode").value;
- //           if (mode != "qc") {
-               // show all qc options
-//            setTimeout(function () {
-//                  console.log("Firing JS setTimeout");
-//                     var cnt = 0;
-//                     $.each($('#loadgrid_' + @appl_id + ' a.showmode'),
-//                        function () {
-//                           console.log(cnt);
-//                           var tr = $(this).closest('tr');
-//                           var row = table.row(tr);
-//                           show_qc($(this).closest('div').attr('id'), 1);
-//                           row.child(format(row.data())).show();
-//                           tr.next('tr').addClass(tr.attr('class'));
-//                           cnt++;
-//                        });
-//                  if (cnt > 1) {
-//                        $('#show_qc_all_' + @appl_id).hide();
-//                        $('#hide_qc_all_' + @appl_id).show();
-//                  }
-//
-//                     var inputs = document.getElementsByTagName("div");
-//                     // show minus icon
-//                     for (var i = 0; i < inputs.length; i++) {
-//                        if (inputs[i].className == 'show_qc') {
-//                           inputs[i].style.display = "none";
-//                        } else if (inputs[i].className == 'hide_qc') {
-//                           inputs[i].style.display = "inline";
-//                        } else continue;
-//                  }
-//
-//                     // show check box
-//                     for (var i = 0; i < inputs.length; i++) {
-//                        if (inputs[i].className == 'qc_checkbox') {
-//                           inputs[i].style.display = "inline";
-//                        } else continue;
-//                     }
-//                  },
-//                  4000);
-//            }
-//
-//            $('#loadgrid_' + @appl_id + ' tbody').on('change',
-//               'a.showmodeall',
-//               function() {
-//                  $.each($('#loadgrid_' + @appl_id + ' a.showmode'),
-//                     function() {
-//                        var tr = $(this).closest('tr');
-//                        var row = table.row(tr);
-//                        show_qc($(this).closest('div').attr('id'), 1);
-//                        row.child(format(row.data())).show();
-//                        tr.next('tr').addClass(tr.attr('class'));
-//                     });
-//                  $('#show_qc_all_' + @appl_id).hide();
-//                  $('#hide_qc_all_' + @appl_id).show();
-//               });
-//
-//            // show qc mode all
-//            $('#loadgrid_' + @appl_id + ' thead').on('click',
-//               'a.showmodeall',
-//               function() {
-//                  $.each($('#loadgrid_' + @appl_id + ' a.showmode'),
-//                     function() {
-//                        var tr = $(this).closest('tr');
-//                        var row = table.row(tr);
-//                        show_qc($(this).closest('div').attr('id'), 1);
-//                        row.child(format(row.data())).show();
-//                        tr.next('tr').addClass(tr.attr('class'));
-//                     });
-//                  $('#show_qc_all_' + @appl_id).hide();
-//                  $('#hide_qc_all_' + @appl_id).show();
-//               });
-//
-//            // hide qc mode all
-//            $('#loadgrid_' + @appl_id + ' thead').on('click',
-//               'a.hidemodeall',
-//               function() {
-//                  $.each($('#loadgrid_' + @appl_id + ' a.showmode'),
-//                     function() {
-//                        var tr = $(this).closest('tr');
-//                        var row = table.row(tr);
-//                        show_qc($(this).closest('div').attr('id'), 0);
-//                        row.child(format(row.data())).hide();
-//                     });
-//                  $('#show_qc_all_' + @appl_id).show();
-//                  $('#hide_qc_all_' + @appl_id).hide();
-//               });
-//
-//            $('#loadgrid_' + @appl_id + ' tbody').on('click',
-//               'a.showmode',
-//               function() {
-//                  var tr = $(this).closest('tr');
-//                  var row = table.row(tr);
-//                  show_qc($(this).closest('div').attr('id'), 1);
-//                  row.child(format(row.data())).show();
-//                  tr.next('tr').addClass(tr.attr('class'));
-//               });
-//
-//            $('#loadgrid_' + @appl_id + ' tbody').on('click',
-//               'a.hidemode',
-//               function() {
-//                  var tr = $(this).closest('tr');
-//                  var row = table.row(tr);
-//                  show_qc($(this).closest('div').attr('id'), 0);
-//                  row.child(format(row.data())).hide();
-//               });
 
             // show bootstrap modal
-            $('#loadgrid_' + @appl_id + ' tbody').on('click',
+            $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                'a.NormalModal',
                function () {
                   console.log("Firing JS MethodA");
@@ -984,41 +710,10 @@
                      } else modal_title = "Show All FFR(s)";
                   }
 
-//                  // show doc attachment
-//                  if (act == "attachments") {
-//                     var document_id = $(this).data('assigned-id');
-//                     var route = '@Url.Action("doc_attachments", "EgrantsDoc")?document_id=' + document_id;
-//                     modal_title = "Attachments";
-//                  }
-//
-//                  // report error
-//                  if (act == "error") {
-//                     var document_id = $(this).data('assigned-id');
-//                     var route = '@Url.Action("ReportErrorIndex", "EgrantsDoc")?document_id=' + document_id;
-//                     modal_title = "Report Document Error";
-//                  }
-
                   $('#NormalModalTitle').html(modal_title);
                   $('#NormalModalPartial').load(route);
                });
 
-            //$.fn.textWidth = function () {
-            //    var html_org = $(this).html();
-            //    console.log(html_org);
-            //    var html_calc = '<span>' + html_org + '</span>';
-            //    $(this).html(html_calc);
-            //    var width = $(this).find('span:first').width();
-            //    $(this).html(html_org);
-            //    return width;
-            //};
-
-            @*$('#loadgrid_' + @appl_id).on('draw.dt', function (e) {
-                    $('#loadgrid_' + @appl_id + ' thead tr th').each(function (idx, ele) {
-                        var xPos = parseInt((($(ele).width() + $(ele).textWidth()) / 2) + 20);
-                        console.log(xPos);
-                        $(ele).css('background-position-x', xPos + 'px')
-                    })
-                });*@
          });
 
          /* Formatting function for row details   margin-left:65px;*/
@@ -1041,30 +736,6 @@
                str = str + ':<b id="error">' + d.problem_msg + '</b>';
             }
 
-//            if (d.can_store == 'y' || d.can_restore == 'y' || d.can_delete == "y") {
-//               str = str + '<br/><span style= "margin-left:0px;">';
-//
-//               // show store option
-//               if (d.can_store == 'y') {
-//                  var act = "to store";
-//                  str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Store</a><span style="padding-left:50px;"/>';
-//                  str = str + '<a href="JavaScript:multiple_act(\'' + act + '\')">Stored Selected</a><span style="padding-left:50px;"/>';
-//               }
-//
-//               // show restore option
-//               if (d.can_restore == 'y') {
-//                  var act = "to restore";
-//                  str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Restore Original</a><span style="padding-left:50px;"/>';
-//               }
-//
-//               // show delete option
-//               if (d.can_delete == "y") {
-//                  var act = "to delete";
-//                  str = str + '<a href="JavaScript:doc_modify(\'' + act + '\',\'' + d.document_id + '\')">Delete</a>';
-//               }
-//
-//               str = str + '</span>';
-//            }
             str = str + '</div>';
             // display all qc options
             return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:880px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../Content/images/Loading.gif"/></div>' + str + '</div>';
@@ -1072,8 +743,6 @@
 
          window.onload = function() {
             $("#overlay").hide();
-
-          //  document.getElementById("checkboxall_" + @appl_id).checked = true;
          }
       </script>
    </div>

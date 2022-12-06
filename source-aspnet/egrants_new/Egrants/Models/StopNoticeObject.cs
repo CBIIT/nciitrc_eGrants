@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  EgrantsController.cs
+// Module Name:  StopNoticeObject.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-05
+// Created: 2022-12-02
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,54 +33,37 @@
 
 #endregion
 
-#region
-
-using System.Collections.Generic;
-
-//using Newtonsoft.Json;
-
-#endregion
-
-namespace egrants_new.Models
+namespace egrants_new.Egrants.Models
 {
-    public class PageDownloadModel
+
+    /// <summary>
+    ///     The stop notice.
+    /// </summary>
+    public class StopNoticeObject
     {
         /// <summary>
-        /// Gets or sets the appl_id.
+        ///     Gets or sets the appl_id.
         /// </summary>
-        public int ApplId { get; set; }
+        public string appl_id { get; set; }
 
-        public string FullGrantNumber { get; set; }
-    }
-
-    public class DownloadModel
-    {
         /// <summary>
-        /// Gets or sets the appl_id.
+        ///     Gets or sets the full_grant_num.
         /// </summary>
-        public string ApplId { get; set; }
+        public string full_grant_num { get; set; }
 
-        public int NumToDownload { get; set; }
+        /// <summary>
+        ///     Gets or sets the closeout_fsr_code.
+        /// </summary>
+        public string closeout_fsr_code { get; set; }
 
-        public int NumSucceeded { get; set; }
+        /// <summary>
+        ///     Gets or sets the final_invention_stmnt_code.
+        /// </summary>
+        public string final_invention_stmnt_code { get; set; }
 
-        public int NumFailed { get; set; }
-
-        public string Handle { get; set; }
-
-        public string ZipFilename { get; set; }
-
-        public string ZipError { get; set; }
-
-        public List<DownloadData> DownloadDataList { get; set; }
-    }
-
-    public class DownloadData
-    {
-        public string Url { get; set; }
-
-        public string FileDownloaded { get; set; }
-
-        public string Error { get; set; }
+        /// <summary>
+        ///     Gets or sets the final_report_date.
+        /// </summary>
+        public string final_report_date { get; set; }
     }
 }
