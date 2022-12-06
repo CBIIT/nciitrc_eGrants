@@ -240,6 +240,10 @@ namespace egrants_new.Controllers
                                     {
                                         newFileName += " - " + split[2] + fi.Extension;
                                     }
+                                    else
+                                    {
+                                        newFileName += fi.Extension;
+                                    }
                                 }
                                 if (fullGrantNumber.Length > 15)
                                 {
@@ -247,6 +251,10 @@ namespace egrants_new.Controllers
                                     if (split[2].Length > 0)
                                     {
                                         newFileName += " - " + split[2] + fi.Extension;
+                                    }
+                                    else
+                                    {
+                                        newFileName += fi.Extension;
                                     }
                                 }
 
@@ -331,6 +339,10 @@ namespace egrants_new.Controllers
                                 {
                                     newFileName += " - " + split[2] + fi.Extension;
                                 }
+                                else
+                                {
+                                    newFileName += fi.Extension;
+                                }
                             }
                             if (fullGrantNumber.Length > 15)
                             {
@@ -338,6 +350,10 @@ namespace egrants_new.Controllers
                                 if (split[2].Length > 0)
                                 {
                                     newFileName += " - " + split[2] + fi.Extension;
+                                }
+                                else
+                                {
+                                    newFileName += fi.Extension;
                                 }
                             }
 
