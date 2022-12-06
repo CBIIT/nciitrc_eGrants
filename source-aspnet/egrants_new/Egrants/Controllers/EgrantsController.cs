@@ -241,8 +241,6 @@ namespace egrants_new.Controllers
                                     newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
                                 }
 
-                                newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
-
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                                 downloadData.FileDownloaded = newFileName;
