@@ -229,7 +229,7 @@ namespace egrants_new.Controllers
                                 // ContentDisposition contentDisposition = new ContentDisposition(disposition);
                                 // string filename = contentDisposition.FileName;
 
-                                var newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + ": " + split[2] + fi.Extension;
+                                var newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
@@ -296,10 +296,10 @@ namespace egrants_new.Controllers
                             myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
                             myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
-                            foreach (var header in Request.Headers)
-                            {
-                                Console.WriteLine("Header: " + header.ToString());
-                            }
+                            // foreach (var header in Request.Headers)
+                            // {
+                            //     Console.WriteLine("Header: " + header.ToString());
+                            // }
 
                             myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
                             Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
@@ -307,7 +307,7 @@ namespace egrants_new.Controllers
                             myWebClient.DownloadFile(uri, tmpFileName);
                             string filename = Path.GetFileName(uri.LocalPath);
                             FileInfo fi = new FileInfo(filename);
-                            var newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + ": " + split[2] + fi.Extension;
+                            var newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1] + "- " + split[2] + fi.Extension;
                             // var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
                             // ContentDisposition contentDisposition = new ContentDisposition(disposition);
                             // string filename = contentDisposition.FileName;
