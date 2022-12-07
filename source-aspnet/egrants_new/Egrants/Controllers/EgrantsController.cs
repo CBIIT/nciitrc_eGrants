@@ -254,11 +254,11 @@ namespace egrants_new.Controllers
                                 // add the sub-category if it is there
                                 if (!subCategory.IsNullOrWhiteSpace())
                                 {
-                                    newFileName += " - " + subCategory + fi.Extension;
+                                    newFileName += $"-{subCategory}-{documentId}{fi.Extension}";
                                 }
                                 else
                                 {
-                                    newFileName += fi.Extension;
+                                    newFileName += $"-{documentId}{fi.Extension}";
                                 }
 
                                 foreach (var item in downloadModel.DownloadDataList)
@@ -343,14 +343,13 @@ namespace egrants_new.Controllers
                             // just reove the first four characters which are the first digit, the P30 part
                             newFileName = fullGrantNumber.Remove(0, 4) + "-" + category;
 
-                            // add the sub-category if it is there
                             if (!subCategory.IsNullOrWhiteSpace())
                             {
-                                newFileName += " - " + subCategory + fi.Extension;
+                                newFileName += $"-{subCategory}-{documentId}{fi.Extension}";
                             }
                             else
                             {
-                                newFileName += fi.Extension;
+                                newFileName += $"-{documentId}{fi.Extension}";
                             }
 
                             // add the -1 and -2 to the items if they are matching names
