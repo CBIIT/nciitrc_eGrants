@@ -59,6 +59,9 @@ using System.Web.UI.WebControls;
 
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
+
+using Microsoft.Ajax.Utilities;
+
 using Newtonsoft.Json;
 
 //using Newtonsoft.Json;
@@ -124,8 +127,7 @@ namespace egrants_new.Controllers
         /// <param name="appl"></param>
         /// <param name="listOfUrl"></param>
         /// <returns></returns>
-        public ActionResult IsDownloadForm(string appl, 
-                                           string fullGrantNumber, IList<string> listOfUrl)
+        public ActionResult IsDownloadForm(string appl, string fullGrantNumber, IList<string> listOfUrl)
         {
             // 1 - trim the first character in the full grant number
             // 2 - trim the characters in full grant number year, and anything after trim
@@ -135,9 +137,6 @@ namespace egrants_new.Controllers
             downloadModel.NumFailed = 0;
             downloadModel.NumSucceeded = 0;
             downloadModel.NumToDownload = listOfUrl.Count();
-  
-   
-            var viewBag = this.ViewBag;
 
             // create the temp path and
             string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
@@ -159,29 +158,43 @@ namespace egrants_new.Controllers
 
             // var grantId = this.ViewBag.GrantID;
             DownloadData downloadData = new DownloadData();
-
-
-            // foreach (var url in listOfUrl)
-            // {
-            //     var split = url.Split(new char[]{'|'}, StringSplitOptions.None);
-            // }
-
+            downloadModel.DownloadDataList = new List<DownloadData>();
 
             foreach (var dataInput in listOfUrl)
             {
                 try
                 {
-                    var split = dataInput.Split(new char[] { '|' }, StringSplitOptions.None);
-                    var url = split[0];
-
-                    downloadModel.DownloadDataList = new List<DownloadData>();
                     downloadData = new DownloadData();
-                    downloadData.Url = url;
 
+                    var split = dataInput.Split(new char[] { '|' }, StringSplitOptions.None);
+                    
+                    var url = split[0];
+                    var category = split[1];
+                    var subCategory = split[2];
+                    var documentId = split[3];
+                    var documentDate = split[4];
+
+
+                    downloadData.Url = url;
+                    downloadData.Category = category;
+                    downloadData.SubCategory = subCategory;
+                    downloadData.DocumentDate = DateTime.Parse(documentDate);
+                    downloadData.DocumentId = Convert.ToInt32(documentId);
+                
+                   // if(downloadModel.DownloadDataList.)
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
 
-                    // if this is a file on the eGrants fileserver
+                    // if this is an i2e file
+                    if (url.Contains("https://i2e"))
+                    {
+
+                        Console.WriteLine("We should never hit this....");
+
+                        throw new Exception("We found an i2e path and these should not be included in downloads");
+                    }
+
+                    // if this is a file on the ERA Server
                     if (url.Contains("https://s2s."))
                     {
                         var uri = new Uri(url);
@@ -222,7 +235,8 @@ namespace egrants_new.Controllers
 
                                 // Download the Web resource and save it into the current filesystem folder.
                                 myWebClient.DownloadFile(downloadUrl, tmpFileName);
-                               // string filename = Path.GetFileName(uri.LocalPath);
+
+                                // string filename = Path.GetFileName(uri.LocalPath);
 
                                 // // get the filename from the content-disposition header of the downloaded file
                                 var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
@@ -230,38 +244,38 @@ namespace egrants_new.Controllers
                                 string filename = contentDisposition.FileName;
                                 FileInfo fi = new FileInfo(filename);
 
+                               // downloadData.ServerFileName = Path.GetFileNameWithoutExtension(filename);
+
                                 string newFileName = string.Empty;
 
-                                if (fullGrantNumber.Length == 15)
-                                {
-                                    newFileName = fullGrantNumber.Remove(0, 1) + "-" + split[1];
+                                // just reove the first four characters which are the first digit, the P30 part
+                                newFileName = fullGrantNumber.Remove(0, 4) + "-" + category;
 
-                                    if (split[2].Length > 0)
-                                    {
-                                        newFileName += " - " + split[2] + fi.Extension;
-                                    }
-                                    else
-                                    {
-                                        newFileName += fi.Extension;
-                                    }
-                                }
-                                if (fullGrantNumber.Length > 15)
+                                // add the sub-category if it is there
+                                if (!subCategory.IsNullOrWhiteSpace())
                                 {
-                                    newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1];
-                                    if (split[2].Length > 0)
+                                    newFileName += " - " + subCategory + fi.Extension;
+                                }
+                                else
+                                {
+                                    newFileName += fi.Extension;
+                                }
+
+                                foreach (var item in downloadModel.DownloadDataList)
+                                {
+                                    if (item.FileDownloaded == newFileName)
                                     {
-                                        newFileName += " - " + split[2] + fi.Extension;
-                                    }
-                                    else
-                                    {
-                                        newFileName += fi.Extension;
+                                        var values = downloadModel.DownloadDataList.OrderBy(p => Path.GetFileNameWithoutExtension(p.Url)).ToList();
+                                        // var serverFileName = Path.GetFileName(item.Url);
+
+
                                     }
                                 }
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                                 downloadData.FileDownloaded = newFileName;
-                      
+
                                 Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, downloadUrl);
 
                                 Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
@@ -269,14 +283,6 @@ namespace egrants_new.Controllers
                         }
 
                         downloadModel.NumSucceeded += 1;
-                    }
-
-                    if (url.Contains("https://i2e"))
-                    {
-
-                        Console.WriteLine("We should never hit this....");
-
-                        throw new Exception("We found an i2e path and these should not be included in downloads");
                     }
                     else
                     {
@@ -288,33 +294,33 @@ namespace egrants_new.Controllers
 
                             uri = new Uri(imageServer, url);
                         }
-                        
-                        var webResponse = (HttpWebRequest)WebRequest.Create(uri);
-                        webResponse.AllowAutoRedirect = false;
-                        
-                        webResponse.CookieContainer = new CookieContainer();
-                        webResponse.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0";
-                        webResponse.Method = "GET";
-                        webResponse.UseDefaultCredentials = true;
-                        
-                        ServicePointManager.ServerCertificateValidationCallback = (c, certificate, chain, errors) => true;
-                        
-                        var res = (HttpWebResponse)webResponse.GetResponse();
-                        
-                        using (var postStream = res.GetResponseStream())
-                        {
-                            if (postStream == null)
-                            {
-                                throw new Exception("The stream was empty!");
-                            }
-                        
-                            string downloadedData;
-                        
-                            using (var reader = new StreamReader(postStream))
-                            {
-                                downloadedData = reader.ReadToEnd();
-                            }
-                        }
+
+                        // var webResponse = (HttpWebRequest)WebRequest.Create(uri);
+                        // webResponse.AllowAutoRedirect = false;
+                        //
+                        // webResponse.CookieContainer = new CookieContainer();
+                        // webResponse.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0";
+                        // webResponse.Method = "GET";
+                        // webResponse.UseDefaultCredentials = true;
+                        //
+                        // ServicePointManager.ServerCertificateValidationCallback = (c, certificate, chain, errors) => true;
+                        //
+                        // var res = (HttpWebResponse)webResponse.GetResponse();
+                        //
+                        // using (var postStream = res.GetResponseStream())
+                        // {
+                        //     if (postStream == null)
+                        //     {
+                        //         throw new Exception("The stream was empty!");
+                        //     }
+                        //
+                        //     string downloadedData;
+                        //
+                        //     using (var reader = new StreamReader(postStream))
+                        //     {
+                        //         downloadedData = reader.ReadToEnd();
+                        //     }
+                        // }
 
                         using (var myWebClient = new WebClient())
                         {
@@ -330,33 +336,35 @@ namespace egrants_new.Controllers
                             string filename = Path.GetFileName(uri.LocalPath);
                             FileInfo fi = new FileInfo(filename);
 
+                           // downloadData.ServerFileName = Path.GetFileNameWithoutExtension(uri.ToString());
+
                             string newFileName = string.Empty;
 
-                            if (fullGrantNumber.Length == 15)
+                            // just reove the first four characters which are the first digit, the P30 part
+                            newFileName = fullGrantNumber.Remove(0, 4) + "-" + category;
+
+                            // add the sub-category if it is there
+                            if (!subCategory.IsNullOrWhiteSpace())
                             {
-                                newFileName = fullGrantNumber.Remove(0, 1) + "-" + split[1];
-                                if (split[2].Length > 0)
-                                {
-                                    newFileName += " - " + split[2] + fi.Extension;
-                                }
-                                else
-                                {
-                                    newFileName += fi.Extension;
-                                }
+                                newFileName += " - " + subCategory + fi.Extension;
                             }
-                            if (fullGrantNumber.Length > 15)
+                            else
                             {
-                                newFileName = fullGrantNumber.Remove(0, 1).Remove(14) + "-" + split[1];
-                                if (split[2].Length > 0)
-                                {
-                                    newFileName += " - " + split[2] + fi.Extension;
-                                }
-                                else
-                                {
-                                    newFileName += fi.Extension;
-                                }
+                                newFileName += fi.Extension;
                             }
 
+                            // add the -1 and -2 to the items if they are matching names
+                            foreach (var item in downloadModel.DownloadDataList)
+                            {
+                                if (item.FileDownloaded == newFileName)
+                                {
+                                    var values = downloadModel.DownloadDataList.OrderBy(p => Path.GetFileNameWithoutExtension(p.Url)).ToList();
+                                   // var serverFileName = Path.GetFileName(item.Url);
+
+
+                                }
+                            }
+                       
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                             downloadData.FileDownloaded = newFileName;
@@ -379,9 +387,9 @@ namespace egrants_new.Controllers
             string handle = Guid.NewGuid().ToString();
             downloadModel.Handle = handle;
 
-            string zipFileName = "ApplId_" + appl + ".zip";
+            string zipFileName = fullGrantNumber.Remove(0,1) + ".zip";
             string zipFileNameWithPath = Path.Combine(Path.GetTempPath(), zipFileName);
-            
+
             downloadModel.ZipFilename = zipFileName;
 
             // using (var memoryStream = new MemoryStream())
@@ -431,6 +439,7 @@ namespace egrants_new.Controllers
             }
 
             return Json(downloadModel, JsonRequestBehavior.AllowGet);
+
             //return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
         }
 

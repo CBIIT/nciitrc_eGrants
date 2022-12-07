@@ -174,15 +174,8 @@
 //   }
 </script>
 @{
-    var model = @Html.Raw(Json.Encode(Model));
-    //  var model2 = @Model;
-   // var myObj = Json.Decode(model);
-    var appl_id = @Html.Raw(Model.ApplId);
+    var appl_id = Model.ApplId;
    var fullGrantNumber = Model.FullGrantNumber;
- //   var fullGrantNumber = model.FullGrantNumber.ToString();
-    //var appl_id = "@Html.Raw(Model.ApplId)";
-    //  var fullGrantNumber = model.FullGrantNumber;
-    //  var fullGrantNumber = "@Model.FullGrantNumber";
    <div id="overlay">
       <img style="width: 150px; height: 150px; margin-left: 400px; margin-top: 150px;" src="~/Content/images/Loading.gif" />
    </div>
@@ -201,19 +194,6 @@
                <thead>
                   <tr>
                      <th>
-                        @*    @if (Convert.ToInt16(Session["position_id"]) >= 2) *@
-                        @*    { *@
-                        @*       <div id='show_qc_all_@appl_id' style='display: none;'> *@
-                        @*          <a class='showmodeall' href='javascript:void(0);' title='show all qc mode'> *@
-                        @*             <img name='show_qc_all' style="height: 30px;" src='~/Content/images/plus.png' /> *@
-                        @*          </a> *@
-                        @*       </div> *@
-                        @*    <div id='hide_qc_all_@appl_id' style='display: none;'> *@
-                        @*       <a class='hidemodeall' href='javascript:void(0);' title='hide all qc mode'> *@
-                        @*          <img name='hide_qc_all' style="height: 30px;" src='~/Content/images/minus.png' /> *@
-                        @*       </a> *@
-                        @*    </div> *@
-                        @* } *@
 
                         <div id="qc_checkbox_all_@appl_id" style="display: inline;" class="ml-1">
                            @*class="hide_qc_all"*@
@@ -429,7 +409,7 @@
                   },
 //                  {
 //                     "className": "text-center",
-//                     "targets": [3, 4, 5, 6]
+//                     "targets": [3]
 //                  },
                   {
                      "type": 'dateNonStandard',
@@ -580,7 +560,7 @@
 //                     // report document error
 //                     "render": function(data, type, full, meta) {
 //                        if (full.can_qc == "y" && full.frc_destroyed == 0) {
-//                           return "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='error' data-assigned-id='" + full.document_id + "' title='Report problem with document'><img class='img_16_16' src='../Content/images/Report Doc Error.png'/></a>";
+//                           return "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='error' data-assigned-id='" + full.document_id + "' title='Report problem with document'><img class='img_16_16' src='../../Content/images/Report Doc Error.png'/></a>";
 //                        } else return "";
 //                     }
 //                  }
@@ -610,10 +590,6 @@
             $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                'input.showmode',
                function() {
-                  //$('.showmode').on('click', (function () {
-
-                  //console.log("Tablerow clicky: " + this.innerHTML);
-
                   // assume all are checked
                   var isAllChecked = true;
 
@@ -643,8 +619,6 @@
 
 
                   var list = new Array();
-                // console.log(@appl_id);
-                //  console.log("@fullGrantNumber");
                   // loop through each datatable row and add the checked items to a list
                   $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                      function () {
@@ -658,7 +632,7 @@
                         if ($(this).prop('checked')) {
                           // dataToSend.catagoeryName = data.category_name;
                           //dataToSend.subCategoryName = data.sub_category_name;
-                           list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name);
+                           list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + moment(data.document_date).format('MM/DD/YYYY'));
                         }
                   });
 

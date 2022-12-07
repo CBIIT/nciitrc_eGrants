@@ -35,6 +35,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 
 //using Newtonsoft.Json;
@@ -80,6 +81,14 @@ namespace egrants_new.Models
         public string Url { get; set; }
 
         public string FileDownloaded { get; set; }
+
+        public string Category { get; set; }
+
+        public string SubCategory { get; set; }
+
+        public DateTime DocumentDate { get; set; }
+
+        public int DocumentId { get; set; }
 
         public string Error { get; set; }
     }
