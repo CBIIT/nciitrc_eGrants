@@ -13,12 +13,8 @@ foreach (var appl in ViewBag.appllayer)
     {
        int appl_id = Convert.ToInt32(appl.appl_id);
        string fullGrantNum = Convert.ToString(appl.full_grant_num);
-    
+      // var grantShort = ViewBag.grantlayer;
        var passModel = new PageDownloadModel() { ApplId = appl_id, FullGrantNumber = fullGrantNum };
-       //var modelData = @Html.Raw(Json.Encode(passModel));
-       //  var modelData = { ApplId: appl_id, fullGrantNum: fullGrantNum };
-
-
 
        var doc_count = 0;
 
