@@ -96,7 +96,13 @@
       display: none;
    }
 
-   .fa-file-lines { color: blue; }
+   .fa-file-excel {
+      color: grey;
+   }
+
+   .fa-file-lines {
+      color: blue;
+   }
 
    .fa-circle-check { color: green; }
 
@@ -521,7 +527,7 @@
 //                           "<svg class=\"svg-inline--fa fa-camera fa-w-16\" aria-hidden=\"true\" data-prefix=\"fa-solid\" data-icon=\"camera\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\" data-fa-i2svg=\"\">"
 //                           + "<path fill=\"currentColor\" d=\"M188.12 210.74L142.86 256l45.25 45.25L233.37 256l-45.25-45.26zm113.13-22.62L256 142.86l-45.25 45.25L256 233.37l45.25-45.25zm-90.5 135.76L256 369.14l45.26-45.26L256 278.63l-45.25 45.25zM256 0C114.62 0 0 114.62 0 256s114.62 256 256 256 256-114.62 256-256S397.38 0 256 0zm186.68 295.6l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-28.29-28.29-45.25 45.25 33.94 33.94 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-33.94-33.94-45.26 45.26 28.29 28.29c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0L256 414.39l-28.29 28.29c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l28.29-28.29-45.25-45.26-33.94 33.94 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 33.94-33.94-45.25-45.25-28.29 28.29c-3.12 3.12-8.19 3.12-11.31 0L69.32 295.6c-3.12-3.12-3.12-8.19 0-11.31L97.61 256l-28.29-28.29c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l28.29 28.29 45.25-45.26-33.94-33.94-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 33.94 33.94 45.26-45.25-28.29-28.29c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0L256 97.61l28.29-28.29c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-28.29 28.29 45.26 45.25 33.94-33.94-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-33.94 33.94 45.25 45.26 28.29-28.29c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31L414.39 256l28.29 28.28a8.015 8.015 0 0 1 0 11.32zM278.63 256l45.26 45.25L369.14 256l-45.25-45.26L278.63 256z\">"
 //                           + "</path>" + "</svg>" + "</i>";
-                        var spinit = "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>";
+                        var spinit = ((full.url.substring(0, 11) == "https://i2e" ? "<i class=\"fa fa-file-excel\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"File URL is not supported.\"></i>" : "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>"));
                         //  <button type="button" class="btn btn-lg btn-danger" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">Click to toggle popover</button>
                         // var spinit = "<i class=\"bi bi-file-earmark\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"Select row to download\"></i>";
 //                        var spinit = "<div class=\"fa=1x\"><i  class=\"fa fa-file text-secondary\"></i></div>";
@@ -592,87 +598,15 @@
                   $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                      function() {
                         console.log(isAllChecked);
-                        var tr = $(this).closest('tr');
-                        var trSvg = tr.find('[data-fa-i2svg]');
+                        //var tr = $(this).closest('tr');
+                        //var trSvg = tr.find('[data-fa-i2svg]');
                         // skip the item if it is disabled
                         if (!$(this).prop('disabled')) {
                            // check the box if all should be checked or uncheck if all should be unchecked
                            if (isAllChecked) {
-
                               $(this).prop('checked', true);
-
-//                           console.log(trSvg.attr("class"));
-
-                              //if (trSvg.attr("class") === "fa-file-lines" || trSvg.attr("class") == null)
-                              //{
-//                              trSvg
-//                                 .toggleClass('fa-file-lines')
-//                                 .toggleClass('fa-file');
-
-                              //trVsg.attr("style", )
-//                              trSvg.attr("title", "Ready for Download...");
-                              //}
-//                           if (trSvg.attr("class") === "fa-file-lines")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file-lines')
-//                                 .toggleClass('fa-file-lines');
-//
-//                              //trVsg.attr("style", )
-//                              trSvg.attr("title", "Ready for Download...");
-//                           }
-//                           if (trSvg.attr("class") === "text-success")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file-lines text-warning')
-//                                 .toggleClass('fa-circle-check text-success');
-//
-//                              trSvg.attr("title", "Ready for Download...");
-//                           }
-//                           if (trSvg.attr("class") === "text-danger")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file-lines text-warning')
-//                                 .toggleClass('fa-circle-exclamation text-danger');
-//
-//                              trSvg.attr("title", "Ready for Download...");
-//                           }
                            } else {
                               $(this).prop('checked', false);
-
-                              //if (trSvg.attr("class") === "fa-file-lines fa-file")
-                              // {
-//                              trSvg
-//                                 .toggleClass('fa-file')
-//                                 .toggleClass('fa-file-lines');
-
-//                              trSvg.attr("title", "Select row to download");
-                              //   }
-//                           if (trSvg.attr("class") === "fa-file-lines text-warning")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file text-secondary')
-//                                 .toggleClass('fa-file-lines text-warning');
-//
-//                              //trVsg.attr("style", )
-//                              trSvg.attr("title", "Ready for Download...");
-//                           }
-//                           if (trSvg.attr("class") === "text-success")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file text-secondary')
-//                                 .toggleClass('fa-circle-check text-success');
-//
-//                              trSvg.attr("title", "Select row to download");
-//                           }
-//                           if (trSvg.attr("class") === "text-danger")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file text-secondary')
-//                                 .toggleClass('fa-circle-exclamation text-danger');
-//
-//                              trSvg.attr("title", "Select row to download");
-//                           }
                            }
                            console.log(trSvg.attr("class"));
                         }
@@ -691,64 +625,9 @@
                      function() {
 //                        var tr = $(this).closest('tr');
 //                        var trSvg = tr.find('[data-fa-i2svg]');
-//
                         if (!$(this).prop('disabled') && !$(this).prop('checked')) {
                            isAllChecked = false;
                         }
-//
-//                        if ($(this).prop('checked')) {
-//                           console.log(trSvg.attr("class"));
-//                           console.log("Checked");
-//                           if (trSvg.attr("class") === "text-secondary")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file-lines')
-//                                 .toggleClass('fa-file');
-//
-//                              trSvg.attr("title", "Ready for Download...");
-//                           }
-//                           if (trSvg.attr("class") === "text-success")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file-lines text-warning')
-//                                 .toggleClass('fa-circle-check text-success');
-//
-//                              trSvg.attr("title", "Ready for Download...");
-//                           }
-//                           if (trSvg.attr("class") === "text-danger")
-//                           {
-//                              trSvg
-//                                 .toggleClass('fa-file-lines text-warning')
-//                                 .toggleClass('fa-circle-exclamation text-danger');
-//
-//                              trSvg.attr("title", "Ready for Download...");
-//                              }
-//                        }
-//                        else {
-//                           console.log("Not Checked");
-//                           if (trSvg.attr("class") === "text-warning") {
-//                              trSvg
-//                                 .toggleClass('fa-file')
-//                                 .toggleClass('fa-file-lines');
-//
-//                              trSvg.attr("title", "Select row to download");
-//                           }
-//                           if (trSvg.attr("class") === "text-success") {
-//                              trSvg
-//                                 .toggleClass('fa-file text-secondary')
-//                                 .toggleClass('fa-circle-check text-success');
-//
-//                              trSvg.attr("title", "Select row to download");
-//                           }
-//                           if (trSvg.attr("class") === "text-danger") {
-//                              trSvg
-//                                 .toggleClass('fa-file text-secondary')
-//                                 .toggleClass('fa-circle-exclamation text-danger');
-//
-//                              trSvg.attr("title", "Select row to download");
-//                           }
-//                        }
-//                        console.log(trSvg.attr("class"));
                      });
 
                   // if all checkboxes are checked, check the header checkbox
@@ -781,8 +660,6 @@
                         console.log(data);
                         // if the row is checked add the url to the list of data
                         if ($(this).prop('checked')) {
-                           // dataToSend.catagoeryName = data.category_name;
-                           //dataToSend.subCategoryName = data.sub_category_name;
                            list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + moment(data.document_date).format('MM/DD/YYYY'));
 
                            if (trSvg.attr("class") === "fa-circle-check") {
@@ -824,6 +701,8 @@
                            console.log("SUCCESS: ");
                            console.log(JSON.stringify(data));
 
+                           var countSuccess = 0;
+
                            $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                               function() {
                                  var tr = $(this).closest('tr');
@@ -851,6 +730,8 @@
                                              .toggleClass('fa-solid fa-rotate fa-spin');
 
                                           trSvg.attr("title", "File Download Successful!");
+
+                                          countSuccess++;
                                        } else {
                                           trSvg
                                              .toggleClass('fa-circle-exclamation')
@@ -859,22 +740,16 @@
                                           trSvg.attr("title", found[0].Error);
                                        }
                                     } else {
-//                                          trSvg
-//                                          .toggleClass('fa-angle-down')
-//                                          .toggleClass('fa-angle-right');
-                                       alert("A matching row was never found!");
-
+                                       alert("A matching row was never found! Notify the System Developer of this error! This should not happen!");
                                     }
                                  }
                               });
-                           //  data.downloadModel.handle;
-                           //console.log(data.FileGuid);
-                           //console.log(data.FileName);
-                           //var response = JSON.parse(data);
 
-                           //console.log(response.FileGuid);
-                           // console.log(response.FileName);
-                           window.location = '/Egrants/Download?fileGuid=' + data.Handle + '&filename=' + data.ZipFilename;
+                           if (countSuccess > 0) {
+                              window.location = '/Egrants/Download?fileGuid=' + data.Handle + '&filename=' + data.ZipFilename;
+                           } else {
+                              alert("No files were successfully downloaded!");
+                           }
                         },
                         error: function(resp) {
                            console.log("ERROR: " + resp);
