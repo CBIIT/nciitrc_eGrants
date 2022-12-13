@@ -842,8 +842,9 @@
 
                                     if (found != null) {
                                        var trSvg = tr.find('[data-fa-i2svg]');
-                                       console.log("Found: " + JSON.stringify(found));
-
+                                       console.log("Found: ");
+                                       console.log(JSON.stringify(found));
+                                       console.log(found.Error);
                                        if (found.Error == null) {
                                           trSvg
                                              .toggleClass('fa-circle-check')
@@ -866,7 +867,6 @@
                                     }
                                  }
                               });
-
                            //  data.downloadModel.handle;
                            //console.log(data.FileGuid);
                            //console.log(data.FileName);
