@@ -845,7 +845,7 @@
                                        console.log("Found: ");
                                        console.log(JSON.stringify(found));
                                        console.log(found[0].Error);
-                                       if (found.Error == null) {
+                                       if (found[0].Error == null) {
                                           trSvg
                                              .toggleClass('fa-circle-check')
                                              .toggleClass('fa-solid fa-rotate fa-spin');
@@ -856,7 +856,7 @@
                                              .toggleClass('fa-circle-exclamation')
                                              .toggleClass('fa-solid fa-rotate fa-spin');
 
-                                          trSvg.attr("title", found.Error);
+                                          trSvg.attr("title", found[0].Error);
                                        }
                                     } else {
 //                                          trSvg
