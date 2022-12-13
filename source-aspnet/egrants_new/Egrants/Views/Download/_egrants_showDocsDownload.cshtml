@@ -5,6 +5,12 @@
 <link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet" />
 <script src="~/scripts/dataTables.bootstrap4.min.js"></script>
 <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css">
+<script src="~/scripts/fontawesome/fontawesome.min.js" data-auto-replace-svg="nest"></script>
+
+<script src="~/scripts/fontawesome/solid.min.js"></script>
+@* <script src="~/scripts/fontawesome/brands.min.js"></script> *@
+<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet" />
+@* <link href="~/Content/fontawesome/fontawesome.min.css" rel="stylesheet"> *@
 
 <style>
    table.dataTable thead th {
@@ -94,6 +100,21 @@
       opacity: 0.75;
       display: none;
    }
+
+   .fa-file-lines {
+      color: blue;
+   }
+
+   .fa-circle-check {
+      color: green;
+   }
+
+   .fa-solid fa-rotate fa-spin {
+      color: yellow
+   }
+   .fa-circle-exclamation {
+      color: red;
+   }
 </style>
 
 <script language="JavaScript" type="text/javascript">
@@ -180,8 +201,9 @@
       <img style="width: 150px; height: 150px; margin-left: 400px; margin-top: 150px;" src="~/Content/images/Loading.gif" />
    </div>
 
-   <div id="create new buttons" style="float:right; display:inline;">
-      <button type="button" id="downloadData" accesskey="D" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
+   <div id="create new buttons" style="float: right; display: inline;">
+
+      <button type="button" id="downloadData" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
       @* @{ *@
       @*    <asp:LinkButton ID="lnkDownload" Text="Download" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DownloadFile"></asp:LinkButton> *@
       @* } *@
@@ -239,7 +261,7 @@
                      @* </th> *@
 
 
-                     @* <th></th> *@
+                     <th></th>
                      @* <th></th> *@
                      @* <th></th> *@
                      @* <th></th> *@
@@ -353,6 +375,7 @@
 
                //   });
 
+                  // add the lower row showing the created by info
                   $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                      function () {
                         if ($(this).attr('disabled') == "disabled" ) {
@@ -398,6 +421,7 @@
                "columnDefs": [
                   { "width": "75%", "targets": 1 },
                   { "width": "5%", "targets": 0 },
+                  { "width": "5%", "targets": 3 },
                   {
                      "targets": [0],
                      "orderable": false
@@ -407,10 +431,10 @@
                      "searching": false,
                      "paging": false
                   },
-//                  {
-//                     "className": "text-center",
-//                     "targets": [3]
-//                  },
+                  {
+                     "className": "text-center",
+                     "targets": [3]
+                  },
                   {
                      "type": 'dateNonStandard',
                      targets: [2]
@@ -421,29 +445,7 @@
                      "className": "details-control",
                      // show qc icon and checkbox
                      "render": function(data, type, full, meta) {
-//                        if (document.getElementById("hidPositionID").value >= 2 && full.can_qc == "y") {
-//                           if (full.can_store == "y") {
-//                              return "<div id='show_qc_" +
-//                                 full.document_id +
-//                                 "'  class='show_qc' style='width:30px; display:inline'>" +
-//                                 "<a class='showmode' href='javascript:void(0);' title='show qc mode'>" +
-//                                 "<img name='show_qc' style='height:30px;' src='../Content/images/plus.png'/></a></div>" +
-//                                 "<div id='hide_qc_" +
-//                                 full.document_id +
-//                                 "' class='hide_qc' style='width:30px; display:none'>" +
-//                                 "<a class='hidemode' href='javascript:void(0);' title='hide qc mode'>" +
-//                                 "<img name='hide_qc' style='height:30px;' src='../Content/images/minus.png'/></a></div>" +
 
-
-//                              return "<div id=\"qc_checkbox_" +
-//                                 full.document_id +
-//                                 " name=\"qc_checkbox' class='qc_checkbox' style='display:inline;vertical-align:middle;'>" +
-//                                 "<input type='checkbox' id='" +
-//                                 full.document_id +
-//                                 "' class='qc' name='qc' value='" +
-//                                 full.document_id +
-//                           "' title='Check here to select this document for download'/></div>";
-                      //  if (full.document_date != "") {
                            return "<div id=\"qc_checkbox_" +
                               full.document_id +
                               "\"" +
@@ -455,25 +457,7 @@
                               full.document_id +
                               "\"" +
                               " title=\"Check here to select this document for download\" " +
-                              //((full.document_date == "") ? "disabled" : "enabled") +
                               ((full.url.substring(0, 11) == "https://i2e" ? "disabled" : "enabled")) + "/></div>";
-                      //  }
-//                           "onchange=\"check_changed_row(" + full.document_id + ")\"/></div>";
-//                           } else {
-//                              return "<div id='show_qc_" +
-//                                 full.document_id +
-//                                 "'  class='show_qc' style='width:30px; display:inline'>" +
-//                                 "<a class='showmode' href='javascript:void(0);' title='show qc mode'>" +
-//                                 "<img name='show_qc' style='height:30px;' src='../Content/images/plus.png'/></a></div>" +
-//                                 "<div id='hide_qc_" +
-//                                 full.document_id +
-//                                 "' class='hide_qc' style='width:30px; display:none'>" +
-//                                 "<a class='hidemode' href='javascript:void(0);' title='hide qc mode'>" +
-//                                 "<img name='hide_qc' style='height:30px;' src='../Content/images/minus.png'/></a></div>";
-//                           }
-//                        } else return "";
-
-
                      }
                   },
                   {
@@ -539,7 +523,44 @@
                         },
                      "autoWidth": true
                   },
-//                  { "data": "page_count", "autoWidth": true },
+//                  {
+//                      "data": "page_count", "autoWidth": true
+//                  },
+                  {
+                     // replace document image
+                     "render": function (data, type, full, meta) {
+                        var str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-emoji-heart-eyes text-success\" viewBox=\"0 0 16 16\">" +
+                            "<path d=\"M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"/>" +
+                            "<path d=\"M11.315 10.014a.5.5 0 0 1 .548.736A4.498 4.498 0 0 1 7.965 13a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .548-.736h.005l.017.005.067.015.252.055c.215.046.515.108.857.169.693.124 1.522.242 2.152.242.63 0 1.46-.118 2.152-.242a26.58 26.58 0 0 0 1.109-.224l.067-.015.017-.004.005-.002zM4.756 4.566c.763-1.424 4.02-.12.952 3.434-4.496-1.596-2.35-4.298-.952-3.434zm6.488 0c1.398-.864 3.544 1.838-.952 3.434-3.067-3.554.19-4.858.952-3.434z\"/></svg>";
+
+//                        var redblink = "<i data-fa-i2svg>" +
+//                           "<svg class=\"svg-inline--fa fa-camera fa-w-16\" aria-hidden=\"true\" data-prefix=\"fa-solid\" data-icon=\"camera\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\" data-fa-i2svg=\"\">"
+//                           + "<path fill=\"currentColor\" d=\"M188.12 210.74L142.86 256l45.25 45.25L233.37 256l-45.25-45.26zm113.13-22.62L256 142.86l-45.25 45.25L256 233.37l45.25-45.25zm-90.5 135.76L256 369.14l45.26-45.26L256 278.63l-45.25 45.25zM256 0C114.62 0 0 114.62 0 256s114.62 256 256 256 256-114.62 256-256S397.38 0 256 0zm186.68 295.6l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-28.29-28.29-45.25 45.25 33.94 33.94 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-33.94-33.94-45.26 45.26 28.29 28.29c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0L256 414.39l-28.29 28.29c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l28.29-28.29-45.25-45.26-33.94 33.94 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 33.94-33.94-45.25-45.25-28.29 28.29c-3.12 3.12-8.19 3.12-11.31 0L69.32 295.6c-3.12-3.12-3.12-8.19 0-11.31L97.61 256l-28.29-28.29c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l28.29 28.29 45.25-45.26-33.94-33.94-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 33.94 33.94 45.26-45.25-28.29-28.29c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0L256 97.61l28.29-28.29c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-28.29 28.29 45.26 45.25 33.94-33.94-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-33.94 33.94 45.25 45.26 28.29-28.29c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31L414.39 256l28.29 28.28a8.015 8.015 0 0 1 0 11.32zM278.63 256l45.26 45.25L369.14 256l-45.25-45.26L278.63 256z\">"
+//                           + "</path>" + "</svg>" + "</i>";
+                       var spinit = "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>";
+                      //  <button type="button" class="btn btn-lg btn-danger" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">Click to toggle popover</button>
+                       // var spinit = "<i class=\"bi bi-file-earmark\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"Select row to download\"></i>";
+//                        var spinit = "<div class=\"fa=1x\"><i  class=\"fa fa-file text-secondary\"></i></div>";
+//                        var spinit = "<div class=\"fa-1x\">"
+//                          + "<i class=\"fa fa-sync fa-spin\"></i>"
+////                           + "<i class=\"fa-solid fa-circle-notch fa-spin\"></i>"
+////                           + "<i class=\"fa-solid fa-cog fa-spin\"></i>"
+////                           + "<i class=\"fa-solid fa-cog fa-spin fa-spin-reverse\"></i>"
+////                           + "<i class=\"fa-solid fa-spinner fa-spin-pulse\"></i>"
+////                           + "<i class=\"fa-solid fa-spinner fa-spin-pulse fa-spin-reverse\"></i>"
+//                           + "</div>";
+
+                        return spinit;
+                        // <svg class="bi bi-exclamation-triangle text-success" width="32" height="32" fill="currentColor" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                        // ...
+                        // </svg>
+//                        if (document.getElementById("hidPositionID").value >= 2 && full.can_upload == "y" && full.frc_destroyed == 0) {
+//                           return "<a href='JavaScript:upload_doc(" + full.document_id + ")' title='Replace Document'><img class='img_14_14' src='../Content/images/upl.png' /></a>";
+//                        } else return "";
+                     }
+                  },
+
+
 //                  {
 //                     // replace document image
 //                     "render": function(data, type, full, meta) {
@@ -567,6 +588,17 @@
                ]
             });
 
+//            document.addEventListener('DOMContentLoaded', function () {
+//               $('button').on('click', function () {
+//                  $(this)
+//                     .find('[data-fa-i2svg]')
+//                     .toggleClass('fa-angle-down')
+//                     .toggleClass('fa-angle-right');
+//               });
+//            });
+//            $(function() {
+//               $('[data-toggle="popover"]').popover();
+//            });
 
             // when a user checks the checkbox in the header all row checkboxs are checked
             $('#loadgridDownload_' + @appl_id + ' thead').on('click', 'input.showmodeall', function () {
@@ -574,15 +606,90 @@
                $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
                   function () {
                      console.log(isAllChecked);
+                     var tr = $(this).closest('tr');
+                     var trSvg = tr.find('[data-fa-i2svg]');
                      // skip the item if it is disabled
                      if (!$(this).prop('disabled')) {
                         // check the box if all should be checked or uncheck if all should be unchecked
                         if (isAllChecked) {
+
                            $(this).prop('checked', true);
+
+//                           console.log(trSvg.attr("class"));
+                           
+                           //if (trSvg.attr("class") === "fa-file-lines" || trSvg.attr("class") == null)
+                           //{
+//                              trSvg
+//                                 .toggleClass('fa-file-lines')
+//                                 .toggleClass('fa-file');
+
+                              //trVsg.attr("style", )
+//                              trSvg.attr("title", "Ready for Download...");
+                           //}
+//                           if (trSvg.attr("class") === "fa-file-lines")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file-lines')
+//                                 .toggleClass('fa-file-lines');
+//
+//                              //trVsg.attr("style", )
+//                              trSvg.attr("title", "Ready for Download...");
+//                           }
+//                           if (trSvg.attr("class") === "text-success")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file-lines text-warning')
+//                                 .toggleClass('fa-circle-check text-success');
+//
+//                              trSvg.attr("title", "Ready for Download...");
+//                           }
+//                           if (trSvg.attr("class") === "text-danger")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file-lines text-warning')
+//                                 .toggleClass('fa-circle-exclamation text-danger');
+//
+//                              trSvg.attr("title", "Ready for Download...");
+//                           }
                         } else {
                            $(this).prop('checked', false);
+
+                           //if (trSvg.attr("class") === "fa-file-lines fa-file")
+                          // {
+//                              trSvg
+//                                 .toggleClass('fa-file')
+//                                 .toggleClass('fa-file-lines');
+
+//                              trSvg.attr("title", "Select row to download");
+                        //   }
+//                           if (trSvg.attr("class") === "fa-file-lines text-warning")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file text-secondary')
+//                                 .toggleClass('fa-file-lines text-warning');
+//
+//                              //trVsg.attr("style", )
+//                              trSvg.attr("title", "Ready for Download...");
+//                           }
+//                           if (trSvg.attr("class") === "text-success")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file text-secondary')
+//                                 .toggleClass('fa-circle-check text-success');
+//
+//                              trSvg.attr("title", "Select row to download");
+//                           }
+//                           if (trSvg.attr("class") === "text-danger")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file text-secondary')
+//                                 .toggleClass('fa-circle-exclamation text-danger');
+//
+//                              trSvg.attr("title", "Select row to download");
+//                           }
                         }
-                     }
+                        console.log(trSvg.attr("class"));
+                        }
                   });
             });
 
@@ -595,10 +702,67 @@
 
                   // if anyone is not checked set the flag to false
                   $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
-                     function() {
+                     function () {
+//                        var tr = $(this).closest('tr');
+//                        var trSvg = tr.find('[data-fa-i2svg]');
+//
                         if (!$(this).prop('disabled') && !$(this).prop('checked')) {
                            isAllChecked = false;
                         }
+//
+//                        if ($(this).prop('checked')) {
+//                           console.log(trSvg.attr("class"));
+//                           console.log("Checked");
+//                           if (trSvg.attr("class") === "text-secondary")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file-lines')
+//                                 .toggleClass('fa-file');
+//
+//                              trSvg.attr("title", "Ready for Download...");
+//                           }
+//                           if (trSvg.attr("class") === "text-success")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file-lines text-warning')
+//                                 .toggleClass('fa-circle-check text-success');
+//
+//                              trSvg.attr("title", "Ready for Download...");
+//                           }
+//                           if (trSvg.attr("class") === "text-danger")
+//                           {
+//                              trSvg
+//                                 .toggleClass('fa-file-lines text-warning')
+//                                 .toggleClass('fa-circle-exclamation text-danger');
+//
+//                              trSvg.attr("title", "Ready for Download...");
+//                              }
+//                        }
+//                        else {
+//                           console.log("Not Checked");
+//                           if (trSvg.attr("class") === "text-warning") {
+//                              trSvg
+//                                 .toggleClass('fa-file')
+//                                 .toggleClass('fa-file-lines');
+//
+//                              trSvg.attr("title", "Select row to download");
+//                           }
+//                           if (trSvg.attr("class") === "text-success") {
+//                              trSvg
+//                                 .toggleClass('fa-file text-secondary')
+//                                 .toggleClass('fa-circle-check text-success');
+//
+//                              trSvg.attr("title", "Select row to download");
+//                           }
+//                           if (trSvg.attr("class") === "text-danger") {
+//                              trSvg
+//                                 .toggleClass('fa-file text-secondary')
+//                                 .toggleClass('fa-circle-exclamation text-danger');
+//
+//                              trSvg.attr("title", "Select row to download");
+//                           }
+//                        }
+//                        console.log(trSvg.attr("class"));
                      });
 
                   // if all checkboxes are checked, check the header checkbox
@@ -624,8 +788,9 @@
                      function () {
                         var tr = $(this).closest('tr');
                         var row = table.row(tr);
-
                         var data = row.data();
+
+                        var trSvg = tr.find('[data-fa-i2svg]');
 
                         console.log(data);
                         // if the row is checked add the url to the list of data
@@ -633,6 +798,27 @@
                           // dataToSend.catagoeryName = data.category_name;
                           //dataToSend.subCategoryName = data.sub_category_name;
                            list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + moment(data.document_date).format('MM/DD/YYYY'));
+
+                           if (trSvg.attr("class") === "fa-circle-check") {
+                              trSvg
+                                 .toggleClass('fa-circle-check');
+                              }
+
+                           if (trSvg.attr("class") === "fa-circle-exclamation") {
+                             trSvg
+                                .toggleClass('fa-circle-exclamation');
+                           }
+
+                          if (trSvg.attr("class") === "fa-file-lines") {
+                             trSvg
+                                .toggleClass('fa-file-lines');
+                           }
+
+                          trSvg
+                             .toggleClass('fa-solid fa-rotate fa-spin');
+
+                              
+                              trSvg.attr("title", "Downloading...");
                         }
                   });
 
@@ -651,7 +837,52 @@
                         url: "/Egrants/IsDownloadForm",
                         data: JSON.stringify(dataToSend),
                         success: function(data) {
-                           console.log("SUCCESS: " + JSON.stringify(data));
+                           console.log("SUCCESS: ");
+                           console.log(JSON.stringify(data));
+
+                           $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
+                              function () {
+                                 var tr = $(this).closest('tr');
+                                 var row = table.row(tr);
+                                 console.log("row: ");
+                                 console.log(row);
+
+                                 var rowData = row.data();
+    
+                                 console.log("RowData:" + JSON.stringify(rowData));
+
+                                 // if the row is checked add the url of the link is the same as one found in the object,
+                                 // check the error flag to see if there is an error and show the success or error icon
+                                 if ($(this).prop('checked')) {
+                                    var found = data.DownloadDataList.filter(function (item) { return item.Url === rowData.url; });
+
+                                    if (found != null) {
+                                       var trSvg = tr.find('[data-fa-i2svg]');
+                                       console.log("Found: " + JSON.stringify(found));
+
+                                       if (found.Error == null) {
+                                          trSvg
+                                             .toggleClass('fa-circle-check')
+                                             .toggleClass('fa-solid fa-rotate fa-spin');
+
+                                          trSvg.attr("title", "File Download Successful!");
+                                       } else {
+                                          trSvg
+                                             .toggleClass('fa-circle-exclamation')
+                                             .toggleClass('fa-solid fa-rotate fa-spin');
+
+                                          trSvg.attr("title", found.Error);
+                                       }
+                                    } else {
+//                                          trSvg
+//                                          .toggleClass('fa-angle-down')
+//                                          .toggleClass('fa-angle-right');
+                                       alert("A matching row was never found!");
+
+                                    }
+                                 }
+                              });
+
                          //  data.downloadModel.handle;
                            //console.log(data.FileGuid);
                            //console.log(data.FileName);
