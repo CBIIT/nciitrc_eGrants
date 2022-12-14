@@ -85,6 +85,8 @@ namespace egrants_new.Models
         public string Category { get; set; }
 
         public string SubCategory { get; set; }
+        
+        public string DocumentName { get; set; }
 
         public DateTime DocumentDate { get; set; }
 

@@ -316,12 +316,18 @@
       if (document.getElementById("standardForm").hidden == true) {
          document.getElementById("standardForm").hidden = false;
          document.getElementById("downloadForm").hidden = true;
+         document.getElementById("toggle_title").innerHTML = "Grant Years";
+
+
          return;
       }
 
       if (document.getElementById("downloadForm").hidden == true) {
+                  document.getElementById("toggle_title").innerHTML = "Audit File Download";
          document.getElementById("downloadForm").hidden = false;
          document.getElementById("standardForm").hidden = true;
+
+         return;
       }
    }
 
@@ -417,38 +423,41 @@
 <div id="main">
    @if (ViewBag.GrantID != null)
    {
-      <div id="toggle_bar" style="display: inline; width: 950px;">
-         <div id="show_search_form" style="display: none;">
-            <a href="Javascript:show_search_form()" title="View Search Filters">
-               <img style="vertical-align: middle; height: 32px;" src="~/Content/images/search.png" />
-            </a>
-         </div>
-         <div id="show_appls_toggle" style="display: none;">
-            <a href="JavaScript:show_toggle_appls()" title="View Grant Years">
-               <img style="width: 40px;" src="~/Content/images/appls_toggle.png" />
-            </a>
-         </div>
-         <div id="show_cats_toggle" style="display: none;">
-            <a href="#" onclick="Javascript:return before_show_toggle_cats()">
-               <img style="vertical-align: middle; width: 40px;" src="~/Content/images/filter.png" title="View Category Filter" />
-            </a>
-         </div>
+   <div id="toggle_bar" style="display: inline; width: 950px;">
+      <div id="show_search_form" style="display: none;">
+         <a href="Javascript:show_search_form()" title="View Search Filters">
+            <img style="vertical-align: middle; height: 32px;" src="~/Content/images/search.png" />
+         </a>
+      </div>
+      <div id="show_appls_toggle" style="display: none;">
+         <a href="JavaScript:show_toggle_appls()" title="View Grant Years">
+            <img style="width: 40px;" src="~/Content/images/appls_toggle.png" />
+         </a>
+      </div>
+      <div id="show_cats_toggle" style="display: none;">
+         <a href="#" onclick="Javascript:return before_show_toggle_cats()">
+            <img style="vertical-align: middle; width: 40px;" src="~/Content/images/filter.png" title="View Category Filter" />
+         </a>
+      </div>
 
-         <div id="title_for_toggle" style="display: inline; margin-left: 300px; width: 950px;">
-            <b id="toggle_title" style="font-size: medium;"></b>
-         </div>
+      <div id="title_for_toggle" style="display: inline; margin-left: 300px; width: 950px;">
+         <b id="toggle_title" style="font-size: medium;"></b>
+      </div>
       @if (Convert.ToInt16(Session["position_id"]) >= 2)
       {
          <div id="show_download_toggle" style="display: none;">
-            <a href="#" onclick="Javascript:return toggle_download_forms()">
+            <a href="#" onclick="Javascript:return toggle_download_forms()" title="Audit File Download">
                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-                  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                  <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                  <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
                </svg>
             </a>
          </div>
+
+         @*<div id="downloadLabel" class="ml-3" style="display: inline"><span class="badge badge-secondary">Audit File Download</span></div>*@
+         @*<label class="">Audit File Download</label>*@
       }
-      </div>
+   </div>
 
       // show appls toggle
       <div>
