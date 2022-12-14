@@ -172,15 +172,14 @@ namespace egrants_new.Controllers
                     var category = split[1];
                     var subCategory = split[2];
                     var documentId = split[3];
-                    var documentDate = split[4];
+                    var documentName = split[4];
 
 
                     downloadData.Url = url;
                     downloadData.Category = category;
                     downloadData.SubCategory = subCategory;
-                    downloadData.DocumentDate = DateTime.Parse(documentDate);
                     downloadData.DocumentId = Convert.ToInt32(documentId);
-                
+                    downloadData.DocumentName = documentName;
                    // if(downloadModel.DownloadDataList.)
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
@@ -249,28 +248,8 @@ namespace egrants_new.Controllers
                                 string newFileName = string.Empty;
 
                                 // just reove the first four characters which are the first digit, the P30 part
-                                newFileName = fullGrantNumber.Remove(0, 4) + "-" + category;
+                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
 
-                                // add the sub-category if it is there
-                                if (!subCategory.IsNullOrWhiteSpace())
-                                {
-                                    newFileName += $"-{subCategory}-{documentId}{fi.Extension}";
-                                }
-                                else
-                                {
-                                    newFileName += $"-{documentId}{fi.Extension}";
-                                }
-
-                                foreach (var item in downloadModel.DownloadDataList)
-                                {
-                                    if (item.FileDownloaded == newFileName)
-                                    {
-                                        var values = downloadModel.DownloadDataList.OrderBy(p => Path.GetFileNameWithoutExtension(p.Url)).ToList();
-                                        // var serverFileName = Path.GetFileName(item.Url);
-
-
-                                    }
-                                }
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
@@ -295,33 +274,6 @@ namespace egrants_new.Controllers
                             uri = new Uri(imageServer, url);
                         }
 
-                        // var webResponse = (HttpWebRequest)WebRequest.Create(uri);
-                        // webResponse.AllowAutoRedirect = false;
-                        //
-                        // webResponse.CookieContainer = new CookieContainer();
-                        // webResponse.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0";
-                        // webResponse.Method = "GET";
-                        // webResponse.UseDefaultCredentials = true;
-                        //
-                        // ServicePointManager.ServerCertificateValidationCallback = (c, certificate, chain, errors) => true;
-                        //
-                        // var res = (HttpWebResponse)webResponse.GetResponse();
-                        //
-                        // using (var postStream = res.GetResponseStream())
-                        // {
-                        //     if (postStream == null)
-                        //     {
-                        //         throw new Exception("The stream was empty!");
-                        //     }
-                        //
-                        //     string downloadedData;
-                        //
-                        //     using (var reader = new StreamReader(postStream))
-                        //     {
-                        //         downloadedData = reader.ReadToEnd();
-                        //     }
-                        // }
-
                         using (var myWebClient = new WebClient())
                         {
 
@@ -341,29 +293,20 @@ namespace egrants_new.Controllers
                             string newFileName = string.Empty;
 
                             // just reove the first four characters which are the first digit, the P30 part
-                            newFileName = fullGrantNumber.Remove(0, 4) + "-" + category;
+                            // newFileName = fullGrantNumber.Remove(0, 4) + "-" + category;
 
-                            if (!subCategory.IsNullOrWhiteSpace())
-                            {
-                                newFileName += $"-{subCategory}-{documentId}{fi.Extension}";
-                            }
-                            else
-                            {
-                                newFileName += $"-{documentId}{fi.Extension}";
-                            }
+                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
 
-                            // add the -1 and -2 to the items if they are matching names
-                            foreach (var item in downloadModel.DownloadDataList)
-                            {
-                                if (item.FileDownloaded == newFileName)
-                                {
-                                    var values = downloadModel.DownloadDataList.OrderBy(p => Path.GetFileNameWithoutExtension(p.Url)).ToList();
-                                   // var serverFileName = Path.GetFileName(item.Url);
+                            // if (!subCategory.IsNullOrWhiteSpace())
+                            // {
+                            //     newFileName += $"-{subCategory}-{documentId}{fi.Extension}";
+                            // }
+                            // else
+                            // {
+                            //     newFileName += $"-{documentId}{fi.Extension}";
+                            // }
 
-
-                                }
-                            }
-                       
+                            //string newFileInvalidsRemoved = ReplaceInvalidChars(newFileName);
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                             downloadData.FileDownloaded = newFileName;
@@ -491,6 +434,11 @@ namespace egrants_new.Controllers
                 //           redirect to another controller action - whatever fits with your application
                 return new EmptyResult();
             }
+        }
+
+        public string ReplaceInvalidChars(string filename)
+        {
+            return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
         }
 
         /// <summary>

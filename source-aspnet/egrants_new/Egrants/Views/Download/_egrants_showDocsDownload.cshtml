@@ -102,6 +102,7 @@
 
    .fa-file-lines {
       color: blue;
+      display: none;
    }
 
    .fa-circle-check { color: green; }
@@ -200,7 +201,9 @@
       @* @{ *@
       @*    <asp:LinkButton ID="lnkDownload" Text="Download" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DownloadFile"></asp:LinkButton> *@
       @* } *@
+
    </div>
+
    <div id="data_table">
       <div class="container">
          <br/>
@@ -659,7 +662,7 @@
                         console.log(data);
                         // if the row is checked add the url to the list of data
                         if ($(this).prop('checked')) {
-                           list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + moment(data.document_date).format('MM/DD/YYYY'));
+                           list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name);
 
                            if (trSvg.attr("class") === "fa-circle-check") {
                               trSvg
