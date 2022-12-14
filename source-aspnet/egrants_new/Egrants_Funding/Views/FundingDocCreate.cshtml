@@ -147,7 +147,7 @@
          {
             type: 'POST',
             url: "/Egrants/LoadYears",
-            data: { admin_code: AdminCode, serial_num: SerialNum },
+            data: { adminCode: AdminCode, serialNumber: SerialNum },
             success: function(resp) {
                var jsonobj = JSON.parse(resp);
                $('#ddlAppls').empty();
@@ -584,12 +584,12 @@
                      <!--end upload by drag drop-->
                      <!--start upload by file-->
                      <div class="tabcontent" id="by_file" style="display: none">
-                        <form>
+                       <form>
                         <div class="custom-file my-2">
                            <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
                            <label class="custom-file-label" for="customFile">Choose file...</label>
                         </div>
-                        </form>
+                       </form>
                            <div style="display: inline">
                               <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" accesskey="N" disabled="disabled" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
                            </div>

@@ -352,8 +352,8 @@ namespace egrants_new.Egrants.Models
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@fy", fiscalYear);
                 cmd.Parameters.AddWithValue("@mechanism", mechanism);
-                cmd.Parameters.AddWithValue("@adminCode", adminCode);
-                cmd.Parameters.AddWithValue("@serialNumber", serialNumber);
+                cmd.Parameters.AddWithValue("@admincode", adminCode);
+                cmd.Parameters.AddWithValue("@serialnum", serialNumber);
 
                 conn.Open();
                 var rdr = cmd.ExecuteReader();
