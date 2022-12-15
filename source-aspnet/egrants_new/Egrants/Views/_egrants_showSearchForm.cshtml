@@ -112,7 +112,7 @@
         {
             type: 'POST',
             url: "/Egrants/LoadYears",
-              data: { fiscalYear: fiscalYear, mechanism: mechanism, adminCode: adminCode, serialNumber: serialNumber },  //fy: fy, mechan: mechan,
+            data: { fiscalYear: fiscalYear, mechanism: mechanism, adminCode: adminCode, serialNumber: serialNumber },  //fy: fy, mechan: mechan,
             success: function (resp) {
                 sessionStorage.year = resp;
                 var jsonobj = JSON.parse(resp);
