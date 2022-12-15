@@ -37,7 +37,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
@@ -45,26 +44,15 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Mime;
-using System.Net.Security;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Web;
-using System.Web.Helpers;
 using System.Web.Mvc;
-using System.Web.UI.WebControls;
 
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
 
-using Microsoft.Ajax.Utilities;
-
 using Newtonsoft.Json;
-
-//using Newtonsoft.Json;
 
 #endregion
 
@@ -272,7 +260,6 @@ namespace egrants_new.Controllers
 
                         using (var myWebClient = new WebClient())
                         {
-
                             myWebClient.UseDefaultCredentials = true;
                             myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
                             myWebClient.Credentials = CredentialCache.DefaultCredentials;
@@ -293,18 +280,14 @@ namespace egrants_new.Controllers
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                             downloadData.FileDownloaded = newFileName;
-                            downloadModel.NumSucceeded += 1;
+                            
                             Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
                             Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                         }
+
+                        downloadModel.NumSucceeded += 1;
                     }
                 }
-                // catch (WebException ex) when (ex.Status == WebExceptionStatus.ProtocolError)
-                // {
-                //     // code specifically for a WebException ProtocolError
-                //     downloadData.Error = "Protocol Error";
-                //
-                // }
                 catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
                 {
                     // code specifically for a WebException NotFound
