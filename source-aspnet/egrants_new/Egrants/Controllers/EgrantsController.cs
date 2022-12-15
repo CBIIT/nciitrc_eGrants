@@ -299,12 +299,12 @@ namespace egrants_new.Controllers
                         }
                     }
                 }
-                catch (WebException ex) when (ex.Status == WebExceptionStatus.ProtocolError)
-                {
-                    // code specifically for a WebException ProtocolError
-                    downloadData.Error = "Protocol Error";
-
-                }
+                // catch (WebException ex) when (ex.Status == WebExceptionStatus.ProtocolError)
+                // {
+                //     // code specifically for a WebException ProtocolError
+                //     downloadData.Error = "Protocol Error";
+                //
+                // }
                 catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
                 {
                     // code specifically for a WebException NotFound
