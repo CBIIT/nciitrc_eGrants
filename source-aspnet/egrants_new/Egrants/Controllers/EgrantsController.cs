@@ -871,11 +871,11 @@ namespace egrants_new.Controllers
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public ActionResult by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialNumber = 0)
+        public ActionResult by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialnum = 0)
         {
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
-            if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNumber == 0) /*string.IsNullOrEmpty(admincode) &&*/
+            if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialnum == 0) /*string.IsNullOrEmpty(admincode) &&*/
             {
                 this.ViewBag.Message = "No data found for the search";
                 this.ViewBag.grantlayer = null;
@@ -897,8 +897,8 @@ namespace egrants_new.Controllers
                     this.ViewBag.FilterFY = string.Empty;
                 }
 
-                if (serialNumber != 0)
-                    this.ViewBag.FilterSerialNumber = serialNumber;
+                if (serialnum != 0)
+                    this.ViewBag.FilterSerialNumber = serialnum;
 
                 this.ViewBag.FilterMechanism = mechanism;
                 this.ViewBag.FilterAdminCode = adminCode;
@@ -908,7 +908,7 @@ namespace egrants_new.Controllers
                     fiscalYear,
                     mechanism,
                     adminCode,
-                    serialNumber,
+                    serialnum,
                     1,
                     Convert.ToString(this.Session["browser"]),
                     Convert.ToString(this.Session["ic"]),

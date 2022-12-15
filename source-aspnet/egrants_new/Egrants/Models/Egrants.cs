@@ -305,7 +305,7 @@ namespace egrants_new.Egrants.Models
                 cmd.Parameters.AddWithValue("@fy", fy);
                 cmd.Parameters.AddWithValue("@mechanism", mechanism);
                 cmd.Parameters.AddWithValue("@adminCode", adminCode);
-                cmd.Parameters.AddWithValue("@serialNumber", serialNumber);
+                cmd.Parameters.AddWithValue("@serialnum", serialNumber);
                 cmd.Parameters.AddWithValue("@page_num", page_num);
                 cmd.Parameters.AddWithValue("@browser", browser);
                 cmd.Parameters.AddWithValue("@ic", ic);
