@@ -167,7 +167,7 @@ namespace egrants_new.Controllers
                     downloadData = new DownloadData();
 
                     var split = dataInput.Split(new char[] { '|' }, StringSplitOptions.None);
-                    
+
                     var url = split[0];
                     var category = split[1];
                     var subCategory = split[2];
@@ -180,7 +180,8 @@ namespace egrants_new.Controllers
                     downloadData.SubCategory = subCategory;
                     downloadData.DocumentId = Convert.ToInt32(documentId);
                     downloadData.DocumentName = documentName;
-                   // if(downloadModel.DownloadDataList.)
+
+                    // if(downloadModel.DownloadDataList.)
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
 
@@ -235,28 +236,23 @@ namespace egrants_new.Controllers
                                 // Download the Web resource and save it into the current filesystem folder.
                                 myWebClient.DownloadFile(downloadUrl, tmpFileName);
 
-                                // string filename = Path.GetFileName(uri.LocalPath);
-
                                 // // get the filename from the content-disposition header of the downloaded file
                                 var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
                                 ContentDisposition contentDisposition = new ContentDisposition(disposition);
                                 string filename = contentDisposition.FileName;
                                 FileInfo fi = new FileInfo(filename);
 
-                               // downloadData.ServerFileName = Path.GetFileNameWithoutExtension(filename);
-
                                 string newFileName = string.Empty;
 
-                                // just reove the first four characters which are the first digit, the P30 part
+                                // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                                // and remove all invalid characters from filename and replace with _
                                 newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
 
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                                 downloadData.FileDownloaded = newFileName;
-
                                 Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, downloadUrl);
-
                                 Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                             }
                         }
@@ -288,25 +284,12 @@ namespace egrants_new.Controllers
                             string filename = Path.GetFileName(uri.LocalPath);
                             FileInfo fi = new FileInfo(filename);
 
-                           // downloadData.ServerFileName = Path.GetFileNameWithoutExtension(uri.ToString());
-
                             string newFileName = string.Empty;
 
-                            // just reove the first four characters which are the first digit, the P30 part
-                            // newFileName = fullGrantNumber.Remove(0, 4) + "-" + category;
-
+                            // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                            // and remove all invalid characters from filename and replace with _
                             newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
 
-                            // if (!subCategory.IsNullOrWhiteSpace())
-                            // {
-                            //     newFileName += $"-{subCategory}-{documentId}{fi.Extension}";
-                            // }
-                            // else
-                            // {
-                            //     newFileName += $"-{documentId}{fi.Extension}";
-                            // }
-
-                            //string newFileInvalidsRemoved = ReplaceInvalidChars(newFileName);
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                             downloadData.FileDownloaded = newFileName;
@@ -316,10 +299,26 @@ namespace egrants_new.Controllers
                         }
                     }
                 }
+                catch (WebException ex) when (ex.Status == WebExceptionStatus.ProtocolError)
+                {
+                    // code specifically for a WebException ProtocolError
+                    downloadData.Error = "Protocol Error";
+
+                }
+                catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
+                {
+                    // code specifically for a WebException NotFound
+                    downloadData.Error = "File not found.";
+                }
+                catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.InternalServerError)
+                {
+                    // code specifically for a WebException InternalServerError
+                    downloadData.Error = "Internal Server Error! Notify Dev Team!";
+                }
                 catch (Exception err)
                 {
                     Console.WriteLine("Item Error : " + err.ToString());
-                    downloadData.Error = "FILE ERROR: " + err.ToString();
+                    downloadData.Error = "Screen shot this error and send to dev team!" + Environment.NewLine + err.ToString();
                     downloadModel.NumFailed += 1;
                 }
 
@@ -333,26 +332,6 @@ namespace egrants_new.Controllers
             string zipFileNameWithPath = Path.Combine(Path.GetTempPath(), zipFileName);
 
             downloadModel.ZipFilename = zipFileName;
-
-            // using (var memoryStream = new MemoryStream())
-            // {
-            //     using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
-            //     {
-            //         var demoFile = archive.CreateEntry("foo.txt");
-            //
-            //         using (var entryStream = demoFile.Open())
-            //         using (var streamWriter = new StreamWriter(entryStream))
-            //         {
-            //             streamWriter.Write("Bar!");
-            //         }
-            //     }
-            //
-            //     using (var fileStream = new FileStream(@"C:\Temp\test.zip", FileMode.Create))
-            //     {
-            //         memoryStream.Seek(0, SeekOrigin.Begin);
-            //         memoryStream.CopyTo(fileStream);
-            //     }
-            // }
 
             try
             {
@@ -376,13 +355,11 @@ namespace egrants_new.Controllers
             }
             catch (Exception err)
             {
-                Console.WriteLine("Error Tryng to Zip or Serve Zip file: " + err.ToString());
-                downloadModel.ZipError = "ZIP ERROR: " + err.ToString();
+                Console.WriteLine("Error trying to Zip or serve zip file: " + err.ToString());
+                downloadModel.ZipError = "ZIP FILE ERROR! Screen shot this error and send to Dev team! " + Environment.NewLine + err.ToString();
             }
 
             return Json(downloadModel, JsonRequestBehavior.AllowGet);
-
-            //return new JsonResult { Data = new { FileGuid = handle, FileName = zipFileName } };
         }
 
         /// <summary>  
