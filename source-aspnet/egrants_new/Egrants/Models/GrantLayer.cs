@@ -190,5 +190,7 @@ namespace egrants_new.Egrants.Models
         ///     Gets or sets a value indicating whether any org doc.
         /// </summary>
         public bool AnyOrgDoc { get; set; }
+
+        public bool ShowEmailHyperLink { get; set; }
     }
 }
