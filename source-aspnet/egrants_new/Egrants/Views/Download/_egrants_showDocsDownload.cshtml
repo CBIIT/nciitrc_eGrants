@@ -387,7 +387,7 @@
 
                         // console.log(data);
 
-                        row.child(format(data)).show();
+                        row.child(format2(data)).show();
                         tr.next('tr').addClass(tr.attr('class'));
                      });
 
@@ -783,7 +783,7 @@
          });
 
          /* Formatting function for row details   margin-left:65px;*/
-         function format(d) {
+         function format2(d) {
             var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
             str = str + 'Created On ' + d.created_date + ' by ' + d.created_by;
 
