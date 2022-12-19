@@ -143,15 +143,15 @@ namespace egrants_new
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-            HangfireAspNet.Use(this.GetHangfireServers);
+          //  HangfireAspNet.Use(this.GetHangfireServers);
 
-            var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
-            var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
-            var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
+           // var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
+           // var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
+           // var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
 
             // create the Background job
-            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
-            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
+           // RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+           // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
             //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
         }
 
@@ -204,6 +204,7 @@ namespace egrants_new
             }
         }
 
+        
         /// <summary>
         /// This event raised for each time a new session begins, This is a good
         ///     place to put code that is session-specific.
@@ -216,6 +217,7 @@ namespace egrants_new
         /// </param>
         protected void Session_Start(object sender, EventArgs e)
         {
+            //this.Session.Timeout = 5;
             // Code that runs when a new session is started---added 11_21_2018
             var sessionId = this.Session.SessionID;
 
@@ -275,83 +277,6 @@ namespace egrants_new
 
             //this.Session["test"] = "Hello";
         }
-
-        /// <summary>
-        ///     The check_user_type.
-        /// </summary>
-        // protected void check_user_type()
-        // {
-        //     var usertype = EgrantsCommon.UserType(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
-        //
-        //     if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
-        //     {
-        //         this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-        //     }
-        //     else
-        //     {
-        //         this.check_user_validation(usertype);
-        //     }
-        // }
-        //
-        // /// <summary>
-        // /// The check_user_validation.
-        // /// </summary>
-        // /// <param name="usertype">
-        // /// The usertype.
-        // /// </param>
-        // protected void check_user_validation(string usertype)
-        // {
-        //     // set all profiles for user
-        //     var users = EgrantsCommon.uservar(Convert.ToString(this.Session["userid"]), Convert.ToString(this.Session["ic"]), usertype);
-        //
-        //     foreach (var usr in users)
-        //     {
-        //         this.Session.Add("Validation", usr.Validation);
-        //         this.Session.Add("userid", usr.UserId);
-        //         this.Session.Add("ic", usr.ic);
-        //         this.Session.Add("Personid", usr.personID);
-        //         this.Session.Add("position_id", usr.positionID);
-        //         this.Session.Add("UserName", usr.PersonName);
-        //         this.Session.Add("UserEmail", usr.PersonEmail);
-        //         this.Session.Add("Menus", usr.menulist);
-        //     }
-        //
-        //     // check user validation
-        //     if (this.Session["Validation"].ToString() != "OK")
-        //     {
-        //         this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-        //     }
-        //     else
-        //     {
-        //         this.check_user_profile(usertype);
-        //     }
-        // }
-        //
-        // /// <summary>
-        // /// The check_user_profile.
-        // /// </summary>
-        // /// <param name="usertype">
-        // /// The usertype.
-        // /// </param>
-        // protected void check_user_profile(string usertype)
-        // {
-        //     // get link and server from web.config file
-        //     // Session["server"] = ConfigurationManager.ConnectionStrings["Server"].ConnectionString;
-        //     this.Session["webgrant"] = ConfigurationManager.ConnectionStrings["webgrant"].ConnectionString;
-        //     this.Session["ImageServer"] = ConfigurationManager.ConnectionStrings["ImageServer"].ConnectionString;
-        //
-        //     // for egrants
-        //     this.Session["dashboard"] = 0;
-        //     this.Session["egrantsDocNew"] = ConfigurationManager.ConnectionStrings["egrantsDocNew"].ConnectionString;
-        //     this.Session["egrantsDocModify"] = ConfigurationManager.ConnectionStrings["egrantsDocModify"].ConnectionString;
-        //     this.Session["egrantsFunding"] = ConfigurationManager.ConnectionStrings["egrantsFunding"].ConnectionString;
-        //     this.Session["egrantsInst"] = ConfigurationManager.ConnectionStrings["egrantsInst"].ConnectionString;
-        //     this.Session["egrantsDocEmail"] = ConfigurationManager.ConnectionStrings["egrantsDocEmail"].ConnectionString;
-        //
-        //     this.Session["closeoutAcceptance"] = ConfigurationManager.ConnectionStrings["closeoutAcceptance"].ConnectionString;
-        //     this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
-        //     this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
-        // }
 
         /// <summary>
         /// This event raised whenever an unhandled exception occurs in the
@@ -418,7 +343,13 @@ namespace egrants_new
         {
             this.Application.Lock();
             this.Application["UsersOnline"] = (int)this.Application["UsersOnline"] - 1;
+            this.Session.RemoveAll();
             this.Application.UnLock();
+
+            Console.WriteLine("Session Ended!");
+            
+           // this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            
         }
 
         /// <summary>
@@ -439,6 +370,7 @@ namespace egrants_new
             }
         }
 
+      
         // Create our own utility for exceptions 
         /// <summary>
         /// The exception utility.
