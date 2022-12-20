@@ -158,16 +158,16 @@
 
 
    // download documents in the appls
-   function downloadDocs(doc, appl_id) {
-      var previous_url = encodeURIComponent(currenturl);
-      console.log(appl_id);
-      //  var table = $('#loadgrid_' + appl_id).DataTable();
-      var table = document.getElementById("loadgridDownload_" + appl_id);
-      var tr = $('#loadgridDownload_' + appl_id).closest('tr');
-      var row = table.row(tr);
-      var data = row.data();
-      console.log(data);
-   }
+//   function downloadDocs(doc, appl_id) {
+//      var previous_url = encodeURIComponent(currenturl);
+//      console.log(appl_id);
+//      //  var table = $('#loadgrid_' + appl_id).DataTable();
+//      var table = document.getElementById("loadgridDownload_" + appl_id);
+//      var tr = $('#loadgridDownload_' + appl_id).closest('tr');
+//      var row = table.row(tr);
+//      var data = row.data();
+//      console.log(data);
+//   }
 
 //   //to upload document image
 //   function upload_doc(document_id) {
@@ -214,13 +214,7 @@
                   <th>
 
                      <div id="qc_checkbox_all_@appl_id" style="display: inline;" class="ml-1">
-                        @*class="hide_qc_all"*@
                         <input type="checkbox" title="Check All" class="showmodeall" id="checkboxall_@appl_id"/>
-                        @*onchange="check_changed_header(@appl_id)"/>*@
-
-                        @* <a class='hidemodeall' href='javascript:void(0);' title='hide all qc mode'> *@
-                        @*    <img name='hide_qc_all' style="height: 30px;" src='~/Content/images/minus.png' /> *@
-                        @* </a> *@
                      </div>
                   </th>
                   <th>
@@ -248,28 +242,7 @@
                         <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z"/>
                      </svg>
                   </th>
-                  @* <th>Pages</th> *@
-                  @* <th> *@
-                  @*    @if (Convert.ToInt16(Session["position_id"]) >= 2) *@
-                  @*    { *@
-                  @*       <span>Upload</span> *@
-                  @*    } *@
-                  @* </th> *@
-
-
                   <th></th>
-                  @* <th></th> *@
-                  @* <th></th> *@
-                  @* <th></th> *@
-
-
-                  @* <th> *@
-                  @*    @if (Convert.ToInt16(Session["position_id"]) >= 2) *@
-                  @*    { *@
-                  @*       <span>Update</span> *@
-                  @*    } *@
-                  @* </th> *@
-                  @* <th>Report Error</th> *@
                </tr>
                </thead>
             </table>
@@ -280,7 +253,21 @@
          $("#overlay").show();
 
          $(document).ready(function() {
-
+//            $.ajax
+//            ({
+//               url: "/Egrants/LoadDocsGrid?appl_id=" + @appl_id + "&search_type=@Convert.ToString(ViewBag.SearchStyle)" + "&category_list=@Convert.ToString(ViewBag.SelectedCats)",
+//               type: "GET",
+//               contentType: 'application/json; charset=utf=8',
+//               dataType: 'JSON',
+//               success: function(data) {
+//                  //console.log(data);
+//                  return;
+//               },
+//               error: function(resp) {
+//                  // console.log("ERROR: " + resp);
+//                  return;
+//               }
+//            });
             $.fn.dataTable.moment('MM/DD/YYYY');
             jQuery.extend(jQuery.fn.dataTableExt.oSort,
                {
@@ -312,16 +299,17 @@
                   }
                });
             var table = $("#loadgridDownload_" + @appl_id).DataTable({
-               "paging": false, // for reinitialize
-               "searching": false, // for reinitialize
-               "ordering": true,
-               "order": [[2, 'asc']], // desc
-               "processing": true, // for show progress bar
-               "serverSide": false, // for process server side
-               "filter": true, // this is for disable filter (search box)
-               "orderMulti": false, // for disable multiple column at once
-               "bInfo": false,
-               "initComplete": function(settings, json) {
+               paging: false, // for reinitialize
+               searching: false, // for reinitialize
+               ordering: true,
+               order: [[2, 'asc']], // desc
+               processing: true, // for show progress bar
+               serverSide: false, // for process server side
+               filter: true, // this is for disable filter (search box)
+               orderMulti: false, // for disable multiple column at once
+               bInfo: false,
+               initComplete: function (settings, json) {
+                  $("#overlay").hide();
                   //var info = this.api().page.info();
                   //console.log(info);
                   //console.log(this.api());
@@ -329,7 +317,16 @@
                   //console.log("Json: " + JSON.stringify(json));
 //                  console.log("Grant: " + ViewBag.);
                   var api = this.api();
-                  console.log(this.api());
+                  console.log(this.api().data());
+                  if (table.data().count() == 0) {
+                     console.log("Zero records");
+                     $("#downloadData").attr("disabled", true);
+                     $('#checkboxall_' + @appl_id).attr("disabled", true);
+                  } else {
+                     $("#downloadData").attr("disabled", false);
+                     $('#checkboxall_' + @appl_id).attr("disabled", false);
+                  }
+
                   //api.$('#loadgrid_' + @appl_id).click(function () {
 //                  api.$('.showmode').click(function () {
 //
@@ -406,39 +403,49 @@
                   // if (info.recordsTotal > 1) $('#show_qc_all_' + @appl_id).show();
                },
 
-               "ajax": {
-                  "url": "/Egrants/LoadDocsGrid?appl_id=" + @appl_id + "&search_type=@Convert.ToString(ViewBag.SearchStyle)" + "&category_list=@Convert.ToString(ViewBag.SelectedCats)",
-                  "type": "GET",
-                  "datatype": "json"
-               },
-               "stripeClasses": ['odd-row', 'even-row'],
-               "columnDefs": [
-                  { "width": "75%", "targets": 1 },
-                  { "width": "5%", "targets": 0 },
-                  { "width": "5%", "targets": 3 },
+               ajax: {
+                  url: "/Egrants/LoadDocsGrid?appl_id=" + @appl_id + "&search_type=@Convert.ToString(ViewBag.SearchStyle)" + "&category_list=@Convert.ToString(ViewBag.SelectedCats)",
+                  type: "GET",
+                  contentType: 'application/json; charset=utf=8',
+                  dataType: 'JSON',
+//                  success: function (successResp) {
+//                     data: successResp;
+//                     //console.log(data);
+//                     //return;
+//                  },
+//                  error: function(resp) {
+//                    // console.log("ERROR: " + resp);
+//                    //return;
+//                  }
+            },
+               stripeClasses: ['odd-row', 'even-row'],
+               columnDefs: [
+                  { width: "75%", targets: 1 },
+                  { width: "5%", targets: 0 },
+                  { width: "5%", targets: 3 },
                   {
-                     "targets": [0],
-                     "orderable": false
+                     targets: [0],
+                     orderable: false
                   },
                   {
-                     "visible": true,
-                     "searching": false,
-                     "paging": false
+                     visible: true,
+                     searching: false,
+                     paging: false
                   },
                   {
-                     "className": "text-center",
-                     "targets": [3]
+                     className: "text-center",
+                     targets: [3]
                   },
                   {
-                     "type": 'dateNonStandard',
+                     type: 'dateNonStandard',
                      targets: [2]
                   }
                ],
-               "columns": [
+               columns: [
                   {
-                     "className": "details-control",
+                     className: "details-control",
                      // show qc icon and checkbox
-                     "render": function(data, type, full, meta) {
+                     render: function(data, type, full, meta) {
 
                         return "<div id=\"qc_checkbox_" +
                            full.document_id +
@@ -457,7 +464,7 @@
                   },
                   {
                      // show document_name with url
-                     "render": function(data, type, full, meta) {
+                     render: function(data, type, full, meta) {
                         if (full.frc_destroyed == 0) {
                            if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
                               var str = "<a href=JavaScript:show_doc('" +
@@ -506,7 +513,7 @@
 
                   },
                   {
-                     "data": "doc_date",
+                     data: "doc_date",
                      render: function(data, type, full, meta) {
                         if (full.document_date == "") {
                            return '';
@@ -514,14 +521,14 @@
                            return moment(data).format('MM/DD/YYYY');
                         }
                      },
-                     "autoWidth": true
+                     autoWidth: true
                   },
 //                  {
 //                      "data": "page_count", "autoWidth": true
 //                  },
                   {
                      // replace document image
-                     "render": function(data, type, full, meta) {
+                     render: function(data, type, full, meta) {
                         var str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-emoji-heart-eyes text-success\" viewBox=\"0 0 16 16\">" +
                            "<path d=\"M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"/>" +
                            "<path d=\"M11.315 10.014a.5.5 0 0 1 .548.736A4.498 4.498 0 0 1 7.965 13a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .548-.736h.005l.017.005.067.015.252.055c.215.046.515.108.857.169.693.124 1.522.242 2.152.242.63 0 1.46-.118 2.152-.242a26.58 26.58 0 0 0 1.109-.224l.067-.015.017-.004.005-.002zM4.756 4.566c.763-1.424 4.02-.12.952 3.434-4.496-1.596-2.35-4.298-.952-3.434zm6.488 0c1.398-.864 3.544 1.838-.952 3.434-3.067-3.554.19-4.858.952-3.434z\"/></svg>";
@@ -810,6 +817,8 @@
          window.onload = function() {
             $("#overlay").hide();
          };
+
+
       </script>
    </div>
 
