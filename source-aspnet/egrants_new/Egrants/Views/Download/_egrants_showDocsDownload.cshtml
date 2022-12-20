@@ -197,7 +197,7 @@
 
    <div id="create new buttons" style="float: right; display: inline;">
 
-      <button type="button" id="downloadData" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
+      <button type="button" id="downloadData_@appl_id" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
       @* @{ *@
       @*    <asp:LinkButton ID="lnkDownload" Text="Download" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DownloadFile"></asp:LinkButton> *@
       @* } *@
@@ -320,11 +320,11 @@
                   console.log(this.api().data());
                   if (table.data().count() == 0) {
                      console.log("Zero records");
-                     $("#downloadData").attr("disabled", true);
-                     $('#checkboxall_' + @appl_id).attr("disabled", true);
+                     $('#downloadData_@appl_id').attr("disabled", true);
+                     $('#checkboxall_@appl_id').attr("disabled", true);
                   } else {
-                     $("#downloadData").attr("disabled", false);
-                     $('#checkboxall_' + @appl_id).attr("disabled", false);
+                     $('#downloadData_@appl_id').attr("disabled", false);
+                     $('#checkboxall_@appl_id').attr("disabled", false);
                   }
 
                   //api.$('#loadgrid_' + @appl_id).click(function () {
@@ -648,7 +648,7 @@
                });
 
             // when the user clicks the download button get all the rows that are checked
-            $('#downloadData').on('click',
+            $('#downloadData_@appl_id').on('click',
                function() {
                   // create an object of appl_id and list of urls to send to save method
                   var dataToSend = {};
