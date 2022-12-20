@@ -106,7 +106,6 @@
          document.getElementById("show_search_form").style.display = "inline";
          document.getElementById("show_cats_toggle").style.display = "inline";
          document.getElementById("show_download_toggle").style.display = "inline";
-
          show_toggle_appls();
       }
 
@@ -132,7 +131,7 @@
          document.getElementById(el).style.display = "inline";
       }
 
-     // CurrentDownloadValue = "Standard";
+      document.getElementById("downloadForm").hidden = true;
    }
 
    function by_str(str) {
@@ -324,7 +323,7 @@
       }
 
       if (document.getElementById("downloadForm").hidden == true) {
-                  document.getElementById("toggle_title").innerHTML = "Audit File Download";
+         document.getElementById("toggle_title").innerHTML = "Audit File Download";
          document.getElementById("downloadForm").hidden = false;
          document.getElementById("standardForm").hidden = true;
 
@@ -784,7 +783,7 @@
                      @Html.Partial("~/Egrants/Views/_egrants_showAppl.cshtml", grant_id)
                   </div>
                </div>
-               <div hidden id="downloadForm">
+               <div id="downloadForm">
                   <div style="padding-top: 15px; float: left;">
                      @Html.Partial("~/Egrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
                   </div>

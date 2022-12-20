@@ -371,7 +371,6 @@ namespace egrants_new.Egrants.Models
             return yearList;
         }
 
-        // load category list string 
         /// <summary>
         /// The get category list.
         /// </summary>
