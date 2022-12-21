@@ -306,7 +306,7 @@
       }
 
       // check file, file type and file size
-      if (check_file() == false) {
+      if (!check_file()) {
          return false;
       } else var file = document.getElementById('customFile').files[0];
 
