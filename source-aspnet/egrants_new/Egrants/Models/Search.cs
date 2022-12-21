@@ -170,7 +170,7 @@ namespace egrants_new.Egrants.Models
                     grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
 
                     grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
-                    grant.ShowEmailHyperLink = Convert.ToBoolean(rdr["show_pi_email_addr_hyperlink"]); //.ToString() == "1" ? true : false);
+                    grant.ShowEmailHyperLink = Convert.ToBoolean(rdr["is_pi_email_addr_same_flag"]); //.ToString() == "1" ? true : false);
                     // grant.inst_flag2_url = rdr["inst_flag2_url"].ToString();
                     grantList.Add(grant);
                 }
