@@ -1,4 +1,13 @@
-﻿#region FileHeader
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="GrantLayer.cs" company="">
+//   
+// </copyright>
+// <summary>
+//   The grantlayer.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+#region FileHeader
 
 // /****************************** Module Header ******************************\
 // Module Name:  GrantLayer.cs
@@ -191,6 +200,24 @@ namespace egrants_new.Egrants.Models
         /// </summary>
         public bool AnyOrgDoc { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether show email hyper link.
+        /// </summary>
         public bool ShowEmailHyperLink { get; set; }
+
+        /// <summary>
+        /// Gets or sets the selected grant pi first name.
+        /// </summary>
+        public string SelectedGrantPiFirstName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the selected grant pi lastname.
+        /// </summary>
+        public string SelectedGrantPiLastname { get; set; }
+
+        /// <summary>
+        /// Gets or sets the selected grant pi middle initial.
+        /// </summary>
+        public string SelectedGrantPiMiddleInitial { get; set; }
     }
 }
