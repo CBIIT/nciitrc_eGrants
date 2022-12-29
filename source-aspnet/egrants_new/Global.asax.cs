@@ -39,7 +39,6 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Security.Principal;
 using System.Web;
@@ -79,14 +78,15 @@ namespace egrants_new
         protected string UserID
         {
             get
+            {
+                this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
+                if (this.userid == null)
                 {
-                    this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
-                    if (this.userid == null) {
-                        this.userid = ""; // string.Empty
-                    }
-
-                    return this.userid;
+                    this.userid = ""; // string.Empty
                 }
+
+                return this.userid;
+            }
         }
 
         /// <summary>
@@ -95,27 +95,27 @@ namespace egrants_new
         protected string IC
         {
             get
+            {
+                this.ic = this.Context.Request.ServerVariables["HEADER_USER_SUB_ORG"];
+
+                if (this.ic == null)
                 {
-                    this.ic = this.Context.Request.ServerVariables["HEADER_USER_SUB_ORG"];
-
-                    if (this.ic == null)
-                    {
-                        this.ic = "NCI"; // nci           
-                    }
-
-                    // check exception user and who's ic not as nci
-                    if (this.ic != "nci" && this.ic != "NCI")
-                    {
-                        var usersException = EgrantsCommon.CheckUsersException(this.userid);
-
-                        if (usersException == 1)
-                        {
-                            this.ic = "nci";
-                        }
-                    }
-
-                    return this.ic;
+                    this.ic = "NCI"; // nci           
                 }
+
+                // check exception user and who's ic not as nci
+                if (this.ic != "nci" && this.ic != "NCI")
+                {
+                    var usersException = EgrantsCommon.CheckUsersException(this.userid);
+
+                    if (usersException == 1)
+                    {
+                        this.ic = "nci";
+                    }
+                }
+
+                return this.ic;
+            }
         }
 
         /// <summary>
@@ -143,15 +143,15 @@ namespace egrants_new
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-          //  HangfireAspNet.Use(this.GetHangfireServers);
+            //  HangfireAspNet.Use(this.GetHangfireServers);
 
-           // var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
-           // var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
-           // var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
+            // var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
+            // var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
+            // var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
 
             // create the Background job
-           // RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
-           // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
+            // RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+            // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
             //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
         }
 
@@ -169,13 +169,13 @@ namespace egrants_new
                                .UseRecommendedSerializerSettings().UseSqlServerStorage(
                                     conx,
                                     new SqlServerStorageOptions
-                                        {
-                                            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                                            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                                            QueuePollInterval = TimeSpan.Zero,
-                                            UseRecommendedIsolationLevel = true,
-                                            DisableGlobalLocks = true
-                                        });
+                                    {
+                                        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                                        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                                        QueuePollInterval = TimeSpan.Zero,
+                                        UseRecommendedIsolationLevel = true,
+                                        DisableGlobalLocks = true
+                                    });
 
             yield return new BackgroundJobServer();
         }
@@ -204,7 +204,7 @@ namespace egrants_new
             }
         }
 
-        
+
         /// <summary>
         /// This event raised for each time a new session begins, This is a good
         ///     place to put code that is session-specific.
@@ -224,6 +224,7 @@ namespace egrants_new
             this.Session["userid"] = this.UserID;
             this.Session["ic"] = this.IC;
             this.Session["browser"] = this.BrowserType;
+            this.Session["CurrentView"] = "standardForm";
 
             var usertype = EgrantsCommon.UserType(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
 
@@ -307,7 +308,7 @@ namespace egrants_new
                 {
                     return;
                 }
-                    
+
                 // Redirect HTTP errors to HttpError page
                 this.Server.Transfer("~/HttpErrorPage.aspx");
             }
@@ -347,9 +348,9 @@ namespace egrants_new
             this.Application.UnLock();
 
             Console.WriteLine("Session Ended!");
-            
-           // this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            
+
+            this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+
         }
 
         /// <summary>
@@ -367,91 +368,6 @@ namespace egrants_new
             foreach (var cookieName in this.Response.Cookies.AllKeys)
             {
                 this.Response.Cookies[cookieName].Secure = true;
-            }
-        }
-
-      
-        // Create our own utility for exceptions 
-        /// <summary>
-        /// The exception utility.
-        /// </summary>
-        public sealed class ExceptionUtility
-        {
-            // All methods are static, so this can be private 
-            /// <summary>
-            /// Prevents a default instance of the <see cref="ExceptionUtility"/> class from being created.
-            /// </summary>
-            private ExceptionUtility()
-            {
-            }
-
-            // Log an Exception 
-            /// <summary>
-            /// The log exception.
-            /// </summary>
-            /// <param name="exc">
-            /// The exc.
-            /// </param>
-            /// <param name="source">
-            /// The source.
-            /// </param>
-            public static void LogException(Exception exc, string source)
-            {
-                // Include enterprise logic for logging exceptions 
-                // Get the absolute path to the log file 
-                var logFile = "~/App_Data/ErrorLog.txt";
-                logFile = HttpContext.Current.Server.MapPath(logFile);
-
-                // if (!File.Exists(logFile))
-                // {
-                // byte[] file = new byte[0];
-                // File.Create(logFile);
-                // }
-
-                // Open the log file for append and write the log
-                var sw = new StreamWriter(logFile, true);
-                sw.WriteLine("********** {0} **********", DateTime.Now);
-
-                if (exc.InnerException != null)
-                {
-                    sw.Write("Inner Exception Type: ");
-                    sw.WriteLine(exc.InnerException.GetType().ToString());
-                    sw.Write("Inner Exception: ");
-                    sw.WriteLine(exc.InnerException.Message);
-                    sw.Write("Inner Source: ");
-                    sw.WriteLine(exc.InnerException.Source);
-
-                    if (exc.InnerException.StackTrace != null)
-                    {
-                        sw.WriteLine("Inner Stack Trace: ");
-                        sw.WriteLine(exc.InnerException.StackTrace);
-                    }
-                }
-
-                sw.Write("Exception Type: ");
-                sw.WriteLine(exc.GetType().ToString());
-                sw.WriteLine("Exception: " + exc.Message);
-                sw.WriteLine("Source: " + source);
-                sw.WriteLine("Stack Trace: ");
-
-                if (exc.StackTrace != null)
-                {
-                    sw.WriteLine(exc.StackTrace);
-                    sw.WriteLine();
-                }
-
-                sw.Close();
-            }
-
-            /// <summary>
-            /// Notify System Operators about an exception
-            /// </summary>
-            /// <param name="exc">
-            /// The exc.
-            /// </param>
-            public static void NotifySystemOps(Exception exc)
-            {
-                // Include code for notifying IT system operators
             }
         }
     }
