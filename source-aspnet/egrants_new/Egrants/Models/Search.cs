@@ -174,6 +174,7 @@ namespace egrants_new.Egrants.Models
                     grant.SelectedGrantPiFirstName = rdr["pi_first_name"].ToString();
                     grant.SelectedGrantPiLastname = rdr["pi_last_name"].ToString();
                     grant.SelectedGrantPiMiddleInitial = rdr["pi_mi_name"].ToString();
+                    grant.SelectedOrganizationName = rdr["pi_appl_id_org_name"].ToString();
                     grantList.Add(grant);
                 }
                 else if (tag == 2)

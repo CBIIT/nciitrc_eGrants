@@ -219,5 +219,10 @@ namespace egrants_new.Egrants.Models
         /// Gets or sets the selected grant pi middle initial.
         /// </summary>
         public string SelectedGrantPiMiddleInitial { get; set; }
+
+        /// <summary>
+        /// Gets or sets the selected organization name.
+        /// </summary>
+        public string SelectedOrganizationName { get; set; }
     }
 }
