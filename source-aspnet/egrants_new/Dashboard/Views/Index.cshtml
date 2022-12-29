@@ -13,6 +13,11 @@
 <script language="JavaScript">
     var currenturl = window.document.location.href;
 
+    @{
+       Session["CurrentView"] = "standardForm";
+    }
+
+
     function set_focus() {
         document.getElementById("txtKW").focus();
         if ($('#AdminCode').val() != "") {

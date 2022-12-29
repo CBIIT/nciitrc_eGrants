@@ -133,22 +133,23 @@
       window.open(url);
    }
 
-   function show_qc(document_id, type) {
-      document_id = document_id.split("_")[2];
+   function show_qc_dl(document_id, type) {
+      document_id = document_id.split("_")[3];
       // var el = document_id;
       if (type == 1) {
-         if (document.getElementById("qc_checkbox_" + document_id)) {
-            document.getElementById("qc_checkbox_" + document_id).style.display = "inline";
-         }
-         document.getElementById("show_qc_" + document_id).style.display = "none";
-         document.getElementById("hide_qc_" + document_id).style.display = "inline";
+//         if (document.getElementById("qc_checkbox_" + document_id)) {
+//            document.getElementById("qc_checkbox_" + document_id).style.display = "inline";
+//         }
+         console.log(document_id);
+         document.getElementById("show_qc_dl_" + document_id).style.display = "none";
+         document.getElementById("hide_qc_dl_" + document_id).style.display = "inline";
       }
       if (type == 0) {
-         if (document.getElementById("qc_checkbox_" + document_id)) {
-            document.getElementById("qc_checkbox_" + document_id).style.display = "inline";
-         }
-         document.getElementById("show_qc_" + document_id).style.display = "inline";
-         document.getElementById("hide_qc_" + document_id).style.display = "none";
+//         if (document.getElementById("qc_checkbox_" + document_id)) {
+//            document.getElementById("qc_checkbox_" + document_id).style.display = "inline";
+//         }
+         document.getElementById("show_qc_dl_" + document_id).style.display = "inline";
+         document.getElementById("hide_qc_dl_" + document_id).style.display = "none";
       }
    }
 
@@ -211,10 +212,23 @@
             <table id="loadgridDownload_@appl_id" class="" style="width: 100%">
                <thead>
                <tr>
+               <th>
+                  <div id='show_dl_all_@appl_id' style='display: none;'>
+                     @*class="show_dl_all"*@
+                     <a class='showmodeall' href='javascript:void(0);' title='show all qc mode'>
+                        <img name='show_dl_all' style="height: 30px;" src='~/Content/images/plus.png' />
+                     </a>
+                  </div>
+                  <div id='hide_dl_all_@appl_id' style='display: none;'>
+                     @*class="hide_dl_all"*@
+                     <a class='hidemodedlall' href='javascript:void(0);' title='hide all qc mode'>
+                        <img name='hide_dl_all' style="height: 30px;" src='~/Content/images/minus.png' />
+                     </a>
+                  </div>
+               </th>
                   <th>
-
-                     <div id="qc_checkbox_all_@appl_id" style="display: inline;" class="ml-1">
-                        <input type="checkbox" title="Check All" class="showmodeall" id="checkboxall_@appl_id"/>
+                     <div id="dl_checkbox_all_@appl_id" style="display: inline;" class="ml-1">
+                        <input type="checkbox" title="Check All" class="showDownloadAll" id="checkboxall_@appl_id"/>
                      </div>
                   </th>
                   <th>
@@ -253,21 +267,7 @@
          $("#overlay").show();
 
          $(document).ready(function() {
-//            $.ajax
-//            ({
-//               url: "/Egrants/LoadDocsGrid?appl_id=" + @appl_id + "&search_type=@Convert.ToString(ViewBag.SearchStyle)" + "&category_list=@Convert.ToString(ViewBag.SelectedCats)",
-//               type: "GET",
-//               contentType: 'application/json; charset=utf=8',
-//               dataType: 'JSON',
-//               success: function(data) {
-//                  //console.log(data);
-//                  return;
-//               },
-//               error: function(resp) {
-//                  // console.log("ERROR: " + resp);
-//                  return;
-//               }
-//            });
+
             $.fn.dataTable.moment('MM/DD/YYYY');
             jQuery.extend(jQuery.fn.dataTableExt.oSort,
                {
@@ -302,22 +302,26 @@
                paging: false, // for reinitialize
                searching: false, // for reinitialize
                ordering: true,
-               order: [[2, 'asc']], // desc
+               order: [[3, 'asc']], // desc
                processing: true, // for show progress bar
                serverSide: false, // for process server side
                filter: true, // this is for disable filter (search box)
                orderMulti: false, // for disable multiple column at once
                bInfo: false,
-               initComplete: function (settings, json) {
+               initComplete: function(settings, json) {
                   $("#overlay").hide();
+                  var info = this.api().page.info();
+                  if (info.recordsTotal > 1) $('#show_dl_all_' + @appl_id).show();
                   //var info = this.api().page.info();
                   //console.log(info);
                   //console.log(this.api());
                   //console.log("Settings:" + JSON.stringify(settings));
                   //console.log("Json: " + JSON.stringify(json));
 //                  console.log("Grant: " + ViewBag.);
-                  var api = this.api();
-                  console.log(this.api().data());
+                  // var api = this.api();
+                  // console.log(this.api().data());
+
+
                   if (table.data().count() == 0) {
                      console.log("Zero records");
                      $('#downloadData_@appl_id').attr("disabled", true);
@@ -327,66 +331,26 @@
                      $('#checkboxall_@appl_id').attr("disabled", false);
                   }
 
-                  //api.$('#loadgrid_' + @appl_id).click(function () {
-//                  api.$('.showmode').click(function () {
-//
-//                     console.log("Tablerow clicky: " + this.innerHTML);
-//
-//                     var isAllChecked = true;
-//
-//                     $.each($('#loadgrid_' + @appl_id + ' input.showmode'),
-//                        function () {
-//                           if (!$(this).prop('disabled') && !$(this).prop('checked')) {
-//                              isAllChecked = false;
-//                           }
-//                        });
-//
-//                     if (isAllChecked) {
-//                        $('#checkboxall_' + @appl_id).prop('checked', true);
-//                     } else {
-//                        $('#checkboxall_' + @appl_id).prop('checked', false);
-//                     }
-//                  });
-                  //api.$('#loadgrid_' + @appl_id + ' input.showmode').click(function () {
-                  //        api.$('#loadgrid_' + @appl_id).click(function () {
-                  //         if ($(this).attr('disabled') == "disabled" ) {
-                  //           return false;
-                  //       }
-                  //       console.log("test");
-//                     var tr = $(this).closest('tr');
-//                     console.log("tr: " + tr);
-//                     var row = table.row(tr);
-//
-//
-//                     var data = row.data();
-//
-//                     // console.log(data);
-//
-//                     row.child(format(data)).show();
-//                     tr.next('tr').addClass(tr.attr('class'));
-
-
-                  //   });
-
                   // add the lower row showing the created by info
-                  $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
-                     function() {
-                        if ($(this).attr('disabled') == "disabled") {
-                           return false;
-                        }
-
-                        var tr = $(this).closest('tr');
-                        console.log("tr: " + tr);
-                        var row = table.row(tr);
 
 
-                        var data = row.data();
-
-                        // console.log(data);
-
-                        row.child(format2(data)).show();
-                        tr.next('tr').addClass(tr.attr('class'));
-                     });
+//                  $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
+//                     function() {
+//                        if ($(this).attr('disabled') != "disabled") {
+//
+//                           var tr = $(this).closest('tr');
+//                           //  console.log("tr: " + tr);
+//                           var row = table.row(tr);
+//
+//
+//                           var data = row.data();
+//
+//                           // console.log(data);
+//
+//                           row.child(formatForDownloadView(data)).show();
+//                           tr.next('tr').addClass(tr.attr('class'));
+//                        }
+//                     });
 
 
                   //  $.each(api.$('tr' + @appl_id + ' input.showmode'),
@@ -400,7 +364,7 @@
                   //  });
 
 
-                  // if (info.recordsTotal > 1) $('#show_qc_all_' + @appl_id).show();
+                  // if (info.recordsTotal > 1) $('#show_dl_all_' + @appl_id).show();
                },
 
                ajax: {
@@ -417,28 +381,31 @@
 //                    // console.log("ERROR: " + resp);
 //                    //return;
 //                  }
-            },
+               },
                stripeClasses: ['odd-row', 'even-row'],
                columnDefs: [
-                  { width: "75%", targets: 1 },
-                  { width: "5%", targets: 0 },
-                  { width: "5%", targets: 3 },
+                  //{ width: "75%", targets: 2 },
+                  //{ width: "5%", targets: 1 },
+                  //{targets: [0,1,4], width: "5%" },
+                  //{ width: "10%", targets: 3 },
+                 // { width: "5%", targets: 4 },
                   {
-                     targets: [0],
-                     orderable: false
+                     targets: [0, 1, 4],
+                     orderable: false,
+                     width: 20
                   },
                   {
                      visible: true,
                      searching: false,
                      paging: false
                   },
-                  {
-                     className: "text-center",
-                     targets: [3]
-                  },
+//                  {
+//                     className: "text-center",
+//                     targets: [4]
+//                  },
                   {
                      type: 'dateNonStandard',
-                     targets: [2]
+                     targets: [3]
                   }
                ],
                columns: [
@@ -446,22 +413,83 @@
                      className: "details-control",
                      // show qc icon and checkbox
                      render: function(data, type, full, meta) {
+                        if (full.can_qc == "y") {
+                           if (full.can_store == "y") {
+                              return "<div id='show_qc_dl_" +
+                                 full.document_id +
+                                 "'  class='show_qc_dl' style='width:30px; display:inline'>" +
+                                 "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
+                                 "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
+                                 "<div id='hide_qc_dl_" +
+                                 full.document_id +
+                                 "' class='hide_qc_dl' style='width:30px; display:none'>" +
+                                 "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
+                                 "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
+//                                 "<div id='qc_checkbox_" +
+//                                 full.document_id +
+//                                 "' name='qc_checkbox' class='qc_checkbox' style='display:none;vertical-align:middle;'>" +
+//                                 "<input type='checkbox' id='" +
+//                                 full.document_id +
+//                                 "' class='qc' name='qc' value='" +
+//                                 full.document_id +
+//                                 "' title='Check here to store or delete this document'/></div>";
+                           } else {
+                              return "<div id='show_qc_dl_" +
+                                 full.document_id +
+                                 "'  class='show_qc_dl' style='width:30px; display:inline'>" +
+                                 "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
+                                 "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
+                                 "<div id='hide_qc_dl_" +
+                                 full.document_id +
+                                 "' class='hide_qc_dl' style='width:30px; display:none'>" +
+                                 "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
+                                 "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
+                           }
+                        } else return "";
 
-                        return "<div id=\"qc_checkbox_" +
-                           full.document_id +
-                           "\"" +
-                           " name=\"qc_checkbox\" class=\"show_qc ml-1\" style=\"display:inline;vertical-align:middle;\"> " +
-                           " <input type=\"checkbox\" class=\"showmode\" id=\"" +
-                           full.document_id +
-                           "\"" +
-                           " class=\"qc\" name=\"qc\" value=\"" +
-                           full.document_id +
-                           "\"" +
-                           " title=\"Check here to select this document for download\" " +
-                           ((full.url.substring(0, 11) == "https://i2e" ? "disabled" : "enabled")) +
-                           "/></div>";
+
                      }
                   },
+                  {
+                     render: function (data, type, full, meta) {
+//                        if (full.frc_destroyed == 0) {
+//                           if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
+//                              return "<a href=JavaScript:show_doc('" +
+//                                 full.url +
+//                                 "') title='show document'>" +
+//                                 full.document_name +
+//                                 "</a>" +
+//                                 "<span>&nbsp;&nbsp;&nbsp;</span><a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='fsr' data-assigned-id=" +
+//                                 full.appl_id +
+//                                 " title='Display all financial reports'>All FFR</a>";
+//                           } else if (full.attachment_count > 0) {
+//                              return "<a href=JavaScript:show_doc('" +
+//                                 full.url +
+//                                 "') title='show document'>" +
+//                                 full.document_name +
+//                                 "</a>" +
+//                                 "<span>&nbsp;&nbsp;&nbsp;</span><a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='attachments' data-assigned-id=" +
+//                                 full.document_id +
+//                                 " title='Display all attachments'>Attachments</a>";
+//                           } else if (full.document_name == "Closeout Notification") {
+//                              return "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='closeout' data-assigned-id=" + full.appl_id + " title='Display Closeout Notification'>" + full.document_name + "</a>";
+//                           } else
+                              return "<div id=\"dl_checkbox_" +
+                              full.document_id +
+                              "\"" +
+                              " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                              " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
+                              full.document_id +
+                              "\"" +
+                              " class=\"qc\" name=\"qc\" value=\"" +
+                              full.document_id +
+                              "\"" +
+                              ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                              "/></div>";
+//                        } else return "<strike>" + full.document_name + "</strike>";
+//
+                     }
+            },
                   {
                      // show document_name with url
                      render: function(data, type, full, meta) {
@@ -588,24 +616,129 @@
                ]
             });
 
-//            document.addEventListener('DOMContentLoaded', function () {
-//               $('button').on('click', function () {
-//                  $(this)
-//                     .find('[data-fa-i2svg]')
-//                     .toggleClass('fa-angle-down')
-//                     .toggleClass('fa-angle-right');
-//               });
-//            });
-//            $(function() {
-//               $('[data-toggle="popover"]').popover();
-//            });
+            var mode = document.getElementById("hidMode").value;
+            if (mode == "qc") {
+               // show all qc options
+               setTimeout(function() {
+                     var cnt = 0;
+                  $.each($('#loadgridDownload_' + @appl_id + ' a.showmodedl'),
+                        function() {
+                           var tr = $(this).closest('tr');
+                           var row = table.row(tr);
+                           show_qc_dl($(this).closest('div').attr('id'), 1);
+                           row.child(formatForDownloadView(row.data())).show();
+                           tr.next('tr').addClass(tr.attr('class'));
+                           cnt++;
+                        });
+                     if (cnt > 1) {
+                        $('#show_dl_all_' + @appl_id).hide();
+                        $('#hide_dl_all_' + @appl_id).show();
+                     }
+                     var inputs = document.getElementsByTagName("div");
+                     // show minus icon
+                     for (var i = 0; i < inputs.length; i++) {
+                        if (inputs[i].className == 'show_qc_dl') {
+                           inputs[i].style.display = "none";
+                        } else if (inputs[i].className == 'hide_qc_dl') {
+                           inputs[i].style.display = "inline";
+                        } else continue;
+                     }
+                  },
+                  4000);
+            }
+
+                     // show qc mode all
+            $('#loadgridDownload_' + @appl_id + ' thead').on('click',
+               'a.showmodedlall',
+               function() {
+                  $.each($('#loadgridDownload_' + @appl_id + ' a.showmodedl'),
+                     function() {
+                        var tr = $(this).closest('tr');
+                        var row = table.row(tr);
+                        show_qc_dl($(this).closest('div').attr('id'), 1);
+                        row.child(formatForDownloadView(row.data())).show();
+                        tr.next('tr').addClass(tr.attr('class'));
+                     });
+                  $('#show_dl_all_' + @appl_id).hide();
+                  $('#hide_dl_all_' + @appl_id).show();
+               });
+
+            // hide qc mode all
+            $('#loadgridDownload_' + @appl_id + ' thead').on('click',
+               'a.hidemodedlall',
+               function() {
+                  $.each($('#loadgridDownload_' + @appl_id + ' a.showmodedl'),
+                     function() {
+                        var tr = $(this).closest('tr');
+                        var row = table.row(tr);
+                        show_qc_dl($(this).closest('div').attr('id'), 0);
+                        row.child(formatForDownloadView(row.data())).hide();
+                     });
+                  $('#show_dl_all_' + @appl_id).show();
+                  $('#hide_dl_all_' + @appl_id).hide();
+               });
+
+            $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+               'a.showmodedl',
+               function() {
+                  var tr = $(this).closest('tr');
+                  console.log(tr);
+                  var row = table.row(tr);
+                  console.log(row);
+                  console.log($(this).closest('div').attr('id'));
+                  show_qc_dl($(this).closest('div').attr('id'), 1);
+                  row.child(formatForDownloadView(row.data())).show();
+                  tr.next('tr').addClass(tr.attr('class'));
+               });
+
+            $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+               'a.hidemodedl',
+               function() {
+                  var tr = $(this).closest('tr');
+                  var row = table.row(tr);
+                  show_qc_dl($(this).closest('div').attr('id'), 0);
+                  row.child(formatForDownloadView(row.data())).hide();
+               });
+
+            // show bootstrap modal
+            $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+               'a.NormalModal',
+               function() {
+                  var act = $(this).data('id');
+                  // show all FFRs or closeout notification for this appl
+                  if (act == "fsr" || act == "closeout") {
+                     var appl_id = $(this).data('assigned-id');
+                     var route = '@Url.Action("impac_docs", "EgrantsDoc")?act=' + act + '&appl_id=' + appl_id;
+
+                     if (act == "closeout") {
+                        modal_title = "Closeout Notifications";
+                     } else modal_title = "Show All FFR(s)";
+                  }
+
+                  // show doc attachment
+                  if (act == "attachments") {
+                     var document_id = $(this).data('assigned-id');
+                     var route = '@Url.Action("doc_attachments", "EgrantsDoc")?document_id=' + document_id;
+                     modal_title = "Attachments";
+                  }
+
+                  // report error
+                  if (act == "error") {
+                     var document_id = $(this).data('assigned-id');
+                     var route = '@Url.Action("ReportErrorIndex", "EgrantsDoc")?document_id=' + document_id;
+                     modal_title = "Report Document Error";
+                  }
+
+                  $('#NormalModalTitle').html(modal_title);
+                  $('#NormalModalPartial').load(route);
+               });
 
             // when a user checks the checkbox in the header all row checkboxs are checked
             $('#loadgridDownload_' + @appl_id + ' thead').on('click',
-               'input.showmodeall',
+               'input.showDownloadAll',
                function() {
                   var isAllChecked = $(this).prop('checked');
-                  $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
+                  $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                      function() {
                         console.log(isAllChecked);
                         //var tr = $(this).closest('tr');
@@ -624,13 +757,13 @@
 
             // when the user clicks on a row's checkbox
             $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
-               'input.showmode',
+               'input.showDownload',
                function() {
                   // assume all are checked
                   var isAllChecked = true;
 
                   // if anyone is not checked set the flag to false
-                  $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
+                  $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                      function() {
 //                        var tr = $(this).closest('tr');
 //                        var trSvg = tr.find('[data-fa-i2svg]');
@@ -658,7 +791,7 @@
 
                   var list = new Array();
                   // loop through each datatable row and add the checked items to a list
-                  $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
+                  $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                      function() {
                         var tr = $(this).closest('tr');
                         var row = table.row(tr);
@@ -712,7 +845,7 @@
 
                            var countSuccess = 0;
 
-                           $.each($('#loadgridDownload_' + @appl_id + ' input.showmode'),
+                           $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                               function() {
                                  var tr = $(this).closest('tr');
                                  var row = table.row(tr);
@@ -790,9 +923,11 @@
          });
 
          /* Formatting function for row details   margin-left:65px;*/
-         function format2(d) {
-            var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
-            str = str + 'Created On ' + d.created_date + ' by ' + d.created_by;
+         function formatForDownloadView(d) {
+//            var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+            var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+
+           str = str + 'Created On ' + d.created_date + ' by ' + d.created_by;
 
             if (d.file_modified_by != "") {
                str = str + '; Document uploaded On ' + d.file_modified_date;
@@ -811,7 +946,8 @@
 
             str = str + '</div>';
             // display all qc options
-            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:880px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../Content/images/Loading.gif"/></div>' + str + '</div>';
+            return str;
+//            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:880px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../../Content/images/Loading.gif"/></div>' + str + '</div>';
          }
 
          window.onload = function() {
