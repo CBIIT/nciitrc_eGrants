@@ -103,9 +103,30 @@ namespace egrants_new.Controllers
             return this.View("~/Egrants/Views/Index.cshtml");
         }
 
+        public string SelectedProductName
+        {
+            get { return (string)Session["SelectedProductName"]; }
+            set { Session["SelectedProductName"] = value; }
+        }
+
+        void CurrentViewState_ValueChanged(object sender, EventArgs e)
+        {
+
+            // Display the value of the HiddenField control.
+            var mtetst = "The value of the HiddenField control is " + sender + ".";
+
+        }
+
         protected void btnDownload_Click(object sender, EventArgs e) 
         {
             Console.Write("Hello");
+        }
+
+        public ContentResult SetCurrentViewSessionVariable(string currentView)
+        {
+            Session["CurrentView"] = currentView;
+
+            return Content(currentView);
         }
 
         /// <summary>
