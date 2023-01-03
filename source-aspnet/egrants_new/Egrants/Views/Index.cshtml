@@ -656,37 +656,38 @@
                               }
                            </div>
                            <div id="grantbar2" style="width: 500px;">
-                              @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && !string.IsNullOrWhiteSpace(grant.current_pd_email_address))
+                              @if (!string.IsNullOrWhiteSpace(grant.ProgramDirectorFullName) && !string.IsNullOrWhiteSpace(grant.ProgramDirectorEmailAddress))
                               {
-                                 <a href="JavaScript:send_email('@grant.current_pd_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pd_name">@grant.current_pd_name </a>
+                                 <a href="JavaScript:send_email('@grant.ProgramDirectorEmailAddress','@grant.latest_full_grant_num',@grant.SelectedGrantPiFirstName @grant.SelectedGrantPiLastname)" title="Send email to @grant.ProgramDirectorFullName">@grant.ProgramDirectorFullName </a>
+                              
                                  <b>&nbsp;&nbsp;Code:</b>
                                  <span>&nbsp;&nbsp;</span>
                                  @grant.prog_class_code
                               }
-                              else if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && string.IsNullOrWhiteSpace(grant.current_pd_email_address))
+                              else if (!string.IsNullOrWhiteSpace(grant.ProgramDirectorFullName) && string.IsNullOrWhiteSpace(grant.ProgramDirectorEmailAddress))
                               {
-                                 @grant.current_pd_name
-                                 <b> &nbsp; &nbsp; Code:</b>
-                                 @grant.prog_class_code
+                              @grant.ProgramDirectorFullName
+                              <b> &nbsp; &nbsp; Code:</b>
+                              @grant.prog_class_code
                               }
                            </div>
                         </div>
                         <br />
                      }
-                     @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) || !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
+                     @if (!string.IsNullOrWhiteSpace(grant.SpecialistFullName) || !string.IsNullOrWhiteSpace(grant.SpecialistEmailAddress))
                      {
                         <div id="SPEC infor" style="display: inline">
                            <div id="grantbar1" style="float: left">
                               <b> Specialist:</b>
                            </div>
                            <div id="grantbar2" style="width: 500px;">
-                              @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
+                              @if (!string.IsNullOrWhiteSpace(grant.SpecialistFullName) && !string.IsNullOrWhiteSpace(grant.SpecialistEmailAddress))
                               {
-                                 <a href="JavaScript:send_email('@grant.current_spec_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_spec_name"> @grant.current_spec_name </a>
+                                  <a href="JavaScript:send_email('@grant.SpecialistEmailAddress','@grant.latest_full_grant_num','@grant.SelectedGrantPiFirstName' + ' ' +  '@grant.SelectedGrantPiLastname')" title="Send email to @grant.SpecialistFullName"> @grant.SpecialistFullName </a>
                               }
-                              else if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && string.IsNullOrWhiteSpace(grant.current_spec_email_address))
+                              else if (!string.IsNullOrWhiteSpace(grant.SpecialistFullName) && string.IsNullOrWhiteSpace(grant.SpecialistEmailAddress))
                               {
-                                 @grant.current_spec_name
+                                 @grant.SpecialistFullName
                               }
                            </div>
                         </div>
