@@ -204,46 +204,46 @@ namespace egrants_new.Egrants.Models
         /// <summary>
         ///     Gets or sets a value indicating whether show email hyper link.
         /// </summary>
-        public bool ShowEmailHyperLink { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the selected grant pi first name.
-        /// </summary>
-        public string SelectedGrantPiFirstName { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the selected grant pi lastname.
-        /// </summary>
-        public string SelectedGrantPiLastname { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the selected grant pi middle initial.
-        /// </summary>
-        public string SelectedGrantPiMiddleInitial { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the selected organization name.
-        /// </summary>
-        public string SelectedOrganizationName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the program directory full name.
-        /// </summary>
-        public string ProgramDirectorFullName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the program director email address.
-        /// </summary>
-        public string ProgramDirectorEmailAddress { get; set; }
-
-        /// <summary>
-        /// Gets or sets the specialist full name.
-        /// </summary>
-        public string SpecialistFullName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the specialist email address.
-        /// </summary>
-        public string SpecialistEmailAddress { get; set; }
+        // public bool ShowEmailHyperLink { get; set; }
+        //
+        // /// <summary>
+        // ///     Gets or sets the selected grant pi first name.
+        // /// </summary>
+        // public string SelectedGrantPiFirstName { get; set; }
+        //
+        // /// <summary>
+        // ///     Gets or sets the selected grant pi lastname.
+        // /// </summary>
+        // public string SelectedGrantPiLastname { get; set; }
+        //
+        // /// <summary>
+        // ///     Gets or sets the selected grant pi middle initial.
+        // /// </summary>
+        // public string SelectedGrantPiMiddleInitial { get; set; }
+        //
+        // /// <summary>
+        // ///     Gets or sets the selected organization name.
+        // /// </summary>
+        // public string SelectedOrganizationName { get; set; }
+        //
+        // /// <summary>
+        // /// Gets or sets the program directory full name.
+        // /// </summary>
+        // public string ProgramDirectorFullName { get; set; }
+        //
+        // /// <summary>
+        // /// Gets or sets the program director email address.
+        // /// </summary>
+        // public string ProgramDirectorEmailAddress { get; set; }
+        //
+        // /// <summary>
+        // /// Gets or sets the specialist full name.
+        // /// </summary>
+        // public string SpecialistFullName { get; set; }
+        //
+        // /// <summary>
+        // /// Gets or sets the specialist email address.
+        // /// </summary>
+        // public string SpecialistEmailAddress { get; set; }
     }
 }
