@@ -76,7 +76,7 @@ namespace egrants_new.Controllers
         }
 
         // GET: Egrants
-        /// <summary>
+        /// <summary>   
         /// The index.
         /// </summary>
         /// <returns>
@@ -99,6 +99,7 @@ namespace egrants_new.Controllers
 
             // retuen IC list
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+            this.ViewBag.CurrentView = "StandardForm";
 
             return this.View("~/Egrants/Views/Index.cshtml");
         }
@@ -122,11 +123,12 @@ namespace egrants_new.Controllers
             Console.Write("Hello");
         }
 
-        public ContentResult SetCurrentViewSessionVariable(string currentView)
+        public string SetCurrentViewSessionVariable(string currentView)
         {
+            Console.WriteLine("In setting session Variable: " + currentView);
             Session["CurrentView"] = currentView;
 
-            return Content(currentView);
+            return currentView;
         }
 
         /// <summary>
@@ -602,6 +604,10 @@ namespace egrants_new.Controllers
                     this.ViewBag.grantlayer = null;
                 }
             }
+
+
+
+
 
             return this.View("~/Egrants/Views/Index.cshtml");
         }

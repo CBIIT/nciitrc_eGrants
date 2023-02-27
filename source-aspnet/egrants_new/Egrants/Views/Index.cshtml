@@ -1,4 +1,5 @@
-﻿@using System.ServiceModel.Activities
+﻿@using System.Data.Entity.Validation
+@using System.ServiceModel.Activities
 @{
    ViewBag.Title = "egrants [NCI OGA]";
    Layout = "~/Shared/Views/_egrants_header.cshtml";
@@ -30,6 +31,8 @@
    var appls_list = [];
 
    var SelectAllApplsCheckBox = 0;
+
+    var currentView = "StandardForm";
 
    $(document).ready(function() {
       set_default();
@@ -131,14 +134,21 @@
          document.getElementById(el).style.display = "inline";
       }
 
+       if (currentView == "DownloadForm") {
+           $('#downloadForm').attr("hidden", false);
+           $('#standardForm').attr("hidden", true);
+       } else if (currentView == "StandardForm") {
+           $('#downloadForm').attr("hidden", true);
+           $('#standardForm').attr("hidden", false);
+       }
       // get the view state from the session variable to persist value
-      if (document.getElementById("hidDownloadForm").value == "downloadForm") {
-         $('#downloadForm').attr("hidden", false);
-         $('#standardForm').attr("hidden", true);
-      }else{
-         $('#downloadForm').attr("hidden", true);
-         $('#standardForm').attr("hidden", false);
-      }
+      //if (document.getElementById("hidDownloadForm").value == "DownloadForm") {
+      //   $('#downloadForm').attr("hidden", false);
+      //   $('#standardForm').attr("hidden", true);
+      //} else if (document.getElementById("hidDownloadForm").value == "StandardForm") {
+      //   $('#downloadForm').attr("hidden", true);
+      //   $('#standardForm').attr("hidden", false);
+      //}
    }
 
    function by_str(str) {
@@ -323,36 +333,24 @@
 
       console.log("Check Toggle");
 
-      //if (document.getElementById("hidDownloadForm").value == "standardForm") {
-      var currView = @Session["CurrentView"];
-      console.log(currView.id);
-      if (currView.id == "standardForm"){
-         console.log("in standardform");
+       if (currentView == "StandardForm") {
+         console.log("in Standardform");
          $('#downloadForm').attr("hidden", false);
          $('#standardForm').attr("hidden", true);
          document.getElementById("toggle_title").innerHTML = "Audit File Download";
+ 
+           currentView = "DownloadForm";
 
-         document.getElementById("hidDownloadForm").value = "downloadForm";
-
-         var val = "@Url.Action("SetCurrentViewSessionVariable", "Egrants")?currentView=" + "downloadForm";
-             @Session["CurrentView"] = "downloadForm";
-
-         console.log(@Session["CurrentView"]);
          return;
       }
 
-      var currView2 = @Session["CurrentView"];
-      console.log(currView2.id);
-      //if (document.getElementById("hidDownloadForm").value == "downloadForm") {
-   if (currView2.id == "downloadForm"){
-         console.log("in downloadform");
+       if (currentView == "DownloadForm") {
+
+         console.log("in Downloadform");
          $('#downloadForm').attr("hidden", true);
          $('#standardForm').attr("hidden", false);
          document.getElementById("toggle_title").innerHTML = "Grant Years";
-         document.getElementById("hidDownloadForm").value = "standardForm";
-            @Session["CurrentView"] = "standardForm";
-
-         console.log(@Session["CurrentView"]);
+           currentView = "StandardForm";
          return;
       }
    }
@@ -434,7 +432,7 @@
    <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt16(Session["position_id"])" />
    <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])" />
    <input type="text" hidden id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(Session["egrantsDocEmail"])" />
-   <input type="text" hidden id="hidDownloadForm" name="DownloadSubPage" value="@Convert.ToString(Session["CurrentView"])"/>
+   <input type="text" hidden id="hidDownloadForm" name="DownloadSubPage" value="@ViewBag.CurrentView"/>
 </form>
 <!--end save all data from server-->
 <!--start main-->
@@ -473,6 +471,7 @@
                     </a>
                 </div>
             }
+
         </div>
 
         // show appls toggle

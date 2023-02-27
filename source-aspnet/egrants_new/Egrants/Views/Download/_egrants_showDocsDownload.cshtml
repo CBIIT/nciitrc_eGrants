@@ -215,13 +215,13 @@
                <th>
                   <div id='show_dl_all_@appl_id' style='display: none;'>
                      @*class="show_dl_all"*@
-                     <a class='showmodeall' href='javascript:void(0);' title='show all qc mode'>
+                     <a class='showmodealldownload' href='javascript:void(0);' title='show all qc mode'>
                         <img name='show_dl_all' style="height: 30px;" src='~/Content/images/plus.png' />
                      </a>
                   </div>
                   <div id='hide_dl_all_@appl_id' style='display: none;'>
                      @*class="hide_dl_all"*@
-                     <a class='hidemodedlall' href='javascript:void(0);' title='hide all qc mode'>
+                     <a class='hidemodealldownload' href='javascript:void(0);' title='hide all qc mode'>
                         <img name='hide_dl_all' style="height: 30px;" src='~/Content/images/minus.png' />
                      </a>
                   </div>
@@ -452,16 +452,16 @@
                   },
                   {
                      render: function (data, type, full, meta) {
-//                        if (full.frc_destroyed == 0) {
-//                           if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-//                              return "<a href=JavaScript:show_doc('" +
-//                                 full.url +
-//                                 "') title='show document'>" +
-//                                 full.document_name +
-//                                 "</a>" +
-//                                 "<span>&nbsp;&nbsp;&nbsp;</span><a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='fsr' data-assigned-id=" +
-//                                 full.appl_id +
-//                                 " title='Display all financial reports'>All FFR</a>";
+                        //if (full.frc_destroyed == 0) {
+                        //   if (full.fsr_count >= 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
+                              //return "<a href=JavaScript:show_doc('" +
+                              //   full.url +
+                              //   "') title='show document'>" +
+                              //   full.document_name +
+                              //   "</a>" +
+                              //   "<span>&nbsp;&nbsp;&nbsp;</span><a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='fsr' data-assigned-id=" +
+                              //   full.appl_id +
+                              //   " title='Display all financial reports'>All FFR</a>";
 //                           } else if (full.attachment_count > 0) {
 //                              return "<a href=JavaScript:show_doc('" +
 //                                 full.url +
@@ -473,7 +473,7 @@
 //                                 " title='Display all attachments'>Attachments</a>";
 //                           } else if (full.document_name == "Closeout Notification") {
 //                              return "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='closeout' data-assigned-id=" + full.appl_id + " title='Display Closeout Notification'>" + full.document_name + "</a>";
-//                           } else
+                           //} else
                               return "<div id=\"dl_checkbox_" +
                               full.document_id +
                               "\"" +
@@ -649,7 +649,7 @@
 
                      // show qc mode all
             $('#loadgridDownload_' + @appl_id + ' thead').on('click',
-               'a.showmodedlall',
+               'a.showmodealldownload',
                function() {
                   $.each($('#loadgridDownload_' + @appl_id + ' a.showmodedl'),
                      function() {
@@ -665,7 +665,7 @@
 
             // hide qc mode all
             $('#loadgridDownload_' + @appl_id + ' thead').on('click',
-               'a.hidemodedlall',
+               'a.hidemodealldownload',
                function() {
                   $.each($('#loadgridDownload_' + @appl_id + ' a.showmodedl'),
                      function() {
