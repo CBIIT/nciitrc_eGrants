@@ -2876,6 +2876,7 @@
     </Compile>
     <Compile Include="IC_Coordinator\Controllers\ICCoordinatorController.cs" />
     <Compile Include="IC_Coordinator\Models\ICCoordinator.cs" />
+    <Compile Include="IeEgantsUserSession.cs" />
     <Compile Include="Integration\Models\SQLJobError.cs" />
     <Compile Include="Integration\Models\Enumerations.cs" />
     <Compile Include="Integration\Models\WebServiceParam.cs" />
@@ -3072,6 +3073,8 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug Local Stage|AnyCPU'">
     <OutputPath>bin\</OutputPath>
