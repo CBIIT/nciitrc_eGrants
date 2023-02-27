@@ -50,7 +50,11 @@
         set_default();
     });
 
-    setTimeout(function(){alert("SessionPop!");}, @milliseconds.ToString());
+    function display_popup() {
+        $("#timeoutModal").modal('show');
+    }
+
+    setTimeout(function () { display_popup();}, @milliseconds.ToString());
 
     function set_default() {
         //set nci as default IC
@@ -492,7 +496,7 @@
 
                         <a class="btn btn-default" style="background-color:#808080; color:white" id="all_appl" href="javascript:getByAll(@grant.grant_id)" title="View Categories and Grant Years for @grant.grant_num">All</a><span>&#0160;</span>
 
-                       <label style="margin-left:10px; font-size:medium;"><strong># of Grant Years</strong></label>
+                        <label style="margin-left:10px; font-size:medium;"><strong># of Grant Years</strong></label>
                         <input type="text" id="txtYears_@grant.grant_id" name="years_@grant.grant_id" class="form-control" style="width:50px; height:35px; display:inline;" placeholder="Yrs" onkeyup="return checkYears(event, @Convert.ToInt32(grant.grant_id))" /> @*onkeyup="if (event.keyCode == 13) return checkYears(@Convert.ToInt32(grant.grant_id))"*@
 
                         @if (ViewBag.SelectedCats != "" && ViewBag.SelectedCats != null)
@@ -516,13 +520,13 @@
                     <!--start show category zone-->
                     <div id="cats_zone_@grant.grant_id" class="cats_zone" style="width:900px; border-bottom:groove; border-top:groove; border-color:darkgrey; padding-bottom:5px; min-height:50px; padding-left:20px; float:left; display:none;">
                         <input type="checkbox" id="all_cats_@grant.grant_id" onClick="JavaScript:select_all_cats_zone(@grant.grant_id)" /><span>&#0160;&#0160;</span><b>Select All</b><br />
-                       <div id="catlist_@Convert.ToString(grant.grant_id)" style="float: left; display: inline; width: 900px;">
-                          <div class="row">
-                          <div class="col-sm" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                          <div class="col-sm" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                             <div class="col-sm" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                    </div>
-                       </div>
+                        <div id="catlist_@Convert.ToString(grant.grant_id)" style="float: left; display: inline; width: 900px;">
+                            <div class="row">
+                                <div class="col-sm" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                                <div class="col-sm" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                                <div class="col-sm" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                            </div>
+                        </div>
                     </div>
                     <!--end show category zone-->
                     <br />
@@ -661,7 +665,7 @@
                                 @if (grant.institutional_flag1 == true)
                                 {
                                     <span style="margin-left: 10px;width:80px;">
-                                        <a  href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
+                                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
                                             <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.org_name" />
                                         </a>
                                     </span>
@@ -670,9 +674,9 @@
                                 {
 
                                     <span style="margin-left: 10px;width:80px;">
-                                        <a  href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
+                                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
                                             <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.org_name" />
-                                            </a>
+                                        </a>
                                     </span>
                                 }
                             </div>
@@ -708,6 +712,32 @@
     <!--start show popup modal  style="align-content:center; align-items:center;align-self:center;"-->
     <div>
         @Html.Partial("~/Egrants/Views/_egrants_showModal.cshtml")
+    </div>
+    <!--end show popup modal-->
+    <!--start show popup modal -->
+    <div class="modal fade" id="timeoutModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Timeout warning</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><span id="error">Warning</span>: you will be logged off in 04:14 due to inactivity.</p>
+                    <p>Do you wish to continue working in your session ?</p>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="@Session.Timeout" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Continue</button>
+                    <button type="button" class="btn btn-primary">Logout</button>
+                </div>
+            </div>
+        </div>
     </div>
     <!--end show popup modal-->
 </div><!--end main-->
