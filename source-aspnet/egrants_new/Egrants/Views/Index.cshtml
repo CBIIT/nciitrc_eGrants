@@ -12,7 +12,8 @@
 
     int sessionTimeout = HttpContext.Current.Session.Timeout;
     int milliseconds = sessionTimeout * 60 * 1000;
-
+    
+    
     //RegisterTimeoutWarning(this);
 }
 
@@ -46,15 +47,49 @@
 
     var SelectAllApplsCheckBox = 0;
 
+    var remainingSeconds = @milliseconds / 1000;
+
     $(document).ready(function () {
         set_default();
     });
 
-    function display_popup() {
-        $("#timeoutModal").modal('show');
+    function popup_countdown() {
+        if (remainingSeconds <= 0) {
+            // close, log out
+        } else if (remainingSeconds <= 60) {
+            // display modal dialog
+            var pcg = Math.floor((remainingSeconds / 60) * 100);
+            var remainingSecondsText = remainingSeconds;
+            if (remainingSeconds < 10)
+                remainingSecondsText = "0" + remainingSecondsText;
+            remainingSecondsText = "00:" + remainingSecondsText;
+            document.getElementById("count-down").textContent = remainingSecondsText;
+            document.getElementById("timeout-progress").setAttribute('style', 'width:' + Number(pcg) + '%');
+            document.getElementById("timeout-progress").setAttribute('aria-valuenow', pcg);
+            $("#timeoutModal").modal('show');
+            remainingSeconds--;
+        } else {
+            // hide
+            document.getElementById("timeout-progress").setAttribute('style', 'width:' + Number(0) + '%');
+            document.getElementById("timeout-progress").setAttribute('aria-valuenow', 0);
+            $("#timeoutModal").modal('hide');
+            remainingSeconds--;
+        }
     }
 
-    setTimeout(function () { display_popup();}, @milliseconds.ToString());
+    function timeout_continue() {
+        // call out to the server to maintain the session
+        remainingSeconds = @milliseconds / 1000;
+        $("#timeoutModal").modal('hide');
+    }
+
+    function timeout_logout() {
+        // redirect to logout
+
+    }
+
+    setInterval(popup_countdown, 1000);
+    //setTimeout(function () { display_popup();}, @milliseconds.ToString());
 
     function set_default() {
         //set nci as default IC
@@ -725,16 +760,16 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p><span id="error">Warning</span>: you will be logged off in 04:14 due to inactivity.</p>
+                    <p><span id="error">Warning</span>: you will be logged off in <span id="count-down">00:60</span> due to inactivity.</p>
                     <p>Do you wish to continue working in your session ?</p>
                     <div class="progress">
-                        <div class="progress-bar" role="progressbar" aria-valuenow="@Session.Timeout" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div id="timeout-progress" class="progress-bar" role="progressbar" aria-valuenow="@Session.Timeout" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     <div></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Continue</button>
-                    <button type="button" class="btn btn-primary">Logout</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="timeout_continue()">Continue</button>
+                    <button type="button" class="btn btn-primary" onclick="timeout_logout()">Logout</button>
                 </div>
             </div>
         </div>
