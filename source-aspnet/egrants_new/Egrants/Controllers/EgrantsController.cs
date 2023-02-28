@@ -969,5 +969,18 @@ namespace egrants_new.Controllers
 
             return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
         }
+
+        /// <summary>
+        /// Log out the user (clean up cookies, session, etc).
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public JsonResult LogOut() {
+            MvcApplication.GetMvcApplication().LogOut();
+            this.Session.RemoveAll();
+            this.Request.Cookies.Clear();
+            this.Response.Cookies.Clear();
+            return Json(@"{ ""message"": ""logout complete."" }");
+        }
     }
 }
