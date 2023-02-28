@@ -85,7 +85,19 @@
 
     function timeout_logout() {
         // redirect to logout
-
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("LogOut", "Egrants")',
+            contentType: "application/json; charset=utf-8",
+     //       data: { a: "testing" },
+            dataType: "json",
+            success: function () {
+                window.location.href = "https://iam.cancer.gov/";
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.error("Failed to log out. Status: \"" + xhr.status + "\" Error: \"" + thrownError + "\"")
+            }
+        });
     }
 
     setInterval(popup_countdown, 1000);

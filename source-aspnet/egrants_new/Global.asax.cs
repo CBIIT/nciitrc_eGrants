@@ -49,6 +49,7 @@ using egrants_new.Models;
 
 using Hangfire;
 using Hangfire.SqlServer;
+using Microsoft.Ajax.Utilities;
 
 #endregion
 
@@ -68,6 +69,18 @@ namespace egrants_new
         /// The userid.
         /// </summary>
         private string userid;
+
+        private static MvcApplication _mvcApplication;
+
+        /// <summary>
+        /// MvcApplication is not implemented as a singleton, so the only way to call this from app tier
+        /// is to maintain a static reference to it within the class itself.
+        /// </summary>
+        /// <returns></returns>
+        public static MvcApplication GetMvcApplication()
+        {
+            return _mvcApplication;
+        }
 
         /// <summary>
         ///     Gets the user id.
@@ -125,6 +138,8 @@ namespace egrants_new
         /// </summary>
         protected void Application_Start()
         {
+            _mvcApplication = this;
+
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             this.Application["UsersOnline"] = 0;
 
@@ -356,9 +371,16 @@ namespace egrants_new
         /// </param>
         protected void Session_End(object sender, EventArgs e)
         {
+            ClearCookiesAndSession();
+        }
+
+        private void ClearCookiesAndSession()
+        {
             this.Application.Lock();
             this.Application["UsersOnline"] = (int)this.Application["UsersOnline"] - 1;
             this.Application.UnLock();
+
+            Console.WriteLine("Session Ended.");
         }
 
         /// <summary>
@@ -374,6 +396,11 @@ namespace egrants_new
         {
             // Iterate through any cookies found in the Response object.
             foreach (var cookieName in this.Response.Cookies.AllKeys) this.Response.Cookies[cookieName].Secure = true;
+        }
+
+        internal void LogOut()
+        {
+            ClearCookiesAndSession();
         }
 
         // Create our own utility for exceptions 
