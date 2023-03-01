@@ -982,5 +982,16 @@ namespace egrants_new.Controllers
             this.Response.Cookies.Clear();
             return Json(@"{ ""message"": ""logout complete."" }");
         }
+
+        /// <summary>
+        /// ASP.NET session timeouts are based on time between requests,
+        /// so send an additional request to this to explicitly keep session alive
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public JsonResult RenewSession()
+        {
+            return Json(@"{ ""message"": ""session renewed."" }");
+        }
     }
 }
