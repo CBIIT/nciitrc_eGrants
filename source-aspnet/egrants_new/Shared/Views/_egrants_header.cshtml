@@ -1,28 +1,91 @@
 ﻿@using egrants_new.Models;
 
 @{
-   Layout = null;
+    Layout = null;
 
+    int sessionTimeout = HttpContext.Current.Session.Timeout;
+    int milliseconds = sessionTimeout * 60 * 1000;
 }
 
 <!DOCTYPE html>
 <html>
 <head>
-   <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
-   <meta name="viewport" content="width=device-width"/>
-   <title></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
 
-   <link href="~/Content/egrants.css" rel="stylesheet" type="text/css"/>
-   <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
 
-   <script src="~/scripts/jquery-3.6.0.min.js"></script>
-   <script src="~/scripts/bootstrap.min.js"></script>
-   <script src="~/scripts/validation.js"></script>
-   
+    <script src="~/scripts/jquery-3.6.0.min.js"></script>
+    <script src="~/scripts/bootstrap.min.js"></script>
+    <script src="~/scripts/validation.js"></script>
 
-   <script>
+
+    <script>
       var user_position_id = @Convert.ToInt16(Session["position_id"]);
       var QuickLinkType = [];
+
+      var remainingSeconds = @milliseconds / 1000;
+
+    function popup_countdown() {
+        var fiveMinsInSecs = 5 * 60;
+        if (remainingSeconds <= 0) {
+            // close, log out
+        } else if (remainingSeconds <= fiveMinsInSecs) {
+            // display modal dialog
+            var pcg = Math.floor((remainingSeconds / fiveMinsInSecs) * 100);
+            var remainingSecondsText = remainingSeconds;
+            if (remainingSeconds < 10)
+                remainingSecondsText = "0" + remainingSecondsText;
+            remainingSecondsText = "00:" + remainingSecondsText;
+            document.getElementById("count-down").textContent = remainingSecondsText;
+            document.getElementById("timeout-progress").setAttribute('style', 'width:' + Number(pcg) + '%');
+            document.getElementById("timeout-progress").setAttribute('aria-valuenow', pcg);
+            $("#timeoutModal").modal('show');
+            remainingSeconds--;
+        } else {
+            // hide
+            document.getElementById("timeout-progress").setAttribute('style', 'width:' + Number(0) + '%');
+            document.getElementById("timeout-progress").setAttribute('aria-valuenow', 0);
+            $("#timeoutModal").modal('hide');
+            remainingSeconds--;
+        }
+    }
+
+    function timeout_continue() {
+        // call out to the server to maintain the session
+        remainingSeconds = @milliseconds / 1000;
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("RenewSession", "Egrants")',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function () {
+                console.log("Session renewed.");
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.error("Failed to renew session. Status: \"" + xhr.status + "\" Error: \"" + thrownError + "\"");
+            }
+        });
+        $("#timeoutModal").modal('hide');
+    }
+
+    function timeout_logout() {
+        // redirect to logout
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("LogOut", "Egrants")',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function () {
+                console.log("Logged out of eGrants.");
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.error("Failed to log out. Status: \"" + xhr.status + "\" Error: \"" + thrownError + "\"");
+            }
+        });
+    }
 
       $(document).ready(function() {
          //check Session["position_id"]
@@ -59,216 +122,256 @@
          }
       }
 
-   </script>
-   <style>
+    </script>
+    <style>
 
-      .navbar-default { border-bottom: none !important; }
+          .navbar-default {
+              border-bottom: none !important;
+          }
 
-      .navbar { background-color: #808080 !important; }
+          .navbar {
+              background-color: #808080 !important;
+          }
 
-      .navbar-nav > li{
-         padding-left:10px;
-      }
+          .navbar-nav > li {
+              padding-left: 10px;
+          }
 
-      .navbar .nav > li > a, 
-      .navbar .nav > li > a:first-letter,
-      .navbar .nav > li.current-menu-item > a,
-      .navbar .nav > li.current-menu-ancestor > a {
-            display: inline;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-size: large !important;
-            padding: 10px 20px;
-         }
+          .navbar .nav > li > a,
+          .navbar .nav > li > a:first-letter,
+          .navbar .nav > li.current-menu-item > a,
+          .navbar .nav > li.current-menu-ancestor > a {
+              display: inline;
+              font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+              font-size: large !important;
+              padding: 10px 20px;
+          }
 
-      .navbar-light .navbar-brand {
-         color: #FFFFFF;
-         padding-right: 50px
-      }
+          .navbar-light .navbar-brand {
+              color: #FFFFFF;
+              padding-right: 50px
+          }
 
-      .navbar-light .navbar-nav .active>.nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .show>.nav-link {
-         color: #FFFFFF;
-      }
+          .navbar-light .navbar-nav .active > .nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .show > .nav-link {
+              color: #FFFFFF;
+          }
 
-      .navbar-light .navbar-nav .nav-link {
-         color: #FFFFFF;
-      }
+          .navbar-light .navbar-nav .nav-link {
+              color: #FFFFFF;
+          }
 
-      .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
-         color: #555 !important;
-      }
+              .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
+                  color: #555 !important;
+              }
 
-      #loginas {
-         color: dimgray !important;
-         /*font: arial !important;*/
-         font-size: large !important;
-         vertical-align: auto !important;
-         text-align: right !important;
-      }
+          #loginas {
+              color: dimgray !important;
+              /*font: arial !important;*/
+              font-size: large !important;
+              vertical-align: auto !important;
+              text-align: right !important;
+          }
 
-      body {
-         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-         font-size: 90% !important;
-         /* font-size:medium */
-      }
+          body {
+              font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+              font-size: 90% !important;
+              /* font-size:medium */
+          }
 
-      #loginas a { color: blue !important; }
+          #loginas a {
+              color: blue !important;
+          }
 
-      .eGrantsWhiteTxt { border-top: 4px solid white !important; }
+          .eGrantsWhiteTxt {
+              border-top: 4px solid white !important;
+          }
 
-      .eGrantsDDbkgrnd { background-color: #808080 !important; }
+          .eGrantsDDbkgrnd {
+              background-color: #808080 !important;
+          }
 
-      .eGrantsUpldBtnColor { background-color: #1D8215 !important; }
+          .eGrantsUpldBtnColor {
+              background-color: #1D8215 !important;
+          }
 
-      .eGrantsReturnBtn {
-         font-size:medium;
-         border: none;
-         color: white;
-         background-color: #808080;
-      }
+          .eGrantsReturnBtn {
+              font-size: medium;
+              border: none;
+              color: white;
+              background-color: #808080;
+          }
 
-      .eGrantsDocBtn {
-         font-size:medium;
-         background-color: #4169e1;
-         
-      }
+          .eGrantsDocBtn {
+              font-size: medium;
+              background-color: #4169e1;
+          }
 
-      /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+          /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
 
-      #myBtn { /*--Ayu*/
-         display: none; /* Hidden by default */
-         position: fixed; /* Fixed/sticky position */
-         bottom: 20px; /* Place the button at the bottom of the page */
-         right: 30px; /* Place the button 30px from the right */
-         z-index: 99; /* Make sure it does not overlap */
-         border: none; /* Remove borders */
-         outline: none; /* Remove outline */
-         background-color: darkcyan; /* Set a background color */
-         color: white; /* Text color */
-         cursor: pointer; /* Add a mouse pointer on hover */
-         padding: 15px; /* Some padding */
-         border-radius: 10px; /* Rounded corners */
-         font-size: 18px;/* Increase font size  
-      }
+          #myBtn { /*--Ayu*/
+              display: none; /* Hidden by default */
+              position: fixed; /* Fixed/sticky position */
+              bottom: 20px; /* Place the button at the bottom of the page */
+              right: 30px; /* Place the button 30px from the right */
+              z-index: 99; /* Make sure it does not overlap */
+              border: none; /* Remove borders */
+              outline: none; /* Remove outline */
+              background-color: darkcyan; /* Set a background color */
+              color: white; /* Text color */
+              cursor: pointer; /* Add a mouse pointer on hover */
+              padding: 15px; /* Some padding */
+              border-radius: 10px; /* Rounded corners */
+              font-size: 18px; /* Increase font size
+        }
 
-      #myBtn:hover { /*--Ayu*/
-         background-color: #555; /* Add a dark-grey background on hover */
-      }
-   </style>
+        #myBtn:hover { /*--Ayu*/
+              background-color: #555; /* Add a dark-grey background on hover */
+          }
+    </style>
 </head>
 <body>
-<div class="row">
-   <div class="col-lg-2" id="logo">
-      <a title="Skip Header" href="#skip header">Skip Repetitive Navigation Links</a>
-      <a href="@Url.Action("Index", "Egrants")">
-         <img alt="alt tag" src="~/Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E"/>
-      </a>
-   </div>
-   <div class="col-lg-10" id="loginas">
-      <p>Logged in as:@Session["UserName"]</p>
-   </div>
-   <!--- <p>Need help? Email to:<a href="mailto:egrantsissues@mail.nih.gov" title="Send email for asking help">egrantsissues@mail.nih.gov</a></p> -->
+    <div class="row">
+        <div class="col-lg-2" id="logo">
+            <a title="Skip Header" href="#skip header">Skip Repetitive Navigation Links</a>
+            <a href="@Url.Action("Index", "Egrants")">
+                <img alt="alt tag" src="~/Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E" />
+            </a>
+        </div>
+        <div class="col-lg-10" id="loginas">
+            <p>Logged in as:@Session["UserName"]</p>
+        </div>
+        <!--- <p>Need help? Email to:<a href="mailto:egrantsissues@mail.nih.gov" title="Send email for asking help">egrantsissues@mail.nih.gov</a></p> -->
 
-</div>
-<div class="row">
-   <div class="col-lg-12">
-      <nav class="navbar navbar-expand-sm navbar-expand-md navbar-expand-lg  navbar-light"> @*navbar-dark bg-dark">*@
-         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavBar" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-         </button>
-         <div class="collapse navbar-collapse" id="mainNavBar">
-            <ul class="navbar-nav mr-auto nav">
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <nav class="navbar navbar-expand-sm navbar-expand-md navbar-expand-lg  navbar-light">
+                @*navbar-dark bg-dark">*@
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavBar" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNavBar">
+                    <ul class="navbar-nav mr-auto nav">
 
-               <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" id="navDrop" Onclick="toggleleftpanel()" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Quick Links [shift + alt + L]">
-                     Quick Links
-                  </a>
-               </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" id="navDrop" Onclick="toggleleftpanel()" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Quick Links [shift + alt + L]">
+                                Quick Links
+                            </a>
+                        </li>
 
-               @{
-                  if (Session["Menus"] != null)
-                  {
-                     foreach (var s in Session["Menus"].ToString().Split(','))
-                     {
-                        foreach (var c in s.Split('|'))
-                        {
-                           var str = s.Split('|');
-                           if (c.Length > 1)
-                           {
-                              <li class="nav-item">
-                                 <a class="nav-link" title="@str[0] [shift + alt + @str[1]]" accesskey="@str[1]" target="_top" href="@Url.Action("Index", c.Replace(" ", string.Empty))">@c</a>
-                              </li>
-                           }
+                        @{
+                            if (Session["Menus"] != null)
+                            {
+                                foreach (var s in Session["Menus"].ToString().Split(','))
+                                {
+                                    foreach (var c in s.Split('|'))
+                                    {
+                                        var str = s.Split('|');
+                                        if (c.Length > 1)
+                                        {
+                                            <li class="nav-item">
+                                                <a class="nav-link" title="@str[0] [shift + alt + @str[1]]" accesskey="@str[1]" target="_top" href="@Url.Action("Index", c.Replace(" ", string.Empty))">@c</a>
+                                            </li>
+                                        }
+                                    }
+                                }
+                            }
+
                         }
-                     }
-                  }
+                        <li class="nav-item">
+                            <a class="nav-link" title="Institutional Files [shift + alt + F]" accesskey="F" target="_top" href="@Url.Action("Index", "InstitutionalFiles")">Institutional Files</a>
+                        </li>
 
-               }
-               <li class="nav-item">
-                  <a class="nav-link" title="Institutional Files [shift + alt + F]" accesskey="F" target="_top" href="@Url.Action("Index", "InstitutionalFiles")">Institutional Files</a>
-               </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" id="navDropDown" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Resources [shift + alt + R]">
+                                Resources
+                            </a>
+                            <div class="dropdown-menu shadow p-3 mb-5 bg-white rounded" aria-labelledby="navDropDown">
+                                <a class="dropdown-item" target="_new" href="~/Content/eGrants Category Glossary.docx" title="eGrants Glossary">eGrants Glossary</a>
+                                <a class="dropdown-item" target="_new" href="~/Content/access_number2.pdf" title="Accession">Accession</a>
+                                <a class="dropdown-item" target="_self" href="~/EgrantsFunding/funding_index" title="Funding Files">Funding Files</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" id="navDropDown2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="H" title="Help [shift + alt + H]">Help</a>
+                            <div class="dropdown-menu shadow p-3 mb-5 bg-white rounded" aria-labelledby="navDropDown2">
+                                <a class="dropdown-item" href="mailto:egrantsissues@mail.nih.gov" title="Send email to Technical Support Team">Technical Support</a>
+                                <a class="dropdown-item" target="_new" href="~/Content/eGrants Help Guide.pdf" title="Help Guide">Help Guide</a>
+                                <a class="dropdown-item" target="_new" href="~/Content/explanation.htm" title="Icon Guide">Icon Guide</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" target="_new" href="~/Content/privacy.htm" title="Privacy Policy">Privacy Policy</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-2" id="leftpanel" style="margin-left: 20px">
+            @if (Convert.ToInt16(Session["position_id"]) >= 2)
+            {
+                <ul class="nav nav-pills nav-stacked" id="leftpanelS">
+                    <li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://nciconnect.nci.nih.gov/sites/oga/SitePages/Home.aspx" title="my OGA">myOGA</a>
+                    </li>
 
-               <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" id="navDropDown" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="R" title="Resources [shift + alt + R]">
-                     Resources
-                  </a>
-                  <div class="dropdown-menu shadow p-3 mb-5 bg-white rounded" aria-labelledby="navDropDown">
-                     <a class="dropdown-item" target="_new" href="~/Content/eGrants Category Glossary.docx" title="eGrants Glossary">eGrants Glossary</a>
-                     <a class="dropdown-item" target="_new" href="~/Content/access_number2.pdf" title="Accession">Accession</a>
-                     <a class="dropdown-item" target="_self" href="~/EgrantsFunding/funding_index" title="Funding Files">Funding Files</a>
-                  </div>
-               </li>
-               <li class="nav-item dropdown">
-                  <a href="#" class="nav-link dropdown-toggle" id="navDropDown2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" accesskey="H" title="Help [shift + alt + H]">Help</a>
-                  <div class="dropdown-menu shadow p-3 mb-5 bg-white rounded" aria-labelledby="navDropDown2">
-                     <a class="dropdown-item" href="mailto:egrantsissues@mail.nih.gov" title="Send email to Technical Support Team">Technical Support</a>
-                     <a class="dropdown-item" target="_new" href="~/Content/eGrants Help Guide.pdf" title="Help Guide">Help Guide</a>
-                     <a class="dropdown-item" target="_new" href="~/Content/explanation.htm" title="Icon Guide">Icon Guide</a>
-                     <div class="dropdown-divider"></div>
-                     <a class="dropdown-item" target="_new" href="~/Content/privacy.htm" title="Privacy Policy">Privacy Policy</a>
-                  </div>
-               </li>
-            </ul>
-         </div>
-      </nav>
-   </div>
-</div>
-<div class="row">
-   <div class="col-lg-2" id="leftpanel" style="margin-left: 20px">
-      @if (Convert.ToInt16(Session["position_id"]) >= 2)
-      {
-         <ul class="nav nav-pills nav-stacked" id="leftpanelS">
-            <li class="nav-item">
-               <a class="nav-link" target="_blank" href="https://nciconnect.nci.nih.gov/sites/oga/SitePages/Home.aspx" title="my OGA">myOGA</a>
-            </li>
+                    <li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://apps.era.nih.gov/gmii/search/view.era?menu_itemPath=36" title="eRA GM">eRA GM</a>
+                    </li>
 
-            <li class="nav-item">
-               <a class="nav-link" target="_blank" href="https://apps.era.nih.gov/gmii/search/view.era?menu_itemPath=36" title="eRA GM">eRA GM</a>
-            </li>
+                    <li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://pms.psc.gov/" title="PMS">PMS</a>
+                    </li>
+                </ul>
+            }
 
-            <li class="nav-item">
-               <a class="nav-link" target="_blank" href="https://pms.psc.gov/" title="PMS">PMS</a>
-            </li>
-         </ul>
-      }
+            @if (Convert.ToInt16(Session["position_id"]) == 1)
+            {
+                <ul class="nav nav-pills nav-stacked" id="leftpanelP">
+                    <li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://apps.era.nih.gov/pmm/search.era" title="PMM">PMM</a>
+                    </li>
 
-      @if (Convert.ToInt16(Session["position_id"]) == 1)
-      {
-         <ul class="nav nav-pills nav-stacked" id="leftpanelP">
-            <li class="nav-item">
-               <a class="nav-link" target="_blank" href="https://apps.era.nih.gov/pmm/search.era" title="PMM">PMM</a>
-            </li>
+                    <li class="nav-item">
+                        <a class="nav-link" target="_blank" href="https://apps.era.nih.gov/qvr/web/home_main.cfm" title="QVR">QVR</a>
+                    </li>
 
-            <li class="nav-item">
-               <a class="nav-link" target="_blank" href="https://apps.era.nih.gov/qvr/web/home_main.cfm" title="QVR">QVR</a>
-            </li>
+                    @*<li class="divider"></li>*@
+                </ul>
+            }
+        </div>
 
-            @*<li class="divider"></li>*@
-         </ul>
-      }
-   </div>
-   <div class="col-lg-9" id="mainbody">
-      <br/>@RenderBody()
-   </div><!--end container body-content-->
-</div>
+        <!--start show popup modal -->
+        <div class="modal fade" id="timeoutModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Timeout warning</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p><span id="error">Warning</span>: you will be logged off in <span id="count-down">00:60</span> due to inactivity.</p>
+                        <p>Do you wish to continue working in your session ?</p>
+                        <div class="progress">
+                            <div id="timeout-progress" class="progress-bar" role="progressbar" aria-valuenow="@Session.Timeout" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="timeout_continue()">Continue</button>
+                        <button type="button" class="btn btn-primary" onclick="timeout_logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end show popup modal-->
+
+        <div class="col-lg-9" id="mainbody">
+            <br />@RenderBody()
+        </div><!--end container body-content-->
+    </div>
 </body>
 </html>
