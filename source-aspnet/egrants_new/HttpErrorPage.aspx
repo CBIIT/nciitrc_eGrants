@@ -21,8 +21,8 @@
                 (httpCode, "Safe message for unexpected HTTP codes.", ex);
 
         // Log the exception and notify system operators
-        MvcApplication.ExceptionUtility.LogException(ex, "HttpErrorPage");
-        MvcApplication.ExceptionUtility.NotifySystemOps(ex);
+        ExceptionUtility.LogException(ex, "HttpErrorPage");
+        ExceptionUtility.NotifySystemOps(ex);
 
         // Fill the page fields
         exMessage.Text = ex.Message;

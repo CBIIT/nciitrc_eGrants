@@ -53,6 +53,7 @@ using egrants_new.Egrants.Models;
 using egrants_new.Models;
 
 using Newtonsoft.Json;
+using static egrants_new.Egrants.Models.EgrantsDoc;
 
 #endregion
 
@@ -1307,7 +1308,40 @@ namespace egrants_new.Controllers
 
             return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
         }
+
+        public ActionResult impac_docs_data(string act, int appl_id)
+        {
+            try
+            {
+                IList<ImpacDocs> impacDocsList = EgrantsDoc.LoadImpacDocs(act, appl_id);
+                this.ViewBag.ImpacDocsList = EgrantsDoc.LoadImpacDocs(act, appl_id);
+
+                dynamic res = new { data = this.ViewBag.ImpacDocsList };
+
+                return Json(res, JsonRequestBehavior.AllowGet);
+
+                //  this.ViewBag.act = act;
+                //  this.ViewBag.appl_id = appl_id;
+                //return this.View();
+                ///  this.ViewBag.ImpacDocs.Count();
+                /// 
+                // return Json(impacDocsList, JsonRequestBehavior.AllowGet);
+
+                //       return new ViewResult();
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
+            }
+
+            return null;
+
+            //  return this.Json(new { act, message = impacDocsList });
+            // return this.View("~/Egrants/Views/_Modal_Impac_Docs.cshtml");
+        }
+
     }
+
 
     class MyWebClient : WebClient
     {
