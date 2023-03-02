@@ -30,15 +30,43 @@
 
     function popup_countdown() {
         var fiveMinsInSecs = 5 * 60;
+
+        // display remaining time to dialog and top banner
+        var pcg = Math.floor((remainingSeconds / fiveMinsInSecs) * 100);
+        var remainingSecondsText = remainingSeconds;
+        if (remainingSeconds < 10)
+            remainingSecondsText = "0" + remainingSecondsText;
+        remainingSecondsText = "00:" + remainingSecondsText;
+        // display this format above always in in dialog if less than a min
+        var minuteCount = Math.floor(remainingSeconds / 60);
+        var minuteCountText = "" + minuteCount;
+        if (minuteCount < 10) {
+            minuteCountText = "0" + minuteCount;
+        }
+        var secondRemainder = remainingSeconds;
+        for (var i = 0; i < minuteCount; i++) {
+            secondRemainder -= 60;
+        }
+        var topCountdownText = minuteCountText + ":";
+        if (secondRemainder < 10)
+            topCountdownText = topCountdownText + "0";
+        topCountdownText = topCountdownText + secondRemainder;
+        if (remainingSeconds >= 0)
+            document.getElementById("sec-countdown").textContent = topCountdownText;
+
+        // overwrite with a different format if a min or less left
+        if (remainingSeconds > 60) {            
+            remainingSecondsText = Math.floor(minuteCount) + " minutes ";
+        }
+
         if (remainingSeconds <= 0) {
             // close, log out
+            if (remainingSeconds > -5) {    // logic to make sure logout happens once
+                timeout_logout();
+                remainingSeconds = -10;
+            }
         } else if (remainingSeconds <= fiveMinsInSecs) {
             // display modal dialog
-            var pcg = Math.floor((remainingSeconds / fiveMinsInSecs) * 100);
-            var remainingSecondsText = remainingSeconds;
-            if (remainingSeconds < 10)
-                remainingSecondsText = "0" + remainingSecondsText;
-            remainingSecondsText = "00:" + remainingSecondsText;
             document.getElementById("count-down").textContent = remainingSecondsText;
             document.getElementById("timeout-progress").setAttribute('style', 'width:' + Number(pcg) + '%');
             document.getElementById("timeout-progress").setAttribute('aria-valuenow', pcg);
@@ -51,6 +79,11 @@
             $("#timeoutModal").modal('hide');
             remainingSeconds--;
         }
+    }
+
+    function finalize_logout() {
+        console.log("Logged out of eGrants.");
+        location.reload();
     }
 
     function timeout_continue() {
@@ -79,12 +112,15 @@
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function () {
+                setTimeout(finalize_logout, 3000);
                 console.log("Logged out of eGrants.");
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 console.error("Failed to log out. Status: \"" + xhr.status + "\" Error: \"" + thrownError + "\"");
             }
         });
+        // stop logging out:
+        remainingSeconds = -10;
     }
 
       $(document).ready(function() {
@@ -238,7 +274,7 @@
             </a>
         </div>
         <div class="col-lg-10" id="loginas">
-            <p>Logged in as:@Session["UserName"]</p>
+            <p><span id="sec-countdown" class="space-right">45:00</span> Logged in as:@Session["UserName"]</p>
         </div>
         <!--- <p>Need help? Email to:<a href="mailto:egrantsissues@mail.nih.gov" title="Send email for asking help">egrantsissues@mail.nih.gov</a></p> -->
 
