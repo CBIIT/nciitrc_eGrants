@@ -2,114 +2,134 @@
 <script src="~/scripts/jquery.dataTables.min.js"></script>
 <script src="~/scripts/moment.js"></script>
 <script src="~/scripts/datetime-moment.js"></script>
-<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet"/>
+<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet" />
 <script src="~/scripts/dataTables.bootstrap4.min.js"></script>
 <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css">
 <script src="~/scripts/fontawesome/fontawesome.min.js" data-auto-replace-svg="nest"></script>
 
 <script src="~/scripts/fontawesome/solid.min.js"></script>
 @* <script src="~/scripts/fontawesome/brands.min.js"></script> *@
-<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet"/>
+<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet" />
 @* <link href="~/Content/fontawesome/fontawesome.min.css" rel="stylesheet"> *@
 
 <style>
-   table.dataTable thead th {
-      background: transparent !important;
-      white-space: nowrap;
-   }
+    table.dataTable thead th {
+        background: transparent !important;
+        white-space: nowrap;
+    }
 
-   /* when a column is not activly sorted the */
+    /* when a column is not activly sorted the */
 
-   table.dataTable thead .sorting .bi-sort-down {
-      display: none;
-      color: black;
-   }
+    table.dataTable thead .sorting .bi-sort-down {
+        display: none;
+        color: black;
+    }
 
-   table.dataTable thead .sorting .bi-sort-up {
-      display: none;
-      color: black;
-   }
+    table.dataTable thead .sorting .bi-sort-up {
+        display: none;
+        color: black;
+    }
 
-   table.dataTable thead .sorting .bi-arrow-down-up {
-      display: inline;
-      color: #a9a9a9;
-   }
+    table.dataTable thead .sorting .bi-arrow-down-up {
+        display: inline;
+        color: #a9a9a9;
+    }
 
-   table.dataTable thead .sorting_asc .bi-sort-down {
-      display: inline;
-      color: black;
-   }
+    table.dataTable thead .sorting_asc .bi-sort-down {
+        display: inline;
+        color: black;
+    }
 
-   table.dataTable thead .sorting_desc .bi-sort-up {
-      display: none;
-      color: black;
-   }
+    table.dataTable thead .sorting_desc .bi-sort-up {
+        display: none;
+        color: black;
+    }
 
-   table.dataTable thead .sorting_desc .bi-sort-down {
-      display: none;
-      color: black;
-   }
+    table.dataTable thead .sorting_desc .bi-sort-down {
+        display: none;
+        color: black;
+    }
 
-   table.dataTable thead .sorting_desc .bi-sort-up {
-      display: inline;
-      color: black;
-   }
+    table.dataTable thead .sorting_desc .bi-sort-up {
+        display: inline;
+        color: black;
+    }
 
-   /* when the datatable column is in asc or des sort mode, hide the updown arrow */
+    /* when the datatable column is in asc or des sort mode, hide the updown arrow */
 
-   table.dataTable thead .sorting_asc .bi-arrow-down-up { display: none; }
+    table.dataTable thead .sorting_asc .bi-arrow-down-up {
+        display: none;
+    }
 
-   table.dataTable thead .sorting_desc .bi-arrow-down-up { display: none; }
+    table.dataTable thead .sorting_desc .bi-arrow-down-up {
+        display: none;
+    }
 
-   table.dataTable thead .sorting:before,
-   table.dataTable thead .sorting_asc:before,
-   table.dataTable thead .sorting_desc:before,
-   table.dataTable thead .sorting_asc_disabled:before,
-   table.dataTable thead .sorting_desc_disabled:before { content: "" !important; }
+    table.dataTable thead .sorting:before,
+    table.dataTable thead .sorting_asc:before,
+    table.dataTable thead .sorting_desc:before,
+    table.dataTable thead .sorting_asc_disabled:before,
+    table.dataTable thead .sorting_desc_disabled:before {
+        content: "" !important;
+    }
 
-   table.dataTable thead .sorting:after,
-   table.dataTable thead .sorting_asc:after,
-   table.dataTable thead .sorting_desc:after,
-   table.dataTable thead .sorting_asc_disabled:after,
-   table.dataTable thead .sorting_desc_disabled:after { content: "" !important; }
+    table.dataTable thead .sorting:after,
+    table.dataTable thead .sorting_asc:after,
+    table.dataTable thead .sorting_desc:after,
+    table.dataTable thead .sorting_asc_disabled:after,
+    table.dataTable thead .sorting_desc_disabled:after {
+        content: "" !important;
+    }
 
-   table.dataTable tbody tr.even-row {
-      background-color: #ffffff;
-      height: 30px;
-   }
+    table.dataTable tbody tr.even-row {
+        background-color: #ffffff;
+        height: 30px;
+    }
 
-   table.dataTable tbody tr.odd-row {
-      background-color: #AED6F1;
-      height: 30px;
-   }
+    table.dataTable tbody tr.odd-row {
+        background-color: #AED6F1;
+        height: 30px;
+    }
 
-   #overlay {
-      height: 100%;
-      width: 100%;
-      position: absolute;
-      top: 0px;
-      left: 0px;
-      z-index: 99999;
-      background-color: white;
-      /* filter: alpha( opacity=75 ); */
-      opacity: 0.75;
-      display: none;
-   }
+    #overlay {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        z-index: 99999;
+        background-color: white;
+        /* filter: alpha( opacity=75 ); */
+        opacity: 0.75;
+        display: none;
+    }
 
-   .fa-file-excel {
-      color: grey;
-   }
+    .fa-file-excel {
+        color: grey;
+    }
 
-   .fa-file-lines {
-      color: blue;
-      display: none;
-   }
+    .fa-file-lines {
+        color: blue;
+        display: none;
+    }
 
-   .fa-circle-check { color: green; }
+    .fa-folder-open {
+        color: green;
+        display: none;
+    }
 
-   .fa-rotate { color: blueviolet }
 
-   .fa-circle-exclamation { color: red; }
+    .fa-circle-check {
+        color: green;
+    }
+
+    .fa-rotate {
+        color: blueviolet
+    }
+
+    .fa-circle-exclamation {
+        color: red;
+    }
 </style>
 
 <script language="JavaScript" type="text/javascript">
@@ -190,79 +210,79 @@
 //   }
 </script>
 @{
-   var appl_id = Model.ApplId;
-   var fullGrantNumber = Model.FullGrantNumber;
-   <div id="overlay">
-      <img style="width: 150px; height: 150px; margin-left: 400px; margin-top: 150px;" src="~/Content/images/Loading.gif"/>
-   </div>
+    var appl_id = Model.ApplId;
+    var fullGrantNumber = Model.FullGrantNumber;
+    <div id="overlay">
+        <img style="width: 150px; height: 150px; margin-left: 400px; margin-top: 150px;" src="~/Content/images/Loading.gif" />
+    </div>
 
-   <div id="create new buttons" style="float: right; display: inline;">
+    <div id="create new buttons" style="float: right; display: inline;">
 
-      <button type="button" id="downloadData_@appl_id" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
-      @* @{ *@
-      @*    <asp:LinkButton ID="lnkDownload" Text="Download" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DownloadFile"></asp:LinkButton> *@
-      @* } *@
+        <button type="button" id="downloadData_@appl_id" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
+        @* @{ *@
+        @*    <asp:LinkButton ID="lnkDownload" Text="Download" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DownloadFile"></asp:LinkButton> *@
+        @* } *@
 
-   </div>
+    </div>
 
-   <div id="data_table">
-      <div class="container">
-         <br/>
-         <div style="width: 880px; float: left">
-            <table id="loadgridDownload_@appl_id" class="" style="width: 100%">
-               <thead>
-               <tr>
-               <th>
-                  <div id='show_dl_all_@appl_id' style='display: none;'>
-                     @*class="show_dl_all"*@
-                     <a class='showmodealldownload' href='javascript:void(0);' title='show all qc mode'>
-                        <img name='show_dl_all' style="height: 30px;" src='~/Content/images/plus.png' />
-                     </a>
-                  </div>
-                  <div id='hide_dl_all_@appl_id' style='display: none;'>
-                     @*class="hide_dl_all"*@
-                     <a class='hidemodealldownload' href='javascript:void(0);' title='hide all qc mode'>
-                        <img name='hide_dl_all' style="height: 30px;" src='~/Content/images/minus.png' />
-                     </a>
-                  </div>
-               </th>
-                  <th>
-                     <div id="dl_checkbox_all_@appl_id" style="display: inline;" class="ml-1">
-                        <input type="checkbox" title="Check All" class="showDownloadAll" id="checkboxall_@appl_id"/>
-                     </div>
-                  </th>
-                  <th>
-                     Document Name
-                     @*bootstrap icons for sorting icons*@
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down ml-1" viewBox="0 0 16 16">
-                        <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
-                     </svg>
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up ml-1" viewBox="0 0 16 16">
-                        <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
-                     </svg>
-                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-down-up ml-1" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z"/>
-                     </svg>
-                  </th>
-                  <th>
-                     Date
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down ml-1" viewBox="0 0 16 16">
-                        <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
-                     </svg>
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up ml-1" viewBox="0 0 16 16">
-                        <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
-                     </svg>
-                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-down-up ml-1" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z"/>
-                     </svg>
-                  </th>
-                  <th></th>
-               </tr>
-               </thead>
-            </table>
-         </div>
-      </div>
-      <script language="javascript" type="text/javascript">
+    <div id="data_table">
+        <div class="container">
+            <br />
+            <div style="width: 880px; float: left">
+                <table id="loadgridDownload_@appl_id" class="" style="width: 100%">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div id='show_dl_all_@appl_id' style='display: none;'>
+                                    @*class="show_dl_all"*@
+                                    <a class='showmodealldownload' href='javascript:void(0);' title='show'>
+                                        <img name='show_dl_all' style="height: 30px;" src='~/Content/images/plus.png' />
+                                    </a>
+                                </div>
+                                <div id='hide_dl_all_@appl_id' style='display: none;'>
+                                    @*class="hide_dl_all"*@
+                                    <a class='hidemodealldownload' href='javascript:void(0);' title='hide all qc mode'>
+                                        <img name='hide_dl_all' style="height: 30px;" src='~/Content/images/minus.png' />
+                                    </a>
+                                </div>
+                            </th>
+                            <th>
+                                <div id="dl_checkbox_all_@appl_id" style="display: inline;">
+                                    <input type="checkbox" title="Check All" class="showDownloadAll" id="checkboxall_@appl_id" />
+                                </div>
+                            </th>
+                            <th>
+                                Document Name
+                                @*bootstrap icons for sorting icons*@
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down ml-1" viewBox="0 0 16 16">
+                                    <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z" />
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up ml-1" viewBox="0 0 16 16">
+                                    <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z" />
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-down-up ml-1" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z" />
+                                </svg>
+                            </th>
+                            <th>
+                                Date
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down ml-1" viewBox="0 0 16 16">
+                                    <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z" />
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up ml-1" viewBox="0 0 16 16">
+                                    <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z" />
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-down-up ml-1" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z" />
+                                </svg>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <script language="javascript" type="text/javascript">
          // start load document dat to data table
          $("#overlay").show();
 
@@ -312,15 +332,6 @@
                   $("#overlay").hide();
                   var info = this.api().page.info();
                   if (info.recordsTotal > 1) $('#show_dl_all_' + @appl_id).show();
-                  //var info = this.api().page.info();
-                  //console.log(info);
-                  //console.log(this.api());
-                  //console.log("Settings:" + JSON.stringify(settings));
-                  //console.log("Json: " + JSON.stringify(json));
-//                  console.log("Grant: " + ViewBag.);
-                  // var api = this.api();
-                  // console.log(this.api().data());
-
 
                   if (table.data().count() == 0) {
                      console.log("Zero records");
@@ -330,41 +341,6 @@
                      $('#downloadData_@appl_id').attr("disabled", false);
                      $('#checkboxall_@appl_id').attr("disabled", false);
                   }
-
-                  // add the lower row showing the created by info
-
-
-//                  $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
-//                     function() {
-//                        if ($(this).attr('disabled') != "disabled") {
-//
-//                           var tr = $(this).closest('tr');
-//                           //  console.log("tr: " + tr);
-//                           var row = table.row(tr);
-//
-//
-//                           var data = row.data();
-//
-//                           // console.log(data);
-//
-//                           row.child(formatForDownloadView(data)).show();
-//                           tr.next('tr').addClass(tr.attr('class'));
-//                        }
-//                     });
-
-
-                  //  $.each(api.$('tr' + @appl_id + ' input.showmode'),
-//                  api.$('#41407254').click(function () {
-                  //api.$('.showmode').click(function () {
-//                  api.$('.showmode')( function() {
-//                     console.log("Hello");
-//                  })
-                  //    console.log("Checkbox clicky: " + this.checked);
-                  //api.search(this.innerHTML).draw();
-                  //  });
-
-
-                  // if (info.recordsTotal > 1) $('#show_dl_all_' + @appl_id).show();
                },
 
                ajax: {
@@ -413,8 +389,6 @@
                      className: "details-control",
                      // show qc icon and checkbox
                      render: function(data, type, full, meta) {
-                        if (full.can_qc == "y") {
-                           if (full.can_store == "y") {
                               return "<div id='show_qc_dl_" +
                                  full.document_id +
                                  "'  class='show_qc_dl' style='width:30px; display:inline'>" +
@@ -425,55 +399,148 @@
                                  "' class='hide_qc_dl' style='width:30px; display:none'>" +
                                  "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
                                  "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
-//                                 "<div id='qc_checkbox_" +
-//                                 full.document_id +
-//                                 "' name='qc_checkbox' class='qc_checkbox' style='display:none;vertical-align:middle;'>" +
-//                                 "<input type='checkbox' id='" +
-//                                 full.document_id +
-//                                 "' class='qc' name='qc' value='" +
-//                                 full.document_id +
-//                                 "' title='Check here to store or delete this document'/></div>";
-                           } else {
-                              return "<div id='show_qc_dl_" +
-                                 full.document_id +
-                                 "'  class='show_qc_dl' style='width:30px; display:inline'>" +
-                                 "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
-                                 "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
-                                 "<div id='hide_qc_dl_" +
-                                 full.document_id +
-                                 "' class='hide_qc_dl' style='width:30px; display:none'>" +
-                                 "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
-                                 "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
-                           }
-                        } else return "";
 
-
-                     }
+                         }
                   },
-                  {
+                   {
+                      // show the checkox's that allow a user to download files
                      render: function (data, type, full, meta) {
-                        //if (full.frc_destroyed == 0) {
-                        //   if (full.fsr_count >= 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-                              //return "<a href=JavaScript:show_doc('" +
-                              //   full.url +
-                              //   "') title='show document'>" +
-                              //   full.document_name +
-                              //   "</a>" +
-                              //   "<span>&nbsp;&nbsp;&nbsp;</span><a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='fsr' data-assigned-id=" +
-                              //   full.appl_id +
-                              //   " title='Display all financial reports'>All FFR</a>";
-//                           } else if (full.attachment_count > 0) {
-//                              return "<a href=JavaScript:show_doc('" +
-//                                 full.url +
-//                                 "') title='show document'>" +
-//                                 full.document_name +
-//                                 "</a>" +
-//                                 "<span>&nbsp;&nbsp;&nbsp;</span><a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='attachments' data-assigned-id=" +
-//                                 full.document_id +
-//                                 " title='Display all attachments'>Attachments</a>";
-//                           } else if (full.document_name == "Closeout Notification") {
-//                              return "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='closeout' data-assigned-id=" + full.appl_id + " title='Display Closeout Notification'>" + full.document_name + "</a>";
-                           //} else
+                        if (full.frc_destroyed == 0) {
+                            if (full.fsr_count >= 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
+
+                                console.log("Show me the FFR:" + JSON.stringify(full));
+                                console.log("Firing JS MethodA");
+
+                                var dataToSend = {};
+                                dataToSend.act = "fsr";
+                                dataToSend.appl_id = @appl_id;
+
+
+                               $.ajax(
+                                   {
+                                       cache: false,
+                                       async: true,
+                                       type: 'POST',
+                                       dataType: 'JSON',
+                                       contentType: 'application/json; charset=utf=8',
+                                       url: "/Egrants/impac_docs_data",
+                                       data: JSON.stringify(dataToSend),
+                                       success: function (data) {
+                                           //sessionStorage.year = resp;
+                                           //var jsonobj = JSON.parse(data);
+                                           console.log("JsonObj:" + data);
+                                           //$.each(data.id, function (index, element) {
+                                           //    alert(element.timeStamp);
+                                           //});
+                                           console.log("Response Returned:" + JSON.stringify(data));
+                                           //var found = data.ImpactDocs.filter(function (item) { return item.Url === rowData.url; });
+                                 @*$.each($('#loadgridDownload_' + @appl_id),
+                              function() {
+                                 var tr = $(this).closest('tr');
+                                 var row = table.row(tr);
+                                 console.log("row: ");
+                                 console.log(row);*@
+
+
+
+
+                                       },
+                                       error: function (resp) {
+                                           console.log("ERROR: " + resp);
+                                       }
+                                   });
+
+
+                                return "<div id=\"dl_checkbox_" +
+                                    full.document_id +
+                                    "\"" +
+                                    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                                    " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
+                                    full.document_id +
+                                    "\"" +
+                                    " class=\"qc\" name=\"qc\" value=\"" +
+                                    full.document_id +
+                                    "\"" +
+                                    ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                    "/></div>";
+
+                           } else if (full.attachment_count > 0) {
+                               console.log("Show me Attachments:" + JSON.stringify(full));
+;
+                               return "<div id=\"dl_checkbox_" +
+                                   full.document_id +
+                                   "\"" +
+                                   " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                                   " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
+                                   full.document_id +
+                                   "\"" +
+                                   " class=\"qc\" name=\"qc\" value=\"" +
+                                   full.document_id +
+                                   "\"" +
+                                   ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                   "/></div>";
+                          } else if (full.document_name == "Closeout Notification") {
+                               console.log("Show me ClousoutNotifications:" + JSON.stringify(full));
+
+
+
+                                var dataToSend = {};
+                                dataToSend.act = "clousout";
+                                dataToSend.appl_id = @appl_id;
+
+
+                               $.ajax(
+                                   {
+                                       cache: false,
+                                       async: true,
+                                       type: 'POST',
+                                       dataType: 'JSON',
+                                       contentType: 'application/json; charset=utf=8',
+                                       url: "/Egrants/impac_docs_data",
+                                       data: JSON.stringify(dataToSend),
+                                       success: function (data) {
+                                           //sessionStorage.year = resp;
+                                           //var jsonobj = JSON.parse(data);
+                                           console.log("JsonObj:" + data);
+                                           //$.each(data.id, function (index, element) {
+                                           //    alert(element.timeStamp);
+                                           //});
+                                           console.log("Response Returned:" + JSON.stringify(data));
+                               //            //alert(jsonobj);
+                               //            //$('#ddlAppls').empty();
+                               //            //$('#ddlAppls').append('<option value=' + -1 + '>' + 'Select grant year' + '</option>');
+                                           //$.each(data.,
+                                           //    function (index, element) {
+                                           //        var full_grant_num = data.full_grant_num;
+                                                
+                                           //        //alert(element);
+                                           //        //$('#ddlAppls').append('<option value=' + appl_id + ' id=' + appl_id + '>' + full_grant_num + '</option>');
+                                           //        console.log("FullGrantNumber: " + data.full_grant_num);
+                                           //    });
+
+   
+                                       },
+                                       error: function (resp) {
+                                           console.log("ERROR: " + resp);
+                                       }
+                                   });
+
+
+                               return "<div id=\"dl_checkbox_" +
+                                   full.document_id +
+                                   "\"" +
+                                   " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                                   " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
+                                   full.document_id +
+                                   "\"" +
+                                   " class=\"qc\" name=\"qc\" value=\"" +
+                                   full.document_id +
+                                   "\"" +
+                                   ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                   "/></div>";
+
+
+                          } else
                               return "<div id=\"dl_checkbox_" +
                               full.document_id +
                               "\"" +
@@ -485,8 +552,9 @@
                               full.document_id +
                               "\"" +
                               ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                              "/></div>";
-//                        } else return "<strike>" + full.document_name + "</strike>";
+                                    "/></div>";
+
+                        } else return "<strike>" + full.document_name + "</strike>";
 //
                      }
             },
@@ -495,14 +563,16 @@
                      render: function(data, type, full, meta) {
                         if (full.frc_destroyed == 0) {
                            if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-                              var str = "<a href=JavaScript:show_doc('" +
-                                 full.url +
-                                 "') title='show document'>" +
-                                 full.document_name +
-                                 "</a>" +
-                                 "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='fsr' data-assigned-id=" +
-                                 full.appl_id +
-                                 " title='Display all financial reports'>All FFR</a>";
+                               var str = "<a href=JavaScript:show_doc('" +
+                                   full.url +
+                                   "') title='show document'>" +
+                                   full.document_name +
+                                   "</a>";
+
+                               //var tr = $(this).closest('tr');
+                               //console.log(tr);
+                               //var row = table.row(tr);
+                               //console.log(row);
 
 
                               return str;
@@ -955,8 +1025,8 @@
          };
 
 
-      </script>
-   </div>
+        </script>
+    </div>
 
 
 }
