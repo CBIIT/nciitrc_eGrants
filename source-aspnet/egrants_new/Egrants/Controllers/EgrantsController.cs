@@ -980,20 +980,27 @@ namespace egrants_new.Controllers
             //this.Session.Remove("NIHSMSESSION");
 
             if (System.Web.HttpContext.Current != null)
-            {
-                int cookieCount = System.Web.HttpContext.Current.Request.Cookies.Count;
-                for(var i = 0; i < cookieCount; i++) {
+            {                
+                /*int cookieCount = System.Web.HttpContext.Current.Request.Cookies.Count;
+                
+                bool found = false;
+                for (var i = 0; i < cookieCount; i++) {
                     var cookie = System.Web.HttpContext.Current.Request.Cookies[i];
                     if (cookie != null) {
                         if (!cookie.Name.Contains("NIHSMSESSION"))
                             continue;
-                        var experiedCookie = new HttpCookie(cookie.Name)
+                        var expiredCookie = new HttpCookie(cookie.Name)
                         {
                             Expires = DateTime.Now.AddDays(-1),
-                            Domain = cookie.Domain
+                            Domain = cookie.Domain,
+                            Value = null
                         };
+                        System.Web.HttpContext.Current.Request.Cookies.Add(expiredCookie);
+                        found = true;
                     }
                 }
+                if (!found)*/
+                    System.Web.HttpContext.Current.Request.Cookies.Remove("NIHSMSESSION");
             }
 
             MvcApplication.GetMvcApplication().LogOut();      
