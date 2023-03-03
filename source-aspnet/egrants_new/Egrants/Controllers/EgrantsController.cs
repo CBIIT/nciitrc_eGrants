@@ -976,8 +976,8 @@ namespace egrants_new.Controllers
         /// <returns></returns>
         [HttpPost]
         public JsonResult LogOut() {
-            MvcApplication.GetMvcApplication().LogOut();
             this.Session.Remove("NIHSMSESSION");
+            MvcApplication.GetMvcApplication().LogOut();            
             return Json(@"{ ""message"": ""logout complete."" }");
         }
 
