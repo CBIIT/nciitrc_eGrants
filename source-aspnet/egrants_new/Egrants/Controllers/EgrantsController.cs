@@ -41,6 +41,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
@@ -976,8 +977,26 @@ namespace egrants_new.Controllers
         /// <returns></returns>
         [HttpPost]
         public JsonResult LogOut() {
-            this.Session.Remove("NIHSMSESSION");
-            MvcApplication.GetMvcApplication().LogOut();            
+            //this.Session.Remove("NIHSMSESSION");
+
+            if (System.Web.HttpContext.Current != null)
+            {
+                int cookieCount = System.Web.HttpContext.Current.Request.Cookies.Count;
+                for(var i = 0; i < cookieCount; i++) {
+                    var cookie = System.Web.HttpContext.Current.Request.Cookies[i];
+                    if (cookie != null) {
+                        if (!cookie.Name.Contains("NIHSMSESSION"))
+                            continue;
+                        var experiedCookie = new HttpCookie(cookie.Name)
+                        {
+                            Expires = DateTime.Now.AddDays(-1),
+                            Domain = cookie.Domain
+                        };
+                    }
+                }
+            }
+
+            MvcApplication.GetMvcApplication().LogOut();      
             return Json(@"{ ""message"": ""logout complete."" }");
         }
 
