@@ -1003,7 +1003,16 @@ namespace egrants_new.Controllers
                     System.Web.HttpContext.Current.Request.Cookies.Remove("NIHSMSESSION");
             }
 
-            MvcApplication.GetMvcApplication().LogOut();      
+            MvcApplication.GetMvcApplication().LogOut();
+
+            this.Session.RemoveAll();
+            var response = HttpContext.Response;
+            if (response.Cookies.Count > 0)
+            {
+                response.Cookies.Clear();
+                response.Clear();
+            }
+
             return Json(@"{ ""message"": ""logout complete."" }");
         }
 
