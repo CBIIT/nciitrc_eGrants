@@ -113,7 +113,8 @@
             dataType: "json",
             success: function () {
                 setTimeout(finalize_logout, 3000);
-                console.log("Logged out of eGrants.");
+                window.location.href = "https://authtest.nih.gov/siteminderagent/smlogout.asp?TARGET=https://egrants-web-dev.nci.nih.gov/";
+                console.log("Logged out of eGrants. Redirecting ...");
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 console.error("Failed to log out. Status: \"" + xhr.status + "\" Error: \"" + thrownError + "\"");

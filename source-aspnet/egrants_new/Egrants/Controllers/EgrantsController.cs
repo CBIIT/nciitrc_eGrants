@@ -977,76 +977,7 @@ namespace egrants_new.Controllers
         /// <returns></returns>
         [HttpPost]
         public JsonResult LogOut() {
-            //this.Session.Remove("NIHSMSESSION");
-
-            if (System.Web.HttpContext.Current != null)
-            {                
-                int requestCookieCount = System.Web.HttpContext.Current.Request.Cookies.Count;
-                
-                bool found = false;
-                for (var i = 0; i < requestCookieCount; i++) {
-                    var cookie = System.Web.HttpContext.Current.Request.Cookies[i];
-                    if (cookie != null) {
-                        if (!cookie.Name.Contains("NIHSMSESSION"))
-                            continue;
-                        /*var expiredCookie = new HttpCookie(cookie.Name)
-                        {
-                            Expires = DateTime.Now.AddDays(-1),
-                            Domain = cookie.Domain,
-                            Value = null
-                        };
-                        System.Web.HttpContext.Current.Request.Cookies.Add(expiredCookie);*/
-                        //cookie.Name = "NIHSMSESSION_LOGGEDOFF";
-                        cookie.Value = "LOGGEDOFF";
-                        found = true;
-                    }
-                }
-
-                int responseCookieCount = System.Web.HttpContext.Current.Response.Cookies.Count;
-                for (var i = 0; i < responseCookieCount; i++)
-                {
-                    var cookie = System.Web.HttpContext.Current.Response.Cookies[i];
-                    if (cookie != null)
-                    {
-                        if (!cookie.Name.Contains("NIHSMSESSION"))
-                            continue;
-                        /*var expiredCookie = new HttpCookie(cookie.Name)
-                        {
-                            Expires = DateTime.Now.AddDays(-1),
-                            Domain = cookie.Domain,
-                            Value = null
-                        };
-                        System.Web.HttpContext.Current.Request.Cookies.Add(expiredCookie);*/
-                        //cookie.Name = "NIHSMSESSION_LOGGEDOFF";
-                        cookie.Value = "LOGGEDOFF";
-                        found = true;
-                    }
-                }
-                if (!found)
-                    System.Web.HttpContext.Current.Request.Cookies.Remove("NIHSMSESSION");
-            }
-
-            Session["NIHSESSION"] = "LOGGEDOFF";
-
-            /*var key = Session.Contents.;
-            if (Session.Keys["NIHSMSESSION"] != null)
-            {
-                var sessionKey = Session.Keys["NI"]
-            }*/
-
-            // session lets you remove but not rename
-//            this.Session.Remove("NIHSMSESSION");
-//            this.Session.Re
-
             MvcApplication.GetMvcApplication().LogOut();
-
-            /*this.Session.RemoveAll();
-            var response = HttpContext.Response;
-            if (response.Cookies.Count > 0)
-            {
-                response.Cookies.Clear();
-                response.Clear();
-            }*/
 
             return Json(@"{ ""message"": ""logout complete."" }");
         }
