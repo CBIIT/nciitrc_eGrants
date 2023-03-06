@@ -83,7 +83,7 @@
 
     function finalize_logout() {
         console.log("Logged out of eGrants.");
-        location.reload();
+        window.location.href = "https://authtest.nih.gov/siteminderagent/smlogout.asp?TARGET=https://egrants-web-dev.nci.nih.gov/";
     }
 
     function timeout_continue() {
@@ -113,7 +113,6 @@
             dataType: "json",
             success: function () {
                 setTimeout(finalize_logout, 3000);
-                window.location.href = "https://authtest.nih.gov/siteminderagent/smlogout.asp?TARGET=https://egrants-web-dev.nci.nih.gov/";
                 console.log("Logged out of eGrants. Redirecting ...");
             },
             error: function (xhr, ajaxOptions, thrownError) {
