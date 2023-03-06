@@ -1026,6 +1026,8 @@ namespace egrants_new.Controllers
                     System.Web.HttpContext.Current.Request.Cookies.Remove("NIHSMSESSION");
             }
 
+            Session["NIHSESSION"] = "LOGGEDOFF";
+
             /*var key = Session.Contents.;
             if (Session.Keys["NIHSMSESSION"] != null)
             {
