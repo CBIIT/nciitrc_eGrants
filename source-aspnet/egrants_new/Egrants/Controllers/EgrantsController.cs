@@ -996,7 +996,8 @@ namespace egrants_new.Controllers
                             Value = null
                         };
                         System.Web.HttpContext.Current.Request.Cookies.Add(expiredCookie);*/
-                        cookie.Name = "NIHSMSESSION_LOGGEDOFF";
+                        //cookie.Name = "NIHSMSESSION_LOGGEDOFF";
+                        cookie.Value = "LOGGEDOFF";
                         found = true;
                     }
                 }
@@ -1016,7 +1017,8 @@ namespace egrants_new.Controllers
                             Value = null
                         };
                         System.Web.HttpContext.Current.Request.Cookies.Add(expiredCookie);*/
-                        cookie.Name = "NIHSMSESSION_LOGGEDOFF";
+                        //cookie.Name = "NIHSMSESSION_LOGGEDOFF";
+                        cookie.Value = "LOGGEDOFF";
                         found = true;
                     }
                 }
