@@ -2870,6 +2870,8 @@
     <Compile Include="Egrants_Admin\Controllers\DocmanAccessController.cs" />
     <Compile Include="Egrants_Admin\Controllers\FlagMaintenanceController.cs" />
     <Compile Include="Egrants_Funding\Models\EgrantsFunding.cs" />
+    <Compile Include="Egrants_Funding\Models\FundingCategories.cs" />
+    <Compile Include="Egrants_Funding\Models\FundingDocuments.cs" />
     <Compile Include="ExceptionUtility.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

@@ -514,11 +514,11 @@ namespace egrants_new.Egrants.Models
             cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = appl_id;
             conn.Open();
 
-            var ImpactDocs = new List<ImpacDocs>();
+            var list = new List<ImpacDocs>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                ImpactDocs.Add(
+                list.Add(
                     new ImpacDocs
                         {
                             tag = rdr["tag"]?.ToString(),
@@ -533,7 +533,7 @@ namespace egrants_new.Egrants.Models
 
             conn.Close();
 
-            return ImpactDocs;
+            return list;
         }
 
         /// <summary>

@@ -47,6 +47,7 @@ using System.Net;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Web;
 using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
@@ -193,6 +194,8 @@ namespace egrants_new.Controllers
                     downloadData.DocumentId = Convert.ToInt32(documentId);
                     downloadData.DocumentName = documentName;
 
+
+                    
                     // if(downloadModel.DownloadDataList.)
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
@@ -237,7 +240,9 @@ namespace egrants_new.Controllers
                             {
                                 downloadUrl = reader.ReadToEnd();
                             }
+                       
 
+                   
                             using (var myWebClient = new MyWebClient())
                             {
                                 myWebClient.Credentials = CredentialCache.DefaultCredentials;
@@ -273,6 +278,7 @@ namespace egrants_new.Controllers
                     }
                     else
                     {
+                        
                         Uri uri;
 
                         if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
@@ -1309,25 +1315,16 @@ namespace egrants_new.Controllers
             return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
         }
 
-        public ActionResult impac_docs_data(string act, int appl_id)
+        public string impac_docs_data(string act, int appl_id)
         {
             try
             {
-                IList<ImpacDocs> impacDocsList = EgrantsDoc.LoadImpacDocs(act, appl_id);
-                this.ViewBag.ImpacDocsList = EgrantsDoc.LoadImpacDocs(act, appl_id);
+                List<ImpacDocs> impacDocsList = EgrantsDoc.LoadImpacDocs(act, appl_id);
+                //this.ViewBag.ImpacDocsList = EgrantsDoc.LoadImpacDocs(act, appl_id);
+                return JsonConvert.SerializeObject(impacDocsList);
+               // dynamic res = new { data = this.ViewBag.ImpacDocsList };
 
-                dynamic res = new { data = this.ViewBag.ImpacDocsList };
 
-                return Json(res, JsonRequestBehavior.AllowGet);
-
-                //  this.ViewBag.act = act;
-                //  this.ViewBag.appl_id = appl_id;
-                //return this.View();
-                ///  this.ViewBag.ImpacDocs.Count();
-                /// 
-                // return Json(impacDocsList, JsonRequestBehavior.AllowGet);
-
-                //       return new ViewResult();
             }
             catch (Exception err)
             {
@@ -1345,19 +1342,6 @@ namespace egrants_new.Controllers
 
     class MyWebClient : WebClient
     {
-        // public MyWebClient(CookieContainer container)
-        // {
-        //     this.container = container;
-        // }
-        //
-        // public CookieContainer CookieContainer
-        // {
-        //     get { return container; }
-        //     set { container = value; }
-        // }
-        //
-        // private CookieContainer container = new CookieContainer();
-
         protected override WebRequest GetWebRequest(Uri address)
         {
             var cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
@@ -1368,35 +1352,10 @@ namespace egrants_new.Controllers
             
             if (request != null)
             {
-        //        request.CookieContainer = container;
                 request.ClientCertificates.Add(certificate);
             }
     
             return request;
         }
-        //
-        // protected override WebResponse GetWebResponse(WebRequest request, IAsyncResult result)
-        // {
-        //     WebResponse response = base.GetWebResponse(request, result);
-        //     ReadCookies(response);
-        //     return response;
-        // }
-        //
-        // protected override WebResponse GetWebResponse(WebRequest request)
-        // {
-        //     WebResponse response = base.GetWebResponse(request);
-        //     ReadCookies(response);
-        //     return response;
-        // }
-        //
-        // private void ReadCookies(WebResponse r)
-        // {
-        //     var response = r as HttpWebResponse;
-        //     if (response != null)
-        //     {
-        //         CookieCollection cookies = response.Cookies;
-        //         container.Add(cookies);
-        //     }
-        // }
     }
 }

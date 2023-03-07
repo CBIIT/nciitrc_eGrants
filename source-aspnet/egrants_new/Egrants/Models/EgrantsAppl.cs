@@ -76,8 +76,6 @@ namespace egrants_new.Egrants.Models
                 while (rdr.Read())
                     isexisting = Convert.ToInt32(rdr["count_id"]);
 
-                conn.Close();
-
                 return isexisting;
             }
         }
