@@ -214,6 +214,8 @@ namespace egrants_new
             this.Session["browser"] = this.BrowserType;
 
             this.check_user_type();
+
+            Egrants.Models.Egrants.UpdateLastLoginDate(this.UserID);
         }
 
         /// <summary>
