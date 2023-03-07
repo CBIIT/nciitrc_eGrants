@@ -71,35 +71,36 @@ namespace egrants_new.Egrants.Models
         /// </returns>
         public static List<Pagination> LoadPagination(string str, string ic, string userid, string package = null)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("dbo.sp_web_egrants_pagination", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@str", SqlDbType.NVarChar).Value = str;
-            cmd.Parameters.Add("@package", SqlDbType.VarChar).Value = package;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
-            conn.Open();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("dbo.sp_web_egrants_pagination", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@str", SqlDbType.NVarChar).Value = str;
+                cmd.Parameters.Add("@package", SqlDbType.VarChar).Value = package;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+                conn.Open();
 
-            var list = new List<Pagination>();
+                var list = new List<Pagination>();
 
-            var rdr = cmd.ExecuteReader();
+                var rdr = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                list.Add(
-                    new Pagination
-                        {
-                            tag = rdr["tag"]?.ToString(),
-                            parent = rdr["parent"]?.ToString(),
-                            total_grants = rdr["total_grants"]?.ToString(),
-                            total_tabs = rdr["total_tabs"]?.ToString(),
-                            total_pages = rdr["total_pages"]?.ToString(),
-                            tab_number = rdr["tab_number"]?.ToString(),
-                            page_number = rdr["page_number"]?.ToString()
-                        });
+                while (rdr.Read())
+                    list.Add(new Pagination
+                                 {
+                                     tag = rdr["tag"]?.ToString(),
+                                     parent = rdr["parent"]?.ToString(),
+                                     total_grants = rdr["total_grants"]?.ToString(),
+                                     total_tabs = rdr["total_tabs"]?.ToString(),
+                                     total_pages = rdr["total_pages"]?.ToString(),
+                                     tab_number = rdr["tab_number"]?.ToString(),
+                                     page_number = rdr["page_number"]?.ToString()
+                                 });
 
-            conn.Close();
 
-            return list;
+
+                return list;
+            }
         }
 
         /// <summary>
@@ -116,32 +117,31 @@ namespace egrants_new.Egrants.Models
         /// </returns>
         public static List<StopNoticeObject> LoadStopNotice(int grant_id, string ic)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("sp_web_egrants_stop_notice ", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@GrantID", SqlDbType.Int).Value = grant_id;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_stop_notice ", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@GrantID", SqlDbType.Int).Value = grant_id;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
 
-            conn.Open();
+                conn.Open();
 
-            var list = new List<StopNoticeObject>();
+                var list = new List<StopNoticeObject>();
 
-            var rdr = cmd.ExecuteReader();
+                var rdr = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                list.Add(
-                    new StopNoticeObject
-                        {
-                            appl_id = rdr["appl_id"]?.ToString(),
-                            full_grant_num = rdr["full_grant_num"]?.ToString(),
-                            closeout_fsr_code = rdr["closeout_fsr_code"]?.ToString(),
-                            final_invention_stmnt_code = rdr["final_invention_stmnt_code"]?.ToString(),
-                            final_report_date = rdr["final_report_date"]?.ToString()
-                        });
+                while (rdr.Read())
+                    list.Add(new StopNoticeObject
+                                 {
+                                     appl_id = rdr["appl_id"]?.ToString(),
+                                     full_grant_num = rdr["full_grant_num"]?.ToString(),
+                                     closeout_fsr_code = rdr["closeout_fsr_code"]?.ToString(),
+                                     final_invention_stmnt_code = rdr["final_invention_stmnt_code"]?.ToString(),
+                                     final_report_date = rdr["final_report_date"]?.ToString()
+                                 });
 
-            conn.Close();
-
-            return list;
+                return list;
+            }
         }
 
         /// <summary>
@@ -184,47 +184,46 @@ namespace egrants_new.Egrants.Models
             string ic,
             string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("sp_web_egrants_supplement", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@grant_id", SqlDbType.Int).Value = grant_id;
-            cmd.Parameters.Add("@support_year", SqlDbType.Int).Value = support_year;
-            cmd.Parameters.Add("@suffix_code", SqlDbType.VarChar).Value = suffix_code;
-            cmd.Parameters.Add("@docid_str", SqlDbType.VarChar).Value = docid_str;
-            cmd.Parameters.Add("@former_applid", SqlDbType.VarChar).Value = former_applid;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
-            conn.Open();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_supplement", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+                cmd.Parameters.Add("@grant_id", SqlDbType.Int).Value = grant_id;
+                cmd.Parameters.Add("@support_year", SqlDbType.Int).Value = support_year;
+                cmd.Parameters.Add("@suffix_code", SqlDbType.VarChar).Value = suffix_code;
+                cmd.Parameters.Add("@docid_str", SqlDbType.VarChar).Value = docid_str;
+                cmd.Parameters.Add("@former_applid", SqlDbType.VarChar).Value = former_applid;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
+                conn.Open();
 
-            var list = new List<SupplementObject>();
+                var list = new List<SupplementObject>();
 
-            var rdr = cmd.ExecuteReader();
+                var rdr = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                list.Add(
-                    new SupplementObject
-                        {
-                            tag = rdr["tag"]?.ToString(),
-                            grant_id = rdr["grant_id "]?.ToString(),
-                            admin_phs_org_code = rdr["admin_phs_org_code "]?.ToString(),
-                            serial_num = rdr["serial_num"]?.ToString(),
-                            id = rdr["id"]?.ToString(),
-                            full_grant_num = rdr["full_grant_num"]?.ToString(),
-                            supp_appl_id = rdr["supp_appl_id"]?.ToString(),
-                            support_year = rdr["support_year"]?.ToString(),
-                            suffix_code = rdr["suffix_code"]?.ToString(),
-                            former_num = rdr["former_num"]?.ToString(),
-                            submitted_date = rdr["submitted_date"]?.ToString(),
-                            category_name = rdr["category_name"]?.ToString(),
-                            url = rdr["url"]?.ToString(),
-                            moved_date = rdr["moved_date"]?.ToString(),
-                            moved_by = rdr["moved_by"]?.ToString()
-                        });
+                while (rdr.Read())
+                    list.Add(new SupplementObject
+                                 {
+                                     tag = rdr["tag"]?.ToString(),
+                                     grant_id = rdr["grant_id "]?.ToString(),
+                                     admin_phs_org_code = rdr["admin_phs_org_code "]?.ToString(),
+                                     serial_num = rdr["serial_num"]?.ToString(),
+                                     id = rdr["id"]?.ToString(),
+                                     full_grant_num = rdr["full_grant_num"]?.ToString(),
+                                     supp_appl_id = rdr["supp_appl_id"]?.ToString(),
+                                     support_year = rdr["support_year"]?.ToString(),
+                                     suffix_code = rdr["suffix_code"]?.ToString(),
+                                     former_num = rdr["former_num"]?.ToString(),
+                                     submitted_date = rdr["submitted_date"]?.ToString(),
+                                     category_name = rdr["category_name"]?.ToString(),
+                                     url = rdr["url"]?.ToString(),
+                                     moved_date = rdr["moved_date"]?.ToString(),
+                                     moved_by = rdr["moved_by"]?.ToString()
+                                 });
 
-            conn.Close();
-
-            return list;
+                return list;
+            }
         }
 
         // Phase2
@@ -249,8 +248,6 @@ namespace egrants_new.Egrants.Models
                 while (rdr.Read())
                     list.Add(rdr[0].ToString());
 
-                // added by Leon 5/11/2019
-                conn.Close();
             }
 
             return list;
@@ -318,7 +315,7 @@ namespace egrants_new.Egrants.Models
                     FilterSearchQuery = rdr[0].ToString();
 
                 // added by Leon 5/11/2019
-                conn.Close();
+                //conn.Close();
             }
 
             return FilterSearchQuery;
@@ -365,7 +362,7 @@ namespace egrants_new.Egrants.Models
                 }
 
                 // added by Leon 5/11/2019
-                conn.Close();
+                //conn.Close();
             }
 
             return yearList;
@@ -404,7 +401,7 @@ namespace egrants_new.Egrants.Models
                 }
 
                 // added by Leon 5/11/2019
-                conn.Close();
+                //conn.Close();
             }
 
             return CategoryList;
@@ -473,7 +470,7 @@ namespace egrants_new.Egrants.Models
                 }
 
                 // added by Leon 5/11/2019
-                conn.Close();
+               // conn.Close();
             }
 
             if (CategoryNameList != string.Empty && CategoryNameList.IndexOf(",") > 0)
