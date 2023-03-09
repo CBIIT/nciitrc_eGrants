@@ -506,6 +506,30 @@ namespace egrants_new.Models
             return Permission;
         }
 
+        // Collect minimal metrics to help DB disable inactive users
+        public static void UpdateLastLoginDate(string username)
+        {
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            {
+                conn.Open();
+
+                using (var cmd = new SqlCommand())
+                {
+                    cmd.CommandText = "UPDATE PEOPLE SET last_login_date=GETDATE() WHERE userid = @un";
+
+                    var userParam = new SqlParameter();
+                    userParam.ParameterName = "@un";
+                    userParam.SqlDbType = SqlDbType.VarChar;
+                    userParam.Direction = ParameterDirection.Input;
+                    userParam.Value = username;
+
+                    cmd.Connection = conn;
+                    cmd.Parameters.Add(userParam);
+                    cmd.ExecuteReader();
+                }
+            }
+        }
+
         /// <summary>
         ///     The user.
         /// </summary>

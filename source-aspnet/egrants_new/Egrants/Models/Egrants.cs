@@ -443,41 +443,6 @@ namespace egrants_new.Egrants.Models
         // return CategoryNameList;
         // }
 
-        // Collect minimal metrics to help DB disable inactive users
-        /// <summary>
-        /// The get_ category name_by_id.
-        /// </summary>
-        /// <param name="username">
-        /// The categories.
-        /// </param>
-        /// <returns>
-        /// The <see cref="string"/>.
-        /// </returns>
-        public static void UpdateLastLoginDate(string username)
-        {
-            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
-            {
-                conn.Open();
-
-                using (var cmd = new SqlCommand())
-                {
-                    cmd.CommandText = "UPDATE PEOPLE SET last_login_date=GETDATE() WHERE userid = @un";
-
-                    var userParam = new SqlParameter();
-                    userParam.ParameterName = "@un";
-                    userParam.SqlDbType = SqlDbType.VarChar;
-                    userParam.Direction = ParameterDirection.Input;
-                    userParam.Value = username;
-
-                    cmd.Connection = conn;
-                    cmd.Parameters.Add(userParam);
-                    cmd.ExecuteReader();
-                }
-
-                conn.Close();
-            }
-        }
-
         // load category name string by year
         /// <summary>
         /// The get_ category name_by_id.
