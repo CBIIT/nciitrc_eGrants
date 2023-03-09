@@ -79,7 +79,6 @@ namespace egrants_new
                     this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
                     if (this.userid == null) {
                         this.userid = ""; // string.Empty
-                        this.userid = "hooverrl"; // string.Empty
                     }
 
                     return this.userid;
@@ -216,7 +215,7 @@ namespace egrants_new
 
             this.check_user_type();
 
-            Egrants.Models.Egrants.UpdateLastLoginDate(this.UserID);
+            EgrantsCommon.UpdateLastLoginDate(this.UserID);
         }
 
         /// <summary>
