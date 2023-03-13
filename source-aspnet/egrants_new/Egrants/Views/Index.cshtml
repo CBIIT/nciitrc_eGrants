@@ -1,4 +1,5 @@
-﻿@using System.Data.Entity.Validation
+﻿@using System.Activities.Statements
+@using System.Data.Entity.Validation
 @using System.ServiceModel.Activities
 @{
    ViewBag.Title = "egrants [NCI OGA]";
@@ -599,9 +600,28 @@
                             </div><br />
                             <div id="PI infor" style="display:inline">
                                 <div id="grantbar1" style="float:left"><b>PI:</b></div>
-                                <div id="grantbar2" style="width:500px;">
-                                    @if (grant.current_pi_name != "" && grant.current_pi_email_address != "")
+                                <div id="grantbar2" style="width: 500px;">
+                                    @if (grant.SelectedGrantPiName != "" && grant.SelectedGrantPiEmail != "")
                                     {
+                                        
+                                        if (grant.current_bo_email_address != "")
+                                        {
+                                            pi_email = grant.SelectedGrantPiEmail + ";" + grant.current_bo_email_address;
+                                        }
+                                        else
+                                        {
+                                            pi_email = grant.SelectedGrantPiEmail;
+                                        }
+                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.SelectedGrantPiName')" title="Send email to @grant.SelectedGrantPiName">@grant.SelectedGrantPiName</a>
+                                        <b>&nbsp;&nbsp;</b>
+                                    }
+                                    else if (grant.SelectedGrantPiName != "" && grant.SelectedGrantPiEmail == "")
+                                    {
+                                        @grant.SelectedGrantPiName<b>&nbsp;&nbsp;</b>
+                                    }
+                                    else if (grant.current_pi_name != "" && grant.current_pi_email_address != "")
+                                    {
+
                                         if (grant.current_bo_email_address != "")
                                         {
                                             pi_email = grant.current_pi_email_address + ";" + grant.current_bo_email_address;
@@ -610,16 +630,18 @@
                                         {
                                             pi_email = grant.current_pi_email_address;
                                         }
-                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a><b>&nbsp;&nbsp;</b>
+                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                        <b>&nbsp;&nbsp;</b>
                                     }
                                     else if (grant.current_pi_name != "" && grant.current_pi_email_address == "")
                                     {
                                         @grant.current_pi_name<b>&nbsp;&nbsp;</b>
                                     }
-                                    @if (grant.org_name != "")
+                                    else if (grant.org_name != "")
                                     {
                                         @grant.org_name
                                     }
+                                    
                                 </div>
                             </div><br />
                             @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) || !string.IsNullOrWhiteSpace(grant.current_pd_email_address) || !string.IsNullOrWhiteSpace(grant.prog_class_code))

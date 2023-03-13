@@ -234,7 +234,7 @@ namespace egrants_new.Egrants.Models
 
                 conn.Open();
                 var appls_list = (string)cmd.ExecuteScalar();
-                conn.Close();
+
 
                 return appls_list;
             }

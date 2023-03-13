@@ -61,7 +61,7 @@ namespace egrants_new.Egrants_Admin.Models
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<EgrantsDoc.EgrantsCategories> LoadCommonCategroies(string ic)
+        public static List<EgrantsCategories> LoadCommonCategroies(string ic)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
 
@@ -74,12 +74,12 @@ namespace egrants_new.Egrants_Admin.Models
             cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
             conn.Open();
 
-            var CommonCategroies = new List<EgrantsDoc.EgrantsCategories>();
+            var CommonCategroies = new List<EgrantsCategories>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
                 CommonCategroies.Add(
-                    new EgrantsDoc.EgrantsCategories
+                    new EgrantsCategories
                         {
                             category_id = rdr["category_id"]?.ToString(), category_name = rdr["category_name"]?.ToString()
                         });
@@ -99,7 +99,7 @@ namespace egrants_new.Egrants_Admin.Models
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<EgrantsDoc.EgrantsCategories> LoadLocalCategroies(string ic)
+        public static List<EgrantsCategories> LoadLocalCategroies(string ic)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("select distinct category_id, category_name from vw_categories where ic=@ic order by category_name", conn);
@@ -107,12 +107,12 @@ namespace egrants_new.Egrants_Admin.Models
             cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
             conn.Open();
 
-            var LocalCategroies = new List<EgrantsDoc.EgrantsCategories>();
+            var LocalCategroies = new List<EgrantsCategories>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
                 LocalCategroies.Add(
-                    new EgrantsDoc.EgrantsCategories
+                    new EgrantsCategories
                         {
                             category_id = rdr["category_id"]?.ToString(), category_name = rdr["category_name"]?.ToString()
                         });

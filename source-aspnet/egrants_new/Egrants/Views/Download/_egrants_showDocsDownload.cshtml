@@ -173,9 +173,11 @@
       }
    }
 
-//   function check_changed_header(applId) {
-//      console.log(applId);
-//   }
+    function show_file_child_rows(document_id, type) {
+        document_id = document_id.split("_")[3];
+
+        console.log(document_id);
+   }
 
 
    // download documents in the appls
@@ -282,7 +284,7 @@
                 </table>
             </div>
         </div>
-    <script language="javascript" type="text/javascript">
+        <script language="javascript" type="text/javascript">
          // start load document dat to data table
          $("#overlay").show();
 
@@ -450,53 +452,6 @@
                                     "\"" +
                                     ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
                                     "/></div>";
-
-
-                                @*var dataToSend = {};
-                                dataToSend.act = "clousout";
-                                dataToSend.appl_id = @appl_id;
-
-
-                               $.ajax(
-                                   {
-                                       cache: false,
-                                       async: true,
-                                       type: 'POST',
-                                       dataType: 'JSON',
-                                       contentType: 'application/json; charset=utf=8',
-                                       url: "/Egrants/impac_docs_data",
-                                       data: JSON.stringify(dataToSend),
-                                       success: function (data) {
-                                           //sessionStorage.year = resp;
-                                           //var jsonobj = JSON.parse(data);
-                                           //console.log("JsonObj:" + data);
-                                           //$.each(data.id, function (index, element) {
-                                           //    alert(element.timeStamp);
-                                           //});
-                                           console.log("Response Returned:" + JSON.stringify(data));
-                               //            //alert(jsonobj);
-                               //            //$('#ddlAppls').empty();
-                               //            //$('#ddlAppls').append('<option value=' + -1 + '>' + 'Select grant year' + '</option>');
-                                           //$.each(data.,
-                                           //    function (index, element) {
-                                           //        var full_grant_num = data.full_grant_num;
-
-                                           //        //alert(element);
-                                           //        //$('#ddlAppls').append('<option value=' + appl_id + ' id=' + appl_id + '>' + full_grant_num + '</option>');
-                                           //        console.log("FullGrantNumber: " + data.full_grant_num);
-                                           //    });
-
-
-                                       },
-                                       error: function (resp) {
-                                           console.log("ERROR: " + resp);
-                                       }
-                                   });*@
-
-
-
-
-
                           } else
                               return "<div id=\"dl_checkbox_" +
                               full.document_id +
@@ -524,7 +479,10 @@
                                    full.url +
                                    "') title='show document'>" +
                                    full.document_name +
-                                   "</a>";
+                                   "</a>" +
+                                   "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='attachments' data-assigned-id=" +
+                                   full.document_id +
+                                   " title='Display all attachments'>Attachments</a>";
 
                                //var tr = $(this).closest('tr');
                                //console.log(tr);
@@ -865,9 +823,9 @@
                                        url: "/Egrants/impac_docs_data",
                                        data: JSON.stringify(dataToSend),
                                        success: function (data) {
-  
+
                                            console.log("Response Returned:" + JSON.stringify(data));
-    
+
 
 
                                        },
@@ -896,56 +854,132 @@
                   }*@
                 });
 
-                $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
-               'input.FinancialReport',
-                    function () {
-                        console.log("In Financial Report");
 
-                        var dataToSend = {};
-                        dataToSend.act = "fsr";
-                        dataToSend.appl_id = @appl_id;
-                       // var vviewVal = @ViewBag.ImpacDocsList
 
-                               $.ajax(
-                                   {
-                                       cache: false,
-                                       async: true,
-                                       type: 'POST',
-                                       dataType: 'JSON',
-                                       contentType: 'application/json; charset=utf=8',
-                                       url: "/Egrants/impac_docs_data",
-                                       data: JSON.stringify(dataToSend),
-                                       success: function (resp) {
 
-                                         console.log("Response Returned:" + JSON.stringify(resp));
-             
-                                           var countSuccess = 0;
-                                           var respt = JSON.parse(JSON.stringify(resp));
-                                           //respt.D
-                                           console.log(respt);
+             $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+                 'input.FinancialReport',
+                 function () {
+                     console.log("In Financial Report");
+
+                     var dataToSend = {};
+                     dataToSend.act = "fsr";
+                     dataToSend.appl_id = @appl_id;
+                     // var vviewVal = @ViewBag.ImpacDocsList
+
+                     $.ajax(
+                         {
+                             cache: false,
+                             async: true,
+                             type: 'POST',
+                             dataType: 'JSON',
+                             contentType: 'application/json; charset=utf=8',
+                             url: "/Egrants/impac_docs_data",
+                             data: JSON.stringify(dataToSend),
+                             success: function (data) {
+                                 console.log("Response Returned:" + JSON.stringify(data));
+
+                                 var countSuccess = 0;
+                                 var respSfied = JSON.stringify(data);
+                                 var respt = JSON.parse(JSON.stringify(data));
+
+                                 console.log(respt);
+                                 $.each(respt.id, function (index, element) {
+                                     alert(element.accepted_date);
+                                 });
+
+
+                             },
+                             error: function (resp) {
+                                 console.log(resp);
+                             }
+                 });
+            });                         @*$.each($('#loadgridDownload_' + @appl_id + ' input.FinancialReport'),
+                                  function() {
+                                     var tr = $(this).closest('tr');
+                                     var row = table.row(tr);
+                                     console.log("row: ");
+                                     console.log(row);
+
+                                 var rowData = row.data();
+
+                                 console.log("RowData:" + JSON.stringify(rowData));*@
+
+                                 // if the row is checked add the url of the link is the same as one found in the object,
+                                 // check the error flag to see if there is an error and show the success or error icon
+                                 @*if ($(this).prop('checked')) {
+                                     var found = resp.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
+
+                                    if (found != null) {
+                                       var trSvg = tr.find('[data-fa-i2svg]');
+                                       console.log("Found: ");
+                                       console.log(JSON.stringify(found));
+                                       console.log(found[0].Error);
+                                        if (found[0].Error == null) {
+
 
                                            $.each($('#loadgridDownload_' + @appl_id + ' input.FinancialReport'),
-                                               function () {
-                                                   var tr = $(this).closest('tr');
-                                                   var row = table.row(tr);
-                                                   console.log("row: ");
-                                                   console.log(row);
-
-                                                   var rowData = row.data();
-
-                                                   console.log("RowData:" + JSON.stringify(rowData));
-
-                                                   // if the row is checked add the url of the link is the same as one found in the object,
-                                                   // check the error flag to see if there is an error and show the success or error icon
-                                                   // if ($(this).prop('checked')) {
+                                            function() {*@
 
 
-                                               });
-                                            },
-                                       error: function (resp) {
-                                           console.log("ERROR: " + resp);
-                                       }
-                                   });
+                                                // console.log("row: ");
+                                                // console.log(row);
+
+                                                //var tr = $(this).closest('tr');
+                                                //var row = table.row(tr);
+
+
+                                                // var rowData = row.data();
+
+                                                // console.log("RowData:" + JSON.stringify(rowData));
+
+                                                 // if the row is checked add the url of the link is the same as one found in the object,
+                                                 // check the error flag to see if there is an error and show the success or error icon
+                                                // if ($(this).prop('checked')) {
+                                                   // var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
+                                                     //console.log("Financial Report Checked");
+                                                     //show_file_child_rows($(this).closest('div').attr('id'), 0);
+                                                   //  for (int i = 0; i < respt; i++){
+
+
+                                                      //var tr = $(this).closest('tr');
+                                                      //var row = table.row(tr);
+
+                                   //             var found = respSfied..DownloadDataList.filter(function (item) { return item.Url === rowData.url; });
+
+                            
+
+
+                                   //                  respt.forEach(obj => {
+                                   //                      Object.entries(obj).forEach(([key, value]) => {
+
+
+                                   //                         // console.log("row: ");
+                                   //                         // console.log(row);
+
+                                   //                          var tr = $(this).closest('tr');
+                                   //                          var row = table.row(tr);
+
+
+                                   //                          var rowData = row.data();
+                                   //                          console.log(row.data());
+                                   //                          console.log(`key`);
+                                   //                          //show_qc_dl($(this).closest('div').attr('id'), 0);
+                                   //                          //if (obj["accpted_date"] {
+                                   //                          row.child(formatFinancialReportChildRow(obj).show());
+                                   //                              tr.next('tr').addClass(tr.attr('class'));
+                                   //                              console.log(`Key = ${key} Value = ${value}`);
+                                   //                        // }
+                                   //                      });
+                                   //                      console.log('-------------------');
+                                   //                  });
+
+                                   //         });
+                                   //         },
+                                   //    error: function (resp) {
+                                   //        console.log("ERROR: " + resp);
+                                   //    }
+                                   //});
                    @*// assume all are checked
                   var isAllChecked = true;
 
@@ -965,7 +999,10 @@
                   } else {
                      $('#checkboxall_' + @appl_id).prop('checked', false);
                   }*@
-            });
+
+
+
+
 
             // when the user clicks the download button get all the rows that are checked
             $('#downloadData_@appl_id').on('click',
@@ -1088,7 +1125,7 @@
 
 
             // show bootstrap modal
-            @*$('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+            $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                'a.NormalModal',
                function() {
                   console.log("Firing JS MethodA");
@@ -1105,7 +1142,7 @@
 
                   $('#NormalModalTitle').html(modal_title);
                   $('#NormalModalPartial').load(route);
-               });*@
+               });
 
          });
 
@@ -1137,14 +1174,57 @@
 //            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:880px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../../Content/images/Loading.gif"/></div>' + str + '</div>';
          }
 
-         window.onload = function() {
-            $("#overlay").hide();
-         };
+
+
+    function formatFinancialReportChildRow(d, obj) {
+//            var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+      //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+
+        var str =  "<div id=\"dl_checkbox_ffr_" +
+            obj.accepted_date +
+            "\"" +
+            " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+            " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+            obj.accepted_date +
+            "\"" +
+            " class=\"qc\" name=\"qc\" value=\"" +
+            obj.accepted_date +
+            "\"" +
+            //((d.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+            "/></div>";
+
+        //str = str + '</div>';
+        // display all qc options
+        return str;
+//            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:880px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../../Content/images/Loading.gif"/></div>' + str + '</div>';
+
+        //'<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">' +
+        //    '<tr>' +
+        //    '<td>Full name:</td>' +
+        //    '<td>' +
+        //    d.document_id +
+        //    '</td>' +
+        //    '</tr>' +
+        //    '<tr>' +
+        //    '<td>Extension number:</td>' +
+        //    '<td>' +
+        //    d. +
+        //    '</td>' +
+        //    '</tr>' +
+        //    '<tr>' +
+        //    '<td>Extra info:</td>' +
+        //    '<td>And any further details here (images etc)...</td>' +
+        //    '</tr>' +
+        //    '</table>'
+
+    }
+
+    window.onload = function() {
+    $("#overlay").hide();
+    };
 
 
         </script>
     </div>
-
-
 }
 <!--end show documents-->
