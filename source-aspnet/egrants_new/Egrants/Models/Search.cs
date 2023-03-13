@@ -170,6 +170,10 @@ namespace egrants_new.Egrants.Models
                     grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
 
                     grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
+                    grant.SelectedGrantPiName = rdr["specific_year_pi_name"].ToString();
+                    grant.SelectedGrantPiEmail = rdr["specific_year_pi_email_address"].ToString();
+
+                    
                     // grant.ShowEmailHyperLink = Convert.ToBoolean(rdr["is_pi_email_addr_same_flag"]);
                     // grant.SelectedGrantPiFirstName = rdr["pi_first_name"].ToString();
                     // grant.SelectedGrantPiLastname = rdr["pi_last_name"].ToString();

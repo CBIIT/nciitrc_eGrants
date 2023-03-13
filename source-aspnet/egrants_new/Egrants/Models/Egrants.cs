@@ -408,35 +408,6 @@ namespace egrants_new.Egrants.Models
         }
 
         // load category name string by year
-        // public static string Get_CategoryName_by_year(int grant_id, string years)
-        // {
-        // string CategoryNameList = "";
-        // using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
-        // {
-        // SqlCommand cmd = new SqlCommand("sp_web_egrants_load_category_list", conn);
-        // cmd.CommandType = CommandType.StoredProcedure;
-        // cmd.Parameters.AddWithValue("@grant_id", grant_id);
-        // cmd.Parameters.AddWithValue("@years", years);
-
-        // conn.Open();
-        // SqlDataReader rdr = cmd.ExecuteReader();
-
-        // while (rdr.Read())
-        // {
-        // string category = rdr[1].ToString() + ", ";
-        // CategoryNameList = CategoryNameList + category;
-        // }
-        // }
-
-        // if (CategoryNameList !="" && CategoryNameList.IndexOf(",") > 0)
-        // {
-        // CategoryNameList = CategoryNameList.Substring(0, (CategoryNameList.Length - 2));
-        // }
-
-        // return CategoryNameList;
-        // }
-
-        // load category name string by year
         /// <summary>
         /// The get_ category name_by_id.
         /// </summary>

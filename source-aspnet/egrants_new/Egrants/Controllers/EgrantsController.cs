@@ -563,7 +563,7 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult by_str(string str, string mode = null)
         {
-            this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+                this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
             if (string.IsNullOrEmpty(str))
             {
@@ -1319,12 +1319,12 @@ namespace egrants_new.Controllers
         {
             try
             {
-                List<ImpacDocs> impacDocsList = EgrantsDoc.LoadImpacDocs(act, appl_id);
-                //this.ViewBag.ImpacDocsList = EgrantsDoc.LoadImpacDocs(act, appl_id);
-                return JsonConvert.SerializeObject(impacDocsList);
-               // dynamic res = new { data = this.ViewBag.ImpacDocsList };
+                this.ViewBag.ImpacDocs = EgrantsDoc.LoadImpacDocs(act, appl_id);
+                this.ViewBag.act = act;
+                this.ViewBag.appl_id = appl_id;
 
-
+                List<ImpacDocs> list = LoadImpacDocs(act, appl_id);
+                return JsonConvert.SerializeObject(list);
             }
             catch (Exception err)
             {
@@ -1332,9 +1332,6 @@ namespace egrants_new.Controllers
             }
 
             return null;
-
-            //  return this.Json(new { act, message = impacDocsList });
-            // return this.View("~/Egrants/Views/_Modal_Impac_Docs.cshtml");
         }
 
     }

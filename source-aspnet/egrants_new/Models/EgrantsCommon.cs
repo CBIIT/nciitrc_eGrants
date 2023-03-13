@@ -66,25 +66,26 @@ namespace egrants_new.Models
         /// </returns>
         public static int CheckUserValidation(string ic, string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("sp_web_egrants_user_validation", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_user_validation", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
 
-            conn.Open();
+                conn.Open();
 
-            // int count= (int)cmd.ExecuteScalar();
-            var count = 0;
-            var rdr = cmd.ExecuteReader();
+                // int count= (int)cmd.ExecuteScalar();
+                var count = 0;
+                var rdr = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                count = Convert.ToInt16(rdr["count"]);
+                while (rdr.Read())
+                    count = Convert.ToInt16(rdr["count"]);
 
-            rdr.Close();
-            conn.Close();
+                rdr.Close();
 
-            return count;
+                return count;
+            }
         }
 
         // check user validation

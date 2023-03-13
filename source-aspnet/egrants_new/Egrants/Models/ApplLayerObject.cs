@@ -33,6 +33,8 @@
 
 #endregion
 
+using System.Collections.Generic;
+
 namespace egrants_new.Egrants.Models
 {
 
@@ -135,5 +137,8 @@ namespace egrants_new.Egrants.Models
         ///     Gets or sets the can_add_funding.
         /// </summary>
         public string can_add_funding { get; set; }
+
+
+     //   public List<ImpacDocs> ImpacDocsList { get; set; }
     }
 }

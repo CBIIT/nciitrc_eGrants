@@ -681,7 +681,6 @@ namespace egrants_new.Egrants_Admin.Models
                 while (rdr.Read())
                     count_userid = Convert.ToInt16(rdr[0]);
 
-                conn.Close();
 
                 return count_userid;
             }

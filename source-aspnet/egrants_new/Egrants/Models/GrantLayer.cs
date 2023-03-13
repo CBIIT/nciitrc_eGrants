@@ -1,14 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="GrantLayer.cs" company="">
-//   
-// </copyright>
-// <summary>
-//   The grantlayer.
-// </summary>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-#region FileHeader
+﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
 // Module Name:  GrantLayer.cs
@@ -209,12 +199,12 @@ namespace egrants_new.Egrants.Models
         // /// <summary>
         // ///     Gets or sets the selected grant pi first name.
         // /// </summary>
-        // public string SelectedGrantPiFirstName { get; set; }
+        public string SelectedGrantPiName { get; set; }
         //
         // /// <summary>
         // ///     Gets or sets the selected grant pi lastname.
         // /// </summary>
-        // public string SelectedGrantPiLastname { get; set; }
+        public string SelectedGrantPiEmail { get; set; }
         //
         // /// <summary>
         // ///     Gets or sets the selected grant pi middle initial.
