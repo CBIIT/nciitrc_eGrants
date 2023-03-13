@@ -746,6 +746,11 @@
     <Content Include="scripts\popper.js.map" />
     <Content Include="scripts\popper-utils.min.js.map" />
     <Content Include="scripts\popper-utils.js.map" />
+    <None Include="Web.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="web.local.config" />
+    <None Include="web.server.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -868,36 +873,13 @@
     <Content Include="Egrants_Admin\Views\SupplementEmailTemplate.cshtml" />
     <Content Include="Egrants_Admin\Views\SupplementWorkflow.cshtml" />
     <None Include="Properties\PublishProfiles\Dev45.pubxml" />
-    <None Include="Web.base.config" />
-    <None Include="Web.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web.Debug Local Dev.config">
-      <DependentUpon>Web.config</DependentUpon>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web.Debug Local Test.config">
-      <DependentUpon>Web.config</DependentUpon>
-      <SubType>Designer</SubType>
-    </None>
-    <!-- <None Include="Web.Debug Local.config"> -->
-    <!--   <DependentUpon>Web.config</DependentUpon> -->
-    <!--   <SubType>Designer</SubType> -->
-    <!-- </None> -->
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>
     </None>
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
-      <SubType>Designer</SubType>
     </None>
-    <None Include="Web.Debug Server.config">
-      <DependentUpon>Web.config</DependentUpon>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="web.local.config" />
-    <None Include="web.server.config" />
     <Content Include="_ViewStart.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -919,22 +901,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug Local Dev|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug Local Test|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
@@ -985,14 +951,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Target Name="BeforeBuild">
-    <TransformXml Source="Web.base.config" Transform="Web.$(Configuration).config" Destination="Web.config" />
-  </Target>
-  <!--
-	<Target Name="AfterBuild">
-  </Target> -->
-  <UsingTask TaskName="TransformXml" AssemblyFile="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Web\Microsoft.Web.Publishing.Tasks.dll" />
-  <Target Name="Web_base_config_AfterBuild" AfterTargets="AfterBuild" Condition="Exists('Web.base.$(Configuration).config')">
-    <TransformXml Source="Web.base.config" Destination="$(OutputPath)Web.base.config" Transform="Web.base.$(Configuration).config" />
-  </Target>
 </Project>
