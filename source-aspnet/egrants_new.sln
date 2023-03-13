@@ -1,22 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32510.428
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egrants_new", "egrants_new\egrants_new.csproj", "{532BF3A4-3226-459D-890C-83C16CA51A2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug Local Dev|Any CPU = Debug Local Dev|Any CPU
-		Debug Local Test|Any CPU = Debug Local Test|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{532BF3A4-3226-459D-890C-83C16CA51A2E}.Debug Local Dev|Any CPU.ActiveCfg = Debug Local Dev|Any CPU
-		{532BF3A4-3226-459D-890C-83C16CA51A2E}.Debug Local Dev|Any CPU.Build.0 = Debug Local Dev|Any CPU
-		{532BF3A4-3226-459D-890C-83C16CA51A2E}.Debug Local Test|Any CPU.ActiveCfg = Debug Local Test|Any CPU
-		{532BF3A4-3226-459D-890C-83C16CA51A2E}.Debug Local Test|Any CPU.Build.0 = Debug Local Test|Any CPU
 		{532BF3A4-3226-459D-890C-83C16CA51A2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{532BF3A4-3226-459D-890C-83C16CA51A2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{532BF3A4-3226-459D-890C-83C16CA51A2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -24,8 +18,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {1A52609C-D2C1-4375-92E1-D47812782324}
 	EndGlobalSection
 EndGlobal
