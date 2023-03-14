@@ -596,7 +596,7 @@
                         <div id="grant info_@grant.grant_id" style="float:left; display:inline;">
                             <div id="PT infor" style="display:inline">
                                 <div id="grantbar1" style="float:left"><b>Project Title:</b></div>
-                                <div id="grantbar2" style="width:500px;">@grant.project_title</div>
+                                <div id="grantbar2" style="width:500px;">@if(!string.IsNullOrEmpty(@grant.SelectedProjectName)){@grant.SelectedProjectName}else{@grant.project_title}</div>
                             </div><br />
                             <div id="PI infor" style="display:inline">
                                 <div id="grantbar1" style="float:left"><b>PI:</b></div>
@@ -637,10 +637,15 @@
                                     {
                                         @grant.current_pi_name<b>&nbsp;&nbsp;</b>
                                     }
-                                    else if (grant.org_name != "")
+                                    
+                                    @*@if (grant.org_name != "")
                                     {
                                         @grant.org_name
-                                    }
+                                    }*@
+                                    @if(!string.IsNullOrEmpty(grant.SelectedOrganizationName))
+                {
+                                        @grant.SelectedOrganizationName;
+                }
                                     
                                 </div>
                             </div><br />
