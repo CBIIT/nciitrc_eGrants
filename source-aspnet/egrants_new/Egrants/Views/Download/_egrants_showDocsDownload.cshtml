@@ -861,11 +861,15 @@
                  'input.FinancialReport',
                  function () {
                      console.log("In Financial Report");
+                     var tr = $(this).closest('tr');
+                     var row = table.row(tr);
+                     //show_qc_dl($(this).closest('div').attr('id'), 0);
+                     
+
 
                      var dataToSend = {};
                      dataToSend.act = "fsr";
                      dataToSend.appl_id = @appl_id;
-                     // var vviewVal = @ViewBag.ImpacDocsList
 
                      $.ajax(
                          {
@@ -879,14 +883,32 @@
                              success: function (data) {
                                  console.log("Response Returned:" + JSON.stringify(data));
 
-                                 var countSuccess = 0;
-                                 var respSfied = JSON.stringify(data);
-                                 var respt = JSON.parse(JSON.stringify(data));
+                                 //var countSuccess = 0;
+                                 //var respSfied = JSON.stringify(data);
+                                 //var respt = JSON.parse(JSON.stringify(data));
 
-                                 console.log(respt);
-                                 $.each(respt.id, function (index, element) {
-                                     alert(element.accepted_date);
-                                 });
+                                // for (var i = 0; i < data.length; i++) {
+                                //     if (data[i].tag == 1) {
+                                //         console.log(data[i].appl_id);
+                                //         console.log(data[i].full_grant_num);
+                                //     }
+                                //     if(data[i].tag == 2){
+                                //     console.log(data[i].category_name);
+                                //     console.log(data[i].accepted_date);
+                                //     console.log(data[i].url);
+                                //     }
+                                     
+                                //}
+
+                                 //if ($(this).prop('checked')) {
+                                    row.child(formatFinancialReportChildRow(data)).show();
+                                 //}
+                                 //if ($(this).prop('checked')){
+                                 //    row.child(formatFinancialReportChildRow(data)).hide();
+                                 //}
+
+                                 //console.log(idx);
+                             
 
 
                              },
@@ -894,115 +916,7 @@
                                  console.log(resp);
                              }
                  });
-            });                         @*$.each($('#loadgridDownload_' + @appl_id + ' input.FinancialReport'),
-                                  function() {
-                                     var tr = $(this).closest('tr');
-                                     var row = table.row(tr);
-                                     console.log("row: ");
-                                     console.log(row);
-
-                                 var rowData = row.data();
-
-                                 console.log("RowData:" + JSON.stringify(rowData));*@
-
-                                 // if the row is checked add the url of the link is the same as one found in the object,
-                                 // check the error flag to see if there is an error and show the success or error icon
-                                 @*if ($(this).prop('checked')) {
-                                     var found = resp.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
-
-                                    if (found != null) {
-                                       var trSvg = tr.find('[data-fa-i2svg]');
-                                       console.log("Found: ");
-                                       console.log(JSON.stringify(found));
-                                       console.log(found[0].Error);
-                                        if (found[0].Error == null) {
-
-
-                                           $.each($('#loadgridDownload_' + @appl_id + ' input.FinancialReport'),
-                                            function() {*@
-
-
-                                                // console.log("row: ");
-                                                // console.log(row);
-
-                                                //var tr = $(this).closest('tr');
-                                                //var row = table.row(tr);
-
-
-                                                // var rowData = row.data();
-
-                                                // console.log("RowData:" + JSON.stringify(rowData));
-
-                                                 // if the row is checked add the url of the link is the same as one found in the object,
-                                                 // check the error flag to see if there is an error and show the success or error icon
-                                                // if ($(this).prop('checked')) {
-                                                   // var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
-                                                     //console.log("Financial Report Checked");
-                                                     //show_file_child_rows($(this).closest('div').attr('id'), 0);
-                                                   //  for (int i = 0; i < respt; i++){
-
-
-                                                      //var tr = $(this).closest('tr');
-                                                      //var row = table.row(tr);
-
-                                   //             var found = respSfied..DownloadDataList.filter(function (item) { return item.Url === rowData.url; });
-
-                            
-
-
-                                   //                  respt.forEach(obj => {
-                                   //                      Object.entries(obj).forEach(([key, value]) => {
-
-
-                                   //                         // console.log("row: ");
-                                   //                         // console.log(row);
-
-                                   //                          var tr = $(this).closest('tr');
-                                   //                          var row = table.row(tr);
-
-
-                                   //                          var rowData = row.data();
-                                   //                          console.log(row.data());
-                                   //                          console.log(`key`);
-                                   //                          //show_qc_dl($(this).closest('div').attr('id'), 0);
-                                   //                          //if (obj["accpted_date"] {
-                                   //                          row.child(formatFinancialReportChildRow(obj).show());
-                                   //                              tr.next('tr').addClass(tr.attr('class'));
-                                   //                              console.log(`Key = ${key} Value = ${value}`);
-                                   //                        // }
-                                   //                      });
-                                   //                      console.log('-------------------');
-                                   //                  });
-
-                                   //         });
-                                   //         },
-                                   //    error: function (resp) {
-                                   //        console.log("ERROR: " + resp);
-                                   //    }
-                                   //});
-                   @*// assume all are checked
-                  var isAllChecked = true;
-
-                  // if anyone is not checked set the flag to false
-                  $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
-                     function() {
-//                        var tr = $(this).closest('tr');
-//                        var trSvg = tr.find('[data-fa-i2svg]');
-                        if (!$(this).prop('disabled') && !$(this).prop('checked')) {
-                           isAllChecked = false;
-                        }
-                     });
-
-                  // if all checkboxes are checked, check the header checkbox
-                  if (isAllChecked) {
-                     $('#checkboxall_' + @appl_id).prop('checked', true);
-                  } else {
-                     $('#checkboxall_' + @appl_id).prop('checked', false);
-                  }*@
-
-
-
-
+            });                        
 
             // when the user clicks the download button get all the rows that are checked
             $('#downloadData_@appl_id').on('click',
@@ -1176,22 +1090,48 @@
 
 
 
-    function formatFinancialReportChildRow(d, obj) {
+    function formatFinancialReportChildRow(d) {
 //            var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
       //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
 
-        var str =  "<div id=\"dl_checkbox_ffr_" +
-            obj.accepted_date +
-            "\"" +
-            " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-            " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
-            obj.accepted_date +
-            "\"" +
-            " class=\"qc\" name=\"qc\" value=\"" +
-            obj.accepted_date +
-            "\"" +
-            //((d.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-            "/></div>";
+      var str = "";
+        for (var i = 0; i < d.length; i++) {
+          if (d[i].tag == 1) {
+              console.log(d[i].appl_id);
+              console.log(d[i].full_grant_num);
+          }
+          if(d[i].tag == 2){
+              console.log(d[i].category_name);
+              console.log(d[i].accepted_date);
+              console.log(d[i].url);
+
+              str = str +  "<div id=\"dl_checkbox_ffr_" +
+                  d.accepted_date +
+                  "\"" +
+                  " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                  " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+                  d.accepted_date +
+                  "\"" +
+                  " class=\"qc\" name=\"qc\" value=\"" +
+                  d.accepted_date +
+                  "\"" +
+                  //((d.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                  "/></div>" + '<br>';
+          }
+                                     
+      }
+        //var str =  "<div id=\"dl_checkbox_ffr_" +
+        //    d.accepted_date +
+        //    "\"" +
+        //    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+        //    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+        //    d.accepted_date +
+        //    "\"" +
+        //    " class=\"qc\" name=\"qc\" value=\"" +
+        //    d.accepted_date +
+        //    "\"" +
+        //    //((d.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+        //    "/></div>";
 
         //str = str + '</div>';
         // display all qc options

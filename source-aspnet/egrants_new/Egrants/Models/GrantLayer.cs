@@ -209,12 +209,12 @@ namespace egrants_new.Egrants.Models
         // /// <summary>
         // ///     Gets or sets the selected grant pi middle initial.
         // /// </summary>
-        // public string SelectedGrantPiMiddleInitial { get; set; }
+         public string SelectedProjectName { get; set; }
         //
         // /// <summary>
         // ///     Gets or sets the selected organization name.
         // /// </summary>
-        // public string SelectedOrganizationName { get; set; }
+        public string SelectedOrganizationName { get; set; }
         //
         // /// <summary>
         // /// Gets or sets the program directory full name.
