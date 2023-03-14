@@ -3,7 +3,8 @@
 @{
     Layout = null;
 
-    int sessionTimeout = HttpContext.Current.Session.Timeout;
+    string browserTimeout = @System.Configuration.ConfigurationManager.AppSettings["BrowserTimeout"];
+    int sessionTimeout = int.Parse(browserTimeout);
     int milliseconds = sessionTimeout * 60 * 1000;
 }
 
@@ -28,16 +29,22 @@
 
       var remainingSeconds = @milliseconds / 1000;
 
+      document.onkeypress = function (e) {
+        // they hit a key, so keep them logged in for a bit
+        timeout_continue();
+      }
+
+      document.onmousedown = function (e) {
+        // they clicked, so keep them logged in for a bit
+        timeout_continue();
+      }
+
     function popup_countdown() {
         var fiveMinsInSecs = 5 * 60;
 
         // display remaining time to dialog and top banner
         var pcg = Math.floor((remainingSeconds / fiveMinsInSecs) * 100);
-        var remainingSecondsText = remainingSeconds;
-        if (remainingSeconds < 10)
-            remainingSecondsText = "0" + remainingSecondsText;
-        remainingSecondsText = "00:" + remainingSecondsText;
-        // display this format above always in in dialog if less than a min
+
         var minuteCount = Math.floor(remainingSeconds / 60);
         var minuteCountText = "" + minuteCount;
         if (minuteCount < 10) {
@@ -54,11 +61,6 @@
         if (remainingSeconds >= 0)
             document.getElementById("sec-countdown").textContent = topCountdownText;
 
-        // overwrite with a different format if a min or less left
-        if (remainingSeconds > 60) {            
-            remainingSecondsText = Math.floor(minuteCount) + " minutes ";
-        }
-
         if (remainingSeconds <= 0) {
             // close, log out
             if (remainingSeconds > -5) {    // logic to make sure logout happens once
@@ -67,7 +69,7 @@
             }
         } else if (remainingSeconds <= fiveMinsInSecs) {
             // display modal dialog
-            document.getElementById("count-down").textContent = remainingSecondsText;
+            document.getElementById("count-down").textContent = topCountdownText;
             document.getElementById("timeout-progress").setAttribute('style', 'width:' + Number(pcg) + '%');
             document.getElementById("timeout-progress").setAttribute('aria-valuenow', pcg);
             $("#timeoutModal").modal('show');
@@ -82,6 +84,17 @@
     }
 
     function finalize_logout() {
+        console.log("disabling back button");   // (MLH: not supported all browsers and not recommended)
+        window.location.hash = "no-back-button";
+
+        // Again because Google Chrome doesn't insert
+        // the first hash into the history
+        window.location.hash = "Again-No-back-button";
+
+        window.onhashchange = function () {
+            window.location.hash = "no-back-button";
+        }
+
         console.log("Logged out of eGrants.");
         window.location.href = "https://authtest.nih.gov/siteminderagent/smlogout.asp?TARGET=https://egrants-web-dev.nci.nih.gov/";
     }
@@ -89,18 +102,6 @@
     function timeout_continue() {
         // call out to the server to maintain the session
         remainingSeconds = @milliseconds / 1000;
-        $.ajax({
-            type: "POST",
-            url: '@Url.Action("RenewSession", "Egrants")',
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function () {
-                console.log("Session renewed.");
-            },
-            error: function (xhr, ajaxOptions, thrownError) {
-                console.error("Failed to renew session. Status: \"" + xhr.status + "\" Error: \"" + thrownError + "\"");
-            }
-        });
         $("#timeoutModal").modal('hide');
     }
 
