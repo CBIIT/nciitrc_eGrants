@@ -901,7 +901,8 @@
                                 //}
 
                                  //if ($(this).prop('checked')) {
-                                    row.child(formatFinancialReportChildRow(data)).show();
+                                 row.child(formatFinancialReportChildRow(data)).show();
+                                 tr.next('tr').addClass(tr.attr('class'));
                                  //}
                                  //if ($(this).prop('checked')){
                                  //    row.child(formatFinancialReportChildRow(data)).hide();
