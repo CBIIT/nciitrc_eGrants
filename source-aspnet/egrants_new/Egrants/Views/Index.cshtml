@@ -637,15 +637,14 @@
                                     {
                                         @grant.current_pi_name<b>&nbsp;&nbsp;</b>
                                     }
-                                    @if (grant.org_name != "")
-                                    {
-                                        @grant.org_name
-                                    }
+
                                     @if(!string.IsNullOrEmpty(grant.SelectedOrganizationName))
                                     {
                                         @grant.SelectedOrganizationName;
+                                    }  else if (grant.org_name != "")
+                                    {
+                                        @grant.org_name
                                     }
-                                    
                                 </div>
                             </div><br />
                             @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) || !string.IsNullOrWhiteSpace(grant.current_pd_email_address) || !string.IsNullOrWhiteSpace(grant.prog_class_code))
