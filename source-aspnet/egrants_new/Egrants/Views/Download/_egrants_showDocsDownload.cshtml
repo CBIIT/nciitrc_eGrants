@@ -11,6 +11,8 @@
 @* <script src="~/scripts/fontawesome/brands.min.js"></script> *@
 <link href="~/Content/fontawesome/solid.min.css" rel="stylesheet" />
 @* <link href="~/Content/fontawesome/fontawesome.min.css" rel="stylesheet"> *@
+<script src="~/scripts/bootstrap-checkbox.js"></script>
+<link rel="stylesheet" href="~/Content/bootstrap-checkbox.css">
 
 <style>
     table.dataTable thead th {
@@ -409,11 +411,11 @@
                      render: function (data, type, full, meta) {
                         if (full.frc_destroyed == 0) {
                             if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-                                return "<div id=\"dl_checkbox_" +
+                                return "<div id=\"dl_checkbox2_" +
                                     full.document_id +
                                     "\"" +
                                     " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-                                    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+                                    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=checkbox2\"" +
                                     full.document_id +
                                     "\"" +
                                     " class=\"qc\" name=\"qc\" value=\"" +
@@ -426,11 +428,11 @@
                            } else if (full.attachment_count > 0) {
                                console.log("Show me Attachments:" + JSON.stringify(full));
 ;
-                               return "<div id=\"dl_checkbox_" +
+                               return "<div id=\"dl_checkbox2_" +
                                    full.document_id +
                                    "\"" +
                                    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-                                   " <input type=\"checkbox\" class=\"showDownload Attachments\" id=\"" +
+                                   " <input type=\"checkbox\" class=\"showDownload Attachments\" id=checkbox2\"" +
                                    full.document_id +
                                    "\"" +
                                    " class=\"qc\" name=\"qc\" value=\"" +
@@ -440,11 +442,11 @@
                                    "/></div>";
                           } else if (full.document_name == "Closeout Notification") {
                                //console.log("Show me ClousoutNotifications:" + JSON.stringify(full));
-                                return "<div id=\"dl_checkbox_" +
+                                return "<div id=\"dl_checkbox2_" +
                                     full.document_id +
                                     "\"" +
                                     " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-                                    " <input type=\"checkbox\" class=\"showDownload ClousoutNotifications\" id=\"" +
+                                    " <input type=\"checkbox\" class=\"showDownload ClousoutNotifications\" id=checkbox2\"" +
                                     full.document_id +
                                     "\"" +
                                     " class=\"qc\" name=\"qc\" value=\"" +
@@ -482,7 +484,7 @@
                                    "</a>" +
                                    "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='attachments' data-assigned-id=" +
                                    full.document_id +
-                                   " title='Display all attachments'>Attachments</a>";
+                                   " title='Show all items'>Show Items</a>";
 
                                //var tr = $(this).closest('tr');
                                //console.log(tr);

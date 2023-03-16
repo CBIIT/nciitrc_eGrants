@@ -612,8 +612,8 @@
                                         {
                                             pi_email = grant.SelectedGrantPiEmail;
                                         }
-                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.SelectedGrantPiName')" title="Send email to @grant.SelectedGrantPiName">@grant.SelectedGrantPiName</a>
-                                        <b>&nbsp;&nbsp;</b>
+                                        @grant.SelectedGrantPiName
+                                   
                                     }
                                     else if (grant.SelectedGrantPiName != "" && grant.SelectedGrantPiEmail == "")
                                     {
