@@ -40,6 +40,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using static egrants_new.Egrants.Models.EgrantsAppl;
 
 #endregion
 
@@ -707,6 +708,11 @@ namespace egrants_new.Egrants.Models
             /// Gets or sets a value indicating whether any org doc.
             /// </summary>
             public bool AnyOrgDoc { get; set; }
+
+            /// <summary>
+            /// Gets or sets the competing.
+            /// </summary>
+            public string multiple_program_investigators { get; set; }
         }
 
         /// <summary>
@@ -808,6 +814,11 @@ namespace egrants_new.Egrants.Models
             /// Gets or sets the can_add_funding.
             /// </summary>
             public string can_add_funding { get; set; }
+
+            /// <summary>
+            /// Gets or sets the competing.
+            /// </summary>
+            public string multiple_program_investigators { get; set; }
         }
 
         /// <summary>
@@ -1069,6 +1080,8 @@ namespace egrants_new.Egrants.Models
 
                 var tag = 0;
 
+                bool found_MPI = false;
+
                 while (rdr.Read())
                 {
                     tag = Convert.ToInt32(rdr["tag"]);
@@ -1106,6 +1119,9 @@ namespace egrants_new.Egrants.Models
                         grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
                         
                         grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
+                        grant.multiple_program_investigators = rdr["is_MPI"].ToString();
+                        if (grant.multiple_program_investigators== "y")
+                                found_MPI = true;
 
                         // grant.inst_flag2_url = rdr["inst_flag2_url"].ToString();
                         grantList.Add(grant);
@@ -1132,6 +1148,7 @@ namespace egrants_new.Egrants.Models
                         appl.closeout_flag = rdr["closeout_flag"]?.ToString();
                         appl.irppr_id = rdr["irppr_id"]?.ToString();
                         appl.can_add_funding = rdr["can_add_funding"]?.ToString();
+                        appl.multiple_program_investigators = "n";
 
                         applList.Add(appl);
                     }
@@ -1147,6 +1164,14 @@ namespace egrants_new.Egrants.Models
 
                 // added by Leon 5/11/2019
                 conn.Close();
+
+                if (found_MPI)
+                {
+                    foreach(var doc in applList)
+                    {
+                        doc.multiple_program_investigators = "y";
+                    }
+                }
 
                 grantlayerproperty = grantList;
                 appllayerproperty = applList;

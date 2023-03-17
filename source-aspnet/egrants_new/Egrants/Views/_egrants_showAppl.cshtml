@@ -29,47 +29,53 @@ foreach (var appl in ViewBag.appllayer)
                 <!--start show full_grant_num-->
                 <div style="float:left; margin-left:15px; display:inline;"><a href="Javascript:by_appl(@appl.appl_id)" title="View All Documents for @appl.full_grant_num" style="vertical-align:bottom;"><b style="font-size:medium;">@appl.full_grant_num</b></a></div>
                 <!--start show flags-->
-                <div id="flags_@appl_id" style="float:left;display:inline;">
-                   @if (Convert.ToString(appl.appl_ds_flag) == "y")
-                   {
-                    <img src="~/Content/images/flag_ds.jpg" style="margin-left:5px; height:16px; display:inline" title="Diversity Supplement Funded Grant" />
-                   }
-                   
-                    @if (Convert.ToString(appl.appl_fda_flag) == "y")
-                   {
-                    <img src="~/Content/images/flag_fda.jpg" style="margin-left:5px; height:16px; display:inline" title="FDA Grant" />
-                   }
+    <div id="flags_@appl_id" style="float:left;display:inline;">
+        @if (Convert.ToString(appl.appl_ds_flag) == "y")
+        {
+            <img src="~/Content/images/flag_ds.jpg" style="margin-left:5px; height:16px; display:inline" title="Diversity Supplement Funded Grant" />
+        }
 
-                    @if (Convert.ToString(appl.appl_ms_flag) == "y")
-                    {
-                        <img src="~/Content/images/flag_ms.jpg" style="margin-left:5px; height:16px; display:inline" title="Moonshot Funded Grant" />
-                    }
+        @if (Convert.ToString(appl.appl_fda_flag) == "y")
+        {
+            <img src="~/Content/images/flag_fda.jpg" style="margin-left:5px; height:16px; display:inline" title="FDA Grant" />
+        }
 
-                    @if (Convert.ToString(appl.appl_od_flag) == "y")
-                    {
-                        <img src="~/Content/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
-                    }
-               
-                    @if (appl.deleted_by_impac == "y")
-                    {
-                        <img src="~/Content/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
-                    }
+        @if (Convert.ToString(appl.appl_ms_flag) == "y")
+        {
+            <img src="~/Content/images/flag_ms.jpg" style="margin-left:5px; height:16px; display:inline" title="Moonshot Funded Grant" />
+        }
 
-                    @if (appl.competing == "yes")
-                    {
-                        <img src="~/Content/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
-                    }
+        @if (Convert.ToString(appl.appl_od_flag) == "y")
+        {
+            <img src="~/Content/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
+        }
 
-                    @if (Convert.ToInt16(appl.appl_type_code) == 4)
-                    {
-                        <img src="~/Content/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
-                    }
+        @if (appl.deleted_by_impac == "y")
+        {
+            <img src="~/Content/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
+        }
 
-                    @if (Convert.ToInt16(appl.appl_type_code) == 7)
-                    {
-                        <img src="~/Content/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
-                    }
-                </div>
+        @if (appl.competing == "yes")
+        {
+            <img src="~/Content/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
+        }
+
+        @if (appl.multiple_program_investigators == "y")
+        {
+            <img src="~/Content/images/flag_mpi.jpg" style="margin-left:5px; height:16px; display:inline" title="Multiple Program Investigators" />
+        }
+
+        @if (Convert.ToInt16(appl.appl_type_code) == 4)
+        {
+            <img src="~/Content/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
+        }
+
+        @if (Convert.ToInt16(appl.appl_type_code) == 7)
+        {
+            <img src="~/Content/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
+        }
+
+    </div>
                 <!--end show flags-->
                 <!--start notice for PD-->
                 <div id="notice_for_PD" style="display:inline;">
