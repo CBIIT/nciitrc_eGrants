@@ -289,7 +289,7 @@
     }
 
     function show_grant_with_flag(flag_type, grant_id) {
-        if (flag_type == "FDA" || flag_type == "MS" || flag_type == "OD" || flag_type == "DS") {
+        if (flag_type == "FDA" || flag_type == "MS" || flag_type == "OD" || flag_type == "DS" || flag_type == "MPI") {
             //show appls with flag for this grant
             var categories = "All";
             var appls_list = "All";
@@ -599,68 +599,75 @@
                                 <span style="margin-left:10px;"><a href="Javascript:show_supplement('@grant.grant_id','to_view')"><b style="vertical-align:bottom;" title="View Supplement Files">Supplement</b></a></span><br />
                             }
                             <!--show grant flags-->
-                            <div id="flag_zone_@grant_id" style="float:right;height:80px;width:250px;display:inline;">
-                                @if (Convert.ToString(grant.ds_flag) == "y")
-                                {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a href="JavaScript:show_grant_with_flag('DS', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_ds.jpg" style="height:16px; margin-left:5px" title="View Diversity Supplement Funded Grant for @grant.grant_num" /></a>
-                                    </span>
-                                }
+                        <div id="flag_zone_@grant_id" style="float:right;height:80px;width:250px;display:inline;">
+                            @if (Convert.ToString(grant.ds_flag) == "y")
+                            {
+                                <span style="margin-left:10px; width:80px;">
+                                    <a href="JavaScript:show_grant_with_flag('DS', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_ds.jpg" style="height:16px; margin-left:5px" title="View Diversity Supplement Funded Grant for @grant.grant_num" /></a>
+                                </span>
+                            }
 
-                                @if (Convert.ToString(grant.ms_flag) == "y")
-                                {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a href="JavaScript:show_grant_with_flag('MS', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_ms.jpg" style="height:16px; margin-left:5px" title="View Moonshot Funded Grant for @grant.grant_num" /></a>
-                                    </span>
-                                }
+                            @if (Convert.ToString(grant.ms_flag) == "y")
+                            {
+                                <span style="margin-left:10px; width:80px;">
+                                    <a href="JavaScript:show_grant_with_flag('MS', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_ms.jpg" style="height:16px; margin-left:5px" title="View Moonshot Funded Grant for @grant.grant_num" /></a>
+                                </span>
+                            }
 
-                                @if (Convert.ToString(grant.od_flag) == "y")
-                                {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a href="JavaScript:show_grant_with_flag('OD', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_od.jpg" style="height:18px; margin-left:5px" title="View OD Funded Grant for @grant.grant_num" /></a>
-                                    </span>
-                                }
+                            @if (Convert.ToString(grant.od_flag) == "y")
+                            {
+                                <span style="margin-left:10px; width:80px;">
+                                    <a href="JavaScript:show_grant_with_flag('OD', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_od.jpg" style="height:18px; margin-left:5px" title="View OD Funded Grant for @grant.grant_num" /></a>
+                                </span>
+                            }
 
-                                @if (Convert.ToString(grant.fda_flag) == "y")
-                                {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height:16px;" title="View FDA Funded Grant for @grant.grant_num" /></a>
-                                    </span>
-                                }
+                            @if (grant.multiple_program_investigators == "y")
+                            {
+                                <span style="margin-left:10px; width:80px;">
+                                    <a href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="View Grant with multiple program investigators for @grant.grant_num" /></a>
+                                </span>
+                            }
 
-                                @if (Convert.ToString(grant.stop_flag) == "y")
-                                {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a href="#" class="NormalModal" data-toggle="modal" data-target="#NormalModal" data-id="stop" data-assigned-id="@grant.grant_id" title="View Stop Notice for @grant.grant_num"><img src="~/Content/images/flag_stp.png" style="height:18px; margin-left:15px" /></a>
-                                    </span>
-                                }
+                            @if (Convert.ToString(grant.fda_flag) == "y")
+                            {
+                                <span style="margin-left:10px; width:80px;">
+                                    <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height:16px;" title="View FDA Funded Grant for @grant.grant_num" /></a>
+                                </span>
+                            }
 
-                                @if (grant.sv_url != "")
-                                {
-                                    <span style="margin-left: 10px;width:80px;">
-                                        <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.sv_url">
-                                            <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name" />
-                                        </a>
-                                    </span>
-                                }
-                                @if (grant.institutional_flag1 == true)
-                                {
-                                    <span style="margin-left: 10px;width:80px;">
-                                        <a  href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
-                                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.org_name" />
-                                        </a>
-                                    </span>
-                                }
-                                else if (grant.AnyOrgDoc == true)
-                                {
+                            @if (Convert.ToString(grant.stop_flag) == "y")
+                            {
+                                <span style="margin-left:10px; width:80px;">
+                                    <a href="#" class="NormalModal" data-toggle="modal" data-target="#NormalModal" data-id="stop" data-assigned-id="@grant.grant_id" title="View Stop Notice for @grant.grant_num"><img src="~/Content/images/flag_stp.png" style="height:18px; margin-left:15px" /></a>
+                                </span>
+                            }
 
-                                    <span style="margin-left: 10px;width:80px;">
-                                        <a  href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
-                                            <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.org_name" />
-                                            </a>
-                                    </span>
-                                }
-                            </div>
+                            @if (grant.sv_url != "")
+                            {
+                                <span style="margin-left: 10px;width:80px;">
+                                    <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.sv_url">
+                                        <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name" />
+                                    </a>
+                                </span>
+                            }
+                            @if (grant.institutional_flag1 == true)
+                            {
+                                <span style="margin-left: 10px;width:80px;">
+                                    <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
+                                        <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.org_name" />
+                                    </a>
+                                </span>
+                            }
+                            else if (grant.AnyOrgDoc == true)
+                            {
+
+                                <span style="margin-left: 10px;width:80px;">
+                                    <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
+                                        <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.org_name" />
+                                    </a>
+                                </span>
+                            }
+                        </div>
                             <!--end grant flags-->
                         </div>
                         <!--end flag zone-->

@@ -814,11 +814,6 @@ namespace egrants_new.Egrants.Models
             /// Gets or sets the can_add_funding.
             /// </summary>
             public string can_add_funding { get; set; }
-
-            /// <summary>
-            /// Gets or sets the competing.
-            /// </summary>
-            public string multiple_program_investigators { get; set; }
         }
 
         /// <summary>
@@ -1189,7 +1184,7 @@ namespace egrants_new.Egrants.Models
                         appl.closeout_flag = rdr["closeout_flag"]?.ToString();
                         appl.irppr_id = rdr["irppr_id"]?.ToString();
                         appl.can_add_funding = rdr["can_add_funding"]?.ToString();
-                        appl.multiple_program_investigators = "n";
+                        //appl.multiple_program_investigators = "n";
 
                         applList.Add(appl);
                     }
@@ -1208,7 +1203,7 @@ namespace egrants_new.Egrants.Models
 
                 if (found_MPI)
                 {
-                    foreach(var doc in applList)
+                    foreach(var doc in grantList)
                     {
                         doc.multiple_program_investigators = "y";
                     }

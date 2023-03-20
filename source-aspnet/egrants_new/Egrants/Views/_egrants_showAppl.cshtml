@@ -60,11 +60,6 @@ foreach (var appl in ViewBag.appllayer)
             <img src="~/Content/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
         }
 
-        @if (appl.multiple_program_investigators == "y")
-        {
-            <img src="~/Content/images/flag_mpi.jpg" style="margin-left:5px; height:16px; display:inline" title="Multiple Program Investigators" />
-        }
-
         @if (Convert.ToInt16(appl.appl_type_code) == 4)
         {
             <img src="~/Content/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
