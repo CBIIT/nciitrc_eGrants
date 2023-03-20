@@ -1,4 +1,6 @@
-﻿@{
+﻿@using egrants_new.Egrants.Models;
+
+@{
     ViewBag.Title = "egrants [NCI OGA]";
     Layout = "~/Shared/Views/_egrants_header.cshtml";
 }
@@ -289,13 +291,16 @@
     }
 
     function show_grant_with_flag(flag_type, grant_id) {
-        if (flag_type == "FDA" || flag_type == "MS" || flag_type == "OD" || flag_type == "DS" || flag_type == "MPI") {
+        if (flag_type == "FDA" || flag_type == "MS" || flag_type == "OD" || flag_type == "DS") {
             //show appls with flag for this grant
             var categories = "All";
             var appls_list = "All";
             var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
-        }
-        else if (flag_type == "ARRA") {
+        } else if (flag_type == "MPI") {
+            //alert('you clicked MPI !');
+            $("#mpiModal").modal('show');
+            return;
+        } else if (flag_type == "ARRA") {
             flag_type = "All"
             var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=&categories=&appls_list=&years=";
         }
@@ -477,7 +482,7 @@
 
                         <a class="btn btn-default" style="background-color:#808080; color:white" id="all_appl" href="javascript:getByAll(@grant.grant_id)" title="View Categories and Grant Years for @grant.grant_num">All</a><span>&#0160;</span>
 
-                       <label style="margin-left:10px; font-size:medium;"><strong># of Grant Years</strong></label>
+                        <label style="margin-left:10px; font-size:medium;"><strong># of Grant Years</strong></label>
                         <input type="text" id="txtYears_@grant.grant_id" name="years_@grant.grant_id" class="form-control" style="width:50px; height:35px; display:inline;" placeholder="Yrs" onkeyup="return checkYears(event, @Convert.ToInt32(grant.grant_id))" /> @*onkeyup="if (event.keyCode == 13) return checkYears(@Convert.ToInt32(grant.grant_id))"*@
 
                         @if (ViewBag.SelectedCats != "" && ViewBag.SelectedCats != null)
@@ -501,13 +506,13 @@
                     <!--start show category zone-->
                     <div id="cats_zone_@grant.grant_id" class="cats_zone" style="width:900px; border-bottom:groove; border-top:groove; border-color:darkgrey; padding-bottom:5px; min-height:50px; padding-left:20px; float:left; display:none;">
                         <input type="checkbox" id="all_cats_@grant.grant_id" onClick="JavaScript:select_all_cats_zone(@grant.grant_id)" /><span>&#0160;&#0160;</span><b>Select All</b><br />
-                       <div id="catlist_@Convert.ToString(grant.grant_id)" style="float: left; display: inline; width: 900px;">
-                          <div class="row">
-                          <div class="col-sm" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                          <div class="col-sm" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                             <div class="col-sm" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                    </div>
-                       </div>
+                        <div id="catlist_@Convert.ToString(grant.grant_id)" style="float: left; display: inline; width: 900px;">
+                            <div class="row">
+                                <div class="col-sm" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                                <div class="col-sm" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                                <div class="col-sm" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                            </div>
+                        </div>
                     </div>
                     <!--end show category zone-->
                     <br />
@@ -599,75 +604,75 @@
                                 <span style="margin-left:10px;"><a href="Javascript:show_supplement('@grant.grant_id','to_view')"><b style="vertical-align:bottom;" title="View Supplement Files">Supplement</b></a></span><br />
                             }
                             <!--show grant flags-->
-                        <div id="flag_zone_@grant_id" style="float:right;height:80px;width:250px;display:inline;">
-                            @if (Convert.ToString(grant.ds_flag) == "y")
-                            {
-                                <span style="margin-left:10px; width:80px;">
-                                    <a href="JavaScript:show_grant_with_flag('DS', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_ds.jpg" style="height:16px; margin-left:5px" title="View Diversity Supplement Funded Grant for @grant.grant_num" /></a>
-                                </span>
-                            }
+                            <div id="flag_zone_@grant_id" style="float:right;height:80px;width:250px;display:inline;">
+                                @if (Convert.ToString(grant.ds_flag) == "y")
+                                {
+                                    <span style="margin-left:10px; width:80px;">
+                                        <a href="JavaScript:show_grant_with_flag('DS', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_ds.jpg" style="height:16px; margin-left:5px" title="View Diversity Supplement Funded Grant for @grant.grant_num" /></a>
+                                    </span>
+                                }
 
-                            @if (Convert.ToString(grant.ms_flag) == "y")
-                            {
-                                <span style="margin-left:10px; width:80px;">
-                                    <a href="JavaScript:show_grant_with_flag('MS', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_ms.jpg" style="height:16px; margin-left:5px" title="View Moonshot Funded Grant for @grant.grant_num" /></a>
-                                </span>
-                            }
+                                @if (Convert.ToString(grant.ms_flag) == "y")
+                                {
+                                    <span style="margin-left:10px; width:80px;">
+                                        <a href="JavaScript:show_grant_with_flag('MS', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_ms.jpg" style="height:16px; margin-left:5px" title="View Moonshot Funded Grant for @grant.grant_num" /></a>
+                                    </span>
+                                }
 
-                            @if (Convert.ToString(grant.od_flag) == "y")
-                            {
-                                <span style="margin-left:10px; width:80px;">
-                                    <a href="JavaScript:show_grant_with_flag('OD', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_od.jpg" style="height:18px; margin-left:5px" title="View OD Funded Grant for @grant.grant_num" /></a>
-                                </span>
-                            }
+                                @if (Convert.ToString(grant.od_flag) == "y")
+                                {
+                                    <span style="margin-left:10px; width:80px;">
+                                        <a href="JavaScript:show_grant_with_flag('OD', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_od.jpg" style="height:18px; margin-left:5px" title="View OD Funded Grant for @grant.grant_num" /></a>
+                                    </span>
+                                }
 
-                            @if (grant.multiple_program_investigators == "y")
-                            {
-                                <span style="margin-left:10px; width:80px;">
-                                    <a href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="View Grant with multiple program investigators for @grant.grant_num" /></a>
-                                </span>
-                            }
+                                @if (grant.multiple_program_investigators == "y")
+                                {
+                                    <span style="margin-left:10px; width:80px;">
+                                        <a href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="View Grant with multiple program investigators for @grant.grant_num" /></a>
+                                    </span>
+                                }
 
-                            @if (Convert.ToString(grant.fda_flag) == "y")
-                            {
-                                <span style="margin-left:10px; width:80px;">
-                                    <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height:16px;" title="View FDA Funded Grant for @grant.grant_num" /></a>
-                                </span>
-                            }
+                                @if (Convert.ToString(grant.fda_flag) == "y")
+                                {
+                                    <span style="margin-left:10px; width:80px;">
+                                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height:16px;" title="View FDA Funded Grant for @grant.grant_num" /></a>
+                                    </span>
+                                }
 
-                            @if (Convert.ToString(grant.stop_flag) == "y")
-                            {
-                                <span style="margin-left:10px; width:80px;">
-                                    <a href="#" class="NormalModal" data-toggle="modal" data-target="#NormalModal" data-id="stop" data-assigned-id="@grant.grant_id" title="View Stop Notice for @grant.grant_num"><img src="~/Content/images/flag_stp.png" style="height:18px; margin-left:15px" /></a>
-                                </span>
-                            }
+                                @if (Convert.ToString(grant.stop_flag) == "y")
+                                {
+                                    <span style="margin-left:10px; width:80px;">
+                                        <a href="#" class="NormalModal" data-toggle="modal" data-target="#NormalModal" data-id="stop" data-assigned-id="@grant.grant_id" title="View Stop Notice for @grant.grant_num"><img src="~/Content/images/flag_stp.png" style="height:18px; margin-left:15px" /></a>
+                                    </span>
+                                }
 
-                            @if (grant.sv_url != "")
-                            {
-                                <span style="margin-left: 10px;width:80px;">
-                                    <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.sv_url">
-                                        <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name" />
-                                    </a>
-                                </span>
-                            }
-                            @if (grant.institutional_flag1 == true)
-                            {
-                                <span style="margin-left: 10px;width:80px;">
-                                    <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
-                                        <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.org_name" />
-                                    </a>
-                                </span>
-                            }
-                            else if (grant.AnyOrgDoc == true)
-                            {
+                                @if (grant.sv_url != "")
+                                {
+                                    <span style="margin-left: 10px;width:80px;">
+                                        <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.sv_url">
+                                            <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name" />
+                                        </a>
+                                    </span>
+                                }
+                                @if (grant.institutional_flag1 == true)
+                                {
+                                    <span style="margin-left: 10px;width:80px;">
+                                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
+                                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.org_name" />
+                                        </a>
+                                    </span>
+                                }
+                                else if (grant.AnyOrgDoc == true)
+                                {
 
-                                <span style="margin-left: 10px;width:80px;">
-                                    <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
-                                        <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.org_name" />
-                                    </a>
-                                </span>
-                            }
-                        </div>
+                                    <span style="margin-left: 10px;width:80px;">
+                                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
+                                            <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.org_name" />
+                                        </a>
+                                    </span>
+                                }
+                            </div>
                             <!--end grant flags-->
                         </div>
                         <!--end flag zone-->
@@ -700,6 +705,55 @@
     <!--start show popup modal  style="align-content:center; align-items:center;align-self:center;"-->
     <div>
         @Html.Partial("~/Egrants/Views/_egrants_showModal.cshtml")
+    </div>
+    <!--end show popup modal-->
+    <!--start show popup modal -->
+    <div class="modal fade" id="mpiModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Multiple Program Investigators</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @if (ViewBag.mpiInfo != null)
+                    {
+                        <div style="float:left; vertical-align:bottom; width:auto">
+                            <b>>Multiple Person Investigators:</b>
+                        </div><br style="clear:both">
+                        var grant = ViewBag.grantlayer[0];
+                        foreach (egrants_new.Egrants.Models.Egrants.personContact person in ViewBag.mpiInfo)
+                        {
+                            string grantPIName = (string)grant.current_pi_name;
+                            if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) != -1 &&
+                                grantPIName.IndexOf(person.last_name, StringComparison.InvariantCultureIgnoreCase) != -1)
+                            {
+                                <div class="space-left" style="float:left; vertical-align:bottom; width:auto">
+                                    <a href="JavaScript:send_email('@person.email_addr','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                </div><br style="clear:both">
+                            }
+                            else
+                            {
+                                <div class="space-left" style="float:left; vertical-align:bottom; width:auto">
+                                    @person.first_name @person.last_name
+                                </div><br style="clear:both">
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <p>Something went wrong.</p>
+                        <p>No Multiple Person Investigators returned.</p>
+                        <p>This could be a problem with IRDB.</p>
+                    }
+                    <div></div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
     </div>
     <!--end show popup modal-->
 </div><!--end main-->
