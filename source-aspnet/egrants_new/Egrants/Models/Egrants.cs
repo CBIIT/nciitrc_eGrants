@@ -40,6 +40,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using static egrants_new.Egrants.Models.EgrantsAppl;
 
 #endregion
@@ -710,9 +711,9 @@ namespace egrants_new.Egrants.Models
             public bool AnyOrgDoc { get; set; }
 
             /// <summary>
-            /// Gets or sets the competing.
+            /// Gets or sets the MPI contact info.
             /// </summary>
-            public string multiple_program_investigators { get; set; }
+            public List<personContact> MPIContacts { get; set; }
         }
 
         /// <summary>
@@ -1012,10 +1013,86 @@ namespace egrants_new.Egrants.Models
             /// </summary>
             public static List<doclayer> doclayerproperty_era { get; set; }
 
-            /// <summary>
-            /// Gets or sets the mpiproperty.
-            /// </summary>
-            public static List<personContact> mpiproperty { get; set; }
+            public static Dictionary<string,List<personContact>> GetAllMPIInfo(List<string> appl_ids)
+            {
+                var results = new Dictionary<string, List<personContact>>();
+
+                if (appl_ids == null || appl_ids.Count == 0)
+                    return results;
+
+                using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+                {
+                    var sql = "DECLARE @TSQL varchar(8000);" +
+                        "SELECT @TSQL = 'SELECT * FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr from person_addresses_mv c, persons_secure d, person_involvements_mv e where d.profile_person_id = c.person_id and c.addr_type_code = ''''HOM'''' and e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE ) and d.person_id = e.person_id and c.preferred_addr_code = ''''Y'''' '')';" +
+                        "EXEC (@TSQL)";
+                    var applsParam = string.Join(",", appl_ids);
+                    sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
+
+                    using (var cmd = new SqlCommand( sql, conn))
+                    //                        "select category_name from categories where category_id in (" + categories + ") order by category_name", conn))
+                    {
+                        cmd.CommandType = CommandType.Text;
+
+                        // cmd.Parameters.AddWithValue("@years", years);
+                        conn.Open();
+                        var rdr = cmd.ExecuteReader();
+
+                        while (rdr.Read())
+                        {
+                            int personId;
+                            try
+                            {
+                                if (rdr[1] == DBNull.Value)
+                                    personId = default(int);
+                                else
+                                {
+                                    personId = Int32.Parse(rdr[1].ToString());
+                                }
+                            }
+                            catch (FormatException)
+                            {
+                                // fault tolerance on this since we are not displaying
+                                personId = default(int);
+                            }
+
+                            var person = new personContact
+                            {
+                                appl_id = (rdr[0] == DBNull.Value) ? string.Empty : rdr[0].ToString(),
+                                person_id = personId,
+                                first_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
+                                last_name = (rdr[3] == DBNull.Value) ? string.Empty : (string)rdr[3],
+                                src_mi_name = (rdr[4] == DBNull.Value) ? string.Empty : (string)rdr[4],
+                                email_addr = (rdr[5] == DBNull.Value) ? string.Empty : (string)rdr[5]
+                            };
+                            if (!results.ContainsKey(person.appl_id))
+                            {
+                                results.Add(person.appl_id, new List<personContact> { person });
+                            }
+                            else
+                            {
+                                results[person.appl_id].Add(person);
+                            }
+                        }
+
+                    }
+                }
+
+                // prune out the ones that don't have duplicates
+                var deleteTheseKeys = new List<string>();
+                foreach(var key in results.Keys)
+                {
+                    if (results[key].Count <= 1)
+                    {
+                        deleteTheseKeys.Add(key);
+                    }
+                }
+                foreach(var keyToDelete in deleteTheseKeys)
+                {
+                    results.Remove(keyToDelete);
+                }
+
+                return results;
+            }
 
             public static List<personContact> GetMPIContactInfo(int appl_id)
             {
@@ -1172,13 +1249,11 @@ namespace egrants_new.Egrants.Models
                         grant.adm_supp = rdr["adm_supp"]?.ToString();
                         grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true : false;
                         grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
+                        grant.MPIContacts = null;
                         
                         grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
-                        grant.multiple_program_investigators = rdr["is_MPI"].ToString();
-                        if (grant.multiple_program_investigators== "y")
-                                found_MPI = true;
 
-                        // grant.inst_flag2_url = rdr["inst_flag2_url"].ToString();
+
                         grantList.Add(grant);
                     }
                     else if (tag == 2)
@@ -1220,19 +1295,52 @@ namespace egrants_new.Egrants.Models
                 // added by Leon 5/11/2019
                 conn.Close();
 
-                if (found_MPI)
-                {
-                    foreach(var doc in grantList)
-                    {
-                        doc.multiple_program_investigators = "y";
-                    }
+                //if (found_MPI)
+                //{
+                //    foreach(var doc in grantList)
+                //    {
+                //        doc.multiple_program_investigators = "y";
+                //    }
 
-                    mpiproperty = GetMPIContactInfo(appl_id);
-                }
+                // every appl with > 1 person from IRDB will be in the response
+                var mpi_info = GetAllMPIInfo(applList.Select(al => al.appl_id).ToList());
+                PopulateMPIIntoGrants(grantList, applList, mpi_info);
+//                mpiproperty = GetMPIContactInfo(appl_id);
+                //}
 
                 grantlayerproperty = grantList;
                 appllayerproperty = applList;
                 doclayerproperty = docList;
+            }
+
+            /// <summary>
+            /// Put the MPI info into the grant layer
+            /// </summary>
+            /// <param name="grantList"></param>
+            /// <exception cref="NotImplementedException"></exception>
+            private static void PopulateMPIIntoGrants(List<grantlayer> grantList, List<appllayer> applList, Dictionary<string, List<personContact>> mpiInfo)
+            {
+                foreach(var grant in grantList)
+                {
+                    var applsThisGrant = applList.Where( al => al.grant_id == grant.grant_id).ToList();
+                    var piListThisGrant = new List<personContact>();
+                    var alreadyAddedEmails = new HashSet<string>();
+
+                    foreach(var appl in applsThisGrant)
+                    {
+                        if (mpiInfo.ContainsKey(appl.appl_id))
+                        {
+                            foreach(var contact in mpiInfo[appl.appl_id]) {
+                                if (!alreadyAddedEmails.Contains(contact.email_addr))
+                                {
+                                    piListThisGrant.Add(contact);
+                                    alreadyAddedEmails.Add(contact.email_addr);
+                                }
+                            }
+                        }
+                    }
+                    grant.MPIContacts = piListThisGrant;
+                }
             }
         }
 
@@ -1313,6 +1421,7 @@ namespace egrants_new.Egrants.Models
         /// </summary>
         public class personContact
         {
+            public string appl_id { get; set; }
             public long person_id { get; set; }
             public string first_name { get; set; }
             public string last_name { get; set; }
