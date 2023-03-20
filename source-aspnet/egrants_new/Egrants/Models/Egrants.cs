@@ -1012,6 +1012,11 @@ namespace egrants_new.Egrants.Models
             /// </summary>
             public static List<doclayer> doclayerproperty_era { get; set; }
 
+            /// <summary>
+            /// Gets or sets the mpiproperty.
+            /// </summary>
+            public static List<personContact> mpiproperty { get; set; }
+
             public static List<personContact> GetMPIContactInfo(int appl_id)
             {
                 var results = new List<personContact>();
@@ -1035,16 +1040,30 @@ namespace egrants_new.Egrants.Models
 
                         while (rdr.Read())
                         {
+                            int personId;
+                            try
+                            {
+                                if (rdr[1] == DBNull.Value)
+                                    personId = default(int);
+                                else {
+                                //(accountNumber == DBNull.Value) ? string.Empty : accountNumber.ToString()
+                                    personId = Int32.Parse(rdr[1].ToString());
+                                }
+                            }
+                            catch (FormatException)
+                            {
+                                // fault tolerance on this since we are not displaying
+                                personId = default(int);
+                            }
+
                             var personContaact = new personContact
                             {
-                                person_id = (int)rdr[1],
-                                first_name = (string)rdr[2],
-                                last_name = (string)rdr[3],
-                                src_mi_name= (string)rdr[4],
-                                email_addr= (string)rdr[5]
+                                person_id = personId,
+                                first_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
+                                last_name = (rdr[3] == DBNull.Value) ? string.Empty : (string)rdr[3],
+                                src_mi_name = (rdr[4] == DBNull.Value) ? string.Empty : (string)rdr[4],
+                                email_addr = (rdr[5] == DBNull.Value) ? string.Empty : (string)rdr[5]
                             };
-                            var personID = (int)rdr[1];
-                            var category = rdr[0] + ", ";
                             results.Add(personContaact);
                         }
 
@@ -1207,6 +1226,8 @@ namespace egrants_new.Egrants.Models
                     {
                         doc.multiple_program_investigators = "y";
                     }
+
+                    mpiproperty = GetMPIContactInfo(appl_id);
                 }
 
                 grantlayerproperty = grantList;

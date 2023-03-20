@@ -462,6 +462,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
                 this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
+                this.ViewBag.mpiInfo = Egrants.Models.Egrants.Search.mpiproperty;
 
                 // ViewBag.doclayer_All = ViewBag.doclayer;--commented by leon 4/1/2019
             }
