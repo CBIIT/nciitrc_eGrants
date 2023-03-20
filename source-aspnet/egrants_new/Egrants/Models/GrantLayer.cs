@@ -33,6 +33,8 @@
 
 #endregion
 
+using System;
+
 namespace egrants_new.Egrants.Models
 {
 
@@ -194,8 +196,8 @@ namespace egrants_new.Egrants.Models
         /// <summary>
         ///     Gets or sets a value indicating whether show email hyper link.
         /// </summary>
-        // public bool ShowEmailHyperLink { get; set; }
-        //
+        public Nullable<bool> IsCurrentPi { get; set; }
+
         // /// <summary>
         // ///     Gets or sets the selected grant pi first name.
         // /// </summary>

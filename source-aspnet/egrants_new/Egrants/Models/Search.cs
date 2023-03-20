@@ -170,6 +170,7 @@ namespace egrants_new.Egrants.Models
                     grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
 
                     grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
+                    grant.IsCurrentPi = rdr["is_current_pi"]?.ToString() == "1" ? true : false;
                     grant.SelectedGrantPiName = rdr["specific_year_pi_name"].ToString();
                     grant.SelectedGrantPiEmail = rdr["specific_year_pi_email_address"].ToString();
                     grant.SelectedProjectName = rdr["specific_year_project_name"].ToString();

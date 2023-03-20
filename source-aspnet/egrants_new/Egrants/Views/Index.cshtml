@@ -603,7 +603,7 @@
                                 <div id="grantbar2" style="width: 500px;">
                                     @if (grant.SelectedGrantPiName != "" && grant.SelectedGrantPiEmail != "")
                                     {
-                                        
+
                                         if (grant.current_bo_email_address != "")
                                         {
                                             pi_email = grant.SelectedGrantPiEmail + ";" + grant.current_bo_email_address;
@@ -612,8 +612,17 @@
                                         {
                                             pi_email = grant.SelectedGrantPiEmail;
                                         }
-                                        @grant.SelectedGrantPiName
-                                   
+
+                                        if (grant.current_pi_name == grant.SelectedGrantPiName)
+                                        {
+                                            <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                            <b>&nbsp;&nbsp;</b>
+                                        }
+                                        else
+                                        {
+                                            @grant.SelectedGrantPiName<b>&nbsp;&nbsp;</b>
+                                        }
+
                                     }
                                     else if (grant.SelectedGrantPiName != "" && grant.SelectedGrantPiEmail == "")
                                     {
@@ -630,18 +639,27 @@
                                         {
                                             pi_email = grant.current_pi_email_address;
                                         }
-                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
-                                        <b>&nbsp;&nbsp;</b>
+
+                                        if (grant.current_pi_name == grant.SelectedGrantPiEmail ||  string.IsNullOrEmpty(grant.SelectedGrantPiEmail) || grant.pi_name == grant.SelectedGrantPiEmail)
+                                        {
+                                            <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                            <b>&nbsp;&nbsp;</b>
+                                       }
+                                        else
+                                       {
+                                            @grant.current_pi_name<b>&nbsp;&nbsp;</b>
+                                       }
                                     }
                                     else if (grant.current_pi_name != "" && grant.current_pi_email_address == "")
                                     {
                                         @grant.current_pi_name<b>&nbsp;&nbsp;</b>
                                     }
 
-                                    @if(!string.IsNullOrEmpty(grant.SelectedOrganizationName))
+                                    @if (!string.IsNullOrEmpty(grant.SelectedOrganizationName))
                                     {
                                         @grant.SelectedOrganizationName;
-                                    }  else if (grant.org_name != "")
+                                    }
+                                    else if (grant.org_name != "")
                                     {
                                         @grant.org_name
                                     }
