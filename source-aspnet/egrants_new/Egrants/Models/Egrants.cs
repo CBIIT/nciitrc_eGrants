@@ -1017,6 +1017,47 @@ namespace egrants_new.Egrants.Models
             /// </summary>
             public static List<doclayer> doclayerproperty_era { get; set; }
 
+            public static List<personContact> GetMPIContactInfo(int appl_id)
+            {
+                var results = new List<personContact>();
+                using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+                {
+                    using (var cmd = new SqlCommand(
+                        "DECLARE @TSQL varchar(8000);" +
+                        "DECLARE @APPLID INT;" +
+                        "SET @APPLID = " + appl_id + "; " +
+                        "SELECT @TSQL = 'SELECT * FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr from person_addresses_mv c, persons_secure d, person_involvements_mv e where d.profile_person_id = c.person_id and c.addr_type_code = ''''HOM'''' and e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id = ''''' + CAST(@APPLID AS VARCHAR) + ''''' and d.person_id = e.person_id and c.preferred_addr_code = ''''Y'''' '')';" +
+                        "EXEC (@TSQL)", conn))
+                    //                        "select category_name from categories where category_id in (" + categories + ") order by category_name", conn))
+                    {
+
+                        cmd.CommandType = CommandType.Text;
+                        cmd.Parameters.AddWithValue("@appl_id", appl_id);
+
+                        // cmd.Parameters.AddWithValue("@years", years);
+                        conn.Open();
+                        var rdr = cmd.ExecuteReader();
+
+                        while (rdr.Read())
+                        {
+                            var personContaact = new personContact
+                            {
+                                person_id = (int)rdr[1],
+                                first_name = (string)rdr[2],
+                                last_name = (string)rdr[3],
+                                src_mi_name= (string)rdr[4],
+                                email_addr= (string)rdr[5]
+                            };
+                            var personID = (int)rdr[1];
+                            var category = rdr[0] + ", ";
+                            results.Add(personContaact);
+                        }
+
+                    }
+                }
+                return results;
+            }
+
             /// <summary>
             /// The egrants_search.
             /// </summary>
@@ -1249,6 +1290,18 @@ namespace egrants_new.Egrants.Models
             /// Gets or sets the final_report_date.
             /// </summary>
             public string final_report_date { get; set; }
+        }
+
+        /// <summary>
+        /// DTO for the person coming back from the IRDB
+        /// </summary>
+        public class personContact
+        {
+            public long person_id { get; set; }
+            public string first_name { get; set; }
+            public string last_name { get; set; }
+            public string src_mi_name { get; set; }
+            public string email_addr { get; set; }
         }
 
         /// <summary>
