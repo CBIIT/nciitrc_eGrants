@@ -40,6 +40,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Runtime.InteropServices;
 
 #endregion
 
@@ -48,7 +49,7 @@ namespace egrants_new.Egrants.Models
     /// <summary>
     /// The institutional files repo.
     /// </summary>
-    public class InstitutionalFilesRepo
+    public class InstitutionalFilesRepo : IDisposable
     {
         /// <summary>
         /// The conn.
@@ -447,6 +448,25 @@ namespace egrants_new.Egrants.Models
             var document_id = Convert.ToString(cmd.Parameters["@document_id"].Value);
 
             return document_id;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // The bulk of the clean-up code is implemented in Dispose(bool)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                if (conn != null)
+                {
+                    conn.Dispose();
+                }
+            }
         }
     }
 }

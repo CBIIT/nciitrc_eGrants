@@ -40,13 +40,21 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Mime;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Web;
 using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
 
 using Newtonsoft.Json;
+using static egrants_new.Egrants.Models.EgrantsDoc;
 
 #endregion
 
@@ -70,7 +78,7 @@ namespace egrants_new.Controllers
         }
 
         // GET: Egrants
-        /// <summary>
+        /// <summary>   
         /// The index.
         /// </summary>
         /// <returns>
@@ -90,15 +98,341 @@ namespace egrants_new.Controllers
             // return RedirectToAction("Index", "ICCoordinator", new { area = "IC_Coordinator" });
             // }
 
+
             // retuen IC list
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+            this.ViewBag.CurrentView = "StandardForm";
 
             return this.View("~/Egrants/Views/Index.cshtml");
         }
 
-        // get all appls list for appls toggle by grant_id
+        public string SelectedProductName
+        {
+            get { return (string)Session["SelectedProductName"]; }
+            set { Session["SelectedProductName"] = value; }
+        }
+
+        void CurrentViewState_ValueChanged(object sender, EventArgs e)
+        {
+
+            // Display the value of the HiddenField control.
+            var mtetst = "The value of the HiddenField control is " + sender + ".";
+
+        }
+
+        protected void btnDownload_Click(object sender, EventArgs e) 
+        {
+            Console.Write("Hello");
+        }
+
+        public string SetCurrentViewSessionVariable(string currentView)
+        {
+            Console.WriteLine("In setting session Variable: " + currentView);
+            Session["CurrentView"] = currentView;
+
+            return currentView;
+        }
+
         /// <summary>
-        /// The load all appls.
+        /// HttpPost
+        /// Download the files to the temp directory from the links checked on the page. Then return the stream of bytes to the calling method.
+        /// </summary>
+        /// <param name="appl"></param>
+        /// <param name="listOfUrl"></param>
+        /// <returns></returns>
+        public ActionResult IsDownloadForm(string appl, string fullGrantNumber, IList<string> listOfUrl)
+        {
+            // 1 - trim the first character in the full grant number
+            // 2 - trim the characters in full grant number year, and anything after trim
+
+            DownloadModel downloadModel = new DownloadModel();
+            downloadModel.ApplId = appl;
+            downloadModel.NumFailed = 0;
+            downloadModel.NumSucceeded = 0;
+            downloadModel.NumToDownload = listOfUrl.Count();
+
+            // create the temp path and
+            string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
+
+            // create or return an existing directory to hold the downloaded files
+            DirectoryInfo directoryInfo = Directory.CreateDirectory(downloadDirectory);
+
+            // delete all the files in this directory if there are any
+            foreach (FileInfo file in directoryInfo.GetFiles())
+            {
+                file.Delete();
+            }
+
+            // delete all the folders in this directory if there are any
+            foreach (DirectoryInfo dir in directoryInfo.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+
+            // var grantId = this.ViewBag.GrantID;
+            DownloadData downloadData = new DownloadData();
+            downloadModel.DownloadDataList = new List<DownloadData>();
+
+            foreach (var dataInput in listOfUrl)
+            {
+                try
+                {
+                    downloadData = new DownloadData();
+
+                    var split = dataInput.Split(new char[] { '|' }, StringSplitOptions.None);
+
+                    var url = split[0];
+                    var category = split[1];
+                    var subCategory = split[2];
+                    var documentId = split[3];
+                    var documentName = split[4];
+
+
+                    downloadData.Url = url;
+                    downloadData.Category = category;
+                    downloadData.SubCategory = subCategory;
+                    downloadData.DocumentId = Convert.ToInt32(documentId);
+                    downloadData.DocumentName = documentName;
+
+
+                    
+                    // if(downloadModel.DownloadDataList.)
+                    // get a temp file to save the downloaded file
+                    string tmpFileName = Path.GetTempFileName();
+
+                    // if this is an i2e file
+                    if (url.Contains("https://i2e"))
+                    {
+
+                        Console.WriteLine("We should never hit this....");
+
+                        throw new Exception("We found an i2e path and these should not be included in downloads");
+                    }
+
+                    // if this is a file on the ERA Server
+                    if (url.Contains("https://s2s."))
+                    {
+                        var uri = new Uri(url);
+
+                        // obtain the document url from the remote system
+                        var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+                        var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+                        var certificate = new X509Certificate2(cerUri, certPass);
+
+                        var webRequest = (HttpWebRequest)WebRequest.Create(uri);
+                        webRequest.KeepAlive = false;
+                        webRequest.Method = "GET";
+                        webRequest.AllowAutoRedirect = false;
+                        webRequest.ClientCertificates.Add(certificate);
+
+                        var webResponse = (HttpWebResponse)webRequest.GetResponse();
+
+                        using (var postStream = webResponse.GetResponseStream())
+                        {
+                            if (postStream == null)
+                            {
+                                throw new Exception("The stream was empty!");
+                            }
+
+                            string downloadUrl;
+
+                            using (var reader = new StreamReader(postStream))
+                            {
+                                downloadUrl = reader.ReadToEnd();
+                            }
+                       
+
+                   
+                            using (var myWebClient = new MyWebClient())
+                            {
+                                myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                                // Concatenate the domain with the Web resource filename.
+                                Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, downloadUrl);
+
+                                // Download the Web resource and save it into the current filesystem folder.
+                                myWebClient.DownloadFile(downloadUrl, tmpFileName);
+
+                                // // get the filename from the content-disposition header of the downloaded file
+                                var disposition = myWebClient.ResponseHeaders["Content-Disposition"];
+                                ContentDisposition contentDisposition = new ContentDisposition(disposition);
+                                string filename = contentDisposition.FileName;
+                                FileInfo fi = new FileInfo(filename);
+
+                                string newFileName = string.Empty;
+
+                                // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                                // and remove all invalid characters from filename and replace with _
+                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+
+
+                                // move the file from the temp file to a file with the filename in the downloadDirectory
+                                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                                downloadData.FileDownloaded = newFileName;
+                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, downloadUrl);
+                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
+                            }
+                        }
+
+                        downloadModel.NumSucceeded += 1;
+                    }
+                    else
+                    {
+                        
+                        Uri uri;
+
+                        if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
+                        {
+                            var imageServer = new Uri(this.Session["ImageServer"].ToString());
+
+                            uri = new Uri(imageServer, url);
+                        }
+
+                        using (var myWebClient = new WebClient())
+                        {
+                            myWebClient.UseDefaultCredentials = true;
+                            myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
+                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                            myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
+                            Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
+
+                            myWebClient.DownloadFile(uri, tmpFileName);
+                            string filename = Path.GetFileName(uri.LocalPath);
+                            FileInfo fi = new FileInfo(filename);
+
+                            string newFileName = string.Empty;
+
+                            // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                            // and remove all invalid characters from filename and replace with _
+                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+
+                            // move the file from the temp file to a file with the filename in the downloadDirectory
+                            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                            downloadData.FileDownloaded = newFileName;
+                            
+                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
+                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
+                        }
+
+                        downloadModel.NumSucceeded += 1;
+                    }
+                }
+                catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
+                {
+                    // code specifically for a WebException NotFound
+                    downloadData.Error = "File not found.";
+                }
+                catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.InternalServerError)
+                {
+                    // code specifically for a WebException InternalServerError
+                    downloadData.Error = "Internal Server Error! Notify Dev Team!";
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine("Item Error : " + err.ToString());
+                    downloadData.Error = "Screen shot this error and send to dev team!" + Environment.NewLine + err.ToString();
+                    downloadModel.NumFailed += 1;
+                }
+
+                downloadModel.DownloadDataList.Add(downloadData);
+            }
+
+            string handle = Guid.NewGuid().ToString();
+            downloadModel.Handle = handle;
+
+            string zipFileName = fullGrantNumber.Remove(0,1) + ".zip";
+            string zipFileNameWithPath = Path.Combine(Path.GetTempPath(), zipFileName);
+
+            downloadModel.ZipFilename = zipFileName;
+
+            try
+            {
+                // if the zip file exists delete it
+                if (System.IO.File.Exists(zipFileNameWithPath))
+                {
+                    System.IO.File.Delete(zipFileNameWithPath);
+                }
+
+                // zip the contents of the downloadDirectory to the zipPath
+                ZipFile.CreateFromDirectory(downloadDirectory, zipFileNameWithPath);
+
+                using (MemoryStream ms = new MemoryStream())
+                using (FileStream file = new FileStream(zipFileNameWithPath, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] bytes = new byte[file.Length];
+                    file.Read(bytes, 0, (int)file.Length);
+                    ms.Write(bytes, 0, (int)file.Length);
+                    TempData[handle] = ms.ToArray();
+                }
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("Error trying to Zip or serve zip file: " + err.ToString());
+                downloadModel.ZipError = "ZIP FILE ERROR! Screen shot this error and send to Dev team! " + Environment.NewLine + err.ToString();
+            }
+
+            return Json(downloadModel, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>  
+        /// Override the JSON Result with Max integer JSON lenght  
+        /// </summary>  
+        /// <param name="data">Data</param>  
+        /// <param name="contentType">Content Type</param>  
+        /// <param name="contentEncoding">Content Encoding</param>  
+        /// <param name="behavior">Behavior</param>  
+        /// <returns>As JsonResult</returns>  
+        protected override JsonResult Json(object data, string contentType,
+                                           Encoding contentEncoding, JsonRequestBehavior behavior)
+        {
+            return new JsonResult()
+                       {
+                           Data = data,
+                           ContentType = contentType,
+                           ContentEncoding = contentEncoding,
+                           JsonRequestBehavior = behavior,
+                           MaxJsonLength = Int32.MaxValue
+                       };
+        }
+
+        // [HttpGet]
+        public virtual ActionResult Download(string fileGuid, string fileName)
+        {
+        
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+
+                var cd = new ContentDisposition
+                             {
+                                 // for example foo.bak
+                                 FileName = fileName,
+
+                                 // always prompt the user for downloading, set to true if you want 
+                                 // the browser to try to show the file inline
+                                 Inline = false,
+                             };
+
+                Response.AppendHeader("Content-Disposition", cd.ToString());
+
+                return File(data, "application/zip");
+            }
+            else
+            {
+                // Problem - Log the error, generate a blank file,
+                //           redirect to another controller action - whatever fits with your application
+                return new EmptyResult();
+            }
+        }
+
+        public string ReplaceInvalidChars(string filename)
+        {
+            return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
+        }
+
+        /// <summary>
+        /// Get all appls list for appls toggle by grant_id
         /// </summary>
         /// <param name="grant_id">
         /// The grant_id.
@@ -160,13 +494,13 @@ namespace egrants_new.Controllers
         /// The <see cref="string"/>.
         /// </returns>
         public string LoadYears(
-            string fy = null,
+            string fiscalYear = null,
             string mechanism = null,
-            string admin_code = null,
-            string serial_num = null)
+            string adminCode = null,
+            string serialNumber = null)
         {
             // string fy, string mechan, s
-            var list = Egrants.Models.Egrants.GetYearList(fy, mechanism, admin_code, serial_num);
+            var list = Egrants.Models.Egrants.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
             return JsonConvert.SerializeObject(list);
@@ -229,7 +563,7 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult by_str(string str, string mode = null)
         {
-            this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+                this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
             if (string.IsNullOrEmpty(str))
             {
@@ -245,7 +579,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.SearchStyle = "by_str";
 
                 // load data           
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     str,
                     0,
                     string.Empty,
@@ -255,13 +589,13 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                if (Egrants.Models.Egrants.Search.grantlayerproperty != null)
+                if (Search.grantlayerproperty != null)
                 {
-                    this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                    this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
+                    this.ViewBag.grantlayer = Search.grantlayerproperty;
+                    this.ViewBag.appllayer = Search.appllayerproperty;
                     this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                    this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
-                    this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+                    this.ViewBag.appllayer_All = Search.appllayerproperty;
+                    this.ViewBag.doclayer = Search.doclayerproperty;
                     this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                     // show pagination
@@ -277,6 +611,10 @@ namespace egrants_new.Controllers
                     this.ViewBag.grantlayer = null;
                 }
             }
+
+
+
+
 
             return this.View("~/Egrants/Views/Index.cshtml");
         }
@@ -337,7 +675,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.SelectedCategories = Egrants.Models.Egrants.Get_CategoryName_by_id(categories);
 
                 // load data from DB
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     string.Empty,
                     grant_id,
                     package,
@@ -347,11 +685,11 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
-                this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
+                this.ViewBag.grantlayer = Search.grantlayerproperty;
+                this.ViewBag.appllayer_All = Search.appllayerproperty;
+                this.ViewBag.appllayer = Search.appllayerproperty;
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+                this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                 // set appls_lis for searching by flag_type
@@ -372,7 +710,7 @@ namespace egrants_new.Controllers
                 // reset appllayer and limit show appls if appls_list with search parameters
                 if (appls_list != null && appls_list != "All" && appls_list != "all")
                 {
-                    var appllist = new List<Egrants.Models.Egrants.appllayer>();
+                    var appllist = new List<ApplLayerObject>();
 
                     // for more than one appl
                     if (appls_list.IndexOf(',') > 1)
@@ -381,8 +719,10 @@ namespace egrants_new.Controllers
 
                         // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
                         foreach (var appl in this.ViewBag.appllayer)
+                        {
                             if (app.Any(n => n == appl.appl_id))
                                 appllist.Add(appl);
+                        }
 
                         this.ViewBag.appllayer = appllist;
                     }
@@ -437,6 +777,7 @@ namespace egrants_new.Controllers
                 if (str != null)
                     this.ViewBag.Str = str;
 
+
                 this.ViewBag.Mode = mode;
                 this.ViewBag.SearchStyle = "by_appl";
                 this.ViewBag.ApplID = appl_id;
@@ -446,7 +787,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.SelectedAppls = appl_id.ToString();
 
                 // load data from DB
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     string.Empty,
                     0,
                     string.Empty,
@@ -456,11 +797,11 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
-                this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+                this.ViewBag.grantlayer = Search.grantlayerproperty;
+                this.ViewBag.appllayer = Search.appllayerproperty;
+                this.ViewBag.appllayer_All = Search.appllayerproperty;
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+                this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                 // ViewBag.doclayer_All = ViewBag.doclayer;--commented by leon 4/1/2019
@@ -498,7 +839,7 @@ namespace egrants_new.Controllers
             this.ViewBag.SearchStyle = "by_qc";
 
             // load data
-            Egrants.Models.Egrants.Search.egrants_search(
+            Search.egrants_search(
                 "qc",
                 0,
                 string.Empty,
@@ -508,11 +849,11 @@ namespace egrants_new.Controllers
                 Convert.ToString(this.Session["ic"]),
                 Convert.ToString(this.Session["userid"]));
 
-            this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-            this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
-            this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+            this.ViewBag.grantlayer = Search.grantlayerproperty;
+            this.ViewBag.appllayer = Search.appllayerproperty;
+            this.ViewBag.appllayer_All = Search.appllayerproperty;
             this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-            this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+            this.ViewBag.doclayer = Search.doclayerproperty;
             this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
             this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
@@ -532,26 +873,26 @@ namespace egrants_new.Controllers
         /// <summary>
         /// The by_filters.
         /// </summary>
-        /// <param name="fy">
-        /// The fy.
+        /// <param name="fiscalYear">
+        /// The fiscalYear.
         /// </param>
         /// <param name="mechanism">
         /// The mechanism.
         /// </param>
-        /// <param name="admincode">
-        /// The admincode.
+        /// <param name="adminCode">
+        /// The adminCode.
         /// </param>
-        /// <param name="serialnum">
-        /// The serialnum.
+        /// <param name="serialNumber">
+        /// The serialNumber.
         /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public ActionResult by_filters(int fy = 0, string mechanism = null, string admincode = null, int serialnum = 0)
+        public ActionResult by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialnum = 0)
         {
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
-            if (fy == 0 && string.IsNullOrEmpty(mechanism) && serialnum == 0) /*string.IsNullOrEmpty(admincode) &&*/
+            if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialnum == 0) /*string.IsNullOrEmpty(admincode) &&*/
             {
                 this.ViewBag.Message = "No data found for the search";
                 this.ViewBag.grantlayer = null;
@@ -564,29 +905,33 @@ namespace egrants_new.Controllers
                 this.ViewBag.CurrentPage = 1;
 
                 // create return value
-                if (fy != 0)
-                    this.ViewBag.FilterFY = fy;
+                if (fiscalYear != 0)
+                {
+                    this.ViewBag.FilterFY = fiscalYear;
+                }
                 else
+                {
                     this.ViewBag.FilterFY = string.Empty;
+                }
 
                 if (serialnum != 0)
                     this.ViewBag.FilterSerialNumber = serialnum;
 
                 this.ViewBag.FilterMechanism = mechanism;
-                this.ViewBag.FilterAdminCode = admincode;
+                this.ViewBag.FilterAdminCode = adminCode;
 
                 // create filters search sql query
                 var FilterSearchQuery = Egrants.Models.Egrants.GetSearchQuery(
-                    fy,
+                    fiscalYear,
                     mechanism,
-                    admincode,
+                    adminCode,
                     serialnum,
                     1,
                     Convert.ToString(this.Session["browser"]),
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     FilterSearchQuery,
                     0,
                     package,
@@ -596,12 +941,12 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                if (Egrants.Models.Egrants.Search.grantlayerproperty != null)
+                if (Search.grantlayerproperty != null)
                 {
-                    this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                    this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
+                    this.ViewBag.grantlayer = Search.grantlayerproperty;
+                    this.ViewBag.appllayer = Search.appllayerproperty;
                     this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                    this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+                    this.ViewBag.appllayer_All = Search.appllayerproperty;
 
                     // show pagination
                     this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
@@ -651,15 +996,15 @@ namespace egrants_new.Controllers
             int tab_num = 0,
             int page_num = 0,
             string package = null,
-            int fy = 0,
+            int fiscalYear = 0,
             string mechanism = null,
-            string admincode = null,
-            int serialnum = 0)
+            string adminCode = null,
+            int serialNumber = 0)
         {
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
             /*string.IsNullOrEmpty(admincode) &&*/
-            if (fy == 0 && string.IsNullOrEmpty(mechanism) && serialnum == 0)
+            if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNumber == 0)
             {
                 this.ViewBag.Message = "No data found for the search";
                 this.ViewBag.grantlayer = null;
@@ -676,30 +1021,30 @@ namespace egrants_new.Controllers
                 this.ViewBag.CurrentPage = page_num;
 
                 // create return value
-                if (fy != 0)
-                    this.ViewBag.FilterFY = fy;
+                if (fiscalYear != 0)
+                    this.ViewBag.FilterFY = fiscalYear;
                 else
                     this.ViewBag.FilterFY = string.Empty;
 
                 this.ViewBag.FilterMechanism = mechanism;
-                this.ViewBag.FilterAdminCode = admincode;
+                this.ViewBag.FilterAdminCode = adminCode;
 
-                if (serialnum != 0)
-                    this.ViewBag.FilterSerialNumber = serialnum;
+                if (serialNumber != 0)
+                    this.ViewBag.FilterSerialNumber = serialNumber;
 
                 // create filters search sql query
                 var FilterSearchQuery = Egrants.Models.Egrants.GetSearchQuery(
-                    fy,
+                    fiscalYear,
                     mechanism,
-                    admincode,
-                    serialnum,
+                    adminCode,
+                    serialNumber,
                     page_num,
                     Convert.ToString(this.Session["browser"]),
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
                 // load data
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     FilterSearchQuery,
                     0,
                     package,
@@ -709,9 +1054,9 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
-                this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+                this.ViewBag.grantlayer = Search.grantlayerproperty;
+                this.ViewBag.appllayer = Search.appllayerproperty;
+                this.ViewBag.appllayer_All = Search.appllayerproperty;
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
 
                 // show Pagination 
@@ -768,7 +1113,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.Str = str;
                 this.ViewBag.Mode = mode;
 
-                Egrants.Models.Egrants.Search.egrants_search(
+                Search.egrants_search(
                     str,
                     0,
                     string.Empty,
@@ -778,11 +1123,11 @@ namespace egrants_new.Controllers
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]));
 
-                this.ViewBag.grantlayer = Egrants.Models.Egrants.Search.grantlayerproperty;
-                this.ViewBag.appllayer = Egrants.Models.Egrants.Search.appllayerproperty;
-                this.ViewBag.appllayer_All = Egrants.Models.Egrants.Search.appllayerproperty;
+                this.ViewBag.grantlayer = Search.grantlayerproperty;
+                this.ViewBag.appllayer = Search.appllayerproperty;
+                this.ViewBag.appllayer_All = Search.appllayerproperty;
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                this.ViewBag.doclayer = Egrants.Models.Egrants.Search.doclayerproperty;
+                this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                 if (str == "qc")
@@ -913,16 +1258,16 @@ namespace egrants_new.Controllers
         /// </returns>
         public JsonResult LoadDocsGrid(int appl_id, string search_type = null, string category_list = null, string mode = null)
         {
-            Egrants.Models.Egrants.Search_by_appl_id.LoadDocs(
+            Search_by_appl_id.LoadDocs(
                 appl_id,
                 search_type,
                 category_list,
                 Convert.ToString(this.Session["ic"]),
                 Convert.ToString(this.Session["userid"]));
 
-            this.ViewBag.doclayer = Egrants.Models.Egrants.Search_by_appl_id.doclayerproperty;
+            this.ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
 
-            // ViewBag.doclayer = Egrants.Models.Egrants.Search_by_appl_id.doclayerproperty.ToList();
+            // ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
             dynamic res = new { data = this.ViewBag.doclayer };
 
             return Json(res, JsonRequestBehavior.AllowGet);
@@ -968,6 +1313,46 @@ namespace egrants_new.Controllers
                 Convert.ToString(this.Session["userid"]));
 
             return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
+        }
+
+        public string impac_docs_data(string act, int appl_id)
+        {
+            try
+            {
+                this.ViewBag.ImpacDocs = EgrantsDoc.LoadImpacDocs(act, appl_id);
+                this.ViewBag.act = act;
+                this.ViewBag.appl_id = appl_id;
+
+                List<ImpacDocs> list = LoadImpacDocs(act, appl_id);
+                return JsonConvert.SerializeObject(list);
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
+            }
+
+            return null;
+        }
+
+    }
+
+
+    class MyWebClient : WebClient
+    {
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            var cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+            var cert_pass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+            var certificate = new X509Certificate2(cert_url, cert_pass);
+
+            HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
+            
+            if (request != null)
+            {
+                request.ClientCertificates.Add(certificate);
+            }
+    
+            return request;
         }
     }
 }

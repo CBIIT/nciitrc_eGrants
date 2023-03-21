@@ -242,13 +242,13 @@
                                 <option></option>
                                 @foreach (var profiles in ViewBag.Profiles)
                                 {
-                                    if (Convert.ToString(profiles.profile) == Convert.ToString(user.ic))
+                                    if (Convert.ToString(profiles.Profile) == Convert.ToString(user.ic))
                                     {
-                                        <option id="Profile_id" value="@profiles.profile_id" selected="selected">@profiles.profile</option>
+                                        <option id="Profile_id" value="@profiles.ProfileId" selected="selected">@profiles.Profile</option>
                                     }
                                     else
                                     {
-                                        <option id="Profile_id" value="@profiles.profile_id">@profiles.profile</option>
+                                        <option id="Profile_id" value="@profiles.ProfileId">@profiles.Profile</option>
                                     }
                                 }
                             </select>
@@ -374,15 +374,15 @@
                         <td>
                             <select name="Positions" id="ddlPositions" class="form-control" style="height:30px; width:300px;" title="Select position type">
                                 <option></option>
-                                @foreach (var positions in ViewBag.Positions)
+                                @foreach (var position in ViewBag.Positions)
                                 {
-                                    if (user.position_id == positions.position_id)
+                                    if (user.position_id == position.PositionId)
                                     {
-                                        <option id="position_id" value="@positions.position_id" selected="selected">@positions.position_name</option>
+                                        <option id="position_id" value="@position.PositionId" selected="selected">@position.PositionName</option>
                                     }
                                     else
                                     {
-                                        <option id="position_id" value="@positions.position_id">@positions.position_name</option>
+                                        <option id="position_id" value="@position.PositionId">@position.PositionName</option>
                                     }
                                 }
                             </select>

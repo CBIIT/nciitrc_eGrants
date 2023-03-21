@@ -11,8 +11,8 @@
             window.document.location.href = url;
         }
 
-        function to_update(person_id) {
-            var url = "@Url.Action("To_Search", "DocmanAccess")?person_id=" + person_id;
+        function to_update(PersonId) {
+            var url = "@Url.Action("To_Search", "DocmanAccess")?person_id=" + PersonId;
             window.document.location.href = url;
         }
 
@@ -113,7 +113,7 @@
         numericLinksCount: 10,
 
         columns: UsersGrid.Columns(
-            UsersGrid.Column("", "Edit", format:@<image class="img_12_12" onclick="JavaScript:to_update('@item.person_id')" src="~/Content/images/Select Arrow.bmp" title="Cilck here to edit user information" />, style: "col-exs", canSort: false),
+            UsersGrid.Column("", "Edit", format:@<image class="img_12_12" onclick="JavaScript:to_update('@item.PersonId')" src="~/Content/images/Select Arrow.bmp" title="Cilck here to edit user information" />, style: "col-exs", canSort: false),
             UsersGrid.Column("", "Active", format: (item) =>
             {
                 if (Convert.ToString(item.active) == "True")

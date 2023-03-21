@@ -16,7 +16,7 @@ namespace egrants_new.Egrants.Models
     /// <summary>
     ///     The egrants doc.
     /// </summary>
-    public class EgrantsDoc
+    public partial class EgrantsDoc
     {
         // to save document error message that reported by user 
         /// <summary>
@@ -198,14 +198,14 @@ namespace egrants_new.Egrants.Models
         /// <returns>
         ///     The <see cref="System.Collections.Generic.List`1" /> .
         /// </returns>
-        public static List<EgrantsCommon.EgrantsUsers> LoadUsers(string ic)
+        public static List<EgrantsUsers> LoadUsers(string ic)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
             var cmd = new SqlCommand("select person_id, person_name from vw_people where position_id>1 and ic=@ic order by person_name", conn);
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
 
-            var UserList = new List<EgrantsCommon.EgrantsUsers>();
+            var UserList = new List<EgrantsUsers>();
             conn.Open();
 
             cmd.CommandTimeout = 120;
@@ -213,7 +213,7 @@ namespace egrants_new.Egrants.Models
 
             while (rdr.Read())
                 UserList.Add(
-                    new EgrantsCommon.EgrantsUsers { person_id = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
+                    new EgrantsUsers { PersonId = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
 
             conn.Close();
 
@@ -514,11 +514,11 @@ namespace egrants_new.Egrants.Models
             cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = appl_id;
             conn.Open();
 
-            var ImpactDocs = new List<ImpacDocs>();
+            var list = new List<ImpacDocs>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                ImpactDocs.Add(
+                list.Add(
                     new ImpacDocs
                         {
                             tag = rdr["tag"]?.ToString(),
@@ -527,13 +527,14 @@ namespace egrants_new.Egrants.Models
                             accepted_date = rdr["accepted_date"]?.ToString(),
                             category_name = rdr["category_name"]?.ToString(),
                             created_date = rdr["created_date"]?.ToString(),
-                            url = rdr["url"]?.ToString()
+                            url = rdr["url"]?.ToString(),
+                           // document_id = rdr["document_id"]?
                         }
                 );
 
             conn.Close();
 
-            return ImpactDocs;
+            return list;
         }
 
         /// <summary>
@@ -691,411 +692,6 @@ namespace egrants_new.Egrants.Models
                     return notif;
                 }
             }
-        }
-
-        /// <summary>
-        ///     The former_appls.
-        /// </summary>
-        public class former_appls
-        {
-            /// <summary>
-            ///     Gets or sets the former_num.
-            /// </summary>
-            public string former_num { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the former_appl_id.
-            /// </summary>
-            public string former_appl_id { get; set; }
-        }
-
-        /// <summary>
-        ///     The supplement.
-        /// </summary>
-        public class supplement
-        {
-            /// <summary>
-            ///     Gets or sets the tag.
-            /// </summary>
-            public string tag { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the id.
-            /// </summary>
-            public string id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the grant_id.
-            /// </summary>
-            public string grant_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the serial_num.
-            /// </summary>
-            public string serial_num { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the full_grant_num.
-            /// </summary>
-            public string full_grant_num { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the former_appl_id.
-            /// </summary>
-            public string former_appl_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the supp_appl_id.
-            /// </summary>
-            public string supp_appl_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the support_year.
-            /// </summary>
-            public string support_year { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the suffix_code.
-            /// </summary>
-            public string suffix_code { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the former_num.
-            /// </summary>
-            public string former_num { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the date_of_submitted.
-            /// </summary>
-            public string date_of_submitted { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the category_name.
-            /// </summary>
-            public string category_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the sub_category_name.
-            /// </summary>
-            public string sub_category_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the status.
-            /// </summary>
-            public string status { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the url.
-            /// </summary>
-            public string url { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the moved_date.
-            /// </summary>
-            public string moved_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the moved_by.
-            /// </summary>
-            public string moved_by { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the accession_number.
-            /// </summary>
-            public string accession_number { get; set; }
-        }
-
-        /// <summary>
-        ///     The egrants categories.
-        /// </summary>
-        public class EgrantsCategories
-        {
-            /// <summary>
-            ///     Gets or sets the category_id.
-            /// </summary>
-            public string category_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the category_name.
-            /// </summary>
-            public string category_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the package.
-            /// </summary>
-            public string package { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the input_type.
-            /// </summary>
-            public string input_type { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the input_constraint.
-            /// </summary>
-            public string input_constraint { get; set; }
-        }
-
-        /// <summary>
-        ///     The egrants sub categories.
-        /// </summary>
-        public class EgrantsSubCategories
-        {
-            /// <summary>
-            ///     Gets or sets the parent_category_id.
-            /// </summary>
-            public string parent_category_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the sub_category_name.
-            /// </summary>
-            public string sub_category_name { get; set; }
-        }
-
-        /// <summary>
-        ///     The document inforamtion.
-        /// </summary>
-        public class DocumentInforamtion
-        {
-            /// <summary>
-            ///     Gets or sets the admin_phs_org_code.
-            /// </summary>
-            public string admin_phs_org_code { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the serial_num.
-            /// </summary>
-            public string serial_num { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the full_grant_num.
-            /// </summary>
-            public string full_grant_num { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the appl_id.
-            /// </summary>
-            public string appl_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the category_id.
-            /// </summary>
-            public string category_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the sub_category_name.
-            /// </summary>
-            public string sub_category_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the document_id.
-            /// </summary>
-            public string document_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the document_date.
-            /// </summary>
-            public string document_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the document_name.
-            /// </summary>
-            public string document_name { get; set; }
-        }
-
-        /// <summary>
-        ///     The doc transaction history.
-        /// </summary>
-        public class DocTransactionHistory
-        {
-            /// <summary>
-            ///     Gets or sets the transaction_type.
-            /// </summary>
-            public string transaction_type { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the document_id.
-            /// </summary>
-            public string document_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the full_grant_num.
-            /// </summary>
-            public string full_grant_num { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the category_name.
-            /// </summary>
-            public string category_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the person_name.
-            /// </summary>
-            public string person_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the url.
-            /// </summary>
-            public string url { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the transaction_date.
-            /// </summary>
-            public string transaction_date { get; set; }
-        }
-
-        /// <summary>
-        ///     The impac docs.
-        /// </summary>
-        public class ImpacDocs
-        {
-            /// <summary>
-            ///     Gets or sets the tag.
-            /// </summary>
-            public string tag { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the appl_id.
-            /// </summary>
-            public string appl_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the full_grant_num.
-            /// </summary>
-            public string full_grant_num { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the accepted_date.
-            /// </summary>
-            public string accepted_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the category_name.
-            /// </summary>
-            public string category_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the created_date.
-            /// </summary>
-            public string created_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the url.
-            /// </summary>
-            public string url { get; set; }
-        }
-
-        /// <summary>
-        ///     The docs unidentified.
-        /// </summary>
-        public class DocsUnidentified
-        {
-            /// <summary>
-            ///     Gets or sets the document_id.
-            /// </summary>
-            public string document_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the document_name.
-            /// </summary>
-            public string document_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the document_date.
-            /// </summary>
-            public string document_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the created_by.
-            /// </summary>
-            public string created_by { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the created_date.
-            /// </summary>
-            public string created_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the category_id.
-            /// </summary>
-            public string category_id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the qc_date.
-            /// </summary>
-            public string qc_date { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the url.
-            /// </summary>
-            public string url { get; set; }
-        }
-
-        /// <summary>
-        ///     The doc attachment.
-        /// </summary>
-        public class DocAttachment
-        {
-            /// <summary>
-            ///     Gets or sets the document_name.
-            /// </summary>
-            public string document_name { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the url.
-            /// </summary>
-            public string url { get; set; }
-        }
-
-        /// <summary>
-        ///     The notification.
-        /// </summary>
-        public class Notification
-        {
-            /// <summary>
-            ///     Gets or sets the notification name.
-            /// </summary>
-            public string notificationName { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the id.
-            /// </summary>
-            public string Id { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the description.
-            /// </summary>
-            public string description { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the sent date.
-            /// </summary>
-            public string sentDate { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the from address.
-            /// </summary>
-            public string fromAddress { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the to address.
-            /// </summary>
-            public string toAddress { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the cc address.
-            /// </summary>
-            public string ccAddress { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the subject.
-            /// </summary>
-            public string subject { get; set; }
-
-            /// <summary>
-            ///     Gets or sets the email content.
-            /// </summary>
-            public string emailContent { get; set; }
         }
     }
 }
