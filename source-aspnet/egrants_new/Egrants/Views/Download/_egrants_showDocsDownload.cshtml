@@ -415,7 +415,7 @@
                                     full.document_id +
                                     "\"" +
                                     " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-                                    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=checkbox2\"" +
+                                    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=checkbox_" +
                                     full.document_id +
                                     "\"" +
                                     " class=\"qc\" name=\"qc\" value=\"" +
@@ -432,7 +432,7 @@
                                    full.document_id +
                                    "\"" +
                                    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-                                   " <input type=\"checkbox\" class=\"showDownload Attachments\" id=checkbox2\"" +
+                                   " <input type=\"checkbox\" class=\"showDownload Attachments\" id=checkbox_" +
                                    full.document_id +
                                    "\"" +
                                    " class=\"qc\" name=\"qc\" value=\"" +
@@ -446,7 +446,7 @@
                                     full.document_id +
                                     "\"" +
                                     " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-                                    " <input type=\"checkbox\" class=\"showDownload ClousoutNotifications\" id=checkbox2\"" +
+                                    " <input type=\"checkbox\" class=\"showDownload ClousoutNotifications\" id=checkbox_" +
                                     full.document_id +
                                     "\"" +
                                     " class=\"qc\" name=\"qc\" value=\"" +
@@ -866,7 +866,7 @@
                      var tr = $(this).closest('tr');
                      var row = table.row(tr);
                      //show_qc_dl($(this).closest('div').attr('id'), 0);
-
+                     console.log(JSON.stringify(row));
 
 
                      var dataToSend = {};
@@ -902,10 +902,10 @@
 
                                 //}
 
-                                 //if ($(this).prop('checked')) {
+                                // if ($().prop('checked')) {
                                  row.child(formatFinancialReportChildRow(data)).show();
                                  tr.next('tr').addClass(tr.attr('class'));
-                                 //}
+                                // }
                                  //if ($(this).prop('checked')){
                                  //    row.child(formatFinancialReportChildRow(data)).hide();
                                  //}
@@ -1098,62 +1098,65 @@
       //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
 
 
-        //var str = "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">" +
-        //    "<tr>" +
-        //    "<td>Full name:</td>" +
-        //    "<td>" +
-        //    "<input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
-        //    d.accepted_date +
-        //    "\"" +
-        //    " class=\"qc\" name=\"qc\" value=\"" +
-        //    d.accepted_date +
-        //    "\"" +
-        //    "/>' 
-        //    '</td>' +
-        //    '</tr>' +
-        //    '<tr>' +
-        //    '<td>Extension number:</td>' +
-        //    '<td>' +
-        //    d. +
-        //    '</td>' +
-        //    '</tr>' +
-        //    '<tr>' +
-        //    '<td>Extra info:</td>' +
-        //    '<td>And any further details here (images etc)...</td>' +
-        //    '</tr>' +
-        //    '</table>'
+
 
     
-      var str = "";
+        var str = "";
+        var str = "<table cellpadding=\"1\" cellspacing=\"1\" border=\"0\" style=\"padding-left:50px;\">";
         for (var i = 0; i < d.length; i++) {
-          if (d[i].tag == 1) {
-              console.log(d[i].appl_id);
-              console.log(d[i].full_grant_num);
-          }
-          if(d[i].tag == 2){
-              console.log(d[i].category_name);
-              console.log(d[i].accepted_date);
-              console.log(d[i].url);
-              var tr = $(this).closest('tr');
+
+            if (d[i].tag == 1) {
+                console.log(d[i].appl_id);
+                console.log(d[i].full_grant_num);
+            }
+            if (d[i].tag == 2) {
+                console.log(d[i].category_name);
+                console.log(d[i].accepted_date);
+                console.log(d[i].url);
+                var tr = $(this).closest('tr');
+
+
+            str = str + 
+            "<tr>" +
+                "<td><span class=\"ml-2\">Financial Report :<\span></td>" +
+                "<td>" +
+                "<input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+                d[i].category_name +
+                    "\"" +
+                    " class=\"qc\" name=\"qc\" value=\"" +
+                d[i].category_name +
+                    "\"" +
+                    "/>" +
+                "</td>" +
+                "<td class=\"pl-2\">Date:</td>" +
+                "<td>" +
+                d[i].accepted_date +
+                "</td>" +
+                    "<td>" + "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i></td>" +
+            "</tr>"
+
+
+
              // var row = table.row(tr);
               //show_qc_dl($(this).closest('div').attr('id'), 1);
               //row.child(formatForDownloadView(row.data())).show();
              // tr.next('tr').addClass(tr.attr('class'));
-              str = str +  "<div id=\"dl_checkbox_ffr_" +
-                  d.accepted_date +
-                  "\"" +
-                  " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-                  " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
-                  d.accepted_date +
-                  "\"" +
-                  " class=\"qc\" name=\"qc\" value=\"" +
-                  d.accepted_date +
-                  "\"" +
-                  "/></div>" + '<br>';
+              //str = str +  "<div id=\"dl_checkbox_ffr_" +
+              //    d.accepted_date +
+              //    "\"" +
+              //    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+              //    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+              //    d.accepted_date +
+              //    "\"" +
+              //    " class=\"qc\" name=\"qc\" value=\"" +
+              //    d.accepted_date +
+              //    "\"" +
+              //    "/></div>" + '<br>';
 
           }
 
-      }
+        }
+        str = str + "</table>"
         return str;
 
 

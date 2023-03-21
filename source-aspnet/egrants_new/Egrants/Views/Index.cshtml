@@ -651,7 +651,7 @@
                              <span class="mr-2">@grant.current_pi_name</span>
                         }
                     }
-                    else if (!string.IsNullOrEmpty((grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address)))
+                    else if (!string.IsNullOrEmpty(grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address))
                     {
                         <span class="mr-2">@grant.current_pi_name</span>
                     }
@@ -796,16 +796,16 @@
                 @if (grant.institutional_flag1 == true)
                 {
                     <span style="margin-left: 10px; width: 80px;">
-                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
-                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.org_name"/>
+                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.SelectedOrganizationName">
+                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.SelectedOrganizationName"/>
                         </a>
                     </span>
                 }
                 else if (grant.AnyOrgDoc == true)
                 {
                     <span style="margin-left: 10px; width: 80px;">
-                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.org_name">
-                            <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.org_name"/>
+                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.SelectedOrganizationName">
+                            <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.SelectedOrganizationName"/>
                         </a>
                     </span>
                 }
