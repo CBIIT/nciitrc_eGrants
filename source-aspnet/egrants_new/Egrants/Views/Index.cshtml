@@ -846,7 +846,7 @@
                                 <div style="float:left; vertical-align:bottom; width:auto">
                                     <b>Multiple Person Investigators:</b>
                                 </div><br style="clear:both">
-                                foreach (egrants_new.Egrants.Models.Egrants.personContact person in grant.MPIContacts)
+                                foreach (egrants_new.Egrants.Models.PersonContact person in grant.MPIContacts)
                                 {
                                     string grantPIName = (string)grant.current_pi_name;
                                     if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) != -1 &&

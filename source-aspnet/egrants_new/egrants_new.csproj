@@ -2858,6 +2858,7 @@
     <Compile Include="Egrants\Models\InstitutionalOrgNameIndex.cs" />
     <Compile Include="Egrants\Models\Notification.cs" />
     <Compile Include="Egrants\Models\Pagination.cs" />
+    <Compile Include="Egrants\Models\PersonContact.cs" />
     <Compile Include="Egrants\Models\Search.cs" />
     <Compile Include="Egrants\Models\Search_by_appl_id.cs" />
     <Compile Include="Egrants\Models\StopNoticeObject.cs" />

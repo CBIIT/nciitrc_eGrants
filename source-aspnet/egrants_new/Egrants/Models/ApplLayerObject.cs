@@ -138,7 +138,11 @@ namespace egrants_new.Egrants.Models
         /// </summary>
         public string can_add_funding { get; set; }
 
+        /// <summary>
+        /// Gets or sets the MPI contact info.
+        /// </summary>
+        public List<PersonContact> MPIContacts { get; set; }
 
-     //   public List<ImpacDocs> ImpacDocsList { get; set; }
+        //   public List<ImpacDocs> ImpacDocsList { get; set; }
     }
 }

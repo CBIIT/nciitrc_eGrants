@@ -33,6 +33,8 @@
 
 #endregion
 
+using System.Collections.Generic;
+
 namespace egrants_new.Egrants.Models
 {
 
@@ -215,6 +217,11 @@ namespace egrants_new.Egrants.Models
         // ///     Gets or sets the selected organization name.
         // /// </summary>
         public string SelectedOrganizationName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the MPI contact info.
+        /// </summary>
+        public List<PersonContact> MPIContacts { get; set; }
         //
         // /// <summary>
         // /// Gets or sets the program directory full name.
