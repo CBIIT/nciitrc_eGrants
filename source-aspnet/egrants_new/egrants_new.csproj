@@ -222,6 +222,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\bootstrap-checkbox.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-icons.css" />
@@ -2659,6 +2660,7 @@
     <None Include="Properties\PublishProfiles\ProdNew.pubxml" />
     <None Include="Properties\PublishProfiles\Test.pubxml" />
     <None Include="Properties\PublishProfiles\Test45.pubxml" />
+    <Content Include="scripts\bootstrap-checkbox.js" />
     <Content Include="scripts\bootstrap.bundle.js" />
     <Content Include="scripts\bootstrap.bundle.min.js" />
     <Content Include="scripts\bootstrap.js" />
