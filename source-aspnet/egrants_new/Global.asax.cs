@@ -38,8 +38,9 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.IO;
+using System.Diagnostics;
 using System.Net;
+using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -49,6 +50,8 @@ using egrants_new.Models;
 
 using Hangfire;
 using Hangfire.SqlServer;
+
+//using Microsoft.ApplicationInsights.Extensibility;
 
 #endregion
 
@@ -75,14 +78,15 @@ namespace egrants_new
         protected string UserID
         {
             get
+            {
+                this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
+                if (this.userid == null)
                 {
-                    this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
-                    if (this.userid == null) {
-                        this.userid = ""; // string.Empty
-                    }
-
-                    return this.userid;
+                    this.userid = ""; // string.Empty
                 }
+
+                return this.userid;
+            }
         }
 
         /// <summary>
@@ -91,27 +95,27 @@ namespace egrants_new
         protected string IC
         {
             get
+            {
+                this.ic = this.Context.Request.ServerVariables["HEADER_USER_SUB_ORG"];
+
+                if (this.ic == null)
                 {
-                    this.ic = this.Context.Request.ServerVariables["HEADER_USER_SUB_ORG"];
-
-                    if (this.ic == null)
-                    {
-                        this.ic = "NCI"; // nci           
-                    }
-
-                    // check exception user and who's ic not as nci
-                    if (this.ic != "nci" && this.ic != "NCI")
-                    {
-                        var userexception = EgrantsCommon.CheckUsersException(this.userid);
-
-                        if (userexception == 1)
-                        {
-                            this.ic = "nci";
-                        }
-                    }
-
-                    return this.ic;
+                    this.ic = "NCI"; // nci           
                 }
+
+                // check exception user and who's ic not as nci
+                if (this.ic != "nci" && this.ic != "NCI")
+                {
+                    var usersException = EgrantsCommon.CheckUsersException(this.userid);
+
+                    if (usersException == 1)
+                    {
+                        this.ic = "nci";
+                    }
+                }
+
+                return this.ic;
+            }
         }
 
         /// <summary>
@@ -125,6 +129,9 @@ namespace egrants_new
         /// </summary>
         protected void Application_Start()
         {
+
+            //TelemetryConfiguration.Active.DisableTelemetry = true;
+
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             this.Application["UsersOnline"] = 0;
 
@@ -136,15 +143,15 @@ namespace egrants_new
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-            HangfireAspNet.Use(this.GetHangfireServers);
+            //  HangfireAspNet.Use(this.GetHangfireServers);
 
-            var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
-            var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
-            var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
+            // var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
+            // var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
+            // var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
 
             // create the Background job
-            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
-            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
+            // RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+            // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
             //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
         }
 
@@ -156,20 +163,19 @@ namespace egrants_new
         /// </returns>
         private IEnumerable<IDisposable> GetHangfireServers()
         {
-            // Hangfire.
             var conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
 
             GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer()
                                .UseRecommendedSerializerSettings().UseSqlServerStorage(
                                     conx,
                                     new SqlServerStorageOptions
-                                        {
-                                            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                                            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                                            QueuePollInterval = TimeSpan.Zero,
-                                            UseRecommendedIsolationLevel = true,
-                                            DisableGlobalLocks = true
-                                        });
+                                    {
+                                        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                                        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                                        QueuePollInterval = TimeSpan.Zero,
+                                        UseRecommendedIsolationLevel = true,
+                                        DisableGlobalLocks = true
+                                    });
 
             yield return new BackgroundJobServer();
         }
@@ -190,9 +196,14 @@ namespace egrants_new
             this.ic = this.IC;
 
             // Response.Write(userid + ", " + ic);
-            var uservalidation = EgrantsCommon.CheckUserValidation(this.ic, this.userid);
-            if (uservalidation == 0) this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            var userValidation = EgrantsCommon.CheckUserValidation(this.ic, this.userid);
+
+            if (userValidation == 0)
+            {
+                this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            }
         }
+
 
         /// <summary>
         /// This event raised for each time a new session begins, This is a good
@@ -206,41 +217,25 @@ namespace egrants_new
         /// </param>
         protected void Session_Start(object sender, EventArgs e)
         {
+            //this.Session.Timeout = 5;
             // Code that runs when a new session is started---added 11_21_2018
             var sessionId = this.Session.SessionID;
 
             this.Session["userid"] = this.UserID;
             this.Session["ic"] = this.IC;
             this.Session["browser"] = this.BrowserType;
+            this.Session["CurrentView"] = "standardForm";
 
-            this.check_user_type();
-        }
-
-        /// <summary>
-        ///     The check_user_type.
-        /// </summary>
-        protected void check_user_type()
-        {
             var usertype = EgrantsCommon.UserType(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
+
 
             if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
             {
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            }
-            else
-            {
-                this.check_user_validation(usertype);
-            }
-        }
 
-        /// <summary>
-        /// The check_user_validation.
-        /// </summary>
-        /// <param name="usertype">
-        /// The usertype.
-        /// </param>
-        protected void check_user_validation(string usertype)
-        {
+                return;
+            }
+
             // set all profiles for user
             var users = EgrantsCommon.uservar(Convert.ToString(this.Session["userid"]), Convert.ToString(this.Session["ic"]), usertype);
 
@@ -260,21 +255,10 @@ namespace egrants_new
             if (this.Session["Validation"].ToString() != "OK")
             {
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            }
-            else
-            {
-                this.check_user_profile(usertype);
-            }
-        }
 
-        /// <summary>
-        /// The check_user_profile.
-        /// </summary>
-        /// <param name="usertype">
-        /// The usertype.
-        /// </param>
-        protected void check_user_profile(string usertype)
-        {
+                return;
+            }
+
             // get link and server from web.config file
             // Session["server"] = ConfigurationManager.ConnectionStrings["Server"].ConnectionString;
             this.Session["webgrant"] = ConfigurationManager.ConnectionStrings["webgrant"].ConnectionString;
@@ -291,6 +275,8 @@ namespace egrants_new
             this.Session["closeoutAcceptance"] = ConfigurationManager.ConnectionStrings["closeoutAcceptance"].ConnectionString;
             this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
             this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
+
+            //this.Session["test"] = "Hello";
         }
 
         /// <summary>
@@ -322,7 +308,7 @@ namespace egrants_new
                 {
                     return;
                 }
-                    
+
                 // Redirect HTTP errors to HttpError page
                 this.Server.Transfer("~/HttpErrorPage.aspx");
             }
@@ -358,7 +344,13 @@ namespace egrants_new
         {
             this.Application.Lock();
             this.Application["UsersOnline"] = (int)this.Application["UsersOnline"] - 1;
+            this.Session.RemoveAll();
             this.Application.UnLock();
+
+            Console.WriteLine("Session Ended!");
+
+            this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+
         }
 
         /// <summary>
@@ -373,90 +365,9 @@ namespace egrants_new
         protected void Application_EndRequest(object sender, EventArgs e)
         {
             // Iterate through any cookies found in the Response object.
-            foreach (var cookieName in this.Response.Cookies.AllKeys) this.Response.Cookies[cookieName].Secure = true;
-        }
-
-        // Create our own utility for exceptions 
-        /// <summary>
-        /// The exception utility.
-        /// </summary>
-        public sealed class ExceptionUtility
-        {
-            // All methods are static, so this can be private 
-            /// <summary>
-            /// Prevents a default instance of the <see cref="ExceptionUtility"/> class from being created.
-            /// </summary>
-            private ExceptionUtility()
+            foreach (var cookieName in this.Response.Cookies.AllKeys)
             {
-            }
-
-            // Log an Exception 
-            /// <summary>
-            /// The log exception.
-            /// </summary>
-            /// <param name="exc">
-            /// The exc.
-            /// </param>
-            /// <param name="source">
-            /// The source.
-            /// </param>
-            public static void LogException(Exception exc, string source)
-            {
-                // Include enterprise logic for logging exceptions 
-                // Get the absolute path to the log file 
-                var logFile = "~/App_Data/ErrorLog.txt";
-                logFile = HttpContext.Current.Server.MapPath(logFile);
-
-                // if (!File.Exists(logFile))
-                // {
-                // byte[] file = new byte[0];
-                // File.Create(logFile);
-                // }
-
-                // Open the log file for append and write the log
-                var sw = new StreamWriter(logFile, true);
-                sw.WriteLine("********** {0} **********", DateTime.Now);
-
-                if (exc.InnerException != null)
-                {
-                    sw.Write("Inner Exception Type: ");
-                    sw.WriteLine(exc.InnerException.GetType().ToString());
-                    sw.Write("Inner Exception: ");
-                    sw.WriteLine(exc.InnerException.Message);
-                    sw.Write("Inner Source: ");
-                    sw.WriteLine(exc.InnerException.Source);
-
-                    if (exc.InnerException.StackTrace != null)
-                    {
-                        sw.WriteLine("Inner Stack Trace: ");
-                        sw.WriteLine(exc.InnerException.StackTrace);
-                    }
-                }
-
-                sw.Write("Exception Type: ");
-                sw.WriteLine(exc.GetType().ToString());
-                sw.WriteLine("Exception: " + exc.Message);
-                sw.WriteLine("Source: " + source);
-                sw.WriteLine("Stack Trace: ");
-
-                if (exc.StackTrace != null)
-                {
-                    sw.WriteLine(exc.StackTrace);
-                    sw.WriteLine();
-                }
-
-                sw.Close();
-            }
-
-            /// <summary>
-            /// Notify System Operators about an exception
-            /// </summary>
-            /// <param name="exc">
-            /// The exc.
-            /// </param>
-            public static void NotifySystemOps(Exception exc)
-            {
-                // Include code for notifying IT system operators
+                this.Response.Cookies[cookieName].Secure = true;
             }
         }
     }

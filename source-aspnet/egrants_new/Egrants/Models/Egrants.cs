@@ -4,7 +4,7 @@
 // Module Name:  Egrants.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-03-31
+// Created: 2022-11-21
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -48,9 +48,9 @@ using static egrants_new.Egrants.Models.EgrantsAppl;
 namespace egrants_new.Egrants.Models
 {
     /// <summary>
-    /// The egrants.
+    ///     The egrants.
     /// </summary>
-    public class Egrants
+    public static class Egrants
     {
 
         /// <summary>
@@ -69,38 +69,40 @@ namespace egrants_new.Egrants.Models
         /// The package.
         /// </param>
         /// <returns>
-        /// The <see cref="List"/>.
+        /// The <see cref="System.Collections.Generic.List`1"/> .
         /// </returns>
         public static List<Pagination> LoadPagination(string str, string ic, string userid, string package = null)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("dbo.sp_web_egrants_pagination", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@str", SqlDbType.NVarChar).Value = str;
-            cmd.Parameters.Add("@package", SqlDbType.VarChar).Value = package;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
-            conn.Open();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("dbo.sp_web_egrants_pagination", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@str", SqlDbType.NVarChar).Value = str;
+                cmd.Parameters.Add("@package", SqlDbType.VarChar).Value = package;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+                conn.Open();
 
-            var EgrantsPagination = new List<Pagination>();
-            var rdr = cmd.ExecuteReader();
+                var list = new List<Pagination>();
 
-            while (rdr.Read())
-                EgrantsPagination.Add(
-                    new Pagination
-                        {
-                            tag = rdr["tag"]?.ToString(),
-                            parent = rdr["parent"]?.ToString(),
-                            total_grants = rdr["total_grants"]?.ToString(),
-                            total_tabs = rdr["total_tabs"]?.ToString(),
-                            total_pages = rdr["total_pages"]?.ToString(),
-                            tab_number = rdr["tab_number"]?.ToString(),
-                            page_number = rdr["page_number"]?.ToString()
-                        });
+                var rdr = cmd.ExecuteReader();
 
-            conn.Close();
+                while (rdr.Read())
+                    list.Add(new Pagination
+                                 {
+                                     tag = rdr["tag"]?.ToString(),
+                                     parent = rdr["parent"]?.ToString(),
+                                     total_grants = rdr["total_grants"]?.ToString(),
+                                     total_tabs = rdr["total_tabs"]?.ToString(),
+                                     total_pages = rdr["total_pages"]?.ToString(),
+                                     tab_number = rdr["tab_number"]?.ToString(),
+                                     page_number = rdr["page_number"]?.ToString()
+                                 });
 
-            return EgrantsPagination;
+
+
+                return list;
+            }
         }
 
         /// <summary>
@@ -113,37 +115,35 @@ namespace egrants_new.Egrants.Models
         /// The ic.
         /// </param>
         /// <returns>
-        /// The <see cref="List"/>.
+        /// The <see cref="System.Collections.Generic.List`1"/> .
         /// </returns>
-        public static List<StopNotice> LoadStopNotice(int grant_id, string ic)
+        public static List<StopNoticeObject> LoadStopNotice(int grant_id, string ic)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("sp_web_egrants_stop_notice ", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@GrantID", SqlDbType.Int).Value = grant_id;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-
-            conn.Open();
-
-            var list = new List<StopNotice>();
-            var rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
             {
-                list.Add(
-                    new StopNotice
-                        {
-                            appl_id = rdr["appl_id"]?.ToString(),
-                            full_grant_num = rdr["full_grant_num"]?.ToString(),
-                            closeout_fsr_code = rdr["closeout_fsr_code"]?.ToString(),
-                            final_invention_stmnt_code = rdr["final_invention_stmnt_code"]?.ToString(),
-                            final_report_date = rdr["final_report_date"]?.ToString()
-                        });
+                var cmd = new SqlCommand("sp_web_egrants_stop_notice ", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@GrantID", SqlDbType.Int).Value = grant_id;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+
+                conn.Open();
+
+                var list = new List<StopNoticeObject>();
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                    list.Add(new StopNoticeObject
+                                 {
+                                     appl_id = rdr["appl_id"]?.ToString(),
+                                     full_grant_num = rdr["full_grant_num"]?.ToString(),
+                                     closeout_fsr_code = rdr["closeout_fsr_code"]?.ToString(),
+                                     final_invention_stmnt_code = rdr["final_invention_stmnt_code"]?.ToString(),
+                                     final_report_date = rdr["final_report_date"]?.ToString()
+                                 });
+
+                return list;
             }
-
-            conn.Close();
-
-            return list;
         }
 
         /// <summary>
@@ -174,9 +174,9 @@ namespace egrants_new.Egrants.Models
         /// The userid.
         /// </param>
         /// <returns>
-        /// The <see cref="List"/>.
+        /// The <see cref="System.Collections.Generic.List`1"/> .
         /// </returns>
-        public static List<supplement> LoadSupplement(
+        public static List<SupplementObject> LoadSupplement(
             string act,
             int grant_id,
             int support_year,
@@ -186,56 +186,54 @@ namespace egrants_new.Egrants.Models
             string ic,
             string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("sp_web_egrants_supplement", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@grant_id", SqlDbType.Int).Value = grant_id;
-            cmd.Parameters.Add("@support_year", SqlDbType.Int).Value = support_year;
-            cmd.Parameters.Add("@suffix_code", SqlDbType.VarChar).Value = suffix_code;
-            cmd.Parameters.Add("@docid_str", SqlDbType.VarChar).Value = docid_str;
-            cmd.Parameters.Add("@former_applid", SqlDbType.VarChar).Value = former_applid;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
-            conn.Open();
-
-            var list = new List<supplement>();
-            var rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
             {
-                list.Add(
-                    new supplement
-                        {
-                            tag = rdr["tag"]?.ToString(),
-                            grant_id = rdr["grant_id "]?.ToString(),
-                            admin_phs_org_code = rdr["admin_phs_org_code "]?.ToString(),
-                            serial_num = rdr["serial_num"]?.ToString(),
-                            id = rdr["id"]?.ToString(),
-                            full_grant_num = rdr["full_grant_num"]?.ToString(),
-                            supp_appl_id = rdr["supp_appl_id"]?.ToString(),
-                            support_year = rdr["support_year"]?.ToString(),
-                            suffix_code = rdr["suffix_code"]?.ToString(),
-                            former_num = rdr["former_num"]?.ToString(),
-                            submitted_date = rdr["submitted_date"]?.ToString(),
-                            category_name = rdr["category_name"]?.ToString(),
-                            url = rdr["url"]?.ToString(),
-                            moved_date = rdr["moved_date"]?.ToString(),
-                            moved_by = rdr["moved_by"]?.ToString()
-                        });
+                var cmd = new SqlCommand("sp_web_egrants_supplement", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+                cmd.Parameters.Add("@grant_id", SqlDbType.Int).Value = grant_id;
+                cmd.Parameters.Add("@support_year", SqlDbType.Int).Value = support_year;
+                cmd.Parameters.Add("@suffix_code", SqlDbType.VarChar).Value = suffix_code;
+                cmd.Parameters.Add("@docid_str", SqlDbType.VarChar).Value = docid_str;
+                cmd.Parameters.Add("@former_applid", SqlDbType.VarChar).Value = former_applid;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
+                conn.Open();
+
+                var list = new List<SupplementObject>();
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                    list.Add(new SupplementObject
+                                 {
+                                     tag = rdr["tag"]?.ToString(),
+                                     grant_id = rdr["grant_id "]?.ToString(),
+                                     admin_phs_org_code = rdr["admin_phs_org_code "]?.ToString(),
+                                     serial_num = rdr["serial_num"]?.ToString(),
+                                     id = rdr["id"]?.ToString(),
+                                     full_grant_num = rdr["full_grant_num"]?.ToString(),
+                                     supp_appl_id = rdr["supp_appl_id"]?.ToString(),
+                                     support_year = rdr["support_year"]?.ToString(),
+                                     suffix_code = rdr["suffix_code"]?.ToString(),
+                                     former_num = rdr["former_num"]?.ToString(),
+                                     submitted_date = rdr["submitted_date"]?.ToString(),
+                                     category_name = rdr["category_name"]?.ToString(),
+                                     url = rdr["url"]?.ToString(),
+                                     moved_date = rdr["moved_date"]?.ToString(),
+                                     moved_by = rdr["moved_by"]?.ToString()
+                                 });
+
+                return list;
             }
-
-            conn.Close();
-
-            return list;
         }
 
         // Phase2
         /// <summary>
-        /// The get ic list.
+        ///     The get ic list.
         /// </summary>
         /// <returns>
-        /// The <see cref="List"/>.
+        ///     The <see cref="System.Collections.Generic.List`1" /> .
         /// </returns>
         public static List<string> GetICList()
         {
@@ -252,28 +250,25 @@ namespace egrants_new.Egrants.Models
                 while (rdr.Read())
                     list.Add(rdr[0].ToString());
 
-                // added by Leon 5/11/2019
-                conn.Close();
             }
 
             return list;
         }
 
-        // search by filters
         /// <summary>
-        /// The get search query.
+        /// The get search query. search by filters
         /// </summary>
         /// <param name="fy">
         /// The fy.
         /// </param>
         /// <param name="mechanism">
-        /// The mechanism.
+        /// The mechanism
         /// </param>
-        /// <param name="admincode">
-        /// The admincode.
+        /// <param name="adminCode">
+        /// The adminCode.
         /// </param>
-        /// <param name="serialnum">
-        /// The serialnum.
+        /// <param name="serialNumber">
+        /// The serialNumber.
         /// </param>
         /// <param name="page_num">
         /// The page_num.
@@ -288,13 +283,13 @@ namespace egrants_new.Egrants.Models
         /// The userid.
         /// </param>
         /// <returns>
-        /// The <see cref="string"/>.
+        /// The <see cref="string"/> .
         /// </returns>
         public static string GetSearchQuery(
             int fy,
             string mechanism,
-            string admincode,
-            int serialnum,
+            string adminCode,
+            int serialNumber,
             int page_num,
             string browser,
             string ic,
@@ -308,8 +303,8 @@ namespace egrants_new.Egrants.Models
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@fy", fy);
                 cmd.Parameters.AddWithValue("@mechanism", mechanism);
-                cmd.Parameters.AddWithValue("@admincode", admincode);
-                cmd.Parameters.AddWithValue("@serialnum", serialnum);
+                cmd.Parameters.AddWithValue("@adminCode", adminCode);
+                cmd.Parameters.AddWithValue("@serialnum", serialNumber);
                 cmd.Parameters.AddWithValue("@page_num", page_num);
                 cmd.Parameters.AddWithValue("@browser", browser);
                 cmd.Parameters.AddWithValue("@ic", ic);
@@ -322,32 +317,31 @@ namespace egrants_new.Egrants.Models
                     FilterSearchQuery = rdr[0].ToString();
 
                 // added by Leon 5/11/2019
-                conn.Close();
+                //conn.Close();
             }
 
             return FilterSearchQuery;
         }
 
-        // load full grant number list by filters data---added by Ayu 3/15
         /// <summary>
         /// The get year list.
         /// </summary>
-        /// <param name="fy">
-        /// The fy.
+        /// <param name="fiscalYear">
+        /// The fiscal year.
         /// </param>
         /// <param name="mechanism">
         /// The mechanism.
         /// </param>
-        /// <param name="admin_code">
-        /// The admin_code.
+        /// <param name="adminCode">
+        /// The admin code.
         /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
+        /// <param name="serialNumber">
+        /// The serial number.
         /// </param>
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<string> GetYearList(string fy = null, string mechanism = null, string admin_code = null, string serial_num = null)
+        public static List<string> GetYearList(string fiscalYear = null, string mechanism = null, string adminCode = null, string serialNumber = null)
         {
             var yearList = new List<string>();
 
@@ -355,10 +349,10 @@ namespace egrants_new.Egrants.Models
             {
                 var cmd = new SqlCommand("sp_web_egrants_load_data_years", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@fy", fy);
+                cmd.Parameters.AddWithValue("@fy", fiscalYear);
                 cmd.Parameters.AddWithValue("@mechanism", mechanism);
-                cmd.Parameters.AddWithValue("@admincode", admin_code);
-                cmd.Parameters.AddWithValue("@serialnum", serial_num);
+                cmd.Parameters.AddWithValue("@admincode", adminCode);
+                cmd.Parameters.AddWithValue("@serialnum", serialNumber);
 
                 conn.Open();
                 var rdr = cmd.ExecuteReader();
@@ -370,13 +364,12 @@ namespace egrants_new.Egrants.Models
                 }
 
                 // added by Leon 5/11/2019
-                conn.Close();
+                //conn.Close();
             }
 
             return yearList;
         }
 
-        // load category list string 
         /// <summary>
         /// The get category list.
         /// </summary>
@@ -387,7 +380,7 @@ namespace egrants_new.Egrants.Models
         /// The years.
         /// </param>
         /// <returns>
-        /// The <see cref="List"/>.
+        /// The <see cref="System.Collections.Generic.List`1"/> .
         /// </returns>
         public static List<string> GetCategoryList(int grant_id, string years)
         {
@@ -410,40 +403,11 @@ namespace egrants_new.Egrants.Models
                 }
 
                 // added by Leon 5/11/2019
-                conn.Close();
+                //conn.Close();
             }
 
             return CategoryList;
         }
-
-        // load category name string by year
-        // public static string Get_CategoryName_by_year(int grant_id, string years)
-        // {
-        // string CategoryNameList = "";
-        // using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
-        // {
-        // SqlCommand cmd = new SqlCommand("sp_web_egrants_load_category_list", conn);
-        // cmd.CommandType = CommandType.StoredProcedure;
-        // cmd.Parameters.AddWithValue("@grant_id", grant_id);
-        // cmd.Parameters.AddWithValue("@years", years);
-
-        // conn.Open();
-        // SqlDataReader rdr = cmd.ExecuteReader();
-
-        // while (rdr.Read())
-        // {
-        // string category = rdr[1].ToString() + ", ";
-        // CategoryNameList = CategoryNameList + category;
-        // }
-        // }
-
-        // if (CategoryNameList !="" && CategoryNameList.IndexOf(",") > 0)
-        // {
-        // CategoryNameList = CategoryNameList.Substring(0, (CategoryNameList.Length - 2));
-        // }
-
-        // return CategoryNameList;
-        // }
 
         // load category name string by year
         /// <summary>
@@ -453,7 +417,7 @@ namespace egrants_new.Egrants.Models
         /// The categories.
         /// </param>
         /// <returns>
-        /// The <see cref="string"/>.
+        /// The <see cref="string"/> .
         /// </returns>
         public static string Get_CategoryName_by_id(string categories)
         {
@@ -479,11 +443,13 @@ namespace egrants_new.Egrants.Models
                 }
 
                 // added by Leon 5/11/2019
-                conn.Close();
+               // conn.Close();
             }
 
             if (CategoryNameList != string.Empty && CategoryNameList.IndexOf(",") > 0)
+            {
                 CategoryNameList = CategoryNameList.Substring(0, CategoryNameList.Length - 2);
+            }
 
             return CategoryNameList;
         }
@@ -495,7 +461,7 @@ namespace egrants_new.Egrants.Models
         /// The appl_id.
         /// </param>
         /// <returns>
-        /// The <see cref="int"/>.
+        /// The <see cref="int"/> .
         /// </returns>
         public static int GetGrantID(int appl_id)
         {
@@ -510,9 +476,10 @@ namespace egrants_new.Egrants.Models
                 var rdr = cmd.ExecuteReader();
 
                 while (rdr.Read())
+                {
                     grant_id = Convert.ToInt32(rdr["grant_id"]);
+                }
 
-                conn.Close();
 
                 return grant_id;
 
@@ -524,13 +491,14 @@ namespace egrants_new.Egrants.Models
         }
 
         /// <summary>
-        /// Check if this grant_id is existing in grants table, added by Leon 7/10/2019
+        /// Check if this <paramref name="grant_id"/> is existing in grants
+        ///     table, added by Leon 7/10/2019
         /// </summary>
         /// <param name="grant_id">
         /// The grant_id.
         /// </param>
         /// <returns>
-        /// The <see cref="int"/>.
+        /// The <see cref="int"/> .
         /// </returns>
         public static int CheckGrantID(int grant_id)
         {
@@ -549,7 +517,7 @@ namespace egrants_new.Egrants.Models
                     exists = Convert.ToInt32(rdr["count_id"]);
                 }
 
-                conn.Close();
+                //conn.Close();
 
                 return exists;
             }

@@ -180,7 +180,7 @@
         }
 
         //check loacte file, file type and file size
-        if (check_file() == false) {
+        if (!check_file()) {
             return false;
         } else var file = document.getElementById('customFile').files[0];
 
@@ -422,7 +422,7 @@
                 <strong id="done"><span id="mssg"></span></strong>
              </td>
              <td valign="top" style="width: 400px; padding-left: 50px;">
-                <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal; ;">
+                <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
                    @* <span class="text-justify align-content-center m-4"> *@
                    <strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
                    @* </span> *@
