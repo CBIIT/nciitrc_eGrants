@@ -411,7 +411,7 @@
                      render: function (data, type, full, meta) {
                         if (full.frc_destroyed == 0) {
                             if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-                                return "<div id=\"dl_checkbox2_" +
+                                return "<div id=\"dl_checkbox_" +
                                     full.document_id +
                                     "\"" +
                                     " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
@@ -428,7 +428,7 @@
                            } else if (full.attachment_count > 0) {
                                console.log("Show me Attachments:" + JSON.stringify(full));
 ;
-                               return "<div id=\"dl_checkbox2_" +
+                               return "<div id=\"dl_checkbox_" +
                                    full.document_id +
                                    "\"" +
                                    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
@@ -442,7 +442,7 @@
                                    "/></div>";
                           } else if (full.document_name == "Closeout Notification") {
                                //console.log("Show me ClousoutNotifications:" + JSON.stringify(full));
-                                return "<div id=\"dl_checkbox2_" +
+                                return "<div id=\"dl_checkbox_" +
                                     full.document_id +
                                     "\"" +
                                     " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
@@ -866,7 +866,7 @@
                      var tr = $(this).closest('tr');
                      var row = table.row(tr);
                      //show_qc_dl($(this).closest('div').attr('id'), 0);
-                     
+
 
 
                      var dataToSend = {};
@@ -899,7 +899,7 @@
                                 //     console.log(data[i].accepted_date);
                                 //     console.log(data[i].url);
                                 //     }
-                                     
+
                                 //}
 
                                  //if ($(this).prop('checked')) {
@@ -911,7 +911,7 @@
                                  //}
 
                                  //console.log(idx);
-                             
+
 
 
                              },
@@ -919,7 +919,7 @@
                                  console.log(resp);
                              }
                  });
-            });                        
+            });
 
             // when the user clicks the download button get all the rows that are checked
             $('#downloadData_@appl_id').on('click',
@@ -932,7 +932,7 @@
 
                   var list = new Array();
                   // loop through each datatable row and add the checked items to a list
-                  $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
+                   $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload FinancialReport'),
                      function() {
                         var tr = $(this).closest('tr');
                         var row = table.row(tr);
@@ -986,7 +986,7 @@
 
                            var countSuccess = 0;
 
-                           $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
+                            $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload FinancialReport'),
                               function() {
                                  var tr = $(this).closest('tr');
                                  var row = table.row(tr);
@@ -1097,55 +1097,18 @@
 //            var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
       //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
 
-      var str = "";
-        for (var i = 0; i < d.length; i++) {
-          if (d[i].tag == 1) {
-              console.log(d[i].appl_id);
-              console.log(d[i].full_grant_num);
-          }
-          if(d[i].tag == 2){
-              console.log(d[i].category_name);
-              console.log(d[i].accepted_date);
-              console.log(d[i].url);
 
-              str = str +  "<div id=\"dl_checkbox_ffr_" +
-                  d.accepted_date +
-                  "\"" +
-                  " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-                  " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
-                  d.accepted_date +
-                  "\"" +
-                  " class=\"qc\" name=\"qc\" value=\"" +
-                  d.accepted_date +
-                  "\"" +
-                  //((d.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                  "/></div>" + '<br>';
-          }
-                                     
-      }
-        //var str =  "<div id=\"dl_checkbox_ffr_" +
-        //    d.accepted_date +
-        //    "\"" +
-        //    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-        //    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+        //var str = "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">" +
+        //    "<tr>" +
+        //    "<td>Full name:</td>" +
+        //    "<td>" +
+        //    "<input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
         //    d.accepted_date +
         //    "\"" +
         //    " class=\"qc\" name=\"qc\" value=\"" +
         //    d.accepted_date +
         //    "\"" +
-        //    //((d.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-        //    "/></div>";
-
-        //str = str + '</div>';
-        // display all qc options
-        return str;
-//            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:880px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../../Content/images/Loading.gif"/></div>' + str + '</div>';
-
-        //'<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">' +
-        //    '<tr>' +
-        //    '<td>Full name:</td>' +
-        //    '<td>' +
-        //    d.document_id +
+        //    "/>' 
         //    '</td>' +
         //    '</tr>' +
         //    '<tr>' +
@@ -1159,6 +1122,40 @@
         //    '<td>And any further details here (images etc)...</td>' +
         //    '</tr>' +
         //    '</table>'
+
+    
+      var str = "";
+        for (var i = 0; i < d.length; i++) {
+          if (d[i].tag == 1) {
+              console.log(d[i].appl_id);
+              console.log(d[i].full_grant_num);
+          }
+          if(d[i].tag == 2){
+              console.log(d[i].category_name);
+              console.log(d[i].accepted_date);
+              console.log(d[i].url);
+              var tr = $(this).closest('tr');
+             // var row = table.row(tr);
+              //show_qc_dl($(this).closest('div').attr('id'), 1);
+              //row.child(formatForDownloadView(row.data())).show();
+             // tr.next('tr').addClass(tr.attr('class'));
+              str = str +  "<div id=\"dl_checkbox_ffr_" +
+                  d.accepted_date +
+                  "\"" +
+                  " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                  " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+                  d.accepted_date +
+                  "\"" +
+                  " class=\"qc\" name=\"qc\" value=\"" +
+                  d.accepted_date +
+                  "\"" +
+                  "/></div>" + '<br>';
+
+          }
+
+      }
+        return str;
+
 
     }
 
