@@ -40,6 +40,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 #endregion
 
@@ -214,9 +215,125 @@ namespace egrants_new.Egrants.Models
             // added by Leon 5/11/2019
             conn.Close();
 
+            // every appl with > 1 person from IRDB will be in the response
+            var mpi_info = GetAllMPIInfo(applList.Select(al => al.appl_id).ToList());
+            PopulateMPIIntoGrants(grantList, applList, mpi_info);
+
             grantlayerproperty = grantList;
             appllayerproperty = applList;
             doclayerproperty = docList;
+        }
+
+        public static Dictionary<string, List<PersonContact>> GetAllMPIInfo(List<string> appl_ids)
+        {
+            var results = new Dictionary<string, List<PersonContact>>();
+
+            if (appl_ids == null || appl_ids.Count == 0)
+                return results;
+
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            {
+                var sql = "DECLARE @TSQL varchar(8000);" +
+                    "SELECT @TSQL = 'SELECT * FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr from person_addresses_mv c, persons_secure d, person_involvements_mv e where d.profile_person_id = c.person_id and c.addr_type_code = ''''HOM'''' and e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE ) and d.person_id = e.person_id and c.preferred_addr_code = ''''Y'''' '')';" +
+                    "EXEC (@TSQL)";
+                var applsParam = string.Join(",", appl_ids);
+                sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
+
+                using (var cmd = new SqlCommand(sql, conn))
+                //                        "select category_name from categories where category_id in (" + categories + ") order by category_name", conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+
+                    // cmd.Parameters.AddWithValue("@years", years);
+                    conn.Open();
+                    var rdr = cmd.ExecuteReader();
+
+                    while (rdr.Read())
+                    {
+                        int personId;
+                        try
+                        {
+                            if (rdr[1] == DBNull.Value)
+                                personId = default(int);
+                            else
+                            {
+                                personId = Int32.Parse(rdr[1].ToString());
+                            }
+                        }
+                        catch (FormatException)
+                        {
+                            // fault tolerance on this since we are not displaying
+                            personId = default(int);
+                        }
+
+                        var person = new PersonContact
+                        {
+                            appl_id = (rdr[0] == DBNull.Value) ? string.Empty : rdr[0].ToString(),
+                            person_id = personId,
+                            first_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
+                            last_name = (rdr[3] == DBNull.Value) ? string.Empty : (string)rdr[3],
+                            src_mi_name = (rdr[4] == DBNull.Value) ? string.Empty : (string)rdr[4],
+                            email_addr = (rdr[5] == DBNull.Value) ? string.Empty : (string)rdr[5]
+                        };
+                        if (!results.ContainsKey(person.appl_id))
+                        {
+                            results.Add(person.appl_id, new List<PersonContact> { person });
+                        }
+                        else
+                        {
+                            results[person.appl_id].Add(person);
+                        }
+                    }
+
+                }
+            }
+
+            // prune out the ones that don't have duplicates
+            var deleteTheseKeys = new List<string>();
+            foreach (var key in results.Keys)
+            {
+                if (results[key].Count <= 1)
+                {
+                    deleteTheseKeys.Add(key);
+                }
+            }
+            foreach (var keyToDelete in deleteTheseKeys)
+            {
+                results.Remove(keyToDelete);
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Put the MPI info into the grant layer
+        /// </summary>
+        /// <param name="grantList"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private static void PopulateMPIIntoGrants(List<GrantLayer> grantList, List<ApplLayerObject> applList, Dictionary<string, List<PersonContact>> mpiInfo)
+        {
+            foreach (var grant in grantList)
+            {
+                var applsThisGrant = applList.Where(al => al.grant_id == grant.grant_id).ToList();
+                var piListThisGrant = new List<PersonContact>();
+                var alreadyAddedEmails = new HashSet<string>();
+
+                foreach (var appl in applsThisGrant)
+                {
+                    if (mpiInfo.ContainsKey(appl.appl_id))
+                    {
+                        foreach (var contact in mpiInfo[appl.appl_id])
+                        {
+                            if (!alreadyAddedEmails.Contains(contact.email_addr))
+                            {
+                                piListThisGrant.Add(contact);
+                                alreadyAddedEmails.Add(contact.email_addr);
+                            }
+                        }
+                    }
+                }
+                grant.MPIContacts = piListThisGrant;
+            }
         }
     }
 }
