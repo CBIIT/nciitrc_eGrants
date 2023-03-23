@@ -303,6 +303,9 @@ namespace egrants_new.Egrants.Models
                 results.Remove(keyToDelete);
             }
 
+            // for testing
+            results.Remove("10367331");
+
             return results;
         }
 
@@ -333,8 +336,8 @@ namespace egrants_new.Egrants.Models
                                 alreadyAddedEmails.Add(contact.email_addr);
                             }
                         }
-                    }
-                    appl.MPIContacts= piListThisGrant;
+                        appl.MPIContacts = piListThisGrant;
+                    }                    
                 }
                 grant.MPIContacts = piListThisGrant;
             }

@@ -309,7 +309,7 @@
          var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
       } else if (flag_type == "MPI") {
           var selectedCheckBoxIds = [];
-          var selectedCheckBoxes = document.querySelectorAll('input[type=checkbox]:checked')
+          var selectedCheckBoxes = document.querySelectorAll('input[name=appl_year_checkbox]:checked')
           for (var i = 0; i < selectedCheckBoxes.length; i++) {
               var id = selectedCheckBoxes[i].id;
               if (id != "toggle_appls_checkall")
@@ -317,67 +317,10 @@
           }
           if (selectedCheckBoxIds.length == 1) {
               $("#mpiModal" + selectedCheckBoxIds[0]).modal('show');
-              // to do display custom title
-
-              var applIdThisCheckBox = selectedCheckBoxIds[0];
-              var messages = {};
-
-              @{
-                  var newLine = "conspicuousNewLine";
-              }
-
-              // pre populate all the MPIs in each appl and pick the one selected after rendering
-              @if (ViewBag.appllayer != null) {
-                  foreach (ApplLayerObject appl in ViewBag.appllayer)
-                  {
-                      var sb = new System.Text.StringBuilder();
-
-                      sb.Append($"Multiple Person Investigators:{newLine}");
-                      //                  foreach(egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
-                      for (int i = 0; i < appl.MPIContacts.Count(); i++)
-                      {
-                          egrants_new.Egrants.Models.PersonContact person = appl.MPIContacts[i];
-                          sb.Append($"{person.last_name}, {person.first_name}");
-                          if (i != appl.MPIContacts.Count() - 1)
-                          {
-                              sb.Append(newLine);
-                          }
-                      }
-                      @Html.Raw($"messages[\"{appl.appl_id}\"] = \"{sb.ToString()}\";");
-                      @* Html.Raw("var message" + appl.appl_id + $" = \"{sb.ToString()}\""); *@
-                  }
-              }
-              //var newLineJS = "@newLine";
-//              alert('result: ' + messages[applIdThisCheckBox]);
-              var toolTip = messages[applIdThisCheckBox].replace(/conspicuousNewLine/g, '\r\n');
-              //alert('result: ' + toolTip);
-              document.getElementById("imgLink" + grant_id).setAttribute('title', toolTip );
-//              document.getElementById("grantLink" + grant_id).setAttribute('title', messages[applIdThisCheckBox]);
-//              document.getElementById("grantLink" + grant_id).setAttribute('title', messages[applIdThisCheckBox].replace(/@newLine/g, '\r\n'));
-             // document.getElementById("grantLink" + grant_id).setAttribute('title', "Has Multi-PI Grant Year(s)2");
-
-//              alert("selectedCheckBoxes: " + selectedCheckBoxes);
-          } else {
-              document.getElementById("imgLink" + grant_id).setAttribute('title', "Has Multi-PI Grant Year(s)2");
           }
-
-          //var divs_w_checkboxes = document.querySelector("[id^='appl_toggle_*']");
-          //var div_array = [...divs_w_checkboxes]; // converts NodeList to Array
-          //div_array.forEach(div => {
-          //    var children = tableFields.children;
-          //    for (var i = 0; i < children.length; i++) {
-          //        var tableChild = children[i];
-          //        if (tableChild.type && tableChild.type === 'checkbox') {
-          //        }
-                  // Do stuff
-          //    }
-              // do something awesome with each div
-
-          //});
-          // figure out which grant check boxes are selected ...
-       //  $("#mpiModal" + derive the appl id here).modal('show');
-
-          // update the title for "grantLink" + grant.grant_id; to be
+          //else {
+          //    document.getElementById("imgLink" + grant_id).setAttribute('title', "Has Multi-PI Grant Year(s)");
+          //}
          return;
       } else if (flag_type == "ARRA") {
          flag_type = "All"
@@ -935,7 +878,7 @@
                             @if (appl.MPIContacts != null)
                             {
                                 <div style="float:left; vertical-align:bottom; width:auto">
-                                    <b>Multiple Person Investigators:</b>
+                                    <b>Multiple Principal Investigators:</b>
                                 </div><br style="clear:both">
                                 foreach (egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
                                 {
@@ -967,7 +910,7 @@
                             else
                             {
                                 <p>Something went wrong.</p>
-                                <p>No Multiple Person Investigators returned.</p>
+                                <p>No Multiple Principal Investigators returned.</p>
                                 <p>This could be a problem with IRDB.</p>
                             }
                             <div></div>
