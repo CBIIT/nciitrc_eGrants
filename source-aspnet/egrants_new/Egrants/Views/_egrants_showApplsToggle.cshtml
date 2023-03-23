@@ -213,7 +213,7 @@
                       if (defualt_appls_columns_1 <= defualt_appls_per_column)
                       {
                          <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1">
-                            <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
+                            <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
                             <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                             @if (Convert.ToString(appl.appl_ds_flag) == "y")
                             {
@@ -266,7 +266,7 @@
                       if (defualt_appls_columns_2 > defualt_appls_per_column && defualt_appls_columns_2 <= (defualt_appls_per_column * 2))
                       {
                          <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1" >
-                            <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
+                            <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
                             <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                             @if (Convert.ToString(appl.appl_ds_flag) == "y")
                             {
@@ -319,7 +319,7 @@
                       if (defualt_appls_columns_3 > (defualt_appls_per_column * 2) && defualt_appls_columns_3 <= Convert.ToInt16(defualt_appls_total))
                       {
                          <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1">
-                            <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
+                            <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
                             <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                             @if (Convert.ToString(appl.appl_ds_flag) == "y")
                             {

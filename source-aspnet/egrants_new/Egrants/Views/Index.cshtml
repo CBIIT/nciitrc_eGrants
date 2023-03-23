@@ -220,7 +220,7 @@
       check_selected_cats(grant_id);
       by_grant(grant_id, 'All', 'All', cats_list, 'All');
    }
-    
+
    function checkYears(event, grant_id) {
 
       var char = event.which || event.keyCode;
@@ -308,8 +308,76 @@
          var appls_list = "All";
          var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
       } else if (flag_type == "MPI") {
-         //alert('you clicked MPI !');
-         $("#mpiModal" + grant_id).modal('show');
+          var selectedCheckBoxIds = [];
+          var selectedCheckBoxes = document.querySelectorAll('input[type=checkbox]:checked')
+          for (var i = 0; i < selectedCheckBoxes.length; i++) {
+              var id = selectedCheckBoxes[i].id;
+              if (id != "toggle_appls_checkall")
+                  selectedCheckBoxIds.push(selectedCheckBoxes[i].id)
+          }
+          if (selectedCheckBoxIds.length == 1) {
+              $("#mpiModal" + selectedCheckBoxIds[0]).modal('show');
+              // to do display custom title
+
+              var applIdThisCheckBox = selectedCheckBoxIds[0];
+              var messages = {};
+
+              @{
+                  var newLine = "conspicuousNewLine";
+              }
+
+              // pre populate all the MPIs in each appl and pick the one selected after rendering
+              @if (ViewBag.appllayer != null) {
+                  foreach (ApplLayerObject appl in ViewBag.appllayer)
+                  {
+                      var sb = new System.Text.StringBuilder();
+
+                      sb.Append($"Multiple Person Investigators:{newLine}");
+                      //                  foreach(egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
+                      for (int i = 0; i < appl.MPIContacts.Count(); i++)
+                      {
+                          egrants_new.Egrants.Models.PersonContact person = appl.MPIContacts[i];
+                          sb.Append($"{person.last_name}, {person.first_name}");
+                          if (i != appl.MPIContacts.Count() - 1)
+                          {
+                              sb.Append(newLine);
+                          }
+                      }
+                      @Html.Raw($"messages[\"{appl.appl_id}\"] = \"{sb.ToString()}\";");
+                      @* Html.Raw("var message" + appl.appl_id + $" = \"{sb.ToString()}\""); *@
+                  }
+              }
+              //var newLineJS = "@newLine";
+//              alert('result: ' + messages[applIdThisCheckBox]);
+              var toolTip = messages[applIdThisCheckBox].replace(/conspicuousNewLine/g, '\r\n');
+              //alert('result: ' + toolTip);
+              document.getElementById("imgLink" + grant_id).setAttribute('title', toolTip );
+//              document.getElementById("grantLink" + grant_id).setAttribute('title', messages[applIdThisCheckBox]);
+//              document.getElementById("grantLink" + grant_id).setAttribute('title', messages[applIdThisCheckBox].replace(/@newLine/g, '\r\n'));
+             // document.getElementById("grantLink" + grant_id).setAttribute('title', "Has Multi-PI Grant Year(s)2");
+
+//              alert("selectedCheckBoxes: " + selectedCheckBoxes);
+          } else {
+              document.getElementById("imgLink" + grant_id).setAttribute('title', "Has Multi-PI Grant Year(s)2");
+          }
+
+          //var divs_w_checkboxes = document.querySelector("[id^='appl_toggle_*']");
+          //var div_array = [...divs_w_checkboxes]; // converts NodeList to Array
+          //div_array.forEach(div => {
+          //    var children = tableFields.children;
+          //    for (var i = 0; i < children.length; i++) {
+          //        var tableChild = children[i];
+          //        if (tableChild.type && tableChild.type === 'checkbox') {
+          //        }
+                  // Do stuff
+          //    }
+              // do something awesome with each div
+
+          //});
+          // figure out which grant check boxes are selected ...
+       //  $("#mpiModal" + derive the appl id here).modal('show');
+
+          // update the title for "grantLink" + grant.grant_id; to be
          return;
       } else if (flag_type == "ARRA") {
          flag_type = "All"
@@ -345,7 +413,7 @@
          $('#downloadForm').attr("hidden", false);
          $('#standardForm').attr("hidden", true);
          document.getElementById("toggle_title").innerHTML = "Audit File Download";
- 
+
            currentView = "DownloadForm";
 
          return;
@@ -751,8 +819,10 @@
 
                                 @if (grant.MPIContacts != null && grant.MPIContacts.Count > 1)
                                 {
+                                    string grantLinkId = "grantLink" + grant.grant_id;
+                                    string imgLinkId = "imgLink" + grant.grant_id;
                                     <span style="margin-left:10px; width:80px;">
-                                        <a href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="This will be populated dynamically" /></a>
+                                        <a id ="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="Has Multi-PI Grant Year(s)" /></a>
                                     </span>
                                 }
 
@@ -846,9 +916,12 @@
     <!--start show popup modal -->
     @if (ViewBag.grantLayer != null)
     {
-        foreach (var grant in ViewBag.grantlayer)
+        foreach (ApplLayerObject appl in ViewBag.appllayer)
         {
-            string mpiModalId = "mpiModal" + grant.grant_id;
+            string mpiModalId = "mpiModal" + appl.appl_id;
+            string grantId = appl.grant_id;
+            List<GrantLayer> grants = ViewBag.grantLayer;
+            var grant = grants.First( gl => gl.grant_id == grantId);
             <div class="modal fade" id="@mpiModalId" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -859,12 +932,12 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            @if (grant.MPIContacts != null)
+                            @if (appl.MPIContacts != null)
                             {
                                 <div style="float:left; vertical-align:bottom; width:auto">
                                     <b>Multiple Person Investigators:</b>
                                 </div><br style="clear:both">
-                                foreach (egrants_new.Egrants.Models.PersonContact person in grant.MPIContacts)
+                                foreach (egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
                                 {
                                     string grantPIName = (string)grant.current_pi_name;
                                     if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) != -1 &&
