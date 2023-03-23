@@ -388,25 +388,25 @@
                      targets: [3]
                   }
                ],
-               columns: [
-                  {
-                     className: "details-control",
-                     // show qc icon
-                     render: function(data, type, full, meta) {
-                              return "<div id='show_qc_dl_" +
-                                 full.document_id +
-                                 "'  class='show_qc_dl' style='width:30px; display:inline'>" +
-                                 "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
-                                 "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
-                                 "<div id='hide_qc_dl_" +
-                                 full.document_id +
-                                 "' class='hide_qc_dl' style='width:30px; display:none'>" +
-                                 "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
-                                 "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
+                columns: [
+                    {
+                        className: "details-control",
+                        // show qc icon
+                        render: function (data, type, full, meta) {
+                            return "<div id='show_qc_dl_" +
+                                full.document_id +
+                                "'  class='show_qc_dl' style='width:30px; display:inline'>" +
+                                "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
+                                "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
+                                "<div id='hide_qc_dl_" +
+                                full.document_id +
+                                "' class='hide_qc_dl' style='width:30px; display:none'>" +
+                                "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
+                                "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
 
-                         }
-                  },
-                   {
+                        }
+                    },
+                    {
                       // show the checkox's that allow a user to download files
                      render: function (data, type, full, meta) {
                         if (full.frc_destroyed == 0) {
@@ -481,10 +481,10 @@
                                    full.url +
                                    "') title='show document'>" +
                                    full.document_name +
-                                   "</a>" +
-                                   "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='attachments' data-assigned-id=" +
-                                   full.document_id +
-                                   " title='Show all items'>Show Items</a>";
+                                   "</a>"
+                                   //"<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='attachments' data-assigned-id=" +
+                                   //full.document_id +
+                                   //" title='Show all items'>Show Items</a>";
 
                                //var tr = $(this).closest('tr');
                                //console.log(tr);
@@ -543,7 +543,11 @@
 //                  },
                   {
                      // replace document image
-                     render: function(data, type, full, meta) {
+                      render: function (data, type, full, meta) {
+                          console.log("Full:" + JSON.stringify(full));
+                          console.log("data:" + data);
+                          console.log("type:" + type);
+                          console.log("meta:" + JSON.stringify(meta));
                         var str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-emoji-heart-eyes text-success\" viewBox=\"0 0 16 16\">" +
                            "<path d=\"M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"/>" +
                            "<path d=\"M11.315 10.014a.5.5 0 0 1 .548.736A4.498 4.498 0 0 1 7.965 13a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .548-.736h.005l.017.005.067.015.252.055c.215.046.515.108.857.169.693.124 1.522.242 2.152.242.63 0 1.46-.118 2.152-.242a26.58 26.58 0 0 0 1.109-.224l.067-.015.017-.004.005-.002zM4.756 4.566c.763-1.424 4.02-.12.952 3.434-4.496-1.596-2.35-4.298-.952-3.434zm6.488 0c1.398-.864 3.544 1.838-.952 3.434-3.067-3.554.19-4.858.952-3.434z\"/></svg>";
@@ -552,8 +556,14 @@
 //                           "<svg class=\"svg-inline--fa fa-camera fa-w-16\" aria-hidden=\"true\" data-prefix=\"fa-solid\" data-icon=\"camera\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\" data-fa-i2svg=\"\">"
 //                           + "<path fill=\"currentColor\" d=\"M188.12 210.74L142.86 256l45.25 45.25L233.37 256l-45.25-45.26zm113.13-22.62L256 142.86l-45.25 45.25L256 233.37l45.25-45.25zm-90.5 135.76L256 369.14l45.26-45.26L256 278.63l-45.25 45.25zM256 0C114.62 0 0 114.62 0 256s114.62 256 256 256 256-114.62 256-256S397.38 0 256 0zm186.68 295.6l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-28.29-28.29-45.25 45.25 33.94 33.94 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-33.94-33.94-45.26 45.26 28.29 28.29c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0L256 414.39l-28.29 28.29c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l28.29-28.29-45.25-45.26-33.94 33.94 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 33.94-33.94-45.25-45.25-28.29 28.29c-3.12 3.12-8.19 3.12-11.31 0L69.32 295.6c-3.12-3.12-3.12-8.19 0-11.31L97.61 256l-28.29-28.29c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l28.29 28.29 45.25-45.26-33.94-33.94-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 33.94 33.94 45.26-45.25-28.29-28.29c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0L256 97.61l28.29-28.29c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-28.29 28.29 45.26 45.25 33.94-33.94-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-33.94 33.94 45.25 45.26 28.29-28.29c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31L414.39 256l28.29 28.28a8.015 8.015 0 0 1 0 11.32zM278.63 256l45.26 45.25L369.14 256l-45.25-45.26L278.63 256z\">"
 //                           + "</path>" + "</svg>" + "</i>";
-                        var spinit = ((full.url.substring(0, 11) == "https://i2e" ? "<i class=\"fa fa-file-excel\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"File URL is not supported.\"></i>" : "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>"));
-                        //  <button type="button" class="btn btn-lg btn-danger" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">Click to toggle popover</button>
+                       //   var spinit = "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>";
+
+                       var spinit = ((full.url.substring(0, 11) == "https://i2e" ? "<i class=\"fa fa-file-excel\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"File URL is not supported.\"></i>" : "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>"));
+
+
+
+
+                      //  <button type="button" class="btn btn-lg btn-danger" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">Click to toggle popover</button>
                         // var spinit = "<i class=\"bi bi-file-earmark\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"Select row to download\"></i>";
 //                        var spinit = "<div class=\"fa=1x\"><i  class=\"fa fa-file text-secondary\"></i></div>";
 //                        var spinit = "<div class=\"fa-1x\">"
@@ -814,7 +824,7 @@
                         dataToSend.act = "closeout";
                         dataToSend.appl_id = @appl_id;
 
-
+                   var act = "closeout";
                                $.ajax(
                                    {
                                        cache: false,
@@ -822,7 +832,7 @@
                                        type: 'POST',
                                        dataType: 'JSON',
                                        contentType: 'application/json; charset=utf=8',
-                                       url: "/Egrants/impac_docs_data",
+                                       url: '/Egrants/impac_docs_data',
                                        data: JSON.stringify(dataToSend),
                                        success: function (data) {
 
@@ -859,8 +869,28 @@
 
 
 
+
+            // $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+             //    'input.FinancialReport',
+            //     function () {
+             //        console.log("In Financial Report");
+            //         var tr = $(this).closest('tr');
+             //        var row = table.row(tr);
+            //         console.log(JSON.stringify(row));
+//
+            //         var dataToSend = {};
+             //        dataToSend.act = "fsr";
+             //        dataToSend.appl_id = @appl_id;
+
+             //        var act = "fsr";
+              //       row.child(formatFinancialReportChildRow(act, @appl_id)).show();
+
+             //    });
+       //     });
+
+
              $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
-                 'input.FinancialReport',
+                 'input.showDownload, .FinancialReport',
                  function () {
                      console.log("In Financial Report");
                      var tr = $(this).closest('tr');
@@ -873,6 +903,7 @@
                      dataToSend.act = "fsr";
                      dataToSend.appl_id = @appl_id;
 
+
                      $.ajax(
                          {
                              cache: false,
@@ -880,7 +911,7 @@
                              type: 'POST',
                              dataType: 'JSON',
                              contentType: 'application/json; charset=utf=8',
-                             url: "/Egrants/impac_docs_data",
+                             url: '/Egrants/impac_docs_data',
                              data: JSON.stringify(dataToSend),
                              success: function (data) {
                                  console.log("Response Returned:" + JSON.stringify(data));
@@ -889,22 +920,26 @@
                                  //var respSfied = JSON.stringify(data);
                                  //var respt = JSON.parse(JSON.stringify(data));
 
-                                // for (var i = 0; i < data.length; i++) {
-                                //     if (data[i].tag == 1) {
-                                //         console.log(data[i].appl_id);
-                                //         console.log(data[i].full_grant_num);
-                                //     }
-                                //     if(data[i].tag == 2){
-                                //     console.log(data[i].category_name);
-                                //     console.log(data[i].accepted_date);
-                                //     console.log(data[i].url);
-                                //     }
+                                 for (var i = 0; i < data.length; i++) {
+                                     if (data[i].tag == 1) {
+                                         console.log(data[i].appl_id);
+                                         console.log(data[i].full_grant_num);
+                                     }
+                                     if(data[i].tag == 2){
+                                     console.log(data[i].category_name);
+                                     console.log(data[i].accepted_date);
+                                         console.log(data[i].url);
 
-                                //}
+                                         table.row.add([, , data[i].accepted_date, data[i].url]).draw(false);
+                                     }
+
+                                }
 
                                 // if ($().prop('checked')) {
-                                 row.child(formatFinancialReportChildRow(data)).show();
-                                 tr.next('tr').addClass(tr.attr('class'));
+      
+
+                                 //row.child(formatFinancialReportChildRow(data)).show();
+                                // tr.next('tr').addClass(tr.attr('class'));
                                 // }
                                  //if ($(this).prop('checked')){
                                  //    row.child(formatFinancialReportChildRow(data)).hide();
@@ -932,7 +967,7 @@
 
                   var list = new Array();
                   // loop through each datatable row and add the checked items to a list
-                   $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload FinancialReport'),
+                   $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload, .FinancialReport'),
                      function() {
                         var tr = $(this).closest('tr');
                         var row = table.row(tr);
@@ -986,7 +1021,7 @@
 
                            var countSuccess = 0;
 
-                            $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload FinancialReport'),
+                            $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload, .FinancialReport'),
                               function() {
                                  var tr = $(this).closest('tr');
                                  var row = table.row(tr);
@@ -1060,7 +1095,6 @@
                   $('#NormalModalTitle').html(modal_title);
                   $('#NormalModalPartial').load(route);
                });
-
          });
 
          /* Formatting function for row details   margin-left:65px;*/
@@ -1099,8 +1133,6 @@
 
 
 
-
-    
         var str = "";
         var str = "<table cellpadding=\"1\" cellspacing=\"1\" border=\"0\" style=\"padding-left:50px;\">";
         for (var i = 0; i < d.length; i++) {
@@ -1114,21 +1146,25 @@
                 console.log(d[i].accepted_date);
                 console.log(d[i].url);
                 var tr = $(this).closest('tr');
+                console.log(tr);
 
-
-            str = str + 
-            "<tr>" +
-                "<td><span class=\"ml-2\">Financial Report :<\span></td>" +
+            str = str +
+                "<tr>" +
                 "<td>" +
                 "<input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
                 d[i].category_name +
-                    "\"" +
-                    " class=\"qc\" name=\"qc\" value=\"" +
+                "\"" +
+                " class=\"qc\" name=\"qc\" value=\"" +
                 d[i].category_name +
-                    "\"" +
-                    "/>" +
+                "\"" +
+                "/>" +
                 "</td>" +
-                "<td class=\"pl-2\">Date:</td>" +
+                "<td><a href=JavaScript:show_doc('" +
+                    d[i].url +
+                   "') title='show document'>" +
+                        d[i].category_name +
+                        "</a></td>" +
+                "<td><span class=\"ml-2\">Date:<\span></td>" +
                 "<td>" +
                 d[i].accepted_date +
                 "</td>" +
