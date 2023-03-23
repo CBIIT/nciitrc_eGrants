@@ -1,0 +1,100 @@
+﻿@using egrants_new.Egrants.Models;
+@{
+    ViewBag.Title = "eGrants [Show Popup Modal]";
+}
+
+<style>
+    .modal {
+        text-align: center;
+        padding: 0 !important;
+    }
+
+    #NormalModal .modal-dialog {
+        width: 600px !important;
+        height: 300px !important;
+    }
+
+    #NormalModal .modal-content {
+        width: 600px !important;
+        height: 300px !important;
+    }
+
+    #MediumModal .modal-dialog {
+        width: 700px !important;
+        height: 500px !important;
+    }
+
+    #MediumModal .modal-content {
+        width: 700px !important;
+        height: 500px !important;
+    }
+</style>
+
+
+
+@if (ViewBag.grantLayer != null)
+{
+    foreach (ApplLayerObject appl in ViewBag.appllayer)
+    {
+        string mpiModalId = "mpiModal" + appl.appl_id;
+        string grantId = appl.grant_id;
+        List<GrantLayer> grants = ViewBag.grantLayer;
+        var grant = grants.First(gl => gl.grant_id == grantId);
+        <div class="modal fade" id="@mpiModalId" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Multiple Program Investigators</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        @if (appl.MPIContacts != null)
+                        {
+                            <div style="float:left; vertical-align:bottom; width:auto">
+                                <b>Multiple Principal Investigators:</b>
+                            </div><br style="clear:both">
+                            foreach (egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
+                            {
+                                string grantPIName = (string)grant.current_pi_name;
+                                if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) != -1 &&
+                                    grantPIName.IndexOf(person.last_name, StringComparison.InvariantCultureIgnoreCase) != -1)
+                                {
+                                    var pi_email = string.Empty;
+                                    if (grant.current_bo_email_address != "")
+                                    {
+                                        pi_email = grant.SelectedGrantPiEmail + ";" + grant.current_bo_email_address;
+                                    }
+                                    else
+                                    {
+                                        pi_email = grant.SelectedGrantPiEmail;
+                                    }
+                                    <div class="space-left" style="float:left; vertical-align:bottom; width:auto">
+                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                    </div><br style="clear:both">
+                                }
+                                else
+                                {
+                                    <div class="space-left" style="float:left; vertical-align:bottom; width:auto">
+                                        @person.first_name @person.last_name
+                                    </div><br style="clear:both">
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <p>Something went wrong.</p>
+                            <p>No Multiple Principal Investigators returned.</p>
+                            <p>This could be a problem with IRDB.</p>
+                        }
+                        <div></div>
+                    </div>
+                    <div class="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+

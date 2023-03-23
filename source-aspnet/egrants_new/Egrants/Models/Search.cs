@@ -241,11 +241,9 @@ namespace egrants_new.Egrants.Models
                 sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
 
                 using (var cmd = new SqlCommand(sql, conn))
-                //                        "select category_name from categories where category_id in (" + categories + ") order by category_name", conn))
                 {
                     cmd.CommandType = CommandType.Text;
 
-                    // cmd.Parameters.AddWithValue("@years", years);
                     conn.Open();
                     var rdr = cmd.ExecuteReader();
 
@@ -302,9 +300,6 @@ namespace egrants_new.Egrants.Models
             {
                 results.Remove(keyToDelete);
             }
-
-            // for testing
-            results.Remove("10367331");
 
             return results;
         }
