@@ -752,7 +752,7 @@
                                 @if (grant.MPIContacts != null && grant.MPIContacts.Count > 1)
                                 {
                                     <span style="margin-left:10px; width:80px;">
-                                        <a href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="View Grant with multiple program investigators for @grant.grant_num" /></a>
+                                        <a href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="This will be populated dynamically" /></a>
                                     </span>
                                 }
 
@@ -870,8 +870,17 @@
                                     if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) != -1 &&
                                         grantPIName.IndexOf(person.last_name, StringComparison.InvariantCultureIgnoreCase) != -1)
                                     {
+                                        var pi_email = string.Empty;
+                                        if (grant.current_bo_email_address != "")
+                                        {
+                                            pi_email = grant.SelectedGrantPiEmail + ";" + grant.current_bo_email_address;
+                                        }
+                                        else
+                                        {
+                                            pi_email = grant.SelectedGrantPiEmail;
+                                        }
                                         <div class="space-left" style="float:left; vertical-align:bottom; width:auto">
-                                            <a href="JavaScript:send_email('@person.email_addr','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                            <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
                                         </div><br style="clear:both">
                                     }
                                     else
