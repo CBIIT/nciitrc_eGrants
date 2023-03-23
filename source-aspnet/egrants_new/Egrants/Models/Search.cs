@@ -321,6 +321,7 @@ namespace egrants_new.Egrants.Models
 
                 foreach (var appl in applsThisGrant)
                 {
+                    var piListThisAppl = new List<PersonContact>();
                     if (mpiInfo.ContainsKey(appl.appl_id))
                     {
                         foreach (var contact in mpiInfo[appl.appl_id])
@@ -328,10 +329,12 @@ namespace egrants_new.Egrants.Models
                             if (!alreadyAddedEmails.Contains(contact.email_addr))
                             {
                                 piListThisGrant.Add(contact);
+                                piListThisAppl.Add(contact);
                                 alreadyAddedEmails.Add(contact.email_addr);
                             }
                         }
                     }
+                    appl.MPIContacts= piListThisGrant;
                 }
                 grant.MPIContacts = piListThisGrant;
             }
