@@ -355,6 +355,7 @@
     <Content Include="Content\images\flag_kat.png" />
     <Content Include="Content\images\flag_katrina_q.gif" />
     <Content Include="Content\images\flag_katrina_q.jpg" />
+    <Content Include="Content\images\flag_mpi.jpg" />
     <Content Include="Content\images\flag_MS.jpg" />
     <Content Include="Content\images\flag_MS.png" />
     <Content Include="Content\images\flag_od.jpg" />
