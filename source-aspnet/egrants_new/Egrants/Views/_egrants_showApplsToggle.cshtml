@@ -40,7 +40,7 @@
                             if (all_appls_columns_1 <= all_appls_per_column)
                             {
                                 <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1">
-                                    <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: grantYearChecked('all_appls',@appl.grant_id);" />
+                                    <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: create_selected_appls_list('all_appls');" />
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
@@ -92,7 +92,7 @@
                             if (all_appls_columns_2 > all_appls_per_column && all_appls_columns_2 <= (all_appls_per_column * 2))
                             {
                                 <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1">
-                                    <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: grantYearChecked('all_appls',@appl.grant_id);" />
+                                    <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: create_selected_appls_list('all_appls');" />
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
@@ -144,7 +144,7 @@
                             if (all_appls_columns_3 > (all_appls_per_column * 2) && all_appls_columns_3 < (Convert.ToInt16(ViewBag.ApplCount) + 1))
                             {
                                 <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1">
-                                    <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: grantYearChecked('all_appls',@appl.grant_id);" />
+                                    <input type="checkbox" id="@appl.appl_id" onchange="JavaScript: create_selected_appls_list('all_appls');" />
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
@@ -214,7 +214,7 @@
                             if (defualt_appls_columns_1 <= defualt_appls_per_column)
                             {
                                 <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1">
-                                    <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: grantYearChecked('defualt_appls',@appl.grant_id);" />
+                                    <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
@@ -267,7 +267,7 @@
                             if (defualt_appls_columns_2 > defualt_appls_per_column && defualt_appls_columns_2 <= (defualt_appls_per_column * 2))
                             {
                                 <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1">
-                                    <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: grantYearChecked('defualt_appls',@appl.grant_id);" />
+                                    <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
@@ -320,7 +320,7 @@
                             if (defualt_appls_columns_3 > (defualt_appls_per_column * 2) && defualt_appls_columns_3 <= Convert.ToInt16(defualt_appls_total))
                             {
                                 <div id="appl_toggle_@appl.appl_id" style="font-size: small;" class="m-1">
-                                    <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: grantYearChecked('defualt_appls',@appl.grant_id);" />
+                                    <input type="checkbox" id="@appl.appl_id" name="appl_year_checkbox" onchange="JavaScript: create_selected_appls_list('defualt_appls');" />
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
@@ -411,6 +411,11 @@ function show_toggle_appls() {
     document.getElementById("defualt_appls").style.display = "inline";
     document.getElementById("all_appls").style.display = "none";
     check_toggle_appls_checkbox("defualt_appls");
+
+    @if (ViewBag.GrantID != null)
+    {
+        @Html.Raw("updateMPIToolTip(" + ViewBag.GrantId + ");");
+    }
 }
 
 //switch toggle appls mode
@@ -525,11 +530,6 @@ function set_single_appl_checkbox(appl_id, show_mode) {
             checkboxes[i].checked = true;
         } else continue
     }
-}
-
-function grantYearChecked(show_mode, grantId) {
-    create_selected_appls_list(show_mode);
-    updateMPIToolTip(grantId);
 }
 
 //create appls list after user selected checkbox and update MPI tooltip
