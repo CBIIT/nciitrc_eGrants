@@ -308,16 +308,16 @@
          var appls_list = "All";
          var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
       } else if (flag_type == "MPI") {
-          var selectedCheckBoxIds = [];
-          var selectedCheckBoxes = document.querySelectorAll('input[name=appl_year_checkbox]:checked')
-          for (var i = 0; i < selectedCheckBoxes.length; i++) {
-              var id = selectedCheckBoxes[i].id;
-              if (id != "toggle_appls_checkall")
-                  selectedCheckBoxIds.push(selectedCheckBoxes[i].id)
+          var thisApplId = document.getElementById("hidApplID").value;
+          if (!thisApplId) {
+              thisApplId = "@ViewBag.SelectedAppls";
+              if (thisApplId.indexOf(",") != -1) {
+                // just show multi if there's a , in there
+                thisApplId = '';  // displays as Has Multi-PI Grant Year(s) below
+              }
           }
-          if (selectedCheckBoxIds.length == 1) {
-              $("#mpiModal" + selectedCheckBoxIds[0]).modal('show');
-          }
+          if (thisApplId)
+              $("#mpiModal" + thisApplId).modal('show');
          return;
       } else if (flag_type == "ARRA") {
          flag_type = "All"
@@ -773,6 +773,21 @@
                                             var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
                                             var theAppl = appls.Where(a => (string)a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
                                             if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
+                                            {
+                                                displayMPIFlag = true;
+                                            }
+                                        }
+                                    } else
+                                    {
+                                        // it's in ViewBag.SelectedAppls
+                                        displayMPIFlag = false;
+                                        if (ViewBag.SelectedAppls != null && ViewBag.SelectedAppls.Length > 0)
+                                        {
+                                            string appls_from_vb = (string)ViewBag.SelectedAppls;
+                                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                            var appl_ids = appls_from_vb.Split(',');
+                                            var theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
+                                            if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
                                             {
                                                 displayMPIFlag = true;
                                             }
