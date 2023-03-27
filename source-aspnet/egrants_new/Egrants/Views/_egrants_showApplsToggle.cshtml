@@ -582,18 +582,34 @@ function updateMPIToolTip(grantId) {
                 List<GrantLayer> grants = ViewBag.grantLayer;
                 var grant = grants.First(gl => gl.grant_id == grantId);
                 string grantPIName = (string)grant.current_pi_name;
+                // first display the PI
                 for (int i = 0; i < appl.MPIContacts.Count(); i++)
                 {
                     egrants_new.Egrants.Models.PersonContact person = appl.MPIContacts[i];
-                    sb.Append($"{person.last_name}, {person.first_name}");
+
                     if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) != -1 &&
                                     grantPIName.IndexOf(person.last_name, StringComparison.InvariantCultureIgnoreCase) != -1)
                     {
-                        sb.Append(" (contact)");
+                        sb.Append($"{person.last_name}, {person.first_name} (contact)");
+                        // if it's the primary and there are others will need that newline
+                        if (appl.MPIContacts.Count() > 1)
+                        {
+                            sb.Append(newLine);
+                        }
                     }
-                    if (i != appl.MPIContacts.Count() - 1)
+                }
+                // then display any non PIs
+                for (int i = 0; i < appl.MPIContacts.Count(); i++)
+                {
+                    egrants_new.Egrants.Models.PersonContact person = appl.MPIContacts[i];
+                    if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) == -1 ||
+                                    grantPIName.IndexOf(person.last_name, StringComparison.InvariantCultureIgnoreCase) == -1)
                     {
-                        sb.Append(newLine);
+                        sb.Append($"{person.last_name}, {person.first_name}");
+                        if (i != appl.MPIContacts.Count() - 1)
+                        {
+                            sb.Append(newLine);
+                        }
                     }
                 }
             }
