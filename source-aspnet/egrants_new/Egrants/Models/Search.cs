@@ -287,7 +287,7 @@ namespace egrants_new.Egrants.Models
                 }
             }
 
-            // prune out the ones that don't have duplicates
+            // prune out the ones that have duplicates
             var deleteTheseKeys = new List<string>();
             foreach (var key in results.Keys)
             {
@@ -315,23 +315,28 @@ namespace egrants_new.Egrants.Models
             {
                 var applsThisGrant = applList.Where(al => al.grant_id == grant.grant_id).ToList();
                 var piListThisGrant = new List<PersonContact>();
-                var alreadyAddedEmails = new HashSet<string>();
-
+                var alreadyAddedEmailsThisGrant = new HashSet<string>();
+                
                 foreach (var appl in applsThisGrant)
                 {
                     var piListThisAppl = new List<PersonContact>();
+                    var alreadyAddedEmailsThisAppl = new HashSet<string>();
                     if (mpiInfo.ContainsKey(appl.appl_id))
                     {
                         foreach (var contact in mpiInfo[appl.appl_id])
                         {
-                            if (!alreadyAddedEmails.Contains(contact.email_addr))
+                            if (!alreadyAddedEmailsThisGrant.Contains(contact.email_addr))
                             {
                                 piListThisGrant.Add(contact);
+                                alreadyAddedEmailsThisGrant.Add(contact.email_addr);
+                            }
+                            if (!alreadyAddedEmailsThisAppl.Contains(contact.email_addr))
+                            {
                                 piListThisAppl.Add(contact);
-                                alreadyAddedEmails.Add(contact.email_addr);
+                                alreadyAddedEmailsThisAppl.Add(contact.email_addr);
                             }
                         }
-                        appl.MPIContacts = piListThisGrant;
+                        appl.MPIContacts = piListThisAppl;
                     }                    
                 }
                 grant.MPIContacts = piListThisGrant;
