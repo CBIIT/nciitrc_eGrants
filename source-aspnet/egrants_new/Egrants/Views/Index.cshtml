@@ -785,7 +785,11 @@
                                         string appls_from_vb = (string)ViewBag.SelectedAppls;
                                         var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
                                         var appl_ids = appls_from_vb.Split(',');
-                                        var theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
+                                        var theAppls = appls;
+                                        if (!appls_from_vb.ToLower().Contains("all"))
+                                        {
+                                            theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
+                                        }
                                         if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
                                         {
                                             displayMPIFlag = true;

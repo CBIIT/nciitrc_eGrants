@@ -52,6 +52,7 @@
                             <div style="float:left; vertical-align:bottom; width:auto">
                                 <b>Multiple Principal Investigators:</b>
                             </div><br style="clear:both">
+                            <!-- first display (contact) -->
                             foreach (egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
                             {
                                 string grantPIName = (string)grant.current_pi_name;
@@ -71,7 +72,13 @@
                                         <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a> (contact)
                                     </div><br style="clear:both">
                                 }
-                                else
+                            }
+                            <!-- then display non contact -->
+                            foreach (egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
+                            {
+                                string grantPIName = (string)grant.current_pi_name;
+                                if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) == -1 ||
+                                    grantPIName.IndexOf(person.last_name, StringComparison.InvariantCultureIgnoreCase) == -1)
                                 {
                                     <div class="space-left" style="float:left; vertical-align:bottom; width:auto">
                                         @person.first_name @person.last_name
