@@ -155,6 +155,13 @@
       window.open(url);
    }
 
+   function show_closeoutnotification(appl, notif_name) {
+        var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
+        window.open(url_closeout);
+        //window.document.location.href = url_closeout;
+        //window.close();
+    }
+
    function show_qc_dl(document_id, type) {
       document_id = document_id.split("_")[3];
       // var el = document_id;
@@ -321,7 +328,8 @@
                         return 1;
                      }
                   }
-               });
+                });
+
             var table = $("#loadgridDownload_" + @appl_id).DataTable({
                paging: false, // for reinitialize
                searching: false, // for reinitialize
@@ -352,37 +360,19 @@
                   type: "GET",
                   contentType: 'application/json; charset=utf=8',
                   dataType: 'JSON',
-//                  success: function (successResp) {
-//                     data: successResp;
-//                     //console.log(data);
-//                     //return;
-//                  },
-//                  error: function(resp) {
-//                    // console.log("ERROR: " + resp);
-//                    //return;
-//                  }
-               },
+                },
+              // rowId: 'id',
                stripeClasses: ['odd-row', 'even-row'],
                columnDefs: [
-                  //{ width: "75%", targets: 2 },
-                  //{ width: "5%", targets: 1 },
-                  //{targets: [0,1,4], width: "5%" },
-                  //{ width: "10%", targets: 3 },
-                 // { width: "5%", targets: 4 },
                   {
                      targets: [0, 1, 4],
                      orderable: false,
-                     width: 20
                   },
                   {
                      visible: true,
                      searching: false,
                      paging: false
                   },
-//                  {
-//                     className: "text-center",
-//                     targets: [4]
-//                  },
                   {
                      type: 'dateNonStandard',
                      targets: [3]
@@ -391,6 +381,7 @@
                 columns: [
                     {
                         className: "details-control",
+                        autoWidth: true,
                         // show qc icon
                         render: function (data, type, full, meta) {
                             return "<div id='show_qc_dl_" +
@@ -407,6 +398,8 @@
                         }
                     },
                     {
+                        className: "checkbox-control",
+                        autoWidth: true,
                       // show the checkox's that allow a user to download files
                      render: function (data, type, full, meta) {
                         if (full.frc_destroyed == 0) {
@@ -414,7 +407,7 @@
                                 return "<div id=\"dl_checkbox_" +
                                     full.document_id +
                                     "\"" +
-                                    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                                    " name=\"dl_checkbox\" class=\"show_dl\"> " +
                                     " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=checkbox_" +
                                     full.document_id +
                                     "\"" +
@@ -431,7 +424,7 @@
                                return "<div id=\"dl_checkbox_" +
                                    full.document_id +
                                    "\"" +
-                                   " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                                   " name=\"dl_checkbox\" class=\"show_dl\"> " +
                                    " <input type=\"checkbox\" class=\"showDownload Attachments\" id=checkbox_" +
                                    full.document_id +
                                    "\"" +
@@ -445,7 +438,7 @@
                                 return "<div id=\"dl_checkbox_" +
                                     full.document_id +
                                     "\"" +
-                                    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                                    " name=\"dl_checkbox\" class=\"show_dl\"> " +
                                     " <input type=\"checkbox\" class=\"showDownload ClousoutNotifications\" id=checkbox_" +
                                     full.document_id +
                                     "\"" +
@@ -458,7 +451,7 @@
                               return "<div id=\"dl_checkbox_" +
                               full.document_id +
                               "\"" +
-                              " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
+                              " name=\"dl_checkbox\" class=\"show_dl\"> " +
                               " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
                               full.document_id +
                               "\"" +
@@ -474,6 +467,8 @@
             },
                   {
                      // show document_name with url
+                      className: 'document-name',
+                      autoWidth: true,
                      render: function(data, type, full, meta) {
                         if (full.frc_destroyed == 0) {
                            if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
@@ -498,16 +493,18 @@
                                  full.url +
                                  "') title='show document'>" +
                                  full.document_name +
-                                 "</a>" +
-                                 "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='attachments' data-assigned-id=" +
-                                 full.document_id +
-                                 " title='Display all attachments'>Attachments</a>";
+                                 "</a>"
+                                 //"<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='attachments' data-assigned-id=" +
+                                 //full.document_id +
+                                 //" title='Display all attachments'>Attachments</a>";
 
                               return str;
 
                            } else if (full.document_name == "Closeout Notification") {
-                              var str = "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='closeout' data-assigned-id=" + full.appl_id + " title='Display Closeout Notification'>" + full.document_name + "</a>";
-
+                              //var str = "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='closeout' data-assigned-id=" + full.appl_id + " title='Display Closeout Notification'>" + full.document_name + "</a>";
+                               var str = "<a href='#' class='CloseoutNotification' title='show document'>" +
+                                   full.document_name +
+                                   "</a>"
                               return str;
 
                            } else {
@@ -527,8 +524,10 @@
 
 
                   },
-                  {
-                     data: "doc_date",
+                    {
+                      className: 'document_date',
+                        data: "doc_date",
+                        autoWidth: true,
                      render: function(data, type, full, meta) {
                         if (full.document_date == "") {
                            return '';
@@ -538,50 +537,21 @@
                      },
                      autoWidth: true
                   },
-//                  {
-//                      "data": "page_count", "autoWidth": true
-//                  },
                   {
                      // replace document image
+                      className: 'icon_display',
+                        authWidth: true,
                       render: function (data, type, full, meta) {
-                          console.log("Full:" + JSON.stringify(full));
                           console.log("data:" + data);
                           console.log("type:" + type);
+                          console.log("Full:" + JSON.stringify(full));
                           console.log("meta:" + JSON.stringify(meta));
-                        var str = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-emoji-heart-eyes text-success\" viewBox=\"0 0 16 16\">" +
-                           "<path d=\"M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"/>" +
-                           "<path d=\"M11.315 10.014a.5.5 0 0 1 .548.736A4.498 4.498 0 0 1 7.965 13a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .548-.736h.005l.017.005.067.015.252.055c.215.046.515.108.857.169.693.124 1.522.242 2.152.242.63 0 1.46-.118 2.152-.242a26.58 26.58 0 0 0 1.109-.224l.067-.015.017-.004.005-.002zM4.756 4.566c.763-1.424 4.02-.12.952 3.434-4.496-1.596-2.35-4.298-.952-3.434zm6.488 0c1.398-.864 3.544 1.838-.952 3.434-3.067-3.554.19-4.858.952-3.434z\"/></svg>";
 
-//                        var redblink = "<i data-fa-i2svg>" +
-//                           "<svg class=\"svg-inline--fa fa-camera fa-w-16\" aria-hidden=\"true\" data-prefix=\"fa-solid\" data-icon=\"camera\" role=\"img\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\" data-fa-i2svg=\"\">"
-//                           + "<path fill=\"currentColor\" d=\"M188.12 210.74L142.86 256l45.25 45.25L233.37 256l-45.25-45.26zm113.13-22.62L256 142.86l-45.25 45.25L256 233.37l45.25-45.25zm-90.5 135.76L256 369.14l45.26-45.26L256 278.63l-45.25 45.25zM256 0C114.62 0 0 114.62 0 256s114.62 256 256 256 256-114.62 256-256S397.38 0 256 0zm186.68 295.6l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-28.29-28.29-45.25 45.25 33.94 33.94 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-33.94-33.94-45.26 45.26 28.29 28.29c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0L256 414.39l-28.29 28.29c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l28.29-28.29-45.25-45.26-33.94 33.94 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 33.94-33.94-45.25-45.25-28.29 28.29c-3.12 3.12-8.19 3.12-11.31 0L69.32 295.6c-3.12-3.12-3.12-8.19 0-11.31L97.61 256l-28.29-28.29c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l28.29 28.29 45.25-45.26-33.94-33.94-16.97 16.97c-3.12 3.12-8.19 3.12-11.31 0l-11.31-11.31c-3.12-3.12-3.12-8.19 0-11.31l16.97-16.97-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 33.94 33.94 45.26-45.25-28.29-28.29c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0L256 97.61l28.29-28.29c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-28.29 28.29 45.26 45.25 33.94-33.94-16.97-16.97c-3.12-3.12-3.12-8.19 0-11.31l11.31-11.31c3.12-3.12 8.19-3.12 11.31 0l16.97 16.97 16.97-16.97c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31l-16.97 16.97 16.97 16.97c3.12 3.12 3.12 8.19 0 11.31l-11.31 11.31c-3.12 3.12-8.19 3.12-11.31 0l-16.97-16.97-33.94 33.94 45.25 45.26 28.29-28.29c3.12-3.12 8.19-3.12 11.31 0l11.31 11.31c3.12 3.12 3.12 8.19 0 11.31L414.39 256l28.29 28.28a8.015 8.015 0 0 1 0 11.32zM278.63 256l45.26 45.25L369.14 256l-45.25-45.26L278.63 256z\">"
-//                           + "</path>" + "</svg>" + "</i>";
-                       //   var spinit = "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>";
-
+                          console.log("full url" + full.url);
                        var spinit = ((full.url.substring(0, 11) == "https://i2e" ? "<i class=\"fa fa-file-excel\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"File URL is not supported.\"></i>" : "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>"));
-
-
-
-
-                      //  <button type="button" class="btn btn-lg btn-danger" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">Click to toggle popover</button>
-                        // var spinit = "<i class=\"bi bi-file-earmark\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"Select row to download\"></i>";
-//                        var spinit = "<div class=\"fa=1x\"><i  class=\"fa fa-file text-secondary\"></i></div>";
-//                        var spinit = "<div class=\"fa-1x\">"
-//                          + "<i class=\"fa fa-sync fa-spin\"></i>"
-////                           + "<i class=\"fa-solid fa-circle-notch fa-spin\"></i>"
-////                           + "<i class=\"fa-solid fa-cog fa-spin\"></i>"
-////                           + "<i class=\"fa-solid fa-cog fa-spin fa-spin-reverse\"></i>"
-////                           + "<i class=\"fa-solid fa-spinner fa-spin-pulse\"></i>"
-////                           + "<i class=\"fa-solid fa-spinner fa-spin-pulse fa-spin-reverse\"></i>"
-//                           + "</div>";
+                       //   var spinit =  "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>";
 
                         return spinit;
-                        // <svg class="bi bi-exclamation-triangle text-success" width="32" height="32" fill="currentColor" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                        // ...
-                        // </svg>
-//                        if (document.getElementById("hidPositionID").value >= 2 && full.can_upload == "y" && full.frc_destroyed == 0) {
-//                           return "<a href='JavaScript:upload_doc(" + full.document_id + ")' title='Replace Document'><img class='img_14_14' src='../Content/images/upl.png' /></a>";
-//                        } else return "";
                      }
                   },
 
@@ -697,45 +667,6 @@
                   row.child(formatForDownloadView(row.data())).hide();
                });
 
-             @* $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
-                 a.s
-                var dataToSend = {};
-                                dataToSend.act = "fsr";
-                                dataToSend.appl_id = @appl_id;
-                               $.ajax(
-                                   {
-                                       cache: false,
-                                       async: true,
-                                       type: 'POST',
-                                       dataType: 'JSON',
-                                       contentType: 'application/json; charset=utf=8',
-                                       url: "/Egrants/impac_docs_data",
-                                       data: JSON.stringify(dataToSend),
-                                       success: function (data) {
-
-                                           //sessionStorage.year = resp;
-                                           //var jsonobj = JSON.parse(data);
-                                           //console.log("JsonObj:" + data);
-                                           //$.each(data.id, function (index, element) {
-                                           //    alert(element.timeStamp);
-                                           //});
-                                           console.log("Response Returned:" + JSON.stringify(data));
-                                           //var found = data.ImpactDocs.filter(function (item) { return item.Url === rowData.url; });
-                                 @*$.each($('#loadgridDownload_' + @appl_id),
-                              function() {
-                                 var tr = $(this).closest('tr');
-                                 var row = table.row(tr);
-                                 console.log("row: ");
-                                 console.log(row);*@
-
-
-
-
-                                   //    },
-                                   //    error: function (resp) {
-                                   //        console.log("ERROR: " + resp);
-                                   //    }
-                                   //});
             // show bootstrap modal
             @*$('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                'a.NormalModal',
@@ -820,50 +751,55 @@
             $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                'input.ClousoutNotifications',
                function() {
-                        var dataToSend = {};
-                        dataToSend.act = "closeout";
-                        dataToSend.appl_id = @appl_id;
+                     console.log("In CloseoutNotification Report");
+                     var tr = $(this).closest('tr');
+                     var row = table.row(tr);
 
-                   var act = "closeout";
-                               $.ajax(
-                                   {
-                                       cache: false,
-                                       async: true,
-                                       type: 'POST',
-                                       dataType: 'JSON',
-                                       contentType: 'application/json; charset=utf=8',
-                                       url: '/Egrants/impac_docs_data',
-                                       data: JSON.stringify(dataToSend),
-                                       success: function (data) {
-
-                                           console.log("Response Returned:" + JSON.stringify(data));
+                     console.log(JSON.stringify(row));
 
 
+                     var dataToSend = {};
+                     dataToSend.act = "closeout";
+                     dataToSend.appl_id = @appl_id;
 
-                                       },
-                                       error: function (resp) {
-                                           console.log("ERROR: " + resp);
-                                       }
-                                   });
-                   @*// assume all are checked
-                  var isAllChecked = true;
+                     if (row.child.isShown()) {
+                         // This row is already open - close it
+                         row.child.hide();
+                     } else {
 
-                  // if anyone is not checked set the flag to false
-                  $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
-                     function() {
-//                        var tr = $(this).closest('tr');
-//                        var trSvg = tr.find('[data-fa-i2svg]');
-                        if (!$(this).prop('disabled') && !$(this).prop('checked')) {
-                           isAllChecked = false;
-                        }
-                     });
+                         $.ajax(
+                             {
+                                 cache: false,
+                                 async: true,
+                                 type: 'POST',
+                                 dataType: 'JSON',
+                                 contentType: 'application/json; charset=utf=8',
+                                 url: '/Egrants/impac_docs_data',
+                                 data: JSON.stringify(dataToSend),
+                                 success: function (data) {
+                                     console.log("Response Returned:" + JSON.stringify(data));
 
-                  // if all checkboxes are checked, check the header checkbox
-                  if (isAllChecked) {
-                     $('#checkboxall_' + @appl_id).prop('checked', true);
-                  } else {
-                     $('#checkboxall_' + @appl_id).prop('checked', false);
-                  }*@
+                                     for (var i = 0; i < data.length; i++) {
+                                         if (data[i].tag == 1) {
+                                             console.log(data[i].full_grant_num);
+                                         }
+                                         if (data[i].tag == 2) {
+
+                                             console.log(data[i].category_name);
+                                             console.log(data[i].created_date);
+                                             //console.log(data[i].url);
+                                         }
+
+                                     }
+
+                                     row.child(formatCloseoutReportChildRow(data)).show();
+
+                                 },
+                                 error: function (resp) {
+                                     console.log(resp);
+                                 }
+                             });
+                     }
                 });
 
 
@@ -889,13 +825,13 @@
        //     });
 
 
-             $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
-                 'input.showDownload, .FinancialReport',
+            $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+               'input.FinancialReport',
                  function () {
                      console.log("In Financial Report");
                      var tr = $(this).closest('tr');
                      var row = table.row(tr);
-                     //show_qc_dl($(this).closest('div').attr('id'), 0);
+
                      console.log(JSON.stringify(row));
 
 
@@ -903,58 +839,106 @@
                      dataToSend.act = "fsr";
                      dataToSend.appl_id = @appl_id;
 
+                     if (row.child.isShown()) {
+                         // This row is already open - close it
+                         row.child.hide();
+                     } else {
 
-                     $.ajax(
-                         {
-                             cache: false,
-                             async: true,
-                             type: 'POST',
-                             dataType: 'JSON',
-                             contentType: 'application/json; charset=utf=8',
-                             url: '/Egrants/impac_docs_data',
-                             data: JSON.stringify(dataToSend),
-                             success: function (data) {
-                                 console.log("Response Returned:" + JSON.stringify(data));
+                         $.ajax(
+                             {
+                                 cache: false,
+                                 async: true,
+                                 type: 'POST',
+                                 dataType: 'JSON',
+                                 contentType: 'application/json; charset=utf=8',
+                                 url: '/Egrants/impac_docs_data',
+                                 data: JSON.stringify(dataToSend),
+                                 success: function (data) {
+                                     console.log("Response Returned:" + JSON.stringify(data));
 
-                                 //var countSuccess = 0;
-                                 //var respSfied = JSON.stringify(data);
-                                 //var respt = JSON.parse(JSON.stringify(data));
 
-                                 for (var i = 0; i < data.length; i++) {
-                                     if (data[i].tag == 1) {
-                                         console.log(data[i].appl_id);
-                                         console.log(data[i].full_grant_num);
+                                     for (var i = 0; i < data.length; i++) {
+                                         if (data[i].tag == 1) {
+                                             console.log(data[i].appl_id);
+                                             console.log(data[i].full_grant_num);
+                                         }
+                                         if (data[i].tag == 2) {
+
+                                             console.log(data[i].category_name);
+                                             console.log(data[i].accepted_date);
+                                             console.log(data[i].url);
+                                         }
+
                                      }
-                                     if(data[i].tag == 2){
-                                     console.log(data[i].category_name);
-                                     console.log(data[i].accepted_date);
-                                         console.log(data[i].url);
 
-                                         table.row.add([, , data[i].accepted_date, data[i].url]).draw(false);
-                                     }
+                                     row.child(formatFinancialReportChildRow(data)).show();
 
-                                }
-
-                                // if ($().prop('checked')) {
-      
-
-                                 //row.child(formatFinancialReportChildRow(data)).show();
-                                // tr.next('tr').addClass(tr.attr('class'));
-                                // }
-                                 //if ($(this).prop('checked')){
-                                 //    row.child(formatFinancialReportChildRow(data)).hide();
-                                 //}
-
-                                 //console.log(idx);
-
-
-
-                             },
-                             error: function (resp) {
-                                 console.log(resp);
-                             }
-                 });
+                                 },
+                                 error: function (resp) {
+                                     console.log(resp);
+                                 }
+                             });
+                     }
             });
+
+             $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+               'input.Attachments',
+                 function () {
+                     console.log("In Financial Report");
+                     var tr = $(this).closest('tr');
+                     var row = table.row(tr);
+
+                     console.log(JSON.stringify(row));
+
+
+                     var dataToSend = {};
+                     dataToSend.act = "fsr";
+                     dataToSend.appl_id = @appl_id;
+
+                     if (row.child.isShown()) {
+                         // This row is already open - close it
+                         row.child.hide();
+                     } else {
+
+                         $.ajax(
+                             {
+                                 cache: false,
+                                 async: true,
+                                 type: 'POST',
+                                 dataType: 'JSON',
+                                 contentType: 'application/json; charset=utf=8',
+                                 url: '/Egrants/impac_docs_data',
+                                 data: JSON.stringify(dataToSend),
+                                 success: function (data) {
+                                     console.log("Response Returned:" + JSON.stringify(data));
+
+
+                                     for (var i = 0; i < data.length; i++) {
+                                         if (data[i].tag == 1) {
+                                             console.log(data[i].appl_id);
+                                             console.log(data[i].full_grant_num);
+                                         }
+                                         if (data[i].tag == 2) {
+
+                                             console.log(data[i].category_name);
+                                             console.log(data[i].accepted_date);
+                                             console.log(data[i].url);
+                                         }
+
+                                     }
+
+                                     row.child(formatFinancialReportChildRow(data)).show();
+
+                                 },
+                                 error: function (resp) {
+                                     console.log(resp);
+                                 }
+                             });
+                     }
+            });
+             //$('#example').on('requestChild.dt', function (e, row) {
+             //    row.child(format(row.data())).show();
+             //});
 
             // when the user clicks the download button get all the rows that are checked
             $('#downloadData_@appl_id').on('click',
@@ -969,12 +953,31 @@
                   // loop through each datatable row and add the checked items to a list
                    $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload, .FinancialReport'),
                      function() {
-                        var tr = $(this).closest('tr');
-                        var row = table.row(tr);
+                         var tr = $(this).closest('tr');
+                         console.log(JSON.stringify(tr))
+
+                         var row = table.row(tr);
+
+                         if (row.child.isShown()) {
+                             $.each('#childRowCheckbox_' + @appl_id + ' input.showDownload, .FinancialReport'),
+                                 function () {
+                                     if ($(this).prop('checked')) {
+
+                                     }
+                                 }
+                             //$(this).closest('tr').each(function () {
+                             //    $(this).find('td').each(function () {
+                             //        console.log("Test" + $(this).find("input.id").val());
+                             //        //do your stuff, you can use $(this) to get current cell
+                             //    })
+                             //})
+                         }
+
+                         console.log(JSON.stringify(row))
                         var data = row.data();
 
-                        var trSvg = tr.find('[data-fa-i2svg]');
-
+                         var trSvg = tr.find('[data-fa-i2svg]');
+                         console.log(trSvg);
                         console.log(data);
                         // if the row is checked add the url to the list of data
                         if ($(this).prop('checked')) {
@@ -1134,65 +1137,124 @@
 
 
         var str = "";
-        var str = "<table cellpadding=\"1\" cellspacing=\"1\" border=\"0\" style=\"padding-left:50px;\">";
+       var str = "<table id=childRowTable_@appl_id cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
         for (var i = 0; i < d.length; i++) {
 
-            if (d[i].tag == 1) {
-                console.log(d[i].appl_id);
-                console.log(d[i].full_grant_num);
-            }
+        //    if (d[i].tag == 1) {
+        //        console.log(d[i].appl_id);
+        //        console.log(d[i].full_grant_num);
+        //    }
             if (d[i].tag == 2) {
                 console.log(d[i].category_name);
                 console.log(d[i].accepted_date);
                 console.log(d[i].url);
-                var tr = $(this).closest('tr');
-                console.log(tr);
+                //var tr = $(this).closest('tr');
+                //console.log(tr);
 
             str = str +
-                "<tr>" +
-                "<td>" +
-                "<input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
-                d[i].category_name +
-                "\"" +
-                " class=\"qc\" name=\"qc\" value=\"" +
+               "<tr>" +
+                    "<td>" +
+                        "<input type=\"checkbox\" checked class=\"childRowCheckbox_@appl_id input.showDownload, .FinancialReport\"" + "id=\"" +
+                        d[i].full_grant_num +
+                        "\"" +
+                        " class=\"qc\ ml-3\" name=\"qc\" value=\"" +
                 d[i].category_name +
                 "\"" +
                 "/>" +
                 "</td>" +
-                "<td><a href=JavaScript:show_doc('" +
-                    d[i].url +
-                   "') title='show document'>" +
+                    "<td>" +
+                        "<a href = JavaScript:show_doc('" +
+                        d[i].url +
+                        "') title='show document'>" +
                         d[i].category_name +
-                        "</a></td>" +
-                "<td><span class=\"ml-2\">Date:<\span></td>" +
+                    "</a>" +
+                    "</td> " +
+                    "<td>" +
+                    "<span class=\"ml-2\">Date:<\span>" +
+                    "</td>" +
                 "<td>" +
-                d[i].accepted_date +
+                    "<span class=\"ml-2\">" + d[i].accepted_date + "<\span>" +
                 "</td>" +
-                    "<td>" + "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i></td>" +
-            "</tr>"
-
-
-
-             // var row = table.row(tr);
-              //show_qc_dl($(this).closest('div').attr('id'), 1);
-              //row.child(formatForDownloadView(row.data())).show();
-             // tr.next('tr').addClass(tr.attr('class'));
-              //str = str +  "<div id=\"dl_checkbox_ffr_" +
-              //    d.accepted_date +
-              //    "\"" +
-              //    " name=\"dl_checkbox\" class=\"show_dl\" style=\"width:30px;display:inline;vertical-align:middle;\"> " +
-              //    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
-              //    d.accepted_date +
-              //    "\"" +
-              //    " class=\"qc\" name=\"qc\" value=\"" +
-              //    d.accepted_date +
-              //    "\"" +
-              //    "/></div>" + '<br>';
+                "<td>" +
+                    "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>";
+                "</td>" +
+           "</tr>"
 
           }
 
         }
-        str = str + "</table>"
+        str = str + "</table>";
+        return str;
+
+
+            }
+
+
+                function formatCloseoutReportChildRow(d) {
+//            var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+      //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+
+
+
+        var str = "";
+       var str = "<table id=childRowTable_@appl_id cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
+        for (var i = 0; i < d.length; i++) {
+            var full_grant_num;
+            var category_name;
+            var created_date;
+            var url;
+
+            if (d[i].tag == 1) {
+                full_grant_num = d[i].full_grant_num;
+                console.log(full_grant_num);
+            }
+            if (d[i].tag == 2) {
+                category_name = d[i].category_name;
+                created_date = d[i].created_date;
+                url = d[i].url;
+
+                console.log(category_name);
+                console.log(created_date);
+                console.log(url);
+                //var tr = $(this).closest('tr');
+                //console.log(tr);
+
+            str = str +
+               "<tr>" +
+                    "<td>" +
+                        "<input type=\"checkbox\" checked class=\"childRowCheckbox_@appl_id input.showDownload, .CloseoutNotification\"" + "id=\"" +
+                        full_grant_num +
+                        "\"" +
+                        " class=\"qc\ ml-3\" name=\"qc\" value=\"" +
+                category_name +
+                "\"" +
+                "/>" +
+                "</td>" +
+                    "<td>" +
+                    "<a href = JavaScript:show_closeoutnotification('" +
+                    @appl_id +
+                    "'," +
+                    "'" +
+                    category_name +
+                    "') title='Display Closeout Notification'>" +
+                category_name +
+                "</a>" +
+                    "</td> " +
+                    "<td>" +
+                    "<span class=\"ml-2\">Date:<\span>" +
+                    "</td>" +
+                "<td>" +
+                "<span class=\"ml-2\">" + created_date + "<\span>" +
+                "</td>" +
+                "<td>" +
+                    "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>";
+                "</td>" +
+           "</tr>"
+
+          }
+
+        }
+        str = str + "</table>";
         return str;
 
 

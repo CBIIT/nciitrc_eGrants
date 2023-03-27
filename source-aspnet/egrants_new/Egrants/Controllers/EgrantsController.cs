@@ -1334,6 +1334,13 @@ namespace egrants_new.Controllers
             return null;
         }
 
+        //public string closeout_notif(string applid, string notifName)
+        //{
+        //    this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(applid, notifName);
+        //    this.ViewBag.applid = applid;
+
+        //    return this.View("~/Egrants/Views/CloseoutNotif.cshtml");
+        //}
     }
 
 
