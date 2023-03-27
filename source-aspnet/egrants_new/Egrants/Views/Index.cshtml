@@ -777,20 +777,27 @@
                                                 displayMPIFlag = true;
                                             }
                                         }
-                                    } else
+                                    } else if (ViewBag.SelectedAppls != null && ViewBag.SelectedAppls.Length > 0)
                                     {
                                         // it's in ViewBag.SelectedAppls
                                         displayMPIFlag = false;
-                                        if (ViewBag.SelectedAppls != null && ViewBag.SelectedAppls.Length > 0)
+
+                                        string appls_from_vb = (string)ViewBag.SelectedAppls;
+                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                        var appl_ids = appls_from_vb.Split(',');
+                                        var theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
+                                        if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
                                         {
-                                            string appls_from_vb = (string)ViewBag.SelectedAppls;
-                                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                            var appl_ids = appls_from_vb.Split(',');
-                                            var theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
-                                            if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
-                                            {
-                                                displayMPIFlag = true;
-                                            }
+                                            displayMPIFlag = true;
+                                        }
+                                    } else
+                                    {
+                                        // grant search and grant MPI info is populated
+                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                        var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
+                                        if (theAppls.Any( apps => apps.MPIContacts != null & apps.MPIContacts.Count() > 1))
+                                        {
+                                            displayMPIFlag = true;
                                         }
                                     }
                                 }
