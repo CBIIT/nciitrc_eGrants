@@ -757,7 +757,30 @@
                                     </span>
                                 }
 
-                                @if (grant.MPIContacts != null && grant.MPIContacts.Count > 1)
+                                @{ 
+                                    bool displayMPIFlag = true;
+                                    if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
+                                    {
+                                        displayMPIFlag = false;
+                                    }
+                                    else if (ViewBag.ApplID != null)
+                                    {
+                                        // this is appl specific, so hide MPI flag if this appl is not MPI
+                                        displayMPIFlag = false;
+                                        if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
+                                        {
+                                            var thisPagesApplID = (int)ViewBag.ApplID;
+                                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                            var theAppl = appls.Where(a => (string)a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
+                                            if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
+                                            {
+                                                displayMPIFlag = true;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                @if (displayMPIFlag)
                                 {
                                     string grantLinkId = "grantLink" + grant.grant_id;
                                     string imgLinkId = "imgLink" + grant.grant_id;
