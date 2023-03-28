@@ -786,8 +786,9 @@
                                         var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
                                         var appl_ids = appls_from_vb.Split(',');
                                         var theAppls = appls;
-                                        if (!appls_from_vb.ToLower().Contains("all"))
+                                        if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
                                         {
+                                            // if there's only ONE then selectively display the MPI based on if that ONE appl has MPI
                                             theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
                                         }
                                         if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
