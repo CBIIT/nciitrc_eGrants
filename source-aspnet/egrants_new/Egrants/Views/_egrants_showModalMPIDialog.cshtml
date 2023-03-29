@@ -55,33 +55,24 @@
                             <!-- first display (contact) -->
                             foreach (egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
                             {
-                                string grantPIName = (string)grant.current_pi_name;
-                                if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) != -1 &&
-                                    grantPIName.IndexOf(person.last_name, StringComparison.InvariantCultureIgnoreCase) != -1)
+                                if (person.was_PI_that_year)
                                 {
-                                    var pi_email = string.Empty;
-                                    if (grant.current_bo_email_address != "")
-                                    {
-                                        pi_email = grant.SelectedGrantPiEmail + ";" + grant.current_bo_email_address;
-                                    }
-                                    else
-                                    {
-                                        pi_email = grant.SelectedGrantPiEmail;
-                                    }
+                                    var displayName = $"{person.last_name.ToUpper()}, {person.first_name.ToUpper()}";
+
                                     <div class="space-left" style="float:left; vertical-align:bottom; width:auto">
-                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a> (contact)
+                                        @displayName (contact)
                                     </div><br style="clear:both">
                                 }
                             }
                             <!-- then display non contact -->
                             foreach (egrants_new.Egrants.Models.PersonContact person in appl.MPIContacts)
                             {
-                                string grantPIName = (string)grant.current_pi_name;
-                                if (grantPIName.IndexOf(person.first_name, StringComparison.InvariantCultureIgnoreCase) == -1 ||
-                                    grantPIName.IndexOf(person.last_name, StringComparison.InvariantCultureIgnoreCase) == -1)
+                                if (!person.was_PI_that_year)
                                 {
+                                    var displayName = $"{person.last_name.ToUpper()}, {person.first_name.ToUpper()}";
+
                                     <div class="space-left" style="float:left; vertical-align:bottom; width:auto">
-                                        @person.first_name @person.last_name
+                                        @displayName
                                     </div><br style="clear:both">
                                 }
                             }
