@@ -235,7 +235,7 @@ namespace egrants_new.Egrants.Models
             using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
             {
                 var sql = "DECLARE @TSQL varchar(8000);" +
-                    "SELECT @TSQL = 'SELECT * FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr from person_addresses_mv c, persons_secure d, person_involvements_mv e where d.profile_person_id = c.person_id and c.addr_type_code = ''''HOM'''' and e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE ) and d.person_id = e.person_id and c.preferred_addr_code = ''''Y'''' '')';" +
+                    "SELECT @TSQL = 'SELECT * FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr, e.role_type_code, c.addr_type_code from person_addresses_mv c, persons_secure d, person_involvements_mv e where d.person_id = c.person_id and c.addr_type_code = ''''HOM'''' and c.preferred_addr_code = ''''Y'''' and e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE ) and d.person_id = e.person_id '')';" + 
                     "EXEC (@TSQL)";
                 var applsParam = string.Join(",", appl_ids);
                 sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
@@ -272,7 +272,8 @@ namespace egrants_new.Egrants.Models
                             first_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
                             last_name = (rdr[3] == DBNull.Value) ? string.Empty : (string)rdr[3],
                             src_mi_name = (rdr[4] == DBNull.Value) ? string.Empty : (string)rdr[4],
-                            email_addr = (rdr[5] == DBNull.Value) ? string.Empty : (string)rdr[5]
+                            email_addr = (rdr[5] == DBNull.Value) ? string.Empty : (string)rdr[5],
+                            was_PI_that_year = (rdr[6] == DBNull.Value || ((string)rdr[6]).ToLower() != "pi") ? false : true
                         };
                         if (!results.ContainsKey(person.appl_id))
                         {
