@@ -235,7 +235,7 @@ namespace egrants_new.Egrants.Models
             using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
             {
                 var sql = "DECLARE @TSQL varchar(8000);" +
-                    "SELECT @TSQL = 'SELECT * FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr, e.role_type_code, c.addr_type_code from person_addresses_mv c, persons_secure d, person_involvements_mv e where d.person_id = c.person_id and c.addr_type_code = ''''HOM'''' and c.preferred_addr_code = ''''Y'''' and e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE ) and d.person_id = e.person_id '')';" + 
+                    "SELECT @TSQL = 'SELECT distinct APPL_ID, person_id, First_Name, Last_name, src_mi_name, email_addr, Role_Type_Code  FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr, e.role_type_code, c.addr_type_code from person_addresses_mv c, persons_secure d, person_involvements_mv e where d.profile_person_id = c.person_id and c.addr_type_code in (''''HOM'''', ''''MLG'''') and c.preferred_addr_code = ''''Y'''' and e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE ) and d.person_id = e.person_id '')';" + 
                     "EXEC (@TSQL)";
                 var applsParam = string.Join(",", appl_ids);
                 sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
@@ -256,7 +256,7 @@ namespace egrants_new.Egrants.Models
                                 personId = default(int);
                             else
                             {
-                                personId = Int32.Parse(rdr[1].ToString());
+                                personId = Int32.Parse(rdr[4].ToString());
                             }
                         }
                         catch (FormatException)
