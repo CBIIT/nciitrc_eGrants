@@ -166,9 +166,14 @@ namespace egrants_new.Egrants.Models
                     grant.od_flag = rdr["od_flag"]?.ToString();
                     grant.ds_flag = rdr["ds_flag"]?.ToString();
                     grant.adm_supp = rdr["adm_supp"]?.ToString();
-                    grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true : false;
-                    grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
-
+                    if (appl_id == 0)
+                        grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true : false;
+                    else
+                        grant.institutional_flag1 = rdr["specific_year_institution1"].ToString() == "1" ? true : false;
+                    if (appl_id == 0)
+                        grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
+                    else
+                        grant.AnyOrgDoc = rdr["specific_year_institution2"].ToString() == "1" ? true : false;
                     grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
                     grant.IsCurrentPi = rdr["is_current_pi"]?.ToString() == "1" ? true : false;
                     grant.SelectedGrantPiName = rdr["specific_year_pi_name"].ToString();
