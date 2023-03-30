@@ -234,8 +234,9 @@ namespace egrants_new.Egrants.Models
 
             using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
             {
+                // note that Ingrid learned retrieving email interferes with the ability of the query to return all the MPIs
                 var sql = "DECLARE @TSQL varchar(8000);" +
-                    "SELECT @TSQL = 'SELECT distinct APPL_ID, person_id, First_Name, Last_name, src_mi_name, email_addr, Role_Type_Code  FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr, e.role_type_code, c.addr_type_code from person_addresses_mv c, persons_secure d, person_involvements_mv e where d.profile_person_id = c.person_id and c.addr_type_code in (''''HOM'''', ''''MLG'''') and c.preferred_addr_code = ''''Y'''' and e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE ) and d.person_id = e.person_id '')';" + 
+                    "SELECT @TSQL = 'SELECT APPL_ID, First_Name, Last_name, Role_Type_Code  FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr , e.role_type_code, c.addr_type_code from person_involvements_mv e join persons_secure d on d.person_id = e.person_id left outer join person_addresses_mv c on d.person_id = c.person_id and c.addr_type_code in (''''HOM'''') and c.preferred_addr_code = ''''Y'''' where e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE) and d.person_id = e.person_id '')';" +
                     "EXEC (@TSQL)";
                 var applsParam = string.Join(",", appl_ids);
                 sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
@@ -249,31 +250,12 @@ namespace egrants_new.Egrants.Models
 
                     while (rdr.Read())
                     {
-                        int personId;
-                        try
-                        {
-                            if (rdr[1] == DBNull.Value)
-                                personId = default(int);
-                            else
-                            {
-                                personId = Int32.Parse(rdr[4].ToString());
-                            }
-                        }
-                        catch (FormatException)
-                        {
-                            // fault tolerance on this since we are not displaying
-                            personId = default(int);
-                        }
-
                         var person = new PersonContact
                         {
                             appl_id = (rdr[0] == DBNull.Value) ? string.Empty : rdr[0].ToString(),
-                            person_id = personId,
-                            first_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
-                            last_name = (rdr[3] == DBNull.Value) ? string.Empty : (string)rdr[3],
-                            src_mi_name = (rdr[4] == DBNull.Value) ? string.Empty : (string)rdr[4],
-                            email_addr = (rdr[5] == DBNull.Value) ? string.Empty : (string)rdr[5],
-                            was_PI_that_year = (rdr[6] == DBNull.Value || ((string)rdr[6]).ToLower() != "pi") ? false : true
+                            first_name = (rdr[1] == DBNull.Value) ? string.Empty : (string)rdr[1],
+                            last_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
+                            was_PI_that_year = (rdr[3] == DBNull.Value || ((string)rdr[3]).ToLower() != "pi") ? false : true
                         };
                         if (!results.ContainsKey(person.appl_id))
                         {
@@ -316,25 +298,26 @@ namespace egrants_new.Egrants.Models
             {
                 var applsThisGrant = applList.Where(al => al.grant_id == grant.grant_id).ToList();
                 var piListThisGrant = new List<PersonContact>();
-                var alreadyAddedEmailsThisGrant = new HashSet<string>();
+                var alreadyAddedFirstLastNamesThisGrant = new HashSet<string>();
                 
                 foreach (var appl in applsThisGrant)
                 {
                     var piListThisAppl = new List<PersonContact>();
-                    var alreadyAddedEmailsThisAppl = new HashSet<string>();
+                    var alreadyAddedFirstLastNamesThisAppl = new HashSet<string>();
                     if (mpiInfo.ContainsKey(appl.appl_id))
                     {
                         foreach (var contact in mpiInfo[appl.appl_id])
                         {
-                            if (!alreadyAddedEmailsThisGrant.Contains(contact.email_addr))
+                            var firstLastNameChecker = $"{contact.first_name},{contact.last_name}";
+                            if (!alreadyAddedFirstLastNamesThisGrant.Contains(firstLastNameChecker))
                             {
                                 piListThisGrant.Add(contact);
-                                alreadyAddedEmailsThisGrant.Add(contact.email_addr);
+                                alreadyAddedFirstLastNamesThisGrant.Add(firstLastNameChecker);
                             }
-                            if (!alreadyAddedEmailsThisAppl.Contains(contact.email_addr))
+                            if (!alreadyAddedFirstLastNamesThisAppl.Contains(firstLastNameChecker))
                             {
                                 piListThisAppl.Add(contact);
-                                alreadyAddedEmailsThisAppl.Add(contact.email_addr);
+                                alreadyAddedFirstLastNamesThisAppl.Add(firstLastNameChecker);
                             }
                         }
                         appl.MPIContacts = piListThisAppl;
