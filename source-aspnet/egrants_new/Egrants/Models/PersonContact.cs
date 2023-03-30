@@ -11,11 +11,8 @@ namespace egrants_new.Egrants.Models
     public class PersonContact
     {
         public string appl_id { get; set; }
-        public long person_id { get; set; }
         public string first_name { get; set; }
         public string last_name { get; set; }
-        public string src_mi_name { get; set; }
-        public string email_addr { get; set; }
         public bool was_PI_that_year { get; set; }
     }
 }
