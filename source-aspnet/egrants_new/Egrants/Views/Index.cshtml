@@ -627,7 +627,7 @@
                                             pi_email = grant.SelectedGrantPiEmail;
                                         }
 
-                                        if (grant.current_pi_name == grant.SelectedGrantPiName)
+                                        if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper())
                                         {
                                             <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
                                             <b>&nbsp;&nbsp;</b>
@@ -654,7 +654,7 @@
                                             pi_email = grant.current_pi_email_address;
                                         }
 
-                                        if (grant.current_pi_name == grant.SelectedGrantPiEmail ||  string.IsNullOrEmpty(grant.SelectedGrantPiEmail) || grant.pi_name == grant.SelectedGrantPiEmail)
+                                        if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiEmail.ToUpper() ||  string.IsNullOrEmpty(grant.SelectedGrantPiEmail) || grant.pi_name.ToUpper() == grant.SelectedGrantPiEmail.ToUpper())
                                         {
                                             <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
                                             <b>&nbsp;&nbsp;</b>
@@ -664,7 +664,7 @@
                                             @grant.current_pi_name<b>&nbsp;&nbsp;</b>
                                        }
                                     }
-                                    else if (grant.current_pi_name != "" && grant.current_pi_email_address == "")
+                                    else if (grant.current_pi_name.ToUpper() != "" && grant.current_pi_email_address.ToUpper() == "")
                                     {
                                         @grant.current_pi_name<b>&nbsp;&nbsp;</b>
                                     }
