@@ -349,8 +349,7 @@ namespace egrants_new
 
             Console.WriteLine("Session Ended!");
 
-            this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-
+            // response object is not available at this point
         }
 
         /// <summary>

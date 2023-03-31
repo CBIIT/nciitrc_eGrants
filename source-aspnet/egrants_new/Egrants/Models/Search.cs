@@ -40,6 +40,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 #endregion
 
@@ -220,9 +221,115 @@ namespace egrants_new.Egrants.Models
             // added by Leon 5/11/2019
             conn.Close();
 
+            // every appl with > 1 person from IRDB will be in the response
+            var mpi_info = GetAllMPIInfo(applList.Select(al => al.appl_id).ToList());
+            PopulateMPIIntoGrants(grantList, applList, mpi_info);
+
             grantlayerproperty = grantList;
             appllayerproperty = applList;
             doclayerproperty = docList;
+        }
+
+        public static Dictionary<string, List<PersonContact>> GetAllMPIInfo(List<string> appl_ids)
+        {
+            var results = new Dictionary<string, List<PersonContact>>();
+
+            if (appl_ids == null || appl_ids.Count == 0)
+                return results;
+
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            {
+                // note that Ingrid learned retrieving email interferes with the ability of the query to return all the MPIs
+                var sql = "DECLARE @TSQL varchar(8000);" +
+                    "SELECT @TSQL = 'SELECT APPL_ID, First_Name, Last_name, Role_Type_Code  FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr , e.role_type_code, c.addr_type_code from person_involvements_mv e join persons_secure d on d.person_id = e.person_id left outer join person_addresses_mv c on d.person_id = c.person_id and c.addr_type_code in (''''HOM'''') and c.preferred_addr_code = ''''Y'''' where e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE) and d.person_id = e.person_id '')';" +
+                    "EXEC (@TSQL)";
+                var applsParam = string.Join(",", appl_ids);
+                sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+
+                    conn.Open();
+                    var rdr = cmd.ExecuteReader();
+
+                    while (rdr.Read())
+                    {
+                        var person = new PersonContact
+                        {
+                            appl_id = (rdr[0] == DBNull.Value) ? string.Empty : rdr[0].ToString(),
+                            first_name = (rdr[1] == DBNull.Value) ? string.Empty : (string)rdr[1],
+                            last_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
+                            was_PI_that_year = (rdr[3] == DBNull.Value || ((string)rdr[3]).ToLower() != "pi") ? false : true
+                        };
+                        if (!results.ContainsKey(person.appl_id))
+                        {
+                            results.Add(person.appl_id, new List<PersonContact> { person });
+                        }
+                        else
+                        {
+                            results[person.appl_id].Add(person);
+                        }
+                    }
+
+                }
+            }
+
+            // prune out the ones that have duplicates
+            var deleteTheseKeys = new List<string>();
+            foreach (var key in results.Keys)
+            {
+                if (results[key].Count <= 1)
+                {
+                    deleteTheseKeys.Add(key);
+                }
+            }
+            foreach (var keyToDelete in deleteTheseKeys)
+            {
+                results.Remove(keyToDelete);
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Put the MPI info into the grant layer
+        /// </summary>
+        /// <param name="grantList"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private static void PopulateMPIIntoGrants(List<GrantLayer> grantList, List<ApplLayerObject> applList, Dictionary<string, List<PersonContact>> mpiInfo)
+        {
+            foreach (var grant in grantList)
+            {
+                var applsThisGrant = applList.Where(al => al.grant_id == grant.grant_id).ToList();
+                var piListThisGrant = new List<PersonContact>();
+                var alreadyAddedFirstLastNamesThisGrant = new HashSet<string>();
+                
+                foreach (var appl in applsThisGrant)
+                {
+                    var piListThisAppl = new List<PersonContact>();
+                    var alreadyAddedFirstLastNamesThisAppl = new HashSet<string>();
+                    if (mpiInfo.ContainsKey(appl.appl_id))
+                    {
+                        foreach (var contact in mpiInfo[appl.appl_id])
+                        {
+                            var firstLastNameChecker = $"{contact.first_name},{contact.last_name}";
+                            if (!alreadyAddedFirstLastNamesThisGrant.Contains(firstLastNameChecker))
+                            {
+                                piListThisGrant.Add(contact);
+                                alreadyAddedFirstLastNamesThisGrant.Add(firstLastNameChecker);
+                            }
+                            if (!alreadyAddedFirstLastNamesThisAppl.Contains(firstLastNameChecker))
+                            {
+                                piListThisAppl.Add(contact);
+                                alreadyAddedFirstLastNamesThisAppl.Add(firstLastNameChecker);
+                            }
+                        }
+                        appl.MPIContacts = piListThisAppl;
+                    }                    
+                }
+                grant.MPIContacts = piListThisGrant;
+            }
         }
     }
 }
