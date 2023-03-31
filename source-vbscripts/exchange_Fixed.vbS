@@ -216,6 +216,7 @@ Sub Process(dirpath,oConn)
 					IF Documentid = "" Then
 						RetVal = RaiseErrortoAdmin(CItem,"DB Error: Document_id NOT Found, PROD Exchange_Latest vbs /extract=1", "")
 					ELSE
+						WScript.Sleep 10000
 						Call saveMailAsPdf(citem, Documentid)
 					End If					
 				ELSEIF (category = "JIT Info") OR (category = "CT.gov") THEN
@@ -287,7 +288,8 @@ Sub Process(dirpath,oConn)
 					IF Documentid = "" Then
 						RetVal = RaiseErrortoAdmin(CItem,"DB Error: Document_id NOT Found, PROD Exchange_Latest vbs /extract=1", "")
 					ELSE
-					Call saveMailAsPdf(citem, Documentid)
+						WScript.Sleep 10000
+						Call saveMailAsPdf(citem, Documentid)
 					End If					
 				Else
 				V_flType="txt"
@@ -679,7 +681,7 @@ Function saveMailAsPdf(citem, Documentid)
 	Set objInspector = citem.GetInspector
     Set objDoc = objInspector.WordEditor
 	objDoc.ExportAsFixedFormat bodypdf ,17
-	
+	WScript.Sleep 2000
 	set outfile = objFs.OpenTextFile(subjtxt, 8, True)
 		outfile.WriteLine("From: " & CItem.SenderName)
 		outfile.WriteLine("Sent: " & CItem.ReceivedTime)
