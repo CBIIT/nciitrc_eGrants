@@ -1,4 +1,8 @@
-﻿@using egrants_new.Dashboard.Models
+@using System.Activities.Statements
+@using System.Data.Entity.Validation
+@using System.ServiceModel.Activities
+@using egrants_new.Egrants.Models;
+
 @{
     ViewBag.Title = "egrants [NCI OGA]";
     Layout = "~/Shared/Views/_egrants_header.cshtml";
@@ -297,20 +301,32 @@
         window.open(maillink, "_self");
     }
 
-    function show_grant_with_flag(flag_type, grant_id) {
-        if (flag_type == "FDA" || flag_type == "MS" || flag_type == "OD" || flag_type == "DS") {
-            // show appls with flag for this grant
-            var categories = "All";
-            var appls_list = "All";
-            var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
-        } else if (flag_type == "ARRA") {
-            flag_type = "All"
-            var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=&categories=&appls_list=&years=";
-        }
-        // alert(url);
-        // window.open(url, top);
-        window.document.location.href = url;
-    }
+   function show_grant_with_flag(flag_type, grant_id) {
+      if (flag_type == "FDA" || flag_type == "MS" || flag_type == "OD" || flag_type == "DS") {
+         // show appls with flag for this grant
+         var categories = "All";
+         var appls_list = "All";
+         var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
+      } else if (flag_type == "MPI") {
+          var thisApplId = document.getElementById("hidApplID").value;
+          if (!thisApplId) {
+              thisApplId = "@ViewBag.SelectedAppls";
+              if (thisApplId.indexOf(",") != -1) {
+                // just show multi if there's a , in there
+                thisApplId = '';  // displays as Has Multi-PI Grant Year(s) below
+              }
+          }
+          if (thisApplId)
+              $("#mpiModal" + thisApplId).modal('show');
+         return;
+      } else if (flag_type == "ARRA") {
+         flag_type = "All"
+         var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=&categories=&appls_list=&years=";
+      }
+      // alert(url);
+      // window.open(url, top);
+      window.document.location.href = url;
+   }
 
     // show or hide search form
     function show_search_form() {
@@ -767,14 +783,71 @@
                     </span>
                 }
 
-                @if (Convert.ToString(grant.fda_flag) == "y")
-                {
-                    <span style="margin-left: 10px; width: 80px;">
-                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))">
-                            <img src="~/Content/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num"/>
-                        </a>
-                    </span>
-                }
+                                @{ 
+                                    bool displayMPIFlag = true;
+                                    if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
+                                    {
+                                        displayMPIFlag = false;
+                                    }
+                                    else if (ViewBag.ApplID != null)
+                                    {
+                                        // this is appl specific, so hide MPI flag if this appl is not MPI
+                                        displayMPIFlag = false;
+                                        if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
+                                        {
+                                            var thisPagesApplID = (int)ViewBag.ApplID;
+                                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                            var theAppl = appls.Where(a => (string)a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
+                                            if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
+                                            {
+                                                displayMPIFlag = true;
+                                            }
+                                        }
+                                    } else if (ViewBag.SelectedAppls != null && ViewBag.SelectedAppls.Length > 0)
+                                    {
+                                        // it's in ViewBag.SelectedAppls
+                                        displayMPIFlag = false;
+
+                                        string appls_from_vb = (string)ViewBag.SelectedAppls;
+                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                        var appl_ids = appls_from_vb.Split(',');
+                                        var theAppls = appls;
+                                        if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
+                                        {
+                                            // if there's only ONE then selectively display the MPI based on if that ONE appl has MPI
+                                            theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
+                                        }
+                                        if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
+                                        {
+                                            displayMPIFlag = true;
+                                        }
+                                    } else
+                                    {
+                                        // grant search and grant MPI info is populated
+                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                        var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
+                                        if (theAppls.Any( apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
+                                        {
+                                            displayMPIFlag = true;
+                                        }
+                                    }
+                                }
+
+                                @if (displayMPIFlag)
+                                {
+                                    string grantLinkId = "grantLink" + grant.grant_id;
+                                    string imgLinkId = "imgLink" + grant.grant_id;
+                                    <span style="margin-left:10px; width:80px;">
+                                        <a id ="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="Has Multi-PI Grant Year(s)" /></a>
+                                    </span>
+                                }
+
+                                @if (Convert.ToString(grant.fda_flag) == "y")
+                                {
+                                    <span style="margin-left:10px; width:80px;">
+                                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height:16px;" title="View FDA Funded Grant for @grant.grant_num" /></a>
+                                    </span>
+                                }
 
                 @if (Convert.ToString(grant.stop_flag) == "y")
                 {

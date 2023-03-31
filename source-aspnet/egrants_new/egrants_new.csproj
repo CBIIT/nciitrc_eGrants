@@ -347,6 +347,7 @@
     <Content Include="Content\images\flag_kat.png" />
     <Content Include="Content\images\flag_katrina_q.gif" />
     <Content Include="Content\images\flag_katrina_q.jpg" />
+    <Content Include="Content\images\flag_mpi.jpg" />
     <Content Include="Content\images\flag_MS.jpg" />
     <Content Include="Content\images\flag_MS.png" />
     <Content Include="Content\images\flag_od.jpg" />
@@ -2639,12 +2640,7 @@
     <Content Include="fonts\fontawesome-webfont.woff" />
     <Content Include="fonts\fontawesome-webfont.ttf" />
     <Content Include="fonts\fontawesome-webfont.eot" />
-    <Content Include="Content\bootstrap.min.css.map" />
-    <Content Include="Content\bootstrap.css.map" />
-    <Content Include="Content\bootstrap-reboot.min.css.map" />
-    <Content Include="Content\bootstrap-reboot.css.map" />
-    <Content Include="Content\bootstrap-grid.min.css.map" />
-    <Content Include="Content\bootstrap-grid.css.map" />
+    <Content Include="Egrants\Views\_egrants_showModalMPIDialog.cshtml" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
@@ -2852,6 +2848,7 @@
     <Compile Include="Egrants\Models\InstitutionalOrgNameIndex.cs" />
     <Compile Include="Egrants\Models\Notification.cs" />
     <Compile Include="Egrants\Models\Pagination.cs" />
+    <Compile Include="Egrants\Models\PersonContact.cs" />
     <Compile Include="Egrants\Models\Search.cs" />
     <Compile Include="Egrants\Models\Search_by_appl_id.cs" />
     <Compile Include="Egrants\Models\StopNoticeObject.cs" />

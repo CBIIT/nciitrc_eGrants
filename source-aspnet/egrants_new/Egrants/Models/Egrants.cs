@@ -87,15 +87,15 @@ namespace egrants_new.Egrants.Models
 
                 while (rdr.Read())
                     list.Add(new Pagination
-                                 {
-                                     tag = rdr["tag"]?.ToString(),
-                                     parent = rdr["parent"]?.ToString(),
-                                     total_grants = rdr["total_grants"]?.ToString(),
-                                     total_tabs = rdr["total_tabs"]?.ToString(),
-                                     total_pages = rdr["total_pages"]?.ToString(),
-                                     tab_number = rdr["tab_number"]?.ToString(),
-                                     page_number = rdr["page_number"]?.ToString()
-                                 });
+                    {
+                        tag = rdr["tag"]?.ToString(),
+                        parent = rdr["parent"]?.ToString(),
+                        total_grants = rdr["total_grants"]?.ToString(),
+                        total_tabs = rdr["total_tabs"]?.ToString(),
+                        total_pages = rdr["total_pages"]?.ToString(),
+                        tab_number = rdr["tab_number"]?.ToString(),
+                        page_number = rdr["page_number"]?.ToString()
+                    });
 
 
 
@@ -132,13 +132,13 @@ namespace egrants_new.Egrants.Models
 
                 while (rdr.Read())
                     list.Add(new StopNoticeObject
-                                 {
-                                     appl_id = rdr["appl_id"]?.ToString(),
-                                     full_grant_num = rdr["full_grant_num"]?.ToString(),
-                                     closeout_fsr_code = rdr["closeout_fsr_code"]?.ToString(),
-                                     final_invention_stmnt_code = rdr["final_invention_stmnt_code"]?.ToString(),
-                                     final_report_date = rdr["final_report_date"]?.ToString()
-                                 });
+                    {
+                        appl_id = rdr["appl_id"]?.ToString(),
+                        full_grant_num = rdr["full_grant_num"]?.ToString(),
+                        closeout_fsr_code = rdr["closeout_fsr_code"]?.ToString(),
+                        final_invention_stmnt_code = rdr["final_invention_stmnt_code"]?.ToString(),
+                        final_report_date = rdr["final_report_date"]?.ToString()
+                    });
 
                 return list;
             }
@@ -204,23 +204,23 @@ namespace egrants_new.Egrants.Models
 
                 while (rdr.Read())
                     list.Add(new SupplementObject
-                                 {
-                                     tag = rdr["tag"]?.ToString(),
-                                     grant_id = rdr["grant_id "]?.ToString(),
-                                     admin_phs_org_code = rdr["admin_phs_org_code "]?.ToString(),
-                                     serial_num = rdr["serial_num"]?.ToString(),
-                                     id = rdr["id"]?.ToString(),
-                                     full_grant_num = rdr["full_grant_num"]?.ToString(),
-                                     supp_appl_id = rdr["supp_appl_id"]?.ToString(),
-                                     support_year = rdr["support_year"]?.ToString(),
-                                     suffix_code = rdr["suffix_code"]?.ToString(),
-                                     former_num = rdr["former_num"]?.ToString(),
-                                     submitted_date = rdr["submitted_date"]?.ToString(),
-                                     category_name = rdr["category_name"]?.ToString(),
-                                     url = rdr["url"]?.ToString(),
-                                     moved_date = rdr["moved_date"]?.ToString(),
-                                     moved_by = rdr["moved_by"]?.ToString()
-                                 });
+                    {
+                        tag = rdr["tag"]?.ToString(),
+                        grant_id = rdr["grant_id "]?.ToString(),
+                        admin_phs_org_code = rdr["admin_phs_org_code "]?.ToString(),
+                        serial_num = rdr["serial_num"]?.ToString(),
+                        id = rdr["id"]?.ToString(),
+                        full_grant_num = rdr["full_grant_num"]?.ToString(),
+                        supp_appl_id = rdr["supp_appl_id"]?.ToString(),
+                        support_year = rdr["support_year"]?.ToString(),
+                        suffix_code = rdr["suffix_code"]?.ToString(),
+                        former_num = rdr["former_num"]?.ToString(),
+                        submitted_date = rdr["submitted_date"]?.ToString(),
+                        category_name = rdr["category_name"]?.ToString(),
+                        url = rdr["url"]?.ToString(),
+                        moved_date = rdr["moved_date"]?.ToString(),
+                        moved_by = rdr["moved_by"]?.ToString()
+                    });
 
                 return list;
             }
@@ -441,7 +441,7 @@ namespace egrants_new.Egrants.Models
                 }
 
                 // added by Leon 5/11/2019
-               // conn.Close();
+                // conn.Close();
             }
 
             if (CategoryNameList != string.Empty && CategoryNameList.IndexOf(",") > 0)
