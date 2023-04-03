@@ -609,11 +609,11 @@
                 <div id="grantbar2" style="width: 500px;">
                     @if (!string.IsNullOrEmpty(grant.SelectedProjectName))
                     {
-                        @grant.SelectedProjectName
+                        @grant.SelectedProjectName.ToUpper()
                     }
                     else
                     {
-                        @grant.project_title
+                        @grant.project_title.ToUpper()
                     }
                 </div>
             </div><br/>
