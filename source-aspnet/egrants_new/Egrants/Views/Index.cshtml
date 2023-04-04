@@ -824,6 +824,7 @@
                                     } else
                                     {
                                         // grant search and grant MPI info is populated
+                                        displayMPIFlag = false;
                                         var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
                                         var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
                                         if (theAppls.Any( apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
