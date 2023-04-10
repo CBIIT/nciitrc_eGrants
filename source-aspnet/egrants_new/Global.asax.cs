@@ -155,6 +155,11 @@ namespace egrants_new
             //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
         }
 
+        protected void Application_BeginRequest(object sender, EventArgs e)
+        {
+            SameSiteCookieRewriter.FilterSameSiteNoneForIncompatibleUserAgents(sender);
+        }
+
         /// <summary>
         ///     The get hangfire servers.
         /// </summary>
