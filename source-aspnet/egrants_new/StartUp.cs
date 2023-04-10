@@ -1,7 +1,8 @@
 ﻿using Microsoft.Owin;
 using Owin;
-using System;
-using System.Threading.Tasks;
+
+using Microsoft.Owin.Host.SystemWeb;
+using Microsoft.Owin.Security.Cookies;
 
 [assembly: OwinStartup(typeof(egrants_new.Startup))]
 
@@ -11,9 +12,13 @@ namespace egrants_new
     {
         public void Configuration(IAppBuilder app)
         {
-            // Any connection or hub wire up and configuration should go here
-           // app.MapSignalR();
-           Console.WriteLine("Test");
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+                                            {
+                                                CookieSameSite = SameSiteMode.None,
+                                                CookieHttpOnly = true,
+                                                CookieSecure = CookieSecureOption.Always,
+                                                CookieManager = new SameSiteCookieManager(new SystemWebCookieManager())
+                                            });
         }
     }
 }
