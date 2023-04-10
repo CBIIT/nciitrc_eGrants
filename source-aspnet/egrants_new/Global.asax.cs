@@ -141,6 +141,8 @@ namespace egrants_new
 
             AreaRegistration.RegisterAllAreas();
 
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
             //  HangfireAspNet.Use(this.GetHangfireServers);
