@@ -2978,9 +2978,9 @@
     <Content Include="Egrants_Admin\Views\SupplementWorkflow.cshtml" />
     <None Include="Properties\PublishProfiles\Dev45.pubxml" />
     <None Include="Web.base.config" />
-    <None Include="Web.config">
+    <Content Include="Web.config">
       <SubType>Designer</SubType>
-    </None>
+    </Content>
     <None Include="Web.Debug Local Dev.config">
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>
@@ -2997,11 +2997,20 @@
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>
     </None>
+    <None Include="Web.Debug Server.config">
+      <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
+    </None>
     <!-- <None Include="Web.Debug Local.config"> -->
     <!--   <DependentUpon>Web.config</DependentUpon> -->
     <!--   <SubType>Designer</SubType> -->
     <!-- </None> -->
-    <None Include="Web.Debug.config">
+    <None Include="web.local.config" />
+    <None Include="Web.Release Server.config">
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>
     </None>
@@ -3009,15 +3018,6 @@
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>
     </None>
-    <None Include="Web.Debug Server.config">
-      <DependentUpon>Web.config</DependentUpon>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web.Release Server.config">
-      <DependentUpon>Web.config</DependentUpon>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="web.local.config" />
     <None Include="web.server.config" />
     <Content Include="_ViewStart.cshtml" />
   </ItemGroup>
