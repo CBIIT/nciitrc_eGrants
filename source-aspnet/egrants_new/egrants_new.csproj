@@ -230,6 +230,7 @@
     <Content Include="Content\bootstrap-reboot.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\checkbox-mixed.css" />
     <Content Include="Content\dataTables.bootstrap4.min.css" />
     <Content Include="Content\egrants.css" />
     <Content Include="Content\explanation.htm" />
@@ -2648,6 +2649,12 @@
     <Content Include="fonts\fontawesome-webfont.ttf" />
     <Content Include="fonts\fontawesome-webfont.eot" />
     <Content Include="Egrants\Views\_egrants_showModalMPIDialog.cshtml" />
+    <Content Include="Content\bootstrap-grid.css.map" />
+    <Content Include="Content\bootstrap-grid.min.css.map" />
+    <Content Include="Content\bootstrap-reboot.css.map" />
+    <Content Include="Content\bootstrap-reboot.min.css.map" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap.min.css.map" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
@@ -2663,6 +2670,7 @@
     <Content Include="scripts\bs-custom-file-input.js" />
     <Content Include="scripts\bs-custom-file-input.min.js" />
     <Content Include="scripts\Chart.min.js" />
+    <Content Include="scripts\checkbox-mixed.js" />
     <Content Include="scripts\dataTables.bootstrap4.min.js" />
     <Content Include="scripts\datetime-moment.js" />
     <Content Include="scripts\esm\popper-utils.js" />
