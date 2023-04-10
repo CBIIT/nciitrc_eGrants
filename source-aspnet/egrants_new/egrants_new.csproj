@@ -2887,7 +2887,6 @@
     </Compile>
     <Compile Include="IC_Coordinator\Controllers\ICCoordinatorController.cs" />
     <Compile Include="IC_Coordinator\Models\ICCoordinator.cs" />
-    <Compile Include="IeEgantsUserSession.cs" />
     <Compile Include="Integration\Models\SQLJobError.cs" />
     <Compile Include="Integration\Models\Enumerations.cs" />
     <Compile Include="Integration\Models\WebServiceParam.cs" />
@@ -2919,7 +2918,7 @@
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QC\Controllers\QCController.cs" />
-    <Compile Include="App_Start\Startup.cs" />
+    <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="SameSiteCookieManager.cs" />
     <Compile Include="SameSiteCookieRewriter.cs" />
     <Compile Include="SameSiteSupport.cs" />
