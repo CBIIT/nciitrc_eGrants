@@ -14,7 +14,7 @@ namespace egrants_new
         {
             app.UseCookieAuthentication(new CookieAuthenticationOptions
                                             {
-                                                CookieSameSite = SameSiteMode.None,
+                                                CookieSameSite = SameSiteMode.Lax,
                                                 CookieHttpOnly = true,
                                                 CookieSecure = CookieSecureOption.Always,
                                                 CookieManager = new SameSiteCookieManager(new SystemWebCookieManager())
