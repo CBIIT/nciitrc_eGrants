@@ -35,6 +35,7 @@
 
 #region
 
+using egrants_new.Dashboard.Models;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -42,12 +43,11 @@ using System.Data.SqlClient;
 
 #endregion
 
-namespace egrants_new.Dashboard.Models
-{
+namespace egrants_new.Dashboard.Functions {
     /// <summary>
     /// The dashboard.
     /// </summary>
-    public class Dashboard
+    public static class DashboardFunctions
     {
         /// <summary>
         /// The get total widgets.
@@ -57,21 +57,21 @@ namespace egrants_new.Dashboard.Models
         /// </returns>
         public static string GetTotalWidgets()
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("SELECT max(widget_id) as total_widgets FROM dbo.DB_Widget_Master WHERE end_date is null", conn);
-            cmd.CommandType = CommandType.Text;
-            conn.Open();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("SELECT max(widget_id) as total_widgets FROM dbo.DB_Widget_Master WHERE end_date is null", conn);
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
 
-            var total_widgets = string.Empty;
-            var rdr = cmd.ExecuteReader();
+                var emptyString = string.Empty;
+                var rdr = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                total_widgets = rdr["total_widgets"]?.ToString();
+                while (rdr.Read())
+                    emptyString = rdr["total_widgets"]?.ToString();
 
-            rdr.Close();
-            conn.Close();
 
-            return total_widgets;
+                return emptyString;
+            }
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace egrants_new.Dashboard.Models
         /// </param>
         /// <param name="ic">
         /// The ic.
-        /// </param>
+        /// </param>turb
         /// <param name="userid">
         /// The userid.
         /// </param>
@@ -94,32 +94,29 @@ namespace egrants_new.Dashboard.Models
         /// </returns>
         public static List<WidgetAssigments> LoadWidgets(string act, string idstr, string ic, string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("sp_web_egrants_dashboard", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@idstr", SqlDbType.VarChar).Value = idstr;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
-            conn.Open();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_dashboard", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+                cmd.Parameters.Add("@idstr", SqlDbType.VarChar).Value = idstr;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+                conn.Open();
 
-            var Widgets = new List<WidgetAssigments>();
-            var rdr = cmd.ExecuteReader();
+                var list = new List<WidgetAssigments>();
+                var sqlDataReader = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                Widgets.Add(
-                    new WidgetAssigments
-                        {
-                            widget_id = rdr["widget_id"]?.ToString(),
-                            widget_title = rdr["widget_title"]?.ToString(),
-                            selected = rdr["selected"]?.ToString()
-                        }
-                );
+                while (sqlDataReader.Read())
+                    list.Add(new WidgetAssigments
+                                {
+                                    widget_id = sqlDataReader["widget_id"]?.ToString(),
+                                    widget_title = sqlDataReader["widget_title"]?.ToString(),
+                                    selected = sqlDataReader["selected"]?.ToString()
+                                });
 
-            rdr.Close();
-            conn.Close();
-
-            return Widgets;
+                return list;
+            }
         }
 
         /// <summary>
@@ -133,37 +130,33 @@ namespace egrants_new.Dashboard.Models
         /// </returns>
         public static List<SelectedWidgets> LoadSeletedWidgets(string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
 
-            var cmd = new SqlCommand(
-                "SELECT ROW_NUMBER()OVER(ORDER BY widget.widget_id) AS order_id, widget.widget_id,widget_title,template_name "
-              + " FROM dbo.DB_Widget_Master as widget, dbo.DB_WIDGET_ASSIGNMENT a "
-              + " WHERE widget.widget_id = a.widget_id and widget.end_date is null and a.userid = @userid and a.end_date is null",
-                conn
-            );
+                var cmd = new SqlCommand(
+                    "SELECT ROW_NUMBER()OVER(ORDER BY widget.widget_id) AS order_id, widget.widget_id,widget_title,template_name "
+                  + " FROM dbo.DB_Widget_Master as widget, dbo.DB_WIDGET_ASSIGNMENT a "
+                  + " WHERE widget.widget_id = a.widget_id and widget.end_date is null and a.userid = @userid and a.end_date is null",
+                    conn);
 
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
-            conn.Open();
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
+                conn.Open();
 
-            var SeletedWidgets = new List<SelectedWidgets>();
-            var rdr = cmd.ExecuteReader();
+                var list = new List<SelectedWidgets>();
+                var sqlDataReader = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                SeletedWidgets.Add(
-                    new SelectedWidgets
-                        {
-                            order_id = rdr["order_id"]?.ToString(),
-                            widget_id = rdr["widget_id"]?.ToString(),
-                            widget_title = rdr["widget_title"]?.ToString(),
-                            template_name = rdr["template_name"]?.ToString()
-                        }
-                );
+                while (sqlDataReader.Read())
+                    list.Add(new SelectedWidgets
+                                       {
+                                           order_id = sqlDataReader["order_id"]?.ToString(),
+                                           widget_id = sqlDataReader["widget_id"]?.ToString(),
+                                           widget_title = sqlDataReader["widget_title"]?.ToString(),
+                                           template_name = sqlDataReader["template_name"]?.ToString()
+                                       });
 
-            rdr.Close();
-            conn.Close();
-
-            return SeletedWidgets;
+                return list;
+            }
         }
 
         /// <summary>
@@ -533,206 +526,5 @@ namespace egrants_new.Dashboard.Models
             return AuditReports;
         }
 
-        /// <summary>
-        /// The widget assigments.
-        /// </summary>
-        public class WidgetAssigments
-        {
-            /// <summary>
-            /// Gets or sets the widget_id.
-            /// </summary>
-            public string widget_id { get; set; }
-
-            /// <summary>
-            /// Gets or sets the widget_title.
-            /// </summary>
-            public string widget_title { get; set; }
-
-            /// <summary>
-            /// Gets or sets the selected.
-            /// </summary>
-            public string selected { get; set; }
-        }
-
-        /// <summary>
-        /// The selected widgets.
-        /// </summary>
-        public class SelectedWidgets
-        {
-            /// <summary>
-            /// Gets or sets the order_id.
-            /// </summary>
-            public string order_id { get; set; }
-
-            /// <summary>
-            /// Gets or sets the widget_id.
-            /// </summary>
-            public string widget_id { get; set; }
-
-            /// <summary>
-            /// Gets or sets the widget_title.
-            /// </summary>
-            public string widget_title { get; set; }
-
-            /// <summary>
-            /// Gets or sets the template_name.
-            /// </summary>
-            public string template_name { get; set; }
-        }
-
-        /// <summary>
-        /// The widget data.
-        /// </summary>
-        public class WidgetData
-        {
-            /// <summary>
-            /// Gets or sets the appl_id.
-            /// </summary>
-            public string appl_id { get; set; }
-
-            /// <summary>
-            /// Gets or sets the fgn.
-            /// </summary>
-            public string fgn { get; set; }
-
-            /// <summary>
-            /// Gets or sets the userid.
-            /// </summary>
-            public string userid { get; set; }
-
-            /// <summary>
-            /// Gets or sets the assigned_date.
-            /// </summary>
-            public string assigned_date { get; set; }
-
-            /// <summary>
-            /// Gets or sets the ncab_date.
-            /// </summary>
-            public string ncab_date { get; set; }
-
-            /// <summary>
-            /// Gets or sets the status_code.
-            /// </summary>
-            public string status_code { get; set; }
-
-            /// <summary>
-            /// Gets or sets the days_late.
-            /// </summary>
-            public string days_late { get; set; }
-        }
-
-        /// <summary>
-        /// The link lists.
-        /// </summary>
-        public class LinkLists
-        {
-            /// <summary>
-            /// Gets or sets the tag.
-            /// </summary>
-            public string tag { get; set; }
-
-            /// <summary>
-            /// Gets or sets the category_id.
-            /// </summary>
-            public string category_id { get; set; }
-
-            /// <summary>
-            /// Gets or sets the category_name.
-            /// </summary>
-            public string category_name { get; set; }
-
-            /// <summary>
-            /// Gets or sets the link_title.
-            /// </summary>
-            public string link_title { get; set; }
-
-            /// <summary>
-            /// Gets or sets the link_url.
-            /// </summary>
-            public string link_url { get; set; }
-
-            /// <summary>
-            /// Gets or sets the sort_order.
-            /// </summary>
-            public string sort_order { get; set; }
-
-            /// <summary>
-            /// Gets or sets the icon_name.
-            /// </summary>
-            public string icon_name { get; set; }
-        }
-
-        /// <summary>
-        /// The avgtime.
-        /// </summary>
-        public class avgtime
-        {
-            /// <summary>
-            /// Gets or sets the userid.
-            /// </summary>
-            public string USERID { get; set; }
-
-            /// <summary>
-            /// Gets or sets the allowe d_ releas e_ days.
-            /// </summary>
-            public string ALLOWED_RELEASE_DAYS { get; set; }
-
-            /// <summary>
-            /// Gets or sets the av g_ daystaken.
-            /// </summary>
-            public string AVG_DAYSTAKEN { get; set; }
-
-            /// <summary>
-            /// Gets or sets the gran t_ count.
-            /// </summary>
-            public string GRANT_COUNT { get; set; }
-        }
-
-        /// <summary>
-        /// The grant status.
-        /// </summary>
-        public class GrantStatus
-        {
-            /// <summary>
-            /// Gets or sets the tag.
-            /// </summary>
-            public string tag { get; set; }
-
-            /// <summary>
-            /// Gets or sets the action_type.
-            /// </summary>
-            public string action_type { get; set; }
-
-            /// <summary>
-            /// Gets or sets the status_code.
-            /// </summary>
-            public string status_code { get; set; }
-
-            /// <summary>
-            /// Gets or sets the grants_count.
-            /// </summary>
-            public string grants_count { get; set; }
-        }
-
-        /// <summary>
-        /// The audit report.
-        /// </summary>
-        public class AuditReport
-        {
-            /// <summary>
-            /// Gets or sets the report_name.
-            /// </summary>
-            public string report_name { get; set; }
-
-            /// <summary>
-            /// Gets or sets the report_url.
-            /// </summary>
-            public string report_url { get; set; }
-
-            /// <summary>
-            /// Gets or sets the run_date.
-            /// </summary>
-            public string run_date { get; set; }
-        }
     }
 }

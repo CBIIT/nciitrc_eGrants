@@ -35,6 +35,7 @@
 
 #region
 
+using egrants_new.Egrants.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -43,7 +44,7 @@ using System.Data.SqlClient;
 
 #endregion
 
-namespace egrants_new.Egrants.Models
+namespace egrants_new.Dashboard.Functions
 {
     /// <summary>
     ///     The egrants.

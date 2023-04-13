@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  LinkLists.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-12
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,46 @@
 
 #endregion
 
-
-    namespace egrants_new.Egrants.Models
-    {
+namespace egrants_new.Dashboard.Models
+{
         /// <summary>
-        /// The institutional files page action.
+        /// The link lists.
         /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class LinkLists
         {
             /// <summary>
-            /// The show orgs.
+            /// Gets or sets the tag.
             /// </summary>
-            ShowOrgs,
+            public string tag { get; set; }
 
             /// <summary>
-            /// The show docs.
+            /// Gets or sets the category_id.
             /// </summary>
-            ShowDocs,
+            public string category_id { get; set; }
 
             /// <summary>
-            /// The create new.
+            /// Gets or sets the category_name.
             /// </summary>
-            CreateNew,
+            public string category_name { get; set; }
 
             /// <summary>
-            /// The search orgs.
+            /// Gets or sets the link_title.
             /// </summary>
-            SearchOrgs,
+            public string link_title { get; set; }
 
             /// <summary>
-            /// The update doc.
+            /// Gets or sets the link_url.
             /// </summary>
-            UpdateDoc
+            public string link_url { get; set; }
+
+            /// <summary>
+            /// Gets or sets the sort_order.
+            /// </summary>
+            public string sort_order { get; set; }
+
+            /// <summary>
+            /// Gets or sets the icon_name.
+            /// </summary>
+            public string icon_name { get; set; }
         }
     }

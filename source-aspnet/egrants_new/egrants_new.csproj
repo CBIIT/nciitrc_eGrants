@@ -18,7 +18,7 @@
     <AssemblyName>egrants_new</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
-    <IISExpressSSLPort />
+    <IISExpressSSLPort>44365</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
@@ -2834,9 +2834,20 @@
     <Compile Include="CustomRazorViewEngine.cs" />
     <Compile Include="Dashboard\Controllers\ReminderController.cs" />
     <Compile Include="Dashboard\Controllers\DashboardController.cs" />
-    <Compile Include="Dashboard\Models\Reminder.cs" />
-    <Compile Include="Dashboard\Models\Dashboard.cs" />
+    <Compile Include="Dashboard\Models\Appls.cs" />
+    <Compile Include="Dashboard\Models\AuditReport.cs" />
+    <Compile Include="Dashboard\Models\avgtime.cs" />
+    <Compile Include="Dashboard\Models\GrantStatus.cs" />
+    <Compile Include="Dashboard\Models\LinkLists.cs" />
+    <Compile Include="Dashboard\Functions\Reminder.cs" />
+    <Compile Include="Dashboard\Functions\Dashboard.cs" />
+    <Compile Include="Dashboard\Models\SelectedWidgets.cs" />
+    <Compile Include="Dashboard\Models\WidgetAssigments.cs" />
+    <Compile Include="Dashboard\Models\WidgetData.cs" />
+    <Compile Include="Egrants\Models\ActivityCode.cs" />
+    <Compile Include="Egrants\Models\Appl.cs" />
     <Compile Include="Egrants\Models\ApplLayerObject.cs" />
+    <Compile Include="Egrants\Models\ApplType.cs" />
     <Compile Include="Egrants\Models\DocAttachment.cs" />
     <Compile Include="Egrants\Models\doclayer.cs" />
     <Compile Include="Egrants\Models\DocsUnidentified.cs" />
@@ -2854,14 +2865,15 @@
     <Compile Include="Egrants\Models\InstitutionalFilesEnums.cs" />
     <Compile Include="Egrants\Models\InstitutionalFilesPage.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrgCategory.cs" />
-    <Compile Include="Egrants\Models\EgrantsAppl.cs" />
-    <Compile Include="Egrants\Models\EgrantsDoc.cs" />
-    <Compile Include="Egrants\Models\Egrants.cs" />
+    <Compile Include="Dashboard\Functions\EgrantsAppl.cs" />
+    <Compile Include="Dashboard\Functions\EgrantsDoc.cs" />
+    <Compile Include="Dashboard\Functions\Egrants.cs" />
     <Compile Include="Egrants\Models\InstitutionalDocFiles.cs" />
     <Compile Include="Egrants\DataRepositories\InstitutionalFilesRepo.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrg.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrgNameIndex.cs" />
     <Compile Include="Egrants\Models\Notification.cs" />
+    <Compile Include="Egrants\Models\PageDownloadModel.cs" />
     <Compile Include="Egrants\Models\Pagination.cs" />
     <Compile Include="Egrants\Models\PersonContact.cs" />
     <Compile Include="Egrants\Models\Search.cs" />

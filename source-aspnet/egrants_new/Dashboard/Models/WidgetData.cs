@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  WidgetData.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-12
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,46 @@
 
 #endregion
 
-
-    namespace egrants_new.Egrants.Models
-    {
+namespace egrants_new.Dashboard.Models
+{
         /// <summary>
-        /// The institutional files page action.
+        /// The widget data.
         /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class WidgetData
         {
             /// <summary>
-            /// The show orgs.
+            /// Gets or sets the appl_id.
             /// </summary>
-            ShowOrgs,
+            public string appl_id { get; set; }
 
             /// <summary>
-            /// The show docs.
+            /// Gets or sets the fgn.
             /// </summary>
-            ShowDocs,
+            public string fgn { get; set; }
 
             /// <summary>
-            /// The create new.
+            /// Gets or sets the userid.
             /// </summary>
-            CreateNew,
+            public string userid { get; set; }
 
             /// <summary>
-            /// The search orgs.
+            /// Gets or sets the assigned_date.
             /// </summary>
-            SearchOrgs,
+            public string assigned_date { get; set; }
 
             /// <summary>
-            /// The update doc.
+            /// Gets or sets the ncab_date.
             /// </summary>
-            UpdateDoc
+            public string ncab_date { get; set; }
+
+            /// <summary>
+            /// Gets or sets the status_code.
+            /// </summary>
+            public string status_code { get; set; }
+
+            /// <summary>
+            /// Gets or sets the days_late.
+            /// </summary>
+            public string days_late { get; set; }
         }
     }

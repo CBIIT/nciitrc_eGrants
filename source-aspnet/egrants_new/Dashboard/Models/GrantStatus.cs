@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  GrantStatus.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-12
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,32 @@
 
 #endregion
 
+namespace egrants_new.Dashboard.Models
+{
 
-    namespace egrants_new.Egrants.Models
-    {
         /// <summary>
-        /// The institutional files page action.
+        /// The grant status.
         /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class GrantStatus
         {
             /// <summary>
-            /// The show orgs.
+            /// Gets or sets the tag.
             /// </summary>
-            ShowOrgs,
+            public string tag { get; set; }
 
             /// <summary>
-            /// The show docs.
+            /// Gets or sets the action_type.
             /// </summary>
-            ShowDocs,
+            public string action_type { get; set; }
 
             /// <summary>
-            /// The create new.
+            /// Gets or sets the status_code.
             /// </summary>
-            CreateNew,
+            public string status_code { get; set; }
 
             /// <summary>
-            /// The search orgs.
+            /// Gets or sets the grants_count.
             /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
+            public string grants_count { get; set; }
         }
     }

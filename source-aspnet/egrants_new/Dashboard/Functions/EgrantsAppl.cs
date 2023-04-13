@@ -35,6 +35,7 @@
 
 #region
 
+using egrants_new.Egrants.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -43,7 +44,7 @@ using System.Data.SqlClient;
 
 #endregion
 
-namespace egrants_new.Egrants.Models
+namespace egrants_new.Dashboard.Functions
 {
     /// <summary>
     /// The egrants appl.
@@ -554,52 +555,5 @@ namespace egrants_new.Egrants.Models
             return yearList;
         }
 
-        /// <summary>
-        /// The appl.
-        /// </summary>
-        public class Appl
-        {
-            /// <summary>
-            /// Gets or sets the appl_id.
-            /// </summary>
-            public string appl_id { get; set; }
-
-            /// <summary>
-            /// Gets or sets the grant_id.
-            /// </summary>
-            public string grant_id { get; set; }
-
-            /// <summary>
-            /// Gets or sets the full_grant_num.
-            /// </summary>
-            public string full_grant_num { get; set; }
-
-            /// <summary>
-            /// Gets or sets the support_year.
-            /// </summary>
-            public string support_year { get; set; }
-        }
-
-        /// <summary>
-        /// The appl type.
-        /// </summary>
-        public class ApplType
-        {
-            /// <summary>
-            /// Gets or sets the appl_type_code.
-            /// </summary>
-            public string appl_type_code { get; set; }
-        }
-
-        /// <summary>
-        /// The activity code.
-        /// </summary>
-        public class ActivityCode
-        {
-            /// <summary>
-            /// Gets or sets the activity_code.
-            /// </summary>
-            public string activity_code { get; set; }
-        }
     }
 }

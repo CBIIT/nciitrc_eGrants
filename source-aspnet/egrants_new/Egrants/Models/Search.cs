@@ -52,9 +52,9 @@ namespace egrants_new.Egrants.Models
     public static class Search
     {
         /// <summary>
-        ///     Gets or sets the grantlayerproperty.
+        ///     Gets or sets the GrantlayerList.
         /// </summary>
-        public static List<GrantLayer> grantlayerproperty { get; set; }
+        public static List<GrantLayer> GrantlayerList { get; set; }
 
         /// <summary>
         ///     Gets or sets the appllayerproperty.
@@ -122,7 +122,7 @@ namespace egrants_new.Egrants.Models
 
             conn.Open();
 
-            grantlayerproperty = null;
+            GrantlayerList = null;
             appllayerproperty = null;
             doclayerproperty = null;
 
@@ -167,11 +167,11 @@ namespace egrants_new.Egrants.Models
                     grant.od_flag = rdr["od_flag"]?.ToString();
                     grant.ds_flag = rdr["ds_flag"]?.ToString();
                     grant.adm_supp = rdr["adm_supp"]?.ToString();
-                    if (appl_id == 0)
+                    if (appl_id <= 0)
                         grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true : false;
                     else
                         grant.institutional_flag1 = rdr["specific_year_institution1"].ToString() == "1" ? true : false;
-                    if (appl_id == 0)
+                    if (appl_id <= 0)
                         grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
                     else
                         grant.AnyOrgDoc = rdr["specific_year_institution2"].ToString() == "1" ? true : false;
@@ -227,7 +227,7 @@ namespace egrants_new.Egrants.Models
             var mpi_info = GetAllMPIInfo(applList.Select(al => al.appl_id).ToList());
             PopulateMPIIntoGrants(grantList, applList, mpi_info);
 
-            grantlayerproperty = grantList;
+            GrantlayerList = grantList;
             appllayerproperty = applList;
             doclayerproperty = docList;
         }
