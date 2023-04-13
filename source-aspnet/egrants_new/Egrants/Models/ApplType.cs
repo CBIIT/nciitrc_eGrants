@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  ApplType.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-13
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,17 @@
 
 #endregion
 
+namespace egrants_new.Egrants.Models
+{
 
-    namespace egrants_new.Egrants.Models
-    {
         /// <summary>
-        /// The institutional files page action.
+        /// The appl type.
         /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class ApplType
         {
             /// <summary>
-            /// The show orgs.
+            /// Gets or sets the appl_type_code.
             /// </summary>
-            ShowOrgs,
-
-            /// <summary>
-            /// The show docs.
-            /// </summary>
-            ShowDocs,
-
-            /// <summary>
-            /// The create new.
-            /// </summary>
-            CreateNew,
-
-            /// <summary>
-            /// The search orgs.
-            /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
+            public string appl_type_code { get; set; }
         }
     }

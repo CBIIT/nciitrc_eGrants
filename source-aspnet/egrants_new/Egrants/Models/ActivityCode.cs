@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  ActivityCode.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-13
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,17 @@
 
 #endregion
 
+namespace egrants_new.Egrants.Models
+{
 
-    namespace egrants_new.Egrants.Models
+    /// <summary>
+    /// The activity code.
+    /// </summary>
+    public class ActivityCode
     {
         /// <summary>
-        /// The institutional files page action.
+        /// Gets or sets the activity_code.
         /// </summary>
-        public enum InstitutionalFilesPageAction
-        {
-            /// <summary>
-            /// The show orgs.
-            /// </summary>
-            ShowOrgs,
-
-            /// <summary>
-            /// The show docs.
-            /// </summary>
-            ShowDocs,
-
-            /// <summary>
-            /// The create new.
-            /// </summary>
-            CreateNew,
-
-            /// <summary>
-            /// The search orgs.
-            /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
-        }
+        public string activity_code { get; set; }
     }
+}

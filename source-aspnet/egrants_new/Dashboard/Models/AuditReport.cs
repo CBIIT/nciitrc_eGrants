@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  AuditReport.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-12
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,26 @@
 
 #endregion
 
-
-    namespace egrants_new.Egrants.Models
-    {
+namespace egrants_new.Dashboard.Models
+{
         /// <summary>
-        /// The institutional files page action.
+        /// The audit report.
         /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class AuditReport
         {
             /// <summary>
-            /// The show orgs.
+            /// Gets or sets the report_name.
             /// </summary>
-            ShowOrgs,
+            public string report_name { get; set; }
 
             /// <summary>
-            /// The show docs.
+            /// Gets or sets the report_url.
             /// </summary>
-            ShowDocs,
+            public string report_url { get; set; }
 
             /// <summary>
-            /// The create new.
+            /// Gets or sets the run_date.
             /// </summary>
-            CreateNew,
-
-            /// <summary>
-            /// The search orgs.
-            /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
+            public string run_date { get; set; }
         }
     }

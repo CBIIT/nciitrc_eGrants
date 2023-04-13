@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  PageDownloadModel.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-13
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,15 @@
 
 #endregion
 
-
-    namespace egrants_new.Egrants.Models
+namespace egrants_new.Models
+{
+    public class PageDownloadModel
     {
         /// <summary>
-        /// The institutional files page action.
+        /// Gets or sets the appl_id.
         /// </summary>
-        public enum InstitutionalFilesPageAction
-        {
-            /// <summary>
-            /// The show orgs.
-            /// </summary>
-            ShowOrgs,
+        public int ApplId { get; set; }
 
-            /// <summary>
-            /// The show docs.
-            /// </summary>
-            ShowDocs,
-
-            /// <summary>
-            /// The create new.
-            /// </summary>
-            CreateNew,
-
-            /// <summary>
-            /// The search orgs.
-            /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
-        }
+        public string FullGrantNumber { get; set; }
     }
+}

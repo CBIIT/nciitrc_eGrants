@@ -35,6 +35,7 @@
 
 #region
 
+using egrants_new.Dashboard.Functions;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -48,7 +49,7 @@ using System.Web.Mvc;
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
 using Newtonsoft.Json;
-using static egrants_new.Egrants.Models.EgrantsDoc;
+using static egrants_new.Dashboard.Functions.EgrantsDoc;
 
 #endregion
 

@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  SelectedWidgets.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-12
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,32 @@
 
 #endregion
 
+namespace egrants_new.Dashboard.Models
+{
 
-    namespace egrants_new.Egrants.Models
-    {
         /// <summary>
-        /// The institutional files page action.
+        /// The selected widgets.
         /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class SelectedWidgets
         {
             /// <summary>
-            /// The show orgs.
+            /// Gets or sets the order_id.
             /// </summary>
-            ShowOrgs,
+            public string order_id { get; set; }
 
             /// <summary>
-            /// The show docs.
+            /// Gets or sets the widget_id.
             /// </summary>
-            ShowDocs,
+            public string widget_id { get; set; }
 
             /// <summary>
-            /// The create new.
+            /// Gets or sets the widget_title.
             /// </summary>
-            CreateNew,
+            public string widget_title { get; set; }
 
             /// <summary>
-            /// The search orgs.
+            /// Gets or sets the template_name.
             /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
+            public string template_name { get; set; }
         }
     }

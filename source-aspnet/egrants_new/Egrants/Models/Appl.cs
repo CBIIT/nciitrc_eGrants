@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  Appl.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-13
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,32 @@
 
 #endregion
 
+namespace egrants_new.Egrants.Models
+{
 
-    namespace egrants_new.Egrants.Models
-    {
         /// <summary>
-        /// The institutional files page action.
+        /// The appl.
         /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class Appl
         {
             /// <summary>
-            /// The show orgs.
+            /// Gets or sets the appl_id.
             /// </summary>
-            ShowOrgs,
+            public string appl_id { get; set; }
 
             /// <summary>
-            /// The show docs.
+            /// Gets or sets the grant_id.
             /// </summary>
-            ShowDocs,
+            public string grant_id { get; set; }
 
             /// <summary>
-            /// The create new.
+            /// Gets or sets the full_grant_num.
             /// </summary>
-            CreateNew,
+            public string full_grant_num { get; set; }
 
             /// <summary>
-            /// The search orgs.
+            /// Gets or sets the support_year.
             /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
+            public string support_year { get; set; }
         }
     }

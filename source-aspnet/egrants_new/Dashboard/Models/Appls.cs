@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  Appls.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-12
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,16 @@
 
 #endregion
 
+namespace egrants_new.Dashboard.Models
+{
 
-    namespace egrants_new.Egrants.Models
-    {
-        /// <summary>
-        /// The institutional files page action.
-        /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class Appls
         {
-            /// <summary>
-            /// The show orgs.
-            /// </summary>
-            ShowOrgs,
-
-            /// <summary>
-            /// The show docs.
-            /// </summary>
-            ShowDocs,
-
-            /// <summary>
-            /// The create new.
-            /// </summary>
-            CreateNew,
-
-            /// <summary>
-            /// The search orgs.
-            /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
+            public string appl_id { get; set; }
+            public string serial_num { get; set; }
+            public string full_grant_num { get; set; }
+            public string assign_date { get; set; }
+            public string due_date { get; set; }
         }
     }
+    

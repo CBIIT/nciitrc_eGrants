@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  InstitutionalFilesEnums.cs
+// Module Name:  avgtime.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-05-17
+// Created: 2023-04-12
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -33,37 +33,32 @@
 
 #endregion
 
+namespace egrants_new.Dashboard.Models
+{
 
-    namespace egrants_new.Egrants.Models
-    {
         /// <summary>
-        /// The institutional files page action.
+        /// The avgtime.
         /// </summary>
-        public enum InstitutionalFilesPageAction
+        public class avgtime
         {
             /// <summary>
-            /// The show orgs.
+            /// Gets or sets the userid.
             /// </summary>
-            ShowOrgs,
+            public string USERID { get; set; }
 
             /// <summary>
-            /// The show docs.
+            /// Gets or sets the allowe d_ releas e_ days.
             /// </summary>
-            ShowDocs,
+            public string ALLOWED_RELEASE_DAYS { get; set; }
 
             /// <summary>
-            /// The create new.
+            /// Gets or sets the av g_ daystaken.
             /// </summary>
-            CreateNew,
+            public string AVG_DAYSTAKEN { get; set; }
 
             /// <summary>
-            /// The search orgs.
+            /// Gets or sets the gran t_ count.
             /// </summary>
-            SearchOrgs,
-
-            /// <summary>
-            /// The update doc.
-            /// </summary>
-            UpdateDoc
+            public string GRANT_COUNT { get; set; }
         }
     }
