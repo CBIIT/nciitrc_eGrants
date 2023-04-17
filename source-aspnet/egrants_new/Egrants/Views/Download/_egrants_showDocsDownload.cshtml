@@ -583,6 +583,8 @@
                ]
             });
 
+
+
             var mode = document.getElementById("hidMode").value;
             if (mode == "qc") {
                // show all qc options
@@ -957,6 +959,9 @@
                          console.log(JSON.stringify(tr))
 
                          var row = table.row(tr);
+                         
+
+
 
                          if (row.child.isShown()) {
                              $.each('#childRowCheckbox_' + @appl_id + ' input.showDownload, .FinancialReport'),
@@ -1042,7 +1047,22 @@
 
                                     if (found != null) {
                                        var trSvg = tr.find('[data-fa-i2svg]');
-                                       console.log("Found: ");
+                                        console.log("Found: ");
+                        //                                       AdminCode = $('#AdminCode').val();
+                        //Mechanism = $('#Mechanism').val();
+                        //SerialNumber = $('#SerialNumber').change().val();
+                        //iscalYear = $('#FiscalYear').val();
+
+                        //             //alert(Mechanism);
+                        //             $('#FiscalYear').autocomplete({
+                        //                 source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                        //             });
+                        //             $('#Mechanism').autocomplete({
+                        //                 source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                        //             });
+                        //             $('#SerialNumber').autocomplete({
+                        //                 source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                        //             });
                                        console.log(JSON.stringify(found));
                                        console.log(found[0].Error);
                                        if (found[0].Error == null) {

@@ -232,6 +232,56 @@ namespace egrants_new.Egrants.Models
             doclayerproperty = docList;
         }
 
+
+        // public static Dictionary<string, List<PersonContact>> WasPIThisApplYear(List<string> appl_ids)
+        // {
+        //     var results = new Dictionary<string, List<PersonContact>>();
+        //
+        //     if (appl_ids == null || appl_ids.Count == 0)
+        //         return results;
+        //
+        //     using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+        //     {
+        //         // note that Ingrid learned retrieving email interferes with the ability of the query to return all the MPIs
+        //         var sql = "DECLARE @TSQL varchar(8000);" +
+        //                   "SELECT @TSQL = 'SELECT APPL_ID, First_Name, Last_name, Role_Type_Code  FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr , e.role_type_code, c.addr_type_code from person_involvements_mv e join persons_secure d on d.person_id = e.person_id left outer join person_addresses_mv c on d.person_id = c.person_id and c.addr_type_code in (''''HOM'''') and c.preferred_addr_code = ''''Y'''' where e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE) and d.person_id = e.person_id '')';"
+        //                  +
+        //                   "EXEC (@TSQL)";
+        //
+        //         var applsParam = string.Join(",", appl_ids);
+        //         sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
+        //
+        //         using (var cmd = new SqlCommand(sql, conn))
+        //         {
+        //             cmd.CommandType = CommandType.Text;
+        //
+        //             conn.Open();
+        //             var rdr = cmd.ExecuteReader();
+        //
+        //             while (rdr.Read())
+        //             {
+        //                 var person = new PersonContact
+        //                              {
+        //                                  appl_id = (rdr[0] == DBNull.Value) ? string.Empty : rdr[0].ToString(),
+        //                                  first_name = (rdr[1] == DBNull.Value) ? string.Empty : (string)rdr[1],
+        //                                  last_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
+        //                                  was_PI_that_year = (rdr[3] == DBNull.Value || ((string)rdr[3]).ToLower() != "pi") ? false : true
+        //                              };
+        //
+        //                 if (!results.ContainsKey(person.appl_id))
+        //                 {
+        //                     results.Add(person.appl_id, new List<PersonContact> { person });
+        //                 }
+        //                 else
+        //                 {
+        //                     results[person.appl_id].Add(person);
+        //                 }
+        //             }
+        //
+        //         }
+        //     }
+        // }
+
         public static Dictionary<string, List<PersonContact>> GetAllMPIInfo(List<string> appl_ids)
         {
             var results = new Dictionary<string, List<PersonContact>>();
