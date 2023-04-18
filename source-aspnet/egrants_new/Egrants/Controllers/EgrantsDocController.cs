@@ -488,36 +488,40 @@ namespace egrants_new.Controllers
                             this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServer"]) + "data/" + Convert.ToString(this.Session["egrantsDocNew"])
                                                  + Convert.ToString(docName);
 
-                            this.ViewBag.Message = "Done! New document has been created and moved to server.";
-
+                            this.ViewBag.Message = "Done! New document has been created";
+                            this.ViewBag.virusReport = "Success! No Virus/Malicious code Detected";
                             url = this.ViewBag.FileUrl;
                             mssg = this.ViewBag.Message;
-                            virusReport = this.ViewBag.Message;
+                            virusReport = this.ViewBag.VirusReport;
                             Console.WriteLine(ScanResult.VirusNotFound.ToString());
                             break;
                         case ScanResult.BlockedByPolicy:
                             this.ViewBag.FileUrl = "File blocked by Policy";
                             this.ViewBag.Message = "The scan was blocked by the system policy. Notify Developer Team.";
+                            this.ViewBag.virusReport = "Failed! Upload Blocked by Policy";
                             url = this.ViewBag.FileUrl;
                             mssg = this.ViewBag.Message;
-                            virusReport = this.ViewBag.Message;
+                            virusReport = this.ViewBag.VirusReport;
                             Console.WriteLine(ScanResult.BlockedByPolicy.ToString());
                             break;
                         case ScanResult.FileNotExist:
                             this.ViewBag.FileUrl = "File was not found";
+
                             this.ViewBag.Message
-                                = "The file was not created in the temp folder. This could indicate that it has already been detected as malicious code.";
+                                = "The file was not created in the temp folder.";
+                            this.ViewBag.virusReport = "This could indicate that it has already been detected as malicious code.";
                             url = this.ViewBag.FileUrl;
                             mssg = this.ViewBag.Message;
-                            virusReport = this.ViewBag.Message;
+                            virusReport = this.ViewBag.VirusReport;
                             Console.WriteLine(ScanResult.FileNotExist.ToString());
                             break;
                         case ScanResult.VirusFound:
                             this.ViewBag.FileUrl = "Please see Microsoft Defender for details on this file/";
-                            this.ViewBag.Message = "A virus or malicious code was detected in the uploaded file. Check Microsoft Defender for the details.";
+                            this.ViewBag.Message = "A virus or malicious code was detected in the uploaded file.";
+                            this.ViewBag.virusReport = "Check Microsoft Defender for the details.";
                             url = this.ViewBag.FileUrl;
                             mssg = this.ViewBag.Message;
-                            virusReport = this.ViewBag.Message;
+                            virusReport = this.ViewBag.VirusReport;
                             Console.WriteLine(ScanResult.VirusFound.ToString());
                             break;
                     }
@@ -527,7 +531,9 @@ namespace egrants_new.Controllers
                     this.ViewBag.Message = "ERROR:" + ex.Message;
                 }
             else
-            this.ViewBag.Message = "You have not specified a file.";
+            {
+                this.ViewBag.Message = "You have not specified a file.";
+            }
 
             return this.Json(new { url, message = mssg, vReport = virusReport });
         }
