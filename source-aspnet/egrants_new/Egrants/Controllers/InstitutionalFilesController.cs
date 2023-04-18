@@ -406,6 +406,8 @@ namespace egrants_new.Controllers
             int org_id,
             string comments)
         {
+            string url = null;
+            string mssg = null;
             var repository = new InstitutionalFilesRepo();
 
             try
@@ -456,6 +458,8 @@ namespace egrants_new.Controllers
                             var filePath = Path.Combine(fileFolder, docName);
                             file.SaveAs(filePath);
                             Console.WriteLine(ScanResult.VirusNotFound.ToString());
+                            this.ViewBag.FileUrl = fileFolder;
+                            this.ViewBag.Message = "Virus Not Found!";
                             break;
                         case ScanResult.BlockedByPolicy:
                             this.ViewBag.FileUrl = "File blocked by Policy";
