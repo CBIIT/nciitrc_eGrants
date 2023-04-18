@@ -443,10 +443,10 @@ namespace egrants_new.Controllers
         /// </returns>
         public string LoadAllAppls(int grant_id)
         {
-            var list = EgrantsAppl.GetAllAppls(grant_id);
+                var list = EgrantsAppl.GetAllAppls(grant_id);
 
-            // JavaScriptSerializer js = new JavaScriptSerializer();
-            return JsonConvert.SerializeObject(list); // Serialize(applslist);
+                // JavaScriptSerializer js = new JavaScriptSerializer();
+                return JsonConvert.SerializeObject(list); // Serialize(applslist);
         }
 
         // get 12 appls list for appls toggle by grant_id

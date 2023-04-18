@@ -212,6 +212,7 @@ namespace egrants_new
         }
 
 
+
         /// <summary>
         /// This event raised for each time a new session begins, This is a good
         ///     place to put code that is session-specific.
@@ -373,7 +374,11 @@ namespace egrants_new
             // Iterate through any cookies found in the Response object.
             foreach (var cookieName in this.Response.Cookies.AllKeys)
             {
-                this.Response.Cookies[cookieName].Secure = true;
+                Response.Cookies[cookieName].Secure = true;
+                Response.Cookies[cookieName].SameSite = SameSiteMode.Lax;
+                Response.Cache.SetExpires(DateTime.UtcNow.AddMinutes(-1));
+                Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                Response.Cache.SetNoStore();
             }
         }
     }
