@@ -44,12 +44,12 @@ using System.Data.SqlClient;
 
 #endregion
 
-namespace egrants_new.Dashboard.Functions
+namespace egrants_new.Functions
 {
     /// <summary>
     /// The egrants appl.
     /// </summary>
-    public class EgrantsAppl
+    public static class EgrantsAppl
     {
 
         // check if this appl_id is existing in appls table, added by Leon 7/10/2019
@@ -254,7 +254,7 @@ namespace egrants_new.Dashboard.Functions
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<Appl> LoadAppls_by_serialnum(string admin_code, int serial_num)
+        public static List<Appl> LoadApplsBySerialnum(string admin_code, int serial_num)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
 
@@ -296,7 +296,7 @@ namespace egrants_new.Dashboard.Functions
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<Appl> LoadAppls_by_grantid(int grant_id)
+        public static List<Appl> LoadApplsByGrantId(int grant_id)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
             var cmd = new SqlCommand("select appl_id, full_grant_num from vw_appls where grant_id=@grantid order by support_year desc", conn);
@@ -326,7 +326,7 @@ namespace egrants_new.Dashboard.Functions
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<Appl> LoadAppls_by_applid(int appl_id)
+        public static List<Appl> LoadApplsByApplid(int appl_id)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
 
@@ -441,7 +441,7 @@ namespace egrants_new.Dashboard.Functions
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<Appl> LoadUploadableAppls_by_serialnum(string admin_code, int serial_num)
+        public static List<Appl> LoadUploadableApplsBySerialnum(string admin_code, int serial_num)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
 
@@ -483,7 +483,7 @@ namespace egrants_new.Dashboard.Functions
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<Appl> LoadUploadableAppls_by_applid(int appl_id)
+        public static List<Appl> LoadUploadableApplsByApplid(int appl_id)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
 
