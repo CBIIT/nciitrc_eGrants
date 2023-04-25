@@ -1,9 +1,0 @@
-﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER ON
-CREATE TABLE [dbo].[imm_docs2](
-	[id] [int] IDENTITY(1,1) NOT NULL,
-	[document_id] [int] NOT NULL
-) ON [PRIMARY]
-
-GO
-
