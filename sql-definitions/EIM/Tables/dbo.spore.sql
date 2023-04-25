@@ -1,9 +1,0 @@
-﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER ON
-CREATE TABLE [dbo].[spore](
-	[appl_id] [int] NOT NULL,
-	[created_date] [smalldatetime] NOT NULL
-) ON [PRIMARY]
-
-GO
-
