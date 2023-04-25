@@ -1,9 +1,0 @@
-﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER ON
-Create view CompetingFY_Stage2 as 
-Select appl_id, grant_id, max(diff) as cy_diff
-from CompetingFY_Stage1 
-where diff <= 0
-group by appl_id, grant_id
-GO
-
