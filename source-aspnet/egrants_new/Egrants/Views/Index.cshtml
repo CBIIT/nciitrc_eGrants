@@ -505,7 +505,7 @@
 {
     var grant_id = 0;
     var pi_email = string.Empty;
-
+    
     <form name="frmDocs">
     @foreach (var grant in ViewBag.grantlayer)
     {
@@ -611,9 +611,10 @@
                     <b>PI:</b>
                 </div>
                 <div id="grantbar2" style="width: 500px;">
+
                     @if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && !string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
                     {
-                        // add the current_bo email to the email 
+                        // add the current_bo email to the email
                         if (!string.IsNullOrEmpty(grant.current_bo_email_address))
                         {
                             pi_email = grant.current_pi_email_address + ";" + grant.current_bo_email_address;
@@ -653,7 +654,7 @@
                         }
                         else
                         {
-                             <span class="mr-2">@grant.current_pi_name</span>
+                            <span class="mr-2">@grant.current_pi_name</span>
                         }
                     }
                     else if (!string.IsNullOrEmpty(grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address))
@@ -664,7 +665,7 @@
                     @if (!string.IsNullOrEmpty(grant.SelectedOrganizationName))
                     {
                         @grant.SelectedOrganizationName
-                                                
+
                     }
                     else if (grant.org_name != "")
                     {

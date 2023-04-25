@@ -2847,9 +2847,12 @@
     <Compile Include="Dashboard\Models\SelectedWidgets.cs" />
     <Compile Include="Dashboard\Models\WidgetAssigments.cs" />
     <Compile Include="Dashboard\Models\WidgetData.cs" />
+    <Compile Include="Egrants\Functions\CountProperty.cs" />
+    <Compile Include="Egrants\Functions\SaveState.cs" />
     <Compile Include="Egrants\Models\ActivityCode.cs" />
     <Compile Include="Egrants\Models\Appl.cs" />
     <Compile Include="Egrants\Models\ApplLayerObject.cs" />
+    <Compile Include="Egrants\Models\ApplModel.cs" />
     <Compile Include="Egrants\Models\ApplType.cs" />
     <Compile Include="Egrants\Models\DocAttachment.cs" />
     <Compile Include="Egrants\Models\doclayer.cs" />
@@ -2868,8 +2871,9 @@
     <Compile Include="Egrants\Models\InstitutionalFilesEnums.cs" />
     <Compile Include="Egrants\Models\InstitutionalFilesPage.cs" />
     <Compile Include="Egrants\Models\InstitutionalOrgCategory.cs" />
-    <Compile Include="Dashboard\Functions\EgrantsAppl.cs" />
-    <Compile Include="Dashboard\Functions\EgrantsDoc.cs" />
+    <Compile Include="Egrants\Models\ISearchLogic.cs" />
+    <Compile Include="Functions\EgrantsAppl.cs" />
+    <Compile Include="Functions\EgrantsDoc.cs" />
     <Compile Include="Dashboard\Functions\Egrants.cs" />
     <Compile Include="Egrants\Models\InstitutionalDocFiles.cs" />
     <Compile Include="Egrants\DataRepositories\InstitutionalFilesRepo.cs" />
@@ -3047,7 +3051,6 @@
   <ItemGroup>
     <Folder Include="App_Data\Images\" />
     <Folder Include="Authentication\" />
-    <Folder Include="Egrants\Functions\" />
     <Folder Include="Integration\Controllers\" />
   </ItemGroup>
   <ItemGroup>

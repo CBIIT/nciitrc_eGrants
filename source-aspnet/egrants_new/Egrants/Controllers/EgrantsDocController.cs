@@ -49,8 +49,8 @@ using System.Web.Mvc;
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
 using Newtonsoft.Json;
-using static egrants_new.Dashboard.Functions.EgrantsDoc;
 using AntiVirus.COMInterop;
+using egrants_new.Functions;
 using ScanResult = AntiVirus.ScanResult;
 using System.Text;
 
@@ -1011,7 +1011,7 @@ namespace egrants_new.Controllers
             this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
             this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
 
-            this.ViewBag.GrantYearList = EgrantsAppl.LoadAppls_by_applid(appl_id);
+            this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsByApplid(appl_id);
 
             // ViewBag.UserList = EgrantsDoc.LoadUsers(Convert.ToString(Session["ic"]));
             return this.View("~/Egrants/Views/egrantsDocUpdate.cshtml");
@@ -1136,7 +1136,7 @@ namespace egrants_new.Controllers
             this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.ApplTypeList = EgrantsAppl.LoadApplType();
             this.ViewBag.ActivityCodeList = EgrantsAppl.LoadActivityCode(admin_code);
-            this.ViewBag.GrantYearList = EgrantsAppl.LoadAppls_by_serialnum(admin_code, serial_num);
+            this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsBySerialnum(admin_code, serial_num);
 
             return this.View("~/Egrants/Views/EgrantsApplCreate.cshtml");
         }
@@ -1190,7 +1190,7 @@ namespace egrants_new.Controllers
                 Convert.ToString(this.Session["ic"]),
                 Convert.ToString(this.Session["userid"]));
 
-            this.ViewBag.GrantYearList = EgrantsAppl.LoadAppls_by_serialnum(admin_code, serial_num);
+            this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsBySerialnum(admin_code, serial_num);
 
             return this.View("~/Egrants/Views/EgrantsApplCreate.cshtml");
         }

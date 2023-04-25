@@ -52,10 +52,12 @@ using System.Web;
 using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
+using egrants_new.Functions;
 using egrants_new.Models;
 
 using Newtonsoft.Json;
-using static egrants_new.Dashboard.Functions.EgrantsDoc;
+using egrants_new.Egrants.Functions;
+
 
 #endregion
 
@@ -66,6 +68,8 @@ namespace egrants_new.Controllers
     /// </summary>
     public class EgrantsController : Controller
     {
+
+
         // go to default 
         /// <summary>
         /// The go_to_default.
@@ -550,6 +554,9 @@ namespace egrants_new.Controllers
             return JsonConvert.SerializeObject(list);
         }
 
+        //public CountProperty<int> CountProperty;// = new CountProperty<int>();
+        //countProperty.Value = 0;
+
         /// <summary>
         /// The by_str.
         /// </summary>
@@ -564,7 +571,11 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult by_str(string str, string mode = null)
         {
-                this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+           // CountProperty = new CountProperty<int>();
+           // CountProperty.Value = 0;
+
+
+            this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
             if (string.IsNullOrEmpty(str))
             {
@@ -805,6 +816,8 @@ namespace egrants_new.Controllers
                 this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
+               // this.ViewBag.appllayer.
+                //GetApplValue()
                 // ViewBag.doclayer_All = ViewBag.doclayer;--commented by leon 4/1/2019
             }
 
@@ -867,7 +880,8 @@ namespace egrants_new.Controllers
                 Convert.ToString(this.Session["ImageServer"]),
                 Convert.ToString(this.Session["userid"]));
 
-            // }
+
+            
             return this.View("~/Egrants/Views/Index.cshtml");
         }
 
@@ -1324,7 +1338,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.act = act;
                 this.ViewBag.appl_id = appl_id;
 
-                List<ImpacDocs> list = LoadImpacDocs(act, appl_id);
+                List<ImpacDocs> list = EgrantsDoc.LoadImpacDocs(act, appl_id);
                 return JsonConvert.SerializeObject(list);
             }
             catch (Exception err)

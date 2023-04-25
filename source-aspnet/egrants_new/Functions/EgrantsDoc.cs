@@ -11,7 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace egrants_new.Dashboard.Functions
+namespace egrants_new.Functions
 {
     /// <summary>
     ///     The egrants doc.

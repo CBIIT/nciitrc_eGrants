@@ -43,6 +43,7 @@ using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
 using egrants_new.Egrants_Funding.Models;
+using egrants_new.Functions;
 using egrants_new.Models;
 
 #endregion
@@ -263,7 +264,7 @@ namespace egrants_new.Controllers
 
             this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CategoryList = EgrantsFunding.LoadFundingCategoryList();
-            this.ViewBag.GrantYearList = EgrantsAppl.LoadUploadableAppls_by_applid(appl_id);
+            this.ViewBag.GrantYearList = EgrantsAppl.LoadUploadableApplsByApplid(appl_id);
 
             return this.View("~/Egrants_Funding/Views/FundingDocCreate.cshtml");
         }
@@ -292,7 +293,7 @@ namespace egrants_new.Controllers
 
             this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CategoryList = EgrantsFunding.LoadFundingCategoryList();
-            this.ViewBag.GrantYearList = EgrantsAppl.LoadAppls_by_serialnum(admin_code, serial_num);
+            this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsBySerialnum(admin_code, serial_num);
 
             return this.View("~/Egrants_Funding/Views/FundingDocCreate.cshtml");
         }
@@ -525,11 +526,11 @@ namespace egrants_new.Controllers
             if (appl_id != 0)
 
                 // load one appls by appl_id   
-                this.ViewBag.Appls = EgrantsAppl.LoadUploadableAppls_by_applid(appl_id);
+                this.ViewBag.Appls = EgrantsAppl.LoadUploadableApplsByApplid(appl_id);
             else
 
                 // load all appls by serial_num and admin_code 
-                this.ViewBag.Appls = EgrantsAppl.LoadUploadableAppls_by_serialnum(admin_code, serial_num);
+                this.ViewBag.Appls = EgrantsAppl.LoadUploadableApplsBySerialnum(admin_code, serial_num);
 
             return this.View("~/Egrants_Funding/Views/FundingDocCreate.cshtml");
         }
@@ -556,7 +557,7 @@ namespace egrants_new.Controllers
             this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
 
             // load one appl by appl_id      
-            this.ViewBag.Appls = EgrantsAppl.LoadUploadableAppls_by_applid(appl_id);
+            this.ViewBag.Appls = EgrantsAppl.LoadUploadableApplsByApplid(appl_id);
 
             return this.View("~/Egrants_Funding/Views/FundingDocCreate.cshtml");
         }
