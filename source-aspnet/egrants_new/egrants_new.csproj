@@ -3093,8 +3093,6 @@
   <ItemGroup>
     <Folder Include="App_Data\Images\" />
     <Folder Include="Authentication\" />
-    <Folder Include="Dashboard\Views\Claims\" />
-    <Folder Include="Dashboard\Views\Home\" />
     <Folder Include="Integration\Controllers\" />
   </ItemGroup>
   <ItemGroup>
