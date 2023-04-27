@@ -108,6 +108,24 @@ namespace egrants_new.Egrants.Models
             string ic,
             string userid)
         {
+            bool isGrant = false;
+            bool isStr = false;
+            bool isAppl = false;
+            if (grant_id != 0)
+            {
+                isGrant = true;
+            }
+
+            if (!string.IsNullOrEmpty(str))
+            {
+                isStr = true;
+            }
+
+            if (appl_id != 0)
+            {
+                isAppl = true;
+            }
+
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("dbo.sp_web_egrants", conn);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -223,6 +241,11 @@ namespace egrants_new.Egrants.Models
             // added by Leon 5/11/2019
             conn.Close();
 
+            if (isGrant || isStr)
+            {
+                PopulateGrantAndStringViews(true, grantList, applList);
+            }
+
             // every appl with > 1 person from IRDB will be in the response
             var mpi_info = GetAllMPIInfo(applList.Select(al => al.appl_id).ToList());
             PopulateMPIIntoGrants(grantList, applList, mpi_info);
@@ -232,55 +255,51 @@ namespace egrants_new.Egrants.Models
             doclayerproperty = docList;
         }
 
+        private static void PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> grantList, List<ApplLayerObject> applList)
+        {
 
-        // public static Dictionary<string, List<PersonContact>> WasPIThisApplYear(List<string> appl_ids)
-        // {
-        //     var results = new Dictionary<string, List<PersonContact>>();
-        //
-        //     if (appl_ids == null || appl_ids.Count == 0)
-        //         return results;
-        //
-        //     using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
-        //     {
-        //         // note that Ingrid learned retrieving email interferes with the ability of the query to return all the MPIs
-        //         var sql = "DECLARE @TSQL varchar(8000);" +
-        //                   "SELECT @TSQL = 'SELECT APPL_ID, First_Name, Last_name, Role_Type_Code  FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr , e.role_type_code, c.addr_type_code from person_involvements_mv e join persons_secure d on d.person_id = e.person_id left outer join person_addresses_mv c on d.person_id = c.person_id and c.addr_type_code in (''''HOM'''') and c.preferred_addr_code = ''''Y'''' where e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE) and d.person_id = e.person_id '')';"
-        //                  +
-        //                   "EXEC (@TSQL)";
-        //
-        //         var applsParam = string.Join(",", appl_ids);
-        //         sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
-        //
-        //         using (var cmd = new SqlCommand(sql, conn))
-        //         {
-        //             cmd.CommandType = CommandType.Text;
-        //
-        //             conn.Open();
-        //             var rdr = cmd.ExecuteReader();
-        //
-        //             while (rdr.Read())
-        //             {
-        //                 var person = new PersonContact
-        //                              {
-        //                                  appl_id = (rdr[0] == DBNull.Value) ? string.Empty : rdr[0].ToString(),
-        //                                  first_name = (rdr[1] == DBNull.Value) ? string.Empty : (string)rdr[1],
-        //                                  last_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
-        //                                  was_PI_that_year = (rdr[3] == DBNull.Value || ((string)rdr[3]).ToLower() != "pi") ? false : true
-        //                              };
-        //
-        //                 if (!results.ContainsKey(person.appl_id))
-        //                 {
-        //                     results.Add(person.appl_id, new List<PersonContact> { person });
-        //                 }
-        //                 else
-        //                 {
-        //                     results[person.appl_id].Add(person);
-        //                 }
-        //             }
-        //
-        //         }
-        //     }
-        // }
+            if (isGrant)
+            {
+                string project_title;
+                string org_name;
+                string first_name;
+                string last_name;
+
+                foreach (var grant in grantList)
+                {
+                    foreach (var appl in applList)
+                    {
+                        if (grant.latest_full_grant_num == appl.full_grant_num) // && appl.appl_type_code.Contains(new int[] {1,2,5,7,9}))
+                        {
+                            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+                            {
+                                var cmd = new SqlCommand("SELECT a.project_title as project_title, a.org_name as org_name, a.first_name,a.last_name"
+                                                       + " FROM dbo.vw_appls as a"
+                                                       + " WHERE a.appl_id = @appl_id",
+                                    conn);
+
+
+
+                                cmd.CommandType = CommandType.Text;
+                                cmd.Parameters.Add("@appl_id", SqlDbType.VarChar).Value = appl.appl_id;
+                                conn.Open();
+
+                                var list = grantList;
+                                var sqlDataReader = cmd.ExecuteReader();
+
+                                while (sqlDataReader.Read())
+                                {
+                                    grant.SelectedProjectName = sqlDataReader["project_title"]?.ToString();
+                                    grant.SelectedOrganizationName = sqlDataReader["org_name"]?.ToString();
+                                    grant.SelectedGrantPiName
+                                        = sqlDataReader["first_name"]?.ToString() + " " + sqlDataReader["last_name"]?.ToString();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         public static Dictionary<string, List<PersonContact>> GetAllMPIInfo(List<string> appl_ids)
         {
@@ -356,7 +375,7 @@ namespace egrants_new.Egrants.Models
                 var applsThisGrant = applList.Where(al => al.grant_id == grant.grant_id).ToList();
                 var piListThisGrant = new List<PersonContact>();
                 var alreadyAddedFirstLastNamesThisGrant = new HashSet<string>();
-                
+
                 foreach (var appl in applsThisGrant)
                 {
                     var piListThisAppl = new List<PersonContact>();
@@ -378,7 +397,7 @@ namespace egrants_new.Egrants.Models
                             }
                         }
                         appl.MPIContacts = piListThisAppl;
-                    }                    
+                    }
                 }
                 grant.MPIContacts = piListThisGrant;
             }
