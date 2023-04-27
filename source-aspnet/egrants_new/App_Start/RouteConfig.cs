@@ -15,23 +15,23 @@ namespace egrants_new
 
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
-            //routes.MapRoute(
-            //    name: "Egrants",
-            //    url: "{controller}/{action}/{id}",
-            //    defaults: new { controller = "Egrants", action = "Index", id = UrlParameter.Optional }
-            //);          
+            // routes.MapRoute(
+            //     name: "Default",
+            //     url: "{controller}/{action}/{id}",
+            //     defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+            // );          
 
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Egrants", action = "Index", id = UrlParameter.Optional }
             );
-
-            routes.MapRoute(
-                name: "Integration",
-                url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Integration", action = "Trigger", id = UrlParameter.Optional }
-            );
+            //
+            // routes.MapRoute(
+            //     name: "Integration",
+            //     url: "{controller}/{action}/{id}",
+            //     defaults: new { controller = "Integration", action = "Trigger", id = UrlParameter.Optional }
+            // );
 
             /*routes.MapRoute(
                 name: "Docman",
