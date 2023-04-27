@@ -146,7 +146,7 @@ namespace egrants_new
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-            BundleConfig.RegisterBundles(BundleTable.Bundles);
+            //BundleConfig.RegisterBundles(BundleTable.Bundles);
             //  HangfireAspNet.Use(this.GetHangfireServers);
 
             // var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
