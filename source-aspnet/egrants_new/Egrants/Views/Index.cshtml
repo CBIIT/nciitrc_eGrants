@@ -505,7 +505,7 @@
 {
     var grant_id = 0;
     var pi_email = string.Empty;
-    
+
     <form name="frmDocs">
     @foreach (var grant in ViewBag.grantlayer)
     {
@@ -773,72 +773,74 @@
                     </span>
                 }
 
-                                @{ 
-                                    bool displayMpiFlag = true;
-                                    if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
-                                    {
-                                        displayMpiFlag = false;
-                                    }
-                                    else if (ViewBag.ApplID != null)
-                                    {
-                                        // this is appl specific, so hide MPI flag if this appl is not MPI
-                                        displayMpiFlag = false;
-                                        if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
-                                        {
-                                            var thisPagesApplID = (int)ViewBag.ApplID;
-                                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                            var theAppl = appls.Where(a => (string)a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
-                                            if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
-                                            {
-                                                displayMpiFlag = true;
-                                            }
-                                        }
-                                    } else if (ViewBag.SelectedAppls != null)
-                                    {
-                                        // it's in ViewBag.SelectedAppls
-                                        displayMpiFlag = false;
+                @{
+                    bool displayMpiFlag = true;
+                    if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
+                    {
+                        displayMpiFlag = false;
+                    }
+                    else if (ViewBag.ApplID != null)
+                    {
+                        // this is appl specific, so hide MPI flag if this appl is not MPI
+                        displayMpiFlag = false;
+                        if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
+                        {
+                            var thisPagesApplID = (int)ViewBag.ApplID;
+                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                            var theAppl = appls.Where(a => (string)a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
+                            if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
+                            {
+                                displayMpiFlag = true;
+                            }
+                        }
+                    }
+                    else if (ViewBag.SelectedAppls != null)
+                    {
+                        // it's in ViewBag.SelectedAppls
+                        displayMpiFlag = false;
 
-                                        string appls_from_vb = (string)ViewBag.SelectedAppls;
-                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                        var appl_ids = appls_from_vb.Split(',');
-                                        var theAppls = appls;
-                                        if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
-                                        {
-                                            // if there's only ONE then selectively display the MPI based on if that ONE appl has MPI
-                                            theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
-                                        }
-                                        if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
-                                        {
-                                            displayMpiFlag = true;
-                                        }
-                                    } else
-                                    {
-                                        // grant search and grant MPI info is populated
-                                        displayMpiFlag = false;
-                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                        var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
-                                        if (theAppls.Any( apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
-                                        {
-                                            displayMpiFlag = true;
-                                        }
-                                    }
-                                }
+                        string appls_from_vb = (string)ViewBag.SelectedAppls;
+                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                        var appl_ids = appls_from_vb.Split(',');
+                        var theAppls = appls;
+                        if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
+                        {
+                            // if there's only ONE then selectively display the MPI based on if that ONE appl has MPI
+                            theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
+                        }
+                        if (theAppls.Any(ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
+                        {
+                            displayMpiFlag = true;
+                        }
+                    }
+                    else
+                    {
+                        // grant search and grant MPI info is populated
+                        displayMpiFlag = false;
+                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                        var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
+                        if (theAppls.Any(apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
+                        {
+                            displayMpiFlag = true;
+                        }
+                    }
+                }
 
-                                @if (displayMpiFlag)
-                                {
-                                    string grantLinkId = "grantLink" + grant.grant_id;
-                                    string imgLinkId = "imgLink" + grant.grant_id;
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a id ="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="Has Multi-PI Grant Year(s)" /></a>
-                                    </span>
-                                }
+                @if (displayMpiFlag)
+                {
+                    string grantLinkId = "grantLink" + grant.grant_id;
+                    string imgLinkId = "imgLink" + grant.grant_id;
+                    <span style="margin-left: 10px; width: 80px;">
+                        <a id="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height: 16px;" title="Has Multi-PI Grant Year(s)"/></a>
+                    </span>
+                }
 
-                                @if (Convert.ToString(grant.fda_flag) == "y")
-                                {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height:16px;" title="View FDA Funded Grant for @grant.grant_num" /></a>
-                                    </span>
-                                }
+                @if (Convert.ToString(grant.fda_flag) == "y")
+                {
+                    <span style="margin-left: 10px; width: 80px;">
+                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num"/></a>
+                    </span>
+                }
 
                 @if (Convert.ToString(grant.stop_flag) == "y")
                 {
@@ -921,7 +923,7 @@
     @Html.Partial("~/Egrants/Views/_egrants_showModal.cshtml")
 </div>
 <!--end show popup modal-->
-        <!--start show popup modal -->
+<!--start show popup modal -->
 <div>
     @Html.Partial("~/Egrants/Views/_egrants_showModalMPIDialog.cshtml")
 </div>
