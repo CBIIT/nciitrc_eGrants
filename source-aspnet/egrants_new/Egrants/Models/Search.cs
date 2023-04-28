@@ -268,51 +268,58 @@ namespace egrants_new.Egrants.Models
                 {
                     foreach (var appl in applList)
                     {
-                        // if (grant.latest_full_grant_num == appl.full_grant_num) 
-                        // {
-                        if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
-                                                                    || string.Equals(appl.appl_type_code, "6")
-                                                                    || string.Equals(appl.appl_type_code, "8"))
+                        if (grant.grant_id == appl.grant_id)
                         {
-                            continue;
-                        }
-
-                        if (string.Equals(appl.appl_type_code, "1") || string.Equals(appl.appl_type_code, "2")
-                                                                    || string.Equals(appl.appl_type_code, "5")
-                                                                    || string.Equals(appl.appl_type_code, "7")
-                                                                    || string.Equals(appl.appl_type_code, "9"))
-                        {
-
-
-                            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+                            // if (grant.latest_full_grant_num == appl.full_grant_num) 
+                            // {
+                            if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
+                                                                        || string.Equals(appl.appl_type_code, "6")
+                                                                        || string.Equals(appl.appl_type_code, "8"))
                             {
-                                var cmd = new SqlCommand(
-                                    "SELECT a.project_title as project_title, a.first_name, a.last_name, a.org_name as org_name, g.current_pi_email_address as current_pi_email_address"
-                                  + " FROM dbo.vw_appls as a"
-                                  + " INNER JOIN vw_grants as g"
-                                  + " WHERE a.appl_id = @appl_id",
-                                    conn);
-
-
-
-                                cmd.CommandType = CommandType.Text;
-                                cmd.Parameters.Add("@appl_id", SqlDbType.VarChar).Value = appl.appl_id;
-                                conn.Open();
-
-                                var list = grantList;
-                                var sqlDataReader = cmd.ExecuteReader();
-
-                                while (sqlDataReader.Read())
-                                {
-                                    grant.SelectedProjectName = sqlDataReader["project_title"]?.ToString();
-                                    grant.SelectedOrganizationName = sqlDataReader["org_name"]?.ToString();
-                                    grant.SelectedGrantPiEmail = sqlDataReader["current_pi_email_address"].ToString();
-                                    grant.SelectedGrantPiName
-                                        = sqlDataReader["first_name"]?.ToString() + " " + sqlDataReader["last_name"]?.ToString();
-                                }
+                                continue;
                             }
+
+                            if (string.Equals(appl.appl_type_code, "1") || string.Equals(appl.appl_type_code, "2")
+                                                                        || string.Equals(appl.appl_type_code, "5")
+                                                                        || string.Equals(appl.appl_type_code, "7")
+                                                                        || string.Equals(appl.appl_type_code, "9"))
+                            {
+
+
+                                using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+                                {
+                                    var cmd = new SqlCommand(
+                                        "SELECT a.project_title as project_title, a.first_name, a.last_name, a.org_name as org_name, g.current_pi_email_address as current_pi_email_address"
+                                      + " FROM dbo.vw_appls as a"
+                                      + " INNER JOIN vw_grants as g ON a.grant_id = g.grant_id"
+                                      + " WHERE a.appl_id = @appl_id",
+                                        conn);
+
+
+
+                                    cmd.CommandType = CommandType.Text;
+                                    cmd.Parameters.Add("@appl_id", SqlDbType.VarChar).Value = appl.appl_id;
+                                    conn.Open();
+
+                                    var list = grantList;
+                                    var sqlDataReader = cmd.ExecuteReader();
+
+                                    while (sqlDataReader.Read())
+                                    {
+                                        grant.SelectedProjectName = sqlDataReader["project_title"]?.ToString();
+                                        grant.SelectedOrganizationName = sqlDataReader["org_name"]?.ToString();
+                                        grant.SelectedGrantPiEmail = sqlDataReader["current_pi_email_address"].ToString();
+
+                                        grant.SelectedGrantPiName
+                                            = sqlDataReader["first_name"]?.ToString() + " " + sqlDataReader["last_name"]?.ToString();
+                                    }
+                                }
+
+
+                            }
+
+                            break;
                         }
-                        // }
                     }
                 }
             }
