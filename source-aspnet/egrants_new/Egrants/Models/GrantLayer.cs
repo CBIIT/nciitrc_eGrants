@@ -224,25 +224,6 @@ namespace egrants_new.Egrants.Models
         /// Gets or sets the MPI contact info.
         /// </summary>
         public List<PersonContact> MPIContacts { get; set; }
-        //
-        // /// <summary>
-        // /// Gets or sets the program directory full name.
-        // /// </summary>
-        // public string ProgramDirectorFullName { get; set; }
-        //
-        // /// <summary>
-        // /// Gets or sets the program director email address.
-        // /// </summary>
-        // public string ProgramDirectorEmailAddress { get; set; }
-        //
-        // /// <summary>
-        // /// Gets or sets the specialist full name.
-        // /// </summary>
-        // public string SpecialistFullName { get; set; }
-        //
-        // /// <summary>
-        // /// Gets or sets the specialist email address.
-        // /// </summary>
-        // public string SpecialistEmailAddress { get; set; }
+
     }
 }

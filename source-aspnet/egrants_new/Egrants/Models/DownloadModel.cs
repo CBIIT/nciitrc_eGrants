@@ -44,15 +44,6 @@ using System.Collections.Generic;
 
 namespace egrants_new.Models
 {
-    public class PageDownloadModel
-    {
-        /// <summary>
-        /// Gets or sets the appl_id.
-        /// </summary>
-        public int ApplId { get; set; }
-
-        public string FullGrantNumber { get; set; }
-    }
 
     public class DownloadModel
     {

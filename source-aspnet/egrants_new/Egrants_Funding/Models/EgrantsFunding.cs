@@ -35,13 +35,14 @@
 
 #region
 
+using egrants_new.Dashboard.Functions;
+using egrants_new.Egrants.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 
-using egrants_new.Egrants.Models;
 
 #endregion
 
@@ -210,7 +211,7 @@ namespace egrants_new.Egrants_Funding.Models
         }
 
         //to load all appls by document_id
-        public static List<EgrantsAppl.Appl> LoadDocAppls(int doc_id)
+        public static List<Appl> LoadDocAppls(int doc_id)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
 
@@ -223,11 +224,11 @@ namespace egrants_new.Egrants_Funding.Models
             cmd.Parameters.Add("@doc_id", SqlDbType.Int).Value = doc_id;
             conn.Open();
 
-            var list = new List<EgrantsAppl.Appl>();
+            var list = new List<Appl>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                list.Add(new EgrantsAppl.Appl
+                list.Add(new Appl
                              {
                                  appl_id = rdr["appl_id"]?.ToString(),
                                  support_year = rdr["support_year"]?.ToString(),
@@ -238,7 +239,7 @@ namespace egrants_new.Egrants_Funding.Models
         }
 
         //to load all appls with funding document expect appl with that document
-        public static List<EgrantsAppl.Appl> LoadFullGrantNumbers(int serial_num, string admin_code, int doc_id)
+        public static List<Appl> LoadFullGrantNumbers(int serial_num, string admin_code, int doc_id)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
 
@@ -254,11 +255,11 @@ namespace egrants_new.Egrants_Funding.Models
             cmd.Parameters.Add("@doc_id", SqlDbType.Int).Value = doc_id;
             conn.Open();
 
-            var list = new List<EgrantsAppl.Appl>();
+            var list = new List<Appl>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                list.Add(new EgrantsAppl.Appl
+                list.Add(new Appl
                              {
                                  appl_id = rdr["appl_id"]?.ToString(),
                                  support_year = rdr["support_year"]?.ToString(),
