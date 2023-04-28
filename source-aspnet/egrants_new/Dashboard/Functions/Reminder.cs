@@ -1,25 +1,13 @@
-﻿using System;
+﻿using egrants_new.Dashboard.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using egrants_new.Models;
 
-namespace egrants_new.Reminder.Models
+namespace egrants_new.Dashboard.Functions
 {
-    public class Reminder
+    public static class Reminder
     {
-        public class Appls
-        {
-            public string appl_id { get; set; }
-            public string serial_num { get; set; }
-            public string full_grant_num { get; set; }
-            public string assign_date { get; set; }
-            public string due_date { get; set; }
-        }
 
         public static List<Appls> LoadAppls(int serial_num)
         {

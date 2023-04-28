@@ -1,6 +1,3 @@
-@using System.Activities.Statements
-@using System.Data.Entity.Validation
-@using System.ServiceModel.Activities
 @using egrants_new.Egrants.Models;
 
 @{
@@ -111,7 +108,7 @@
 
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-            document.getElementById("show_download_toggle").style.display = "inline";
+           // document.getElementById("show_download_toggle").style.display = "inline";
             show_toggle_appls();
         }
 
@@ -128,7 +125,7 @@
             document.getElementById("show_appls_toggle").style.display = "none";
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-            document.getElementById("show_download_toggle").style.display = "inline";
+           // document.getElementById("show_download_toggle").style.display = "inline";
         }
 
         // check tab data and show tab
@@ -137,20 +134,12 @@
             document.getElementById(el).style.display = "inline";
         }
 
-        if (currentView == "DownloadForm") {
-            $('#downloadForm').attr("hidden", false);
-            $('#standardForm').attr("hidden", true);
-        } else if (currentView == "StandardForm") {
-            $('#downloadForm').attr("hidden", true);
-            $('#standardForm').attr("hidden", false);
-        }
-        // get the view state from the session variable to persist value
-        //if (document.getElementById("hidDownloadForm").value == "DownloadForm") {
-        //   $('#downloadForm').attr("hidden", false);
-        //   $('#standardForm').attr("hidden", true);
-        //} else if (document.getElementById("hidDownloadForm").value == "StandardForm") {
-        //   $('#downloadForm').attr("hidden", true);
-        //   $('#standardForm').attr("hidden", false);
+        //if (currentView == "DownloadForm") {
+        //    $('#downloadForm').attr("hidden", false);
+        //    $('#standardForm').attr("hidden", true);
+        //} else if (currentView == "StandardForm") {
+        //    $('#downloadForm').attr("hidden", true);
+        //    $('#standardForm').attr("hidden", false);
         //}
     }
 
@@ -337,38 +326,38 @@
         document.getElementById("show_appls_toggle").style.display = "inline";
         document.getElementById("toggle_appls").style.display = "none";
         // clean toggle_cats at all
-        document.getElementById("show_download_toggle").style.display = "none";
+       // document.getElementById("show_download_toggle").style.display = "none";
         document.getElementById("show_cats_toggle").style.display = "none";
         document.getElementById("toggle_cats").style.display = "none";
         document.getElementById("toggle_title").innerHTML = "";
     }
 
     // show or hide search form
-    function toggle_download_forms() {
+    //function toggle_download_forms() {
 
-        console.log("Check Toggle");
+    //    console.log("Check Toggle");
 
-        if (currentView == "StandardForm") {
-            console.log("in Standardform");
-            $('#downloadForm').attr("hidden", false);
-            $('#standardForm').attr("hidden", true);
-            document.getElementById("toggle_title").innerHTML = "Audit File Download";
+    //    if (currentView == "StandardForm") {
+    //        console.log("in Standardform");
+    //        $('#downloadForm').attr("hidden", false);
+    //        $('#standardForm').attr("hidden", true);
+    //        document.getElementById("toggle_title").innerHTML = "Audit File Download";
 
-            currentView = "DownloadForm";
+    //        currentView = "DownloadForm";
 
-            return;
-        }
+    //        return;
+    //    }
 
-        if (currentView == "DownloadForm") {
+    //    if (currentView == "DownloadForm") {
 
-            console.log("in Downloadform");
-            $('#downloadForm').attr("hidden", true);
-            $('#standardForm').attr("hidden", false);
-            document.getElementById("toggle_title").innerHTML = "Grant Years";
-            currentView = "StandardForm";
-            return;
-        }
-    }
+    //        console.log("in Downloadform");
+    //        $('#downloadForm').attr("hidden", true);
+    //        $('#standardForm').attr("hidden", false);
+    //        document.getElementById("toggle_title").innerHTML = "Grant Years";
+    //        currentView = "StandardForm";
+    //        return;
+    //    }
+    //}
 
     // This is the callback function that
     // processes the Web Service return value.
@@ -438,7 +427,7 @@
     <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt16(Session["position_id"])"/>
     <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])"/>
     <input type="text" hidden id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(Session["egrantsDocEmail"])"/>
-    <input type="text" hidden id="hidDownloadForm" name="DownloadSubPage" value="@ViewBag.CurrentView"/>
+    @*<input type="text" hidden id="hidDownloadForm" name="DownloadSubPage" value="@ViewBag.CurrentView"/>*@
 </form>
 <!--end save all data from server-->
 <!--start main-->
@@ -465,7 +454,7 @@
         <div id="title_for_toggle" style="display: inline; margin-left: 300px; width: 950px;">
             <b id="toggle_title" style="font-size: medium;"></b>
         </div>
-        @if (Convert.ToInt16(Session["position_id"]) >= 2)
+        @*@if (Convert.ToInt16(Session["position_id"]) >= 2)
         {
             <div id="show_download_toggle" style="display: none;">
 
@@ -476,7 +465,7 @@
                     </svg>
                 </a>
             </div>
-        }
+        }*@
 
     </div>
 
@@ -516,7 +505,7 @@
 {
     var grant_id = 0;
     var pi_email = string.Empty;
-
+    
     <form name="frmDocs">
     @foreach (var grant in ViewBag.grantlayer)
     {
@@ -622,9 +611,10 @@
                     <b>PI:</b>
                 </div>
                 <div id="grantbar2" style="width: 500px;">
+
                     @if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && !string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
                     {
-                        // add the current_bo email to the email 
+                        // add the current_bo email to the email
                         if (!string.IsNullOrEmpty(grant.current_bo_email_address))
                         {
                             pi_email = grant.current_pi_email_address + ";" + grant.current_bo_email_address;
@@ -664,7 +654,7 @@
                         }
                         else
                         {
-                             <span class="mr-2">@grant.current_pi_name</span>
+                            <span class="mr-2">@grant.current_pi_name</span>
                         }
                     }
                     else if (!string.IsNullOrEmpty(grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address))
@@ -675,7 +665,7 @@
                     @if (!string.IsNullOrEmpty(grant.SelectedOrganizationName))
                     {
                         @grant.SelectedOrganizationName
-                                                
+
                     }
                     else if (grant.org_name != "")
                     {
@@ -784,15 +774,15 @@
                 }
 
                                 @{ 
-                                    bool displayMPIFlag = true;
+                                    bool displayMpiFlag = true;
                                     if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
                                     {
-                                        displayMPIFlag = false;
+                                        displayMpiFlag = false;
                                     }
                                     else if (ViewBag.ApplID != null)
                                     {
                                         // this is appl specific, so hide MPI flag if this appl is not MPI
-                                        displayMPIFlag = false;
+                                        displayMpiFlag = false;
                                         if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
                                         {
                                             var thisPagesApplID = (int)ViewBag.ApplID;
@@ -800,13 +790,13 @@
                                             var theAppl = appls.Where(a => (string)a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
                                             if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
                                             {
-                                                displayMPIFlag = true;
+                                                displayMpiFlag = true;
                                             }
                                         }
-                                    } else if (ViewBag.SelectedAppls != null && ViewBag.SelectedAppls.Length > 0)
+                                    } else if (ViewBag.SelectedAppls != null)
                                     {
                                         // it's in ViewBag.SelectedAppls
-                                        displayMPIFlag = false;
+                                        displayMpiFlag = false;
 
                                         string appls_from_vb = (string)ViewBag.SelectedAppls;
                                         var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
@@ -819,22 +809,22 @@
                                         }
                                         if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
                                         {
-                                            displayMPIFlag = true;
+                                            displayMpiFlag = true;
                                         }
                                     } else
                                     {
                                         // grant search and grant MPI info is populated
-                                        displayMPIFlag = false;
+                                        displayMpiFlag = false;
                                         var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
                                         var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
                                         if (theAppls.Any( apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
                                         {
-                                            displayMPIFlag = true;
+                                            displayMpiFlag = true;
                                         }
                                     }
                                 }
 
-                                @if (displayMPIFlag)
+                                @if (displayMpiFlag)
                                 {
                                     string grantLinkId = "grantLink" + grant.grant_id;
                                     string imgLinkId = "imgLink" + grant.grant_id;
@@ -902,11 +892,11 @@
                     @Html.Partial("~/Egrants/Views/_egrants_showAppl.cshtml", grant_id)
                 </div>
             </div>
-            <div hidden id="downloadForm">
+            @*<div hidden id="downloadForm">
                 <div style="float: left; padding-top: 15px;">
                     @Html.Partial("~/Egrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
                 </div>
-            </div>
+            </div>*@
         }
         </div>
         <!--end grant zone-->

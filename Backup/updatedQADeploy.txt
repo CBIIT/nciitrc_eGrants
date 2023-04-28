@@ -1,0 +1,126 @@
+$ErrorActionPreference = "Stop"
+
+try
+
+{
+  
+$Password = $env:db_password
+$certPassword = $env:cert_password
+
+
+<# This scripts updates web.config with environment specific values #>
+  
+<# ENVIRONMENT VARIABLES #>
+ 
+
+     $EgrantsDB ="Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Initial Catalog=EIM;Persist Security Info=True;User ID=egrantsuser;Password=$password;Connect Timeout=500"
+    
+     $webgrant= "egrants-file-test.nci.nih.gov"
+     $ImageServer = "https://egrants-web-test.nci.nih.gov/"
+     
+     $closeOutAcceptance =   "https://apps.test.era.nih.gov/pgm/jsp/closeoutAcceptance.jsp"
+     $frpprAcceptance =     "https://apps.test.era.nih.gov/pgm/jsp/closeoutAcceptance.jsp"
+     $irpprAcceptance = "https://apps.test.era.nih.gov/pmm/interimRPPRs.era"
+    
+     $egrantsDocEmail = "NCIeGrantsDev@mail.nih.gov"
+    
+     $certPath = "C:\utils\cert\2023\EGRANTS-WEB-TEST_NCI_NIH_GOV.pfx"
+
+      
+     $certPass = $certPassword
+
+     $SubjectLine="[TESTENV]Exceptions From Web Service Integration"
+
+
+<# END ENVIRONMENT VARIABLES #>
+  
+Write-Host "Updating web.config for [QA] environment"
+
+[string]$CurrentPath = Get-Location
+$webconfig = [xml](Get-Content $CurrentPath/BuildArtifacts/Web.config)
+
+foreach($node in $webconfig.configuration.connectionStrings.add)
+{ 
+  
+  if($node.name -eq 'EgrantsDB')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDB)
+  }
+
+  if($node.name -eq 'webgrant')
+  {
+        $node.SetAttribute("connectionString",$webgrant)
+  }
+  if($node.name -eq 'ImageServer')
+  {
+        $node.SetAttribute("connectionString",$ImageServer)
+  }
+  if($node.name -eq 'closeOutAcceptance')
+  {
+        $node.SetAttribute("connectionString",$closeOutAcceptance)
+  }
+  if($node.name -eq 'frpprAcceptance')
+  {
+        $node.SetAttribute("connectionString",$frpprAcceptance)
+  }
+
+  if($node.name -eq 'irpprAcceptance')
+  {
+        $node.SetAttribute("connectionString",$irpprAcceptance)
+  }
+
+  if($node.name -eq 'egrantsDocEmail')
+  {
+        $node.SetAttribute("connectionString",$egrantsDocEmail)
+  }
+
+  if($node.name -eq 'certPath')
+  {
+        $node.SetAttribute("connectionString",$certPath)
+  }
+  
+  if($node.name -eq 'certPass')
+  {
+        $node.SetAttribute("connectionString",$certPass)
+  }
+   
+}
+
+foreach($node in $webconfig.configuration.appSettings.add)
+{ 
+  
+  if($node.key -eq 'SubjectLine')
+  {
+        $node.SetAttribute("value",$SubjectLine)
+  }
+  
+}
+
+
+
+[string]$savingPath =$CurrentPath+"/BuildArtifacts/WebTemp.config"
+$webconfig.Save($savingPath)
+Remove-Item -Path $CurrentPath/BuildArtifacts/Web.config -Force
+Rename-Item -Path $CurrentPath/BuildArtifacts/WebTemp.config -NewName "Web.config"
+
+Write-Host "Copying code to IIS folder"
+
+Remove-Item -Path D:\Content\egrants.nci.nih.gov\* -Force -Recurse
+Copy-Item -Path BuildArtifacts\*  -Destination D:\Content\egrants.nci.nih.gov\ -Recurse -Force
+
+
+
+Write-Host "Restarting IIS....."
+IISRESET /restart
+Write-Host "Deployment Completed Successfully !!"
+  
+  
+  
+}
+
+catch
+{
+  
+  Write-Host $error  
+   Exit 1
+}

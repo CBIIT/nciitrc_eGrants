@@ -52,7 +52,7 @@ namespace egrants_new.Egrants.Models
     public static class Search
     {
         /// <summary>
-        ///     Gets or sets the grantlayerproperty.
+        ///     Gets or sets the GrantlayerList.
         /// </summary>
         public static List<GrantLayer> grantlayerproperty { get; set; }
 
@@ -108,6 +108,24 @@ namespace egrants_new.Egrants.Models
             string ic,
             string userid)
         {
+            bool isGrant = false;
+            bool isStr = false;
+            bool isAppl = false;
+            if (grant_id != 0)
+            {
+                isGrant = true;
+            }
+
+            if (!string.IsNullOrEmpty(str))
+            {
+                isStr = true;
+            }
+
+            if (appl_id != 0)
+            {
+                isAppl = true;
+            }
+
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("dbo.sp_web_egrants", conn);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -167,11 +185,11 @@ namespace egrants_new.Egrants.Models
                     grant.od_flag = rdr["od_flag"]?.ToString();
                     grant.ds_flag = rdr["ds_flag"]?.ToString();
                     grant.adm_supp = rdr["adm_supp"]?.ToString();
-                    if (appl_id == 0)
+                    if (appl_id <= 0)
                         grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true : false;
                     else
                         grant.institutional_flag1 = rdr["specific_year_institution1"].ToString() == "1" ? true : false;
-                    if (appl_id == 0)
+                    if (appl_id <= 0)
                         grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
                     else
                         grant.AnyOrgDoc = rdr["specific_year_institution2"].ToString() == "1" ? true : false;
@@ -223,6 +241,11 @@ namespace egrants_new.Egrants.Models
             // added by Leon 5/11/2019
             conn.Close();
 
+            if (isGrant || isStr)
+            {
+                PopulateGrantAndStringViews(true, grantList, applList);
+            }
+
             // every appl with > 1 person from IRDB will be in the response
             var mpi_info = GetAllMPIInfo(applList.Select(al => al.appl_id).ToList());
             PopulateMPIIntoGrants(grantList, applList, mpi_info);
@@ -230,6 +253,69 @@ namespace egrants_new.Egrants.Models
             grantlayerproperty = grantList;
             appllayerproperty = applList;
             doclayerproperty = docList;
+        }
+
+        private static void PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> grantList, List<ApplLayerObject> applList)
+        {
+            if (isGrant)
+            {
+                // string project_title = string.Empty;
+                // string org_name = string.Empty;
+                // string first_name = string.Empty;
+                // string last_name = string.Empty;
+
+                foreach (var grant in grantList)
+                {
+                    foreach (var appl in applList)
+                    {
+                        // if (grant.latest_full_grant_num == appl.full_grant_num) 
+                        // {
+                        if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
+                                                                    || string.Equals(appl.appl_type_code, "6")
+                                                                    || string.Equals(appl.appl_type_code, "8"))
+                        {
+                            continue;
+                        }
+
+                        if (string.Equals(appl.appl_type_code, "1") || string.Equals(appl.appl_type_code, "2")
+                                                                    || string.Equals(appl.appl_type_code, "5")
+                                                                    || string.Equals(appl.appl_type_code, "7")
+                                                                    || string.Equals(appl.appl_type_code, "9"))
+                        {
+
+
+                            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+                            {
+                                var cmd = new SqlCommand(
+                                    "SELECT a.project_title as project_title, a.first_name, a.last_name, a.org_name as org_name, g.current_pi_email_address as current_pi_email_address"
+                                  + " FROM dbo.vw_appls as a"
+                                  + " INNER JOIN vw_grants as g"
+                                  + " WHERE a.appl_id = @appl_id",
+                                    conn);
+
+
+
+                                cmd.CommandType = CommandType.Text;
+                                cmd.Parameters.Add("@appl_id", SqlDbType.VarChar).Value = appl.appl_id;
+                                conn.Open();
+
+                                var list = grantList;
+                                var sqlDataReader = cmd.ExecuteReader();
+
+                                while (sqlDataReader.Read())
+                                {
+                                    grant.SelectedProjectName = sqlDataReader["project_title"]?.ToString();
+                                    grant.SelectedOrganizationName = sqlDataReader["org_name"]?.ToString();
+                                    grant.SelectedGrantPiEmail = sqlDataReader["current_pi_email_address"].ToString();
+                                    grant.SelectedGrantPiName
+                                        = sqlDataReader["first_name"]?.ToString() + " " + sqlDataReader["last_name"]?.ToString();
+                                }
+                            }
+                        }
+                        // }
+                    }
+                }
+            }
         }
 
         public static Dictionary<string, List<PersonContact>> GetAllMPIInfo(List<string> appl_ids)
@@ -306,7 +392,7 @@ namespace egrants_new.Egrants.Models
                 var applsThisGrant = applList.Where(al => al.grant_id == grant.grant_id).ToList();
                 var piListThisGrant = new List<PersonContact>();
                 var alreadyAddedFirstLastNamesThisGrant = new HashSet<string>();
-                
+
                 foreach (var appl in applsThisGrant)
                 {
                     var piListThisAppl = new List<PersonContact>();
@@ -328,7 +414,7 @@ namespace egrants_new.Egrants.Models
                             }
                         }
                         appl.MPIContacts = piListThisAppl;
-                    }                    
+                    }
                 }
                 grant.MPIContacts = piListThisGrant;
             }

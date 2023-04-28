@@ -132,7 +132,7 @@ namespace egrants_new
 
             //TelemetryConfiguration.Active.DisableTelemetry = true;
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13;
             this.Application["UsersOnline"] = 0;
 
             ViewEngines.Engines.Clear();
@@ -140,6 +140,8 @@ namespace egrants_new
             ViewEngines.Engines.Add(new CustomRazorViewEngine());
 
             AreaRegistration.RegisterAllAreas();
+
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
@@ -153,6 +155,11 @@ namespace egrants_new
             // RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
             // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
             //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
+        }
+
+        protected void Application_BeginRequest(object sender, EventArgs e)
+        {
+            SameSiteCookieRewriter.FilterSameSiteNoneForIncompatibleUserAgents(sender);
         }
 
         /// <summary>
@@ -203,6 +210,7 @@ namespace egrants_new
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
             }
         }
+
 
 
         /// <summary>
@@ -366,7 +374,11 @@ namespace egrants_new
             // Iterate through any cookies found in the Response object.
             foreach (var cookieName in this.Response.Cookies.AllKeys)
             {
-                this.Response.Cookies[cookieName].Secure = true;
+                Response.Cookies[cookieName].Secure = true;
+                Response.Cookies[cookieName].SameSite = SameSiteMode.Lax;
+                Response.Cache.SetExpires(DateTime.UtcNow.AddMinutes(-1));
+                Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                Response.Cache.SetNoStore();
             }
         }
     }

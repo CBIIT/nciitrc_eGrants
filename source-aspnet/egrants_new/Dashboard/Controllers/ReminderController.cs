@@ -1,4 +1,5 @@
-﻿using System;
+﻿using egrants_new.Dashboard.Functions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,7 +9,7 @@ using System.Data;
 using System.Data.SqlClient;
 using egrants_new.Models;
 using egrants_new.Egrants.Models;
-using egrants_new.Reminder.Models;
+
 
 namespace egrants_new.Controllers
 {
@@ -26,7 +27,7 @@ namespace egrants_new.Controllers
             ViewBag.SerialNum = serial_num;
 
             //run db to get data
-            ViewBag.Appls = Reminder.Models.Reminder.LoadAppls(serial_num);
+            ViewBag.Appls = Reminder.LoadAppls(serial_num);
 
             return View("~/Dashboard/Views/Reminder.cshtml");
         }
@@ -38,7 +39,7 @@ namespace egrants_new.Controllers
             ViewBag.SerialNum = serial_num;
 
             //run db to get data
-            ViewBag.Appl = Reminder.Models.Reminder.LoadSelectedAppl(appl_id);
+            ViewBag.Appl  = Reminder.LoadSelectedAppl(appl_id);
 
             return View("~/Dashboard/Views/Reminder.cshtml");
         }
@@ -49,7 +50,7 @@ namespace egrants_new.Controllers
             ViewBag.Act = act;
 
             //run db
-            Reminder.Models.Reminder.run_db(event_type, appl_id, effective_date, reminder_text, by_email, by_display, Convert.ToString(Session["userid"]));
+            Reminder.run_db(event_type, appl_id, effective_date, reminder_text, by_email, by_display, Convert.ToString(Session["userid"]));
 
             return View("~/Dashboard/Views/Reminder.cshtml");
         }

@@ -35,6 +35,7 @@
 
 #region
 
+using egrants_new.Dashboard.Functions;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -51,10 +52,12 @@ using System.Web;
 using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
+using egrants_new.Functions;
 using egrants_new.Models;
 
 using Newtonsoft.Json;
-using static egrants_new.Egrants.Models.EgrantsDoc;
+using egrants_new.Egrants.Functions;
+
 
 #endregion
 
@@ -65,6 +68,8 @@ namespace egrants_new.Controllers
     /// </summary>
     public class EgrantsController : Controller
     {
+
+
         // go to default 
         /// <summary>
         /// The go_to_default.
@@ -442,10 +447,10 @@ namespace egrants_new.Controllers
         /// </returns>
         public string LoadAllAppls(int grant_id)
         {
-            var list = EgrantsAppl.GetAllAppls(grant_id);
+                var list = EgrantsAppl.GetAllAppls(grant_id);
 
-            // JavaScriptSerializer js = new JavaScriptSerializer();
-            return JsonConvert.SerializeObject(list); // Serialize(applslist);
+                // JavaScriptSerializer js = new JavaScriptSerializer();
+                return JsonConvert.SerializeObject(list); // Serialize(applslist);
         }
 
         // get 12 appls list for appls toggle by grant_id
@@ -500,7 +505,7 @@ namespace egrants_new.Controllers
             string serialNumber = null)
         {
             // string fy, string mechan, s
-            var list = Egrants.Models.Egrants.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
+            var list = Dashboard.Functions.Egrants.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
             return JsonConvert.SerializeObject(list);
@@ -543,11 +548,14 @@ namespace egrants_new.Controllers
         /// </returns>
         public string LoadCategories(int grant_id, string years)
         {
-            var list = Egrants.Models.Egrants.GetCategoryList(grant_id, years);
+            var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
             return JsonConvert.SerializeObject(list);
         }
+
+        //public CountProperty<int> CountProperty;// = new CountProperty<int>();
+        //countProperty.Value = 0;
 
         /// <summary>
         /// The by_str.
@@ -563,7 +571,11 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult by_str(string str, string mode = null)
         {
-                this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+           // CountProperty = new CountProperty<int>();
+           // CountProperty.Value = 0;
+
+
+            this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
             if (string.IsNullOrEmpty(str))
             {
@@ -599,7 +611,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                     // show pagination
-                    this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
+                    this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
                         str,
                         Convert.ToString(this.Session["ic"]),
                         Convert.ToString(this.Session["userid"]),
@@ -652,7 +664,7 @@ namespace egrants_new.Controllers
             string mode = null)
         {
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-            var isexisting = Egrants.Models.Egrants.CheckGrantID(grant_id);
+            var isexisting = Dashboard.Functions.Egrants.CheckGrantID(grant_id);
 
             if (grant_id == 0 || isexisting == 0)
             {
@@ -672,7 +684,7 @@ namespace egrants_new.Controllers
                 if (categories == string.Empty || categories == "All" || categories == "all")
                     this.ViewBag.SelectedCategories = "All";
                 else if (categories != string.Empty && categories != "All" && categories != "all")
-                    this.ViewBag.SelectedCategories = Egrants.Models.Egrants.Get_CategoryName_by_id(categories);
+                    this.ViewBag.SelectedCategories = Dashboard.Functions.Egrants.Get_CategoryName_by_id(categories);
 
                 // load data from DB
                 Search.egrants_search(
@@ -781,7 +793,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.Mode = mode;
                 this.ViewBag.SearchStyle = "by_appl";
                 this.ViewBag.ApplID = appl_id;
-                this.ViewBag.GrantID = Egrants.Models.Egrants.GetGrantID(appl_id);
+                this.ViewBag.GrantID = Dashboard.Functions.Egrants.GetGrantID(appl_id);
                 this.ViewBag.SelectedCats = "All";
                 this.ViewBag.SelectedCategories = "All";
                 this.ViewBag.SelectedAppls = appl_id.ToString();
@@ -804,6 +816,8 @@ namespace egrants_new.Controllers
                 this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
+               // this.ViewBag.appllayer.
+                //GetApplValue()
                 // ViewBag.doclayer_All = ViewBag.doclayer;--commented by leon 4/1/2019
             }
 
@@ -856,7 +870,7 @@ namespace egrants_new.Controllers
             this.ViewBag.doclayer = Search.doclayerproperty;
             this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
-            this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
+            this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
                 "qc",
                 Convert.ToString(this.Session["ic"]),
                 Convert.ToString(this.Session["userid"]),
@@ -866,7 +880,8 @@ namespace egrants_new.Controllers
                 Convert.ToString(this.Session["ImageServer"]),
                 Convert.ToString(this.Session["userid"]));
 
-            // }
+
+            
             return this.View("~/Egrants/Views/Index.cshtml");
         }
 
@@ -921,7 +936,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.FilterAdminCode = adminCode;
 
                 // create filters search sql query
-                var FilterSearchQuery = Egrants.Models.Egrants.GetSearchQuery(
+                var FilterSearchQuery = Dashboard.Functions.Egrants.GetSearchQuery(
                     fiscalYear,
                     mechanism,
                     adminCode,
@@ -949,7 +964,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.appllayer_All = Search.appllayerproperty;
 
                     // show pagination
-                    this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
+                    this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
                         FilterSearchQuery,
                         Convert.ToString(this.Session["ic"]),
                         Convert.ToString(this.Session["userid"]),
@@ -1033,7 +1048,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.FilterSerialNumber = serialNumber;
 
                 // create filters search sql query
-                var FilterSearchQuery = Egrants.Models.Egrants.GetSearchQuery(
+                var FilterSearchQuery = Dashboard.Functions.Egrants.GetSearchQuery(
                     fiscalYear,
                     mechanism,
                     adminCode,
@@ -1060,7 +1075,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
 
                 // show Pagination 
-                this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
+                this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
                     FilterSearchQuery,
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]),
@@ -1134,7 +1149,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.Mode = "qc";
 
                 // show Pagination 
-                this.ViewBag.Pagination = Egrants.Models.Egrants.LoadPagination(
+                this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
                     str,
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]),
@@ -1284,7 +1299,7 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult stop_notice(int grant_id)
         {
-            this.ViewBag.StopNotice = Egrants.Models.Egrants.LoadStopNotice(grant_id, Convert.ToString(this.Session["ic"]));
+            this.ViewBag.StopNotice = Dashboard.Functions.Egrants.LoadStopNotice(grant_id, Convert.ToString(this.Session["ic"]));
 
             return this.View("~/Egrants/Views/_Modal_Stop_Notice.cshtml");
         }
@@ -1302,7 +1317,7 @@ namespace egrants_new.Controllers
         {
             var act = "to_view";
 
-            this.ViewBag.StopNotice = Egrants.Models.Egrants.LoadSupplement(
+            this.ViewBag.StopNotice = Dashboard.Functions.Egrants.LoadSupplement(
                 act,
                 grant_id,
                 0,
@@ -1323,7 +1338,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.act = act;
                 this.ViewBag.appl_id = appl_id;
 
-                List<ImpacDocs> list = LoadImpacDocs(act, appl_id);
+                List<ImpacDocs> list = EgrantsDoc.LoadImpacDocs(act, appl_id);
                 return JsonConvert.SerializeObject(list);
             }
             catch (Exception err)

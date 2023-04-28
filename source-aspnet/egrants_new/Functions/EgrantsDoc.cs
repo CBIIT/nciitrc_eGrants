@@ -1,4 +1,6 @@
-﻿using System;
+﻿using egrants_new.Egrants.Models;
+using egrants_new.Models;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -9,14 +11,12 @@ using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 using System.Xml.Linq;
 
-using egrants_new.Models;
-
-namespace egrants_new.Egrants.Models
+namespace egrants_new.Functions
 {
     /// <summary>
     ///     The egrants doc.
     /// </summary>
-    public partial class EgrantsDoc
+    public static class EgrantsDoc
     {
         // to save document error message that reported by user 
         /// <summary>
