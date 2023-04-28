@@ -260,10 +260,10 @@ namespace egrants_new.Egrants.Models
 
             if (isGrant)
             {
-                string project_title;
-                string org_name;
-                string first_name;
-                string last_name;
+                string project_title = string.Empty;
+                string org_name = string.Empty;
+                string first_name = string.Empty;
+                string last_name = string.Empty;
 
                 foreach (var grant in grantList)
                 {
