@@ -134,7 +134,8 @@ Sub Process (dirpath,oConn,oRS)
 							End With
 						ELSE
 							With OutMail
-								.Recipients.Add("leul.ayana@nih.gov")									
+						.Recipients.Add("robin.briggs@nih.gov")
+						.Recipients.Add("leul.ayana@nih.gov")								
 								.Subject = replysubj
 								.Send								
 							End With						
@@ -157,7 +158,8 @@ Sub Process (dirpath,oConn,oRS)
 					ELSE
 						''wscript.echo "FOUND->"&v_SubLine
 						With OutMail 
-							.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add("robin.briggs@nih.gov")
+						.Recipients.Add("leul.ayana@nih.gov")
 							.Send	
 						End With					
 					END IF
@@ -176,6 +178,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail 
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Send
 					End With
@@ -197,6 +200,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail						
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Send
 					End With
@@ -214,6 +218,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")					
 						.Send
 					End With				
@@ -315,6 +320,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					With OutMail
 						''wscript.echo "FOUND->"&replysubj
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						'''''''''''''-----------ADD THE FOLLOWING FOR DEVELOPMENT TIER	AS NEEDED BASIS					
 						.Subject = replysubj
@@ -362,6 +368,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					With OutMail
 						''wscript.echo "FOUND->"&replysubj
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Subject = replysubj 
 						.Send
@@ -385,7 +392,8 @@ Sub Process (dirpath,oConn,oRS)
 					ELSE
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
-							.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add("robin.briggs@nih.gov")
+						.Recipients.Add("leul.ayana@nih.gov")
 							.Subject = replysubj & "URGENT ERROR"
 							.Send
 						End With					
@@ -413,6 +421,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&replysubj
 					With OutMail
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Subject = replysubj 
 						.Send
@@ -440,6 +449,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Subject = replysubj 
 						.Body=" "
@@ -470,6 +480,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Send
 					End With				
@@ -499,7 +510,8 @@ Sub Process (dirpath,oConn,oRS)
 					ELSE
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
-							.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add("robin.briggs@nih.gov")
+						.Recipients.Add("leul.ayana@nih.gov")
 							.Subject = replysubj 
 							.Send
 						End With					
@@ -527,7 +539,8 @@ Sub Process (dirpath,oConn,oRS)
 					ELSE
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
-							.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add("robin.briggs@nih.gov")
+						.Recipients.Add("leul.ayana@nih.gov")
 							.Subject = replysubj 
 							.Send
 						End With					
@@ -555,7 +568,8 @@ Sub Process (dirpath,oConn,oRS)
 					ELSE
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
-							.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add("robin.briggs@nih.gov")
+						.Recipients.Add("leul.ayana@nih.gov")
 							.Subject = replysubj 
 							.Send
 						End With					
@@ -598,6 +612,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "DON'T WANT THIS" & v_SubLine
 					With OutMail
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Subject = replysubj 
 						.Send
@@ -627,6 +642,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				ELSE
 					With OutMail
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Subject = replysubj 
 						.Send
@@ -657,6 +673,38 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				ELSE
 					With OutMail
+						.Recipients.Add("robin.briggs@nih.gov")
+						.Recipients.Add("leul.ayana@nih.gov")
+						.Subject = replysubj 
+						.Send
+					End With						
+				END IF
+				
+				Set OutMail=nothing	
+				
+			ELSEIF InStr(v_SubLine,"FFR: Reminder") > 0 AND InStr(v_SubLine, "FFR Past Due") > 0   Then  
+		
+				'' get the appl id from the grant number in the subject line
+				IF  len(Trim(v_SubLine))<>0  THEN
+					applid = getApplid(removespcharacters(v_SubLine),oConn)
+				END IF
+				
+				'' set the applid, category, subcategory and the extract type to 1
+				replysubj = "applid=" & applid & ", category=FFR, sub=Reminder, extract=1, " & CItem.subject
+
+				Set OutMail = CItem.Forward
+				IF (dBug="n") Then								
+					With OutMail
+						.Recipients.Add("efile@mail.nih.gov")
+						.Recipients.Add("eGrantsDev@mail.nih.gov")
+						.Recipients.Add("eGrantsTest1@mail.nih.gov")
+						.Recipients.Add("eGrantsStage@mail.nih.gov")
+						.Subject = replysubj 
+						.Send
+					End With
+				ELSE
+					With OutMail
+						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Subject = replysubj 
 						.Send
@@ -687,7 +735,8 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				ELSE
 					With OutMail
-						.Recipients.Add("leul.ayana@nih.gov")			
+						.Recipients.Add("robin.briggs@nih.gov")
+						.Recipients.Add("leul.ayana@nih.gov")	
 						.Subject = replysubj 
 						.Send
 					End With						
