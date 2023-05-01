@@ -199,6 +199,11 @@ namespace egrants_new
         /// </param>
         protected void Application_AuthorizeRequest(object sender, EventArgs e)
         {
+            this.Response.Headers.Remove("Server: Microsoft-IIS/8.5");
+            this.Response.Headers.Remove("X-AspNetMvc-Version: 5.2");
+            this.Response.Headers.Remove("X-AspNet-Version: 4.0.30319");
+            this.Response.Headers.Remove("X-UA-Compatible: IE=Edge");
+
             this.userid = this.UserID;
             this.ic = this.IC;
 
