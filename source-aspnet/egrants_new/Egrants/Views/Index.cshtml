@@ -630,12 +630,12 @@
                         }
                         else
                         {
-                            <span class="mr-2">@grant.SelectedGrantPiName</span>
+                            <span class="mr-2">@grant.SelectedGrantPiName.ToUpper()</span>
                         }
                     }
                     else if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
                     {
-                        <span class="mr-2">@grant.SelectedGrantPiName</span>
+                        <span class="mr-2">@grant.SelectedGrantPiName.ToUpper()</span>
                     }
                     else if (!string.IsNullOrEmpty(grant.current_pi_name) && !string.IsNullOrEmpty(grant.current_pi_email_address))
                     {
@@ -654,22 +654,22 @@
                         }
                         else
                         {
-                            <span class="mr-2">@grant.current_pi_name</span>
+                            <span class="mr-2">@grant.current_pi_name.ToUpper()</span>
                         }
                     }
                     else if (!string.IsNullOrEmpty(grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address))
                     {
-                        <span class="mr-2">@grant.current_pi_name</span>
+                        <span class="mr-2">@grant.current_pi_name.ToUpper()</span>
                     }
 
                     @if (!string.IsNullOrEmpty(grant.SelectedOrganizationName))
                     {
-                        @grant.SelectedOrganizationName
+                        @grant.SelectedOrganizationName.ToUpper()
 
                     }
                     else if (grant.org_name != "")
                     {
-                        @grant.org_name
+                        @grant.org_name.ToUpper()
                     }
                 </div>
             </div><br/>
