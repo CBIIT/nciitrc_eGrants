@@ -542,12 +542,12 @@
                       className: 'icon_display',
                         authWidth: true,
                       render: function (data, type, full, meta) {
-                          console.log("data:" + data);
-                          console.log("type:" + type);
-                          console.log("Full:" + JSON.stringify(full));
-                          console.log("meta:" + JSON.stringify(meta));
+                        //  console.log("data:" + data);
+                        //  console.log("type:" + type);
+                        //  console.log("Full:" + JSON.stringify(full));
+                        //  console.log("meta:" + JSON.stringify(meta));
 
-                          console.log("full url" + full.url);
+                         // console.log("full url" + full.url);
                        var spinit = ((full.url.substring(0, 11) == "https://i2e" ? "<i class=\"fa fa-file-excel\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"File URL is not supported.\"></i>" : "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>"));
                        //   var spinit =  "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>";
 
@@ -859,21 +859,21 @@
                                      console.log("Response Returned:" + JSON.stringify(data));
 
 
-                                     for (var i = 0; i < data.length; i++) {
-                                         if (data[i].tag == 1) {
-                                             console.log(data[i].appl_id);
-                                             console.log(data[i].full_grant_num);
-                                         }
-                                         if (data[i].tag == 2) {
+                                     //for (var i = 0; i < data.length; i++) {
+                                     //    if (data[i].tag == 1) {
+                                     //        console.log(data[i].appl_id);
+                                     //        console.log(data[i].full_grant_num);
+                                     //    }
+                                     //    if (data[i].tag == 2) {
 
-                                             console.log(data[i].category_name);
-                                             console.log(data[i].accepted_date);
-                                             console.log(data[i].url);
-                                         }
+                                     //        console.log(data[i].category_name);
+                                     //        console.log(data[i].accepted_date);
+                                     //        console.log(data[i].url);
+                                     //    }
 
-                                     }
+                                     //}
 
-                                     row.child(formatFinancialReportChildRow(data)).show();
+                                     row.child(formatFinancialReportChildRow(data.row())).show();
 
                                  },
                                  error: function (resp) {
@@ -1157,7 +1157,9 @@
 
 
         var str = "";
-       var str = "<table id=childRowTable_@appl_id cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
+        var str = "<table id=childRowTable_@appl_id cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
+
+      console.log(d.length);
         for (var i = 0; i < d.length; i++) {
 
         //    if (d[i].tag == 1) {
