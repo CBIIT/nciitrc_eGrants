@@ -261,16 +261,15 @@ namespace egrants_new.Egrants.Models
                     {
                         if (grant.grant_id == appl.grant_id)
                         {
-                            if (bool.TryParse(appl.deleted_by_impac, out bool result))
-                            {
-                                if (result)
-                                {
-                                    continue;
-                                }
-                            }
+                           
                             if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
                                                                         || string.Equals(appl.appl_type_code, "6")
                                                                         || string.Equals(appl.appl_type_code, "8"))
+                            {
+                                continue;
+                            }
+
+                            if (appl.deleted_by_impac.ToUpper() == "Y")
                             {
                                 continue;
                             }
