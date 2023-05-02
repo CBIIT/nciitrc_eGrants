@@ -111,20 +111,11 @@ namespace egrants_new.Egrants.Models
             bool isGrant = false;
             bool isStr = false;
             bool isAppl = false;
-            if (grant_id != 0)
-            {
-                isGrant = true;
-            }
 
-            if (!string.IsNullOrEmpty(str))
-            {
-                isStr = true;
-            }
-
-            if (appl_id != 0)
-            {
-                isAppl = true;
-            }
+            isGrant = grant_id != 0;
+            isStr = string.IsNullOrEmpty(str);
+            isAppl = appl_id != 0;
+            
 
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("dbo.sp_web_egrants", conn);
@@ -270,8 +261,13 @@ namespace egrants_new.Egrants.Models
                     {
                         if (grant.grant_id == appl.grant_id)
                         {
-                            // if (grant.latest_full_grant_num == appl.full_grant_num) 
-                            // {
+                            if (bool.TryParse(appl.deleted_by_impac, out bool result))
+                            {
+                                if (result)
+                                {
+                                    continue;
+                                }
+                            }
                             if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
                                                                         || string.Equals(appl.appl_type_code, "6")
                                                                         || string.Equals(appl.appl_type_code, "8"))
