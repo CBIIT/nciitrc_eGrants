@@ -246,15 +246,16 @@ namespace egrants_new.Egrants.Models
             doclayerproperty = docList;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="isGrant"></param>
+        /// <param name="grantList"></param>
+        /// <param name="applList"></param>
         private static void PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> grantList, List<ApplLayerObject> applList)
         {
             if (isGrant)
             {
-                // string project_title = string.Empty;
-                // string org_name = string.Empty;
-                // string first_name = string.Empty;
-                // string last_name = string.Empty;
-
                 foreach (var grant in grantList)
                 {
                     foreach (var appl in applList)
@@ -267,19 +268,20 @@ namespace egrants_new.Egrants.Models
                                                                         || string.Equals(appl.appl_type_code, "8"))
                             {
                                 continue;
+
                             }
 
-                            if (appl.deleted_by_impac.ToUpper() == "Y")
-                            {
-                                continue;
-                            }
+                            
 
                             if (string.Equals(appl.appl_type_code, "1") || string.Equals(appl.appl_type_code, "2")
                                                                         || string.Equals(appl.appl_type_code, "5")
                                                                         || string.Equals(appl.appl_type_code, "7")
                                                                         || string.Equals(appl.appl_type_code, "9"))
                             {
-
+                                if (appl.deleted_by_impac.ToUpper() == "Y")
+                                {
+                                    break;
+                                }
 
                                 using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
                                 {
@@ -304,13 +306,10 @@ namespace egrants_new.Egrants.Models
                                         grant.SelectedProjectName = sqlDataReader["project_title"]?.ToString();
                                         grant.SelectedOrganizationName = sqlDataReader["org_name"]?.ToString();
                                         grant.SelectedGrantPiEmail = sqlDataReader["current_pi_email_address"].ToString();
-
                                         grant.SelectedGrantPiName
                                             = sqlDataReader["first_name"]?.ToString() + " " + sqlDataReader["last_name"]?.ToString();
                                     }
                                 }
-
-
                             }
 
                             break;
