@@ -112,10 +112,21 @@ namespace egrants_new.Egrants.Models
             bool isStr = false;
             bool isAppl = false;
 
-            isGrant = grant_id != 0;
-            isStr = string.IsNullOrEmpty(str);
-            isAppl = appl_id != 0;
-            
+            if (grant_id != 0)
+            {
+                isGrant = true;
+            }
+
+            if (!string.IsNullOrEmpty(str))
+            {
+                isStr = true;
+            }
+
+            if (appl_id != 0)
+            {
+                isAppl = true;
+            }
+
 
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("dbo.sp_web_egrants", conn);
@@ -262,27 +273,22 @@ namespace egrants_new.Egrants.Models
                     {
                         if (grant.grant_id == appl.grant_id)
                         {
-                           
+
+
                             if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
                                                                         || string.Equals(appl.appl_type_code, "6")
-                                                                        || string.Equals(appl.appl_type_code, "8"))
+                                                                        || string.Equals(appl.appl_type_code, "8") 
+                                                                        || appl.deleted_by_impac.ToUpper() == "Y")
                             {
                                 continue;
-
                             }
 
                             
-
                             if (string.Equals(appl.appl_type_code, "1") || string.Equals(appl.appl_type_code, "2")
                                                                         || string.Equals(appl.appl_type_code, "5")
                                                                         || string.Equals(appl.appl_type_code, "7")
                                                                         || string.Equals(appl.appl_type_code, "9"))
                             {
-                                if (appl.deleted_by_impac.ToUpper() == "Y")
-                                {
-                                    break;
-                                }
-
                                 using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
                                 {
                                     var cmd = new SqlCommand(
@@ -298,7 +304,6 @@ namespace egrants_new.Egrants.Models
                                     cmd.Parameters.Add("@appl_id", SqlDbType.VarChar).Value = appl.appl_id;
                                     conn.Open();
 
-                                    var list = grantList;
                                     var sqlDataReader = cmd.ExecuteReader();
 
                                     while (sqlDataReader.Read())
@@ -306,6 +311,7 @@ namespace egrants_new.Egrants.Models
                                         grant.SelectedProjectName = sqlDataReader["project_title"]?.ToString();
                                         grant.SelectedOrganizationName = sqlDataReader["org_name"]?.ToString();
                                         grant.SelectedGrantPiEmail = sqlDataReader["current_pi_email_address"].ToString();
+
                                         grant.SelectedGrantPiName
                                             = sqlDataReader["first_name"]?.ToString() + " " + sqlDataReader["last_name"]?.ToString();
                                     }
