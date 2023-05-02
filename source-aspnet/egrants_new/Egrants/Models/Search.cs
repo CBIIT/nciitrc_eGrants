@@ -111,20 +111,11 @@ namespace egrants_new.Egrants.Models
             bool isGrant = false;
             bool isStr = false;
             bool isAppl = false;
-            if (grant_id != 0)
-            {
-                isGrant = true;
-            }
 
-            if (!string.IsNullOrEmpty(str))
-            {
-                isStr = true;
-            }
-
-            if (appl_id != 0)
-            {
-                isAppl = true;
-            }
+            isGrant = grant_id != 0;
+            isStr = string.IsNullOrEmpty(str);
+            isAppl = appl_id != 0;
+            
 
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("dbo.sp_web_egrants", conn);
@@ -255,36 +246,42 @@ namespace egrants_new.Egrants.Models
             doclayerproperty = docList;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="isGrant"></param>
+        /// <param name="grantList"></param>
+        /// <param name="applList"></param>
         private static void PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> grantList, List<ApplLayerObject> applList)
         {
             if (isGrant)
             {
-                // string project_title = string.Empty;
-                // string org_name = string.Empty;
-                // string first_name = string.Empty;
-                // string last_name = string.Empty;
-
                 foreach (var grant in grantList)
                 {
                     foreach (var appl in applList)
                     {
                         if (grant.grant_id == appl.grant_id)
                         {
-                            // if (grant.latest_full_grant_num == appl.full_grant_num) 
-                            // {
+                           
                             if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
                                                                         || string.Equals(appl.appl_type_code, "6")
                                                                         || string.Equals(appl.appl_type_code, "8"))
                             {
                                 continue;
+
                             }
+
+                            
 
                             if (string.Equals(appl.appl_type_code, "1") || string.Equals(appl.appl_type_code, "2")
                                                                         || string.Equals(appl.appl_type_code, "5")
                                                                         || string.Equals(appl.appl_type_code, "7")
                                                                         || string.Equals(appl.appl_type_code, "9"))
                             {
-
+                                if (appl.deleted_by_impac.ToUpper() == "Y")
+                                {
+                                    break;
+                                }
 
                                 using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
                                 {
@@ -309,13 +306,10 @@ namespace egrants_new.Egrants.Models
                                         grant.SelectedProjectName = sqlDataReader["project_title"]?.ToString();
                                         grant.SelectedOrganizationName = sqlDataReader["org_name"]?.ToString();
                                         grant.SelectedGrantPiEmail = sqlDataReader["current_pi_email_address"].ToString();
-
                                         grant.SelectedGrantPiName
                                             = sqlDataReader["first_name"]?.ToString() + " " + sqlDataReader["last_name"]?.ToString();
                                     }
                                 }
-
-
                             }
 
                             break;
