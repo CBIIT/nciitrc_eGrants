@@ -288,7 +288,7 @@ namespace egrants_new.Controllers
 
                         if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
                         {
-                            var imageServer = new Uri(this.Session["ImageServer"].ToString());
+                            var imageServer = new Uri(this.Session["ImageServerUrl"].ToString());
 
                             uri = new Uri(imageServer, url);
                         }
@@ -877,7 +877,7 @@ namespace egrants_new.Controllers
                 string.Empty);
 
             this.ViewBag.UnidentifiedDocs = EgrantsDoc.LoadDocsUnidentified(
-                Convert.ToString(this.Session["ImageServer"]),
+                Convert.ToString(this.Session["ImageServerUrl"]),
                 Convert.ToString(this.Session["userid"]));
 
 
@@ -1157,7 +1157,7 @@ namespace egrants_new.Controllers
 
                 if (str == "qc")
                     this.ViewBag.UnidentifiedDocs = EgrantsDoc.LoadDocsUnidentified(
-                        Convert.ToString(this.Session["ImageServer"]),
+                        Convert.ToString(this.Session["ImageServerUrl"]),
                         Convert.ToString(this.Session["userid"]));
             }
 

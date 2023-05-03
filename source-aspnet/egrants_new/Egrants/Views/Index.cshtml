@@ -425,7 +425,7 @@
     <input type="text" hidden id="hidFilterSerialNumber" name="FilterSerialNumber" value="@ViewBag.FilterSerialNumber"/>
 
     <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt16(Session["position_id"])"/>
-    <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServer"])"/>
+    <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServerUrl"])"/>
     <input type="text" hidden id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(Session["egrantsDocEmail"])"/>
     @*<input type="text" hidden id="hidDownloadForm" name="DownloadSubPage" value="@ViewBag.CurrentView"/>*@
 </form>
@@ -852,7 +852,7 @@
                 @if (grant.sv_url != "")
                 {
                     <span style="margin-left: 10px; width: 80px;">
-                        <a target="_new" href="@Convert.ToString(Session["ImageServer"])@grant.sv_url">
+                        <a target="_new" href="@Convert.ToString(Session["ImageServerUrl"])@grant.sv_url">
                             <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name"/>
                         </a>
                     </span>
