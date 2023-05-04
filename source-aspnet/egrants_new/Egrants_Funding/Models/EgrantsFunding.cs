@@ -1,262 +1,306 @@
-﻿using System;
+﻿#region FileHeader
+
+// /****************************** Module Header ******************************\
+// Module Name:  EgrantsFunding.cs
+// Solution: egrants_new
+// Project:  egrants_new
+// Created: 2022-11-21
+// Contributors:
+//      - Briggs, Robin (NIH/NCI) [C] - briggsr2
+//      -
+// Copyright (c) National Institute of Health
+// 
+// <Description of the file>
+// 
+// This source is subject to the NIH Softwre License.
+// See https://ncihub.org/resources/899/download/Guidelines_for_Releasing_Research_Software_04062015.pdf
+// All other rights reserved.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT ARE DISCLAIMED. IN NO EVENT SHALL THE NATIONAL
+// CANCER INSTITUTE (THE PROVIDER), THE NATIONAL INSTITUTES OF HEALTH, THE
+// U.S. GOVERNMENT OR THE INDIVIDUAL DEVELOPERS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// \***************************************************************************/
+
+#endregion
+
+#region
+
+using egrants_new.Dashboard.Functions;
+using egrants_new.Egrants.Models;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using egrants_new.Models;
 
+
+#endregion
 
 namespace egrants_new.Egrants_Funding.Models
 {
-    public class EgrantsFunding
-    {
-        public class FundingCategories
-        {
-            public string level_id { get; set; }
-            public string parent_id { get; set; }
-            public string category_id { get; set; }
-            public string category_name { get; set; }
-            public string category_fy { get; set; }
-            public string child_count { get; set; }
-            public string doc_count { get; set; }
-        }
 
-        //to load funding category list by fiscal_year
+    public static class EgrantsFunding
+    {
+        /// <summary>
+        ///     to load funding category list by fiscal_year
+        /// </summary>
+        /// <param name="fiscal_year"></param>
+        /// <returns></returns>
         public static List<FundingCategories> LoadFundingCategories(int fiscal_year)
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT level_id, ISNULL(parent_id,0) as parent_id,category_id,category_name,category_fy," +
-            " dbo.fn_funding_child_count(category_id,@fy) as child_count, dbo.fn_funding_doc_count(category_id,@fy) as doc_count " +
-            " FROM vw_funding_categories WHERE category_fy is null or category_fy = @fy ORDER BY category_name", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+
+            var cmd = new SqlCommand("SELECT level_id, ISNULL(parent_id,0) as parent_id,category_id,category_name,category_fy," +
+                                     " dbo.fn_funding_child_count(category_id,@fy) as child_count, dbo.fn_funding_doc_count(category_id,@fy) as doc_count "
+                                    +
+                                     " FROM vw_funding_categories WHERE category_fy is null or category_fy = @fy ORDER BY category_name",
+                conn);
+
             cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@fy", System.Data.SqlDbType.Int).Value = fiscal_year;
+            cmd.Parameters.Add("@fy", SqlDbType.Int).Value = fiscal_year;
             conn.Open();
 
-            var FundingCategories = new List<FundingCategories>();
-            SqlDataReader rdr = cmd.ExecuteReader();
+            var list = new List<FundingCategories>();
+            var rdr = cmd.ExecuteReader();
+
             while (rdr.Read())
-            {
-                FundingCategories.Add(new FundingCategories
-                {
-                    level_id = rdr["level_id"]?.ToString(),
-                    parent_id = rdr["parent_id"]?.ToString(),
-                    category_id = rdr["category_id"]?.ToString(),
-                    category_name = rdr["category_name"]?.ToString(),
-                    child_count = rdr["child_count"]?.ToString(),
-                    doc_count = rdr["doc_count"]?.ToString(),
-                });
-            }
+                list.Add(new FundingCategories
+                             {
+                                 level_id = rdr["level_id"]?.ToString(),
+                                 parent_id = rdr["parent_id"]?.ToString(),
+                                 category_id = rdr["category_id"]?.ToString(),
+                                 category_name = rdr["category_name"]?.ToString(),
+                                 child_count = rdr["child_count"]?.ToString(),
+                                 doc_count = rdr["doc_count"]?.ToString()
+                             });
+
             conn.Close();
-            return FundingCategories;
+
+            return list;
         }
 
-        public class FundingDocuments
-        {
-            public string serial_num { get; set; }
-            public string appl_id { get; set; }
-            public string full_grant_num { get; set; }
-            public string document_id { get; set; }
-            public string doc_label { get; set; }
-            public string url { get; set; }
-            public string category_id { get; set; }
-            public string category_name { get; set; }
-            public string document_fy { get; set; }
-            public string created_date { get; set; }
-            public string arra_flag { get; set; }                 
-        }
-
-        //to load funding documents
         public static List<FundingDocuments> LoadFundingDocs(string act, int serial_num, int fiscal_year, string ic, string userid)
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_funding_docs", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            var cmd = new SqlCommand("sp_web_egrants_funding_docs", conn);
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@serial_num", System.Data.SqlDbType.Int).Value = serial_num;
-            cmd.Parameters.Add("@fy", System.Data.SqlDbType.Int).Value = fiscal_year;
-            cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@Operator", System.Data.SqlDbType.VarChar).Value = userid;
+            cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+            cmd.Parameters.Add("@serial_num", SqlDbType.Int).Value = serial_num;
+            cmd.Parameters.Add("@fy", SqlDbType.Int).Value = fiscal_year;
+            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+            cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
             conn.Open();
-            var FundingDocuments = new List<FundingDocuments>();
-            SqlDataReader rdr = cmd.ExecuteReader();
+            var list = new List<FundingDocuments>();
+            var rdr = cmd.ExecuteReader();
+
             while (rdr.Read())
-            {
-                FundingDocuments.Add(new FundingDocuments
-                {
-                    document_id = rdr["document_id"]?.ToString(),
-                    doc_label = rdr["doc_label"]?.ToString(),
-                    category_id = rdr["category_id"]?.ToString(),
-                    category_name = rdr["category_name"]?.ToString(),
-                    document_fy = rdr["document_fy"]?.ToString(),
-                    url = rdr["url"]?.ToString(),
-                    created_date = rdr["created_date"]?.ToString(),
-                    arra_flag = rdr["arra_flag"]?.ToString(),
-                    serial_num = rdr["serial_num"]?.ToString(),
-                    appl_id = rdr["appl_id"]?.ToString(),
-                    full_grant_num = rdr["full_grant_num"]?.ToString(),
-                });
-            }
+                list.Add(new FundingDocuments
+                             {
+                                 document_id = rdr["document_id"]?.ToString(),
+                                 doc_label = rdr["doc_label"]?.ToString(),
+                                 category_id = rdr["category_id"]?.ToString(),
+                                 category_name = rdr["category_name"]?.ToString(),
+                                 document_fy = rdr["document_fy"]?.ToString(),
+                                 url = rdr["url"]?.ToString(),
+                                 created_date = rdr["created_date"]?.ToString(),
+                                 arra_flag = rdr["arra_flag"]?.ToString(),
+                                 serial_num = rdr["serial_num"]?.ToString(),
+                                 appl_id = rdr["appl_id"]?.ToString(),
+                                 full_grant_num = rdr["full_grant_num"]?.ToString()
+                             });
+
             conn.Close();
-            return FundingDocuments;
+
+            return list;
         }
 
         //to create new funding document and return new document_id
-        public static string GetFundingDocID(int appl_id, int category_id, string doc_date, string sub_category, string file_type, string ic, string userid)
+        public static string GetFundingDocID(int appl_id,
+                                             int category_id,
+                                             string doc_date,
+                                             string sub_category,
+                                             string file_type,
+                                             string ic,
+                                             string userid)
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_funding_doc_create", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
+            var cmd = new SqlCommand("sp_web_egrants_funding_doc_create", conn);
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@ApplID", System.Data.SqlDbType.Int).Value = appl_id;
-            cmd.Parameters.Add("@CategoryID", System.Data.SqlDbType.Int).Value = category_id;
-            cmd.Parameters.Add("@DocDate", System.Data.SqlDbType.DateTime).Value = doc_date;
-            cmd.Parameters.Add("@SubCategory", System.Data.SqlDbType.VarChar).Value = sub_category;
-            cmd.Parameters.Add("@FileType", System.Data.SqlDbType.VarChar).Value = file_type;
-            cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@operator", System.Data.SqlDbType.VarChar).Value = userid;
-            cmd.Parameters.Add("@DocumentID", System.Data.SqlDbType.Int);
-            cmd.Parameters["@DocumentID"].Direction = System.Data.ParameterDirection.Output;
+            cmd.Parameters.Add("@ApplID", SqlDbType.Int).Value = appl_id;
+            cmd.Parameters.Add("@CategoryID", SqlDbType.Int).Value = category_id;
+            cmd.Parameters.Add("@DocDate", SqlDbType.DateTime).Value = doc_date;
+            cmd.Parameters.Add("@SubCategory", SqlDbType.VarChar).Value = sub_category;
+            cmd.Parameters.Add("@FileType", SqlDbType.VarChar).Value = file_type;
+            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+            cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+            cmd.Parameters.Add("@DocumentID", SqlDbType.Int);
+            cmd.Parameters["@DocumentID"].Direction = ParameterDirection.Output;
             conn.Open();
 
-            System.Data.SqlClient.SqlDataReader DataReader = cmd.ExecuteReader();
+            var dataReader = cmd.ExecuteReader();
 
-            DataReader.Close();
+            dataReader.Close();
             conn.Close();
 
-            var document_id = Convert.ToString(cmd.Parameters["@DocumentID"].Value);
-            return document_id;
+            var documentId = Convert.ToString(cmd.Parameters["@DocumentID"].Value);
+
+            return documentId;
         }
 
         //to load funding category list without fiscal_year
         public static List<FundingCategories> LoadFundingCategoryList()
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT distinct category_id,category_name,level_id,parent_id FROM funding_categories " +
-            "WHERE category_fy is null or category_fy = 2014 Order by level_id, category_name", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
+
+            var cmd = new SqlCommand("SELECT distinct category_id,category_name,level_id,parent_id FROM funding_categories " +
+                                     "WHERE category_fy is null or category_fy = 2014 Order by level_id, category_name",
+                conn);
+
             cmd.CommandType = CommandType.Text;
 
             conn.Open();
 
-            var FundingCategoryList = new List<FundingCategories>();
-            SqlDataReader rdr = cmd.ExecuteReader();
+            var list = new List<FundingCategories>();
+            var rdr = cmd.ExecuteReader();
+
             while (rdr.Read())
-            {
-                FundingCategoryList.Add(new FundingCategories
-                {
-                    category_id = rdr["category_id"]?.ToString(),
-                    category_name = rdr["category_name"]?.ToString(),
-                    level_id = rdr["level_id"]?.ToString(),
-                    parent_id = rdr["parent_id"]?.ToString(),
-                });
-            }
+                list.Add(new FundingCategories
+                             {
+                                 category_id = rdr["category_id"]?.ToString(),
+                                 category_name = rdr["category_name"]?.ToString(),
+                                 level_id = rdr["level_id"]?.ToString(),
+                                 parent_id = rdr["parent_id"]?.ToString()
+                             });
+
             conn.Close();
-            return FundingCategoryList;
+
+            return list;
         }
 
         //to return Max Category id with fiscal_year
         public static int GetMaxCategoryid(int fiscal_year)
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT max(category_id) as max_categoryid FROM funding_categories WHERE category_fy is null or category_fy= @fy", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+
+            var cmd = new SqlCommand(
+                "SELECT max(category_id) as max_categoryid FROM funding_categories WHERE category_fy is null or category_fy= @fy",
+                conn);
+
             cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@fy", System.Data.SqlDbType.Int).Value = fiscal_year;
+            cmd.Parameters.Add("@fy", SqlDbType.Int).Value = fiscal_year;
             conn.Open();
-            int MaxCategoryid = 0;
-            SqlDataReader rdr = cmd.ExecuteReader();
+            var MaxCategoryid = 0;
+            var rdr = cmd.ExecuteReader();
+
             while (rdr.Read())
-            {
                 MaxCategoryid = Convert.ToInt16(rdr["max_categoryid"]?.ToString());
-            }
+
             conn.Close();
+
             return MaxCategoryid;
         }
-   
+
         //to load all appls by document_id
-        public static List<Egrants.Models.EgrantsAppl.Appl> LoadDocAppls(int doc_id)
+        public static List<Appl> LoadDocAppls(int doc_id)
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT distinct appl.appl_id, appl.support_year,appl.full_grant_num " +
-            " FROM vw_appls as appl, vw_funding f " +
-            " WHERE f.appl_id = appl.appl_id and f.document_id = @doc_id and f.disabled_date is null", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+
+            var cmd = new SqlCommand("SELECT distinct appl.appl_id, appl.support_year,appl.full_grant_num " +
+                                     " FROM vw_appls as appl, vw_funding f " +
+                                     " WHERE f.appl_id = appl.appl_id and f.document_id = @doc_id and f.disabled_date is null",
+                conn);
+
             cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
+            cmd.Parameters.Add("@doc_id", SqlDbType.Int).Value = doc_id;
             conn.Open();
 
-            var Appls = new List<Egrants.Models.EgrantsAppl.Appl>();
-            SqlDataReader rdr = cmd.ExecuteReader();
+            var list = new List<Appl>();
+            var rdr = cmd.ExecuteReader();
+
             while (rdr.Read())
-            {
-                Appls.Add(new Egrants.Models.EgrantsAppl.Appl
-                {
-                    appl_id = rdr["appl_id"]?.ToString(),
-                    support_year = rdr["support_year"]?.ToString(),
-                    full_grant_num = rdr["full_grant_num"]?.ToString()
-                });
-            }
-            return Appls;
+                list.Add(new Appl
+                             {
+                                 appl_id = rdr["appl_id"]?.ToString(),
+                                 support_year = rdr["support_year"]?.ToString(),
+                                 full_grant_num = rdr["full_grant_num"]?.ToString()
+                             });
+
+            return list;
         }
 
         //to load all appls with funding document expect appl with that document
-        public static List<Egrants.Models.EgrantsAppl.Appl> LoadFullGrantNumbers(int serial_num, string admin_code, int doc_id)
+        public static List<Appl> LoadFullGrantNumbers(int serial_num, string admin_code, int doc_id)
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT appl_id, support_year, full_grant_num FROM vw_appls WHERE admin_phs_org_code = @admin_code and serial_num = @serial_num and " +
-            "appl_id not in (SELECT appl_id FROM funding_appls WHERE document_id = @doc_id ) order by support_year desc", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+
+            var cmd = new SqlCommand(
+                "SELECT appl_id, support_year, full_grant_num FROM vw_appls WHERE admin_phs_org_code = @admin_code and serial_num = @serial_num and "
+               +
+                "appl_id not in (SELECT appl_id FROM funding_appls WHERE document_id = @doc_id ) order by support_year desc",
+                conn);
+
             cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@serial_num", System.Data.SqlDbType.Int).Value = serial_num;
-            cmd.Parameters.Add("@admin_code", System.Data.SqlDbType.VarChar).Value = admin_code;
-            cmd.Parameters.Add("@doc_id", System.Data.SqlDbType.Int).Value = doc_id;
+            cmd.Parameters.Add("@serial_num", SqlDbType.Int).Value = serial_num;
+            cmd.Parameters.Add("@admin_code", SqlDbType.VarChar).Value = admin_code;
+            cmd.Parameters.Add("@doc_id", SqlDbType.Int).Value = doc_id;
             conn.Open();
 
-            var FullGrantNums = new List<Egrants.Models.EgrantsAppl.Appl>();
-            SqlDataReader rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                FullGrantNums.Add(new Egrants.Models.EgrantsAppl.Appl
-                {
-                    appl_id = rdr["appl_id"]?.ToString(),
-                    support_year = rdr["support_year"]?.ToString(),
-                    full_grant_num = rdr["full_grant_num"]?.ToString()
-                });
-            }
+            var list = new List<Appl>();
+            var rdr = cmd.ExecuteReader();
 
-            return FullGrantNums;
+            while (rdr.Read())
+                list.Add(new Appl
+                             {
+                                 appl_id = rdr["appl_id"]?.ToString(),
+                                 support_year = rdr["support_year"]?.ToString(),
+                                 full_grant_num = rdr["full_grant_num"]?.ToString()
+                             });
+
+            return list;
         }
 
         //to edit funding document for delete or store
         public static void EditFundingDoc(string act, int appl_id, int doc_id, string ic, string userid)
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_funding_doc_edit", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            var cmd = new SqlCommand("sp_web_egrants_funding_doc_edit", conn);
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@appl_id", System.Data.SqlDbType.Int).Value = appl_id;
-            cmd.Parameters.Add("@document_id", System.Data.SqlDbType.Int).Value = doc_id;
-            cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@Operator", System.Data.SqlDbType.VarChar).Value = userid;
+            cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+            cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = appl_id;
+            cmd.Parameters.Add("@document_id", SqlDbType.Int).Value = doc_id;
+            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+            cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
             conn.Open();
-            System.Data.SqlClient.SqlDataReader DataReader = cmd.ExecuteReader();
-            DataReader.Close();
+            var dataReader = cmd.ExecuteReader();
+            dataReader.Close();
             conn.Close();
         }
 
         //to edit funding document with remove or add appl
         public static void EditFundingAppl(string act, int appl_id, int doc_id, string ic, string userid)
         {
-            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("sp_web_egrants_funding_appl_edit", conn);
+            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            var cmd = new SqlCommand("sp_web_egrants_funding_appl_edit", conn);
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@act", System.Data.SqlDbType.VarChar).Value = act;
-            cmd.Parameters.Add("@appl_id", System.Data.SqlDbType.Int).Value = appl_id;
-            cmd.Parameters.Add("@document_id", System.Data.SqlDbType.Int).Value = doc_id;
-            cmd.Parameters.Add("@ic", System.Data.SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@Operator", System.Data.SqlDbType.VarChar).Value = userid;
+            cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+            cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = appl_id;
+            cmd.Parameters.Add("@document_id", SqlDbType.Int).Value = doc_id;
+            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+            cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
             conn.Open();
-            System.Data.SqlClient.SqlDataReader DataReader = cmd.ExecuteReader();
-            DataReader.Close();
-            conn.Close();        
+            var dataReader = cmd.ExecuteReader();
+            dataReader.Close();
+            conn.Close();
         }
     }
 }

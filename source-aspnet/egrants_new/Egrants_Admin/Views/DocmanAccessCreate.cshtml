@@ -199,13 +199,13 @@
                         <option></option>
                         @foreach (var profiles in ViewBag.Profiles)
                         {
-                            if (Convert.ToString(Session["ic"]).ToUpper() == Convert.ToString(profiles.profile))
+                            if (Convert.ToString(Session["ic"]).ToUpper() == Convert.ToString(profiles.Profile))
                             {
-                                <option id="Profile_id" value="@profiles.profile_id" selected="selected">@profiles.profile</option>
+                                <option id="Profile_id" value="@profiles.ProfileId" selected="selected">@profiles.Profile</option>
                             }
                             else
                             {
-                                <option id="Profile_id" value="@profiles.profile_id">@profiles.profile</option>
+                                <option id="Profile_id" value="@profiles.ProfileId">@profiles.Profile</option>
                             }
                         }
                     </select>

@@ -33,36 +33,37 @@
 
 #endregion
 
-namespace egrants_new.Egrants.Models
-{
-    /// <summary>
-    /// The institutional files page action.
-    /// </summary>
-    public enum InstitutionalFilesPageAction
+
+    namespace egrants_new.Egrants.Models
     {
         /// <summary>
-        /// The show orgs.
+        /// The institutional files page action.
         /// </summary>
-        ShowOrgs,
+        public enum InstitutionalFilesPageAction
+        {
+            /// <summary>
+            /// The show orgs.
+            /// </summary>
+            ShowOrgs,
 
-        /// <summary>
-        /// The show docs.
-        /// </summary>
-        ShowDocs,
+            /// <summary>
+            /// The show docs.
+            /// </summary>
+            ShowDocs,
 
-        /// <summary>
-        /// The create new.
-        /// </summary>
-        CreateNew,
+            /// <summary>
+            /// The create new.
+            /// </summary>
+            CreateNew,
 
-        /// <summary>
-        /// The search orgs.
-        /// </summary>
-        SearchOrgs,
+            /// <summary>
+            /// The search orgs.
+            /// </summary>
+            SearchOrgs,
 
-        /// <summary>
-        /// The update doc.
-        /// </summary>
-        UpdateDoc
+            /// <summary>
+            /// The update doc.
+            /// </summary>
+            UpdateDoc
+        }
     }
-}

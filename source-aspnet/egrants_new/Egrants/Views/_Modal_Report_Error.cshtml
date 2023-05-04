@@ -1,43 +1,40 @@
 ﻿@{
-    ViewBag.Title = "eGrants [Report Error]";
+   ViewBag.Title = "eGrants [Report Error]";
+
 }
 
 <script language="JavaScript" type="text/javascript">
-        function report_error(doc_id) {
-            if (document.getElementById("txtErrorMsg").value == "") {
-                alert("Please insert error message for this document to report");
-                document.getElementById("txtErrorMsg").focus();
-                return false;
-            } else errormsg = document.getElementById("txtErrorMsg").value;
+   function report_error(doc_id) {
+      if (document.getElementById("txtErrorMsg").value == "") {
+         alert("Please insert error message for this document to report");
+         document.getElementById("txtErrorMsg").focus();
+         return false;
+      } else errormsg = document.getElementById("txtErrorMsg").value;
 
-            var url = '@Url.Action("ReportError", "EgrantsDoc")?errormsg=' + errormsg + '&document_id=' + doc_id + "&currenturl=" + encodeURIComponent(currenturl);          
-            window.document.location.href = url;
-        }     
+      var url = '@Url.Action("ReportError", "EgrantsDoc")?errormsg=' + errormsg + '&document_id=' + doc_id + "&currenturl=" + encodeURIComponent(currenturl);
+      window.document.location.href = url;
+   }
 </script>
 
 <div id="main">
-    <table>
-        <thead>
-            <tr>
-                <td>
-                    Please describe the problem.<br />
-                    Examples:Wrong Grant, Bad Image, Incorrect Identification etc.
-                </td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <input type="text" name="error" id="txtErrorMsg" class="smallfont pl-1" size="50" title="Insert error message to report" value="@ViewBag.Errormsg" />
-                    <button AccessKey="R" class="btn btn-primary btn-sm" title="click here to report document error" onclick="JavaScript:report_error(@ViewBag.DocID);">
-                        <u>R</u>eport Error
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+   <table>
+      <thead>
+      <tr>
+         <td>
+            Please describe the problem.<br/>
+            Examples:Wrong Grant, Bad Image, Incorrect Identification etc.
+         </td>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+         <td>
+            <input type="text" name="error" id="txtErrorMsg" class="smallfont pl-1" size="50" title="Insert error message to report" value="@ViewBag.Errormsg"/>
+            <button AccessKey="R" class="btn btn-primary btn-sm" title="click here to report document error" onclick="JavaScript:report_error(@ViewBag.DocID);">
+               <u>R</u>eport Error
+            </button>
+         </td>
+      </tr>
+      </tbody>
+   </table>
 </div>
-
-
-
-

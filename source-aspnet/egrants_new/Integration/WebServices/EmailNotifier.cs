@@ -53,111 +53,111 @@ namespace egrants_new.Integration.WebServices
         /// <summary>
         /// The generate exception message.
         /// </summary>
-        public void GenerateExceptionMessage()
-        {
-            var config = ConfigurationManager.AppSettings;
-            var enabled = false;
-            enabled = bool.Parse(config["Enabled"]);
+        //public void GenerateExceptionMessage()
+        //{
+        //    var config = ConfigurationManager.AppSettings;
+        //    var enabled = false;
+        //    enabled = bool.Parse(config["Enabled"]);
 
-            if (enabled)
-            {
-                var repo = new IntegrationRepository();
-                var exceptions = repo.GetExceptions();
+        //    if (enabled)
+        //    {
+        //        var repo = new IntegrationRepository();
+        //        var exceptions = repo.GetExceptions();
 
-                if (exceptions.Count > 0)
-                {
-                    var message = new MailMessage
-                                      {
-                                          From = new MailAddress(config["FromAddress"]),
-                                          IsBodyHtml = true,
-                                          Priority = MailPriority.Normal,
-                                          Subject = config["SubjectLine"]
-                                      };
+        //        if (exceptions.Count > 0)
+        //        {
+        //            var message = new MailMessage
+        //                              {
+        //                                  From = new MailAddress(config["FromAddress"]),
+        //                                  IsBodyHtml = true,
+        //                                  Priority = MailPriority.Normal,
+        //                                  Subject = config["SubjectLine"]
+        //                              };
 
-                    var addresses = config["ToAddress"].Split(';');
+        //            var addresses = config["ToAddress"].Split(';');
 
-                    foreach (var address in addresses)
-                        message.To.Add(new MailAddress(address));
+        //            foreach (var address in addresses)
+        //                message.To.Add(new MailAddress(address));
 
-                    var mailContent = "<hr>eGrants Web Service Exceptions<hr>";
-                    var exCount = 1;
+        //            var mailContent = "<hr>eGrants Web Service Exceptions<hr>";
+        //            var exCount = 1;
 
-                    foreach (var ex in exceptions)
-                    {
-                        mailContent
-                            += $"<b>{exCount}) WebService:</b> {ex.WebServiceName}<br>   <b>Endpoint Uri:</b> {ex.EndpointUriSent} <br>   <b>Sent at:</b> {ex.DateTriggered} <br>   <b>ExceptionDetails:</b><br> {ex.ExceptionMessage}<br><br>";
+        //            foreach (var ex in exceptions)
+        //            {
+        //                mailContent
+        //                    += $"<b>{exCount}) WebService:</b> {ex.WebServiceName}<br>   <b>Endpoint Uri:</b> {ex.EndpointUriSent} <br>   <b>Sent at:</b> {ex.DateTriggered} <br>   <b>ExceptionDetails:</b><br> {ex.ExceptionMessage}<br><br>";
 
-                        exCount++;
-                    }
+        //                exCount++;
+        //            }
 
-                    var mailTemplate = File.ReadAllText(config["MailTemplate"]);
-                    mailContent = mailTemplate.Replace("###Exceptions", mailContent);
-                    message.Body = mailContent;
-                    this.SendEmail(message);
-                    exceptions.ForEach(h => repo.MarkHistorySent(h));
-                }
-            }
-        }
+        //            var mailTemplate = File.ReadAllText(config["MailTemplate"]);
+        //            mailContent = mailTemplate.Replace("###Exceptions", mailContent);
+        //            message.Body = mailContent;
+        //            this.SendEmail(message);
+        //            exceptions.ForEach(h => repo.MarkHistorySent(h));
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// The generate sql job error message.
         /// </summary>
-        public void GenerateSQLJobErrorMessage()
-        {
-            var config = ConfigurationManager.AppSettings;
-            var enabled = true;
-            enabled = bool.Parse(config["SQLNotificationEnabled"]);
+        //public void GenerateSQLJobErrorMessage()
+        //{
+        //    var config = ConfigurationManager.AppSettings;
+        //    var enabled = true;
+        //    enabled = bool.Parse(config["SQLNotificationEnabled"]);
 
-            if (enabled)
-            {
-                var repo = new IntegrationRepository();
-                var errors = repo.GetSQLJobErrors();
+        //    if (enabled)
+        //    {
+        //        var repo = new IntegrationRepository();
+        //        var errors = repo.GetSQLJobErrors();
 
-                if (errors.Count > 0)
-                {
-                    var message = new MailMessage
-                                      {
-                                          From = new MailAddress(config["FromAddress"]),
-                                          IsBodyHtml = true,
-                                          Priority = MailPriority.Normal,
-                                          Subject = config["SQLSubjectLine"]
-                                      };
+        //        if (errors.Count > 0)
+        //        {
+        //            var message = new MailMessage
+        //                              {
+        //                                  From = new MailAddress(config["FromAddress"]),
+        //                                  IsBodyHtml = true,
+        //                                  Priority = MailPriority.Normal,
+        //                                  Subject = config["SQLSubjectLine"]
+        //                              };
 
-                    var addresses = config["SQLToAddress"].Split(';');
+        //            var addresses = config["SQLToAddress"].Split(';');
 
-                    foreach (var address in addresses)
-                        message.To.Add(new MailAddress(address));
+        //            foreach (var address in addresses)
+        //                message.To.Add(new MailAddress(address));
 
-                    var mailContent = "<hr>eGrants SQL Job Error Messages<hr>";
-                    var errCount = 1;
+        //            var mailContent = "<hr>eGrants SQL Job Error Messages<hr>";
+        //            var errCount = 1;
 
-                    foreach (var error in errors)
-                    {
-                        mailContent
-                            += $"<b>{errCount}) SQJ Job Name:</b> {error.JobName}<br>   <b>Job Step:</b> {error.StepId.ToString()} <br>   <b>Error Date/Time:</b> {error.ErrorDateTime.ToString()} <br>   <b>ErrorMessage:</b><br> {error.ErrorMessage}<br><br>";
+        //            foreach (var error in errors)
+        //            {
+        //                mailContent
+        //                    += $"<b>{errCount}) SQJ Job Name:</b> {error.JobName}<br>   <b>Job Step:</b> {error.StepId.ToString()} <br>   <b>Error Date/Time:</b> {error.ErrorDateTime.ToString()} <br>   <b>ErrorMessage:</b><br> {error.ErrorMessage}<br><br>";
 
-                        errCount++;
-                    }
+        //                errCount++;
+        //            }
 
-                    var mailTemplate = File.ReadAllText(config["SQLMailTemplate"]);
-                    mailContent = mailTemplate.Replace("###Exceptions", mailContent);
-                    message.Body = mailContent;
-                    this.SendEmail(message);
-                    errors.ForEach(err => repo.MarkSQLJobErrorSent(err));
-                }
-            }
-        }
+        //            var mailTemplate = File.ReadAllText(config["SQLMailTemplate"]);
+        //            mailContent = mailTemplate.Replace("###Exceptions", mailContent);
+        //            message.Body = mailContent;
+        //            this.SendEmail(message);
+        //            errors.ForEach(err => repo.MarkSQLJobErrorSent(err));
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// The generate test message.
         /// </summary>
-        public void GenerateTestMessage()
-        {
-            var message = new MailMessage();
+        //public void GenerateTestMessage()
+        //{
+        //    var message = new MailMessage();
 
-            message.Body = "This is a test message";
-            this.SendEmail(message);
-        }
+        //    message.Body = "This is a test message";
+        //    this.SendEmail(message);
+        //}
 
         /// <summary>
         /// The send email.
@@ -165,21 +165,21 @@ namespace egrants_new.Integration.WebServices
         /// <param name="message">
         /// The message.
         /// </param>
-        private void SendEmail(MailMessage message)
-        {
-            var config = ConfigurationManager.AppSettings;
+        //private void SendEmail(MailMessage message)
+        //{
+        //    var config = ConfigurationManager.AppSettings;
 
-            try
-            {
-                var smtp = new SmtpClient(config["SMTPServer"]);
-                smtp.Port = int.Parse(config["SMTPPort"]);
-                smtp.Send(message);
-            }
-            catch (Exception ex)
-            {
-                // TODO:  Handle Exception on email send
-            }
-        }
+        //    try
+        //    {
+        //        var smtp = new SmtpClient(config["SMTPServer"]);
+        //        smtp.Port = int.Parse(config["SMTPPort"]);
+        //        smtp.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // TODO:  Handle Exception on email send
+        //    }
+        //}
     }
 
 }

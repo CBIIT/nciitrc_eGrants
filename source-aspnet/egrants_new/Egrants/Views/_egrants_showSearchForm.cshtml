@@ -99,20 +99,20 @@
     }
 
     function load_year_list() {
-        var fy = "";
-        fy = $('#FiscalYear').val();
+        var fiscalYear = "";
+        fiscalYear = $('#FiscalYear').val();
         var mechanism = "";
-        var admincode = "";
-        var serialnum = "";
+        var adminCode = "";
+        var serialNumber = "";
         var mechanism = $('#Mechanism').val();
-        var admincode = $('#AdminCode').val();
-        var serialnum = $('#SerialNumber').val();
+        var adminCode = $('#AdminCode').val();
+        var serialNumber = $('#SerialNumber').val();
         //alert(admincode);
         $.ajax(
         {
             type: 'POST',
             url: "/Egrants/LoadYears",
-            data: { fy: fy, mechanism: mechanism, admin_code: admincode, serial_num: serialnum },  //fy: fy, mechan: mechan,
+            data: { fiscalYear: fiscalYear, mechanism: mechanism, adminCode: adminCode, serialNumber: serialNumber },  //fy: fy, mechan: mechan,
             success: function (resp) {
                 sessionStorage.year = resp;
                 var jsonobj = JSON.parse(resp);
