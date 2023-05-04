@@ -434,13 +434,10 @@ namespace egrants_new.Controllers
             var docName = string.Empty;
             string url = null;
             string mssg = null;
-            string virusReport = null;
 
             if (file != null && file.ContentLength > 0)
                 try
                 {
-
-
                     // get file name and file Extension
                     var fileName = Path.GetFileName(file.FileName);
                     var fileExtension = Path.GetExtension(fileName);
@@ -457,85 +454,29 @@ namespace egrants_new.Controllers
 
                     docName = Convert.ToString(document_id) + fileExtension;
 
-                       // first write the file to the temp folder so we can scan it. This in itself will run a scan,
-                        // but we will force it to scan this file.
-                    var writeToLocalTempFolder = Path.GetTempPath() + docName;
-                    FileInfo fi = new FileInfo(writeToLocalTempFolder);
-                
-                    using (FileStream fs = fi.Create())
-                    {
-                        byte[] bytes = new byte[fs.Length];
-                        fs.Read(bytes, 0, (int)fs.Length);
+                    // upload to image sever 
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+                    file.SaveAs(filePath);
 
-                      //  byte[] txt = new UTF8Encoding(true).GetBytes(fi.;
-                        fs.Write(bytes, 0, bytes.Length); 
-                    }
 
-                    var scanner = new AntiVirus.Scanner();
-                    var result = scanner.ScanAndClean(fi.FullName);
-                    Console.WriteLine(result);
+                    // create review url
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
+                                         + Convert.ToString(docName);
 
-                    switch (result)
-                    {
-                        case ScanResult.VirusNotFound:
+                    this.ViewBag.Message = "Done! New document has been created";
 
-                            // upload to image server
-                            var fileFolder = @"\\" + Convert.ToString(this.Session["webgrant"]) + "\\egrants\\funded2\\nci\\main\\";
-                            var filePath = Path.Combine(fileFolder, docName);
-                            file.SaveAs(filePath);
-
-                            // create review url
-                            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServer"]) + "data/" + Convert.ToString(this.Session["egrantsDocNew"])
-                                                 + Convert.ToString(docName);
-
-                            this.ViewBag.Message = "Done! New document has been created";
-                            this.ViewBag.virusReport = "Success! No Virus/Malicious code Detected";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            virusReport = this.ViewBag.VirusReport;
-                            Console.WriteLine(ScanResult.VirusNotFound.ToString());
-                            break;
-                        case ScanResult.BlockedByPolicy:
-                            this.ViewBag.FileUrl = "File blocked by Policy";
-                            this.ViewBag.Message = "The scan was blocked by the system policy. Notify Developer Team.";
-                            this.ViewBag.virusReport = "Failed! Upload Blocked by Policy";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            virusReport = this.ViewBag.VirusReport;
-                            Console.WriteLine(ScanResult.BlockedByPolicy.ToString());
-                            break;
-                        case ScanResult.FileNotExist:
-                            this.ViewBag.FileUrl = "File was not found";
-
-                            this.ViewBag.Message
-                                = "The file was not created in the temp folder.";
-                            this.ViewBag.virusReport = "This could indicate that it has already been detected as malicious code.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            virusReport = this.ViewBag.VirusReport;
-                            Console.WriteLine(ScanResult.FileNotExist.ToString());
-                            break;
-                        case ScanResult.VirusFound:
-                            this.ViewBag.FileUrl = "Please see Microsoft Defender for details on this file/";
-                            this.ViewBag.Message = "A virus or malicious code was detected in the uploaded file.";
-                            this.ViewBag.virusReport = "Check Microsoft Defender for the details.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            virusReport = this.ViewBag.VirusReport;
-                            Console.WriteLine(ScanResult.VirusFound.ToString());
-                            break;
-                    }
+                    url = this.ViewBag.FileUrl;
+                    mssg = this.ViewBag.Message;
                 }
                 catch (Exception ex)
                 {
                     this.ViewBag.Message = "ERROR:" + ex.Message;
                 }
             else
-            {
                 this.ViewBag.Message = "You have not specified a file.";
-            }
 
-            return this.Json(new { url, message = mssg, vReport = virusReport });
+            return this.Json(new { url, message = mssg });
         }
 
 
@@ -578,6 +519,7 @@ namespace egrants_new.Controllers
             string admin_code,
             int serial_num)
         {
+
             var docName = string.Empty;
             string url = null;
             string mssg = null;
@@ -601,69 +543,21 @@ namespace egrants_new.Controllers
 
                     docName = Convert.ToString(document_id) + fileExtension;
 
-                    // first write the file to the temp folder so we can scan it. This in itself will run a scan,
-                    // but we will force it to scan this file.
-                    var writeToLocalTempFolder = Path.GetTempPath() + docName;
-                    FileInfo fi = new FileInfo(writeToLocalTempFolder);
 
-                    using (FileStream fs = fi.Create())
-                    {
-                        byte[] bytes = new byte[fs.Length];
-                        fs.Read(bytes, 0, (int)fs.Length);
-
-                        //  byte[] txt = new UTF8Encoding(true).GetBytes(fi.;
-                        fs.Write(bytes, 0, bytes.Length);
-                    }
-
-                    var scanner = new AntiVirus.Scanner();
-                    var result = scanner.ScanAndClean(fi.FullName);
-                    Console.WriteLine(result);
-
-                    switch (result)
-                    {
-                        case ScanResult.VirusNotFound:
-
-                            // upload to image server
-                            var fileFolder = @"\\" + Convert.ToString(this.Session["webgrant"]) + "\\egrants\\funded2\\nci\\main\\";
-                            var filePath = Path.Combine(fileFolder, docName);
-                            dropedfile.SaveAs(filePath);
-
-                            // create review url
-                            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServer"]) + "data/" + Convert.ToString(this.Session["egrantsDocNew"])
-                                                 + Convert.ToString(docName);
-
-                            this.ViewBag.Message = "Done! New document has been created";
-
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.VirusNotFound.ToString());
-                            break;
-                        case ScanResult.BlockedByPolicy:
-                            this.ViewBag.FileUrl = "File blocked by Policy";
-                            this.ViewBag.Message = "The scan was blocked by the system policy. Notify Developer Team.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.BlockedByPolicy.ToString());
-                            break;
-                        case ScanResult.FileNotExist:
-                            this.ViewBag.FileUrl = "File was not found";
-
-                            this.ViewBag.Message
-                                = "The file was not created in the temp folder. This could indicate that it has already been detected as malicious code.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.FileNotExist.ToString());
-                            break;
-                        case ScanResult.VirusFound:
-                            this.ViewBag.FileUrl = "Please see Microsoft Defender for details on this file/";
-                            this.ViewBag.Message = "A virus or malicious code was detected in the uploaded file. Check Microsoft Defender for the details.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.VirusFound.ToString());
-                            break;
-                    }
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+                    dropedfile.SaveAs(filePath);
 
 
+                    // create review url
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
+                                                                                            + Convert.ToString(docName);
+
+
+                    this.ViewBag.Message = "Done! New document has been created";
+
+                    url = this.ViewBag.FileUrl;
+                    mssg = this.ViewBag.Message;
                 }
                 catch (Exception ex)
                 {
@@ -752,9 +646,6 @@ namespace egrants_new.Controllers
                     var fileName = Path.GetFileName(file.FileName);
                     var fileExtension = Path.GetExtension(fileName);
 
-                    // get document id and create new document name       
-                    docName = Convert.ToString(doc_id) + fileExtension;
-
                     // update url for document
                     EgrantsDoc.doc_modify(
                         "to_upload",
@@ -767,73 +658,24 @@ namespace egrants_new.Controllers
                         Convert.ToString(this.Session["ic"]),
                         Convert.ToString(this.Session["userid"]));
 
-                    // first write the file to the temp folder so we can scan it. This in itself will run a scan,
-                    // but we will force it to scan this file.
-                    var writeToLocalTempFolder = Path.GetTempPath() + docName;
-                    FileInfo fi = new FileInfo(writeToLocalTempFolder);
-
-                    using (FileStream fs = fi.Create())
-                    {
-                        byte[] bytes = new byte[fs.Length];
-                        fs.Read(bytes, 0, (int)fs.Length);
-
-                        //  byte[] txt = new UTF8Encoding(true).GetBytes(fi.;
-                        fs.Write(bytes, 0, bytes.Length);
-                    }
-
-                    var scanner = new AntiVirus.Scanner();
-                    var result = scanner.ScanAndClean(fi.FullName);
-                    Console.WriteLine(result);
-
-                    switch (result)
-                    {
-                        case ScanResult.VirusNotFound:
-
-                            // upload to image sever 
-                            var fileFolder = @"\\" + Convert.ToString(this.Session["webgrant"]) + "\\egrants\\funded\\nci\\modify\\";
-                            var filePath = Path.Combine(fileFolder, docName);
-                            file.SaveAs(filePath);
-
-                            // create review url
-                            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServer"]) + "data/"
-                                                                                                 + Convert.ToString(this.Session["egrantsDocModify"])
-                                                                                                 + Convert.ToString(docName);
-
-                            this.ViewBag.Message = "Virus Not Found!";
-
-                            // ViewBag.Message = "please waiting window refresh...";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.VirusNotFound.ToString());
-                            break;
-                        case ScanResult.BlockedByPolicy:
-                            this.ViewBag.FileUrl = "File blocked by Policy";
-                            this.ViewBag.Message = "The scan was blocked by the system policy. Notify Developer Team.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.BlockedByPolicy.ToString());
-                            break;
-                        case ScanResult.FileNotExist:
-                            this.ViewBag.FileUrl = "File was not found"; ;
-                            this.ViewBag.Message = "The file was not created in the temp folder. This could indicate that it has already been detected as malicious code."; ;
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.FileNotExist.ToString());
-                            break;
-                        case ScanResult.VirusFound:
-                            this.ViewBag.FileUrl = "Please see Microsoft Defender for details on this file/";
-                            this.ViewBag.Message = "A virus or malicious code was detected in the uploaded file. Check Microsoft Defender for the details.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.VirusFound.ToString());
-                            break;
-                        default:
-                                
-                            break;
+                    // get document id and create new document name       
+                    docName = Convert.ToString(doc_id) + fileExtension;
 
 
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+                    file.SaveAs(filePath);
 
-                    }
+
+                    // create review url
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                                                                                         + Convert.ToString(docName);
+
+                    this.ViewBag.Message = "Done! New document has been created";
+
+                    // ViewBag.Message = "please waiting window refresh...";
+                    url = this.ViewBag.FileUrl;
+                    mssg = this.ViewBag.Message;
                 }
                 catch (Exception ex)
                 {
@@ -888,70 +730,21 @@ namespace egrants_new.Controllers
                         Convert.ToString(this.Session["ic"]),
                         Convert.ToString(this.Session["userid"]));
 
-                    // first write the file to the temp folder so we can scan it. This in itself will run a scan,
-                    // but we will force it to scan this file.
-                    var writeToLocalTempFolder = Path.GetTempPath() + docName;
-                    FileInfo fi = new FileInfo(writeToLocalTempFolder);
 
-                    using (FileStream fs = fi.Create())
-                    {
-                        byte[] bytes = new byte[fs.Length];
-                        fs.Read(bytes, 0, (int)fs.Length);
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+                    dropedfile.SaveAs(filePath);
 
-                        //  byte[] txt = new UTF8Encoding(true).GetBytes(fi.;
-                        fs.Write(bytes, 0, bytes.Length);
-                    }
 
-                    var scanner = new AntiVirus.Scanner();
-                    var result = scanner.ScanAndClean(fi.FullName);
-                    Console.WriteLine(result);
+                    // create review url
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                                                                                            + Convert.ToString(docName);
 
-                    switch (result)
-                    {
-                        case ScanResult.VirusNotFound:
+                    this.ViewBag.Message = "Done! New document has been created";
 
-                            // upload to image sever 
-                            var fileFolder = @"\\" + Convert.ToString(this.Session["webgrant"]) + "\\egrants\\funded\\nci\\modify\\";
-                            var filePath = Path.Combine(fileFolder, docName);
-                            dropedfile.SaveAs(filePath);
-
-                            // create review url
-                            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServer"]) + "data/"
-                                                                                                 + Convert.ToString(this.Session["egrantsDocModify"])
-                                                                                                 + Convert.ToString(docName);
-
-                            this.ViewBag.Message = "Done! New document has been created";
-
-                            // ViewBag.Message = "please waiting window refresh...";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.VirusNotFound.ToString());
-                            break;
-                        case ScanResult.BlockedByPolicy:
-                            this.ViewBag.FileUrl = "File blocked by Policy";
-                            this.ViewBag.Message = "The scan was blocked by the system policy. Notify Developer Team.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.BlockedByPolicy.ToString());
-                            break;
-                        case ScanResult.FileNotExist:
-                            this.ViewBag.FileUrl = "File was not found";
-                            this.ViewBag.Message
-                                = "The file was not created in the temp folder. This could indicate that it has already been detected as malicious code.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.FileNotExist.ToString());
-                            break;
-                        case ScanResult.VirusFound:
-                            this.ViewBag.FileUrl = "Please see Microsoft Defender for details on this file/";
-                            this.ViewBag.Message = "A virus or malicious code was detected in the uploaded file. Check Microsoft Defender for the details.";
-                            url = this.ViewBag.FileUrl;
-                            mssg = this.ViewBag.Message;
-                            Console.WriteLine(ScanResult.VirusFound.ToString());
-                            break;
-                    }
-
-                   
+                    // ViewBag.Message = "please waiting window refresh...";
+                    url = this.ViewBag.FileUrl;
+                    mssg = this.ViewBag.Message;
                 }
                 catch (Exception ex)
                 {
@@ -1207,7 +1000,7 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult doc_attachments(int document_id)
         {
-            this.ViewBag.ImageServer = Convert.ToString(this.Session["ImageServer"]);
+            this.ViewBag.ImageServer = Convert.ToString(this.Session["ImageServerUrl"]);
             this.ViewBag.Attachments = EgrantsDoc.LoadDocAttachments(document_id);
 
             return this.View("~/Egrants/Views/_Modal_Doc_Attachments.cshtml");
