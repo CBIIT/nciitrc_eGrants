@@ -1288,6 +1288,23 @@ namespace egrants_new.Controllers
             return Json(res, JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)
+        {
+            Search_by_appl_id.LoadDocs(
+                appl_id,
+                search_type,
+                category_list,
+                Convert.ToString(this.Session["ic"]),
+                Convert.ToString(this.Session["userid"]));
+
+            this.ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
+
+            // ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
+            dynamic res = new { data = this.ViewBag.doclayer };
+
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
+
         /// <summary>
         /// The stop_notice.
         /// </summary>
