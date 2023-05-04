@@ -134,8 +134,10 @@ Sub Process (dirpath,oConn,oRS)
 							End With
 						ELSE
 							With OutMail
+
 						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")								
+
 								.Subject = replysubj
 								.Send								
 							End With						
@@ -158,6 +160,7 @@ Sub Process (dirpath,oConn,oRS)
 					ELSE
 						''wscript.echo "FOUND->"&v_SubLine
 						With OutMail 
+
 						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 							.Send	
@@ -568,6 +571,7 @@ Sub Process (dirpath,oConn,oRS)
 					ELSE
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
+
 						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 							.Subject = replysubj 
@@ -612,6 +616,7 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "DON'T WANT THIS" & v_SubLine
 					With OutMail
+
 						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Subject = replysubj 
@@ -673,6 +678,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				ELSE
 					With OutMail
+
 						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")
 						.Subject = replysubj 
@@ -735,6 +741,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				ELSE
 					With OutMail
+
 						.Recipients.Add("robin.briggs@nih.gov")
 						.Recipients.Add("leul.ayana@nih.gov")	
 						.Subject = replysubj 
