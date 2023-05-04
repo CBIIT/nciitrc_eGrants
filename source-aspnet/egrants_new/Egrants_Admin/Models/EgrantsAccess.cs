@@ -131,7 +131,7 @@ namespace egrants_new.Egrants_Admin.Models
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<EgrantsCommon.EgrantsUsers> LoadUsers(
+        public static List<EgrantsUsers> LoadUsers(
             string act,
             int index_id,
             int active_id,
@@ -187,14 +187,14 @@ namespace egrants_new.Egrants_Admin.Models
 
             conn.Open();
 
-            var Users = new List<EgrantsCommon.EgrantsUsers>();
+            var Users = new List<EgrantsUsers>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
                 Users.Add(
-                    new EgrantsCommon.EgrantsUsers
+                    new EgrantsUsers
                         {
-                            person_id = rdr["person_id"]?.ToString(),
+                            PersonId = rdr["person_id"]?.ToString(),
                             userid = rdr["userid"]?.ToString(),
                             person_name = rdr["person_name"]?.ToString(),
                             last_name = rdr["last_name"]?.ToString(),
@@ -519,7 +519,7 @@ namespace egrants_new.Egrants_Admin.Models
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<EgrantsCommon.EgrantsUsers> To_Review(int id)
+        public static List<EgrantsUsers> To_Review(int id)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("sp_web_egrants_access_control", conn);
@@ -528,14 +528,14 @@ namespace egrants_new.Egrants_Admin.Models
 
             conn.Open();
 
-            var Users = new List<EgrantsCommon.EgrantsUsers>();
+            var Users = new List<EgrantsUsers>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
                 Users.Add(
-                    new EgrantsCommon.EgrantsUsers
+                    new EgrantsUsers
                         {
-                            person_id = rdr["person_id"]?.ToString(),
+                            PersonId = rdr["person_id"]?.ToString(),
                             userid = rdr["userid"]?.ToString(),
                             last_name = rdr["last_name"]?.ToString(),
                             first_name = rdr["first_name"]?.ToString(),
@@ -572,7 +572,7 @@ namespace egrants_new.Egrants_Admin.Models
         /// <returns>
         /// The <see cref="List"/>.
         /// </returns>
-        public static List<EgrantsCommon.EgrantsUsers> LoadAccept(int accect_person_id, string ic, string userid)
+        public static List<EgrantsUsers> LoadAccept(int accect_person_id, string ic, string userid)
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("sp_web_egrants_ic_coordinator", conn);
@@ -596,14 +596,14 @@ namespace egrants_new.Egrants_Admin.Models
 
             conn.Open();
 
-            var Users = new List<EgrantsCommon.EgrantsUsers>();
+            var Users = new List<EgrantsUsers>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
                 Users.Add(
-                    new EgrantsCommon.EgrantsUsers
+                    new EgrantsUsers
                         {
-                            person_id = rdr["person_id"]?.ToString(),
+                            PersonId = rdr["person_id"]?.ToString(),
                             userid = rdr["userid"]?.ToString(),
                             last_name = rdr["last_name"]?.ToString(),
                             first_name = rdr["first_name"]?.ToString(),
@@ -681,7 +681,6 @@ namespace egrants_new.Egrants_Admin.Models
                 while (rdr.Read())
                     count_userid = Convert.ToInt16(rdr[0]);
 
-                conn.Close();
 
                 return count_userid;
             }

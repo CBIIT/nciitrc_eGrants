@@ -180,7 +180,7 @@
         }
 
         //check loacte file, file type and file size
-        if (check_file() == false) {
+        if (!check_file()) {
             return false;
         } else var file = document.getElementById('customFile').files[0];
 
@@ -258,7 +258,7 @@
     }
 
   // function resetFile() {
-      
+
   //    $(".custom-file-label").text('Choose file...');
   //    var es = $.forms[1].elements;
   //       clearInputFile(es[0]);
@@ -282,7 +282,7 @@
     function create_by_email() {
         //check appl_id
         if (get_appl() == false) {
-            return false
+            return false;
         }
 
         //get category_id and get sub_category input index
@@ -363,11 +363,10 @@
        <table width="1024">
           <tbody>
           <tr>
-             <!--show loading icon-->
-             <td width="80">
-                <div class="loading" style="display: none"><img src="~/Content/images/Loading.gif" width="50"/></div></td>
-             <td width="700" valign="top">
-
+              <!--show loading icon-->
+              <td width="80">
+                  <div class="loading" style="display: none"><img src="~/Content/images/Loading.gif" width="50"/></div></td>
+              <td width="700" valign="top">
                 <div class="tab" style="width: 498px">
                    <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
                    <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
@@ -407,7 +406,6 @@
                       &#0160;&#0160;2. Attach the document (<strong>do not</strong> change the subject) and click send.<br/><br/><br/>
                       <div style="display: inline"><button type="button" style="display: inline" name="CreatByEmail" id="btnEmail" onclick="return create_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
                       <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-
                    </div>
                    <!--end upload by email-->
                    <br/><br/>
@@ -417,12 +415,14 @@
                    </div>
                    <!--end progress bar-->
                 </div><!--end myTabContent-->
-                <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+                <button accesskey="R" class="btn btn-primary eGrantsReturnBtn"  title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
                 <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document"/></a>
-                <strong id="done"><span id="mssg"></span></strong>
-             </td>
+                 <strong id="done"><span id="mssg"></span></strong>
+                 
+              @*<div id="virusReport" id ="vReport"></div>*@
+              </td>
              <td valign="top" style="width: 400px; padding-left: 50px;">
-                <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal; ;">
+                <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
                    @* <span class="text-justify align-content-center m-4"> *@
                    <strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.
                    @* </span> *@

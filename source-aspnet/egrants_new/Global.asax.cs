@@ -38,8 +38,9 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.IO;
+using System.Diagnostics;
 using System.Net;
+using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -49,6 +50,8 @@ using egrants_new.Models;
 
 using Hangfire;
 using Hangfire.SqlServer;
+
+//using Microsoft.ApplicationInsights.Extensibility;
 
 #endregion
 
@@ -75,14 +78,15 @@ namespace egrants_new
         protected string UserID
         {
             get
+            {
+                this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
+                if (this.userid == null)
                 {
-                    this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
-                    if (this.userid == null) {
-                        this.userid = ""; // string.Empty
-                    }
-
-                    return this.userid;
+                    this.userid = ""; // string.Empty
                 }
+
+                return this.userid;
+            }
         }
 
         /// <summary>
@@ -91,27 +95,27 @@ namespace egrants_new
         protected string IC
         {
             get
+            {
+                this.ic = this.Context.Request.ServerVariables["HEADER_USER_SUB_ORG"];
+
+                if (this.ic == null)
                 {
-                    this.ic = this.Context.Request.ServerVariables["HEADER_USER_SUB_ORG"];
-
-                    if (this.ic == null)
-                    {
-                        this.ic = "NCI"; // nci           
-                    }
-
-                    // check exception user and who's ic not as nci
-                    if (this.ic != "nci" && this.ic != "NCI")
-                    {
-                        var userexception = EgrantsCommon.CheckUsersException(this.userid);
-
-                        if (userexception == 1)
-                        {
-                            this.ic = "nci";
-                        }
-                    }
-
-                    return this.ic;
+                    this.ic = "NCI"; // nci           
                 }
+
+                // check exception user and who's ic not as nci
+                if (this.ic != "nci" && this.ic != "NCI")
+                {
+                    var usersException = EgrantsCommon.CheckUsersException(this.userid);
+
+                    if (usersException == 1)
+                    {
+                        this.ic = "nci";
+                    }
+                }
+
+                return this.ic;
+            }
         }
 
         /// <summary>
@@ -125,7 +129,10 @@ namespace egrants_new
         /// </summary>
         protected void Application_Start()
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            //TelemetryConfiguration.Active.DisableTelemetry = true;
+
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13;
             this.Application["UsersOnline"] = 0;
 
             ViewEngines.Engines.Clear();
@@ -134,18 +141,25 @@ namespace egrants_new
 
             AreaRegistration.RegisterAllAreas();
 
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-            HangfireAspNet.Use(this.GetHangfireServers);
+            //  HangfireAspNet.Use(this.GetHangfireServers);
 
-            var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
-            var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
-            var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
+            // var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
+            // var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
+            // var sqlNotifierTime = ConfigurationManager.AppSettings[@"SQLErrorCronExp"];
 
             // create the Background job
-            RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
-            RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
+            // RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
+            // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
             //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
+        }
+
+        protected void Application_BeginRequest(object sender, EventArgs e)
+        {
+            SameSiteCookieRewriter.FilterSameSiteNoneForIncompatibleUserAgents(sender);
         }
 
         /// <summary>
@@ -156,20 +170,19 @@ namespace egrants_new
         /// </returns>
         private IEnumerable<IDisposable> GetHangfireServers()
         {
-            // Hangfire.
             var conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
 
             GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer()
                                .UseRecommendedSerializerSettings().UseSqlServerStorage(
                                     conx,
                                     new SqlServerStorageOptions
-                                        {
-                                            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                                            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                                            QueuePollInterval = TimeSpan.Zero,
-                                            UseRecommendedIsolationLevel = true,
-                                            DisableGlobalLocks = true
-                                        });
+                                    {
+                                        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                                        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                                        QueuePollInterval = TimeSpan.Zero,
+                                        UseRecommendedIsolationLevel = true,
+                                        DisableGlobalLocks = true
+                                    });
 
             yield return new BackgroundJobServer();
         }
@@ -186,13 +199,24 @@ namespace egrants_new
         /// </param>
         protected void Application_AuthorizeRequest(object sender, EventArgs e)
         {
+            this.Response.Headers.Remove("Server: Microsoft-IIS/8.5");
+            this.Response.Headers.Remove("X-AspNetMvc-Version: 5.2");
+            this.Response.Headers.Remove("X-AspNet-Version: 4.0.30319");
+            this.Response.Headers.Remove("X-UA-Compatible: IE=Edge");
+
             this.userid = this.UserID;
             this.ic = this.IC;
 
             // Response.Write(userid + ", " + ic);
-            var uservalidation = EgrantsCommon.CheckUserValidation(this.ic, this.userid);
-            if (uservalidation == 0) this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            var userValidation = EgrantsCommon.CheckUserValidation(this.ic, this.userid);
+
+            if (userValidation == 0)
+            {
+                this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+            }
         }
+
+
 
         /// <summary>
         /// This event raised for each time a new session begins, This is a good
@@ -206,41 +230,25 @@ namespace egrants_new
         /// </param>
         protected void Session_Start(object sender, EventArgs e)
         {
+            //this.Session.Timeout = 5;
             // Code that runs when a new session is started---added 11_21_2018
             var sessionId = this.Session.SessionID;
 
             this.Session["userid"] = this.UserID;
             this.Session["ic"] = this.IC;
             this.Session["browser"] = this.BrowserType;
+            this.Session["CurrentView"] = "standardForm";
 
-            this.check_user_type();
-        }
-
-        /// <summary>
-        ///     The check_user_type.
-        /// </summary>
-        protected void check_user_type()
-        {
             var usertype = EgrantsCommon.UserType(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
+
 
             if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
             {
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            }
-            else
-            {
-                this.check_user_validation(usertype);
-            }
-        }
 
-        /// <summary>
-        /// The check_user_validation.
-        /// </summary>
-        /// <param name="usertype">
-        /// The usertype.
-        /// </param>
-        protected void check_user_validation(string usertype)
-        {
+                return;
+            }
+
             // set all profiles for user
             var users = EgrantsCommon.uservar(Convert.ToString(this.Session["userid"]), Convert.ToString(this.Session["ic"]), usertype);
 
@@ -260,37 +268,45 @@ namespace egrants_new
             if (this.Session["Validation"].ToString() != "OK")
             {
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-            }
-            else
-            {
-                this.check_user_profile(usertype);
-            }
-        }
 
-        /// <summary>
-        /// The check_user_profile.
-        /// </summary>
-        /// <param name="usertype">
-        /// The usertype.
-        /// </param>
-        protected void check_user_profile(string usertype)
-        {
-            // get link and server from web.config file
-            // Session["server"] = ConfigurationManager.ConnectionStrings["Server"].ConnectionString;
-            this.Session["webgrant"] = ConfigurationManager.ConnectionStrings["webgrant"].ConnectionString;
-            this.Session["ImageServer"] = ConfigurationManager.ConnectionStrings["ImageServer"].ConnectionString;
+                return;
+            }
+            
+            // egrants-file-dev.nci.nih.gov
+            this.Session["WebGrantUrl"] = ConfigurationManager.ConnectionStrings["WebGrantUrl"].ConnectionString;
+
+            // egrants/funded2/nci/main/
+            this.Session["WebGrantRelativePath"] = ConfigurationManager.ConnectionStrings["WebGrantRelativePath"].ConnectionString;
+
+            // https://egrants-web-dev.nci.nih.gov/
+           // this.Session["EgrantsUrl"] = ConfigurationManager.ConnectionStrings["EgrantsUrl"].ConnectionString;
+
+            // https://egrants-web-dev.nci.nih.gov/
+            this.Session["ImageServerUrl"] = ConfigurationManager.ConnectionStrings["ImageServerUrl"].ConnectionString;
 
             // for egrants
             this.Session["dashboard"] = 0;
-            this.Session["egrantsDocNew"] = ConfigurationManager.ConnectionStrings["egrantsDocNew"].ConnectionString;
-            this.Session["egrantsDocModify"] = ConfigurationManager.ConnectionStrings["egrantsDocModify"].ConnectionString;
-            this.Session["egrantsFunding"] = ConfigurationManager.ConnectionStrings["egrantsFunding"].ConnectionString;
-            this.Session["egrantsInst"] = ConfigurationManager.ConnectionStrings["egrantsInst"].ConnectionString;
-            this.Session["egrantsDocEmail"] = ConfigurationManager.ConnectionStrings["egrantsDocEmail"].ConnectionString;
+
+            // data/funded2/nci/main/
+            this.Session["EgrantsDocNewRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsDocNewRelativePath"].ConnectionString;
+
+            // data/funded/nci/modify/
+            this.Session["EgrantsDocModifyRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsDocModifyRelativePath"].ConnectionString;
+
+            // funded/nci/funding/upload/
+            this.Session["EgrantsFundingRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsFundingRelativePath"].ConnectionString;
+
+            // funded/nci/institutional/
+            this.Session["EgrantsInstRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsInstRelativePath"].ConnectionString;
+
+            // NCIeGrantsDev@mail.nih.gov
+            this.Session["EgrantsDocEmail"] = ConfigurationManager.ConnectionStrings["EgrantsDocEmail"].ConnectionString;
 
             this.Session["closeoutAcceptance"] = ConfigurationManager.ConnectionStrings["closeoutAcceptance"].ConnectionString;
             this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
             this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
+
+            //this.Session["test"] = "Hello";
         }
 
         /// <summary>
@@ -322,7 +338,7 @@ namespace egrants_new
                 {
                     return;
                 }
-                    
+
                 // Redirect HTTP errors to HttpError page
                 this.Server.Transfer("~/HttpErrorPage.aspx");
             }
@@ -358,7 +374,12 @@ namespace egrants_new
         {
             this.Application.Lock();
             this.Application["UsersOnline"] = (int)this.Application["UsersOnline"] - 1;
+            this.Session.RemoveAll();
             this.Application.UnLock();
+
+            Console.WriteLine("Session Ended!");
+
+            // response object is not available at this point
         }
 
         /// <summary>
@@ -373,90 +394,13 @@ namespace egrants_new
         protected void Application_EndRequest(object sender, EventArgs e)
         {
             // Iterate through any cookies found in the Response object.
-            foreach (var cookieName in this.Response.Cookies.AllKeys) this.Response.Cookies[cookieName].Secure = true;
-        }
-
-        // Create our own utility for exceptions 
-        /// <summary>
-        /// The exception utility.
-        /// </summary>
-        public sealed class ExceptionUtility
-        {
-            // All methods are static, so this can be private 
-            /// <summary>
-            /// Prevents a default instance of the <see cref="ExceptionUtility"/> class from being created.
-            /// </summary>
-            private ExceptionUtility()
+            foreach (var cookieName in this.Response.Cookies.AllKeys)
             {
-            }
-
-            // Log an Exception 
-            /// <summary>
-            /// The log exception.
-            /// </summary>
-            /// <param name="exc">
-            /// The exc.
-            /// </param>
-            /// <param name="source">
-            /// The source.
-            /// </param>
-            public static void LogException(Exception exc, string source)
-            {
-                // Include enterprise logic for logging exceptions 
-                // Get the absolute path to the log file 
-                var logFile = "~/App_Data/ErrorLog.txt";
-                logFile = HttpContext.Current.Server.MapPath(logFile);
-
-                // if (!File.Exists(logFile))
-                // {
-                // byte[] file = new byte[0];
-                // File.Create(logFile);
-                // }
-
-                // Open the log file for append and write the log
-                var sw = new StreamWriter(logFile, true);
-                sw.WriteLine("********** {0} **********", DateTime.Now);
-
-                if (exc.InnerException != null)
-                {
-                    sw.Write("Inner Exception Type: ");
-                    sw.WriteLine(exc.InnerException.GetType().ToString());
-                    sw.Write("Inner Exception: ");
-                    sw.WriteLine(exc.InnerException.Message);
-                    sw.Write("Inner Source: ");
-                    sw.WriteLine(exc.InnerException.Source);
-
-                    if (exc.InnerException.StackTrace != null)
-                    {
-                        sw.WriteLine("Inner Stack Trace: ");
-                        sw.WriteLine(exc.InnerException.StackTrace);
-                    }
-                }
-
-                sw.Write("Exception Type: ");
-                sw.WriteLine(exc.GetType().ToString());
-                sw.WriteLine("Exception: " + exc.Message);
-                sw.WriteLine("Source: " + source);
-                sw.WriteLine("Stack Trace: ");
-
-                if (exc.StackTrace != null)
-                {
-                    sw.WriteLine(exc.StackTrace);
-                    sw.WriteLine();
-                }
-
-                sw.Close();
-            }
-
-            /// <summary>
-            /// Notify System Operators about an exception
-            /// </summary>
-            /// <param name="exc">
-            /// The exc.
-            /// </param>
-            public static void NotifySystemOps(Exception exc)
-            {
-                // Include code for notifying IT system operators
+                Response.Cookies[cookieName].Secure = true;
+                Response.Cookies[cookieName].SameSite = SameSiteMode.Lax;
+                Response.Cache.SetExpires(DateTime.UtcNow.AddMinutes(-1));
+                Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                Response.Cache.SetNoStore();
             }
         }
     }

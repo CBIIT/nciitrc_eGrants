@@ -4,7 +4,7 @@
 // Module Name:  IntegrationRepository.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-03-31
+// Created: 2022-11-21
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
 //      -
@@ -51,38 +51,38 @@ using Newtonsoft.Json.Linq;
 namespace egrants_new.Integration.WebServices
 {
     /// <summary>
-    /// The integration repository.
+    ///     The integration repository.
     /// </summary>
     public class IntegrationRepository
     {
         // Look at the data persistence utilized throughout the application possible ways to standardize
         // private DBContext db; 
         /// <summary>
-        /// The _conx.
+        ///     The _conx.
         /// </summary>
         private readonly string _conx;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IntegrationRepository"/> class.
+        ///     Initializes a new instance of the <see cref="IntegrationRepository" /> class.
         /// </summary>
         public IntegrationRepository()
         {
-            this._conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
+            _conx = ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString;
 
             // Any possible init needed in the constructor???
         }
 
         /// <summary>
-        /// The save data.
+        ///     The save data.
         /// </summary>
         /// <param name="history">
-        /// The history.
+        ///     The history.
         /// </param>
         public void SaveData(WebServiceHistory history)
         {
             try
             {
-                this.SaveData(history.Result, history.WebService);
+                SaveData(history.Result, history.WebService);
             }
             catch (Exception ex)
             {
@@ -90,18 +90,27 @@ namespace egrants_new.Integration.WebServices
                 history.ExceptionMessage += $"{nl}Exception in Integration Repository SaveData method.{nl + ex.Message + nl + ex.StackTrace}";
             }
 
-            this.SaveHistory(history);
-            this.UpdateWebServiceScheduleInfo(history);
+            try
+            {
+                SaveHistory(history);
+            }
+            catch (Exception ex)
+            {
+                var nl = Environment.NewLine;
+                history.ExceptionMessage += $"{nl}Exception in Integration Repository SaveHistory method.{nl + ex.Message + nl + ex.StackTrace}";
+            }
+
+            UpdateWebServiceScheduleInfo(history);
         }
 
         /// <summary>
-        /// The save data.
+        ///     The save data.
         /// </summary>
         /// <param name="json">
-        /// The json.
+        ///     The json.
         /// </param>
         /// <param name="webService">
-        /// The web service.
+        ///     The web service.
         /// </param>
         /// <exception cref="Exception">
         /// </exception>
@@ -126,25 +135,21 @@ namespace egrants_new.Integration.WebServices
                 // Find the Connection String for the database destination of the import data
                 var tbl = new DataTable();
 
-                using (var conn = new SqlConnection(this._conx))
+                using (var conn = new SqlConnection(_conx))
                 {
                     try
                     {
                         var cmd = new SqlCommand(strQueryForTable, conn);
+
                         cmd.CommandType = CommandType.Text;
                         conn.Open();
                         var da = new SqlDataAdapter(cmd);
                         da.Fill(tbl);
-                        conn.Close();
                     }
                     catch (Exception ex)
                     {
                         // TODO:  Handle Exception
-                        throw new Exception("Failed to retrieve destination table schema.  Verify Mapping data");
-                    }
-                    finally
-                    {
-                        conn.Close();
+                        throw new Exception("Failed to retrieve destination table schema.  Verify Mapping data" + ex);
                     }
                 }
 
@@ -177,7 +182,7 @@ namespace egrants_new.Integration.WebServices
                     rows.Add(row);
                 }
 
-                using (var bulkCopy = new SqlBulkCopy(this._conx, SqlBulkCopyOptions.FireTriggers))
+                using (var bulkCopy = new SqlBulkCopy(_conx, SqlBulkCopyOptions.FireTriggers))
                 {
                     bulkCopy.DestinationTableName = webService.DestinationTable;
 
@@ -188,7 +193,6 @@ namespace egrants_new.Integration.WebServices
                     {
                         // Write from the source to the destination.
                         bulkCopy.WriteToServer(rows.ToArray());
-                        bulkCopy.Close();
                     }
                     catch (Exception ex)
                     {
@@ -199,49 +203,41 @@ namespace egrants_new.Integration.WebServices
         }
 
         /// <summary>
-        /// The save history.
+        ///     The save history.
         /// </summary>
         /// <param name="history">
-        /// The history.
+        ///     The history.
         /// </param>
         public void SaveHistory(WebServiceHistory history)
         {
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
-                try
-                {
-                    var cmd = new SqlCommand("sp_web_service_save_history", conn) { CommandType = CommandType.StoredProcedure };
-                    cmd.Parameters.Add("@WSEndpoint_Id", SqlDbType.Int).Value = history.WebService.WSEndpoint_Id;
-                    cmd.Parameters.Add("@Result", SqlDbType.VarChar).Value = history.Result ?? "Error";
-                    cmd.Parameters.Add("@ResultStatusCode", SqlDbType.Int).Value = (int)history.ResultStatusCode;
-                    cmd.Parameters.Add("@DateTriggered", SqlDbType.DateTimeOffset).Value = history.DateTriggered;
-                    cmd.Parameters.Add("@DateCompleted", SqlDbType.DateTimeOffset).Value = history.DateCompleted;
-                    cmd.Parameters.Add("@WebServiceName", SqlDbType.VarChar).Value = history.WebServiceName;
-                    cmd.Parameters.Add("@EndpointUriSent", SqlDbType.VarChar).Value = history.EndpointUriSent;
-                    cmd.Parameters.Add("@ExceptionMessage", SqlDbType.VarChar).Value = history.ExceptionMessage;
-                    conn.Open();
+                var cmd = new SqlCommand("sp_web_service_save_history", conn) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.Add("@WSEndpoint_Id", SqlDbType.Int).Value = history.WebService.WSEndpoint_Id;
+                cmd.Parameters.Add("@Result", SqlDbType.VarChar).Value = history.Result ?? "Error";
+                cmd.Parameters.Add("@ResultStatusCode", SqlDbType.Int).Value = (int)history.ResultStatusCode;
+                cmd.Parameters.Add("@DateTriggered", SqlDbType.DateTimeOffset).Value = history.DateTriggered;
+                cmd.Parameters.Add("@DateCompleted", SqlDbType.DateTimeOffset).Value = history.DateCompleted;
+                cmd.Parameters.Add("@WebServiceName", SqlDbType.VarChar).Value = history.WebServiceName;
+                cmd.Parameters.Add("@EndpointUriSent", SqlDbType.VarChar).Value = history.EndpointUriSent;
+                cmd.Parameters.Add("@ExceptionMessage", SqlDbType.VarChar).Value = history.ExceptionMessage;
+                conn.Open();
 
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
-                {
-                    // throw ex;
-                    // todo: handle exception
-                }
+                cmd.ExecuteNonQuery();
             }
         }
 
         /// <summary>
-        /// The get exceptions.
+        ///     The get exceptions.
         /// </summary>
         /// <returns>
-        /// The <see cref="List"/>.
+        ///     The <see cref="List" />.
         /// </returns>
         public List<WebServiceHistory> GetExceptions()
         {
             var histories = new List<WebServiceHistory>();
 
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
                 try
                 {
@@ -255,7 +251,7 @@ namespace egrants_new.Integration.WebServices
                     while (dr.Read())
                     {
                         var history = new WebServiceHistory();
-                        this.MapDataToObject(history, dr);
+                        MapDataToObject(history, dr);
                         histories.Add(history);
                     }
                 }
@@ -270,16 +266,16 @@ namespace egrants_new.Integration.WebServices
         }
 
         /// <summary>
-        /// The get sql job errors.
+        ///     The get sql job errors.
         /// </summary>
         /// <returns>
-        /// The <see cref="List"/>.
+        ///     The <see cref="List" />.
         /// </returns>
         public List<SQLJobError> GetSQLJobErrors()
         {
             var errors = new List<SQLJobError>();
 
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
                 try
                 {
@@ -292,7 +288,7 @@ namespace egrants_new.Integration.WebServices
                     while (dr.Read())
                     {
                         var sqlJobError = new SQLJobError();
-                        this.MapDataToObject(sqlJobError, dr);
+                        MapDataToObject(sqlJobError, dr);
                         errors.Add(sqlJobError);
                     }
                 }
@@ -307,14 +303,14 @@ namespace egrants_new.Integration.WebServices
         }
 
         /// <summary>
-        /// The update web service schedule info.
+        ///     The update web service schedule info.
         /// </summary>
         /// <param name="history">
-        /// The history.
+        ///     The history.
         /// </param>
         private void UpdateWebServiceScheduleInfo(WebServiceHistory history)
         {
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
                 // Save the updates for schedule
                 var cmd = new SqlCommand("sp_web_service_save_schedule_updates", conn) { CommandType = CommandType.StoredProcedure };
@@ -328,16 +324,16 @@ namespace egrants_new.Integration.WebServices
         }
 
         /// <summary>
-        /// The get egrant web service due to fire.
+        ///     The get egrant web service due to fire.
         /// </summary>
         /// <returns>
-        /// The <see cref="IEnumerable"/>.
+        ///     The <see cref="IEnumerable" />.
         /// </returns>
         public IEnumerable<IEgrantWebService> GetEgrantWebServiceDueToFire()
         {
             var listEndPoints = new List<IEgrantWebService>();
 
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
                 try
                 {
@@ -350,7 +346,7 @@ namespace egrants_new.Integration.WebServices
 
                     while (dr.Read())
                     {
-                        var ws = this.GetEgrantWebService((int)dr["WSEndpoint_Id"]);
+                        var ws = GetEgrantWebService((int)dr["WSEndpoint_Id"]);
                         listEndPoints.Add(ws);
                     }
                 }
@@ -365,13 +361,13 @@ namespace egrants_new.Integration.WebServices
         }
 
         /// <summary>
-        /// The get egrant web service.
+        ///     The get egrant web service.
         /// </summary>
         /// <param name="serviceId">
-        /// The service id.
+        ///     The service id.
         /// </param>
         /// <returns>
-        /// The <see cref="IEgrantWebService"/>.
+        ///     The <see cref="IEgrantWebService" />.
         /// </returns>
         /// <exception cref="Exception">
         /// </exception>
@@ -379,7 +375,7 @@ namespace egrants_new.Integration.WebServices
         {
             IEgrantWebService ws = null;
 
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
                 try
                 {
@@ -391,7 +387,7 @@ namespace egrants_new.Integration.WebServices
                     var ep = new WebServiceEndPoint();
 
                     while (dr.Read())
-                        this.MapDataToObject(ep, dr);
+                        MapDataToObject(ep, dr);
 
                     // TODO: Rename Querystring to Parameter List
                     var paramString = ep.QueryString;
@@ -402,7 +398,7 @@ namespace egrants_new.Integration.WebServices
                         ep.Params.Add(new WebServiceParam { Name = param_txt[0], Value = param_txt[1] });
                     }
 
-                    this.LoadWebServiceNodeMappings(ep);
+                    LoadWebServiceNodeMappings(ep);
 
                     conn.Close();
 
@@ -433,10 +429,10 @@ namespace egrants_new.Integration.WebServices
         }
 
         /// <summary>
-        /// The load web service node mappings.
+        ///     The load web service node mappings.
         /// </summary>
         /// <param name="ep">
-        /// The ep.
+        ///     The ep.
         /// </param>
         /// <exception cref="Exception">
         /// </exception>
@@ -445,39 +441,32 @@ namespace egrants_new.Integration.WebServices
             if (ep.WSEndpoint_Id <= 0)
                 throw new Exception("This is not a valid, existing web service");
 
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
-                try
-                {
-                    var cmd = new SqlCommand("sp_web_service_get_node_mapping", conn) { CommandType = CommandType.StoredProcedure };
-                    cmd.Parameters.Add("@webserviceid", SqlDbType.Int).Value = ep.WSEndpoint_Id;
-                    conn.Open();
+                var cmd = new SqlCommand("sp_web_service_get_node_mapping", conn) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.Add("@webserviceid", SqlDbType.Int).Value = ep.WSEndpoint_Id;
+                conn.Open();
 
-                    var dr = cmd.ExecuteReader();
+                var dr = cmd.ExecuteReader();
 
-                    while (dr.Read())
-                    {
-                        var nodeMap = new WSNodeMapping();
-                        this.MapDataToObject(nodeMap, dr);
-                        ep.NodeMappings.Add(nodeMap);
-                    }
-                }
-                catch (Exception ex)
+                while (dr.Read())
                 {
-                    throw ex;
+                    var nodeMap = new WSNodeMapping();
+                    MapDataToObject(nodeMap, dr);
+                    ep.NodeMappings.Add(nodeMap);
                 }
             }
         }
 
         /// <summary>
-        /// The mark history sent.
+        ///     The mark history sent.
         /// </summary>
         /// <param name="history">
-        /// The history.
+        ///     The history.
         /// </param>
         public void MarkHistorySent(WebServiceHistory history)
         {
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
                 try
                 {
@@ -496,14 +485,14 @@ namespace egrants_new.Integration.WebServices
         }
 
         /// <summary>
-        /// The mark sql job error sent.
+        ///     The mark sql job error sent.
         /// </summary>
         /// <param name="error">
-        /// The error.
+        ///     The error.
         /// </param>
         public void MarkSQLJobErrorSent(SQLJobError error)
         {
-            using (var conn = new SqlConnection(this._conx))
+            using (var conn = new SqlConnection(_conx))
             {
                 try
                 {
@@ -522,13 +511,13 @@ namespace egrants_new.Integration.WebServices
         }
 
         /// <summary>
-        /// The map data to object.
+        ///     The map data to object.
         /// </summary>
         /// <param name="obj">
-        /// The obj.
+        ///     The obj.
         /// </param>
         /// <param name="reader">
-        /// The reader.
+        ///     The reader.
         /// </param>
         private void MapDataToObject(object obj, SqlDataReader reader)
         {

@@ -35,9 +35,11 @@
 
 #region
 
+using AntiVirus;
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using System.Web;
 using System.Web.Mvc;
 
@@ -312,14 +314,11 @@ namespace egrants_new.Controllers
 
                     var docName = Convert.ToString(docID) + fileExtension;
 
-                    // upload to local server
-                    // var filePath = System.IO.Path.Combine(Server.MapPath("~/App_Data/Images"), docName);
-                    // dropedfile.SaveAs(filePath);
-
                     // upload to image sever 
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["webgrant"]) + "\\egrants\\funded\\nci\\institutional\\";
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\institutional\\";
                     var filePath = Path.Combine(fileFolder, docName);
                     dropedfile.SaveAs(filePath);
+
                 }
                 else
                 {
@@ -366,6 +365,8 @@ namespace egrants_new.Controllers
             int org_id,
             string comments)
         {
+            string url = null;
+            string mssg = null;
             var repository = new InstitutionalFilesRepo();
 
             try
@@ -389,12 +390,7 @@ namespace egrants_new.Controllers
 
                     var docName = Convert.ToString(docID) + fileExtension;
 
-                    // upload to local server
-                    // var filePath = System.IO.Path.Combine(Server.MapPath("~/App_Data/Images"), docName);
-                    // file.SaveAs(filePath);
-
-                    // upload to image sever 
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["webgrant"]) + "\\egrants\\funded\\nci\\institutional\\";
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\institutional\\";
                     var filePath = Path.Combine(fileFolder, docName);
                     file.SaveAs(filePath);
                 }
