@@ -1,9 +1,0 @@
-﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER ON
-CREATE TABLE [dbo].[nga_2](
-	[id] [int] IDENTITY(1,1) NOT NULL,
-	[rpt_seq_num] [int] NULL
-) ON [PRIMARY]
-
-GO
-
