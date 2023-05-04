@@ -353,17 +353,12 @@ namespace egrants_new.Controllers
                         docName = "0" + document_id + fileExtension;
                     else docName = "00" + document_id + fileExtension;
 
-                    // upload to local server
-                    // var filePath = System.IO.Path.Combine(Server.MapPath("~/App_Data/Images"), docName);
-                    // dropedfile.SaveAs(filePath);
-
-                    // upload to image server
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["webgrant"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
                     var filePath = Path.Combine(fileFolder, docName);
                     dropedfile.SaveAs(filePath);
 
                     // create review url
-                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServer"]) + "data/" + Convert.ToString(this.Session["egrantsFunding"])
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + "data/" + Convert.ToString(this.Session["EgrantsFundingRelativePath"])
                                          + Convert.ToString(docName);
 
                     this.ViewBag.Message = "Done! Funding document has been uploaded";
@@ -431,17 +426,13 @@ namespace egrants_new.Controllers
                         docName = "0" + document_id + fileExtension;
                     else docName = "00" + document_id + fileExtension;
 
-                    // upload to local server for testing
-                    // var filePath = System.IO.Path.Combine(Server.MapPath("~/App_Data/Images"), docName);
-                    // file.SaveAs(filePath);
-
                     // upload to image server
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["webgrant"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
                     var filePath = Path.Combine(fileFolder, docName);
                     file.SaveAs(filePath);
 
                     // create review url
-                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServer"]) + "data/" + Convert.ToString(this.Session["egrantsFunding"])
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServer"]) + "data/" + Convert.ToString(this.Session["EgrantsFundingRelativePath"])
                                          + Convert.ToString(docName);
 
                     this.ViewBag.Message = "Done! Funding document has been uploaded";

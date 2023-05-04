@@ -271,19 +271,36 @@ namespace egrants_new
 
                 return;
             }
+            
+            // egrants-file-dev.nci.nih.gov
+            this.Session["WebGrantUrl"] = ConfigurationManager.ConnectionStrings["WebGrantUrl"].ConnectionString;
 
-            // get link and server from web.config file
-            // Session["server"] = ConfigurationManager.ConnectionStrings["Server"].ConnectionString;
-            this.Session["webgrant"] = ConfigurationManager.ConnectionStrings["webgrant"].ConnectionString;
-            this.Session["ImageServer"] = ConfigurationManager.ConnectionStrings["ImageServer"].ConnectionString;
+            // egrants/funded2/nci/main/
+            this.Session["WebGrantRelativePath"] = ConfigurationManager.ConnectionStrings["WebGrantRelativePath"].ConnectionString;
+
+            // https://egrants-web-dev.nci.nih.gov/
+           // this.Session["EgrantsUrl"] = ConfigurationManager.ConnectionStrings["EgrantsUrl"].ConnectionString;
+
+            // https://egrants-web-dev.nci.nih.gov/
+            this.Session["ImageServerUrl"] = ConfigurationManager.ConnectionStrings["ImageServerUrl"].ConnectionString;
 
             // for egrants
             this.Session["dashboard"] = 0;
-            this.Session["egrantsDocNew"] = ConfigurationManager.ConnectionStrings["egrantsDocNew"].ConnectionString;
-            this.Session["egrantsDocModify"] = ConfigurationManager.ConnectionStrings["egrantsDocModify"].ConnectionString;
-            this.Session["egrantsFunding"] = ConfigurationManager.ConnectionStrings["egrantsFunding"].ConnectionString;
-            this.Session["egrantsInst"] = ConfigurationManager.ConnectionStrings["egrantsInst"].ConnectionString;
-            this.Session["egrantsDocEmail"] = ConfigurationManager.ConnectionStrings["egrantsDocEmail"].ConnectionString;
+
+            // data/funded2/nci/main/
+            this.Session["EgrantsDocNewRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsDocNewRelativePath"].ConnectionString;
+
+            // data/funded/nci/modify/
+            this.Session["EgrantsDocModifyRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsDocModifyRelativePath"].ConnectionString;
+
+            // funded/nci/funding/upload/
+            this.Session["EgrantsFundingRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsFundingRelativePath"].ConnectionString;
+
+            // funded/nci/institutional/
+            this.Session["EgrantsInstRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsInstRelativePath"].ConnectionString;
+
+            // NCIeGrantsDev@mail.nih.gov
+            this.Session["EgrantsDocEmail"] = ConfigurationManager.ConnectionStrings["EgrantsDocEmail"].ConnectionString;
 
             this.Session["closeoutAcceptance"] = ConfigurationManager.ConnectionStrings["closeoutAcceptance"].ConnectionString;
             this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
