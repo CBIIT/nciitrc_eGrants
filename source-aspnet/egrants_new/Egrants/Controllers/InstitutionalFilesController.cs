@@ -315,16 +315,8 @@ namespace egrants_new.Controllers
                     var docName = Convert.ToString(docID) + fileExtension;
 
                     // upload to image sever 
-                    Uri baseUri = new Uri(@"\\");
-                    Uri fullUri = new Uri(new Uri(Convert.ToString(this.Session["WebGrantUrl"])), new Uri(Convert.ToString(this.Session["EgrantsInstRelativePath"])));
-                    if (!Uri.TryCreate(baseUri, fullUri, out Uri newUri))
-                    {
-                        throw new Exception("The existing path: " + newUri + "does not exist.");
-                    }
-
-                    // upload to image sever 
-
-                    var filePath = Path.Combine(newUri.ToString(), docName);
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\institutional\\";
+                    var filePath = Path.Combine(fileFolder, docName);
                     dropedfile.SaveAs(filePath);
 
                 }
@@ -398,19 +390,8 @@ namespace egrants_new.Controllers
 
                     var docName = Convert.ToString(docID) + fileExtension;
 
-                    // first write the file to the temp folder so we can scan it. This in itself will run a scan,
-                    // but we will force it to scan this file.
-                    // upload to image sever 
-                    Uri baseUri = new Uri(@"\\");
-                    Uri fullUri = new Uri(new Uri(Convert.ToString(this.Session["WebGrantUrl"])), new Uri(Convert.ToString(this.Session["EgrantsInstRelativePath"])));
-                    if (!Uri.TryCreate(baseUri, fullUri, out Uri newUri))
-                    {
-                        throw new Exception("The existing path: " + newUri + "does not exist.");
-                    }
-
-                    // upload to image sever 
-
-                    var filePath = Path.Combine(newUri.ToString(), docName);
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\institutional\\";
+                    var filePath = Path.Combine(fileFolder, docName);
                     file.SaveAs(filePath);
                 }
                 else
