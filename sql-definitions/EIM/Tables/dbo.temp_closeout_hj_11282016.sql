@@ -1,9 +1,0 @@
-﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER ON
-CREATE TABLE [dbo].[temp_closeout_hj_11282016](
-	[APPL_ID] [numeric](10, 0) NOT NULL,
-	[GRANT_CLOSE_DATE] [nvarchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
-) ON [PRIMARY]
-
-GO
-

@@ -1,9 +1,0 @@
-﻿SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER ON
-CREATE TABLE [dbo].[temp5](
-	[org_name] [nvarchar](120) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[last_upd_date] [varchar](23) COLLATE SQL_Latin1_General_Pref_CP1_CI_AS NULL
-) ON [PRIMARY]
-
-GO
-
