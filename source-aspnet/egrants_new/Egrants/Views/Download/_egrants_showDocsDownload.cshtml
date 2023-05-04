@@ -826,15 +826,47 @@
              //    });
        //     });
 
+            $('#loadgridDownload_' + @appl_id  + ' tbody').on('click',
+                '#childRowTable_' + @appl_id + ' tbody',
+                function () {
+                    var tr = $(this).closest('tr');
+                    var row = table.row(tr);
+                
+                    //console.log(row.childNodes);
+                    console.log("Row Clicked");
+                    row.
+
+                    $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
+                        function() {
+//                        var tr = $(this).closest('tr');
+//                        var trSvg = tr.find('[data-fa-i2svg]');
+                            if (!$(this).prop('disabled') && !$(this).prop('checked')) {
+                                isAllChecked = false;
+                            }
+                        });
+                    console.log(row[1]);
+                });
+
+
 
             $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                'input.FinancialReport',
                  function () {
                      console.log("In Financial Report");
+
+
                      var tr = $(this).closest('tr');
                      var row = table.row(tr);
-
                      console.log(JSON.stringify(row));
+                     //console.log($(this).closest('div').attr('id'));
+                     //show_qc_dl($(this).closest('div').attr('id'), 1);
+                     //row.child(formatFinancialReportChildRow(row.data())).show();
+//                     tr.next('tr').addClass(tr.attr('class'));
+//
+//                     var tr = $(this).closest('tr');
+//                     var row = table.row(tr);
+//
+//                     console.log(JSON.stringify(row));
 
 
                      var dataToSend = {};
@@ -872,12 +904,15 @@
                                      //    }
 
                                      //}
+                                     console.log("going  in...");
+                                    // var r = row.add();
 
-                                     row.child(formatFinancialReportChildRow(data.row())).show();
+                                     row.child(formatFinancialReportChildRow(row.data(), data)).show();
+                                     //tr.next('tr').addClass(tr.attr('class'));
 
                                  },
-                                 error: function (resp) {
-                                     console.log(resp);
+                                 error: function (reply) {
+                                     console.log(reply);
                                  }
                              });
                      }
@@ -956,10 +991,10 @@
                    $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload, .FinancialReport'),
                      function() {
                          var tr = $(this).closest('tr');
-                         console.log(JSON.stringify(tr))
+                         console.log(JSON.stringify(tr));
 
                          var row = table.row(tr);
-                         
+
 
 
 
@@ -970,12 +1005,7 @@
 
                                      }
                                  }
-                             //$(this).closest('tr').each(function () {
-                             //    $(this).find('td').each(function () {
-                             //        console.log("Test" + $(this).find("input.id").val());
-                             //        //do your stuff, you can use $(this) to get current cell
-                             //    })
-                             //})
+     
                          }
 
                          console.log(JSON.stringify(row))
@@ -1148,145 +1178,157 @@
 //            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:880px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../../Content/images/Loading.gif"/></div>' + str + '</div>';
          }
 
+         // show bootstrap modal
 
 
-    function formatFinancialReportChildRow(d) {
+
+             function formatFinancialReportChildRow(d, q) {
 //            var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
-      //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+                 //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+                 
+
+//var act = $(this).data('id');
+                 // show all FFRs or closeout notification for this appl
+                 @*if (act == "fsr" || act == "closeout") {
+                     var appl_id = $(this).data('assigned-id');
+                     var route = '@Url.Action("impac_docs", "EgrantsDoc")?act=' + act + '&appl_id=' + appl_id;
+                     console.log(route);
+                 }*@
+
+                 var str = "";
+                 var str = "<table id=childRowTable_@appl_id cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
+
+                 //console.log(d.length);
+                 for (var i = 0; i < q.length; i++) {
+
+                     //    if (d[i].tag == 1) {
+                     //        console.log(d[i].appl_id);
+                     //        console.log(d[i].full_grant_num);
+//        //    }
+                     if (q[i].tag == 2) {
+//                console.log(d[i].category_name);
+//                console.log(d[i].accepted_date);
+//                console.log(d[i].url);
+                         //var tr = $(this).closest('tr');
+                         //console.log(tr);
+                         
+                         str = str +
+                             "<tr>" +
+                             "<td>" +
+                             "<input type=\"checkbox\" checked class=\"childRowCheckbox_@appl_id input.showDownload, .FinancialReport\"" +
+                             "id=\"" +
+                             q[i].full_grant_num +
+                             "\"" +
+                             " class=\"qc\ ml-3\" name=\"qc\" value=\"" +
+                             q[i].category_name +
+                             "\"" +
+                             "/>" +
+                             "</td>" +
+                             "<td>" +
+                             "<a href = JavaScript:show_doc('" +
+                             q[i].url +
+                             "') title='show document'>" +
+                             q[i].category_name +
+                             "</a>" +
+                             "</td> " +
+                             "<td>" +
+                             "<span class=\"ml-2\">Date:<\span>" +
+                             "</td>" +
+                             "<td>" +
+                             "<span class=\"ml-2\">" +
+                             q[i].accepted_date +
+                             "<\span>" +
+                             "</td>" +
+                             "<td>" +
+                             "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>" +
+                             "</td>" +
+                             "</tr>";
+
+                     }
+
+                 }
+                 str = str + "</table>";
+                 return str;
 
 
-
-        var str = "";
-        var str = "<table id=childRowTable_@appl_id cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
-
-      console.log(d.length);
-        for (var i = 0; i < d.length; i++) {
-
-        //    if (d[i].tag == 1) {
-        //        console.log(d[i].appl_id);
-        //        console.log(d[i].full_grant_num);
-        //    }
-            if (d[i].tag == 2) {
-                console.log(d[i].category_name);
-                console.log(d[i].accepted_date);
-                console.log(d[i].url);
-                //var tr = $(this).closest('tr');
-                //console.log(tr);
-
-            str = str +
-               "<tr>" +
-                    "<td>" +
-                        "<input type=\"checkbox\" checked class=\"childRowCheckbox_@appl_id input.showDownload, .FinancialReport\"" + "id=\"" +
-                        d[i].full_grant_num +
-                        "\"" +
-                        " class=\"qc\ ml-3\" name=\"qc\" value=\"" +
-                d[i].category_name +
-                "\"" +
-                "/>" +
-                "</td>" +
-                    "<td>" +
-                        "<a href = JavaScript:show_doc('" +
-                        d[i].url +
-                        "') title='show document'>" +
-                        d[i].category_name +
-                    "</a>" +
-                    "</td> " +
-                    "<td>" +
-                    "<span class=\"ml-2\">Date:<\span>" +
-                    "</td>" +
-                "<td>" +
-                    "<span class=\"ml-2\">" + d[i].accepted_date + "<\span>" +
-                "</td>" +
-                "<td>" +
-                    "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>";
-                "</td>" +
-           "</tr>"
-
-          }
-
-        }
-        str = str + "</table>";
-        return str;
+             }
 
 
-            }
-
-
-                function formatCloseoutReportChildRow(d) {
+             function formatCloseoutReportChildRow(d) {
 //            var str = '<div>'; // cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
-      //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+                 //  var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
 
 
+                 var str = "";
+                 var str = "<table id=childRowTable_@appl_id cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
+                 for (var i = 0; i < d.length; i++) {
+                     var full_grant_num;
+                     var category_name;
+                     var created_date;
+                     var url;
 
-        var str = "";
-       var str = "<table id=childRowTable_@appl_id cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
-        for (var i = 0; i < d.length; i++) {
-            var full_grant_num;
-            var category_name;
-            var created_date;
-            var url;
+                     if (d[i].tag == 1) {
+                         full_grant_num = d[i].full_grant_num;
+                         console.log(full_grant_num);
+                     }
+                     if (d[i].tag == 2) {
+                         category_name = d[i].category_name;
+                         created_date = d[i].created_date;
+                         url = d[i].url;
 
-            if (d[i].tag == 1) {
-                full_grant_num = d[i].full_grant_num;
-                console.log(full_grant_num);
-            }
-            if (d[i].tag == 2) {
-                category_name = d[i].category_name;
-                created_date = d[i].created_date;
-                url = d[i].url;
+                         console.log(category_name);
+                         console.log(created_date);
+                         console.log(url);
+                         //var tr = $(this).closest('tr');
+                         //console.log(tr);
 
-                console.log(category_name);
-                console.log(created_date);
-                console.log(url);
-                //var tr = $(this).closest('tr');
-                //console.log(tr);
+                         str = str +
+                             "<tr>" +
+                             "<td>" +
+                             "<input type=\"checkbox\" checked class=\"childRowCheckbox_@appl_id input.showDownload, .CloseoutNotification\"" +
+                             "id=\"" +
+                             full_grant_num +
+                             "\"" +
+                             " class=\"qc\ ml-3\" name=\"qc\" value=\"" +
+                             category_name +
+                             "\"" +
+                             "/>" +
+                             "</td>" +
+                             "<td>" +
+                             "<a href = JavaScript:show_closeoutnotification('" +
+                             @appl_id +
+                             "'," +
+                             "'" +
+                             category_name +
+                             "') title='Display Closeout Notification'>" +
+                             category_name +
+                             "</a>" +
+                             "</td> " +
+                             "<td>" +
+                             "<span class=\"ml-2\">Date:<\span>" +
+                             "</td>" +
+                             "<td>" +
+                             "<span class=\"ml-2\">" +
+                             created_date +
+                             "<\span>" +
+                             "</td>" +
+                             "<td>" +
+                             "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>";
+                         "</td>" +
+                             "</tr>"
 
-            str = str +
-               "<tr>" +
-                    "<td>" +
-                        "<input type=\"checkbox\" checked class=\"childRowCheckbox_@appl_id input.showDownload, .CloseoutNotification\"" + "id=\"" +
-                        full_grant_num +
-                        "\"" +
-                        " class=\"qc\ ml-3\" name=\"qc\" value=\"" +
-                category_name +
-                "\"" +
-                "/>" +
-                "</td>" +
-                    "<td>" +
-                    "<a href = JavaScript:show_closeoutnotification('" +
-                    @appl_id +
-                    "'," +
-                    "'" +
-                    category_name +
-                    "') title='Display Closeout Notification'>" +
-                category_name +
-                "</a>" +
-                    "</td> " +
-                    "<td>" +
-                    "<span class=\"ml-2\">Date:<\span>" +
-                    "</td>" +
-                "<td>" +
-                "<span class=\"ml-2\">" + created_date + "<\span>" +
-                "</td>" +
-                "<td>" +
-                    "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>";
-                "</td>" +
-           "</tr>"
+                     }
 
-          }
-
-        }
-        str = str + "</table>";
-        return str;
-
-
-    }
-
-    window.onload = function() {
-    $("#overlay").hide();
-    };
+                 }
+                 str = str + "</table>";
+                 return str;
 
 
+             }
+
+             window.onload = function() {
+                 $("#overlay").hide();
+             };
         </script>
     </div>
 }
