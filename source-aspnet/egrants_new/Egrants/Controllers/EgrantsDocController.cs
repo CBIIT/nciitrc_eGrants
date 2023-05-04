@@ -455,17 +455,10 @@ namespace egrants_new.Controllers
                     docName = Convert.ToString(document_id) + fileExtension;
 
                     // upload to image sever 
-                    Uri baseUri = new Uri(@"\\");
-                    Uri fullUri = new Uri(new Uri(Convert.ToString(this.Session["WebGrantUrl"])), new Uri(Convert.ToString(this.Session["WebGrantRelativePath"])));
-
-                    if (!Uri.TryCreate(baseUri, fullUri, out Uri newUri))
-                    {
-                        throw new Exception("The existing path: " + newUri + "does not exist.");
-                    }
-                    
-                    // upload to image server
-                    var filePath = Path.Combine(newUri.ToString(), docName);
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+                    var filePath = Path.Combine(fileFolder, docName);
                     file.SaveAs(filePath);
+
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
@@ -550,23 +543,16 @@ namespace egrants_new.Controllers
 
                     docName = Convert.ToString(document_id) + fileExtension;
 
-                    // upload to image sever 
-                    Uri baseUri = new Uri(@"\\");
-                    Uri fullUri = new Uri(new Uri(Convert.ToString(this.Session["WebGrantUrl"])), new Uri(Convert.ToString(this.Session["WebGrantRelativePath"])));
-                    // Uri inputUri = new Uri(new Uri(Convert.ToString(this.Session["WebGrant"]), Convert.ToString(this.Session["WebGrantRelativePath"]));
-                    if (!Uri.TryCreate(baseUri, fullUri, out Uri newUri))
-                    {
-                        throw new Exception("The existing path: " + newUri + "does not exist.");
-                    }
 
-                    // upload to image server
-                    //var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrant"]) + Convert.ToString(this.Session["WebGrantRelativePath"]);
-                    var filePath = Path.Combine(newUri.ToString(), docName);
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+                    var filePath = Path.Combine(fileFolder, docName);
                     dropedfile.SaveAs(filePath);
+
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
-                                         + Convert.ToString(docName);
+                                                                                            + Convert.ToString(docName);
+
 
                     this.ViewBag.Message = "Done! New document has been created";
 
@@ -676,27 +662,14 @@ namespace egrants_new.Controllers
                     docName = Convert.ToString(doc_id) + fileExtension;
 
 
-                    // upload to image sever 
-                    Uri baseUri = new Uri(@"\\");
-                    Uri fullUri = new Uri(new Uri(Convert.ToString(this.Session["WebGrantUrl"])), new Uri (Convert.ToString(this.Session["WebGrantRelativePath"])));
-
-                    if (!Uri.TryCreate(baseUri, fullUri, out Uri newUri))
-                    {
-                        throw new Exception("The existing path: " + newUri + "does not exist.");
-                    }
-                    //
-                    // if (!baseUri.IsBaseOf(newUri))
-                    // {
-                    //     // Fail: the Uri base has been modified - the created Uri is not rooted in the original directory.
-                    // }
-
-                    var filePath = Path.Combine(newUri.ToString(), docName);
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+                    var filePath = Path.Combine(fileFolder, docName);
                     file.SaveAs(filePath);
 
+
                     // create review url
-                    this.ViewBag.FileUrl = Path.Combine(Convert.ToString(this.Session["ImageServerUrl"]), 
-                                            Convert.ToString(this.Session["EgrantsDocModifyRelativePath"]),
-                                            Convert.ToString(docName));
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                                                                                         + Convert.ToString(docName);
 
                     this.ViewBag.Message = "Done! New document has been created";
 
@@ -758,21 +731,14 @@ namespace egrants_new.Controllers
                         Convert.ToString(this.Session["userid"]));
 
 
-                    Uri baseUri = new Uri(@"\\");
-                    Uri fullUri = new Uri(new Uri(Convert.ToString(this.Session["WebGrantUrl"])), new Uri(Convert.ToString(this.Session["WebGrantRelativePath"])));
-
-                    if (!Uri.TryCreate(baseUri, fullUri, out Uri newUri))
-                    {
-                        throw new Exception("The existing path: " + newUri + "does not exist.");
-                    }
-
-                    var filePath = Path.Combine(newUri.ToString(), docName);
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+                    var filePath = Path.Combine(fileFolder, docName);
                     dropedfile.SaveAs(filePath);
 
+
                     // create review url
-                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + "data/"
-                                                                                         + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
-                                                                                         + Convert.ToString(docName);
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                                                                                            + Convert.ToString(docName);
 
                     this.ViewBag.Message = "Done! New document has been created";
 
