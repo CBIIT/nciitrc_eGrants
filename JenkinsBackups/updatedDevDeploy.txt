@@ -14,14 +14,19 @@ $certPassword = $env:cert_password
 
      $EgrantsDB ="Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSD,52000;Initial Catalog=EIM;Persist Security Info=True;User ID=egrantsuser;Password=$password;Connect Timeout=500"
      
-     $webgrant= "egrants-file-dev.nci.nih.gov"
-     $ImageServer = "https://egrants-web-dev.nci.nih.gov/"
+     $WebGrantUrl = "egrants-file-dev.nci.nih.gov"
+     $ImageServerUrl = "https://egrants-web-dev.nci.nih.gov/"
      
+     $WebGrantRelativePath = "egrants/funded2/nci/main/"
+     $EgrantsDocNewRelativePath = "data/funded2/nci/main/"
+  
      $closeOutAcceptance =   "https://apps.test.era.nih.gov/pgm/jsp/closeoutAcceptance.jsp"
      $frpprAcceptance =     "https://apps.test.era.nih.gov/pgm/jsp/closeoutAcceptance.jsp"
      $irpprAcceptance = "https://apps.test.era.nih.gov/pmm/interimRPPRs.era"
-    
-     $egrantsDocEmail = "NCIeGrantsDev@mail.nih.gov"
+     $EgrantsDocModifyRelativePath = "data/funded/nci/modify/"
+     $EgrantsFundingRelativePath = "funded/nci/funding/upload/"
+     $EgrantsInstRelativePath = "funded/nci/institutional/"
+     $EgrantsDocEmail = "NCIeGrantsDev@mail.nih.gov"
     
      $certPath = "C:\utils\cert\2023\EGRANTS-WEB-DEV_NCI_NIH_GOV.pfx"
      $certPass = $certPassword
@@ -42,13 +47,33 @@ foreach($node in $webconfig.configuration.connectionStrings.add)
   {
         $node.SetAttribute("connectionString",$EgrantsDB)
   }
-  if($node.name -eq 'webgrant')
+  if($node.name -eq 'WebGrantUrl')
   {
-        $node.SetAttribute("connectionString",$webgrant)
+        $node.SetAttribute("connectionString",$WebGrantUrl)
   }
-  if($node.name -eq 'ImageServer')
+  if($node.name -eq 'ImageServerUrl')
   {
-        $node.SetAttribute("connectionString",$ImageServer)
+        $node.SetAttribute("connectionString",$ImageServerUrl)
+  }
+  if($node.name -eq 'WebGrantRelativePath')
+  {
+        $node.SetAttribute("connectionString",$WebGrantRelativePath)
+  }
+  if($node.name -eq 'EgrantsDocNewRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDocNewRelativePath)
+  }
+  if($node.name -eq 'EgrantsDocModifyRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDocModifyRelativePath)
+  }
+  if($node.name -eq 'EgrantsFundingRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsFundingRelativePath)
+  }
+  if($node.name -eq 'EgrantsInstRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsInstRelativePath)
   }
   if($node.name -eq 'closeOutAcceptance')
   {
@@ -64,9 +89,9 @@ foreach($node in $webconfig.configuration.connectionStrings.add)
         $node.SetAttribute("connectionString",$irpprAcceptance)
   }
 
-  if($node.name -eq 'egrantsDocEmail')
+  if($node.name -eq 'EgrantsDocEmail')
   {
-        $node.SetAttribute("connectionString",$egrantsDocEmail)
+        $node.SetAttribute("connectionString",$EgrantsDocEmail)
   }
 
   if($node.name -eq 'certPath')
@@ -101,14 +126,11 @@ Copy-Item -Path BuildArtifacts\*  -Destination D:\Content\egrants.nci.nih.gov\ -
 
 
 
-
 Write-Host "Restarting IIS....."
 IISRESET /restart
 Write-Host "Deployment Completed Successfully !!"
   
 
-  
-  
 }
 
 catch
