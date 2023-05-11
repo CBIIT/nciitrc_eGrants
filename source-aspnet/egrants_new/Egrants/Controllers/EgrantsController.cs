@@ -191,16 +191,18 @@ namespace egrants_new.Controllers
                     var subCategory = split[2];
                     var documentId = split[3];
                     var documentName = split[4];
+                    var documentDate = split[5];
 
 
                     downloadData.Url = url;
                     downloadData.Category = category;
                     downloadData.SubCategory = subCategory;
-                    downloadData.DocumentId = Convert.ToInt32(documentId);
+                    downloadData.DocumentId = string.IsNullOrEmpty(documentId) ? 0 : Convert.ToInt32(documentId);
                     downloadData.DocumentName = documentName;
-
-
+                    downloadData.DocumentDate = Convert.ToDateTime(documentDate);
                     
+
+
                     // if(downloadModel.DownloadDataList.)
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
@@ -266,10 +268,16 @@ namespace egrants_new.Controllers
 
                                 string newFileName = string.Empty;
 
-                                // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
-                                // and remove all invalid characters from filename and replace with _
-                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
-
+                                if (category == "Financial Report")
+                                {
+                                    newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}");
+                                }
+                                else
+                                {
+                                    // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                                    // and remove all invalid characters from filename and replace with _
+                                    newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+                                }
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));

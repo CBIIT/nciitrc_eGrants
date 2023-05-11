@@ -540,7 +540,21 @@
         <!--padding:10px 5px 10px 20px-->
         <div style="float: left; vertical-align: bottom; width: auto">
             <img style="height: 24px;" src="~/Content/images/Folder-icon.png" title="Grant Folder"/>
-            <b style="font-size: medium;">@Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)</b>&#0160;&#0160;
+            <b style="font-size: medium;">
+              
+                <!--Robin - Comment out this line and uncomment the section directly below this if they want to show the select grant year on appl views -->
+                @Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)
+            
+                <!-- Robin - Comment in this code to get the current year grant year for appl views -->
+                @*@if (string.IsNullOrEmpty(grant.FullGrantNumber))
+                    {
+                        @Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num);
+                    }
+                    else
+                    {
+                        @grant.FullGrantNumber;
+                    }*@
+                 </b>&#0160;&#0160;
             @if (Convert.ToString(grant.former_grant_num) != "")
             {
                 <b>Formerly: @grant.former_grant_num</b>
