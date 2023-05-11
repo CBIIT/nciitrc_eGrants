@@ -190,6 +190,8 @@ namespace egrants_new.Egrants.Models
         /// </summary>
         public string inst_flag1_url { get; set; }
 
+        public string FullGrantNumber { get; set; }
+
         /// <summary>
         ///     Gets or sets a value indicating whether any org doc.
         /// </summary>
