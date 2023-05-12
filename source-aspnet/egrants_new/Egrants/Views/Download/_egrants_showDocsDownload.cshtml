@@ -155,19 +155,16 @@
         window.open(url);
     }
 
-    function show_closeoutnotification(appl, notif_name) {
+    function get_closeoutnotification_url(appl, notif_name) {
         var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
-        window.open(url_closeout);
-
-        //window.document.location.href = url_closeout;
-        //window.close();
+        return url_closeout;
     }
       function show_notification(appl, notif_name) {
-        var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
+          var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
+          console.log(url_closeout);
         window.open(url_closeout);
-        //window.document.location.href = url_closeout;
-        //window.close();
     }
+
 
     function show_qc_dl(document_id, type) {
         document_id = document_id.split("_")[3];
@@ -284,12 +281,7 @@
     </div>
 
     <div id="create new buttons" style="display: inline; float: right;">
-
         <button type="button" id="downloadData_@appl_id" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
-        @* @{ *@
-        @*    <asp:LinkButton ID="lnkDownload" Text="Download" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DownloadFile"></asp:LinkButton> *@
-        @* } *@
-
     </div>
 
     <div id="data_table">
@@ -488,16 +480,17 @@
                                             ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
                                             "/></div>";
                                     } else if (full.document_name == "Closeout Notification") {
-                                        //console.log("Show me ClousoutNotifications:" + JSON.stringify(full));
+                                        console.log("CloseoutNotification full: " + JSON.stringify(full));
+                                        console.log("CloseoutNotification data: " + JSON.stringify(data));
                                         return "<div id=\"dl_checkbox_" +
-                                            full.document_id +
+                                            full.appl_id + full.grant_id +
                                             "\"" +
                                             " name=\"dl_checkbox\" class=\"show_dl\"> " +
                                             " <input type=\"checkbox\" class=\"showDownload CloseoutNotifications\" id=\"" +
                                             full.appl_id +
                                             "\"" +
                                             " class=\"qc\" name=\"qc\" value=\"" +
-                                            full.document_id +
+                                            full.appl_id + full.grant_id +
                                             "\"" +
                                             ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
                                             "/></div>";
@@ -830,8 +823,10 @@
                     });
 
 
+                // check all the rows and the child rows of Financial Report to see if all are checked
                 $('#loadgridDownload_@appl_id' + ' tbody').on('click',
-                    '#childRowTable_@appl_id' + ' tbody',
+                    '#ffrChildTable_@appl_id' + ' tbody',
+                    '#grantChildTable_@appl_id' +' tbody',
                     function() {
                         // assume all are checked
                         var isAllChecked = true;
@@ -850,13 +845,19 @@
                         // if anyone is not checked set the flag to false
                         $("#childRowTable_@appl_id tr").each(function () {
                                 console.log("Check all Children");
-//                        var tr = $(this).closest('tr');
-//                        var trSvg = tr.find('[data-fa-i2svg]');
                                 if (!$(this).prop('disabled') && !$(this).prop('checked')) {
                                     isAllChecked = false;
                                     console.log("isAllChecked = false");
                                 }
                             });
+
+                        $("#grantChildTable_@appl_id tr").each(function () {
+                            console.log("Check all Children");
+                            if (!$(this).prop('disabled') && !$(this).prop('checked')) {
+                                isAllChecked = false;
+                                console.log("isAllChecked = false");
+                            }
+                        });
 
                         // if all checkboxes are checked, check the header checkbox
                         if (isAllChecked) {
@@ -867,6 +868,45 @@
                             $('#' + data.document_id).prop('checked', false);
                         }
                     });
+
+                // check all the rows and the child rows of Closeout Notification to see if all are checked
+//                $('#loadgridDownload_@appl_id' + ' tbody').on('click',
+//                    '#grantChildTable_@appl_id' +' tbody',
+//                    function() {
+//                        // assume all are checked
+//                        var isAllChecked = true;
+//
+//                        var tr = $(this).closest('tr');
+//                        var row = table.row(tr);
+//
+//                        var ptr = $(this).closest('tr').parents('tr');
+//                        var prevtr = ptr.prev('tr')[0];
+//                        var data = table.row(prevtr).data();
+//
+//                        console.log(JSON.stringify(data));
+//
+//                        console.log("Row Clicked");
+//
+//                        // if anyone is not checked set the flag to false
+//                        $("#grantChildTable_@appl_id tr").each(function () {
+//                            console.log("Check all Children");
+////                        var tr = $(this).closest('tr');
+////                        var trSvg = tr.find('[data-fa-i2svg]');
+//                            if (!$(this).prop('disabled') && !$(this).prop('checked')) {
+//                                isAllChecked = false;
+//                                console.log("isAllChecked = false");
+//                            }
+//                        });
+//
+//                        // if all checkboxes are checked, check the header checkbox
+//                        if (isAllChecked) {
+//                            console.log("all are checked");
+//                            $('#' + data.appl_id + data.grant_id).prop('checked', true);
+//                        } else {
+//                            console.log("not all checked");
+//                            $('#' + data.appl_id + data.grant_id).prop('checked', false);
+//                        }
+//                    });
 
                 // when the user clicks on a row's checkbox
                 $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
@@ -902,66 +942,6 @@
                         }
                     });
 
-                @*$('#loadgridDownload_' + @appl_id + ' tbody').on('click',
-               'input.Attachments',
-                 function () {
-                     console.log("In Financial Report");
-                     var tr = $(this).closest('tr');
-                     var row = table.row(tr);
-
-                     console.log(JSON.stringify(row));
-
-
-                     var dataToSend = {};
-                     dataToSend.act = "fsr";
-                     dataToSend.appl_id = @appl_id;
-
-                     if (row.child.isShown()) {
-                         // This row is already open - close it
-                         row.child.hide();
-                     } else {
-
-                         $.ajax(
-                             {
-                                 cache: false,
-                                 async: true,
-                                 type: 'POST',
-                                 dataType: 'JSON',
-                                 contentType: 'application/json; charset=utf=8',
-                                 url: '/Egrants/impac_docs_data',
-                                 data: JSON.stringify(dataToSend),
-                                 success: function (data) {
-                                     console.log("Response Returned:" + JSON.stringify(data));
-
-
-                                     for (var i = 0; i < data.length; i++) {
-                                         if (data[i].tag == 1) {
-                                             console.log(data[i].appl_id);
-                                             console.log(data[i].full_grant_num);
-                                         }
-                                         if (data[i].tag == 2) {
-
-                                             console.log(data[i].category_name);
-                                             console.log(data[i].accepted_date);
-                                             console.log(data[i].url);
-                                         }
-
-                                     }
-
-                                     row.child(formatFinancialReportChildRow(data)).show();
-
-                                 },
-                                 error: function (resp) {
-                                     console.log(resp);
-                                 }
-                             });
-                     }
-            });*@
-
-
-                //$('#example').on('requestChild.dt', function (e, row) {
-                //    row.child(format(row.data())).show();
-                //});
 
                 // when the user clicks the download button get all the rows that are checked
                 $('#downloadData_@appl_id').on('click',
@@ -986,19 +966,16 @@
 
                                 if ($(this).hasClass('FinancialReport')) {
                                     console.log("It is a financial report");
-                                    //if ($(this).prop('checked')) {
-                                      //  console.log("It;s checked");
                                     if (row.child.isShown()) {
                                         var tr = $(this).closest('tr');
                                         var row = table.row(tr);
-                                        $("#childRowTable_@appl_id tr").each(function () {
+                                        $("#ffrChildTable_@appl_id tr").each(function() {
 
-                                            if ($(this).find("input[type='checkbox']").prop('checked') == true){
+                                            if ($(this).find("input[type='checkbox']").prop('checked') == true) {
                                                 console.log($(this).find("a[href^='JavaScript']").attr('name'));
-                                               // var data;
-                                               // data.url = $(this).find("a[href^='JavaScript']").attr('name'); 
+
                                                 myurl = $(this).find("a[href^='JavaScript']").attr('name');
-                                                
+
                                                 var category_name = $(this).find("input[type='checkbox']").attr('value');
 
                                                 var document_date = $(this).find("span[name='accepted_date']").text();
@@ -1028,6 +1005,49 @@
                                             }
                                         });
                                     }
+                                } else if ($(this).hasClass('CloseoutNotifications')) {
+                                    console.log("It is a Closeout Notification");
+                                    if (row.child.isShown()) {
+                                        var tr = $(this).closest('tr');
+                                        var row = table.row(tr);
+                                        $("#closeoutChildTable_@appl_id tr").each(function () {
+
+                                            if ($(this).find("input[type='checkbox']").prop('checked') == true){
+                                                console.log($(this).find("a[href^='JavaScript']").attr('name'));
+
+                                                myurl = $(this).find("a[href^='JavaScript']").attr('name');
+
+                                                var category_name = $(this).find("input[type='checkbox']").attr('value');
+
+                                                var document_date = $(this).find("span[name='created_date']").text();
+
+                                                var trSvg = $(this).find('[data-fa-i2svg]');
+
+                                                list.push(myurl + "|" + category_name + "|" + "" + "|" + "" + "|" + category_name + "|" + document_date);
+
+                                                if (trSvg.attr("class") === "fa-circle-check") {
+                                                    trSvg
+                                                        .toggleClass('fa-circle-check');
+                                                }
+
+                                                if (trSvg.attr("class") === "fa-circle-exclamation") {
+                                                    trSvg
+                                                        .toggleClass('fa-circle-exclamation');
+                                                }
+
+                                                if (trSvg.attr("class") === "fa-file-lines") {
+                                                    trSvg
+                                                        .toggleClass('fa-file-lines');
+                                                }
+
+                                                trSvg
+                                                    .toggleClass('fa-solid fa-rotate fa-spin');
+                                                trSvg.attr("title", "Downloading...");
+                                            }
+                                        });
+
+                                    }
+
                                 } else {
 
                                     console.log(JSON.stringify(row));
@@ -1035,13 +1055,12 @@
 
                                     var trSvg = tr.find('[data-fa-i2svg]');
                                 }
-                                //console.log(trSvg);
-                                //console.log(data);
+
                                 // if the row is checked add the url to the list of data
                                 if ($(this).prop('checked')) {
-                                    if (!$(this).hasClass('FinancialReport')) {
+                                    if (!$(this).hasClass('FinancialReport') && !$(this).hasClass('CloseoutNotifications')) {
                                         list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name + "|" + data.document_date);
-                                    
+
 
                                     if (trSvg.attr("class") === "fa-circle-check") {
                                         trSvg
@@ -1098,7 +1117,43 @@
                                                 if (row.child.isShown()) {
                                                     var tr = $(this).closest('tr');
                                                     var row = table.row(tr);
-                                                    $("#childRowTable_@appl_id tr").each(function () {
+                                                    $("#ffrChildTable_@appl_id tr").each(function() {
+                                                        //var tr = $(this).closest('tr');
+                                                        //var row = table.row(tr);
+                                                        if ($(this).find("input[type='checkbox']").prop('checked') == true) {
+
+                                                            var found = data.DownloadDataList.filter(function(item) { return item.Url === myurl; });
+                                                            if (found != null) {
+                                                                var trSvg = $(this).find('[data-fa-i2svg]');
+                                                                console.log("Found: ");
+
+                                                                console.log(JSON.stringify(found));
+                                                                console.log(found[0].Error);
+                                                                if (found[0].Error == null) {
+                                                                    trSvg
+                                                                        .toggleClass('fa-circle-check')
+                                                                        .toggleClass('fa-solid fa-rotate fa-spin');
+
+                                                                    trSvg.attr("title", "File Download Successful!");
+
+                                                                    countSuccess++;
+                                                                } else {
+                                                                    trSvg
+                                                                        .toggleClass('fa-circle-exclamation')
+                                                                        .toggleClass('fa-solid fa-rotate fa-spin');
+
+                                                                    trSvg.attr("title", found[0].Error);
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+
+                                                }
+                                            } else if ($(this).hasClass('CloseoutNotifications')) {
+                                                if (row.child.isShown()) {
+                                                    var tr = $(this).closest('tr');
+                                                    var row = table.row(tr);
+                                                    $("#closeoutChildTable_@appl_id tr").each(function () {
                                                             //var tr = $(this).closest('tr');
                                                             //var row = table.row(tr);
                                                             if ($(this).find("input[type='checkbox']").prop('checked') == true){
@@ -1128,13 +1183,14 @@
                                                             }
                                                         }
                                                      });
-                                                    
-                                            }
-                                        } else {
+
+                                                }
+
+                                            } else {
                                             var tr = $(this).closest('tr');
                                             var row = table.row(tr);
                                             if ($(this).prop('checked')) {
- 
+
                                                         console.log("row: ");
                                                         console.log(row);
 
@@ -1166,14 +1222,14 @@
                                                                 trSvg.attr("title", found[0].Error);
                                                             }
                                                         }
-                                                        
+
                                                 }
-                                            }  
+                                            }
                                             //else {
                                               //      alert("A matching row was never found! Notify the System Developer of this error! This should not happen!");
                                                // }
-                                            
-                                                
+
+
                                         });
 
                                     if (countSuccess > 0) {
@@ -1241,8 +1297,8 @@
             function formatFinancialReportChildRow(d, q) {
 
                 var str = "";
-                ////var str = "<table id=childRowTable_@appl_id\" cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
-                var str = "<table id=\"childRowTable_@appl_id\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
+                ////var str = "<table id=ffrChildTable_@appl_id\" cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
+                var str = "<table id=\"ffrChildTable_@appl_id\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
                 for (var i = 0; i < q.length; i++) {
                     if (q[i].tag == 2) {
 
@@ -1250,7 +1306,7 @@
                             "<tr>" +
                             "<td>" +
                             "<input type=\"checkbox\" checked class=\"input.showDownload, .FinancialReport\"" +
-                            "id=\"childRowCheckbox_@appl_id\"" +
+                            "id=\"ffrRowCheckbox_@appl_id\"" +
                             "class=\"qc pr-2\" name=\"qc\" value=\"" +
                             q[i].category_name +
                             "\"" +
@@ -1270,10 +1326,10 @@
                             "</a>" +
                             "</td>" +
                             "<td>" +
-                            "<span class=\"pl-2\">Date:<\span>" +
+                            "<span class=\"pl-2\">Date:</span>" +
                             "<span name=\"accepted_date\" class=\"pl-2\">" +
                             q[i].accepted_date +
-                            "<\span>" +
+                            "</span>" +
                             "</td>" +
                             "<td class=\"float-right\">" +
                             "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>" +
@@ -1292,13 +1348,12 @@
 
             function formatCloseoutNotificationChildRow(d) {
 
-                var str = "";
-                var str = "<table id=childRowTable_@appl_id border=\"0\" style=\"padding-left:50px; white-space:normal; width:840px; float:right; display:inline;\">"; //cellpadding =\"1\" cellspacing=\"0\"
+                var str = "<table id=\"closeoutChildTable_@appl_id\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
                 for (var i = 0; i < d.length; i++) {
                     var full_grant_num;
                     var category_name;
                     var created_date;
-                    var url;
+                   // var url;
 
                     if (d[i].tag == 1) {
                         full_grant_num = d[i].full_grant_num;
@@ -1307,45 +1362,47 @@
                     if (d[i].tag == 2) {
                         category_name = d[i].category_name;
                         created_date = d[i].created_date;
-                        url = d[i].url;
 
                         console.log(category_name);
                         console.log(created_date);
+
+                        var url = get_closeoutnotification_url(@appl_id, category_name);
+
                         console.log(url);
-                        //var tr = $(this).closest('tr');
-                        //console.log(tr);
 
                         str = str +
                             "<tr>" +
                             "<td>" +
-                            "<input type=\"checkbox\" checked class=\"childRowCheckbox_@appl_id input.showDownload, .CloseoutNotification\"" +
-                            "id=\"" +
-                            d[i].full_grant_num +
-                            "\"" +
-                            " class=\"qc\ ml-3\" name=\"qc\" value=\"" +
-                            d[i].category_name +
+                            "<input type=\"checkbox\" checked class=\"input.showDownload, .CloseoutNotifications\"" +
+                            "id=\"closeoutRowCheckbox_@appl_id\"" +
+                            "class=\"qc pr-2\" name=\"qc\" value=\"" +
+                            category_name +
                             "\"" +
                             "/>" +
                             "</td>" +
                             "<td>" +
-                            "<a href = JavaScript:show_notification('" +
+                            "<a href = JavaScript:get_closeoutnotification_url('" +
                             @appl_id +
                             "'," +
                             "'" +
                             category_name +
-                            "') title='Display Closeout Notification'>" +
+                            "') title='show document' id=\"" +
+                            category_name +
+                            "\"" +
+                            "name=\"" +
+                            url +
+                            "\"" +
+                            ">" +
                             category_name +
                             "</a>" +
                             "</td> " +
                             "<td>" +
-                            "<span class=\"ml-2\">Date:<\span>" +
-                            "</td>" +
-                            "<td>" +
-                            "<span class=\"ml-2\">" +
+                            "<span class=\"pl-2\">Date:</span>" +
+                            "<span name=\"created_date\" class=\"pl-2\">" +
                             created_date +
-                            "<\span>" +
+                            "</span>" +
                             "</td>" +
-                            "<td>" +
+                            "<td class=\"float-right\">" +
                             "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>" +
                             "</td>" +
                             "</tr>";
