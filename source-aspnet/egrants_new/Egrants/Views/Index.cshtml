@@ -108,7 +108,7 @@
 
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-           // document.getElementById("show_download_toggle").style.display = "inline";
+            document.getElementById("show_download_toggle").style.display = "inline";
             show_toggle_appls();
         }
 
@@ -125,7 +125,7 @@
             document.getElementById("show_appls_toggle").style.display = "none";
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-           // document.getElementById("show_download_toggle").style.display = "inline";
+            document.getElementById("show_download_toggle").style.display = "inline";
         }
 
         // check tab data and show tab
@@ -326,38 +326,38 @@
         document.getElementById("show_appls_toggle").style.display = "inline";
         document.getElementById("toggle_appls").style.display = "none";
         // clean toggle_cats at all
-       // document.getElementById("show_download_toggle").style.display = "none";
+        document.getElementById("show_download_toggle").style.display = "none";
         document.getElementById("show_cats_toggle").style.display = "none";
         document.getElementById("toggle_cats").style.display = "none";
         document.getElementById("toggle_title").innerHTML = "";
     }
 
     // show or hide search form
-    //function toggle_download_forms() {
+    function toggle_download_forms() {
 
-    //    console.log("Check Toggle");
+        console.log("Check Toggle");
 
-    //    if (currentView == "StandardForm") {
-    //        console.log("in Standardform");
-    //        $('#downloadForm').attr("hidden", false);
-    //        $('#standardForm').attr("hidden", true);
-    //        document.getElementById("toggle_title").innerHTML = "Audit File Download";
+        if (currentView == "StandardForm") {
+            console.log("in Standardform");
+            $('#downloadForm').attr("hidden", false);
+            $('#standardForm').attr("hidden", true);
+            document.getElementById("toggle_title").innerHTML = "Audit File Download";
 
-    //        currentView = "DownloadForm";
+            currentView = "DownloadForm";
 
-    //        return;
-    //    }
+            return;
+        }
 
-    //    if (currentView == "DownloadForm") {
+        if (currentView == "DownloadForm") {
 
-    //        console.log("in Downloadform");
-    //        $('#downloadForm').attr("hidden", true);
-    //        $('#standardForm').attr("hidden", false);
-    //        document.getElementById("toggle_title").innerHTML = "Grant Years";
-    //        currentView = "StandardForm";
-    //        return;
-    //    }
-    //}
+            console.log("in Downloadform");
+            $('#downloadForm').attr("hidden", true);
+            $('#standardForm').attr("hidden", false);
+            document.getElementById("toggle_title").innerHTML = "Grant Years";
+            currentView = "StandardForm";
+            return;
+        }
+    }
 
     // This is the callback function that
     // processes the Web Service return value.
@@ -454,7 +454,7 @@
         <div id="title_for_toggle" style="display: inline; margin-left: 300px; width: 950px;">
             <b id="toggle_title" style="font-size: medium;"></b>
         </div>
-        @*@if (Convert.ToInt16(Session["position_id"]) >= 2)
+        @if (Convert.ToInt16(Session["position_id"]) >= 2)
         {
             <div id="show_download_toggle" style="display: none;">
 
@@ -465,7 +465,7 @@
                     </svg>
                 </a>
             </div>
-        }*@
+        }
 
     </div>
 
@@ -905,11 +905,11 @@
                     @Html.Partial("~/Egrants/Views/_egrants_showAppl.cshtml", grant_id)
                 </div>
             </div>
-            @*<div hidden id="downloadForm">
+            <div hidden id="downloadForm">
                 <div style="float: left; padding-top: 15px;">
                     @Html.Partial("~/Egrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
                 </div>
-            </div>*@
+            </div>
         }
         </div>
         <!--end grant zone-->
