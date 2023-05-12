@@ -191,11 +191,6 @@ namespace egrants_new.Egrants.Models
         public string inst_flag1_url { get; set; }
 
         /// <summary>
-        /// Gets or sets the full grant num
-        /// </summary>
-        public string FullGrantNumber { get; set; }
-
-        /// <summary>
         ///     Gets or sets a value indicating whether any org doc.
         /// </summary>
         public bool AnyOrgDoc { get; set; }
