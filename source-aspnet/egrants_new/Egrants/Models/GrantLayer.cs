@@ -201,6 +201,11 @@ namespace egrants_new.Egrants.Models
         public bool AnyOrgDoc { get; set; }
 
         /// <summary>
+        /// Gets or sets the full grant num
+        /// </summary>
+        public string FullGrantNumber { get; set; }
+
+        /// <summary>
         ///     Gets or sets a value indicating whether show email hyper link.
         /// </summary>
         public Nullable<bool> IsCurrentPi { get; set; }
