@@ -201,6 +201,7 @@ namespace egrants_new.Egrants.Models
                     grant.SelectedGrantPiEmail = rdr["specific_year_pi_email_address"].ToString();
                     grant.SelectedProjectName = rdr["specific_year_project_name"].ToString();
                     grant.SelectedOrganizationName = rdr["specific_year_org_name"].ToString();
+                    grant.FullGrantNumber = rdr["specific_year_full_grant_num"].ToString();
                     if (string.IsNullOrWhiteSpace(grant.SelectedOrganizationName))
                         grant.SelectedOrganizationName = grant.org_name;
                     grantList.Add(grant);

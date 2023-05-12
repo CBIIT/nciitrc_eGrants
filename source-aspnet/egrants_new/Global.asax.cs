@@ -132,7 +132,7 @@ namespace egrants_new
 
             //TelemetryConfiguration.Active.DisableTelemetry = true;
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             this.Application["UsersOnline"] = 0;
 
             ViewEngines.Engines.Clear();
