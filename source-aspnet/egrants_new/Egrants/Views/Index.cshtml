@@ -108,7 +108,7 @@
 
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-            document.getElementById("show_download_toggle").style.display = "inline";
+           // document.getElementById("show_download_toggle").style.display = "inline";
             show_toggle_appls();
         }
 
@@ -125,7 +125,7 @@
             document.getElementById("show_appls_toggle").style.display = "none";
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-            document.getElementById("show_download_toggle").style.display = "inline";
+           // document.getElementById("show_download_toggle").style.display = "inline";
         }
 
         // check tab data and show tab
@@ -134,13 +134,13 @@
             document.getElementById(el).style.display = "inline";
         }
 
-//        if (currentView == "DownloadForm") {
-//            $('#downloadForm').attr("hidden", false);
-//            $('#standardForm').attr("hidden", true);
-//        } else if (currentView == "StandardForm") {
-//            $('#downloadForm').attr("hidden", true);
-//            $('#standardForm').attr("hidden", false);
-//        }
+        //if (currentView == "DownloadForm") {
+        //    $('#downloadForm').attr("hidden", false);
+        //    $('#standardForm').attr("hidden", true);
+        //} else if (currentView == "StandardForm") {
+        //    $('#downloadForm').attr("hidden", true);
+        //    $('#standardForm').attr("hidden", false);
+        //}
     }
 
     function by_str(str) {
@@ -326,38 +326,38 @@
         document.getElementById("show_appls_toggle").style.display = "inline";
         document.getElementById("toggle_appls").style.display = "none";
         // clean toggle_cats at all
-        document.getElementById("show_download_toggle").style.display = "none";
+       // document.getElementById("show_download_toggle").style.display = "none";
         document.getElementById("show_cats_toggle").style.display = "none";
         document.getElementById("toggle_cats").style.display = "none";
         document.getElementById("toggle_title").innerHTML = "";
     }
 
     // show or hide search form
-    function toggle_download_forms() {
+    //function toggle_download_forms() {
 
-        console.log("Check Toggle");
+    //    console.log("Check Toggle");
 
-        if (currentView == "StandardForm") {
-            console.log("in Standardform");
-            $('#downloadForm').attr("hidden", false);
-            $('#standardForm').attr("hidden", true);
-            document.getElementById("toggle_title").innerHTML = "Audit File Download";
+    //    if (currentView == "StandardForm") {
+    //        console.log("in Standardform");
+    //        $('#downloadForm').attr("hidden", false);
+    //        $('#standardForm').attr("hidden", true);
+    //        document.getElementById("toggle_title").innerHTML = "Audit File Download";
 
-            currentView = "DownloadForm";
+    //        currentView = "DownloadForm";
 
-            return;
-        }
+    //        return;
+    //    }
 
-        if (currentView == "DownloadForm") {
+    //    if (currentView == "DownloadForm") {
 
-            console.log("in Downloadform");
-            $('#downloadForm').attr("hidden", true);
-            $('#standardForm').attr("hidden", false);
-            document.getElementById("toggle_title").innerHTML = "Grant Years";
-            currentView = "StandardForm";
-            return;
-        }
-    }
+    //        console.log("in Downloadform");
+    //        $('#downloadForm').attr("hidden", true);
+    //        $('#standardForm').attr("hidden", false);
+    //        document.getElementById("toggle_title").innerHTML = "Grant Years";
+    //        currentView = "StandardForm";
+    //        return;
+    //    }
+    //}
 
     // This is the callback function that
     // processes the Web Service return value.
@@ -454,7 +454,7 @@
         <div id="title_for_toggle" style="display: inline; margin-left: 300px; width: 950px;">
             <b id="toggle_title" style="font-size: medium;"></b>
         </div>
-        @if (Convert.ToInt16(Session["position_id"]) >= 2)
+        @*@if (Convert.ToInt16(Session["position_id"]) >= 2)
         {
             <div id="show_download_toggle" style="display: none;">
 
@@ -465,7 +465,7 @@
                     </svg>
                 </a>
             </div>
-        }
+        }*@
 
     </div>
 
@@ -540,21 +540,20 @@
         <!--padding:10px 5px 10px 20px-->
         <div style="float: left; vertical-align: bottom; width: auto">
             <img style="height: 24px;" src="~/Content/images/Folder-icon.png" title="Grant Folder"/>
-            <b style="font-size: medium;">
-              
+            <b class="mr-2" style="font-size: medium;">
                 <!--Robin - Comment out this line and uncomment the section directly below this if they want to show the select grant year on appl views -->
-                @Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)
+                @*@Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)*@
             
                 <!-- Robin - Comment in this code to get the current year grant year for appl views -->
-                @*@if (string.IsNullOrEmpty(grant.FullGrantNumber))
+                @if (string.IsNullOrEmpty(grant.FullGrantNumber))
                     {
                         @Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num);
                     }
                     else
                     {
                         @grant.FullGrantNumber;
-                    }*@
-                 </b>&#0160;&#0160;
+                    }
+            </b>
             @if (Convert.ToString(grant.former_grant_num) != "")
             {
                 <b>Formerly: @grant.former_grant_num</b>
@@ -896,21 +895,21 @@
         @*<div style="float:left; padding-bottom:15px; padding-top:15px;"></div>*@
         <!--show appls with documents-->
         @*@if (ViewBag.GrantID != null || ViewBag.ApplID != null || ViewBag.SearchStyle == "by_qc" || (ViewBag.SearchStyle == "by_page" && ViewBag.Str == "qc")){*@
-        @* <div id="standardForm"> *@
+        @*<div id="standardForm">*@
         @if (Convert.ToInt16(ViewBag.DocCount) >= 1)
         {
-            //if(CurrentDownloadValue == "Standard")
+            // if(CurrentDownloadValue == "Standard")
                         @*<b>@grant_id</b>*@
             <div id="standardForm">
                 <div style="float: left; padding-top: 15px;">
                     @Html.Partial("~/Egrants/Views/_egrants_showAppl.cshtml", grant_id)
                 </div>
             </div>
-            <div hidden id="downloadForm">
+            @*<div hidden id="downloadForm">
                 <div style="float: left; padding-top: 15px;">
                     @Html.Partial("~/Egrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
                 </div>
-            </div>
+            </div>*@
         }
         </div>
         <!--end grant zone-->
