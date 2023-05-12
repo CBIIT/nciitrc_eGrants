@@ -132,7 +132,7 @@ namespace egrants_new
 
             //TelemetryConfiguration.Active.DisableTelemetry = true;
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             this.Application["UsersOnline"] = 0;
 
             ViewEngines.Engines.Clear();
@@ -311,7 +311,7 @@ namespace egrants_new
 
         /// <summary>
         /// This event raised whenever an unhandled exception occurs in the
-        ///     application. This provides an opportunity to implement generic
+        ///     application. This provides an opportunity to implement generic 
         ///     application-wide error handling.
         /// </summary>
         /// <param name="sender">
