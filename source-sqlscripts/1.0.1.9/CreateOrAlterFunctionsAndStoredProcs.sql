@@ -14,7 +14,7 @@ SET QUOTED_IDENTIFIER OFF
 GO
 
 
-CREATE     FUNCTION [dbo].[fn_get_org_name_by_applid_specific_year] (@appl_id int)
+CREATE OR ALTER      FUNCTION [dbo].[fn_get_org_name_by_applid_specific_year] (@appl_id int)
   
 RETURNS varchar(92) AS  
 
@@ -51,7 +51,7 @@ SET QUOTED_IDENTIFIER OFF
 GO
 
 
-CREATE   FUNCTION [dbo].[fn_get_pi_name_by_applid_specific_year] (@appl_id int)
+CREATE OR ALTER    FUNCTION [dbo].[fn_get_pi_name_by_applid_specific_year] (@appl_id int)
   
 RETURNS varchar(92) AS  
 
@@ -83,7 +83,7 @@ SET QUOTED_IDENTIFIER OFF
 GO
 
 
-CREATE   FUNCTION [dbo].[fn_get_pi_email_by_applid_specific_year] (@appl_id int)
+CREATE OR ALTER    FUNCTION [dbo].[fn_get_pi_email_by_applid_specific_year] (@appl_id int)
   
 RETURNS varchar(92) AS  
 
@@ -114,7 +114,7 @@ SET QUOTED_IDENTIFIER OFF
 GO
 
 
-CREATE     FUNCTION [dbo].[fn_get_project_name_by_applid_specific_year] (@appl_id int)
+CREATE OR ALTER      FUNCTION [dbo].[fn_get_project_name_by_applid_specific_year] (@appl_id int)
   
 RETURNS varchar(92) AS  
 
@@ -145,7 +145,7 @@ SET QUOTED_IDENTIFIER OFF
 GO
 
 
-CREATE       FUNCTION [dbo].[fn_get_institution1_by_applid_specific_year] (@appl_id int)
+CREATE OR ALTER        FUNCTION [dbo].[fn_get_institution1_by_applid_specific_year] (@appl_id int)
   
 RETURNS bit AS  
 
@@ -183,7 +183,7 @@ SET QUOTED_IDENTIFIER OFF
 GO
 
 
-CREATE       FUNCTION [dbo].[fn_get_institution2_by_applid_specific_year] (@appl_id int)
+CREATE OR ALTER        FUNCTION [dbo].[fn_get_institution2_by_applid_specific_year] (@appl_id int)
   
 RETURNS bit AS  
 
@@ -216,7 +216,7 @@ SET QUOTED_IDENTIFIER OFF
 GO
 
 
-CREATE   FUNCTION [dbo].[fn_get_full_grant_num_by_applid_specific_year] (@appl_id int)
+CREATE OR ALTER    FUNCTION [dbo].[fn_get_full_grant_num_by_applid_specific_year] (@appl_id int)
   
 RETURNS varchar(20) AS  
 
