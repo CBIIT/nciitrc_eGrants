@@ -1239,7 +1239,7 @@
                                     }
                                 },
                                 error: function(resp) {
-                                    console.log("ERROR: " + resp);
+                                    console.log("ERROR: " + JSON.stringify(resp));
                                 }
                             });
                     });
@@ -1381,7 +1381,7 @@
                             "/>" +
                             "</td>" +
                             "<td>" +
-                            "<a href = JavaScript:get_closeoutnotification_url('" +
+                            "<a href = JavaScript:show_notification('" +
                             @appl_id +
                             "'," +
                             "'" +

@@ -199,7 +199,7 @@ namespace egrants_new.Controllers
                     downloadData.SubCategory = subCategory;
                     downloadData.DocumentId = string.IsNullOrEmpty(documentId) ? 0 : Convert.ToInt32(documentId);
                     downloadData.DocumentName = documentName;
-                    downloadData.DocumentDate = Convert.ToDateTime(documentDate);
+                    downloadData.DocumentDate = DateTime.TryParse(documentDate, out DateTime result) ? result : DateTime.MinValue;
                     
 
 
@@ -289,7 +289,7 @@ namespace egrants_new.Controllers
 
                         downloadModel.NumSucceeded += 1;
                     }
-                    else
+                    else 
                     {
                         
                         Uri uri;
@@ -301,31 +301,46 @@ namespace egrants_new.Controllers
                             uri = new Uri(imageServer, url);
                         }
 
-                        using (var myWebClient = new WebClient())
+                        if (category == "CloseoutNotification")
                         {
-                            myWebClient.UseDefaultCredentials = true;
-                            myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
-                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                            EgrantsDocController egrantsDocController = new EgrantsDocController();
+                            ActionResult closeoutResult = egrantsDocController.closeout_notif(appl, documentName);
 
-                            myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
-                            Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
-                            myWebClient.DownloadFile(uri, tmpFileName);
-                            string filename = Path.GetFileName(uri.LocalPath);
-                            FileInfo fi = new FileInfo(filename);
+                            this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(appl, documentName);
+                            this.ViewBag.applid = appl;
 
-                            string newFileName = string.Empty;
+                            this.View("~/Egrants/Views/CloseoutNotif.cshtml");
 
-                            // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
-                            // and remove all invalid characters from filename and replace with _
-                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+                        }
+                        else
+                        {
+                            using (var myWebClient = new WebClient())
+                            {
+                                myWebClient.UseDefaultCredentials = true;
+                                myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
+                                myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
-                            // move the file from the temp file to a file with the filename in the downloadDirectory
-                            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
-                            downloadData.FileDownloaded = newFileName;
-                            
-                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
-                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
+                                myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
+                                Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
+
+                                myWebClient.DownloadFile(uri, tmpFileName);
+                                string filename = Path.GetFileName(uri.LocalPath);
+                                FileInfo fi = new FileInfo(filename);
+
+                                string newFileName = string.Empty;
+
+                                // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                                // and remove all invalid characters from filename and replace with _
+                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+
+                                // move the file from the temp file to a file with the filename in the downloadDirectory
+                                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                                downloadData.FileDownloaded = newFileName;
+
+                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
+                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
+                            }
                         }
 
                         downloadModel.NumSucceeded += 1;
