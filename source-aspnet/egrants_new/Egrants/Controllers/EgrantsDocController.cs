@@ -49,10 +49,8 @@ using System.Web.Mvc;
 using egrants_new.Egrants.Models;
 using egrants_new.Models;
 using Newtonsoft.Json;
-using AntiVirus.COMInterop;
 using egrants_new.Functions;
-using ScanResult = AntiVirus.ScanResult;
-using System.Text;
+
 
 #endregion
 
