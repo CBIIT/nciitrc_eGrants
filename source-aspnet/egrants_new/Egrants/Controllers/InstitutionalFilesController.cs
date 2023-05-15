@@ -35,7 +35,7 @@
 
 #region
 
-using AntiVirus;
+
 using System;
 using System.IO;
 using System.Linq;

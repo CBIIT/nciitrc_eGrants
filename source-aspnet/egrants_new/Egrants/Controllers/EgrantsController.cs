@@ -35,7 +35,6 @@
 
 #region
 
-using egrants_new.Dashboard.Functions;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -48,7 +47,6 @@ using System.Net;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Web;
 using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
@@ -56,8 +54,7 @@ using egrants_new.Functions;
 using egrants_new.Models;
 
 using Newtonsoft.Json;
-using egrants_new.Egrants.Functions;
-
+using Rotativa;
 
 #endregion
 
@@ -303,15 +300,30 @@ namespace egrants_new.Controllers
 
                         if (category == "CloseoutNotification")
                         {
-                            EgrantsDocController egrantsDocController = new EgrantsDocController();
-                            ActionResult closeoutResult = egrantsDocController.closeout_notif(appl, documentName);
-
-
                             this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(appl, documentName);
                             this.ViewBag.applid = appl;
+                            
+                            var report = new ViewAsPdf("~/Egrants/Views/CloseoutNotif.cshtml");
+                            byte[] bytes = report.BuildFile(this.ControllerContext);
 
-                            this.View("~/Egrants/Views/CloseoutNotif.cshtml");
+                
+                           //FileInfo fi = new FileInfo(tmpFileName);
 
+                            string newFileName = string.Empty;
+
+                            // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                            // and remove all invalid characters from filename and replace with _
+                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{category}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                            System.IO.File.WriteAllBytes(tmpFileName, bytes);
+
+                           
+
+                            // move the file from the temp file to a file with the filename in the downloadDirectory
+                            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                            downloadData.FileDownloaded = newFileName;
+
+                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
+                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                         }
                         else
                         {
