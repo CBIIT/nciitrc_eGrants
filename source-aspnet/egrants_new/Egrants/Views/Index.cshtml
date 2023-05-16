@@ -23,7 +23,7 @@
     var ShowToggleAppls = 0; // indicate toggle appls showing or hide
     var ShowToggleCats = 0; // indicate toggle cats showing or hide
 //   var CurrentDownloadValue = ""; // indicate toggle download showing or hide
-
+    var ShowToggleDownload = 0;
     var SelectAllDocs = 0; // indicate select all docs to qc
     var SelectAllCats = 0;
 
@@ -49,6 +49,11 @@
         var appl_id = document.getElementById("hidApplID").value;
         var selected_appls = document.getElementById("hidSelectedAppls").value;
         var selected_years = document.getElementById("hidSelectedYears").value;
+        if (document.getElementById("hidPositionID").value >= 2) {
+            ShowToggleDownload = 1;
+        } else {
+            ShowToggleDownload = 0;
+        }
 
         // show search form but not show toggle bar
         if ((grant_id == "" && appl_id == "") || (grant_id != "" && appl_id == "")) {
@@ -88,6 +93,9 @@
                 }
             }
 
+
+
+            console.log("ShowToggleDownload: " + ShowToggleDownload);
             // fill value for FiscalYear text Thanks for pushing it through. box
 //         if (document.getElementById("hidDownloadForm").value == "") {
 //            document.getElementById("hidDownloadForm").value = "Standard";
@@ -108,7 +116,9 @@
 
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-            document.getElementById("show_download_toggle").style.display = "inline";
+            if (ShowToggleDownload == 1) {
+                document.getElementById("show_download_toggle").style.display = "inline";
+            }
             show_toggle_appls();
         }
 
@@ -125,7 +135,9 @@
             document.getElementById("show_appls_toggle").style.display = "none";
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-            document.getElementById("show_download_toggle").style.display = "inline";
+            if (ShowToggleDownload == 1) {
+                document.getElementById("show_download_toggle").style.display = "inline";
+            }
         }
 
         // check tab data and show tab
@@ -326,7 +338,9 @@
         document.getElementById("show_appls_toggle").style.display = "inline";
         document.getElementById("toggle_appls").style.display = "none";
         // clean toggle_cats at all
-        document.getElementById("show_download_toggle").style.display = "none";
+        if (ShowToggleDownload == 1) {
+            document.getElementById("show_download_toggle").style.display = "none";
+        }
         document.getElementById("show_cats_toggle").style.display = "none";
         document.getElementById("toggle_cats").style.display = "none";
         document.getElementById("toggle_title").innerHTML = "";
@@ -342,9 +356,7 @@
             $('#downloadForm').attr("hidden", false);
             $('#standardForm').attr("hidden", true);
             document.getElementById("toggle_title").innerHTML = "Audit File Download";
-
             currentView = "DownloadForm";
-
             return;
         }
 
@@ -432,39 +444,39 @@
 <!--end save all data from server-->
 <!--start main-->
 <div id="main">
+
 @if (ViewBag.GrantID != null)
 {
     <div id="toggle_bar" style="display: inline; width: 950px;">
         <div id="show_search_form" style="display: none;">
             <a href="Javascript:show_search_form()" title="View Search Filters">
-                <img style="height: 32px; vertical-align: middle;" src="~/Content/images/search.png"/>
+                <img style="height: 32px; vertical-align: middle;" src="~/Content/images/search.png" />
             </a>
         </div>
         <div id="show_appls_toggle" style="display: none;">
             <a href="JavaScript:show_toggle_appls()" title="View Grant Years">
-                <img style="width: 40px;" src="~/Content/images/appls_toggle.png"/>
+                <img style="width: 40px;" src="~/Content/images/appls_toggle.png" />
             </a>
         </div>
         <div id="show_cats_toggle" style="display: none;">
             <a href="#" onclick="Javascript:return before_show_toggle_cats()">
-                <img style="vertical-align: middle; width: 40px;" src="~/Content/images/filter.png" title="View Category Filter"/>
+                <img style="vertical-align: middle; width: 40px;" src="~/Content/images/filter.png" title="View Category Filter" />
             </a>
         </div>
 
         <div id="title_for_toggle" style="display: inline; margin-left: 300px; width: 950px;">
             <b id="toggle_title" style="font-size: medium;"></b>
         </div>
-        @if (Convert.ToInt16(Session["position_id"]) >= 2)
+        @if (@Convert.ToInt16(Session["position_id"]) >= 2)
         {
-            <div id="show_download_toggle" style="display: none;">
-
-                <a href="#" onclick="Javascript:return toggle_download_forms()" title="Audit File Download">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                    </svg>
-                </a>
-            </div>
+        <div id="show_download_toggle" style="display: none;">
+            <a href="#" onclick="Javascript:return toggle_download_forms()" title="Audit File Download">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
+                </svg>
+            </a>
+        </div>
         }
 
     </div>
@@ -505,7 +517,7 @@
 {
     var grant_id = 0;
     var pi_email = string.Empty;
-    
+
     <form name="frmDocs">
     @foreach (var grant in ViewBag.grantlayer)
     {
@@ -543,16 +555,18 @@
             <b class="mr-2" style="font-size: medium;">
                 <!--Robin - Comment out this line and uncomment the section directly below this if they want to show the select grant year on appl views -->
                 @*@Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)*@
-            
+
                 <!-- Robin - Comment in this code to get the current year grant year for appl views -->
                 @if (string.IsNullOrEmpty(grant.FullGrantNumber))
-                    {
-                        @Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num);
-                    }
-                    else
-                    {
-                        @grant.FullGrantNumber;
-                    }
+                {
+                    @Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)
+                    ;
+                }
+                else
+                {
+                    @grant.FullGrantNumber
+                    ;
+                }
             </b>
             @if (Convert.ToString(grant.former_grant_num) != "")
             {
@@ -786,72 +800,74 @@
                     </span>
                 }
 
-                                @{ 
-                                    bool displayMpiFlag = true;
-                                    if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
-                                    {
-                                        displayMpiFlag = false;
-                                    }
-                                    else if (ViewBag.ApplID != null)
-                                    {
-                                        // this is appl specific, so hide MPI flag if this appl is not MPI
-                                        displayMpiFlag = false;
-                                        if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
-                                        {
-                                            var thisPagesApplID = (int)ViewBag.ApplID;
-                                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                            var theAppl = appls.Where(a => (string)a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
-                                            if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
-                                            {
-                                                displayMpiFlag = true;
-                                            }
-                                        }
-                                    } else if (ViewBag.SelectedAppls != null)
-                                    {
-                                        // it's in ViewBag.SelectedAppls
-                                        displayMpiFlag = false;
+                @{
+                    bool displayMpiFlag = true;
+                    if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
+                    {
+                        displayMpiFlag = false;
+                    }
+                    else if (ViewBag.ApplID != null)
+                    {
+                        // this is appl specific, so hide MPI flag if this appl is not MPI
+                        displayMpiFlag = false;
+                        if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
+                        {
+                            var thisPagesApplID = (int)ViewBag.ApplID;
+                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                            var theAppl = appls.Where(a => (string)a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
+                            if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
+                            {
+                                displayMpiFlag = true;
+                            }
+                        }
+                    }
+                    else if (ViewBag.SelectedAppls != null)
+                    {
+                        // it's in ViewBag.SelectedAppls
+                        displayMpiFlag = false;
 
-                                        string appls_from_vb = (string)ViewBag.SelectedAppls;
-                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                        var appl_ids = appls_from_vb.Split(',');
-                                        var theAppls = appls;
-                                        if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
-                                        {
-                                            // if there's only ONE then selectively display the MPI based on if that ONE appl has MPI
-                                            theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
-                                        }
-                                        if (theAppls.Any( ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
-                                        {
-                                            displayMpiFlag = true;
-                                        }
-                                    } else
-                                    {
-                                        // grant search and grant MPI info is populated
-                                        displayMpiFlag = false;
-                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                        var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
-                                        if (theAppls.Any( apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
-                                        {
-                                            displayMpiFlag = true;
-                                        }
-                                    }
-                                }
+                        string appls_from_vb = (string)ViewBag.SelectedAppls;
+                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                        var appl_ids = appls_from_vb.Split(',');
+                        var theAppls = appls;
+                        if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
+                        {
+                            // if there's only ONE then selectively display the MPI based on if that ONE appl has MPI
+                            theAppls = appls.Where(a => appl_ids.Contains((string)a.appl_id.ToString())).ToList();
+                        }
+                        if (theAppls.Any(ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
+                        {
+                            displayMpiFlag = true;
+                        }
+                    }
+                    else
+                    {
+                        // grant search and grant MPI info is populated
+                        displayMpiFlag = false;
+                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                        var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
+                        if (theAppls.Any(apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
+                        {
+                            displayMpiFlag = true;
+                        }
+                    }
+                }
 
-                                @if (displayMpiFlag)
-                                {
-                                    string grantLinkId = "grantLink" + grant.grant_id;
-                                    string imgLinkId = "imgLink" + grant.grant_id;
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a id ="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height:16px;" title="Has Multi-PI Grant Year(s)" /></a>
-                                    </span>
-                                }
+                @if (displayMpiFlag)
+                {
+                    string grantLinkId = "grantLink" + grant.grant_id;
+                    string imgLinkId = "imgLink" + grant.grant_id;
+                    <span style="margin-left: 10px; width: 80px;">
+                        <a id="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))"><img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height: 16px;" title="Has Multi-PI Grant Year(s)"/></a>
+                    </span>
+                }
 
-                                @if (Convert.ToString(grant.fda_flag) == "y")
-                                {
-                                    <span style="margin-left:10px; width:80px;">
-                                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height:16px;" title="View FDA Funded Grant for @grant.grant_num" /></a>
-                                    </span>
-                                }
+                @if (Convert.ToString(grant.fda_flag) == "y")
+                {
+                    <span style="margin-left: 10px; width: 80px;">
+                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))"><img src="~/Content/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num"/></a>
+                    </span>
+                }
 
                 @if (Convert.ToString(grant.stop_flag) == "y")
                 {
@@ -934,7 +950,7 @@
     @Html.Partial("~/Egrants/Views/_egrants_showModal.cshtml")
 </div>
 <!--end show popup modal-->
-        <!--start show popup modal -->
+<!--start show popup modal -->
 <div>
     @Html.Partial("~/Egrants/Views/_egrants_showModalMPIDialog.cshtml")
 </div>

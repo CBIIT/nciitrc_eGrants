@@ -2672,7 +2672,6 @@
     <Content Include="Content\bootstrap-reboot.min.css.map" />
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Content\bootstrap.min.css.map" />
-    <Content Include="Egrants\Views\Download\_Modal_Impac_Docs.cshtml" />
     <Content Include="App_Browsers\qt.browser" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />

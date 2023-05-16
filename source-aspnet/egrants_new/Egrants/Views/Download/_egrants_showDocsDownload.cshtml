@@ -457,18 +457,18 @@
                         //{
                         //    className: "details-control",
                         //    autoWidth: true,
-                            // show qc icon
-                            //render: function(data, type, full, meta) {
-                            //    return "<div id='show_qc_dl_" +
-                            //        full.document_id +
-                            //        "'  class='show_qc_dl' style='width:30px; display:inline'>" +
-                            //        "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
-                            //        "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
-                            //        "<div id='hide_qc_dl_" +
-                            //        full.document_id +
-                            //        "' class='hide_qc_dl' style='width:30px; display:none'>" +
-                            //        "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
-                            //        "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
+                        // show qc icon
+                        //render: function(data, type, full, meta) {
+                        //    return "<div id='show_qc_dl_" +
+                        //        full.document_id +
+                        //        "'  class='show_qc_dl' style='width:30px; display:inline'>" +
+                        //        "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
+                        //        "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
+                        //        "<div id='hide_qc_dl_" +
+                        //        full.document_id +
+                        //        "' class='hide_qc_dl' style='width:30px; display:none'>" +
+                        //        "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
+                        //        "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
 
                         //    }
                         //},
@@ -507,14 +507,16 @@
                                             "/></div>";
                                     } else if (full.document_name == "Closeout Notification") {
                                         return "<div id=\"dl_checkbox_" +
-                                            full.appl_id + full.grant_id +
+                                            full.appl_id +
+                                            full.grant_id +
                                             "\"" +
                                             " name=\"dl_checkbox\" class=\"show_dl\"> " +
                                             " <input type=\"checkbox\" class=\"showDownload CloseoutNotifications\" id=\"" +
                                             full.appl_id +
                                             "\"" +
                                             " class=\"qc\" name=\"qc\" value=\"" +
-                                            full.appl_id + full.grant_id +
+                                            full.appl_id +
+                                            full.grant_id +
                                             "\"" +
                                             ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
                                             "/></div>";
@@ -639,7 +641,7 @@
 
                 var mode = document.getElementById("hidMode").value;
 //                if (mode == "qc") {
-                    // show all qc options
+                // show all qc options
 //                    setTimeout(function() {
 //                            var cnt = 0;
 //                            $.each($('#loadgridDownload_' + @appl_id + ' a.showmodedl'),
@@ -879,15 +881,15 @@
                         console.log("Row Clicked");
 
                         // if anyone is not checked set the flag to false
-                        $("#childRowTable_@appl_id tr").each(function () {
-                                console.log("Check all Children");
-                                if (!$(this).prop('disabled') && !$(this).prop('checked')) {
-                                    isAllChecked = false;
-                                    console.log("isAllChecked = false");
-                                }
-                            });
+                        $("#childRowTable_@appl_id tr").each(function() {
+                            console.log("Check all Children");
+                            if (!$(this).prop('disabled') && !$(this).prop('checked')) {
+                                isAllChecked = false;
+                                console.log("isAllChecked = false");
+                            }
+                        });
 
-                        $("#grantChildTable_@appl_id tr").each(function () {
+                        $("#grantChildTable_@appl_id tr").each(function() {
                             console.log("Check all Children");
                             if (!$(this).prop('disabled') && !$(this).prop('checked')) {
                                 isAllChecked = false;
@@ -963,8 +965,20 @@
                         }
                     });
 
-                // when the user clicks the download button get all the rows that are checked
-                $('#downloadData_@appl_id').on('click',
+                @*$('#checkAllItems').on('click',
+                    function () {
+                        console.log("select All Clicked");
+                        $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
+                            function () {
+                                var tr = $(this).closest('tr');
+                                $(this).prop('checked', true);
+                            });
+                    });*@
+
+
+
+            // when the user clicks the download button get all the rows that are checked
+            $('#downloadData_@appl_id').on('click',
                     function () {
                        // var trSvg;
                        var myurl;
