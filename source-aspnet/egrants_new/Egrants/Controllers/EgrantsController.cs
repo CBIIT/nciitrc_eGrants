@@ -311,9 +311,9 @@ namespace egrants_new.Controllers
 
                             string newFileName = string.Empty;
 
-                            // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                            // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
                             // and remove all invalid characters from filename and replace with _
-                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{category}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
                             System.IO.File.WriteAllBytes(tmpFileName, bytes);
 
                            
@@ -342,7 +342,7 @@ namespace egrants_new.Controllers
 
                                 string newFileName = string.Empty;
 
-                                // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                                // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
                                 // and remove all invalid characters from filename and replace with _
                                 newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
 
@@ -1401,13 +1401,23 @@ namespace egrants_new.Controllers
             return null;
         }
 
-        //public string closeout_notif(string applid, string notifName)
-        //{
-        //    this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(applid, notifName);
-        //    this.ViewBag.applid = applid;
+        public string doc_attachments_data(int document_id)
+        {
+            try
+            {
 
-        //    return this.View("~/Egrants/Views/CloseoutNotif.cshtml");
-        //}
+                List<DocAttachment> list = EgrantsDoc.LoadDocAttachments(document_id);
+
+                return JsonConvert.SerializeObject(list);
+
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
+            }
+
+            return null;
+        }
     }
 
 
