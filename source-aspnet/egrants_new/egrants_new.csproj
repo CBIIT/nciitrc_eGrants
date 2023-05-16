@@ -2609,10 +2609,18 @@
     <Content Include="Integration\SQL_Scripts\sp_web_service_call_url.sql" />
     <Content Include="Integration\SQL_Scripts\sp_web_service_trigger_webservices.sql" />
     <Content Include="Integration\EmailBodyTemplate.html" />
-    <Content Include="Rotativa\help-wkhtmltoimage.txt" />
-    <Content Include="Rotativa\help-wkhtmltopdf.txt" />
-    <Content Include="Rotativa\wkhtmltoimage.exe" />
-    <Content Include="Rotativa\wkhtmltopdf.exe" />
+    <Content Include="Rotativa\help-wkhtmltoimage.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Rotativa\help-wkhtmltopdf.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Rotativa\wkhtmltoimage.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Rotativa\wkhtmltopdf.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="scripts\ai.0.15.0-build58334.js" />
     <Content Include="scripts\ai.0.15.0-build58334.min.js" />
     <Content Include="scripts\bluebird.js" />
