@@ -1,10 +1,40 @@
-﻿@using egrants_new.Models
+﻿@using egrants_new.Egrants.Models
+@using egrants_new.Models
 <!--start display appls -->
 @{
 
-var grant_id = Model;
+    var grant_id = Model;
+    List<ApplLayerObject> list = ViewBag.appllayer;
+    var count = list.Count;
 
-//loop with each appl
+    @*<div id="DownloadAll" class="shadow-sm p-3 mb-5 bg-white rounded">
+
+        @if (count > 1)
+        {
+            <label><h4>Multiple Downloads</h4></label>
+            <ul class="nav justify-content-center">
+                <li class="nav-item">
+                    <button type="button" id="checkAllItems" accesskey="D" class="nav-link active btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to check all boxes in all rows [shift + alt + C]"><u>C</u>heck All</button>
+
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled">Disabled</a>
+                </li>
+            </ul>
+            
+            <p>Select All Items</p>        
+        <button type="button" id="downloadAllData" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download all Selected Years and corresponding rows [shift + alt + A]">Download <u>A</u>ll</button>
+        }
+    </div>*@ 
+
+
+    //loop with each appl
 foreach (var appl in ViewBag.appllayer)
 {
     <!-- start all appls for one grant -->
@@ -107,28 +137,12 @@ foreach (var appl in ViewBag.appllayer)
                 </div>
                 <!--end notice for PD-->
                 <!--start create new buttons-->
-                <div id="create new buttons" style="float:right; display:inline;">
-                    @* @if (Convert.ToInt16(Session["position_id"]) > 1) *@
-                    @* { *@
-                    @* <!--start create new download doc--> *@
-                    @*     if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0) *@
-                    @*     { *@
-                    @*        <button type="button" accesskey="D" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:150px;" title="Click here to download documents selected [shift + alt + O]" onclick="Javascript:downloadDocs('doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')"><u>D</u>ownload</button> *@
-                    @*     } *@
-                    @* } *@
 
-                    @* @if (Convert.ToInt16(Session["position_id"]) > 2) *@
-                    @* { *@
-                    @*     if (appl.can_add_funding == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0) *@
-                    @*     { *@
-                    @*         <button type="button" accesskey="F" class="btn btn-sm  btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:200px;" title="Click here to add new funding document [shift + alt + F]" onclick="Javascript:create_new_doc('funding_doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add <u>F</u>unding Document</button> *@
-                    @*     } *@
-                    @* } *@
-                </div><!--end create new buttons-->
+            <!--end create new buttons-->
             <!--end appl header-->
            <!--start show dos-->
-    
-    
+
+
            @Html.Partial("~/Egrants/Views/Download/_egrants_showDocsDownload.cshtml", passModel)
     
     

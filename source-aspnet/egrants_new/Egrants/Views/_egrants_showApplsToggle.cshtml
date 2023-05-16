@@ -393,7 +393,9 @@ function show_toggle_appls() {
     document.getElementById("show_search_form").style.display = "inline";
     document.getElementById("searchform").style.display = "none";
 
-    document.getElementById("show_download_toggle").style.display = "inline";
+    if (ShowToggleDownload == 1) {
+        document.getElementById("show_download_toggle").style.display = "inline";
+    }
     //show cate_toggle icon but not show toggle_cats
     document.getElementById("show_cats_toggle").style.display = "inline";
     //$('#toggle_cats').empty();
