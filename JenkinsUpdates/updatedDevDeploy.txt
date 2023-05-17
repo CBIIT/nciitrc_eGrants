@@ -11,30 +11,31 @@ $certPassword = $env:cert_password
 <# This scripts updates web.config with environment specific values #>
   
 <# ENVIRONMENT VARIABLES #>
- 
 
-     $EgrantsDB ="Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Initial Catalog=EIM;Persist Security Info=True;User ID=egrantsuser;Password=$password;Connect Timeout=500"
-    
-     $webgrant= "egrants-file-test.nci.nih.gov"
-     $ImageServer = "https://egrants-web-test.nci.nih.gov/"
+     $EgrantsDB ="Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSD,52000;Initial Catalog=EIM;Persist Security Info=True;User ID=egrantsuser;Password=$password;Connect Timeout=500"
      
+     $WebGrantUrl = "egrants-file-dev.nci.nih.gov"
+     $ImageServerUrl = "https://egrants-web-dev.nci.nih.gov/"
+     
+     $WebGrantRelativePath = "egrants/funded2/nci/main/"
+     $EgrantsDocNewRelativePath = "data/funded2/nci/main/"
+  
      $closeOutAcceptance =   "https://apps.test.era.nih.gov/pgm/jsp/closeoutAcceptance.jsp"
      $frpprAcceptance =     "https://apps.test.era.nih.gov/pgm/jsp/closeoutAcceptance.jsp"
      $irpprAcceptance = "https://apps.test.era.nih.gov/pmm/interimRPPRs.era"
+     $EgrantsDocModifyRelativePath = "data/funded/nci/modify/"
+     $EgrantsFundingRelativePath = "funded/nci/funding/upload/"
+     $EgrantsInstRelativePath = "funded/nci/institutional/"
+     $EgrantsDocEmail = "NCIeGrantsDev@mail.nih.gov"
     
-     $egrantsDocEmail = "NCIeGrantsDev@mail.nih.gov"
-    
-     $certPath = "C:\utils\cert\2023\EGRANTS-WEB-TEST_NCI_NIH_GOV.pfx"
-
-      
+     $certPath = "C:\utils\cert\2023\EGRANTS-WEB-DEV_NCI_NIH_GOV.pfx"
      $certPass = $certPassword
 
-     $SubjectLine="[TESTENV]Exceptions From Web Service Integration"
-
-
+     $SubjectLine="[DEVENV]Exceptions From Web Service Integration"
+  
 <# END ENVIRONMENT VARIABLES #>
   
-Write-Host "Updating web.config for [QA] environment"
+Write-Host "Updating web.config for [DEV] environment"
 
 [string]$CurrentPath = Get-Location
 $webconfig = [xml](Get-Content $CurrentPath/BuildArtifacts/Web.config)
@@ -46,14 +47,33 @@ foreach($node in $webconfig.configuration.connectionStrings.add)
   {
         $node.SetAttribute("connectionString",$EgrantsDB)
   }
-
-  if($node.name -eq 'webgrant')
+  if($node.name -eq 'WebGrantUrl')
   {
-        $node.SetAttribute("connectionString",$webgrant)
+        $node.SetAttribute("connectionString",$WebGrantUrl)
   }
-  if($node.name -eq 'ImageServer')
+  if($node.name -eq 'ImageServerUrl')
   {
-        $node.SetAttribute("connectionString",$ImageServer)
+        $node.SetAttribute("connectionString",$ImageServerUrl)
+  }
+  if($node.name -eq 'WebGrantRelativePath')
+  {
+        $node.SetAttribute("connectionString",$WebGrantRelativePath)
+  }
+  if($node.name -eq 'EgrantsDocNewRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDocNewRelativePath)
+  }
+  if($node.name -eq 'EgrantsDocModifyRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDocModifyRelativePath)
+  }
+  if($node.name -eq 'EgrantsFundingRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsFundingRelativePath)
+  }
+  if($node.name -eq 'EgrantsInstRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsInstRelativePath)
   }
   if($node.name -eq 'closeOutAcceptance')
   {
@@ -69,9 +89,9 @@ foreach($node in $webconfig.configuration.connectionStrings.add)
         $node.SetAttribute("connectionString",$irpprAcceptance)
   }
 
-  if($node.name -eq 'egrantsDocEmail')
+  if($node.name -eq 'EgrantsDocEmail')
   {
-        $node.SetAttribute("connectionString",$egrantsDocEmail)
+        $node.SetAttribute("connectionString",$EgrantsDocEmail)
   }
 
   if($node.name -eq 'certPath')
@@ -88,15 +108,11 @@ foreach($node in $webconfig.configuration.connectionStrings.add)
 
 foreach($node in $webconfig.configuration.appSettings.add)
 { 
-  
   if($node.key -eq 'SubjectLine')
   {
         $node.SetAttribute("value",$SubjectLine)
   }
-  
 }
-
-
 
 [string]$savingPath =$CurrentPath+"/BuildArtifacts/WebTemp.config"
 $webconfig.Save($savingPath)
@@ -114,8 +130,7 @@ Write-Host "Restarting IIS....."
 IISRESET /restart
 Write-Host "Deployment Completed Successfully !!"
   
-  
-  
+
 }
 
 catch
