@@ -1,0 +1,142 @@
+$ErrorActionPreference = "Stop"
+
+try
+
+{
+  
+$Password = $env:db_password
+$certPassword = $env:cert_password
+$WSClientCertPassword = $env:WSClientCert_password
+
+
+<# This scripts updates web.config with environment specific values #>
+  
+<# ENVIRONMENT VARIABLES #>
+
+     $EgrantsDB ="Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Initial Catalog=EIM;Persist Security Info=True;User ID=egrantsuser;Password=$password;Connect Timeout=500"
+    
+     $WebGrantUrl= "egrants-file-prod.nci.nih.gov"
+     $ImageServerUrl = "https://egrants.nci.nih.gov\"
+     $WebGrantRelativePath = "egrants/funded2/nci/main/"
+     $EgrantsDocNewRelativePath = "data/funded2/nci/main/"   
+
+     $closeOutAcceptance =   "https://apps.era.nih.gov/pgm/jsp/closeoutAcceptance.jsp"
+     $frpprAcceptance =   "https://apps.era.nih.gov/pmm/fpr.era"
+     $irpprAcceptance = "https://apps.era.nih.gov/pmm/interimRPPRs.era"
+    
+    $EgrantsDocModifyRelativePath = "data/funded/nci/modify/"
+    $EgrantsFundingRelativePath = "funded/nci/funding/upload/"
+    $EgrantsInstRelativePath = "funded/nci/institutional/"
+
+     $EgrantsDocEmail = "NCIeGrantsDev@mail.nih.gov"
+    
+     $certPath = "C:\Utils\cert\2023\egrants_nci_nih_gov.pfx"      
+     $certPass = $certPassword
+
+     $SubjectLine="[Prod]Exceptions From Web Service Integration"
+
+<# END ENVIRONMENT VARIABLES #>
+  
+Write-Host "Updating web.config for [Stage] environment"
+
+[string]$CurrentPath = Get-Location
+$webconfig = [xml](Get-Content $CurrentPath/BuildArtifacts/Web.config)
+
+foreach($node in $webconfig.configuration.connectionStrings.add)
+{ 
+  
+  if($node.name -eq 'EgrantsDB')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDB)
+  }
+
+  if($node.name -eq 'WebGrantUrl')
+  {
+        $node.SetAttribute("connectionString",$WebGrantUrl)
+  }
+  if($node.name -eq 'ImageServerUrl')
+  {
+        $node.SetAttribute("connectionString",$ImageServerUrl)
+  }
+   if($node.name -eq 'WebGrantRelativePath')
+  {
+        $node.SetAttribute("connectionString",$WebGrantRelativePath)
+  }
+  if($node.name -eq 'EgrantsDocNewRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDocNewRelativePath)
+  }
+  if($node.name -eq 'EgrantsDocModifyRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDocModifyRelativePath)
+  }
+  if($node.name -eq 'EgrantsFundingRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsFundingRelativePath)
+  }
+  if($node.name -eq 'EgrantsInstRelativePath')
+  {
+        $node.SetAttribute("connectionString",$EgrantsInstRelativePath)
+  }
+  if($node.name -eq 'closeOutAcceptance')
+  {
+        $node.SetAttribute("connectionString",$closeOutAcceptance)
+  }
+  if($node.name -eq 'frpprAcceptance')
+  {
+        $node.SetAttribute("connectionString",$frpprAcceptance)
+  }
+
+  if($node.name -eq 'irpprAcceptance')
+  {
+        $node.SetAttribute("connectionString",$irpprAcceptance)
+  }
+
+  if($node.name -eq 'EgrantsDocEmail')
+  {
+        $node.SetAttribute("connectionString",$EgrantsDocEmail)
+  }
+
+  if($node.name -eq 'certPath')
+  {
+        $node.SetAttribute("connectionString",$certPath)
+  }
+  
+  if($node.name -eq 'certPass')
+  {
+        $node.SetAttribute("connectionString",$certPass)
+  }
+   
+}
+
+foreach($node in $xmldata.configuration.appSettings.add)
+{ 
+  
+  if($node.key -eq 'SubjectLine')
+  {
+        $node.SetAttribute("value",$SubjectLine)
+  }  
+}
+
+
+
+[string]$savingPath =$CurrentPath+"/BuildArtifacts/WebTemp.config"
+$webconfig.Save($savingPath)
+Remove-Item -Path $CurrentPath/BuildArtifacts/Web.config -Force
+Rename-Item -Path $CurrentPath/BuildArtifacts/WebTemp.config -NewName "Web.config"
+
+Write-Host "Copying code to IIS folder"
+Remove-Item -Path "D:\NCI Websites\egrants.nci.nih.gov\*" -Force -Recurse
+Copy-Item -Path BuildArtifacts\* -Destination "D:\NCI Websites\egrants.nci.nih.gov\" -Recurse -Force
+
+Write-Host "Restarting IIS....."
+IISRESET /restart
+Write-Host "Deployment Completed Successfully !!"
+  
+}
+
+catch
+{
+Write-Host $error
+Exit 1
+}
