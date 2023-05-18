@@ -2864,6 +2864,7 @@
     <Compile Include="Dashboard\Models\WidgetData.cs" />
     <Compile Include="Egrants\Functions\CountProperty.cs" />
     <Compile Include="Egrants\Functions\SaveState.cs" />
+    <Compile Include="Egrants\Functions\StreamExtensions.cs" />
     <Compile Include="Egrants\Models\ActivityCode.cs" />
     <Compile Include="Egrants\Models\Appl.cs" />
     <Compile Include="Egrants\Models\ApplLayerObject.cs" />
