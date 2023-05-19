@@ -35,24 +35,16 @@
 
 #region
 
-using egrants_new.Dashboard.Functions;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using System.Security.Policy;
 using System.Web;
 using System.Web.Mvc;
-
-using egrants_new.Egrants.Models;
 using egrants_new.Models;
 using Newtonsoft.Json;
-using AntiVirus.COMInterop;
 using egrants_new.Functions;
-using ScanResult = AntiVirus.ScanResult;
-using System.Text;
 
 #endregion
 
