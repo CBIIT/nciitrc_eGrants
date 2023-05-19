@@ -79,7 +79,7 @@ namespace egrants_new.Models
         
         public string DocumentName { get; set; }
 
-        public DateTime DocumentDate { get; set; }
+        public DateTime? DocumentDate { get; set; }
 
         public int DocumentId { get; set; }
 

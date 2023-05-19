@@ -393,7 +393,9 @@ function show_toggle_appls() {
     document.getElementById("show_search_form").style.display = "inline";
     document.getElementById("searchform").style.display = "none";
 
-    //document.getElementById("show_download_toggle").style.display = "inline";
+    if (ShowToggleDownload == 1) {
+        document.getElementById("show_download_toggle").style.display = "inline";
+    }
     //show cate_toggle icon but not show toggle_cats
     document.getElementById("show_cats_toggle").style.display = "inline";
     //$('#toggle_cats').empty();
@@ -436,9 +438,9 @@ function toggle_appls_mode_switch(show_mode) {
         document.getElementById("defualt_appls").style.display = "inline";
         document.getElementById("all_appls").style.display = "none";
         var checkboxes = $('div#all_appls input[type="checkbox"]');
-        checkboxes.each(function (selected_appls_checkbox) {
+        checkboxes.each(function(selected_appls_checkbox) {
             $(this).prop("checked", false);
-        })
+        });
     }
 
     check_toggle_appls_checkbox(show_mode);
@@ -618,7 +620,9 @@ function updateMPIToolTip(grantId) {
     if (thisApplId) {
         toolTip = messages[thisApplId].replace(/conspicuousNewLine/g, '\r\n');
     }
-    document.getElementById("imgLink" + grantId).setAttribute('title', toolTip);
+
+    // ROBIN - added ? so it does not throw an error
+    document.getElementById("imgLink" + grantId)?.setAttribute('title', toolTip);
 }
 
 //check all checkbox after user check select all
