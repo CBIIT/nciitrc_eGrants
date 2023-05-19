@@ -146,34 +146,51 @@ namespace egrants_new.Controllers
         {
             // 1 - trim the first character in the full grant number
             // 2 - trim the characters in full grant number year, and anything after trim
-
+            string downloadDirectory = string.Empty;
             DownloadModel downloadModel = new DownloadModel();
-            downloadModel.ApplId = appl;
-            downloadModel.NumFailed = 0;
-            downloadModel.NumSucceeded = 0;
-            downloadModel.NumToDownload = listOfUrl.Count();
 
-            // create the temp path and
-            string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
-
-            // create or return an existing directory to hold the downloaded files
-            DirectoryInfo directoryInfo = Directory.CreateDirectory(downloadDirectory);
-
-            // delete all the files in this directory if there are any
-            foreach (FileInfo file in directoryInfo.GetFiles())
+            try
             {
-                file.Delete();
+
+                downloadModel.ApplId = appl;
+                downloadModel.NumFailed = 0;
+                downloadModel.NumSucceeded = 0;
+                downloadModel.NumToDownload = listOfUrl.Count();
+
+                // create the temp path and
+                downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
+
+                // create or return an existing directory to hold the downloaded files
+                DirectoryInfo directoryInfo = Directory.CreateDirectory(downloadDirectory);
+
+                // delete all the files in this directory if there are any
+                foreach (FileInfo file in directoryInfo.GetFiles())
+                {
+                    file.Delete();
+                }
+
+                // delete all the folders in this directory if there are any
+                foreach (DirectoryInfo dir in directoryInfo.GetDirectories())
+                {
+                    dir.Delete(true);
+                }
             }
-
-            // delete all the folders in this directory if there are any
-            foreach (DirectoryInfo dir in directoryInfo.GetDirectories())
+            catch (ArgumentNullException ex)
             {
-                dir.Delete(true);
+                downloadModel.Error = "There are no URL's in the list!";
+                return Json(downloadModel, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                downloadModel.Error = "Error in accessing temp files and directories!";
+                return Json(downloadModel, JsonRequestBehavior.AllowGet);
             }
 
             // var grantId = this.ViewBag.GrantID;
             DownloadData downloadData = new DownloadData();
             downloadModel.DownloadDataList = new List<DownloadData>();
+
+
 
             foreach (var dataInput in listOfUrl)
             {
@@ -197,7 +214,7 @@ namespace egrants_new.Controllers
                     downloadData.DocumentId = string.IsNullOrEmpty(documentId) ? 0 : Convert.ToInt32(documentId);
                     downloadData.DocumentName = documentName;
                     downloadData.DocumentDate = DateTime.TryParse(documentDate, out DateTime result) ? result : DateTime.MinValue;
-                    
+
 
 
                     // if(downloadModel.DownloadDataList.)
@@ -244,9 +261,9 @@ namespace egrants_new.Controllers
                             {
                                 downloadUrl = reader.ReadToEnd();
                             }
-                       
 
-                   
+
+
                             using (var myWebClient = new MyWebClient())
                             {
                                 myWebClient.Credentials = CredentialCache.DefaultCredentials;
@@ -267,7 +284,8 @@ namespace egrants_new.Controllers
 
                                 if (category == "Financial Report")
                                 {
-                                    newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}");
+                                    newFileName = ReplaceInvalidChars(
+                                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}");
                                 }
                                 else
                                 {
@@ -286,9 +304,9 @@ namespace egrants_new.Controllers
 
                         downloadModel.NumSucceeded += 1;
                     }
-                    else 
+                    else
                     {
-                        
+
                         Uri uri;
 
                         if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
@@ -298,25 +316,27 @@ namespace egrants_new.Controllers
                             uri = new Uri(imageServer, url);
                         }
 
-                        if (category == "CloseoutNotification")
+                        if (category == "CloseoutNotification" || category == "FFR_REJECTION")
                         {
                             this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(appl, documentName);
                             this.ViewBag.applid = appl;
-                            
+
                             var report = new ViewAsPdf("~/Egrants/Views/CloseoutNotif.cshtml");
                             byte[] bytes = report.BuildFile(this.ControllerContext);
 
-                
-                           //FileInfo fi = new FileInfo(tmpFileName);
+
+                            //FileInfo fi = new FileInfo(tmpFileName);
 
                             string newFileName = string.Empty;
 
                             // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
                             // and remove all invalid characters from filename and replace with _
-                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                            newFileName = ReplaceInvalidChars(
+                                $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+
                             System.IO.File.WriteAllBytes(tmpFileName, bytes);
 
-                           
+
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
@@ -368,6 +388,10 @@ namespace egrants_new.Controllers
                     // code specifically for a WebException InternalServerError
                     downloadData.Error = "Internal Server Error! Notify Dev Team!";
                 }
+                catch (ArgumentNullException ex)
+                {
+                    downloadModel.Error = "An value is null which should not be.";
+                }
                 catch (Exception err)
                 {
                     Console.WriteLine("Item Error : " + err.ToString());
@@ -409,7 +433,7 @@ namespace egrants_new.Controllers
             catch (Exception err)
             {
                 Console.WriteLine("Error trying to Zip or serve zip file: " + err.ToString());
-                downloadModel.ZipError = "ZIP FILE ERROR! Screen shot this error and send to Dev team! " + Environment.NewLine + err.ToString();
+                downloadModel.Error = "ZIP FILE ERROR! Screen shot this error and send to Dev team! " + Environment.NewLine + err.ToString();
             }
 
             return Json(downloadModel, JsonRequestBehavior.AllowGet);

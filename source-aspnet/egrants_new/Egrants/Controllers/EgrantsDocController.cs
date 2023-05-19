@@ -45,6 +45,8 @@ using System.Web.Mvc;
 using egrants_new.Models;
 using Newtonsoft.Json;
 using egrants_new.Functions;
+using MsgReader.Outlook;
+using static System.Net.WebRequestMethods;
 
 #endregion
 
@@ -433,6 +435,56 @@ namespace egrants_new.Controllers
                     // get file name and file Extension
                     var fileName = Path.GetFileName(file.FileName);
                     var fileExtension = Path.GetExtension(fileName);
+
+
+
+
+
+                    //if (fileExtension == ".msg")
+                    //{
+                    //    // Load the msg file
+                    //    using (var message = new Storage.Message(fileName))
+                    //    {
+                    //        message.Save();
+                    //        Console.WriteLine("Found '" + message.Attachments.Count + "' attachments");
+
+                    //        // Loop through all the attachments
+                    //        foreach (var attachment in message.Attachments)
+                    //        {
+                    //            // Try to cast the attachment to a Message file
+                    //            var msg = attachment as Storage.Message;
+
+                    //            // If the file not is null then we have an msg file
+                    //            if (msg != null)
+                    //            {
+                    //                using (msg)
+                    //                {
+                    //                    Console.WriteLine("Found msg file '" + msg.Subject + "'");
+
+                    //                    if (!string.IsNullOrWhiteSpace(msg.MailingListSubscribe))
+                    //                        Console.WriteLine("Mailing list subscribe page: '" + msg.MailingListSubscribe + "'");
+
+                    //                    foreach (var recipient in msg.Recipients)
+                    //                    {
+                    //                        if (!string.IsNullOrWhiteSpace(recipient.Email))
+                    //                        {
+                    //                            Console.WriteLine("Recipient E-mail: '" + recipient.Email + "'");
+                    //                            System.IO.File.AppendAllText(toFile, recipient.Email + Environment.NewLine);
+                    //                        }
+                    //                        else if (!string.IsNullOrWhiteSpace(recipient.DisplayName))
+                    //                        {
+                    //                            Console.WriteLine("Recipient display name: '" + recipient.DisplayName + "'");
+                    //                            System.IO.File.AppendAllText(toFile, recipient.DisplayName + Environment.NewLine);
+                    //                        }
+                    //                    }
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+                    //}
+
+
+
 
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(

@@ -2,13 +2,13 @@
 <script src="~/scripts/jquery.dataTables.min.js"></script>
 <script src="~/scripts/moment.js"></script>
 <script src="~/scripts/datetime-moment.js"></script>
-<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet"/>
 <script src="~/scripts/dataTables.bootstrap4.min.js"></script>
 <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css">
 <script src="~/scripts/fontawesome/fontawesome.min.js" data-auto-replace-svg="nest"></script>
 
 <script src="~/scripts/fontawesome/solid.min.js"></script>
-<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet" />
+<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet"/>
 <script src="~/scripts/bootstrap-checkbox.js"></script>
 <link rel="stylesheet" href="~/Content/bootstrap-checkbox.css">
 
@@ -57,29 +57,21 @@
 
     /* when the datatable column is in asc or des sort mode, hide the updown arrow */
 
-    table.dataTable thead .sorting_asc .bi-arrow-down-up {
-        display: none;
-    }
+    table.dataTable thead .sorting_asc .bi-arrow-down-up { display: none; }
 
-    table.dataTable thead .sorting_desc .bi-arrow-down-up {
-        display: none;
-    }
+    table.dataTable thead .sorting_desc .bi-arrow-down-up { display: none; }
 
     table.dataTable thead .sorting:before,
     table.dataTable thead .sorting_asc:before,
     table.dataTable thead .sorting_desc:before,
     table.dataTable thead .sorting_asc_disabled:before,
-    table.dataTable thead .sorting_desc_disabled:before {
-        content: "" !important;
-    }
+    table.dataTable thead .sorting_desc_disabled:before { content: "" !important; }
 
     table.dataTable thead .sorting:after,
     table.dataTable thead .sorting_asc:after,
     table.dataTable thead .sorting_desc:after,
     table.dataTable thead .sorting_asc_disabled:after,
-    table.dataTable thead .sorting_desc_disabled:after {
-        content: "" !important;
-    }
+    table.dataTable thead .sorting_desc_disabled:after { content: "" !important; }
 
     table.dataTable tbody tr.even-row {
         background-color: #ffffff;
@@ -104,9 +96,7 @@
         z-index: 99999;
     }
 
-    .fa-file-excel {
-        color: grey;
-    }
+    .fa-file-excel { color: grey; }
 
     .fa-file-lines {
         color: blue;
@@ -119,17 +109,11 @@
     }
 
 
-    .fa-circle-check {
-        color: green;
-    }
+    .fa-circle-check { color: green; }
 
-    .fa-rotate {
-        color: blueviolet
-    }
+    .fa-rotate { color: blueviolet }
 
-    .fa-circle-exclamation {
-        color: red;
-    }
+    .fa-circle-exclamation { color: red; }
 </style>
 
 <script language="JavaScript" type="text/javascript">
@@ -157,9 +141,10 @@
         var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
         return url_closeout;
     }
-      function show_notification(appl, notif_name) {
-          var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
-          console.log(url_closeout);
+
+    function show_notification(appl, notif_name) {
+        var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
+        console.log(url_closeout);
         window.open(url_closeout);
     }
 
@@ -211,6 +196,34 @@
 
     }
 
+//    function getFfrReport(row, appl_id) {
+//
+//        var dataToSend = {};
+//        dataToSend.act = "fsr";
+//        dataToSend.appl_id = appl_id;
+//
+//        $.ajax(
+//            {
+//                cache: false,
+//                async: true,
+//                type: 'POST',
+//                dataType: 'JSON',
+//                contentType: 'application/json; charset=utf=8',
+//                url: '/Egrants/impac_docs_data',
+//                data: JSON.stringify(dataToSend),
+//                success: function(data) {
+//                    console.log("Response Returned:" + JSON.stringify(data));
+//                    console.log("closeout going in....");
+//
+//                    row.child(formatFinancialReportChildRow(row.data(), data)).show();
+//
+//                },
+//                error: function(resp) {
+//                    console.log(resp);
+//                }
+//            });
+//    }
+
     function getCloseoutNotification(row, appl_id) {
 
         var dataToSend = {};
@@ -239,11 +252,12 @@
             });
     }
 
+
     function getAttachments(row) {
 
         var dataToSend = {};
         dataToSend.document_id = row.document_id;
-        
+
 
         $.ajax(
             {
@@ -258,7 +272,7 @@
                     console.log("Response Returned:" + JSON.stringify(data));
                     console.log("attachments going in....");
 
-                  //  row.child(formatAttachmentsChildRow(data)).show();
+                    //  row.child(formatAttachmentsChildRow(data)).show();
 
                 },
                 error: function(resp) {
@@ -271,7 +285,7 @@
     var appl_id = Model.ApplId;
     var fullGrantNumber = Model.FullGrantNumber;
     <div id="overlay">
-        <img style="height: 150px; margin-left: 400px; margin-top: 150px; width: 150px;" src="~/Content/images/Loading.gif" />
+        <img style="height: 150px; margin-left: 400px; margin-top: 150px; width: 150px;" src="~/Content/images/Loading.gif"/>
     </div>
 
     <div id="create new buttons" style="display: inline; float: right;">
@@ -280,57 +294,57 @@
 
     <div id="data_table">
         <div class="container">
-            <br />
+            <br/>
             <div style="float: left; width: 880px;">
                 <table id="loadgridDownload_@appl_id" class="" style="width: 100%">
                     <thead>
-                        <tr>
-                            <!--<th>
-                                <div id='show_dl_all_@appl_id' style='display: none;'>-->
-                                    @*class="show_dl_all"*@
-                                    <!--<a class='showmodealldownload' href='javascript:void(0);' title='show'>
-                                        <img name='show_dl_all' style="height: 30px;" src='~/Content/images/plus.png' />
-                                    </a>
-                                </div>
-                                <div id='hide_dl_all_@appl_id' style='display: none;'>-->
-                                    @*class="hide_dl_all"*@
-                                    <!--<a class='hidemodealldownload' href='javascript:void(0);' title='hide all qc mode'>
-                                        <img name='hide_dl_all' style="height: 30px;" src='~/Content/images/minus.png' />
-                                    </a>
-                                </div>
-                            </th>-->
-                            <th>
-                                <div id="dl_checkbox_all_@appl_id" style="display: inline;">
-                                    <input type="checkbox" title="Check All" class="showDownloadAll" id="checkboxall_@appl_id" />
-                                </div>
-                            </th>
-                            <th>
-                                Document Name
-                                @*bootstrap icons for sorting icons*@
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down ml-1" viewBox="0 0 16 16">
-                                    <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z" />
-                                </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up ml-1" viewBox="0 0 16 16">
-                                    <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z" />
-                                </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-down-up ml-1" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z" />
-                                </svg>
-                            </th>
-                            <th>
-                                Date
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down ml-1" viewBox="0 0 16 16">
-                                    <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z" />
-                                </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up ml-1" viewBox="0 0 16 16">
-                                    <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z" />
-                                </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-down-up ml-1" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z" />
-                                </svg>
-                            </th>
-                            <th></th>
-                        </tr>
+                    <tr>
+                        <!--<th>
+                        <div id='show_dl_all_@appl_id' style='display: none;'>-->
+                        @*class="show_dl_all"*@
+                        <!--<a class='showmodealldownload' href='javascript:void(0);' title='show'>
+                            <img name='show_dl_all' style="height: 30px;" src='~/Content/images/plus.png' />
+                        </a>
+                        </div>
+                        <div id='hide_dl_all_@appl_id' style='display: none;'>-->
+                        @*class="hide_dl_all"*@
+                        <!--<a class='hidemodealldownload' href='javascript:void(0);' title='hide all qc mode'>
+                            <img name='hide_dl_all' style="height: 30px;" src='~/Content/images/minus.png' />
+                        </a>
+                        </div>
+                        </th>-->
+                        <th>
+                            <div id="dl_checkbox_all_@appl_id" style="display: inline;">
+                                <input type="checkbox" title="Check All" class="showDownloadAll" id="checkboxall_@appl_id"/>
+                            </div>
+                        </th>
+                        <th>
+                            Document Name
+                            @*bootstrap icons for sorting icons*@
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down ml-1" viewBox="0 0 16 16">
+                                <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up ml-1" viewBox="0 0 16 16">
+                                <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-down-up ml-1" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z"/>
+                            </svg>
+                        </th>
+                        <th>
+                            Date
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down ml-1" viewBox="0 0 16 16">
+                                <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up ml-1" viewBox="0 0 16 16">
+                                <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-down-up ml-1" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z"/>
+                            </svg>
+                        </th>
+                        <th></th>
+                    </tr>
                     </thead>
                 </table>
             </div>
@@ -445,19 +459,34 @@
                             render: function(data, type, full, meta) {
                                 if (full.frc_destroyed == 0) {
                                     if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-                                        return "<div id=\"dl_checkbox_" +
-                                            full.document_id +
-                                            "\"" +
-                                            " name=\"dl_checkbox\" class=\"show_dl\"> " +
-                                            " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
-                                            full.document_id +
-                                            "\"" +
-                                            " class=\"qc\" name=\"qc\" value=\"" +
-                                            full.document_id +
-                                            "\"" +
-                                            ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                                            "/></div>";
-
+                                        if (full.document_name == "Financial Report") {
+                                            return "<div id=\"dl_checkbox_" +
+                                                full.document_id +
+                                                "\"" +
+                                                " name=\"dl_checkbox\" class=\"show_dl\"> " +
+                                                " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+                                                full.document_id +
+                                                "\"" +
+                                                " class=\"qc\" name=\"qc\" value=\"" +
+                                                full.document_id +
+                                                "\"" +
+                                                ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                                "/></div>";
+                                        }
+                                        if (full.document_name == "FFR") {
+                                            return "<div id=\"dl_checkbox_" +
+                                                full.document_id +
+                                                "\"" +
+                                                " name=\"dl_checkbox\" class=\"show_dl\"> " +
+                                                " <input type=\"checkbox\" class=\"showDownload FFR\" id=\"" +
+                                                full.document_id +
+                                                "\"" +
+                                                " class=\"qc\" name=\"qc\" value=\"" +
+                                                full.document_id +
+                                                "\"" +
+                                                ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                                "/></div>";
+                                        }
                                     } else if (full.attachment_count > 0) {
                                         return "<div id=\"dl_checkbox_" +
                                             full.document_id +
@@ -509,12 +538,19 @@
                             render: function(data, type, full, meta) {
                                 if (full.frc_destroyed == 0) {
                                     if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-                                        var str = "<a href=JavaScript:show_doc('" +
-                                            full.url +
-                                            "') title='show document'>" +
-                                            full.document_name +
-                                            "</a>";
-
+                                        if (full.document_name == "Financial Report") {
+                                            var str = "<a href=JavaScript:show_doc('" +
+                                                full.url +
+                                                "') title='show document'>" +
+                                                full.document_name +
+                                                "</a>";
+                                        }
+                                        if (full.document_name == "FFR") {
+                                            var str = "<a href = '#'" +
+                                                "') title='Select Item To View'>" +
+                                                full.document_name +
+                                                "</a>";
+                                        }
                                         return str;
 
                                     } else if (full.attachment_count > 0) {
@@ -703,13 +739,21 @@
 
                                     // check the box if all should be checked or uncheck if all should be unchecked
                                     if (isAllChecked) {
-                                        if ($(this).hasClass('FinancialReport')) {
+                                        if ($(this).hasClass('FinancialReport') || $(this).hasClass('FFR')) {
                                             var tr = $(this).parents('tr');
                                             var row = table.row(tr);
                                             if (!row.child.isShown()) {
                                                 getFinancialReport(row, @appl_id);
                                             }
                                         }
+
+                                        @*if ($(this).hasClass('FFR')) {
+                                            var tr = $(this).parents('tr');
+                                            var row = table.row(tr);
+                                            if (!row.child.isShown()) {
+                                                getFfrReport(row, @appl_id);
+                                            }
+                                        }*@
 
                                         if ($(this).hasClass('CloseoutNotifications')) {
                                             var tr = $(this).closest('tr');
@@ -730,7 +774,7 @@
                                         $(this).prop('checked', true);
 
                                     } else {
-                                        if ($(this).hasClass('FinancialReport') || $(this).hasClass('CloseoutNotifications') || $(this).hasClass('Attachments')) {
+                                        if ($(this).hasClass('FinancialReport') || $(this).hasClass('CloseoutNotifications') || $(this).hasClass('FFR')) {
                                             console.log("has Fincial Report or CloseoutNotification or Attachments");
                                             var tr = $(this).closest('tr');
                                             var row = table.row(tr);
@@ -755,13 +799,21 @@
                         // if anyone is not checked set the flag to false
                         $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                             function() {
-                                if ($(this).hasClass('FinancialReport')) {
+                                if ($(this).hasClass('FinancialReport') || $(this).hasClass('FFR')) {
                                     var tr = $(this).closest('tr');
                                     var row = table.row(tr);
                                     if ($(this).prop('checked')) {
                                         getFinancialReport(row, @appl_id);
                                     }
                                 }
+
+//                                if ($(this).hasClass('FFR')) {
+//                                    var tr = $(this).parents('tr');
+//                                    var row = table.row(tr);
+//                                    if (!row.child.isShown()) {
+//                                        getFfrReport(row, @appl_id);
+//                                    }
+//                                }
 
                                 if ($(this).hasClass('CloseoutNotifications')) {
                                     var tr = $(this).closest('tr');
@@ -813,13 +865,21 @@
                         console.log("Row Clicked");
 
                         // if anyone is not checked set the flag to false
-                        $("#childRowTable_@appl_id tr").each(function() {
+                        $("#ffrChildTable_@appl_id tr").each(function() {
                             console.log("Check all Children");
                             if (!$(this).prop('disabled') && !$(this).prop('checked')) {
                                 isAllChecked = false;
                                 console.log("isAllChecked = false");
                             }
                         });
+
+                        //$("#ffrChildRowTable@appl_id tr").each(function() {
+                        //    console.log("Check all Children");
+                        //    if (!$(this).prop('disabled') && !$(this).prop('checked')) {
+                        //        isAllChecked = false;
+                        //        console.log("isAllChecked = false");
+                        //    }
+                        //});
 
                         $("#grantChildTable_@appl_id tr").each(function() {
                             console.log("Check all Children");
@@ -867,6 +927,7 @@
 
                 $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                     'input.FinancialReport',
+                    "input.FFR",
                     function() {
                         console.log("In Financial Report");
                         var tr = $(this).closest('tr');
@@ -880,6 +941,22 @@
                             row.child.hide();
                         }
                     });
+
+                @*$('#loadgridDownload_' + @appl_id + ' tbody').on('click',
+                    'input.FFR',
+                    function() {
+                        console.log("In FFR Report");
+                        var tr = $(this).closest('tr');
+                        var row = table.row(tr);
+
+                        if ($(this).prop('checked')) {
+
+                            getFinancialReport(row, @appl_id);
+
+                        } else if (!$(this).prop('checked')) {
+                            row.child.hide();
+                        }
+                    });*@
 
                 $('#loadgridDownload_' + @appl_id + ' tbody').on('click',
                     'input.Attachments',
@@ -908,12 +985,11 @@
                     });*@
 
 
-
-            // when the user clicks the download button get all the rows that are checked
-            $('#downloadData_@appl_id').on('click',
-                    function () {
-                       // var trSvg;
-                       var myurl;
+                // when the user clicks the download button get all the rows that are checked
+                $('#downloadData_@appl_id').on('click',
+                    function() {
+                        // var trSvg;
+                        var myurl;
                         // create an object of appl_id and list of urls to send to save method
                         var dataToSend = {};
                         dataToSend.appl = @appl_id;
@@ -931,54 +1007,94 @@
                                 var datvals;
 
                                 // if the row has a class that include "FinancialReport"
-                                if ($(this).hasClass('FinancialReport')) {
-                                    // if the child row is shown
+                                if ($(this).hasClass('FinancialReport') || $(this).hasClass('FFR')) {
                                     if (row.child.isShown()) {
+                                        var tr = $(this).closest('tr');
+                                        var row = table.row(tr);
+                                        console.log("In Financial Report Row and FFR");
+                                        if ($(this).hasClass('FinancialReport')) {
+                                            $("#ffrChildTable_@appl_id tr").each(function() {
+                                                console.log("In Financial Report for data");
+                                                // if the checkbox is ccked then extract the data from the row and add it to the list to be sent for download.
+                                                if ($(this).find("input[type='checkbox']").prop('checked') == true) {
 
-                                        // for each table row (tr) in the child row (which contains a bootstrap table)
-                                        $("#ffrChildTable_@appl_id tr").each(function () {
+                                                    myurl = $(this).find("a[href^='JavaScript']").attr('name');
 
-                                            // if the checkbox is checked then extract the data from the row and add it to the list to be sent for download.
-                                            if ($(this).find("input[type='checkbox']").prop('checked') == true) {
+                                                    var category_name = $(this).find("input[type='checkbox']").attr('value');
 
-                                                myurl = $(this).find("a[href^='JavaScript']").attr('name');
+                                                    var document_date = $(this).find("span[name='accepted_date']").text();
 
-                                                var category_name = $(this).find("input[type='checkbox']").attr('value');
+                                                    var trSvg = $(this).find('[data-fa-i2svg]');
 
-                                                var document_date = $(this).find("span[name='accepted_date']").text();
+                                                    list.push(myurl + "|" + category_name + "|" + "" + "|" + "" + "|" + category_name + "|" + document_date);
 
-                                                var trSvg = $(this).find('[data-fa-i2svg]');
+                                                    if (trSvg.attr("class") === "fa-circle-check") {
+                                                        trSvg
+                                                            .toggleClass('fa-circle-check');
+                                                    }
 
-                                                list.push(myurl + "|" + category_name + "|" + "" + "|" + "" + "|" + category_name + "|" + document_date);
+                                                    if (trSvg.attr("class") === "fa-circle-exclamation") {
+                                                        trSvg
+                                                            .toggleClass('fa-circle-exclamation');
+                                                    }
 
-                                                if (trSvg.attr("class") === "fa-circle-check") {
+                                                    if (trSvg.attr("class") === "fa-file-lines") {
+                                                        trSvg
+                                                            .toggleClass('fa-file-lines');
+                                                    }
+
                                                     trSvg
-                                                        .toggleClass('fa-circle-check');
+                                                        .toggleClass('fa-solid fa-rotate fa-spin');
+                                                    trSvg.attr("title", "Downloading...");
                                                 }
+                                            
+                                            if ($(this).hasClass('FFR')) {
+                                                console.log("In FFR");
+                                                var tr = $(this).closest('tr');
+                                                var row = table.row(tr);
+                                                // if the checkbox is checked then extract the data from the row and add it to the list to be sent for download
+                                                if ($(this).find("input[type='checkbox']").prop('checked') == true) {
 
-                                                if (trSvg.attr("class") === "fa-circle-exclamation") {
+                                                    myurl = $(this).find("a[href^='JavaScript']").attr('name');
+
+                                                    var category_name = $(this).find("input[type='checkbox']").attr('value');
+
+                                                    var document_date = $(this).find("span[name='created_date']").text();
+
+                                                    var trSvg = $(this).find('[data-fa-i2svg]');
+
+                                                    list.push(myurl + "|" + "FFR_REJECTION" + "|" + "" + "|" + "" + "|" + category_name + "|" + document_date);
+
+                                                    if (trSvg.attr("class") === "fa-circle-check") {
+                                                        trSvg
+                                                            .toggleClass('fa-circle-check');
+                                                    }
+
+                                                    if (trSvg.attr("class") === "fa-circle-exclamation") {
+                                                        trSvg
+                                                            .toggleClass('fa-circle-exclamation');
+                                                    }
+
+                                                    if (trSvg.attr("class") === "fa-file-lines") {
+                                                        trSvg
+                                                            .toggleClass('fa-file-lines');
+                                                    }
+
                                                     trSvg
-                                                        .toggleClass('fa-circle-exclamation');
+                                                        .toggleClass('fa-solid fa-rotate fa-spin');
+                                                    trSvg.attr("title", "Downloading...");
                                                 }
-
-                                                if (trSvg.attr("class") === "fa-file-lines") {
-                                                    trSvg
-                                                        .toggleClass('fa-file-lines');
-                                                }
-
-                                                trSvg
-                                                    .toggleClass('fa-solid fa-rotate fa-spin');
-                                                trSvg.attr("title", "Downloading...");
                                             }
                                         });
-                                    }
+                                        }
+                                        }
                                 } else if ($(this).hasClass('CloseoutNotifications')) {
                                     if (row.child.isShown()) {
                                         // for each table row (tr) in the closeout notification child rows (which contains a bootstrap table)
-                                        $("#closeoutChildTable_@appl_id tr").each(function () {
+                                        $("#closeoutChildTable_@appl_id tr").each(function() {
 
                                             // if the checkbox is checked then extract the data from the row and add it to the list to be sent for download
-                                            if ($(this).find("input[type='checkbox']").prop('checked') == true){
+                                            if ($(this).find("input[type='checkbox']").prop('checked') == true) {
 
                                                 myurl = $(this).find("a[href^='JavaScript']").attr('name');
 
@@ -1015,7 +1131,7 @@
 
                                 } else {
 
-                                    console.log(JSON.stringify(row));
+                                    // console.log(JSON.stringify(row));
                                     var data = row.data();
 
                                     var trSvg = tr.find('[data-fa-i2svg]');
@@ -1023,28 +1139,28 @@
 
                                 // if the row is checked add the url to the list of data
                                 if ($(this).prop('checked')) {
-                                    if (!$(this).hasClass('FinancialReport') && !$(this).hasClass('CloseoutNotifications')) {
+                                    if (!$(this).hasClass('FinancialReport') && !$(this).hasClass('CloseoutNotifications') && !$(this).hasClass('FFR')) {
                                         list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name + "|" + data.document_date);
 
 
-                                    if (trSvg.attr("class") === "fa-circle-check") {
-                                        trSvg
-                                            .toggleClass('fa-circle-check');
-                                    }
+                                        if (trSvg.attr("class") === "fa-circle-check") {
+                                            trSvg
+                                                .toggleClass('fa-circle-check');
+                                        }
 
-                                    if (trSvg.attr("class") === "fa-circle-exclamation") {
-                                        trSvg
-                                            .toggleClass('fa-circle-exclamation');
-                                    }
+                                        if (trSvg.attr("class") === "fa-circle-exclamation") {
+                                            trSvg
+                                                .toggleClass('fa-circle-exclamation');
+                                        }
 
-                                    if (trSvg.attr("class") === "fa-file-lines") {
-                                        trSvg
-                                            .toggleClass('fa-file-lines');
-                                    }
+                                        if (trSvg.attr("class") === "fa-file-lines") {
+                                            trSvg
+                                                .toggleClass('fa-file-lines');
+                                        }
 
-                                    trSvg
-                                        .toggleClass('fa-solid fa-rotate fa-spin');
-                                    trSvg.attr("title", "Downloading...");
+                                        trSvg
+                                            .toggleClass('fa-solid fa-rotate fa-spin');
+                                        trSvg.attr("title", "Downloading...");
                                     }
                                 }
                             });
@@ -1078,11 +1194,85 @@
                                             // if the row is checked add the url of the link is the same as one found in the object,
                                             // check the error flag to see if there is an error and show the success or error icon
 
-                                            if ($(this).hasClass('FinancialReport')) {
+                                            if ($(this).hasClass('FinancialReport') || $(this).hasClass('FFR')) {
                                                 if (row.child.isShown()) {
                                                     var tr = $(this).closest('tr');
                                                     var row = table.row(tr);
-                                                    $("#ffrChildTable_@appl_id tr").each(function() {
+                                                    console.log("In Financial Report Row and FFR");
+                                                    if ($(this).hasClass('FinancialReport')) {
+                                                        $("#ffrChildTable_@appl_id tr").each(function() {
+                                                            console.log("In Financial Report Row");
+                                                            if ($(this).find("input[type='checkbox']").prop('checked') == true) {
+
+                                                                var found = data.DownloadDataList.filter(function(item) { return item.Url === myurl; });
+                                                                if (found != null) {
+                                                                    var trSvg = $(this).find('[data-fa-i2svg]');
+                                                                    console.log("Found: ");
+
+                                                                    console.log(JSON.stringify(found));
+                                                                    console.log(found[0].Error);
+                                                                    if (found[0].Error == null) {
+                                                                        trSvg
+                                                                            .toggleClass('fa-circle-check')
+                                                                            .toggleClass('fa-solid fa-rotate fa-spin');
+
+                                                                        trSvg.attr("title", "File Download Successful!");
+
+                                                                        countSuccess++;
+                                                                    } else {
+                                                                        trSvg
+                                                                            .toggleClass('fa-circle-exclamation')
+                                                                            .toggleClass('fa-solid fa-rotate fa-spin');
+
+                                                                        trSvg.attr("title", found[0].Error);
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+
+                                                    if ($(this).hasClass('FFR')) {
+                                                        console.log("In FFR Row");
+                                                        $("#ffrChildTable_@appl_id tr").each(function() {
+
+                                                            if ($(this).find("input[type='checkbox']").prop('checked') == true) {
+
+                                                                var found = data.DownloadDataList.filter(function(item) { return item.Url === myurl; });
+                                                                if (found != null) {
+                                                                    var trSvg = $(this).find('[data-fa-i2svg]');
+                                                                    console.log("Found: ");
+
+                                                                    console.log(JSON.stringify(found));
+                                                                    console.log(found[0].Error);
+                                                                    if (found[0].Error == null) {
+                                                                        trSvg
+                                                                            .toggleClass('fa-circle-check')
+                                                                            .toggleClass('fa-solid fa-rotate fa-spin');
+
+                                                                        trSvg.attr("title", "File Download Successful!");
+
+                                                                        countSuccess++;
+                                                                    } else {
+                                                                        trSvg
+                                                                            .toggleClass('fa-circle-exclamation')
+                                                                            .toggleClass('fa-solid fa-rotate fa-spin');
+
+                                                                        trSvg.attr("title", found[0].Error);
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+
+
+                                                }
+
+
+                                            } else if ($(this).hasClass('CloseoutNotifications')) {
+                                                if (row.child.isShown()) {
+                                                    var tr = $(this).closest('tr');
+                                                    var row = table.row(tr);
+                                                    $("#closeoutChildTable_@appl_id tr").each(function() {
                                                         //var tr = $(this).closest('tr');
                                                         //var row = table.row(tr);
                                                         if ($(this).find("input[type='checkbox']").prop('checked') == true) {
@@ -1114,85 +1304,49 @@
                                                     });
 
                                                 }
-                                            } else if ($(this).hasClass('CloseoutNotifications')) {
-                                                if (row.child.isShown()) {
-                                                    var tr = $(this).closest('tr');
-                                                    var row = table.row(tr);
-                                                    $("#closeoutChildTable_@appl_id tr").each(function () {
-                                                            //var tr = $(this).closest('tr');
-                                                            //var row = table.row(tr);
-                                                            if ($(this).find("input[type='checkbox']").prop('checked') == true){
-
-                                                                var found = data.DownloadDataList.filter(function(item) { return item.Url === myurl; });
-                                                                if (found != null) {
-                                                                    var trSvg = $(this).find('[data-fa-i2svg]');
-                                                                    console.log("Found: ");
-
-                                                               console.log(JSON.stringify(found));
-                                                               console.log(found[0].Error);
-                                                               if (found[0].Error == null) {
-                                                                   trSvg
-                                                                       .toggleClass('fa-circle-check')
-                                                                       .toggleClass('fa-solid fa-rotate fa-spin');
-
-                                                                   trSvg.attr("title", "File Download Successful!");
-
-                                                                   countSuccess++;
-                                                               } else {
-                                                                   trSvg
-                                                                       .toggleClass('fa-circle-exclamation')
-                                                                       .toggleClass('fa-solid fa-rotate fa-spin');
-
-                                                                    trSvg.attr("title", found[0].Error);
-                                                                }
-                                                            }
-                                                        }
-                                                     });
-
-                                                }
 
                                             } else {
-                                            var tr = $(this).closest('tr');
-                                            var row = table.row(tr);
-                                            if ($(this).prop('checked')) {
+                                                var tr = $(this).closest('tr');
+                                                var row = table.row(tr);
+                                                if ($(this).prop('checked')) {
 
-                                                        console.log("row: ");
-                                                        console.log(row);
+                                                    console.log("row: ");
+                                                    console.log(row);
 
-                                                        var rowData = row.data();
+                                                    var rowData = row.data();
 
-                                                        console.log("RowData:" + JSON.stringify(rowData));
+                                                    console.log("RowData:" + JSON.stringify(rowData));
 
-                                                        var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
+                                                    var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
 
-                                                        if (found != null) {
-                                                            var trSvg = tr.find('[data-fa-i2svg]');
-                                                            console.log("Found: ");
+                                                    if (found != null) {
+                                                        var trSvg = tr.find('[data-fa-i2svg]');
+                                                        console.log("Found: ");
 
-                                                            console.log(JSON.stringify(found));
-                                                           // console.log(found[0].Error);
-                                                            if (found[0].Error == null) {
-                                                                trSvg
-                                                                    .toggleClass('fa-circle-check')
-                                                                    .toggleClass('fa-solid fa-rotate fa-spin');
+                                                        console.log(JSON.stringify(found));
+                                                        // console.log(found[0].Error);
+                                                        if (found[0].Error == null) {
+                                                            trSvg
+                                                                .toggleClass('fa-circle-check')
+                                                                .toggleClass('fa-solid fa-rotate fa-spin');
 
-                                                                trSvg.attr("title", "File Download Successful!");
+                                                            trSvg.attr("title", "File Download Successful!");
 
-                                                                countSuccess++;
-                                                            } else {
-                                                                trSvg
-                                                                    .toggleClass('fa-circle-exclamation')
-                                                                    .toggleClass('fa-solid fa-rotate fa-spin');
+                                                            countSuccess++;
+                                                        } else {
+                                                            trSvg
+                                                                .toggleClass('fa-circle-exclamation')
+                                                                .toggleClass('fa-solid fa-rotate fa-spin');
 
-                                                                trSvg.attr("title", found[0].Error);
-                                                            }
+                                                            trSvg.attr("title", found[0].Error);
                                                         }
+                                                    }
 
                                                 }
                                             }
                                             //else {
-                                              //      alert("A matching row was never found! Notify the System Developer of this error! This should not happen!");
-                                               // }
+                                            //      alert("A matching row was never found! Notify the System Developer of this error! This should not happen!");
+                                            // }
 
 
                                         });
@@ -1312,7 +1466,6 @@
             function formatFinancialReportChildRow(d, q) {
 
                 var str = "";
-                ////var str = "<table id=ffrChildTable_@appl_id\" cellpadding=\"1\" cellspacing=\"0\" border=\"0\" style=\"padding-left:50px;\">";
                 var str = "<table id=\"ffrChildTable_@appl_id\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
                 for (var i = 0; i < q.length; i++) {
                     if (q[i].tag == 2) {
@@ -1352,6 +1505,47 @@
                             "</tr>";
 
                     }
+                    if (q[i].tag == 3) {
+
+                        var url = get_closeoutnotification_url(@appl_id, q[i].category_name);
+
+                        str = str +
+                            "<tr>" +
+                            "<td>" +
+                            "<input type=\"checkbox\" checked class=\"input.showDownload, .FFR\"" +
+                            "id=\"ffrRowCheckbox_@appl_id\"" +
+                            "class=\"qc pr-2\" name=\"qc\" value=\"" +
+                            q[i].category_name +
+                            "\"" +
+                            "/>" +
+                            "</td>" +
+                            "<td>" +
+                            "<a href = JavaScript:show_notification('" +
+                            @appl_id +
+                            "'," +
+                            "'" +
+                            q[i].category_name +
+                            "') title='show document' id=\"" +
+                            q[i].category_name +
+                            "\"" +
+                            "name=\"" +
+                            url +
+                            "\"" +
+                            ">" +
+                            q[i].category_name +
+                            "</a>" +
+                            "</td>" +
+                            "<td>" +
+                            "<span class=\"pl-2\">Date:</span>" +
+                            "<span name=\"accepted_date\" class=\"pl-2\">" +
+                            q[i].created_date +
+                            "</span>" +
+                            "</td>" +
+                            "<td class=\"float-right\">" +
+                            "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>" +
+                            "</td>" +
+                            "</tr>";
+                    }
 
                 }
                 str = str + "</table>";
@@ -1368,7 +1562,7 @@
                     var full_grant_num;
                     var category_name;
                     var created_date;
-                   // var url;
+                    // var url;
 
                     if (d[i].tag == 1) {
                         full_grant_num = d[i].full_grant_num;

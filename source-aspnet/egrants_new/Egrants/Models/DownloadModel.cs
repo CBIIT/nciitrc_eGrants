@@ -62,7 +62,7 @@ namespace egrants_new.Models
 
         public string ZipFilename { get; set; }
 
-        public string ZipError { get; set; }
+        public string Error { get; set; }
 
         public List<DownloadData> DownloadDataList { get; set; }
     }

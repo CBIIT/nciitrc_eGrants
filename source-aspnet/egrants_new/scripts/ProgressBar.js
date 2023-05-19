@@ -35,8 +35,6 @@
             $('#notice').css('visibility', 'visible').attr('href', data.url);
             $('#mssg').text(data.message);
             $("#mssg").css('display', 'inline');
-            $('#virusReport').css('diplay', 'inline')
-            $('#virusReport').text(data.vReport, 'inline')
             endtime = new Date().getTime();
             $('#dropArea').html('');
             $('#dropArea').removeClass('active-drop');
@@ -70,6 +68,7 @@
                 refresh();
             }
         }
+        
     });
 }
 
