@@ -35,7 +35,6 @@
 
 #region
 
-using egrants_new.Dashboard.Functions;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -48,7 +47,6 @@ using System.Net;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Web;
 using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
@@ -56,8 +54,7 @@ using egrants_new.Functions;
 using egrants_new.Models;
 
 using Newtonsoft.Json;
-using egrants_new.Egrants.Functions;
-
+using Rotativa;
 
 #endregion
 
@@ -191,16 +188,18 @@ namespace egrants_new.Controllers
                     var subCategory = split[2];
                     var documentId = split[3];
                     var documentName = split[4];
+                    var documentDate = split[5];
 
 
                     downloadData.Url = url;
                     downloadData.Category = category;
                     downloadData.SubCategory = subCategory;
-                    downloadData.DocumentId = Convert.ToInt32(documentId);
+                    downloadData.DocumentId = string.IsNullOrEmpty(documentId) ? 0 : Convert.ToInt32(documentId);
                     downloadData.DocumentName = documentName;
-
-
+                    downloadData.DocumentDate = DateTime.TryParse(documentDate, out DateTime result) ? result : DateTime.MinValue;
                     
+
+
                     // if(downloadModel.DownloadDataList.)
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
@@ -266,10 +265,16 @@ namespace egrants_new.Controllers
 
                                 string newFileName = string.Empty;
 
-                                // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
-                                // and remove all invalid characters from filename and replace with _
-                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
-
+                                if (category == "Financial Report")
+                                {
+                                    newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}");
+                                }
+                                else
+                                {
+                                    // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                                    // and remove all invalid characters from filename and replace with _
+                                    newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+                                }
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
@@ -281,7 +286,7 @@ namespace egrants_new.Controllers
 
                         downloadModel.NumSucceeded += 1;
                     }
-                    else
+                    else 
                     {
                         
                         Uri uri;
@@ -293,31 +298,61 @@ namespace egrants_new.Controllers
                             uri = new Uri(imageServer, url);
                         }
 
-                        using (var myWebClient = new WebClient())
+                        if (category == "CloseoutNotification")
                         {
-                            myWebClient.UseDefaultCredentials = true;
-                            myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
-                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                            this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(appl, documentName);
+                            this.ViewBag.applid = appl;
+                            
+                            var report = new ViewAsPdf("~/Egrants/Views/CloseoutNotif.cshtml");
+                            byte[] bytes = report.BuildFile(this.ControllerContext);
 
-                            myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
-                            Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
-
-                            myWebClient.DownloadFile(uri, tmpFileName);
-                            string filename = Path.GetFileName(uri.LocalPath);
-                            FileInfo fi = new FileInfo(filename);
+                
+                           //FileInfo fi = new FileInfo(tmpFileName);
 
                             string newFileName = string.Empty;
 
-                            // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                            // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
                             // and remove all invalid characters from filename and replace with _
-                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                            System.IO.File.WriteAllBytes(tmpFileName, bytes);
+
+                           
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                             downloadData.FileDownloaded = newFileName;
-                            
+
                             Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
                             Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
+                        }
+                        else
+                        {
+                            using (var myWebClient = new WebClient())
+                            {
+                                myWebClient.UseDefaultCredentials = true;
+                                myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
+                                myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                                myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
+                                Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
+
+                                myWebClient.DownloadFile(uri, tmpFileName);
+                                string filename = Path.GetFileName(uri.LocalPath);
+                                FileInfo fi = new FileInfo(filename);
+
+                                string newFileName = string.Empty;
+
+                                // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
+                                // and remove all invalid characters from filename and replace with _
+                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+
+                                // move the file from the temp file to a file with the filename in the downloadDirectory
+                                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                                downloadData.FileDownloaded = newFileName;
+
+                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
+                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
+                            }
                         }
 
                         downloadModel.NumSucceeded += 1;
@@ -1288,6 +1323,23 @@ namespace egrants_new.Controllers
             return Json(res, JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)
+        {
+            Search_by_appl_id.LoadDocs(
+                appl_id,
+                search_type,
+                category_list,
+                Convert.ToString(this.Session["ic"]),
+                Convert.ToString(this.Session["userid"]));
+
+            this.ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
+
+            // ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
+            dynamic res = new { data = this.ViewBag.doclayer };
+
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
+
         /// <summary>
         /// The stop_notice.
         /// </summary>
@@ -1349,13 +1401,23 @@ namespace egrants_new.Controllers
             return null;
         }
 
-        //public string closeout_notif(string applid, string notifName)
-        //{
-        //    this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(applid, notifName);
-        //    this.ViewBag.applid = applid;
+        public string doc_attachments_data(int document_id)
+        {
+            try
+            {
 
-        //    return this.View("~/Egrants/Views/CloseoutNotif.cshtml");
-        //}
+                List<DocAttachment> list = EgrantsDoc.LoadDocAttachments(document_id);
+
+                return JsonConvert.SerializeObject(list);
+
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
+            }
+
+            return null;
+        }
     }
 
 
