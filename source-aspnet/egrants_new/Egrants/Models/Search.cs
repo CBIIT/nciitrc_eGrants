@@ -35,6 +35,7 @@
 
 #region
 
+using egrants_new.Egrants.Functions;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -168,7 +169,8 @@ namespace egrants_new.Egrants.Models
                     grant.former_grant_num = rdr["former_grant_num"]?.ToString();
                     grant.latest_full_grant_num = rdr["latest_full_grant_num"]?.ToString();
                     grant.admin_phs_org_code = rdr["admin_phs_org_code"]?.ToString();
-                    grant.project_title = rdr["project_title"]?.ToString();
+                    string projTitle = rdr["project_title"]?.ToString();
+                    grant.project_title = projTitle.Truncate(60, "...");
                     grant.pi_name = rdr["pi_name"]?.ToString();
                     grant.prog_class_code = rdr["prog_class_code"]?.ToString();
                     grant.all_activity_code = rdr["all_activity_code"]?.ToString();
@@ -187,14 +189,25 @@ namespace egrants_new.Egrants.Models
                     grant.od_flag = rdr["od_flag"]?.ToString();
                     grant.ds_flag = rdr["ds_flag"]?.ToString();
                     grant.adm_supp = rdr["adm_supp"]?.ToString();
+
                     if (appl_id <= 0)
+                    {
                         grant.institutional_flag1 = rdr["institutional_flag1"].ToString() == "1" ? true : false;
+                    }
                     else
+                    {
                         grant.institutional_flag1 = rdr["specific_year_institution1"].ToString() == "1" ? true : false;
+                    }
+
                     if (appl_id <= 0)
+                    {
                         grant.AnyOrgDoc = rdr["institutional_flag2"].ToString() == "1" ? true : false;
+                    }
                     else
+                    {
                         grant.AnyOrgDoc = rdr["specific_year_institution2"].ToString() == "1" ? true : false;
+                    }
+
                     grant.inst_flag1_url = rdr["inst_flag1_url"].ToString();
                     grant.IsCurrentPi = rdr["is_current_pi"]?.ToString() == "1" ? true : false;
                     grant.SelectedGrantPiName = rdr["specific_year_pi_name"].ToString();
@@ -202,8 +215,12 @@ namespace egrants_new.Egrants.Models
                     grant.SelectedProjectName = rdr["specific_year_project_name"].ToString();
                     grant.SelectedOrganizationName = rdr["specific_year_org_name"].ToString();
                     grant.FullGrantNumber = rdr["specific_year_full_grant_num"].ToString();
-                    if (string.IsNullOrWhiteSpace(grant.SelectedOrganizationName))
+
+                    if (string.IsNullOrEmpty(grant.SelectedOrganizationName))
+                    {
                         grant.SelectedOrganizationName = grant.org_name;
+                    }
+
                     grantList.Add(grant);
                 }
                 else if (tag == 2)
@@ -284,7 +301,6 @@ namespace egrants_new.Egrants.Models
                                 continue;
                             }
 
-                            
                             if (string.Equals(appl.appl_type_code, "1") || string.Equals(appl.appl_type_code, "2")
                                                                         || string.Equals(appl.appl_type_code, "5")
                                                                         || string.Equals(appl.appl_type_code, "7")
@@ -326,6 +342,11 @@ namespace egrants_new.Egrants.Models
             }
         }
 
+        /// <summary>
+        /// Gets the MPI info for the icon
+        /// </summary>
+        /// <param name="appl_ids"></param>
+        /// <returns></returns>
         public static Dictionary<string, List<PersonContact>> GetAllMPIInfo(List<string> appl_ids)
         {
             var results = new Dictionary<string, List<PersonContact>>();
