@@ -717,7 +717,7 @@
                         if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper() || string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
                         {
                             <span class="p-1">
-                                <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" class="mr-2" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" class="mr-2" title="Send email to @grant.current_pi_name">@grant.current_pi_name.ToUpper()</a>
                             </span>
                         }
                         else
@@ -757,7 +757,7 @@
                         @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && !string.IsNullOrWhiteSpace(grant.current_pd_email_address))
                         {
                             <span class="p-1">
-                                <a href="JavaScript:send_email('@grant.current_pd_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pd_name">@grant.current_pd_name </a>
+                                <a href="JavaScript:send_email('@grant.current_pd_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pd_name">@grant.current_pd_name.ToUpper() </a>
                             </span>
                             <b>
                                 <span class="pl-2">Code:</span>
@@ -766,11 +766,11 @@
                         }
                         else if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && string.IsNullOrWhiteSpace(grant.current_pd_email_address))
                         {
-                            @grant.current_pd_name
+                            @grant.current_pd_name.ToUpper()
                             <b>
                                 <span class="pl-2">Code:</span>
                             </b>
-                            @grant.prog_class_code
+                            @grant.prog_class_code.ToUpper()
                         }
                     </div>
                 </div>
@@ -788,13 +788,13 @@
                         @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
                         {
                             <span class="p-1">
-                                <a href="JavaScript:send_email('@grant.current_spec_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_spec_name"> @grant.current_spec_name </a>
+                                <a href="JavaScript:send_email('@grant.current_spec_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_spec_name"> @grant.current_spec_name.ToUpper() </a>
                             </span>
                         }
                         else if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && string.IsNullOrWhiteSpace(grant.current_spec_email_address))
                         {
                             <span class="p-1">
-                                @grant.current_spec_name
+                                @grant.current_spec_name.ToUpper();
                             </span>
                         }
                     </div>
