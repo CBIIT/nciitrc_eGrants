@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css"/>
 <!--start display appls and documents-->
 <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
 <style>
 
     .navbar-default { border-bottom: none !important; }
@@ -46,6 +47,62 @@
 
     .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover { color: #555 !important; }
 
+    #loginas {
+        color: dimgray !important;
+        /*font: arial !important;*/
+        font-size: large !important;
+        vertical-align: auto !important;
+        text-align: right !important;
+    }
+
+    body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 90% !important;
+        /* font-size:medium */
+    }
+
+    #loginas a { color: blue !important; }
+
+    .eGrantsWhiteTxt { border-top: 4px solid white !important; }
+
+    .eGrantsDDbkgrnd { background-color: #808080 !important; }
+
+    .eGrantsUpldBtnColor { background-color: #1D8215 !important; }
+
+    .eGrantsReturnBtn {
+        font-size:medium;
+        border: none;
+        color: white;
+        background-color: #808080;
+    }
+
+    .eGrantsDocBtn {
+        font-size:medium;
+        background-color: #4169e1;
+         
+    }
+
+    /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+
+    #myBtn { /*--Ayu*/
+        display: none; /* Hidden by default */
+        position: fixed; /* Fixed/sticky position */
+        bottom: 20px; /* Place the button at the bottom of the page */
+        right: 30px; /* Place the button 30px from the right */
+        z-index: 99; /* Make sure it does not overlap */
+        border: none; /* Remove borders */
+        outline: none; /* Remove outline */
+        background-color: darkcyan; /* Set a background color */
+        color: white; /* Text color */
+        cursor: pointer; /* Add a mouse pointer on hover */
+        padding: 15px; /* Some padding */
+        border-radius: 10px; /* Rounded corners */
+        font-size: 18px;/* Increase font size  
+      }
+
+      #myBtn:hover { /*--Ayu*/
+        background-color: #555; /* Add a dark-grey background on hover */
+        }
 </style>
 
 <script language="JavaScript" type="text/javascript">
@@ -572,7 +629,7 @@
             }
         }
 
-        <div id="grant_layer_@grant.grant_id" style="display: inline; float: left; width: 900px;">
+        <div id="grant_layer_@grant.grant_id" class="pt-2" style="display: inline; float: left; width: 900px;">
         @*padding: 10px 5px 10px 0;*@
         <div class="row">
             <div class="col-md-6" class="float-left" style="vertical-align: center; width: auto">
