@@ -325,14 +325,21 @@ namespace egrants_new.Controllers
                             byte[] bytes = report.BuildFile(this.ControllerContext);
 
 
-                            //FileInfo fi = new FileInfo(tmpFileName);
-
                             string newFileName = string.Empty;
 
                             // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
                             // and remove all invalid characters from filename and replace with _
-                            newFileName = ReplaceInvalidChars(
-                                $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                            if (category == "CloseoutNotification")
+                            {
+                                newFileName = ReplaceInvalidChars(
+                                    $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                            }
+
+                            if (category == "FFR_REJECTION")
+                            {
+                                newFileName = ReplaceInvalidChars(
+                                    $"{fullGrantNumber.Remove(0, 4)}-FFR-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                            }
 
                             System.IO.File.WriteAllBytes(tmpFileName, bytes);
 
