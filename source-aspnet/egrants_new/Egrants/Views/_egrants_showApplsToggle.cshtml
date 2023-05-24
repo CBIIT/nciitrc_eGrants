@@ -386,7 +386,7 @@
         </div>
     </div>
 }
-<script src="~/scripts/jquery-3.6.4.min.js"></script>
+@*<script src="~/scripts/jquery-3.6.4.min.js"></script>*@
 <script language="JavaScript" type="text/javascript">
 
 //click toggle appls icon  grant_id, show_mode
@@ -556,7 +556,7 @@ function create_selected_appls_list(show_mode) {
 }
 
 function updateMPIToolTip(grantId) {
-    var thisApplId = $('#hidApplID'); //document.getElementById("hidApplID").value;
+    var thisApplId = $('#hidApplID').val(); //document.getElementById("hidApplID").value;
     if (!thisApplId) {
         thisApplId = "@ViewBag.SelectedAppls";
         if (thisApplId.indexOf(",") != -1) {
@@ -622,7 +622,7 @@ function updateMPIToolTip(grantId) {
     }
 
     //document.getElementById("imgLink" + grantId).setAttribute('title', toolTip);
-    $("#imgLink" + grantId).attr('title', toolTip);
+    $("#imgLink" + grantId).prop('title', toolTip);
     
     
 }
