@@ -701,7 +701,7 @@
         </div>
         <!--end show category zone-->
         <br/>
-        <div id="grant_zone_@grant.grant_id" class="text-truncate" style="border-bottom: groove; border-color: darkgrey; display: inline-block; float: left; width: 900px;">
+        <div id="grant_zone_@grant.grant_id" style="border-bottom: groove; border-color: darkgrey; display: inline-block; float: left; width: 900px;">
         <!--start grant infor-->
         <div id="grant info_@grant.grant_id" style="display: inline; float: left;">
             <div id="PT infor" style="display: inline">
@@ -748,17 +748,17 @@
                         if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper())
                         {
                             <span class="p-1">
-                                <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" class="mr-2" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
                             </span>
                         }
                         else
                         {
-                            <span class="pr-2">@grant.SelectedGrantPiName.ToUpper()</span>
+                            <span class="p-1">@grant.SelectedGrantPiName.ToUpper()</span>
                         }
                     }
                     else if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
                     {
-                        <span class="pr-2">@grant.SelectedGrantPiName.ToUpper()</span>
+                        <span class="p-1">@grant.SelectedGrantPiName.ToUpper()</span>
                     }
                     else if (!string.IsNullOrEmpty(grant.current_pi_name) && !string.IsNullOrEmpty(grant.current_pi_email_address))
                     {
@@ -774,7 +774,7 @@
                         if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper() || string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
                         {
                             <span class="p-1">
-                                <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" class="mr-2" title="Send email to @grant.current_pi_name">@grant.current_pi_name.ToUpper()</a>
+                                <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name.ToUpper()</a>
                             </span>
                         }
                         else
@@ -789,13 +789,13 @@
 
                     @if (!string.IsNullOrEmpty(grant.SelectedOrganizationName))
                     {
-                        <span class="p-1">
+                        <span class="p-2">
                             @grant.SelectedOrganizationName.ToUpper()
                         </span>
                     }
                     else if (grant.org_name != string.Empty)
                     {
-                        <span class="p-1"> @grant.org_name.ToUpper()</span>
+                        <span class="p-2"> @grant.org_name.ToUpper()</span>
                     }
                 </div>
             </div><br/>
@@ -867,7 +867,7 @@
                         </span>
                     </div>
                     <div id="grantbar2" style="width: 500px;">
-                        <span class="p-1"> @Html.Partial("~/Egrants/Views/_egrants_showApplsList.cshtml", grant_id)</span>
+                        <span class="p-2"> @Html.Partial("~/Egrants/Views/_egrants_showApplsList.cshtml", grant_id)</span>
                     </div>
                 </div>
             }
@@ -878,7 +878,7 @@
             <!--show adm supplement requests-->
             @if (Convert.ToInt16(grant.adm_supp) > 0)
             {
-                <span class="pl-1">
+                <span class="pl-2">
                     <a href="Javascript:show_supplement('@grant.grant_id','to_view')">
                         <b style="vertical-align: bottom;" title="View Supplement Files">Supplement</b>
                     </a>
@@ -889,7 +889,7 @@
             <div id="flag_zone_@grant_id" style="display: inline; float: right; height: 80px; width: 250px;">
                 @if (Convert.ToString(grant.ds_flag) == "y")
                 {
-                    <span style="margin-left: 10px; width: 80px;">
+                    <span class="pl-2">
                         <a href="JavaScript:show_grant_with_flag('DS', @Convert.ToInt32(grant.grant_id))">
                             <img src="~/Content/images/flag_ds.jpg" style="height: 16px; margin-left: 5px" title="View Diversity Supplement Funded Grant for @grant.grant_num"/>
                         </a>
@@ -898,18 +898,18 @@
 
                 @if (Convert.ToString(grant.ms_flag) == "y")
                 {
-                    <span style="margin-left: 10px; width: 80px;">
+                    <span class="pl-2">
                         <a href="JavaScript:show_grant_with_flag('MS', @Convert.ToInt32(grant.grant_id))">
-                            <img src="~/Content/images/flag_ms.jpg" style="height: 16px; margin-left: 5px" title="View Moonshot Funded Grant for @grant.grant_num"/>
+                            <img src="~/Content/images/flag_ms.jpg" style="height: 16px; margin-left: 5px" title="View Moonshot Funded Grant for @grant.grant_num" />
                         </a>
                     </span>
                 }
 
                 @if (Convert.ToString(grant.od_flag) == "y")
                 {
-                    <span style="margin-left: 10px; width: 80px;">
+                    <span class="pl-2">
                         <a href="JavaScript:show_grant_with_flag('OD', @Convert.ToInt32(grant.grant_id))">
-                            <img src="~/Content/images/flag_od.jpg" style="height: 18px; margin-left: 5px" title="View OD Funded Grant for @grant.grant_num"/>
+                            <img src="~/Content/images/flag_od.jpg" style="height: 18px; margin-left: 5px" title="View OD Funded Grant for @grant.grant_num" />
                         </a>
                     </span>
                 }
@@ -973,54 +973,54 @@
                 {
                     string grantLinkId = "grantLink" + grant.grant_id;
                     string imgLinkId = "imgLink" + grant.grant_id;
-                    <span style="margin-left: 10px; width: 80px;">
+                    <span class="pl-2">
                         <a id="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))">
-                            <img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height: 16px;" title="Has Multi-PI Grant Year(s)"/>
+                            <img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height: 16px;" title="Has Multi-PI Grant Year(s)" />
                         </a>
                     </span>
                 }
 
                 @if (Convert.ToString(grant.fda_flag) == "y")
                 {
-                    <span style="margin-left: 10px; width: 80px;">
+                    <span class="pl-2">
                         <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))">
-                            <img src="~/Content/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num"/>
+                            <img src="~/Content/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num" />
                         </a>
                     </span>
                 }
 
                 @if (Convert.ToString(grant.stop_flag) == "y")
                 {
-                    <span style="margin-left: 10px; width: 80px;">
+                    <span class="pl-2">
                         <a href="#" class="NormalModal" data-toggle="modal" data-target="#NormalModal" data-id="stop" data-assigned-id="@grant.grant_id" title="View Stop Notice for @grant.grant_num">
-                            <img src="~/Content/images/flag_stp.png" style="height: 18px; margin-left: 15px"/>
+                            <img src="~/Content/images/flag_stp.png" style="height: 18px; margin-left: 15px" />
                         </a>
                     </span>
                 }
 
                 @if (grant.sv_url != string.Empty)
                 {
-                    <span style="margin-left: 10px; width: 80px;">
+                    <span class="pl-2">
                         <a target="_new" href="@Convert.ToString(Session["ImageServerUrl"])@grant.sv_url">
-                            <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name"/>
+                            <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name" />
                         </a>
                     </span>
                 }
                 @if (grant.institutional_flag1 == true)
                 {
-                    <span style="margin-left: 10px; width: 80px;">
+                    <span class="pl-2">
                         <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.SelectedOrganizationName">
-                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.SelectedOrganizationName"/>
+                            <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.SelectedOrganizationName" />
                         </a>
                     </span>
                 }
                 else if (grant.AnyOrgDoc == true)
                 {
-                    <span style="margin-left: 10px; width: 80px;">
-                        <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.SelectedOrganizationName">
-                            <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.SelectedOrganizationName"/>
-                        </a>
-                    </span>
+                <span class="pl-2">
+                    <a href="~/InstitutionalFiles/Show_Docs?org_name=@grant.SelectedOrganizationName">
+                        <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.SelectedOrganizationName" />
+                    </a>
+                </span>
                 }
             </div>
             <!--end grant flags-->
