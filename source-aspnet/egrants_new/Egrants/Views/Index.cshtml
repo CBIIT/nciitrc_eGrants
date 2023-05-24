@@ -10,7 +10,7 @@
 <!--start display appls and documents-->
 <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
 <link href="~/Content/jquery-ui.min.css" rel="stylesheet" />
-<script src="~/scripts/jquery-3.6.4.min.js"></script>
+@*<script src="~/scripts/jquery-3.6.4.min.js"></script>*@
 <script src="~/scripts/validation.js"></script>
 <script src="~/scripts/EgrantsCatsZone.js"></script>
 <script src="~/scripts/EgrantsQC.js"></script>
@@ -306,6 +306,7 @@
             var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
         } else if (flag_type == "MPI") {
             var thisApplId = document.getElementById("hidApplID").value;
+            console.log(thisApplId);
             if (!thisApplId) {
                 thisApplId = "@ViewBag.SelectedAppls";
                 if (thisApplId.indexOf(",") != -1) {
@@ -313,8 +314,14 @@
                     thisApplId = ''; // displays as Has Multi-PI Grant Year(s) below
                 }
             }
-            if (thisApplId)
-                $("#mpiModal" + thisApplId).modal('show');
+            if (thisApplId){
+                console.log(thisApplId);
+                $('#mpiModal' + thisApplId).modal({
+                    show: true
+                }); 
+               // $("#mpiModal" + thisApplId).modal('show');
+            }
+
             return;
         } else if (flag_type == "ARRA") {
             flag_type = "All";
@@ -613,10 +620,10 @@
                         </div>
                     </div>
                     <!--end show category zone-->
-                    <br />
+                  
                     <div id="grant_zone_@grant.grant_id" style="border-bottom: groove; border-color: darkgrey; display: inline-block; float: left; width: 900px;">
                         <!--start grant infor-->
-                        <div id="grant info_@grant.grant_id" style="display: inline; float: left;">
+                        <div id="grant info_@grant.grant_id" class=" p-1" style="display: inline; float: left;">
                             <div id="PT infor" style="display: inline">
                                 <div id="grantbar1" style="float: left">
                                     <b>
