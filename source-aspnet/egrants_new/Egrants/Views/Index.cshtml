@@ -633,13 +633,13 @@
                                 <div id="grantbar2" style="width: 500px;">
                                     @if (!string.IsNullOrEmpty(grant.SelectedProjectName))
                                     {
-                                        <span class="p-1">
+                                        <span class="p-0">
                                             @grant.SelectedProjectName.ToUpper()
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="p-1">
+                                        <span class="p-0">
                                             @grant.project_title.ToUpper()
                                         </span>
                                     }
@@ -667,18 +667,18 @@
 
                                         if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper())
                                         {
-                                            <span class="p-1">
+                                            <span class="p-0">
                                                 <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
                                             </span>
                                         }
                                         else
                                         {
-                                            <span class="p-1">@grant.SelectedGrantPiName.ToUpper()</span>
+                                            <span class="p-0">@grant.SelectedGrantPiName.ToUpper()</span>
                                         }
                                     }
                                     else if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
                                     {
-                                        <span class="p-1">@grant.SelectedGrantPiName.ToUpper()</span>
+                                        <span class="p-0">@grant.SelectedGrantPiName.ToUpper()</span>
                                     }
                                     else if (!string.IsNullOrEmpty(grant.current_pi_name) && !string.IsNullOrEmpty(grant.current_pi_email_address))
                                     {
@@ -693,29 +693,29 @@
 
                                         if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper() || string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
                                         {
-                                            <span class="p-1">
+                                            <span class="p-0">
                                                 <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name.ToUpper()</a>
                                             </span>
                                         }
                                         else
                                         {
-                                            <span class="p-1">@grant.current_pi_name.ToUpper()</span>
+                                            <span class="p-0">@grant.current_pi_name.ToUpper()</span>
                                         }
                                     }
                                     else if (!string.IsNullOrEmpty(grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address))
                                     {
-                                        <span class="p-1">@grant.current_pi_name.ToUpper()</span>
+                                        <span class="p-0">@grant.current_pi_name.ToUpper()</span>
                                     }
 
                                     @if (!string.IsNullOrEmpty(grant.SelectedOrganizationName))
                                     {
-                                        <span class="p-2">
+                                        <span class="pl-2">
                                             @grant.SelectedOrganizationName.ToUpper()
                                         </span>
                                     }
                                     else if (grant.org_name != string.Empty)
                                     {
-                                        <span class="p-2"> @grant.org_name.ToUpper()</span>
+                                        <span class="pl-2"> @grant.org_name.ToUpper()</span>
                                     }
                                 </div>
                             </div><br />
@@ -733,7 +733,7 @@
                                     <div id="grantbar2" style="width: 500px;">
                                         @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && !string.IsNullOrWhiteSpace(grant.current_pd_email_address))
                                         {
-                                            <span class="p-1">
+                                            <span class="p-0">
                                                 <a href="JavaScript:send_email('@grant.current_pd_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pd_name">@grant.current_pd_name.ToUpper() </a>
                                             </span>
                                             <b>
@@ -764,13 +764,13 @@
                                     <div id="grantbar2" style="width: 500px;">
                                         @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
                                         {
-                                            <span class="p-1">
+                                            <span class="p-0">
                                                 <a href="JavaScript:send_email('@grant.current_spec_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_spec_name">@grant.current_spec_name.ToUpper()</a>
                                             </span>
                                         }
                                         else if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && string.IsNullOrWhiteSpace(grant.current_spec_email_address))
                                         {
-                                            <span class="p-1">
+                                            <span class="p-0">
                                                 @grant.current_spec_name.ToUpper()
                                             </span>
                                         }
@@ -787,7 +787,7 @@
                                         </span>
                                     </div>
                                     <div id="grantbar2" style="width: 500px;">
-                                        <span class="pl-1"> @Html.Partial("~/Egrants/Views/_egrants_showApplsList.cshtml", grant_id)</span>
+                                        <span class="pl-0"> @Html.Partial("~/Egrants/Views/_egrants_showApplsList.cshtml", grant_id)</span>
                                     </div>
                                 </div>
                             }
