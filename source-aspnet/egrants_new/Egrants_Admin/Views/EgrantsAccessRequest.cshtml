@@ -289,13 +289,13 @@
                                     <option></option>
                                     @foreach (var coordinators in ViewBag.Coordinators)
                                     {
-                                        if (coordinators.person_id == user.coordinator_id)
+                                        if (coordinators.PersonId == user.coordinator_id)
                                         {
-                                            <option id="coordinator_id" value="@coordinators.person_id" selected="selected">@coordinators.person_name</option>
+                                            <option id="coordinator_id" value="@coordinators.PersonId" selected="selected">@coordinators.person_name</option>
                                         }
                                         else
                                         {
-                                            <option id="coordinator_id" value="@coordinators.person_id">@coordinators.person_name</option>
+                                            <option id="coordinator_id" value="@coordinators.PersonId">@coordinators.person_name</option>
                                         }
                                     }
                                 </select>
