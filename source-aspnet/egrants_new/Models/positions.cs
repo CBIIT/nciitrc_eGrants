@@ -48,11 +48,11 @@ namespace egrants_new.Models
         /// <summary>
         ///     Gets or sets the position_id.
         /// </summary>
-        internal string PositionId { get; set; }
+        public string PositionId { get; set; }
 
         /// <summary>
         ///     Gets or sets the position_name.
         /// </summary>
-        internal string PositionName { get; set; }
+        public string PositionName { get; set; }
     }
 }

@@ -208,13 +208,13 @@
                      <option value=0>NCI</option>
                      @foreach (var item in ViewBag.Specialists)
                      {
-                        if (Convert.ToInt16(ViewBag.PersonID) == Convert.ToInt16(item.person_id))
+                        if (Convert.ToInt16(ViewBag.PersonID) == Convert.ToInt16(item.PersonId))
                         {
-                           <option value=@item.person_id selected="selected">@item.person_name</option>
+                           <option value=@item.PersonId selected="selected">@item.person_name</option>
                         }
                         else
                         {
-                           <option value=@item.person_id>@item.person_name</option>
+                           <option value=@item.PersonId>@item.person_name</option>
                         }
                      }
                   </select>
