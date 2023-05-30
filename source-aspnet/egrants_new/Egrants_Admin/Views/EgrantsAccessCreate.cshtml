@@ -183,11 +183,11 @@
             if (document.getElementById("ddlPositions").selectedIndex == 0) {
                 alert("Please select user position...");
                 return false;
-            } else var posision_name = document.getElementById("ddlPositions").options[document.getElementById("ddlPositions").selectedIndex].text;
+            } else var positionName = document.getElementById("ddlPositions").options[document.getElementById("ddlPositions").selectedIndex].text;
             var url = url + "&position_id=" + document.getElementById("ddlPositions").options[document.getElementById("ddlPositions").selectedIndex].value;
 
             //check user coordinator id
-            if (posision_name != 'IC-Coordinator' && document.getElementById("ddlCoordinators").selectedIndex == 0 && document.getElementById("chkIscoordinator").checked != true) {
+            if (positionName != 'IC-Coordinator' && document.getElementById("ddlCoordinators").selectedIndex == 0 && document.getElementById("chkIscoordinator").checked != true) {
                 alert("Please select Coordinator...");
                 return false;
             }
@@ -265,7 +265,7 @@
             <tbody>
                 <tr>
                     <td><b>Tab Name Index:</b></td>
-                    <td colspan="4">E=egrants;&#0160;M=Mangement;&#0160;D=Docman;&#0160;C=Contract File Tracking;&#0160;A=Admin;&#0160;DB=Dashboard;&#0160;IC=IC Coordinator</td>
+                    <td colspan="4">E=egrants;&#0160;M=Management;&#0160;D=Docman;&#0160;C=Contract File Tracking;&#0160;A=Admin;&#0160;DB=Dashboard;&#0160;IC=IC Coordinator</td>
                 </tr>
                 <tr style="height:10px"><td colspan="3"></td></tr>
                 <tr style="height:15px">
@@ -283,11 +283,11 @@
                             {
                                 if (Convert.ToString(Session["ic"]).ToUpper() == Convert.ToString(profiles.Profile))
                                 {
-                                    <option id="Profile_id" value="@profiles.ProfileId" selected="selected">@profiles.Profile</option>
+                                    <option id="profile_id" value="@profiles.ProfileId" selected="selected">@profiles.Profile</option>
                                 }
                                 else
                                 {
-                                    <option id="Profile_id" value="@profiles.ProfileId">@profiles.Profile</option>
+                                    <option id="profile_id" value="@profiles.ProfileId">@profiles.Profile</option>
                                 }
                             }
                         </select>
@@ -299,18 +299,18 @@
                 <tr style="height:15px">
                     <td><lable for="lblFirst_name"><b>First Name:</b></lable></td>
                     <td>
-                        <input name="firstname" type="text" id="txtFirstname" class="form-control" style="height:30px; width:160px;" title="Insert first name" />&#0160;
+                        <input name="firstname" type="text" id="txtFirstname" class="form-control" style="height:30px; width:160px;" title="Insert First Name" />&#0160;
                         <lable for="lblMiddle_name"><b>Middle Initial:</b></lable>
-                        <input name="middlename" type="text" id="txtMiddlename" class="form-control" style="height:30px; width:40px;" title="Insert middle name" />
+                        <input name="middlename" type="text" id="txtMiddlename" class="form-control" style="height:30px; width:40px;" title="Insert Middle Name" />
                     </td>
                     <td><lable for="lblLast_name"><b>Last Name:</b></lable></td>
                     <td colspan="2">
-                        <input name="lastname" type="text" id="txtLastname" class="form-control" style="height:30px; width:200px;" title="Insert last name" />
+                        <input name="lastname" type="text" id="txtLastname" class="form-control" style="height:30px; width:200px;" title="Insert Last Name" />
                     </td>
                 </tr>
                 <tr style="height:15px">
                     <td><lable for="lblEmail"><b>Email Address:</b></lable></td>
-                    <td><input name="email" type="text" id="txtEmail" class="form-control" style="height:30px; width:300px;" title="Insert email addess" /></td>
+                    <td><input name="email" type="text" id="txtEmail" class="form-control" style="height:30px; width:300px;" title="Insert Email Address" /></td>
                     <td><lable for="lblPhone_number"><b>Phone Num: </b></lable></td>
                     <td><input name="phone_number" type="text" id="txtPhonenumber" class="form-control" style="height:30px; width:120px;" title="Insert phone number" /></td>
                     <td>10 only</td>
@@ -320,19 +320,19 @@
                     <td>
                         <div class="checkbox">
                             E
-                            <input type="checkbox" name="tabs" id="chkEgrants" value="egrants" title="select to display eGrants tab" />&#0160;&#0160;
+                            <input type="checkbox" name="tabs" id="chkEgrants" value="egrants" title="Select to display eGrants tab" />&#0160;&#0160;
                             M
-                            <input type="checkbox" name="tabs" id="chkMgt" value="mgt" title="select to display Management tab" />&#0160;&#0160;
+                            <input type="checkbox" name="tabs" id="chkMgt" value="mgt" title="Select to display Management tab" />&#0160;&#0160;
                             D
-                            <input type="checkbox" name="tabs" id="chkDocman" value="docman" title="select to display Docman tab" />&#0160;&#0160;
+                            <input type="checkbox" name="tabs" id="chkDocman" value="docman" title="Select to display Docman tab" />&#0160;&#0160;
                             C
-                            <input type="checkbox" name="tabs" id="chkCft" value="cft" title="select to display Contract File Tracking tab" />&#0160;&#0160;
+                            <input type="checkbox" name="tabs" id="chkCft" value="cft" title="Select to display Contract File Tracking tab" />&#0160;&#0160;
                             A
-                            <input type="checkbox" name="tabs" id="chkAdmin" value="admin" title="select to display admin tab" />&#0160;&#0160;
+                            <input type="checkbox" name="tabs" id="chkAdmin" value="admin" title="Select to display admin tab" />&#0160;&#0160;
                             DB
-                            <input type="checkbox" name="tabs" id="chkDashboard" value="dashboard" title="select to display Dashboard tab" />&#0160;&#0160;
+                            <input type="checkbox" name="tabs" id="chkDashboard" value="dashboard" title="Select to display Dashboard tab" />&#0160;&#0160;
                             IC
-                            <input type="checkbox" name="tabs" id="chkICCoord" value="ICCoordinator" title="select to display IC Coordnator tab" />
+                            <input type="checkbox" name="tabs" id="chkICCoord" value="ICCoordinator" title="Select to display IC Coordinator tab" />
                         </div>
                     </td>
                     <td><lable for="lalStartdate"><b>Start Date:</b></lable></td>
@@ -361,7 +361,7 @@
                             <option></option>
                             @foreach (var coordinators in ViewBag.Coordinators)
                             {
-                                <option id="coordinator_id" value="@coordinators.person_id">@coordinators.person_name</option>
+                                <option id="coordinator_id" value="@coordinators.PersonId">@coordinators.person_name</option>
                             }
                         </select>
                     </td>

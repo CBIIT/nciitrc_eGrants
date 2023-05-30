@@ -1,4 +1,6 @@
-﻿@using egrants_new.Egrants.Models;
+﻿
+
+@using egrants_new.Egrants.Models;
 @{
     //declare for all appls toggle
     int all_appls_per_column = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(ViewBag.ApplCount) / 3));
@@ -384,7 +386,7 @@
         </div>
     </div>
 }
-
+@*<script src="~/scripts/jquery-3.6.4.min.js"></script>*@
 <script language="JavaScript" type="text/javascript">
 
 //click toggle appls icon  grant_id, show_mode
@@ -464,9 +466,9 @@ function check_toggle_appls_checkbox(show_mode) {
 
             if (appls_list == "All" || appls_list == "all") {
                 document.getElementById("toggle_appls_checkall").checked = true;
-                checkboxes.each(function (index) {
+                checkboxes.each(function(index) {
                     $(this).prop("checked", true);
-                })
+                });
             }
             else {
                 if (appls_list.indexOf(",") >= 1) {
@@ -554,7 +556,7 @@ function create_selected_appls_list(show_mode) {
 }
 
 function updateMPIToolTip(grantId) {
-    var thisApplId = document.getElementById("hidApplID").value;
+    var thisApplId = $('#hidApplID').val(); //document.getElementById("hidApplID").value;
     if (!thisApplId) {
         thisApplId = "@ViewBag.SelectedAppls";
         if (thisApplId.indexOf(",") != -1) {
@@ -618,7 +620,11 @@ function updateMPIToolTip(grantId) {
     if (thisApplId) {
         toolTip = messages[thisApplId].replace(/conspicuousNewLine/g, '\r\n');
     }
-    document.getElementById("imgLink" + grantId).setAttribute('title', toolTip);
+
+    //document.getElementById("imgLink" + grantId).setAttribute('title', toolTip);
+    $("#imgLink" + grantId).prop('title', toolTip);
+    
+    
 }
 
 //check all checkbox after user check select all
