@@ -242,20 +242,20 @@
                                 <option></option>
                                 @foreach (var profiles in ViewBag.Profiles)
                                 {
-                                    if (Convert.ToString(profiles.Profile) == Convert.ToString(user.ic))
+                                    if (Convert.ToString(profiles.ProfileId) == Convert.ToString(user.ic))
                                     {
-                                        <option id="Profile_id" value="@profiles.ProfileId" selected="selected">@profiles.Profile</option>
+                                        <option id="profile_id" value="@profiles.ProfileId" selected="selected">@profiles.Profile</option>
                                     }
                                     else
                                     {
-                                        <option id="Profile_id" value="@profiles.ProfileId">@profiles.Profile</option>
+                                        <option id="profile_id" value="@profiles.ProfileId">@profiles.Profile</option>
                                     }
                                 }
                             </select>
                         </td>
                         <td>
                             <lable for="lblStatus"><b>Status:</b></lable>&#0160;
-                            <select name="status" id="ddlStatus" class="form-control" style="height:30px; width:100px;" title="set user status" onchange="change_status('@user.person_name','@user.person_id')">
+                            <select name="status" id="ddlStatus" class="form-control" style="height:30px; width:100px;" title="set user status" onchange="change_status('@user.person_name','@user.PersonId')">
                                 <option></option>
                                 @if (Convert.ToString(user.active) == "True")
                                 {
@@ -398,13 +398,13 @@
                                 <option></option>
                                 @foreach (var coordinators in ViewBag.Coordinators)
                                 {
-                                    if (user.coordinator_id == coordinators.person_id)
+                                    if (user.coordinator_id == coordinators.PersonId)
                                     {
-                                        <option id="coordinator_id" value="@coordinators.person_id" selected="selected">@coordinators.person_name</option>
+                                        <option id="coordinator_id" value="@coordinators.PersonId" selected="selected">@coordinators.person_name</option>
                                     }
                                     else
                                     {
-                                        <option id="coordinator_id" value="@coordinators.person_id">@coordinators.person_name</option>
+                                        <option id="coordinator_id" value="@coordinators.PersonId">@coordinators.person_name</option>
                                     }
                                 }
                             </select>
@@ -421,7 +421,7 @@
                             }
                         </td>
                         <td>
-                            <button AccessKey="U" class="btn btn-primary btn-sm" title="Click here to update user's information [shift + alt + U]" onClick="JavaScript:to_update('@user.person_id')">
+                            <button AccessKey="U" class="btn btn-primary btn-sm" title="Click here to update user's information [shift + alt + U]" onClick="JavaScript:to_update('@user.PersonId')">
                                 <u>U</u>pdate
                             </button>
                         </td>

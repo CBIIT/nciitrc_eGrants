@@ -48,7 +48,7 @@ namespace egrants_new.Models
     /// <summary>
     ///     The egrants common.
     /// </summary>
-    public partial class EgrantsCommon
+    public class EgrantsCommon
     {
 
         // check user validation

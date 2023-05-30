@@ -765,13 +765,13 @@
                                         @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
                                         {
                                             <span class="p-1">
-                                                <a href="JavaScript:send_email('@grant.current_spec_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_spec_name"> @grant.current_spec_name.ToUpper() </a>
+                                                <a href="JavaScript:send_email('@grant.current_spec_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_spec_name">@grant.current_spec_name.ToUpper()</a>
                                             </span>
                                         }
                                         else if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && string.IsNullOrWhiteSpace(grant.current_spec_email_address))
                                         {
                                             <span class="p-1">
-                                                @grant.current_spec_name.ToUpper();
+                                                @grant.current_spec_name.ToUpper()
                                             </span>
                                         }
                                     </div>

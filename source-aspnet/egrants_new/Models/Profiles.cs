@@ -49,16 +49,16 @@ namespace egrants_new.Models
         /// <summary>
         ///     Gets or sets the profile_id.
         /// </summary>
-        internal string ProfileId { get; set; }
+        public string ProfileId { get; set; }
 
         /// <summary>
         ///     Gets or sets the profile.
         /// </summary>
-        internal string Profile { get; set; }
+        public string Profile { get; set; }
 
         /// <summary>
         ///     Gets or sets the admin_phs_org_code.
         /// </summary>
-        internal string AdminPhsOrgCode { get; set; }
+        public string AdminPhsOrgCode { get; set; }
     }
 }
