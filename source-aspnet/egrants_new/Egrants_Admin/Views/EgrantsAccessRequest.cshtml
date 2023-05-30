@@ -191,13 +191,13 @@
                     {
                         <tr style="height:15px">
                             <td><b>Tab Name Index:</b></td>
-                            <td colspan="3">E=egrants;&#0160;M=Mangement;&#0160;A=Admin;&#0160;DB=Dashboard;&#0160;IC=IC Coordinator</td>
+                            <td colspan="3">E=egrants;&#0160;M=Management;&#0160;A=Admin;&#0160;DB=Dashboard;&#0160;IC=IC Coordinator</td>
                         </tr>
                         <tr style="height:15px"><td colspan="3"></td></tr>
                         <tr style="height:15px">
                             <td><lable for="lblUserid"><b>Userid:</b></lable></td>
                             <td>
-                                <input name="userid" type="text" id="txtUserid" class="form-control" style="height:30px; width:160px;" title="Insert userid" value="@user.userid" />
+                                <input name="userid" type="text" id="txtUserid" class="form-control" style="height:30px; width:160px;" title="Insert UserId" value="@user.userid" />
                             </td>
                             <td><lable for="lblIC"><b>Institution:</b></lable></td>
                             <td>
@@ -222,24 +222,24 @@
                         <tr style="height:15px">
                             <td><lable for="lblFirst_name"><b>First Name:</b></lable></td>
                             <td>
-                                <input name="firstname" type="text" id="txtFirstname" class="form-control" style="height:30px; width:160px;" title="Insert first name" value="@user.first_name" />
+                                <input name="firstname" type="text" id="txtFirstname" class="form-control" style="height:30px; width:160px;" title="Insert First Name" value="@user.first_name" />
                                 &#0160;
-                                <lable for="lblMiddle_name"><b>MIddle Initial:</b></lable>
-                                <input name="middlename" type="text" id="txtMiddlename" class="form-control" style="height:30px; width:40px;" title="Insert middle name" value="@user.middle_name" />
+                                <lable for="lblMiddle_name"><b>Middle Initial:</b></lable>
+                                <input name="middlename" type="text" id="txtMiddlename" class="form-control" style="height:30px; width:40px;" title="Insert Middle Name" value="@user.middle_name" />
                             </td>
                             <td><lable for="lblLast_name"><b>Last Name:</b></lable></td>
                             <td>
-                                <input name="lastname" type="text" id="txtLastname" class="form-control" style="height:30px; width:200px;" title="Insert last name" value="@user.last_name" />
+                                <input name="lastname" type="text" id="txtLastname" class="form-control" style="height:30px; width:200px;" title="Insert Last Name" value="@user.last_name" />
                             </td>
                         </tr>
                         <tr style="height:15px">
                             <td><lable for="lblEmail"><b>Email Address:</b></lable></td>
                             <td>
-                                <input name="email" type="text" id="txtEmail" class="form-control" style="height:30px; width:300px;" title="Insert email addess" value="@user.email_address" />
+                                <input name="email" type="text" id="txtEmail" class="form-control" style="height:30px; width:300px;" title="Insert Email Address" value="@user.email_address" />
                             </td>
                             <td><lable for="lblPhone_number"><b>Phone Num: </b></lable></td>
                             <td>
-                                <input name="phone_number" type="text" id="txtPhonenumber" class="form-control" style="height:30px; width:120px;" title="Insert phone number" value="@user.phone_number" /> * 10 digit only
+                                <input name="phone_number" type="text" id="txtPhonenumber" class="form-control" style="height:30px; width:120px;" title="Insert Phone Number" value="@user.phone_number" /> * 10 digit only
                             </td>
                         </tr>
                         <tr style="height:30px">
@@ -289,13 +289,13 @@
                                     <option></option>
                                     @foreach (var coordinators in ViewBag.Coordinators)
                                     {
-                                        if (coordinators.person_id == user.coordinator_id)
+                                        if (coordinators.PersonId == user.coordinator_id)
                                         {
-                                            <option id="coordinator_id" value="@coordinators.person_id" selected="selected">@coordinators.person_name</option>
+                                            <option id="coordinator_id" value="@coordinators.PersonId" selected="selected">@coordinators.person_name</option>
                                         }
                                         else
                                         {
-                                            <option id="coordinator_id" value="@coordinators.person_id">@coordinators.person_name</option>
+                                            <option id="coordinator_id" value="@coordinators.PersonId">@coordinators.person_name</option>
                                         }
                                     }
                                 </select>

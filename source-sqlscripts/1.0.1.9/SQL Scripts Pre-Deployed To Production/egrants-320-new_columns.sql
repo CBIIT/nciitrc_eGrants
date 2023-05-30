@@ -1,0 +1,3 @@
+ALTER TABLE [dbo].GM_ACTION_QUEUE_VW ADD [SPEC_NPN_ID] nvarchar(20) NULL;
+
+ALTER TABLE [dbo].Grant_Contacts_PD_GS ADD [SPEC_NPN_ID] nvarchar(20) NULL;
