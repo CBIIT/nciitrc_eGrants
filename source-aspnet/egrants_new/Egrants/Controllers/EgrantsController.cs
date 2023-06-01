@@ -88,43 +88,11 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult Index()
         {
-            // go to dashboard tab if user is a specialist
-            // if (Convert.ToInt16(Session["position_id"]) == 2 && Convert.ToInt16(Session["dashboard"]) == 0)
-            // {
-            // return RedirectToAction("Index", "Dashboard", new { area = "Dashboard" });
-            // }else return View("~/Egrants/Views/Index.cshtml");
-
-            // go to ICCoordinator tab if user is a Coordinator
-            // else if (Convert.ToInt16(Session["position_id"]) == 0)
-            // {   
-            // return RedirectToAction("Index", "ICCoordinator", new { area = "IC_Coordinator" });
-            // }
-
-
-            // retuen IC list
+            // return IC list
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CurrentView = "StandardForm";
 
             return this.View("~/Egrants/Views/Index.cshtml");
-        }
-
-        public string SelectedProductName
-        {
-            get { return (string)Session["SelectedProductName"]; }
-            set { Session["SelectedProductName"] = value; }
-        }
-
-        void CurrentViewState_ValueChanged(object sender, EventArgs e)
-        {
-
-            // Display the value of the HiddenField control.
-            var mtetst = "The value of the HiddenField control is " + sender + ".";
-
-        }
-
-        protected void btnDownload_Click(object sender, EventArgs e) 
-        {
-            Console.Write("Hello");
         }
 
         public string SetCurrentViewSessionVariable(string currentView)
@@ -146,7 +114,9 @@ namespace egrants_new.Controllers
         {
             // 1 - trim the first character in the full grant number
             // 2 - trim the characters in full grant number year, and anything after trim
-            string downloadDirectory = string.Empty;
+            string downloadDirectory;
+
+            // The downloadModel contains all of the data that will be returned to the view
             DownloadModel downloadModel = new DownloadModel();
 
             try
@@ -182,7 +152,7 @@ namespace egrants_new.Controllers
             }
             catch (Exception ex)
             {
-                downloadModel.Error = "Error in accessing temp files and directories!";
+                downloadModel.Error = "General Exception. This is likely an error in accessing temp files and temp directories! Notify Development Team of this error.";
                 return Json(downloadModel, JsonRequestBehavior.AllowGet);
             }
 
@@ -348,9 +318,6 @@ namespace egrants_new.Controllers
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                             downloadData.FileDownloaded = newFileName;
-
-                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
-                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                         }
                         else
                         {
@@ -361,7 +328,6 @@ namespace egrants_new.Controllers
                                 myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
                                 myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
-                                Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
 
                                 myWebClient.DownloadFile(uri, tmpFileName);
                                 string filename = Path.GetFileName(uri.LocalPath);
@@ -376,9 +342,6 @@ namespace egrants_new.Controllers
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                                 downloadData.FileDownloaded = newFileName;
-
-                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
-                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                             }
                         }
 
@@ -401,8 +364,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception err)
                 {
-                    Console.WriteLine("Item Error : " + err.ToString());
-                    downloadData.Error = "Screen shot this error and send to dev team!" + Environment.NewLine + err.ToString();
+                    downloadData.Error = "General Exception! Screenshot and this message and notify the Development Team: " + Environment.NewLine + err.Message.ToString();
                     downloadModel.NumFailed += 1;
                 }
 
@@ -454,8 +416,7 @@ namespace egrants_new.Controllers
         /// <param name="contentEncoding">Content Encoding</param>  
         /// <param name="behavior">Behavior</param>  
         /// <returns>As JsonResult</returns>  
-        protected override JsonResult Json(object data, string contentType,
-                                           Encoding contentEncoding, JsonRequestBehavior behavior)
+        protected override JsonResult Json(object data, string contentType, Encoding contentEncoding, JsonRequestBehavior behavior)
         {
             return new JsonResult()
                        {
@@ -463,7 +424,7 @@ namespace egrants_new.Controllers
                            ContentType = contentType,
                            ContentEncoding = contentEncoding,
                            JsonRequestBehavior = behavior,
-                           MaxJsonLength = Int32.MaxValue
+                           MaxJsonLength = int.MaxValue
                        };
         }
 
@@ -513,15 +474,14 @@ namespace egrants_new.Controllers
         /// </returns>
         public string LoadAllAppls(int grant_id)
         {
-                var list = EgrantsAppl.GetAllAppls(grant_id);
+                List<string> list = EgrantsAppl.GetAllAppls(grant_id);
 
                 // JavaScriptSerializer js = new JavaScriptSerializer();
                 return JsonConvert.SerializeObject(list); // Serialize(applslist);
         }
 
-        // get 12 appls list for appls toggle by grant_id
         /// <summary>
-        /// The load default appls.
+        /// Load 12 appls list for appls toggle by grant_id
         /// </summary>
         /// <param name="grant_id">
         /// The grant_id.
