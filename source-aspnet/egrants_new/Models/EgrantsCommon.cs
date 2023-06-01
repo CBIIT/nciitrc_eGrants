@@ -41,6 +41,8 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 
+using Hangfire.Annotations;
+
 #endregion
 
 namespace egrants_new.Models
@@ -48,7 +50,7 @@ namespace egrants_new.Models
     /// <summary>
     ///     The egrants common.
     /// </summary>
-    public partial class EgrantsCommon
+    public class EgrantsCommon
     {
 
         // check user validation
@@ -66,6 +68,8 @@ namespace egrants_new.Models
         /// </returns>
         public static int CheckUserValidation(string ic, string userid)
         {
+            int count = 0;
+
             using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
             {
                 var cmd = new SqlCommand("sp_web_egrants_user_validation", conn);
@@ -75,17 +79,15 @@ namespace egrants_new.Models
 
                 conn.Open();
 
-                // int count= (int)cmd.ExecuteScalar();
-                var count = 0;
                 var rdr = cmd.ExecuteReader();
 
                 while (rdr.Read())
+                {
                     count = Convert.ToInt16(rdr["count"]);
-
-                rdr.Close();
-
-                return count;
+                }
             }
+
+            return count;
         }
 
         // check user validation
@@ -100,22 +102,23 @@ namespace egrants_new.Models
         /// </returns>
         public static int CheckUsersException(string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("sp_web_egrants_user_exception", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+            int count = 0;
 
-            conn.Open();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_user_exception", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
 
-            // int count= (int)cmd.ExecuteScalar();
-            var count = 0;
-            var rdr = cmd.ExecuteReader();
+                conn.Open();
 
-            while (rdr.Read())
-                count = Convert.ToInt16(rdr["count"]);
+                var rdr = cmd.ExecuteReader();
 
-            rdr.Close();
-            conn.Close();
+                while (rdr.Read())
+                {
+                    count = Convert.ToInt16(rdr["count"]);
+                }
+            }
 
             return count;
         }
@@ -135,23 +138,24 @@ namespace egrants_new.Models
         /// </returns>
         public static string UserType(string ic, string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("sp_web_egrants_user_type_check", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-            cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
-            cmd.Parameters.Add("@user_application_type", SqlDbType.VarChar, 2);
-            cmd.Parameters["@user_application_type"].Direction = ParameterDirection.Output;
-            conn.Open();
+            string applicationType = string.Empty;
 
-            var DataReader = cmd.ExecuteReader();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_user_type_check", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
+                cmd.Parameters.Add("@user_application_type", SqlDbType.VarChar, 2);
+                cmd.Parameters["@user_application_type"].Direction = ParameterDirection.Output;
+                conn.Open();
 
-            DataReader.Close();
-            conn.Close();
+                int i = cmd.ExecuteNonQuery();
 
-            var application_type = Convert.ToString(cmd.Parameters["@user_application_type"].Value);
+                applicationType = Convert.ToString(cmd.Parameters["@user_application_type"].Value);
+            }
 
-            return application_type;
+            return applicationType;
         }
 
         /// <summary>
@@ -172,7 +176,7 @@ namespace egrants_new.Models
         public static IEnumerable<User> uservar(string userid, string ic, string type)
         {
             var connectionString = ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString;
-            var users = new List<User>();
+            var list = new List<User>();
 
             using (var conn = new SqlConnection(connectionString))
             {
@@ -190,38 +194,56 @@ namespace egrants_new.Models
                     while (rdr.Read())
                     {
                         if (rdr["nam"].ToString() == "VALIDATION")
+                        {
                             user.Validation = rdr["val"].ToString();
+                        }
 
                         if (rdr["nam"].ToString() == "USERID")
+                        {
                             user.UserId = rdr["val"].ToString();
+                        }
 
                         if (rdr["nam"].ToString() == "IC")
+                        {
                             user.ic = rdr["val"].ToString();
+                        }
 
                         if (rdr["nam"].ToString() == "PERSONID")
+                        {
                             user.personID = Convert.ToInt32(rdr["val"]);
+                        }
 
                         if (rdr["nam"].ToString() == "POSITIONID")
+                        {
                             user.positionID = Convert.ToInt32(rdr["val"]);
+                        }
 
                         if (rdr["nam"].ToString() == "ISCOORDINATOR")
+                        {
                             user.isCoordinator = Convert.ToInt32(rdr["val"]);
+                        }
 
                         if (rdr["nam"].ToString() == "USERNAME")
+                        {
                             user.PersonName = rdr["val"].ToString();
+                        }
 
                         if (rdr["nam"].ToString() == "USEREMAIL")
+                        {
                             user.PersonEmail = rdr["val"].ToString();
+                        }
 
                         if (rdr["nam"].ToString() == "MENULIST")
+                        {
                             user.menulist = rdr["val"].ToString();
+                        }
                     }
                 }
 
-                users.Add(user);
-
-                return users;
+                list.Add(user);
             }
+
+            return list;
         }
 
         /// <summary>
@@ -235,25 +257,27 @@ namespace egrants_new.Models
         /// </returns>
         public static List<EgrantsUsers> LoadSpecialists(string ic)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            List<EgrantsUsers> list = new List<EgrantsUsers>();
 
-            var cmd = new SqlCommand(
-                "SELECT person_name, person_id FROM vw_people WHERE ic=@IC and application_type='egrants' and position_id>1 and PATINDEX('%,%', person_name)>0 ORDER BY person_name",
-                conn);
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand(
+                    "SELECT person_name, person_id FROM vw_people WHERE ic=@IC and application_type='egrants' and position_id>1 and PATINDEX('%,%', person_name)>0 ORDER BY person_name",
+                    conn);
 
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic; // Session["ic"]; 
-            conn.Open();
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                conn.Open();
 
-            var Specialists = new List<EgrantsUsers>();
-            var rdr = cmd.ExecuteReader();
+                var rdr = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                Specialists.Add(new EgrantsUsers { PersonId = rdr["person_id"].ToString(), person_name = rdr["person_name"].ToString() });
+                while (rdr.Read())
+                {
+                    list.Add(new EgrantsUsers { PersonId = rdr["person_id"].ToString(), person_name = rdr["person_name"].ToString() });
+                }
+            }
 
-            conn.Close();
-
-            return Specialists;
+            return list;
         }
 
         // load postions
@@ -265,20 +289,23 @@ namespace egrants_new.Models
         /// </returns>
         public static List<Position> LoadPositions()
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("select position_id, position_name from people_positions order by position_id", conn);
-            cmd.CommandType = CommandType.Text;
-            conn.Open();
+            List<Position> positions = new List<Position>();
 
-            var Positions = new List<Position>();
-            var rdr = cmd.ExecuteReader();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("select position_id, position_name from people_positions order by position_id", conn);
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
 
-            while (rdr.Read())
-                Positions.Add(new Position { PositionId = rdr["position_id"].ToString(), PositionName = rdr["position_name"].ToString() });
+                var rdr = cmd.ExecuteReader();
 
-            conn.Close();
+                while (rdr.Read())
+                {
+                    positions.Add(new Position { PositionId = rdr["position_id"].ToString(), PositionName = rdr["position_name"].ToString() });
+                }
+            }
 
-            return Positions;
+            return positions;
         }
 
         /// <summary>
@@ -289,20 +316,23 @@ namespace egrants_new.Models
         /// </returns>
         public static List<EgrantsUsers> LoadCoordinators()
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("select person_id, person_name from vw_people where is_coordinator=1 order by person_name", conn);
-            cmd.CommandType = CommandType.Text;
-            conn.Open();
+            var list = new List<EgrantsUsers>();
 
-            var Coordinators = new List<EgrantsUsers>();
-            var rdr = cmd.ExecuteReader();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("select person_id, person_name from vw_people where is_coordinator=1 order by person_name", conn);
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
 
-            while (rdr.Read())
-                Coordinators.Add(new EgrantsUsers { PersonId = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
+                var rdr = cmd.ExecuteReader();
 
-            conn.Close();
+                while (rdr.Read())
+                {
+                    list.Add(new EgrantsUsers { PersonId = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
+                }
+            }
 
-            return Coordinators;
+            return list;
         }
 
         /// <summary>
@@ -313,27 +343,31 @@ namespace egrants_new.Models
         /// </returns>
         public static List<AdminCodes> LoadAdminCodes()
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            var list = new List<AdminCodes>();
 
-            var cmd = new SqlCommand(
-                "select distinct admin_phs_org_code, case when admin_phs_org_code = 'ca' then 'NCI' else null end as profile "
-              + " from grants ORDER BY admin_phs_org_code",
-                conn);
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
 
-            // System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT DISTINCT a.admin_phs_org_code, p.profile as profile " +
-            // " FROM vw_appls a LEFT OUTER JOIN profiles p ON a.admin_phs_org_code = p.admin_phs_org_code ORDER BY a.admin_phs_org_code", conn);
-            cmd.CommandType = CommandType.Text;
-            conn.Open();
+                var cmd = new SqlCommand(
+                    "select distinct admin_phs_org_code, case when admin_phs_org_code = 'ca' then 'NCI' else null end as profile "
+                  + " from grants ORDER BY admin_phs_org_code",
+                    conn);
 
-            var AdminCodes = new List<AdminCodes>();
-            var rdr = cmd.ExecuteReader();
+                // System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SELECT DISTINCT a.admin_phs_org_code, p.profile as profile " +
+                // " FROM vw_appls a LEFT OUTER JOIN profiles p ON a.admin_phs_org_code = p.admin_phs_org_code ORDER BY a.admin_phs_org_code", conn);
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
 
-            while (rdr.Read())
-                AdminCodes.Add(new AdminCodes { profile = rdr["profile"]?.ToString(), admin_phs_org_code = rdr["admin_phs_org_code"]?.ToString() });
 
-            conn.Close();
+                var rdr = cmd.ExecuteReader();
 
-            return AdminCodes;
+                while (rdr.Read())
+                {
+                    list.Add(new AdminCodes { profile = rdr["profile"]?.ToString(), admin_phs_org_code = rdr["admin_phs_org_code"]?.ToString() });
+                }
+            }
+
+            return list;
         }
 
         /// <summary>
@@ -344,30 +378,34 @@ namespace egrants_new.Models
         /// </returns>
         public static List<CharacterIndex> LoadCharacterIndex()
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            var list = new List<CharacterIndex>();
 
-            var cmd = new SqlCommand(
-                "SELECT index_id, character_index, index_seq from dbo.character_index where index_id>1 order by index_seq",
-                conn);
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand(
+                    "SELECT index_id, character_index, index_seq from dbo.character_index where index_id>1 order by index_seq",
+                    conn);
 
-            cmd.CommandType = CommandType.Text;
-            conn.Open();
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
 
-            var CharacterIndexs = new List<CharacterIndex>();
-            var rdr = cmd.ExecuteReader();
 
-            while (rdr.Read())
-                CharacterIndexs.Add(
-                    new CharacterIndex
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(
+                        new CharacterIndex
                         {
                             index_id = rdr["index_id"]?.ToString(),
                             character_index = rdr["character_index"]?.ToString(),
                             index_seq = rdr["index_seq"]?.ToString()
                         });
+                }
 
-            conn.Close();
+            }
 
-            return CharacterIndexs;
+            return list;
         }
 
         // load profile list
@@ -379,26 +417,30 @@ namespace egrants_new.Models
         /// </returns>
         public static List<Profiles> LoadProfiles()
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("select profile_id, [profile], admin_phs_org_code from profiles order by admin_phs_org_code", conn);
-            cmd.CommandType = CommandType.Text;
-            conn.Open();
+            var list = new List<Profiles>();
 
-            var Profiles = new List<Profiles>();
-            var rdr = cmd.ExecuteReader();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("select profile_id, [profile], admin_phs_org_code from profiles order by admin_phs_org_code", conn);
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
 
-            while (rdr.Read())
-                Profiles.Add(
-                    new Profiles
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(
+                        new Profiles
                         {
                             ProfileId = rdr["profile_id"]?.ToString(),
                             Profile = rdr["profile"]?.ToString(),
                             AdminPhsOrgCode = rdr["admin_phs_org_code"]?.ToString()
                         });
+                }
+            }
 
-            conn.Close();
-
-            return Profiles;
+            return list;
         }
 
         // load admin menu list
@@ -413,31 +455,35 @@ namespace egrants_new.Models
         /// </returns>
         public static List<AdminMenus> LoadAdminMenu(string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            var list = new List<AdminMenus>();
 
-            var cmd = new SqlCommand(
-                "select menu_id, menu_title, menu_action from vw_adm_menu_assignment where person_id=(select person_id from vw_people where menu_action is not null and userid = @userid) order by menu_title",
-                conn);
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
 
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
-            conn.Open();
+                var cmd = new SqlCommand(
+                    "select menu_id, menu_title, menu_action from vw_adm_menu_assignment where person_id=(select person_id from vw_people where menu_action is not null and userid = @userid) order by menu_title",
+                    conn);
 
-            var AdminMenu = new List<AdminMenus>();
-            var rdr = cmd.ExecuteReader();
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
+                conn.Open();
 
-            while (rdr.Read())
-                AdminMenu.Add(
-                    new AdminMenus
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(
+                        new AdminMenus
                         {
                             MenuId = rdr["menu_id"]?.ToString(),
                             MenuTitle = rdr["menu_title"]?.ToString(),
                             MenuAction = rdr["menu_action"]?.ToString()
                         });
+                }
+            }
 
-            conn.Close();
-
-            return AdminMenu;
+            return list;
         }
 
         // get person_id with userid
@@ -452,22 +498,25 @@ namespace egrants_new.Models
         /// </returns>
         public static int GetPersonID(string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("select person_id from vw_people where userid=@userid", conn);
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
-            conn.Open();
+            int personId = 0;
 
-            var person_id = 0;
-            var rdr = cmd.ExecuteReader();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("select person_id from vw_people where userid=@userid", conn);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
+                conn.Open();
 
-            while (rdr.Read())
-                person_id = Convert.ToInt16(rdr["person_id"]);
 
-            rdr.Close();
-            conn.Close();
+                var rdr = cmd.ExecuteReader();
 
-            return person_id;
+                while (rdr.Read())
+                {
+                    personId = Convert.ToInt16(rdr["person_id"]);
+                }
+            }
+
+            return personId;
         }
 
         // check uesr run  Admin Menu Permission by userid and menu_id
@@ -485,67 +534,29 @@ namespace egrants_new.Models
         /// </returns>
         public static int CheckAdminMenuPermission(int menu_id, string userid)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
+            int permission = 0;
 
-            var cmd = new SqlCommand(
-                "select count(*) as Permission from vw_adm_menu_assignment where person_id=(select person_id from people where userid=@userid) and menu_id=@menu_id",
-                conn);
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
 
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@menu_id", SqlDbType.Int).Value = menu_id;
-            cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
-            conn.Open();
+                var cmd = new SqlCommand(
+                    "select count(*) as Permission from vw_adm_menu_assignment where person_id=(select person_id from people where userid=@userid) and menu_id=@menu_id",
+                    conn);
 
-            var Permission = 0;
-            var rdr = cmd.ExecuteReader();
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@menu_id", SqlDbType.Int).Value = menu_id;
+                cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
+                conn.Open();
 
-            while (rdr.Read())
-                Permission = Convert.ToInt16(rdr["Permission"]);
+                var rdr = cmd.ExecuteReader();
 
-            conn.Close();
+                while (rdr.Read())
+                {
+                    permission = Convert.ToInt16(rdr["Permission"]);
+                }
+            }
 
-            return Permission;
+            return permission;
         }
-
-        /// <summary>
-        ///     The pagination.
-        /// </summary>
-        // public class Pagination
-        // {
-        //     /// <summary>
-        //     ///     Gets or sets the tag.
-        //     /// </summary>
-        //     public string tag { get; set; }
-        //
-        //     /// <summary>
-        //     ///     Gets or sets the parent.
-        //     /// </summary>
-        //     public string parent { get; set; }
-        //
-        //     /// <summary>
-        //     ///     Gets or sets the total_counts.
-        //     /// </summary>
-        //     public string total_counts { get; set; }
-        //
-        //     /// <summary>
-        //     ///     Gets or sets the total_tabs.
-        //     /// </summary>
-        //     public string total_tabs { get; set; }
-        //
-        //     /// <summary>
-        //     ///     Gets or sets the total_pages.
-        //     /// </summary>
-        //     public string total_pages { get; set; }
-        //
-        //     /// <summary>
-        //     ///     Gets or sets the tab_number.
-        //     /// </summary>
-        //     public string tab_number { get; set; }
-        //
-        //     /// <summary>
-        //     ///     Gets or sets the page_number.
-        //     /// </summary>
-        //     public string page_number { get; set; }
-        // }
     }
 }

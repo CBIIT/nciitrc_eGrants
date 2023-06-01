@@ -37,6 +37,8 @@ using System.Collections.Generic;
 
 using System;
 
+using egrants_new.Egrants.Functions;
+
 namespace egrants_new.Egrants.Models
 {
 
@@ -50,10 +52,21 @@ namespace egrants_new.Egrants.Models
         /// </summary>
         public string grant_id { get; set; }
 
+        private string orgName = string.Empty;
+
         /// <summary>
         ///     Gets or sets the org_name.
         /// </summary>
-        public string org_name { get; set; }
+        public string org_name {
+            get
+            {
+                return orgName;
+            }
+            set
+            {
+                orgName = value.Truncate(60);
+            }
+        }
 
         /// <summary>
         ///     Gets or sets the admin_phs_org_code.
@@ -214,16 +227,40 @@ namespace egrants_new.Egrants.Models
         // ///     Gets or sets the selected grant pi lastname.
         // /// </summary>
         public string SelectedGrantPiEmail { get; set; }
-        //
-        // /// <summary>
-        // ///     Gets or sets the selected grant pi middle initial.
-        // /// </summary>
-         public string SelectedProjectName { get; set; }
-        //
-        // /// <summary>
-        // ///     Gets or sets the selected organization name.
-        // /// </summary>
-        public string SelectedOrganizationName { get; set; }
+
+
+        private string selectProjectName = string.Empty;
+        
+        /// <summary>
+        ///     Gets or sets the selected grant pi middle initial.
+        /// </summary>
+        public string SelectedProjectName
+        {
+            get
+            {
+                return selectProjectName;
+            }
+            set
+            {
+                selectProjectName = value.Truncate(60);
+            }
+        }
+
+        private string selectOrgName = string.Empty;
+
+        /// <summary>
+        ///     Gets or sets the selected organization name.
+        /// </summary>
+        public string SelectedOrganizationName {
+            get
+            {
+                return selectOrgName;
+            }
+            set
+            {
+                selectOrgName = value.Truncate(60);
+            }
+        }
 
         /// <summary>
         /// Gets or sets the MPI contact info.
