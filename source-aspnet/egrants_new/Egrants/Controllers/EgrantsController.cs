@@ -160,7 +160,10 @@ namespace egrants_new.Controllers
             DownloadData downloadData = new DownloadData();
             downloadModel.DownloadDataList = new List<DownloadData>();
 
-
+            // obtain the document url from the remote system
+            var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+            var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+            var certificate = new X509Certificate2(cerUri, certPass);
 
             foreach (var dataInput in listOfUrl)
             {
@@ -206,9 +209,9 @@ namespace egrants_new.Controllers
                         var uri = new Uri(url);
 
                         // obtain the document url from the remote system
-                        var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
-                        var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
-                        var certificate = new X509Certificate2(cerUri, certPass);
+                        //var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+                        //var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+                        //var certificate = new X509Certificate2(cerUri, certPass);
 
                         var webRequest = (HttpWebRequest)WebRequest.Create(uri);
                         webRequest.KeepAlive = false;
@@ -232,8 +235,6 @@ namespace egrants_new.Controllers
                                 downloadUrl = reader.ReadToEnd();
                             }
 
-
-
                             using (var myWebClient = new MyWebClient())
                             {
                                 myWebClient.Credentials = CredentialCache.DefaultCredentials;
@@ -255,13 +256,13 @@ namespace egrants_new.Controllers
                                 if (category == "Financial Report")
                                 {
                                     newFileName = ReplaceInvalidChars(
-                                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}");
+                                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}", "_");
                                 }
                                 else
                                 {
                                     // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
                                     // and remove all invalid characters from filename and replace with _
-                                    newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+                                    newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}", "_");
                                 }
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
@@ -302,13 +303,13 @@ namespace egrants_new.Controllers
                             if (category == "CloseoutNotification")
                             {
                                 newFileName = ReplaceInvalidChars(
-                                    $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                                    $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf", "_");
                             }
 
                             if (category == "FFR_REJECTION")
                             {
                                 newFileName = ReplaceInvalidChars(
-                                    $"{fullGrantNumber.Remove(0, 4)}-FFR-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf");
+                                    $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf", "_");
                             }
 
                             System.IO.File.WriteAllBytes(tmpFileName, bytes);
@@ -337,7 +338,7 @@ namespace egrants_new.Controllers
 
                                 // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
                                 // and remove all invalid characters from filename and replace with _
-                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}", "_");
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
@@ -458,9 +459,9 @@ namespace egrants_new.Controllers
             }
         }
 
-        public string ReplaceInvalidChars(string filename)
+        public string ReplaceInvalidChars(string filename, string replacementCharacter)
         {
-            return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
+            return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));
         }
 
         /// <summary>
@@ -477,7 +478,7 @@ namespace egrants_new.Controllers
                 List<string> list = EgrantsAppl.GetAllAppls(grant_id);
 
                 // JavaScriptSerializer js = new JavaScriptSerializer();
-                return JsonConvert.SerializeObject(list); // Serialize(applslist);
+                return JsonConvert.SerializeObject(list);
         }
 
         /// <summary>

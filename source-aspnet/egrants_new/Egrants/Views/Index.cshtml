@@ -8,19 +8,15 @@
 <!-- Bootstrap Font Icon CSS -->
 <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css" />
 <!--start display appls and documents-->
-<link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+@* <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" /> *@
 <link href="~/Content/jquery-ui.min.css" rel="stylesheet" />
 @*<script src="~/scripts/jquery-3.6.4.min.js"></script>*@
-<script src="~/scripts/validation.js"></script>
+@* <script src="~/scripts/validation.js"></script> *@
 <script src="~/scripts/EgrantsCatsZone.js"></script>
 <script src="~/scripts/EgrantsQC.js"></script>
 <script src="~/scripts/bluebird.js"></script>
 <script src="~/scripts/jquery-ui-1.13.2.min.js"></script>
 
-<style>
-
-  
-</style>
 
 <script language="JavaScript" type="text/javascript">
     var currenturl = window.document.location.href;
@@ -454,7 +450,7 @@
     <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt16(Session["position_id"])" />
     <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServerUrl"])" />
     <input type="text" hidden id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(Session["egrantsDocEmail"])" />
-    @*<input type="text" hidden id="hidDownloadForm" name="DownloadSubPage" value="@ViewBag.CurrentView"/>*@
+
 </form>
 <!--end save all data from server-->
 <!--start main-->
