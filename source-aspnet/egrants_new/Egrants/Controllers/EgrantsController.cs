@@ -72,7 +72,7 @@ namespace egrants_new.Controllers
         /// The go_to_default.
         /// </summary>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/>.CIS
         /// </returns>
         public ActionResult Go_to_default()
         {
@@ -147,7 +147,7 @@ namespace egrants_new.Controllers
             }
             catch (ArgumentNullException ex)
             {
-                downloadModel.Error = "There are no URL's in the list!";
+                downloadModel.Error = "There are no URLs in the list!";
                 return Json(downloadModel, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -209,9 +209,9 @@ namespace egrants_new.Controllers
                         var uri = new Uri(url);
 
                         // obtain the document url from the remote system
-                        //var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
-                        //var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
-                        //var certificate = new X509Certificate2(cerUri, certPass);
+                        // var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+                        // var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+                        // var certificate = new X509Certificate2(cerUri, certPass);
 
                         var webRequest = (HttpWebRequest)WebRequest.Create(uri);
                         webRequest.KeepAlive = false;
@@ -239,9 +239,6 @@ namespace egrants_new.Controllers
                             {
                                 myWebClient.Credentials = CredentialCache.DefaultCredentials;
 
-                                // Concatenate the domain with the Web resource filename.
-                                Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, downloadUrl);
-
                                 // Download the Web resource and save it into the current filesystem folder.
                                 myWebClient.DownloadFile(downloadUrl, tmpFileName);
 
@@ -268,8 +265,6 @@ namespace egrants_new.Controllers
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                                 downloadData.FileDownloaded = newFileName;
-                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, downloadUrl);
-                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                             }
                         }
 
