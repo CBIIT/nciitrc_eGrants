@@ -163,7 +163,11 @@ namespace egrants_new.Egrants.Models
                 {
                     var grant = new GrantLayer();
                     grant.grant_id = rdr["grant_id"]?.ToString();
-                    grant.org_name = rdr["org_name"]?.ToString();
+
+                    string orgname = rdr["org_name"]?.ToString();
+                    grant.org_name = orgname;
+                    grant.OrgNameToolTip = orgname;
+
                     grant.serial_num = rdr["serial_num"]?.ToString();
                     grant.grant_num = string.Concat(rdr["admin_phs_org_code"] + Convert.ToInt32(rdr["serial_num"]).ToString("000000"));
                     grant.former_grant_num = rdr["former_grant_num"]?.ToString();
@@ -213,12 +217,17 @@ namespace egrants_new.Egrants.Models
                     grant.SelectedGrantPiName = rdr["specific_year_pi_name"].ToString();
                     grant.SelectedGrantPiEmail = rdr["specific_year_pi_email_address"].ToString();
                     grant.SelectedProjectName = rdr["specific_year_project_name"].ToString();
-                    grant.SelectedOrganizationName = rdr["specific_year_org_name"].ToString();
+
+                    string selectedorgname = rdr["specific_year_org_name"].ToString();
+                    grant.SelectedOrganizationName = selectedorgname;
+                    grant.SelectedOrganizationNameToolTip = selectedorgname;
                     grant.FullGrantNumber = rdr["specific_year_full_grant_num"].ToString();
+
 
                     if (string.IsNullOrEmpty(grant.SelectedOrganizationName))
                     {
                         grant.SelectedOrganizationName = grant.org_name;
+                        grant.SelectedOrganizationNameToolTip = selectedorgname;
                     }
 
                     grantList.Add(grant);
