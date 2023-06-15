@@ -57,14 +57,31 @@ namespace egrants_new.Egrants.Models
         /// <summary>
         ///     Gets or sets the org_name.
         /// </summary>
-        public string org_name {
+        public string org_name
+        {
             get
             {
                 return orgName;
             }
             set
             {
-                orgName = value.Truncate(60);
+                orgName = value.Truncate(30);
+            }
+        }
+
+        private string orgNameToolTip = string.Empty;
+
+        /// <summary>
+        ///     Gets or sets the org_name.
+        /// </summary>
+        public string OrgNameToolTip{
+            get
+            {
+                return orgNameToolTip;
+            }
+            set
+            {
+                orgNameToolTip = value;
             }
         }
 
@@ -222,7 +239,7 @@ namespace egrants_new.Egrants.Models
         // ///     Gets or sets the selected grant pi first name.
         // /// </summary>
         public string SelectedGrantPiName { get; set; }
-        //
+        
         // /// <summary>
         // ///     Gets or sets the selected grant pi lastname.
         // /// </summary>
@@ -246,7 +263,21 @@ namespace egrants_new.Egrants.Models
             }
         }
 
-        private string selectOrgName = string.Empty;
+        private string selectOrgNameToolTip = string.Empty;
+        public string SelectedOrganizationNameToolTip
+        {
+            get
+            {
+                return selectOrgNameToolTip;
+            }
+            set
+            {
+                selectOrgNameToolTip = value;
+            }
+        }
+
+
+        private string selectOrgName        = string.Empty;
 
         /// <summary>
         ///     Gets or sets the selected organization name.
@@ -258,7 +289,7 @@ namespace egrants_new.Egrants.Models
             }
             set
             {
-                selectOrgName = value.Truncate(60);
+                selectOrgName = value.Truncate(30);
             }
         }
 

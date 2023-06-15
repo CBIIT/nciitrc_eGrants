@@ -35,7 +35,6 @@
 
 #region
 
-using egrants_new.Dashboard.Functions;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -48,7 +47,6 @@ using System.Net;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Web;
 using System.Web.Mvc;
 
 using egrants_new.Egrants.Models;
@@ -56,8 +54,7 @@ using egrants_new.Functions;
 using egrants_new.Models;
 
 using Newtonsoft.Json;
-using egrants_new.Egrants.Functions;
-
+using Rotativa;
 
 #endregion
 
@@ -75,7 +72,7 @@ namespace egrants_new.Controllers
         /// The go_to_default.
         /// </summary>
         /// <returns>
-        /// The <see cref="ActionResult"/>.
+        /// The <see cref="ActionResult"/>.CIS
         /// </returns>
         public ActionResult Go_to_default()
         {
@@ -91,43 +88,11 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult Index()
         {
-            // go to dashboard tab if user is a specialist
-            // if (Convert.ToInt16(Session["position_id"]) == 2 && Convert.ToInt16(Session["dashboard"]) == 0)
-            // {
-            // return RedirectToAction("Index", "Dashboard", new { area = "Dashboard" });
-            // }else return View("~/Egrants/Views/Index.cshtml");
-
-            // go to ICCoordinator tab if user is a Coordinator
-            // else if (Convert.ToInt16(Session["position_id"]) == 0)
-            // {   
-            // return RedirectToAction("Index", "ICCoordinator", new { area = "IC_Coordinator" });
-            // }
-
-
-            // retuen IC list
+            // return IC list
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CurrentView = "StandardForm";
 
             return this.View("~/Egrants/Views/Index.cshtml");
-        }
-
-        public string SelectedProductName
-        {
-            get { return (string)Session["SelectedProductName"]; }
-            set { Session["SelectedProductName"] = value; }
-        }
-
-        void CurrentViewState_ValueChanged(object sender, EventArgs e)
-        {
-
-            // Display the value of the HiddenField control.
-            var mtetst = "The value of the HiddenField control is " + sender + ".";
-
-        }
-
-        protected void btnDownload_Click(object sender, EventArgs e) 
-        {
-            Console.Write("Hello");
         }
 
         public string SetCurrentViewSessionVariable(string currentView)
@@ -149,34 +114,56 @@ namespace egrants_new.Controllers
         {
             // 1 - trim the first character in the full grant number
             // 2 - trim the characters in full grant number year, and anything after trim
+            string downloadDirectory;
 
+            // The downloadModel contains all of the data that will be returned to the view
             DownloadModel downloadModel = new DownloadModel();
-            downloadModel.ApplId = appl;
-            downloadModel.NumFailed = 0;
-            downloadModel.NumSucceeded = 0;
-            downloadModel.NumToDownload = listOfUrl.Count();
 
-            // create the temp path and
-            string downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
-
-            // create or return an existing directory to hold the downloaded files
-            DirectoryInfo directoryInfo = Directory.CreateDirectory(downloadDirectory);
-
-            // delete all the files in this directory if there are any
-            foreach (FileInfo file in directoryInfo.GetFiles())
+            try
             {
-                file.Delete();
+
+                downloadModel.ApplId = appl;
+                downloadModel.NumFailed = 0;
+                downloadModel.NumSucceeded = 0;
+                downloadModel.NumToDownload = listOfUrl.Count();
+
+                // create the temp path and
+                downloadDirectory = Path.Combine(Path.GetTempPath(), appl);
+
+                // create or return an existing directory to hold the downloaded files
+                DirectoryInfo directoryInfo = Directory.CreateDirectory(downloadDirectory);
+
+                // delete all the files in this directory if there are any
+                foreach (FileInfo file in directoryInfo.GetFiles())
+                {
+                    file.Delete();
+                }
+
+                // delete all the folders in this directory if there are any
+                foreach (DirectoryInfo dir in directoryInfo.GetDirectories())
+                {
+                    dir.Delete(true);
+                }
             }
-
-            // delete all the folders in this directory if there are any
-            foreach (DirectoryInfo dir in directoryInfo.GetDirectories())
+            catch (ArgumentNullException ex)
             {
-                dir.Delete(true);
+                downloadModel.Error = "There are no URLs in the list!";
+                return Json(downloadModel, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                downloadModel.Error = "General Exception. This is likely an error in accessing temp files and temp directories! Notify Development Team of this error.";
+                return Json(downloadModel, JsonRequestBehavior.AllowGet);
             }
 
             // var grantId = this.ViewBag.GrantID;
             DownloadData downloadData = new DownloadData();
             downloadModel.DownloadDataList = new List<DownloadData>();
+
+            // obtain the document url from the remote system
+            var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+            var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+            var certificate = new X509Certificate2(cerUri, certPass);
 
             foreach (var dataInput in listOfUrl)
             {
@@ -191,16 +178,18 @@ namespace egrants_new.Controllers
                     var subCategory = split[2];
                     var documentId = split[3];
                     var documentName = split[4];
+                    var documentDate = split[5];
 
 
                     downloadData.Url = url;
                     downloadData.Category = category;
                     downloadData.SubCategory = subCategory;
-                    downloadData.DocumentId = Convert.ToInt32(documentId);
+                    downloadData.DocumentId = string.IsNullOrEmpty(documentId) ? 0 : Convert.ToInt32(documentId);
                     downloadData.DocumentName = documentName;
+                    downloadData.DocumentDate = DateTime.TryParse(documentDate, out DateTime result) ? result : DateTime.MinValue;
 
 
-                    
+
                     // if(downloadModel.DownloadDataList.)
                     // get a temp file to save the downloaded file
                     string tmpFileName = Path.GetTempFileName();
@@ -220,9 +209,9 @@ namespace egrants_new.Controllers
                         var uri = new Uri(url);
 
                         // obtain the document url from the remote system
-                        var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
-                        var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
-                        var certificate = new X509Certificate2(cerUri, certPass);
+                        // var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+                        // var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+                        // var certificate = new X509Certificate2(cerUri, certPass);
 
                         var webRequest = (HttpWebRequest)WebRequest.Create(uri);
                         webRequest.KeepAlive = false;
@@ -245,15 +234,10 @@ namespace egrants_new.Controllers
                             {
                                 downloadUrl = reader.ReadToEnd();
                             }
-                       
 
-                   
                             using (var myWebClient = new MyWebClient())
                             {
                                 myWebClient.Credentials = CredentialCache.DefaultCredentials;
-
-                                // Concatenate the domain with the Web resource filename.
-                                Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, downloadUrl);
 
                                 // Download the Web resource and save it into the current filesystem folder.
                                 myWebClient.DownloadFile(downloadUrl, tmpFileName);
@@ -266,16 +250,21 @@ namespace egrants_new.Controllers
 
                                 string newFileName = string.Empty;
 
-                                // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
-                                // and remove all invalid characters from filename and replace with _
-                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
-
+                                if (category == "Financial Report")
+                                {
+                                    newFileName = ReplaceInvalidChars(
+                                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}", "_");
+                                }
+                                else
+                                {
+                                    // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                                    // and remove all invalid characters from filename and replace with _
+                                    newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}", "_");
+                                }
 
                                 // move the file from the temp file to a file with the filename in the downloadDirectory
                                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                                 downloadData.FileDownloaded = newFileName;
-                                Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, downloadUrl);
-                                Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
                             }
                         }
 
@@ -283,7 +272,7 @@ namespace egrants_new.Controllers
                     }
                     else
                     {
-                        
+
                         Uri uri;
 
                         if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
@@ -293,31 +282,63 @@ namespace egrants_new.Controllers
                             uri = new Uri(imageServer, url);
                         }
 
-                        using (var myWebClient = new WebClient())
+                        if (category == "CloseoutNotification" || category == "FFR_REJECTION")
                         {
-                            myWebClient.UseDefaultCredentials = true;
-                            myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
-                            myWebClient.Credentials = CredentialCache.DefaultCredentials;
+                            this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(appl, documentName);
+                            this.ViewBag.applid = appl;
 
-                            myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
-                            Console.WriteLine("Downloading File \"{0}\" from \"{1}\" .......\n\n", tmpFileName, uri.OriginalString);
+                            var report = new ViewAsPdf("~/Egrants/Views/CloseoutNotif.cshtml");
+                            byte[] bytes = report.BuildFile(this.ControllerContext);
 
-                            myWebClient.DownloadFile(uri, tmpFileName);
-                            string filename = Path.GetFileName(uri.LocalPath);
-                            FileInfo fi = new FileInfo(filename);
 
                             string newFileName = string.Empty;
 
-                            // just reove the first four characters which are the first digit, the P30 part, concat the document_name and the file extention
+                            // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
                             // and remove all invalid characters from filename and replace with _
-                            newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}");
+                            if (category == "CloseoutNotification")
+                            {
+                                newFileName = ReplaceInvalidChars(
+                                    $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf", "_");
+                            }
+
+                            if (category == "FFR_REJECTION")
+                            {
+                                newFileName = ReplaceInvalidChars(
+                                    $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf", "_");
+                            }
+
+                            System.IO.File.WriteAllBytes(tmpFileName, bytes);
+
+
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                             downloadData.FileDownloaded = newFileName;
-                            
-                            Console.WriteLine("Successfully Downloaded File \"{0}\" from \"{1}\"", newFileName, uri.OriginalString);
-                            Console.WriteLine("Wrote To Disk: " + Path.GetTempPath() + newFileName);
+                        }
+                        else
+                        {
+                            using (var myWebClient = new WebClient())
+                            {
+                                myWebClient.UseDefaultCredentials = true;
+                                myWebClient.Credentials = CredentialCache.DefaultNetworkCredentials;
+                                myWebClient.Credentials = CredentialCache.DefaultCredentials;
+
+                                myWebClient.Headers.Add(HttpRequestHeader.Cookie, Request.Headers["cookie"]);
+
+                                myWebClient.DownloadFile(uri, tmpFileName);
+                                string filename = Path.GetFileName(uri.LocalPath);
+                                FileInfo fi = new FileInfo(filename);
+
+                                string newFileName = string.Empty;
+
+                                // just remove the first four characters which are the first digit, the P30 part, concat the document_name and the file extension
+                                // and remove all invalid characters from filename and replace with _
+                                newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}", "_");
+
+                                // move the file from the temp file to a file with the filename in the downloadDirectory
+                                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                                downloadData.FileDownloaded = newFileName;
+                            }
                         }
 
                         downloadModel.NumSucceeded += 1;
@@ -333,10 +354,13 @@ namespace egrants_new.Controllers
                     // code specifically for a WebException InternalServerError
                     downloadData.Error = "Internal Server Error! Notify Dev Team!";
                 }
+                catch (ArgumentNullException ex)
+                {
+                    downloadModel.Error = "An value is null which should not be.";
+                }
                 catch (Exception err)
                 {
-                    Console.WriteLine("Item Error : " + err.ToString());
-                    downloadData.Error = "Screen shot this error and send to dev team!" + Environment.NewLine + err.ToString();
+                    downloadData.Error = "General Exception! Screenshot and this message and notify the Development Team: " + Environment.NewLine + err.Message.ToString();
                     downloadModel.NumFailed += 1;
                 }
 
@@ -374,7 +398,7 @@ namespace egrants_new.Controllers
             catch (Exception err)
             {
                 Console.WriteLine("Error trying to Zip or serve zip file: " + err.ToString());
-                downloadModel.ZipError = "ZIP FILE ERROR! Screen shot this error and send to Dev team! " + Environment.NewLine + err.ToString();
+                downloadModel.Error = "ZIP FILE ERROR! Screen shot this error and send to Dev team! " + Environment.NewLine + err.ToString();
             }
 
             return Json(downloadModel, JsonRequestBehavior.AllowGet);
@@ -388,8 +412,7 @@ namespace egrants_new.Controllers
         /// <param name="contentEncoding">Content Encoding</param>  
         /// <param name="behavior">Behavior</param>  
         /// <returns>As JsonResult</returns>  
-        protected override JsonResult Json(object data, string contentType,
-                                           Encoding contentEncoding, JsonRequestBehavior behavior)
+        protected override JsonResult Json(object data, string contentType, Encoding contentEncoding, JsonRequestBehavior behavior)
         {
             return new JsonResult()
                        {
@@ -397,7 +420,7 @@ namespace egrants_new.Controllers
                            ContentType = contentType,
                            ContentEncoding = contentEncoding,
                            JsonRequestBehavior = behavior,
-                           MaxJsonLength = Int32.MaxValue
+                           MaxJsonLength = int.MaxValue
                        };
         }
 
@@ -431,9 +454,9 @@ namespace egrants_new.Controllers
             }
         }
 
-        public string ReplaceInvalidChars(string filename)
+        public string ReplaceInvalidChars(string filename, string replacementCharacter)
         {
-            return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
+            return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));
         }
 
         /// <summary>
@@ -447,15 +470,14 @@ namespace egrants_new.Controllers
         /// </returns>
         public string LoadAllAppls(int grant_id)
         {
-                var list = EgrantsAppl.GetAllAppls(grant_id);
+                List<string> list = EgrantsAppl.GetAllAppls(grant_id);
 
                 // JavaScriptSerializer js = new JavaScriptSerializer();
-                return JsonConvert.SerializeObject(list); // Serialize(applslist);
+                return JsonConvert.SerializeObject(list);
         }
 
-        // get 12 appls list for appls toggle by grant_id
         /// <summary>
-        /// The load default appls.
+        /// Load 12 appls list for appls toggle by grant_id
         /// </summary>
         /// <param name="grant_id">
         /// The grant_id.
@@ -1288,6 +1310,23 @@ namespace egrants_new.Controllers
             return Json(res, JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)
+        {
+            Search_by_appl_id.LoadDocs(
+                appl_id,
+                search_type,
+                category_list,
+                Convert.ToString(this.Session["ic"]),
+                Convert.ToString(this.Session["userid"]));
+
+            this.ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
+
+            // ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
+            dynamic res = new { data = this.ViewBag.doclayer };
+
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
+
         /// <summary>
         /// The stop_notice.
         /// </summary>
@@ -1349,13 +1388,23 @@ namespace egrants_new.Controllers
             return null;
         }
 
-        //public string closeout_notif(string applid, string notifName)
-        //{
-        //    this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(applid, notifName);
-        //    this.ViewBag.applid = applid;
+        public string doc_attachments_data(int document_id)
+        {
+            try
+            {
 
-        //    return this.View("~/Egrants/Views/CloseoutNotif.cshtml");
-        //}
+                List<DocAttachment> list = EgrantsDoc.LoadDocAttachments(document_id);
+
+                return JsonConvert.SerializeObject(list);
+
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
+            }
+
+            return null;
+        }
     }
 
 
