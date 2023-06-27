@@ -189,8 +189,8 @@
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
-    <Reference Include="System.Security.Cryptography.Pkcs, Version=7.0.0.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Security.Cryptography.Pkcs.7.0.1\lib\net462\System.Security.Cryptography.Pkcs.dll</HintPath>
+    <Reference Include="System.Security.Cryptography.Pkcs, Version=7.0.0.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Pkcs.7.0.3\lib\net462\System.Security.Cryptography.Pkcs.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Security" />
@@ -2712,6 +2712,7 @@
     <Content Include="scripts\checkbox-mixed.js" />
     <Content Include="scripts\dataTables.bootstrap4.min.js" />
     <Content Include="scripts\datetime-moment.js" />
+    <Content Include="scripts\eGrantsCountdown.js" />
     <Content Include="scripts\esm\popper-utils.js" />
     <Content Include="scripts\esm\popper-utils.min.js" />
     <Content Include="scripts\esm\popper.js" />
@@ -2768,6 +2769,7 @@
     <Content Include="scripts\ProgressBar.js" />
     <Content Include="scripts\dragdrop.js" />
     <Content Include="scripts\EgrantsQC.js" />
+    <Content Include="scripts\session-timeout.js" />
     <Content Include="scripts\src\index.js" />
     <Content Include="scripts\src\methods\defaults.js" />
     <Content Include="scripts\src\methods\destroy.js" />
@@ -3042,6 +3044,7 @@
     <Content Include="Egrants_Admin\Views\SupplementEmailTemplate.cshtml" />
     <Content Include="Egrants_Admin\Views\SupplementWorkflow.cshtml" />
     <None Include="Properties\PublishProfiles\Dev45.pubxml" />
+    <Content Include="Shared\Views\sign-out.cshtml" />
     <None Include="Web.base.config" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>

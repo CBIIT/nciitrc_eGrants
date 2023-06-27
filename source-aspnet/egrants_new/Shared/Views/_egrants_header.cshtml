@@ -1,159 +1,174 @@
-﻿@using egrants_new.Models;
+﻿@{
+    Layout = null;
 
-@{
-   Layout = null;
+    var sessionTimeout = HttpContext.Current.Session.Timeout;
+    var milliseconds = sessionTimeout * 60 * 1000;
 
 }
 
 <!DOCTYPE html>
 <html>
 <head>
-   <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
-   <meta name="viewport" content="width=device-width"/>
-   <title></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+    <meta name="viewport" content="width=device-width"/>
+    <title></title>
 
-   <link href="~/Content/egrants.css" rel="stylesheet" type="text/css"/>
-   <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css"/>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css"/>
 
-   <script src="~/scripts/jquery-3.6.4.min.js"></script>
-   <script src="~/scripts/bootstrap.min.js"></script>
-   <script src="~/scripts/validation.js"></script>
-   
+    <script src="~/scripts/jquery-3.6.4.min.js"></script>
+    <script src="~/scripts/bootstrap.min.js"></script>
+    <script src="~/scripts/validation.js"></script>
+    <script src="~/scripts/session-timeout.js"></script>
 
-   <script>
-      var user_position_id = @Convert.ToInt16(Session["position_id"]);
-      var QuickLinkType = [];
+    <script>
+        var user_position_id = @Convert.ToInt16(Session["position_id"]);
+        var QuickLinkType = [];
 
-      $(document).ready(function() {
-         //check Session["position_id"]
-         if (user_position_id >= 2) {
-            QuickLink = document.getElementById("leftpanelS");
-         } else {
-            QuickLink = document.getElementById("leftpanelP");
-         }
+        var countDownDate = @milliseconds;
 
-         //set
-         if (user_position_id >= 1) {
-            if (sessionStorage.getItem("QuickLinks") == null) {
-               sessionStorage.setItem("QuickLinks", "1");
+        function displayHello() {
+            $(".sessionTimeout").text(@HttpContext.Current.Session.Timeout);
+        }
+
+        $(document).ready(function () {
+            sessionTimeout({
+                warnAfter: 900000, // 15 min
+                timeOutAfter: 1200000, // 20 min
+                message: 'Session expiring in 5 minutes. Extend?',
+                timeOutUrl: 'Egrants/SignOut',
+                appendTimestamp: true
+            });
+
+            //check Session["position_id"]
+            if (user_position_id >= 2) {
+                QuickLink = document.getElementById("leftpanelS");
+            } else {
+                QuickLink = document.getElementById("leftpanelP");
             }
 
-            //get
-            if (sessionStorage.getItem("QuickLinks") == "1") {
-               QuickLink.style.display = "block";
-            } else QuickLink.style.display = "none";
-         }
-      });
+            //set
+            if (user_position_id >= 1) {
+                if (sessionStorage.getItem("QuickLinks") == null) {
+                    sessionStorage.setItem("QuickLinks", "1");
+                }
 
-      function toggleleftpanel() {
-         if (QuickLink.style.display === "none") {
-            QuickLink.style.display = "block";
-            sessionStorage.removeItem("QuickLinks");
-            sessionStorage.setItem("QuickLinks", "1");
-            //alert(sessionStorage.getItem("QuickLinks"));
-         } else {
-            QuickLink.style.display = "none";
-            sessionStorage.removeItem("QuickLinks");
-            sessionStorage.setItem("QuickLinks", "0");
-            //alert(sessionStorage.getItem("QuickLinks"));
-         }
-      }
+                //get
+                if (sessionStorage.getItem("QuickLinks") == "1") {
+                    QuickLink.style.display = "block";
+                } else QuickLink.style.display = "none";
+            }
+        });
 
-   </script>
-   <style>
+        function toggleleftpanel() {
+            if (QuickLink.style.display === "none") {
+                QuickLink.style.display = "block";
+                sessionStorage.removeItem("QuickLinks");
+                sessionStorage.setItem("QuickLinks", "1");
+                //alert(sessionStorage.getItem("QuickLinks"));
+            } else {
+                QuickLink.style.display = "none";
+                sessionStorage.removeItem("QuickLinks");
+                sessionStorage.setItem("QuickLinks", "0");
+                //alert(sessionStorage.getItem("QuickLinks"));
+            }
+        }
 
-      .navbar-default { border-bottom: none !important; }
+    </script>
 
-      .navbar { background-color: #808080 !important; }
+    <style>
 
-      .navbar-nav > li{
-         padding-left:10px;
-      }
+        .navbar-default { border-bottom: none !important; }
 
-      .navbar .nav > li > a, 
-      .navbar .nav > li > a:first-letter,
-      .navbar .nav > li.current-menu-item > a,
-      .navbar .nav > li.current-menu-ancestor > a {
+        .navbar { background-color: #808080 !important; }
+
+        .navbar-nav > li { padding-left: 10px; }
+
+        .navbar .nav > li > a,
+        .navbar .nav > li > a:first-letter,
+        .navbar .nav > li.current-menu-item > a,
+        .navbar .nav > li.current-menu-ancestor > a {
             display: inline;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
             font-size: large !important;
             padding: 10px 20px;
-         }
+        }
 
-      .navbar-light .navbar-brand {
-         color: #FFFFFF;
-         padding-right: 50px
-      }
+        .navbar-light .navbar-brand {
+            color: #FFFFFF;
+            padding-right: 50px
+        }
 
-      .navbar-light .navbar-nav .active>.nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .show>.nav-link {
-         color: #FFFFFF;
-      }
+        .navbar-light .navbar-nav .active > .nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .show > .nav-link { color: #FFFFFF; }
 
-      .navbar-light .navbar-nav .nav-link {
-         color: #FFFFFF;
-      }
+        .navbar-light .navbar-nav .nav-link { color: #FFFFFF; }
 
-      .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
-         color: #555 !important;
-      }
+        .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover { color: #555 !important; }
 
-      #loginas {
-         color: dimgray !important;
-         /*font: arial !important;*/
-         font-size: large !important;
-         vertical-align: auto !important;
-         text-align: right !important;
-      }
+        #loginas {
+            color: dimgray !important;
+            /*font: arial !important;*/
+            font-size: large !important;
+            text-align: right !important;
+            vertical-align: auto !important;
+        }
 
-      body {
-         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-         font-size: 90% !important;
-         /* font-size:medium */
-      }
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 90% !important;
+            /* font-size:medium */
+        }
 
-      #loginas a { color: blue !important; }
+        #loginas a { color: blue !important; }
 
-      .eGrantsWhiteTxt { border-top: 4px solid white !important; }
+        .eGrantsWhiteTxt { border-top: 4px solid white !important; }
 
-      .eGrantsDDbkgrnd { background-color: #808080 !important; }
+        .eGrantsDDbkgrnd { background-color: #808080 !important; }
 
-      .eGrantsUpldBtnColor { background-color: #1D8215 !important; }
+        .eGrantsUpldBtnColor { background-color: #1D8215 !important; }
 
-      .eGrantsReturnBtn {
-         font-size:medium;
-         border: none;
-         color: white;
-         background-color: #808080;
-      }
+        .eGrantsReturnBtn {
+            background-color: #808080;
+            border: none;
+            color: white;
+            font-size: medium;
+        }
 
-      .eGrantsDocBtn {
-         font-size:medium;
-         background-color: #4169e1;
-         
-      }
+        .eGrantsDocBtn {
+            background-color: #4169e1;
+            font-size: medium;
+        }
 
-      /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+        .sessTime {
+            display: inline;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: large !important;
+            padding: 10px 20px;
+        }
 
-      #myBtn { /*--Ayu*/
-         display: none; /* Hidden by default */
-         position: fixed; /* Fixed/sticky position */
-         bottom: 20px; /* Place the button at the bottom of the page */
-         right: 30px; /* Place the button 30px from the right */
-         z-index: 99; /* Make sure it does not overlap */
-         border: none; /* Remove borders */
-         outline: none; /* Remove outline */
-         background-color: darkcyan; /* Set a background color */
-         color: white; /* Text color */
-         cursor: pointer; /* Add a mouse pointer on hover */
-         padding: 15px; /* Some padding */
-         border-radius: 10px; /* Rounded corners */
-         font-size: 18px;/* Increase font size  
+        /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+
+        #myBtn {
+            background-color: darkcyan; /* Set a background color */
+            background-color: #555; /* Add a dark-grey background on hover */
+            border: none; /* Remove borders */
+            border-radius: 10px; /* Rounded corners */
+            bottom: 20px; /* Place the button at the bottom of the page */
+            color: white; /* Text color */
+            cursor: pointer; /* Add a mouse pointer on hover */
+            /*--Ayu*/
+            display: none; /* Hidden by default */
+            font-size: 18px; /* Increase font size  
       }
 
       #myBtn:hover { /*--Ayu*/
-         background-color: #555; /* Add a dark-grey background on hover */
-      }
-   </style>
+            outline: none; /* Remove outline */
+            padding: 15px; /* Some padding */
+            position: fixed; /* Fixed/sticky position */
+            right: 30px; /* Place the button 30px from the right */
+            z-index: 99; /* Make sure it does not overlap */
+        }
+    </style>
 </head>
 <body>
 
@@ -165,14 +180,15 @@
         </a>
     </div>
     <div class="col-lg-10" id="loginas">
-        <p>Logged in as:@Session["UserName"]</p>
+        <p><span id="sessTime"></span> Logged in as:@Session["UserName"]</p>
     </div>
     <!--- <p>Need help? Email to:<a href="mailto:egrantsissues@mail.nih.gov" title="Send email for asking help">egrantsissues@mail.nih.gov</a></p> -->
 
 </div>
 <div class="row">
     <div class="col-lg-12">
-        <nav class="navbar navbar-expand-sm navbar-expand-md navbar-expand-lg  navbar-light"> @*navbar-dark bg-dark">*@
+        <nav class="navbar navbar-expand-sm navbar-expand-md navbar-expand-lg  navbar-light">
+            @*navbar-dark bg-dark">*@
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavBar" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -267,7 +283,33 @@
             </ul>
         }
     </div>
- 
+
+    <!--start show popup modal -->
+    <div class="modal fade" id="timeoutModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Timeout warning</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><span id="error">Warning</span>: you will be logged off in <span id="count-down">00:60</span> due to inactivity.</p>
+                    <p>Do you wish to continue working in your session ?</p>
+                    <div class="progress">
+                        <div id="timeout-progress" class="progress-bar" role="progressbar" aria-valuenow="@Session.Timeout" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="timeout_continue()">Continue</button>
+                    <button type="button" class="btn btn-primary" onclick="timeout_logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end show popup modal-->
     <div class="col-lg-9" id="mainbody">
         <br/>@RenderBody()
     </div><!--end container body-content-->

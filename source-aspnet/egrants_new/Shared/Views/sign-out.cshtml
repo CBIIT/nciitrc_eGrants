@@ -1,0 +1,50 @@
+﻿@{
+    ViewBag.Title = "eGrants [SignOut]";
+}
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="~/Content/egrants.css" />
+<head>
+   
+    @* <script language="JavaScript" type="text/javascript"> *@
+    @*     function go_to_default() {          *@
+    @*         var UserType = document.getElementById("hidUserType").value;          *@
+    @*         if (UserType == "d") { *@
+    @*             var url="@Url.Action("Index","Docman")"; *@
+    @*         } else var url = "@Url.Action("Index","Egrants")"; *@
+    @* *@
+    @*         window.document.location.href = url; *@
+    @*     } *@
+    @* </script> *@
+
+</head>
+<body> @*onload="go_to_default()">*@
+@*<form id="frmGetInfo" >
+    <input type="text" hidden id="hidUserType" name="UserType" value="@Session["UserType"]"/>    
+    
+
+</form>*@
+
+<div id="content">
+    <br/>
+    <br/>
+    <!-- <center> -->
+    <!--<img src="nci_logo.gif" width="50" height="50">&#0160;&#0160;-->
+    <!--<b style="font-family:Times New Roman; font-style:ITALIC; font-size:32px; color:rgb(204,51,0);"><I>eGrants</I></b>-->
+    <img img src="~/Content/images/eglogo.PNG" width="400" height="50"/>
+    <br/>
+    <br/>
+    <span>
+        <b>
+            You have been redirected to this page due to inactivity.<br/>
+            For security purposes you must login again with the site URL if your PIV Session has expired.
+        </b>
+    </span>
+    <!-- </center> -->
+    <br/>
+</div>
+</body>
+</html>
+
+
+
