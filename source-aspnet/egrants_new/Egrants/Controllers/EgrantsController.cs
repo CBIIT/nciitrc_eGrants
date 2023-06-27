@@ -1405,6 +1405,35 @@ namespace egrants_new.Controllers
 
             return null;
         }
+
+        /// <summary>
+        /// Log out the user (clean up cookies, session, etc).
+        /// </summary>
+        /// <returns></returns>
+        //[HttpGet]
+        public ActionResult SignOut()
+        {
+            MvcApplication.GetMvcApplication().LogOut();
+            return this.View("~/Shared/Views/sign-out.cshtml");
+
+            //return;
+
+            //return this.View("~/Shared/Views/sign-out.htm");
+
+
+
+            //return Json(@"{ ""message"": ""logout complete."" }");
+
+        }
+
+        /// <summary>
+        /// ASP.NET session timeouts are based on time between requests,
+        /// so send an additional request to this to explicitly keep session alive
+        /// </summary>
+        public JsonResult RenewSession()
+        {
+            return Json(@"{ ""message"": ""session renewed."" }");
+        }
     }
 
 

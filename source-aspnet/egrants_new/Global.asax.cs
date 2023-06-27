@@ -72,6 +72,13 @@ namespace egrants_new
         /// </summary>
         private string userid;
 
+        private static MvcApplication _mvcApplication;
+
+
+        public static MvcApplication GetMvcApplication()
+        {
+            return _mvcApplication;
+        }
         /// <summary>
         ///     Gets the user id.
         /// </summary>
@@ -82,7 +89,7 @@ namespace egrants_new
                 this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
                 if (this.userid == null)
                 {
-                    this.userid = ""; // string.Empty
+                    this.userid = "briggsr2 "; // string.Empty
                 }
 
                 return this.userid;
@@ -130,7 +137,7 @@ namespace egrants_new
         protected void Application_Start()
         {
 
-            //TelemetryConfiguration.Active.DisableTelemetry = true;
+            _mvcApplication = this;
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             this.Application["UsersOnline"] = 0;
@@ -306,6 +313,9 @@ namespace egrants_new
             this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
             this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
 
+            Console.WriteLine(HttpContext.Current.Session.Timeout);
+
+            Console.Write("Hold");
             //this.Session["test"] = "Hello";
         }
 
@@ -372,12 +382,7 @@ namespace egrants_new
         /// </param>
         protected void Session_End(object sender, EventArgs e)
         {
-            this.Application.Lock();
-            this.Application["UsersOnline"] = (int)this.Application["UsersOnline"] - 1;
-            this.Session.RemoveAll();
-            this.Application.UnLock();
-
-            Console.WriteLine("Session Ended!");
+            ClearCookiesAndSession();
 
             // response object is not available at this point
         }
@@ -402,6 +407,22 @@ namespace egrants_new
                 Response.Cache.SetCacheability(HttpCacheability.NoCache);
                 Response.Cache.SetNoStore();
             }
+        }
+
+
+        private void ClearCookiesAndSession()
+        {
+            this.Application.Lock();
+            this.Application["UsersOnline"] = (int)this.Application["UsersOnline"] - 1;
+            this.Application.UnLock();
+
+            Console.WriteLine("Session Ended.");
+        }
+
+        internal void LogOut()
+        {
+            ClearCookiesAndSession();
+            //this.Response.Redirect("~/Shared/Views/sign-out.htm");
         }
     }
 }
