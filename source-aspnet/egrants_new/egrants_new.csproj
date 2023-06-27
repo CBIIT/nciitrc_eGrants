@@ -2712,7 +2712,6 @@
     <Content Include="scripts\checkbox-mixed.js" />
     <Content Include="scripts\dataTables.bootstrap4.min.js" />
     <Content Include="scripts\datetime-moment.js" />
-    <Content Include="scripts\eGrantsCountdown.js" />
     <Content Include="scripts\esm\popper-utils.js" />
     <Content Include="scripts\esm\popper-utils.min.js" />
     <Content Include="scripts\esm\popper.js" />
