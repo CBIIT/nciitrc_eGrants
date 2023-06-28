@@ -36,9 +36,10 @@
                 warnAfter: 900000, // 15 min
                 timeOutAfter: 1200000, // 20 min
                 message: 'Session expiring in 5 minutes. Extend?',
-                timeOutUrl: 'Egrants/SignOut',
+                keepAliveUrl: 'Egrants/KeepAlive',
                 stayConnectedBtnText: 'Stay Connected',
                 logOutUrl: 'Egrants/SignOut',
+                timeOutUrl: 'Egrants/SignOut',
                 appendTimestamp: true
             });
 
