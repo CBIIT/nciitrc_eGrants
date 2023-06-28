@@ -1430,8 +1430,10 @@ namespace egrants_new.Controllers
         /// ASP.NET session timeouts are based on time between requests,
         /// so send an additional request to this to explicitly keep session alive
         /// </summary>
-        public JsonResult RenewSession()
+        [HttpPost]
+        public ActionResult KeepAlive()
         {
+           // return this.View("~/Shared/Views/Go_to_Default.cshtml");
             return Json(@"{ ""message"": ""session renewed."" }");
         }
     }
