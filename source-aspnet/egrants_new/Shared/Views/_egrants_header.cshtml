@@ -19,7 +19,8 @@
     <script src="~/scripts/jquery-3.6.4.min.js"></script>
     <script src="~/scripts/bootstrap.min.js"></script>
     <script src="~/scripts/validation.js"></script>
-    <script src="~/scripts/session-timeout.js"></script>
+    @*<script src="~/scripts/session-timeout.js"></script>*@
+    <script src="~/scripts/sessionTimeout.js"></script>
 
     <script>
         var user_position_id = @Convert.ToInt16(Session["position_id"]);
@@ -27,21 +28,41 @@
 
         var countDownDate = @milliseconds;
 
+
+        var remainingSeconds = @milliseconds / 1000;
+        var counter = 60;
+
         function displayHello() {
             $(".sessionTimeout").text(@HttpContext.Current.Session.Timeout);
         }
 
         $(document).ready(function () {
-            sessionTimeout({
-                warnAfter: 900000, // 15 min
-                timeOutAfter: 1200000, // 20 min
-                message: 'Session expiring in 5 minutes. Extend?',
-                keepAliveUrl: 'Egrants/KeepAlive',
-                stayConnectedBtnText: 'Stay Connected',
-                logOutUrl: 'Egrants/SignOut',
-                timeOutUrl: 'Egrants/SignOut',
-                appendTimestamp: true
-            });
+//            sessionTimeout({
+//                warnAfter: 5000, //900000, // 15 min
+//                timeOutAfter: 10000, //1200000, // 20 min
+//                message: 'Warning: You will be logged off in 15:00' ,
+//                keepAliveUrl: 'KeepAlive',
+//              //  stayConnectedBtnText: 'Stay Connected',
+//              //  logOutUrl: null,
+//              //  timeOutUrl: 'SignOut',
+//                appendTimestamp: true
+//            });
+
+
+
+            setInterval(function() {
+                counter--;
+                if (counter >= 0) {
+                    $('.count').text(counter);
+                    //span = document.getElementById("count");
+                    //span.innerHTML = counter;
+                }    
+                if (counter === 0) {      
+                    clearInterval(counter);
+                }
+
+            }, 1000);
+
 
             //check Session["position_id"]
             if (user_position_id >= 2) {
@@ -288,7 +309,7 @@
     </div>
 
     <!--start show popup modal -->
-    <div class="modal fade" id="timeoutModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    @*<div class="modal fade" id="timeoutModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -298,7 +319,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p><span id="error">Warning</span>: you will be logged off in <span id="count-down">00:60</span> due to inactivity.</p>
+                    <p><span id="error">Warning</span>: you will be logged off in <span id="count-down">00:20</span> due to inactivity.</p>
                     <p>Do you wish to continue working in your session ?</p>
                     <div class="progress">
                         <div id="timeout-progress" class="progress-bar" role="progressbar" aria-valuenow="@Session.Timeout" aria-valuemin="0" aria-valuemax="100"></div>
@@ -311,10 +332,53 @@
                 </div>
             </div>
         </div>
+    </div>*@
+
+    <!--Start Show Session Expire Warning Popup here -->
+    <div class="modal fade" id="session-expire-warning-modal" aria-hidden="true" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Session Expire Warning</h4>
+                </div>
+                <div class="modal-body">
+                    Your session will expire in <span id="seconds-timer">30</span> seconds. 
+                    <p>
+                    <p>
+                    Do you want to extend the session?
+                </div>
+                <div class="modal-footer">
+                   @* <button id="btnOk" type="button" class="btn btn-default" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px;  background-color: #428bca; color: #FFF;">Continue</button>*@
+                    <button id="btnSessionExpiredCancelled" type="button" class="btn btn-default" data-dismiss="modal" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px; background-color: #428bca; color: #FFF;">Continue</button>
+                    @*<button id="btnLogoutNow" type="button" class="btn btn-default" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px;  background-color: #428bca; color: #FFF;">Logout now</button>*@
+                </div>
+            </div>
+        </div>
     </div>
+    <!--End Show Session Expire Warning Popup here -->
+    <!--Start Show Session Expire Popup here -->
+    <div class="modal fade" id="session-expired-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Session Expired</h4>
+                </div>
+                <div class="modal-body">
+                    Your session is expired. You may have to login again to recreate the session.
+                </div>
+                <div class="modal-footer">
+                    <button id="btnExpiredOk" onclick="sessionExpiredRedirect()" type="button" class="btn btn-primary" data-dismiss="modal" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px; background-color: #428bca; color: #FFF;">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- This will init session -->
+    <script>
+        initSessionMonitor();
+    </script>
     <!--end show popup modal-->
     <div class="col-lg-9" id="mainbody">
-        <br/>@RenderBody()
+        <br />@RenderBody()
     </div><!--end container body-content-->
 </div>
 

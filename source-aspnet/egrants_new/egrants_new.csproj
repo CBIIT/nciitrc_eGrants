@@ -2769,6 +2769,7 @@
     <Content Include="scripts\dragdrop.js" />
     <Content Include="scripts\EgrantsQC.js" />
     <Content Include="scripts\session-timeout.js" />
+    <Content Include="scripts\sessionTimeout.js" />
     <Content Include="scripts\src\index.js" />
     <Content Include="scripts\src\methods\defaults.js" />
     <Content Include="scripts\src\methods\destroy.js" />
