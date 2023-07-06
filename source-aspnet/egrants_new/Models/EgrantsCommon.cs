@@ -123,6 +123,27 @@ namespace egrants_new.Models
             return count;
         }
 
+        public static bool UpdateUsersLastLoginDate(string userId)
+        {
+            bool count = false;
+
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand(
+                    "UPDATE people SET last_login_date = GETDATE() where userid = @userId",
+                    conn);
+
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userId", SqlDbType.VarChar).Value = userId;
+                conn.Open();
+
+
+                int i = cmd.ExecuteNonQuery();
+            }
+
+            return true;
+        }
+
         // check user application type
         /// <summary>
         /// The user type.

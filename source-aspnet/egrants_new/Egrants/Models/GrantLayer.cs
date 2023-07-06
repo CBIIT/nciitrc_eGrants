@@ -61,11 +61,11 @@ namespace egrants_new.Egrants.Models
         {
             get
             {
-                return orgName;
+                return orgName; 
             }
             set
             {
-                orgName = value.Truncate(30);
+                orgName = value.Truncate(44);
             }
         }
 
@@ -264,6 +264,7 @@ namespace egrants_new.Egrants.Models
         }
 
         private string selectOrgNameToolTip = string.Empty;
+
         public string SelectedOrganizationNameToolTip
         {
             get
@@ -275,7 +276,6 @@ namespace egrants_new.Egrants.Models
                 selectOrgNameToolTip = value;
             }
         }
-
 
         private string selectOrgName        = string.Empty;
 
@@ -289,7 +289,7 @@ namespace egrants_new.Egrants.Models
             }
             set
             {
-                selectOrgName = value.Truncate(30);
+                selectOrgName = value.Truncate(44);
             }
         }
 

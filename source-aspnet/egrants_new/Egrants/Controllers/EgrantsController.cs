@@ -1431,7 +1431,7 @@ namespace egrants_new.Controllers
         /// so send an additional request to this to explicitly keep session alive
         /// </summary>
         [HttpPost]
-        public ActionResult KeepAlive()
+        public ActionResult RenewSession()
         {
            // return this.View("~/Shared/Views/Go_to_Default.cshtml");
             return Json(@"{ ""message"": ""session renewed."" }");

@@ -79,6 +79,7 @@ namespace egrants_new
         {
             return _mvcApplication;
         }
+
         /// <summary>
         ///     Gets the user id.
         /// </summary>
@@ -89,7 +90,7 @@ namespace egrants_new
                 this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
                 if (this.userid == null)
                 {
-                    this.userid = "briggsr2 "; // string.Empty
+                    this.userid = ""; // string.Empty
                 }
 
                 return this.userid;
@@ -152,7 +153,7 @@ namespace egrants_new
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
-            //  HangfireAspNet.Use(this.GetHangfireServers);
+            // HangfireAspNet.Use(this.GetHangfireServers);
 
             // var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
             // var notifierCronExp = ConfigurationManager.AppSettings[@"NotificationCronExp"];
@@ -161,7 +162,7 @@ namespace egrants_new
             // create the Background job
             // RecurringJob.AddOrUpdate<WsScheduleManager>(x => x.StartScheduledJobs(), wsCronExp);
             // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateExceptionMessage(), notifierCronExp);
-            //RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
+            // RecurringJob.AddOrUpdate<EmailNotifier>(x => x.GenerateSQLJobErrorMessage(), sqlNotifierTime);
         }
 
         protected void Application_BeginRequest(object sender, EventArgs e)
@@ -313,9 +314,12 @@ namespace egrants_new
             this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
             this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
 
-            Console.WriteLine(HttpContext.Current.Session.Timeout);
+            EgrantsCommon.UpdateUsersLastLoginDate(this.userid);
 
-            Console.Write("Hold");
+            //Console.WriteLine(HttpContext.Current.Session.Timeout);
+
+            //Console.Write("Hold");
+
             //this.Session["test"] = "Hello";
         }
 
