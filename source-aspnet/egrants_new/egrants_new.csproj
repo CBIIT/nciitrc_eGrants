@@ -2864,7 +2864,7 @@
     <Compile Include="Dashboard\Models\SelectedWidgets.cs" />
     <Compile Include="Dashboard\Models\WidgetAssigments.cs" />
     <Compile Include="Dashboard\Models\WidgetData.cs" />
-    <Compile Include="HomeController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Egrants\Functions\CountProperty.cs" />
     <Compile Include="Egrants\Functions\SaveState.cs" />
     <Compile Include="Egrants\Functions\StringTrimExtension.cs" />

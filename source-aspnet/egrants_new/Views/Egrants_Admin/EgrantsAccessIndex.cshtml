@@ -127,11 +127,11 @@
             {
                 if (Convert.ToString(item.active) == "True")
                 {
-                    return Html.Raw(string.Format("<img class=\"img_12_12\" src=\"../Content/images/box_checked.jpg\" title='To indicate user usage rights are valid or invalid'/>"));
+                    return Html.Raw(string.Format("<img class=\"img_12_12\" src=\"../../Content/images/box_checked.jpg\" title='To indicate user usage rights are valid or invalid'/>"));
                 }
                 else
                 {
-                    return Html.Raw(string.Format("<img class=\"img_12_12\" src=\"../Content/images/clear.jpg\" title='To indicate user usage rights are valid or invalid'/>"));
+                    return Html.Raw(string.Format("<img class=\"img_12_12\" src=\"../../Content/images/clear.jpg\" title='To indicate user usage rights are valid or invalid'/>"));
                 }
             }, style: "col-sma", canSort: true),
             UsersGrid.Column("person_name", " User Name", null, style: "col-exlarg", canSort: true),
