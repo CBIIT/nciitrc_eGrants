@@ -50,16 +50,16 @@
 
 
 
-            setInterval(function() {
-                counter--;
-                if (counter >= 0) {
-                    $('.count').text(counter);
-                }    
-                if (counter === 0) {      
-                    clearInterval(counter);
-                }
-
-            }, 1000);
+//            setInterval(function() {
+//                counter--;
+//                if (counter >= 0) {
+//                    $('.count').text(counter);
+//                }    
+//                if (counter === 0) {      
+//                    clearInterval(counter);
+//                }
+//
+//            }, 1000);
 
             initSessionMonitor();
 
@@ -173,6 +173,9 @@
             padding: 10px 20px;
         }
 
+        .modal-warning-text {
+            color: red;
+        }
         /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
 
         #myBtn {
@@ -345,14 +348,14 @@
                     <h4 class="modal-title">Session Expire Warning</h4>
                 </div>
                 <div class="modal-body">
-                    Your session will expire in <span id="seconds-timer"></span> seconds. 
+                    <span id="modal-warning-text">Warning</span> Your session will expire in <span id="seconds-timer"></span> seconds. 
                     <p>
                     <p>
                     Do you want to extend the session?
                 </div>
                 <div class="modal-footer">
                    @* <button id="btnOk" type="button" class="btn btn-default" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px;  background-color: #428bca; color: #FFF;">Continue</button>*@
-                    <button id="btnSessionExpiredCancelled" type="button" class="btn btn-default" data-dismiss="modal" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px; background-color: #428bca; color: #FFF;">Continue</button>
+                    <button id="btnSessionExpiredCancelled" onclick="sessionExtendedSelect()" type="button" class="btn btn-default" data-dismiss="modal" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px; background-color: #428bca; color: #FFF;">Continue</button>
                     @*<button id="btnLogoutNow" type="button" class="btn btn-default" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px;  background-color: #428bca; color: #FFF;">Logout now</button>*@
                 </div>
             </div>
