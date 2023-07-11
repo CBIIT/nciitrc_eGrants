@@ -1,0 +1,155 @@
+﻿@{
+    ViewBag.Title = "eGrants [Access Control Module]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<script language="JavaScript">
+        function show_tab(index_id) {
+            var active_id = document.getElementById("hidActiveID").value;
+            var url = "@Url.Action("Index", "EgrantsAccess")?index_id=" + index_id + "&active_id=" + active_id;
+            window.document.location.href = url;
+        }
+
+        function to_update(PersonId) {
+            var url = "@Url.Action("To_Search", "EgrantsAccess")?person_id=" + PersonId;
+            window.document.location.href = url;
+        }
+
+        function change_active_type() {
+            if (document.getElementById("ddlActiveType").selectedIndex != 0) {
+                var indexid = document.getElementById("hidIndexID").value;
+                var active_id = document.getElementById("ddlActiveType").options[document.getElementById("ddlActiveType").selectedIndex].id;
+                var url = "@Url.Action("Index", "EgrantsAccess")?index_id=" + indexid + "&active_id=" + active_id;
+                //alert(url);
+                window.document.location.href = url;
+            }
+        }
+</script>
+
+<form name="frmGetInfo">
+    <input type="text" hidden id="hidIndexID" name="indexid" value="@ViewBag.IndexID" />
+    <input type="text" hidden id="hidActiveID" name="activeid" value="@ViewBag.ActiveID" />
+    <input type="text" hidden id="hidFirstLetter" name="FirstLetter" value="@ViewBag.FirstLetter"/>
+</form>
+
+<div id="main">
+    <!--start main-->
+    <div>
+        @Html.Partial("~/Views/Egrants_Admin/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">Access Control Management</b><br />
+        @Html.ActionLink("Add New", "To_Add", "EgrantsAccess", new { area = "Egrants_Admin" }, null)
+    </div>
+
+    @*@ViewBag.FirstLetter*@
+
+    <!--start to show Index for User Name -->
+    <div id="Index_list" class="form-inline">
+        <table width="900">
+            <thead>
+                <tr>
+                    <td width="150"><b>User Name Index:</b></td>
+                    <td width="500">
+                        @foreach (var index in ViewBag.CharacterIndex)
+                        {
+                            <div id="index.index_id" style="display:inline">
+                                <a href="JavaScript:show_tab(@index.index_id)" title="Search user name start with @index.character_index">
+                                    <b>@char.ToUpper(index.character_index[0])</b>&#0160;
+                                </a>
+                            </div>
+                        }
+                    </td>
+                    <td width="150">
+                        <b>Status:</b>
+                        <select name="display_type" id="ddlActiveType" class="form-control" style="height:30px; width:100px;" title="display type" onChange="change_active_type()">
+                            <option></option>
+                            @if (Convert.ToInt16(ViewBag.ActiveID) == 0)
+                            {
+                                <option id="0" value="0" selected="selected">Inactive</option>
+                            }
+                            else
+                            {
+                                <option id="0" value="0">Inactive</option>
+                            }
+                            @if (Convert.ToInt16(ViewBag.ActiveID) == 1)
+                            {
+                                <option id="1" value="1" selected="selected">Active</option>
+                            }
+                            else
+                            {
+                                <option id="1" value="1">Active</option>
+                            }
+                            @if (Convert.ToInt16(ViewBag.ActiveID) == 2)
+                            {
+                                <option id="2" value="2" selected="selected">All</option>
+                            }
+                            else
+                            {
+                                <option id="2" value="2">All</option>
+                            }
+                        </select>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>Tab Name Index:</b></td>
+                    <td colspan="2">
+                        @if (ViewBag.LoadUsers != null && ViewBag.LoadUsers.Count > 0)
+                        {
+                            <b>E=egrants; &#0160;M=Mangement;&#0160;A=Admin;&#0160;D=Dashboard;&#0160;IC=IC Coordinator</b>  
+                        }
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div><!--end to show Index for User Name-->
+
+<div id="grid" style="width:900px">
+    @if (ViewBag.LoadUsers != null && ViewBag.LoadUsers.Count > 0)
+    {
+        var UsersGrid = new WebGrid(ViewBag.LoadUsers, rowsPerPage: 50);
+        @UsersGrid.Pager(WebGridPagerModes.Numeric)
+        @UsersGrid.GetHtml(
+        tableStyle: "webgrid-table",
+        headerStyle: "webgrid-header",
+        footerStyle: "webgrid-footer",
+        rowStyle: "webgrid-odd-row-style",
+        alternatingRowStyle: "webgrid-even-row-style",
+        selectedRowStyle: "webgrid-selected-row",
+        numericLinksCount: 10,
+
+        columns: UsersGrid.Columns(
+            UsersGrid.Column("", "  ", format:@<image class="img_12_12" onclick="JavaScript:to_update(@item.PersonId)" src="~/Content/images/Select Arrow.bmp" title="Cilck here to edit user information" />, style: "col-sma", canSort: false),
+            UsersGrid.Column("", "  ", format: (item) =>
+            {
+                if (Convert.ToString(item.active) == "True")
+                {
+                    return Html.Raw(string.Format("<img class=\"img_12_12\" src=\"../Content/images/box_checked.jpg\" title='To indicate user usage rights are valid or invalid'/>"));
+                }
+                else
+                {
+                    return Html.Raw(string.Format("<img class=\"img_12_12\" src=\"../Content/images/clear.jpg\" title='To indicate user usage rights are valid or invalid'/>"));
+                }
+            }, style: "col-sma", canSort: true),
+            UsersGrid.Column("person_name", " User Name", null, style: "col-exlarg", canSort: true),
+            UsersGrid.Column("userid", " Userid", null, style: "col-larg", canSort: true),
+            UsersGrid.Column("position_name", " Position", null, style: "col-larg", canSort: true),
+            UsersGrid.Column("can_egrants", "E*", null, style: "col-exs", canSort: true),
+            UsersGrid.Column("can_mgt", "M*", null, style: "col-exs", canSort: true),
+            UsersGrid.Column("can_admin", "A*", null, style: "col-exs", canSort: true),
+            UsersGrid.Column("can_dashboard", "D*", null, style: "col-exs", canSort: true),
+            UsersGrid.Column("can_iccoord", "IC*", null, style: "col-exs", canSort: true),
+            UsersGrid.Column("start_date", " Start Date", null, style: "col-larg", canSort: true),
+            UsersGrid.Column("end_date", " End Date", null, style: "col-larg", canSort: true)
+            )
+        )
+    }
+    else
+    {
+        <br /><b>There is no record for this kind searching</b>
+    }
+    <br /><br />
+</div><!--end main-->

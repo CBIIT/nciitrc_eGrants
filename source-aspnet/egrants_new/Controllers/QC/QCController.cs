@@ -1,7 +1,7 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  CustomRazorViewEngine.cs
+// Module Name:  QCController.cs
 // Solution: egrants_new
 // Project:  egrants_new
 // Created: 2022-05-05
@@ -39,21 +39,23 @@ using System.Web.Mvc;
 
 #endregion
 
-namespace egrants_new
+namespace egrants_new.Controllers.QC
 {
     /// <summary>
-    /// The custom razor view engine.
+    /// The qc controller.
     /// </summary>
-    public class CustomRazorViewEngine : RazorViewEngine
+    public class QCController : Controller
     {
+        // GET: Egrants
         /// <summary>
-        /// Initializes a new instance of the <see cref="CustomRazorViewEngine"/> class.
+        /// The index.
         /// </summary>
-        public CustomRazorViewEngine()
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult Index()
         {
-            this.ViewLocationFormats = new[] { "~/Views/{1}/{0}.cshtml" };
-
-            this.PartialViewLocationFormats = new[] { "~/Views/Shared/{0}.cshtml" };
+            return this.RedirectToAction("by_qc", "Egrants");
         }
     }
 }

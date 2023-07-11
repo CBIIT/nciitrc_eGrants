@@ -1,0 +1,79 @@
+﻿@{
+    ViewBag.Title = "egrants [GPMAT Workload Report]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<div id="main"><!--start main-->
+    <div>
+        @Html.Partial("~/Views/Egrants_Admin/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">GPMAT Workload Report</b>
+    </div>
+    Column Header Index: B=Branch; T=Team; _C=_CNT; _R=_REL; _W=_WRKLD;<br/>
+    @if (ViewBag.Reports != null)
+    {
+    var Reports = new WebGrid(ViewBag.Reports, rowsPerPage: 20);
+
+    @Reports.Pager(WebGridPagerModes.Numeric)
+    @Reports.GetHtml(
+        tableStyle: "webgrid-table",
+        headerStyle: "webgrid-header",
+        footerStyle: "webgrid-footer",
+        rowStyle: "webgrid-odd-row-style",
+        alternatingRowStyle: "webgrid-even-row-style",
+        selectedRowStyle: "webgrid-selected-row",
+        numericLinksCount: 10,
+
+        columns: Reports.Columns(
+            Reports.Column("specialist_name", "Name", null, style: "col-exlarg", canSort: true),
+            Reports.Column("specialist_code", "Code", null, style: "col-exs", canSort: true),
+            Reports.Column("branch",  "B", null,style: "col-exs", canSort: true),
+            Reports.Column("team", "T", null, style: "col-exs", canSort: true),
+            Reports.Column("fy", "FY", null, style: "col-exs", canSort: true),
+            Reports.Column("OCT_CNT", "10_C", null, style: "col-exs", canSort: true),
+            Reports.Column("OCT_REL", "10_R", null, style: "col-exs", canSort: true),
+            Reports.Column("OCT_WRKLD", "10_W", null, style: "col-exs", canSort: true),
+            Reports.Column("NOV_CNT", "11_C", null, style: "col-exs", canSort: true),
+            Reports.Column("NOV_REL", "11_R", null, style: "col-exs", canSort: true),
+            Reports.Column("NOV_WRKLD", "11_W", null, style: "col-exs", canSort: true),
+            Reports.Column("DEC_CNT", "12_C", null, style: "col-exs", canSort: true),
+            Reports.Column("DEC_REL", "12_R", null, style: "col-exs", canSort: true),
+            Reports.Column("DEC_WRKLD", "12_W", null, style: "col-exs", canSort: true),
+            Reports.Column("JAN_CNT", "1_C", null, style: "col-exs", canSort: true),
+            Reports.Column("JAN_REL", "1_R", null, style: "col-exs", canSort: true),
+            Reports.Column("JAN_WRKLD", "1_W", null, style: "col-exs", canSort: true),
+            Reports.Column("FEB_CNT", "2_C", null, style: "col-exs", canSort: true),
+            Reports.Column("FEB_REL", "2_R", null, style: "col-exs", canSort: true),
+            Reports.Column("FEB_WRKLD", "2_W", null, style: "col-exs", canSort: true),
+            Reports.Column("MAR_CNT", "3_C", null, style: "col-exs", canSort: true),
+            Reports.Column("MAR_REL", "3_R", null, style: "col-exs", canSort: true),
+            Reports.Column("MAR_WRKLD", "3_W", null, style: "col-exs", canSort: true),
+            Reports.Column("APR_CNT", "4_C", null, style: "col-exs", canSort: true),
+            Reports.Column("APR_REL", "4_R", null, style: "col-exs", canSort: true),
+            Reports.Column("APR_WRKLD", "4_W", null, style: "col-exs", canSort: true),
+            Reports.Column("MAY_CNT", "5_C", null, style: "col-exs", canSort: true),
+            Reports.Column("MAY_REL", "5_R", null, style: "col-exs", canSort: true),
+            Reports.Column("MAY_WRKLD", "5_W", null, style: "col-exs", canSort: true),
+            Reports.Column("JUN_CNT", "6_C", null, style: "col-exs", canSort: true),
+            Reports.Column("JUN_REL", "6_R", null, style: "col-exs", canSort: true),
+            Reports.Column("JUN_WRKLD", "6_W", null, style: "col-exs", canSort: true),
+            Reports.Column("JUL_CNT", "7_C", null, style: "col-exs", canSort: true),
+            Reports.Column("JUL_REL", "7_R", null, style: "col-exs", canSort: true),
+            Reports.Column("JUL_WRKLD", "7_W", null, style: "col-exs", canSort: true),
+            Reports.Column("AUG_CNT", "8_C", null, style: "col-exs", canSort: true),
+            Reports.Column("AUG_REL", "8_R", null, style: "col-exs", canSort: true),
+            Reports.Column("AUG_WRKLD", "8_W", null, style: "col-exs", canSort: true),
+            Reports.Column("SEP_CNT", "9_C", null, style: "col-exs", canSort: true),
+            Reports.Column("SEP_REL", "9_R", null, style: "col-exs", canSort: true),
+            Reports.Column("SEP_WRKLD", "9_W", null, style: "col-exs", canSort: true),
+            Reports.Column("TOTAL_CNT", "T_C", null, style: "col-exs", canSort: true),
+            Reports.Column("TOTAL_REL", "T_R", null, style: "col-exs", canSort: true),
+            Reports.Column("TOTAL_WRKLD", "TOTAL_W", null, style: "col-exs", canSort: true)
+            )
+        )
+    }      
+</div><!--end main-->   
+
+
+

@@ -1,0 +1,92 @@
+﻿
+@{
+    ViewBag.Title = "eGrants [Access Control Module]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+ 
+    function to_search() {
+        if (document.getElementById("txtKeyword").value == '') {
+            alert("Please inser keyword to search");
+            document.getElementById("txtKeyword").focus();
+            return false;
+        } else var keyword = document.getElementById("txtKeyword").value;
+        
+        var url= "@Url.Action("Search_Grant_Destructed", "FlagMaintenance")?search_str=" + keyword;
+        window.document.location.href = url;
+    }
+
+    function show_appl(appl_id) {
+        var url = "@Url.Action("by_appl", "Egrants")?appl_id=" + appl_id; 
+        window.open(url, top);
+    }
+</script>
+
+<form name="frmGetInfo">
+    <input type="text" hidden id="hidIndexID" name="indexid" value="@ViewBag.IndexID" />
+    <input type="text" hidden id="hidActiveID" name="activeid" value="@ViewBag.ActiveID" />
+</form>
+
+<div id="main"><!--start main-->
+    <div>
+        @Html.Partial("~/Views/Egrants_Admin/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">Grant Excluded From Archival</b><br/>
+        @Html.ActionLink("Grants Flag Maintenance ", "Index", "FlagMaintenance", new { area = "Egrants_Admin" }, null)
+    </div>
+    <!--start to show -->
+    <div id="modify" style="width:800px">
+        <table width="800">
+            <tr height="20">
+                <td><b>For Information Only:</b></td>
+                <td>Following Grants have been exproted from QVR Archival Exclusion system. The best way</td>
+            </tr>
+            <tr height="20">
+                <td colspan="2">to create an Exclusion is in QVR so that Impac could also exclude them from annual purging.</td>
+            </tr>
+            <tr>
+                <td width="180" valign="bottom"><b>Key Word Search:</b></td>
+                <td width="600">
+                    <input name="txtKeyword" id="txtKeyword" type="text" class="smallfont" size="18" title="Insert Key Word to search" value="@ViewBag.SearchStr" />
+                    &#0160;
+                    <button class="btn btn-primary btn-xs" AccessKey="S" OnClick="return to_search()" title"Click here to search [shift + alt + S]">
+                        <u>S</u>earch
+                    </button>
+                    &#0160;
+                    (search by serial number, creator or date mm/dd/yyyy)
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td valign="bottom">@Html.ActionLink("Show All Records", "Show_Grant_Destructed", "FlagMaintenance", new { area = "Egrants_Admin" }, null)</td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div style="width:800px;">
+    @if (ViewBag.Appls != null)
+    {
+        var Appls = new WebGrid(ViewBag.Appls, rowsPerPage: 50);  
+        @Appls.Pager(WebGridPagerModes.Numeric)
+        @Appls.GetHtml(
+        tableStyle: "webgrid-table",
+        headerStyle: "webgrid-header",
+        footerStyle: "webgrid-footer",
+        rowStyle: "webgrid-odd-row-style",
+        alternatingRowStyle: "webgrid-even-row-style",
+        selectedRowStyle: "webgrid-selected-row",
+        numericLinksCount: 10,
+
+        columns: Appls.Columns(
+            Appls.Column("fgn", "Grant Number", format:@<a href="JavaScript:show_appl('@item.appl_id')">@item.fgn</a>, style: "col-larg", canSort: true),
+            Appls.Column("exclusion_reason", "Exclusion Reason", null, style: "col-exlarg", canSort: true),
+            Appls.Column("creator", "Creator", null, style: "col-larg", canSort: true),
+            Appls.Column("created_date", "Created", null, style: "col-med", canSort: true),
+            Appls.Column("appl_id", "Applid", null, style: "col-med", canSort: true)
+            )
+        )
+    }
+</div><!--end main-->   

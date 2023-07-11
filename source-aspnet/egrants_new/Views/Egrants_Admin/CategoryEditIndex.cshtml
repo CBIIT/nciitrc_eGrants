@@ -1,0 +1,135 @@
+﻿
+@{
+    ViewBag.Title = "egrants [Category Edit]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<script language="javascript">
+        //var ic = document.getElementById("hidIC").value;
+        var ic = 'nci';
+        var currenturl = window.document.location.href;
+   
+        function add_in() {
+                var selectedindex = document.getElementById("ddlGloballist").selectedIndex;
+                if (selectedindex==-1) {
+                    alert("Please select the category you want to add");
+                    return false;
+                } else  var category_id = document.getElementById("ddlGloballist").options[selectedindex].value;
+                        var category_name = document.getElementById("ddlGloballist").options[selectedindex].text;
+
+                if (confirm("Are you sure that you want to add '" + category_name + "' to " + ic + " local category list ?")) {
+                    var url = "@Url.Action("To_Add", "CategoryEdit")?category_id=" + category_id;
+                    window.location.href = url;
+                } 
+        }
+
+        function move_out() { 
+                var selectedindex = document.getElementById("ddlLocallist").selectedIndex;
+                if (selectedindex==-1) {
+                    alert("Please select the category you want to remove");
+                    return false;
+                } else  var category_id = document.getElementById("ddlLocallist").options[selectedindex].value;
+                        var category_name = document.getElementById("ddlLocallist").options[selectedindex].text;
+
+                if (confirm("Are you sure that you want to remove '" + category_name + "' from " + ic + " local category list?")) {               
+                    var url= "@Url.Action("To_Move", "CategoryEdit")?category_id=" + category_id;
+                    window.location.href = url;
+                }         
+        }
+
+        function create_new() {
+                if (document.getElementById("txtNewCategory").value == '') {
+                    alert("please insert new category you want to create");
+                    document.getElementById("txtNewCategory").focus();
+                    return false;
+                } else var result = CheckCharacters(document.getElementById("txtNewCategory").value, 'category name');	//check special characters
+
+                if (result == false || result == 'false') {
+                    document.getElementById("txtNewCategory").value = '';
+                    document.getElementById("txtNewCategory").focus();
+                    return false;
+                } else var category_name = document.getElementById("txtNewCategory").value;
+
+                if (confirm("Are you sure that you want to create '" + category_name + "' to " + ic + " local category list ?")) {          
+                    var url= "@Url.Action("To_Create", "CategoryEdit")?category_name=" + category_name;
+                    window.location.href = url;
+                } 
+        }
+</script>
+
+<div id="main">
+    <form name="frmGetInfo">
+        <input type="text" hidden id="hidIC" name="ic" value="@Convert.ToString(Session["ic"])" />
+    </form>
+
+    <div>@Html.Partial("~/Views/Egrants_Admin/_AdminMenuIndex.cshtml")</div>
+    <div id="caption"><b id="page_title">Category Edit</b></div>
+    <div id="search" class="form-inline" style="margin:0;padding:0;">
+        <table id="report">
+            <thead>
+                <tr style="height:30px">
+                    <td scope="row" colspan="2">&#0160;&#0160;&#0160;&#0160;* Select the category from the list and click button to add or remove</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="height:30px">
+                    <td><lable for="Locallist"><b>&#0160;&#0160;&#0160;&#0160;Local Category List</b></lable></td>
+                    <td><lable for="Globallist"><b>eGrants Common Category List</b></lable></td>
+                </tr>
+                <tr>
+                    <td scope="row">
+                        &#0160;&#0160;&#0160;&#0160;
+                        <select name="Categories" id="ddlLocallist" class="form-control" style="width:270px;" multiple="" size="6"  title="Select a category name from list">
+                            @foreach (var item in ViewBag.LocalCategroies)
+                            {
+                                <option value=@item.category_id>
+                                    @item.category_name
+                                </option>
+                            }
+                        </select>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;
+                    </td>
+                    <td scope="row">
+                        <select name="categories_all" id="ddlGloballist" class="form-control" style="width:270px;" multiple="" size="6" title="Select a category name from list">                
+                            @foreach (var item in ViewBag.CommonCategroies)
+                            {
+                                <option value=@item.category_id>
+                                    @item.category_name
+                                </option>
+                            }
+                        </select>
+                    </td>
+                </tr>
+                <tr style="height:30px">
+                    <td scope="row">
+                        &#0160;&#0160;&#0160;&#0160;
+                        <button AccessKey="M" class="btn btn-primary btn-sm" onclick="return move_out()" title="Click here to remove category from local category list [shift + alt + M]">
+                            <U>M</U>ove Out
+                        </button>
+                    </td>
+                    <td scope="row">
+                        <button AccessKey="A" class="btn btn-primary btn-sm" onclick="return add_in()" title="Click here to add category to local category list [shift + alt + A]">
+                            <U>A</U>dd In
+                        </button>
+                    </td>
+                </tr>
+                <tr style="height:30px">
+                    <td scope="row" colspan="2">&#0160;&#0160;&#0160;&#0160;* Add new category, if you couldn't find it from the common category list.</td>
+                </tr>
+                <tr style="height:30px">
+                    <td scope="row" colspan="2">
+                        &#0160;&#0160;
+                        <lable for="category name"><b>Category Name:</b></lable>&#0160;
+                        <input type="text" name="txtNewCategory" id="txtNewCategory" class="form-control" style="height:30px; width:400px;" title="insert new category name" />&#0160;
+                        <button AccessKey="C" class="btn btn-primary btn-sm" onClick="return create_new()" title="Click here to create a new category [shift + alt + C]">
+                            <U>C</U>reate New
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td scope="row" colspan="2">&#0160;</td>
+                </tr>
+            </tbody>
+        </table>
+    </div><!--end search-->
+    @ViewBag.Message<br />
+</div><!--end main-->

@@ -1,0 +1,307 @@
+﻿
+@{
+   ViewBag.Title = "eGrants [Flag Maintenance Administration]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<style type="text/css">
+   .webgrid-table {
+      /* font-family: "Trebuchet MS" , Arial, Helvetica, sans-serif; */
+      /* font-size: 1.2em; */
+      width: 100%;
+      display: table;
+      /* border-collapse: separate; */
+      background-color: white;
+   }
+   /* .webgrid-table td, th */
+   /* { */
+   /*    padding: 3px 7px 2px; */
+   /* } */
+   .webgrid-header {
+      color: #FFFFFF;
+      padding-bottom: 4px;
+      padding-top: 5px;
+      text-align: left;
+   }
+
+   .webgrid-footer {
+   }
+
+   .webgrid-row-style {
+      padding: 3px 7px 2px;
+   }
+
+   .webgrid-alternating-row {
+      background-color: #EAF2D3;
+      padding: 3px 7px 2px;
+   }
+</style>
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+    var selectall = 0;
+
+    $(document).ready(function () {
+        set_default();
+    });
+
+    function set_default() {
+        var count = 0;
+        for (var i = 0; i < window.frmFlags.length; i++) {
+            var control = window.frmFlags.elements[i]
+            if (control.type != 'checkbox') {
+                continue
+            } else count = count + 1;
+        }
+
+        if (count > 0) {
+            document.getElementById("ShowSelect").style.display = "inline";
+        } else document.getElementById("ShowSelect").style.display = "none";
+    }
+
+    function show_flags() {
+        if (document.getElementById("ddlFlagTypes").selectedIndex == 0) {
+            var flagtype = "";
+        } else var flagtype = document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+        var url = "@Url.Action("Show_Flags", "FlagMaintenance")?act=show_flags&flag_type=" + flagtype;
+        window.document.location.href = url;
+    }
+
+    function show_grant(flag_type, grant_id, flag_application) {
+        //alert("flag_application=" + flag_application);
+        if (flag_application == "G") {
+            var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=&categories=&appls_list=&years=";
+        } else {
+            var categories = "All";
+            var appls_list = "All";
+            var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
+        }
+        window.document.location.href = url;
+    }
+
+    function to_search() {
+        if (document.getElementById("ddlAdmincodes").selectedIndex == 0) {
+            alert("Please select admin code to search");
+            return false;
+        } else admincode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+
+        if (document.getElementById("txtSerialnum").value == '') {
+            alert("Please insert serial number to search");
+            document.getElementById("txtSerialnum").focus();
+            return false;
+        } else var result = isInteger(document.getElementById("txtSerialnum").value);
+
+        if (result == false || result == 'false') {
+            alert("Please inset correct serial number to search");
+            document.getElementById("txtSerialnum").value = '';
+            document.getElementById("txtSerialnum").focus();
+            return false;
+        } else serialnum = document.getElementById("txtSerialnum").value;
+
+        if (document.getElementById("ddlFlagTypes").selectedIndex == 0) {
+            var flagtype = "";
+        } else var flagtype = document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+
+        var url = "@Url.Action("To_Search", "FlagMaintenance")?act=show_flag&serial_num=" + serialnum + "&admin_code=" + admincode + "&flag_type=" + flagtype;
+        //alert(url);
+        window.document.location.href = url;
+    }
+
+    function to_remove() {
+        count = GetCount();
+        if (count == 0) {
+            alert("Please select checkbox to remove flag(s)");
+            return false;
+        } else idstring = Getids();
+
+        if (document.getElementById("ddlFlagTypes").selectedIndex == 0) {
+            var flagtype = "";
+        } else var flagtype = document.getElementById("ddlFlagTypes").options[document.getElementById("ddlFlagTypes").selectedIndex].text;
+
+        if (confirm("Are you sure that you want to remove " + count + " flag(s)?")) {
+            var url = "@Url.Action("Remove_Flags", "FlagMaintenance")?act=remove_flags&id_string=" + idstring + "&flag_type=" + flagtype;
+            window.document.location.href = url;
+        }
+    }
+
+    function GetCount() {
+        var count = 0;
+        for (var i = 0; i < window.frmFlags.length; i++) {
+            var control = window.frmFlags.elements[i]
+            if (control.type != 'checkbox') {
+                continue
+            }
+
+            if (control.checked) {
+                count = count + 1;
+            }
+        }
+        return count
+    }
+
+    function Getids() {
+        var idString = "";
+        for (var i = 0; i < window.frmFlags.length; i++) {
+            var control = window.frmFlags.elements[i]
+            if (control.type != 'checkbox') {
+                continue
+            }
+            if (control.checked) {
+                idString = idString + control.id + ','
+            }
+        }
+        idString = idString.substring(0, idString.length - 1);
+        return idString
+    }
+
+    function select_all() {
+        if (selectall == 0) {
+            selectall = 1;
+            for (var i = 0; i < window.document.frmFlags.length; i++) {
+                var control = window.document.frmFlags.elements[i];
+                if (control.type != 'checkbox') {
+                    continue
+                } else control.checked = true;
+            }
+        } else unselect_all();
+    }
+
+    function unselect_all() {
+        if (selectall == 1) {
+            selectall = 0;
+            for (var i = 0; i < window.document.frmFlags.length; i++) {
+                var control = window.document.frmFlags.elements[i];
+                if (control.type != 'checkbox') {
+                    continue
+                } else control.checked = false;
+            }
+        }
+    }
+</script>
+
+<div id="main">
+   <!--start main-->
+   <div>
+      @Html.Partial("~/Views/Egrants_Admin/_AdminMenuIndex.cshtml")
+   </div>
+   <div id="caption">
+      <b id="page_title">Flag Maintenance--Browse or Remove Flag(s)</b><br />
+      <a href=@Url.Action("To_Setup","FlagMaintenance")>Setup Flag(s)</a> | @Html.ActionLink("QVR Exclusion", "Show_Grant_Destructed", "FlagMaintenance", new { area = "Egrants_Admin" }, null) <br /><br />
+   </div>
+
+   @*<b>ViewBag.FlagType=</b>@ViewBag.FlagType*@
+   <div id="modify" class="form-inline">
+      <table>
+         <thead>
+            <tr><td width="80"></td><td width="80"></td><td width="250"></td><td width="300"></td></tr>
+         </thead>
+         <tbody>
+            <tr><td colspan="4" height="20px">STEP 1:TO SHOW PARTICULAR FLAGS, SELECT A FLAG TYPE IN THE DROPDOWN LIST</td></tr>
+            <tr>
+               <td><lable for="type"><b>Flag Type:</b></lable></td>
+               <td colspan="3">
+                  <select id="ddlFlagTypes" name="flagtype" class="form-control" style="height:30px; width:100px;" title="Select flag type to view or edit" onchange="show_flags()">
+                     <option></option>
+                     @foreach (var flagtypes in ViewBag.FlagTypes)
+                     {
+                        if (ViewBag.FlagType != null && ViewBag.FlagType == flagtypes.flag_type)
+                        {
+                           <option value="@flagtypes.flag_application" selected="selected">@flagtypes.flag_type</option>
+                        }
+                        else
+                        {
+                           <option value="@flagtypes.flag_application">@flagtypes.flag_type</option>
+                        }
+                     }
+                  </select>
+               </td>
+            </tr>
+            <tr><td colspan="4" height="20px">STEP 2: TO FIND PARTICULAR GRANT, PLEASET SELECT FLAG TYPE AND INSERT SERIAL NUMBER TO SEARCH</td></tr>
+            <tr>
+               <td><lable for="ic"><b>Institute:</b></lable></td>
+               <td>
+                  <select name="admincode" id="ddlAdmincodes" class="form-control" style="height:30px; width:100px;" title="Select admin phs org code">
+                     @foreach (var AdminCode in ViewBag.AdminCodes)
+                     {
+                        if (AdminCode.profile != null && Convert.ToString(AdminCode.profile) == Convert.ToString(Session["ic"]))
+                        {
+                           <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option>
+                        }
+                        else
+                        {
+                           <option value="@AdminCode.admin_phs_org_code">@AdminCode.admin_phs_org_code</option>
+                        }
+                     }
+                  </select>
+               </td>
+               <td>
+                  <lable for="Serial Number"><b>Serial Number:</b></lable>&#0160;
+                  <input name="serialnum" type="text" id="txtSerialnum" class="form-control" style="height:30px; width:100px;" title="Insert serial number" value="@ViewBag.SerialNumber" />
+               </td>
+               <td>
+                  <button class="btn btn-primary btn-sm" title="Click here to load available appls [shift + alt + S]" onclick="return to_search();" accesskey="S">
+                     <u>S</u>earch
+                  </button>
+               </td>
+            </tr>
+            <tr>
+               <td colspan="3" height="20px">STEP 3: TO REMOVE, SELECT CHECKBOX AND CLICK BUTTON</td>
+               <td>
+                  <button class="btn btn-primary btn-sm" title="Click here to remove selected flags [shift + alt + S]" onclick="return to_remove();" accesskey="R">
+                     <u>R</u>emove
+                  </button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+   </div>
+   <br />
+   @if (ViewBag.Flags != null && ViewBag.Flags.Count > 0)
+   {
+      <b>Found @Convert.ToDecimal(ViewBag.Flags.Count).ToString("#,##0") records(50 records per page).</b>
+   }
+   else if (ViewBag.Flags != null && ViewBag.Flags.Count == 0)
+   {
+      <b>No data found</b>
+   }
+   <br /><br />
+   <div class="menu" id="ShowSelect" style="display:none">
+      <a href="JavaScript:select_all()"><img height="12" src="~/Content/images/box_checked.jpg" />&#0160;&#0160;Select All or Unselect All</a> &#0160;&#0160;
+   </div>
+
+   <div style="width:550px;">
+      &#0160;&#0160;&#0160;
+      <form name="frmFlags">
+         @if (ViewBag.Flags != null && ViewBag.Flags.Count > 0)
+         {
+            var Flags = new WebGrid(ViewBag.Flags, rowsPerPage: 50);
+            @Flags.Pager(WebGridPagerModes.Numeric)
+            @Flags.GetHtml(
+            tableStyle: "webgrid-table",
+            headerStyle: "webgrid-header",
+            footerStyle: "webgrid-footer",
+            // headerStyle: "datagrid-header",
+            rowStyle: "webgrid-odd-row-style",
+            alternatingRowStyle: "webgrid-even-row-style",
+            selectedRowStyle: "webgrid-selected-row",
+            numericLinksCount: 10,
+
+            columns: Flags.Columns(
+            Flags.Column("", "", format: (item) =>
+            {
+                return Html.Raw(string.Format("<input type=\'checkbox\' id=\'" + @item.gf_id + "' title=\'Check here to delete flag with flag_id " + @item.gf_id + "' />"));
+            }, style: "col-exs", canSort: false),
+               @*Flags.Column("full_grant_num", "Grant Number", format:@<a href="JavaScript:show_appl('@item.flag_type','@Convert.ToInt32(item.grant_id)','@Convert.ToInt32(item.appl_id)')">@item.full_grant_num</a>, style: "col-larg", canSort: true),*@
+Flags.Column("full_grant_num", "Grant Number", format:@<a href="JavaScript:show_grant('@item.flag_type','@Convert.ToInt32(item.grant_id)','@item.flag_application')">@item.full_grant_num</a>, style: "col-larg", canSort: true),
+Flags.Column("flag_type", " Type", null, style: "col-sma", canSort: true),
+Flags.Column("", "Flag", format: (item) =>
+{
+return Html.Raw(string.Format("<img height=\"12\" src=\"../Content/images/flag_" + @item.flag_type + ".png\"/>"));
+}, style: "col-exs", canSort: false)
+)
+)
+         }
+      </form>
+   </div>
+   <br />
+</div><!--end main-->

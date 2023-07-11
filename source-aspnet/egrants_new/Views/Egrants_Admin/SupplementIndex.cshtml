@@ -1,0 +1,273 @@
+﻿@{
+   ViewBag.Title = "egrants [Supplement Index]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<style type="text/css">
+   .webgrid-table {
+      width: 100%;
+      display: table;
+      background-color: white;
+   }
+
+   .webgrid-header {
+      color: #FFFFFF;
+      padding-bottom: 4px;
+      padding-top: 5px;
+      text-align: left;
+   }
+
+   .webgrid-footer {
+   }
+
+   .webgrid-row-style {
+      padding: 3px 7px 2px;
+   }
+
+   .webgrid-alternating-row {
+      background-color: #EAF2D3;
+      padding: 3px 7px 2px;
+   }
+</style>
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+
+    $(document).ready(function () {
+        display_notice();
+    });
+
+        function display_notice(){
+            if (document.getElementById("hidReturnNotice").value != '') {
+                alert(document.getElementById("hidReturnNotice").value);
+            }
+        }
+
+        function to_search() {
+            if (document.getElementById("txtSerialNum").value == '') {
+                alert("Please insert serial number to search");
+                document.getElementById("txtSerialNum").focus();
+                return false;
+            } else var serialnum = document.getElementById("txtSerialNum").value;
+
+            var result = isInteger(serialnum);
+            if (result == false || result == 'false') {
+                    alert("Please inset correct serial number for searching");
+                    document.getElementById("txtSerialNum").value = '';
+                    document.getElementById("txtSerialNum").focus();
+                    return false;
+            }
+
+            var url= "@Url.Action("Search_Notification", "Supplement")?serial_num=" + serialnum;
+            window.document.location.href = url;
+        }
+
+        function hide_and_show() {
+            //hide text input
+            var inputs = document.getElementsByTagName("input");
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].className == 'form-control pa' || inputs[i].className == 'form-control grantnum') {
+                    inputs[i].style.display = "none";
+                } else continue
+            }
+
+            //hide all save  and cancel button
+            var inputs = document.getElementsByTagName("button");
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].className == 'btn btn-primary btn-sm save' || inputs[i].className == 'btn btn-primary btn-sm cancel') {
+                    inputs[i].style.display = "none";
+                } else if (inputs[i].className == 'btn btn-primary btn-sm edit') {
+                    inputs[i].style.display = "inline";
+                }
+                else continue
+            }
+        }
+
+        function show_appl(appl_id) {
+            var url = "@Url.Action("by_appl", "Egrants")?appl_id=" + appl_id ;
+            window.document.location.href = url;
+        }
+
+        function to_edit(id) {
+            hide_and_show();
+
+            //show save button
+            var el = "save_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            //show cancel button
+            var el = "cancel_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            //hide edit button
+            var el = "edit_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //show fgn edit
+            var el = "txtFGN_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            ////hide fgn lable
+            //var el = "labFGN_" + id;
+            //if (document.getElementById(el).style.display == "inline") {
+            //    document.getElementById(el).style.display = "none";
+            //};
+            //show pa edit
+            var el = "txtPA_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            //hide pa lable
+            //var el = "labPA_" + id;
+            //if (document.getElementById(el).style.display == "inline") {
+            //    document.getElementById(el).style.display = "none";
+            //};
+        }
+
+        function to_cancel(id) {
+            //hide save button
+            var el = "save_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //hide cancel button
+            var el = "cancel_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //show edit button
+            var el = "edit_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            //hide fgn text
+            var el = "txtFGN_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //show fgn lable
+            //var el = "labFGN_" + id;
+            //if (document.getElementById(el).style.display == "none") {
+            //    document.getElementById(el).style.display = "inline";
+            //};
+            //hide pa edit
+            var el = "txtPA_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //show pa lable
+            //var el = "labPA_" + id;
+            //if (document.getElementById(el).style.display == "none") {
+            //    document.getElementById(el).style.display = "inline";
+            //};
+        }
+
+        function to_save(id) {
+            var el="txtFGN_"+id;
+            if (document.getElementById(el).value==''){
+                alert("Please insert full grant number") ;
+                document.getElementById(el).focus();
+                return  false
+            }else var fgn=document.getElementById(el).value;
+
+            var el="txtPA_"+id;
+            if (document.getElementById(el).value==''){
+                alert("Please insert PA");
+                document.getElementById(el).focus();
+                return  false
+            }else var pa=document.getElementById(el).value;
+
+            if(fgn!='' && pa!=''){
+                var url = "@Url.Action("Save_Notification", "Supplement")?id=" + id + "&fgn=" + fgn + "&pa=" + pa;
+                //alert(url);
+                window.document.location.href = url;
+            }
+        }
+
+        function to_delete(id, full_grant_num) {
+            if (confirm('Are you sure that you want to delete notification for ' + full_grant_num + '?')) {
+                var url= "@Url.Action("Delete_Notification", "Supplement")?id=" + id;
+                window.document.location.href = url;
+            }
+        }
+
+        function to_review(id) {
+            var url= "@Url.Action("Review_Notification", "Supplement")?id=" + id;
+            window.document.location.href = url;
+        }
+</script>
+
+<div id="main">
+   <!--start main-->
+   <form name="frmGetInfo">
+      <input type="text" hidden id="hidSerialNum" name="SerialNum" value="@ViewBag.SerialNum" />
+      <input type="text" hidden id="hidReturnNotice" name="ReturnNotice" value="@ViewBag.ReturnNotice" />
+   </form>
+   <div>
+      @Html.Partial("~/Views/Egrants_Admin/_AdminMenuIndex.cshtml")
+   </div>
+   <div id="caption">
+      <b id="page_title">Admin Supplement</b><br />
+       @Html.ActionLink("eRA Notification", "Index", "Supplement", new { area = "Egrants_Admin" }, null) |
+       @Html.ActionLink("Email Template", "Load_Email_Template", "Supplement", new { area = "Egrants_Admin" }, null) |
+       @Html.ActionLink("Workflow", "Load_Workflow", "Supplement", new { area = "Egrants_Admin" }, null)
+   </div>
+   <div class="form-inline">
+      <lable for="serial number"><b>Serial Number:</b></lable>&#0160;
+      <input type="text" id="txtSerialNum" class="form-control" style="height:30px; width:120px;" title="Insert serial number to search" />&#0160;
+      <button AccessKey="S" class="btn btn-primary btn-sm" title="search by serial number[shift + alt + S]" onclick="return to_search()">
+         <U>S</U>earch
+      </button>&#0160;&#0160;( searching by serial number only )
+   </div>
+</div><!--end main-->
+<div style="width:900px;" class="float-left">
+   @if (ViewBag.Notifications != null)
+   {
+
+      <b>Found @Convert.ToDecimal(ViewBag.Notifications.Count).ToString("#,##0") records</b>
+
+      if (ViewBag.Notifications.Count > 50)
+      {
+         <b>, 50 records per page. Page:</b>
+      }
+
+      var Notifications = new WebGrid(ViewBag.Notifications, rowsPerPage: 50);
+      @Notifications.Pager(WebGridPagerModes.Numeric)
+      @Notifications.GetHtml(
+         tableStyle: "webgrid-table",
+         headerStyle: "webgrid-header",
+         footerStyle: "webgrid-footer",
+         rowStyle: "webgrid-odd-row-style",
+         alternatingRowStyle: "webgrid-even-row-style",
+         selectedRowStyle: "webgrid-selected-row",
+         numericLinksCount: 10,
+
+         columns: Notifications.Columns(
+            Notifications.Column("full_grant_num", "Grant Number",
+               format: @<text><a href="JavaScript:show_appl(@item.appl_id)">@item.full_grant_num</a>
+               <input type="text" id="txtFGN_@item.id" class="form-control grantnum" style="height:30px; width:150px; display:none" value="@item.full_grant_num" />
+               </text>, style: "col-xxlarg", canSort: true),
+Notifications.Column("pa", "PA ",
+format: @<text><span id="labPA_@item.id" style="display:inline"><label id="lblPA">@item.pa</label></span>
+<input type="text" id="txtPA_@item.id" class="form-control pa" style="height:30px; width:80px; display:none" value="@item.pa" />
+</text>, style: "col-larg", canSort: true),
+Notifications.Column("NotRcvd_dt", "Recieved", null, style: "col-med", canSort: true),
+Notifications.Column("created_date", "Created", null, style: "col-med", canSort: true),
+Notifications.Column("", "Edit", format: @<text>
+   <button class="btn btn-primary btn-sm edit" style="display:inline" id="edit_@item.id" onclick="JavaScript:to_edit(@item.id)">Edit</button>
+   <button class="btn btn-primary btn-sm save" style="display:none" id="save_@item.id" onclick="JavaScript:to_save(@item.id)">Save</button>&#0160;
+   <button class="btn btn-primary btn-sm cancel" style="display:none" id="cancel_@item.id" onclick="JavaScript:to_cancel(@item.id)">Cancel</button>
+</text>, style: "col-larg", canSort: false),
+Notifications.Column("", "Action", format: @<text>
+      <button class="btn btn-primary btn-sm" id="delete_@item.id" onclick="JavaScript:to_delete('@item.id', '@item.full_grant_num')">Delete</button>&#0160;
+      <button class="btn btn-primary btn-sm" id="review_@item.id" onclick="JavaScript:to_review(@item.id)">Review</button>
+</text>, style: "col-larg", canSort: false)
+)
+)
+   }
+   @* </div> *@
+</div>

@@ -1,7 +1,7 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  CustomRazorViewEngine.cs
+// Module Name:  AdminController.cs
 // Solution: egrants_new
 // Project:  egrants_new
 // Created: 2022-05-05
@@ -35,25 +35,32 @@
 
 #region
 
+using System;
 using System.Web.Mvc;
+
+using egrants_new.Models;
 
 #endregion
 
-namespace egrants_new
+namespace egrants_new.Controllers.Egrants_Admin
 {
     /// <summary>
-    /// The custom razor view engine.
+    /// The admin controller.
     /// </summary>
-    public class CustomRazorViewEngine : RazorViewEngine
+    public class AdminController : Controller
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CustomRazorViewEngine"/> class.
+        /// The index.
         /// </summary>
-        public CustomRazorViewEngine()
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult Index()
         {
-            this.ViewLocationFormats = new[] { "~/Views/{1}/{0}.cshtml" };
+            // load admin menu list
+            this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
 
-            this.PartialViewLocationFormats = new[] { "~/Views/Shared/{0}.cshtml" };
+            return this.View("~/Views/Egrants_Admin/Index.cshtml");
         }
     }
 }
