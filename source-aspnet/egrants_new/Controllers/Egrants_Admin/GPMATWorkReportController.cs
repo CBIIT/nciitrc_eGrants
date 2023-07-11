@@ -1,7 +1,7 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  CustomRazorViewEngine.cs
+// Module Name:  GPMATWorkReportController.cs
 // Solution: egrants_new
 // Project:  egrants_new
 // Created: 2022-05-05
@@ -35,25 +35,36 @@
 
 #region
 
+using System;
 using System.Web.Mvc;
+
+using egrants_new.Egrants_Admin.Models;
+using egrants_new.Models;
 
 #endregion
 
-namespace egrants_new
+namespace egrants_new.Controllers.Egrants_Admin
 {
     /// <summary>
-    /// The custom razor view engine.
+    /// The gpmat work report controller.
     /// </summary>
-    public class CustomRazorViewEngine : RazorViewEngine
+    public class GPMATWorkReportController : Controller
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CustomRazorViewEngine"/> class.
+        /// The index. GET: Admin
         /// </summary>
-        public CustomRazorViewEngine()
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult Index()
         {
-            this.ViewLocationFormats = new[] { "~/Views/{1}/{0}.cshtml" };
+            // load admin menu list
+            this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
 
-            this.PartialViewLocationFormats = new[] { "~/Views/Shared/{0}.cshtml" };
+            // load reports
+            this.ViewBag.Reports = GPMATWorkReport.LoadReports(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
+
+            return this.View("~/Views/Egrants_Admin/GPMATWorkReport.cshtml");
         }
     }
 }

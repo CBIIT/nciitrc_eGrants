@@ -1,0 +1,396 @@
+﻿@{
+   ViewBag.Title = "eGrants [Document Transaction Report]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+<link href="~/Content/jquery-ui.min.css" rel="stylesheet" />
+<script src="~/scripts/jquery-ui-1.13.2.min.js"></script>
+
+<script language="javascript">
+    var ic = "NCI";
+    var flag;
+    var DocTransactionType;
+    var UserID;
+    var currenturl = window.document.location.href;
+
+    $(document).ready(function () {
+        load_date();
+    });
+
+
+
+    function load_date() {
+        if (document.getElementById("hidStartDate").value != "" && document.getElementById("hidEndDate").value != "") {
+            document.getElementById("ShowSearch").style.display = "inline";
+        }
+    }
+
+    function show_search() {
+        if (document.getElementById("ShowSearch").style.display == "none") {
+            document.getElementById("ShowSearch").style.display = "inline";
+        }else if(document.getElementById("ShowSearch").style.display == "inline"){
+            document.getElementById("ShowSearch").style.display = "none";
+        }
+    }
+
+    function get_searching_user() {
+        var ddlUsersIndex = document.getElementById("ddlUsers").selectedIndex;
+
+        if (ddlUsersIndex == 0) {
+            alert("Please select user");
+            document.getElementById("ddlDateRange").selectedIndex = 0;
+            flag = "stop";
+            return false;
+        } else {
+            flag = "go";
+            return document.getElementById("ddlUsers").options[ddlUsersIndex].value;
+        }
+    }
+
+    function get_searching_type() {
+            var searchTypeIndex = document.getElementById("ddlDocTransactionType").selectedIndex;
+            if (searchTypeIndex == 0) {
+                alert("Please select document transaction type");
+                document.getElementById("ddlDateRange").selectedIndex = 0;
+                flag = "stop";
+                return false;
+            } else {
+                flag = "go";
+                return document.getElementById("ddlDocTransactionType").options[searchTypeIndex].value;
+            }
+      }
+
+    function show_report() {
+        //get search person_id
+        UserID = get_searching_user();
+
+        //get search transaction type
+        if (flag == "go") {
+            DocTransactionType = get_searching_type();
+        } else return false;
+
+        //get search time range
+        if (flag == "go") {
+            var DateRangeIndex = document.getElementById("ddlDateRange").selectedIndex;
+            if (DateRangeIndex == 0) {
+                alert("Please select time range");
+                return false;
+            } else DateRange = document.getElementById("ddlDateRange").options[DateRangeIndex].id;
+        } else return false;
+
+        if (UserID != "" && DocTransactionType != "" && DateRange !="") {
+            var url= "@Url.Action("To_Show_Report", "DocTransactionReport")?transaction_type=" + DocTransactionType + "&person_id=" + UserID + "&date_range=" + DateRange;
+            //alert(url);
+            window.self.location.href = url;
+        }
+    }
+
+    function create_report() {
+        document.getElementById("ShowSearch").style.display = "inline";
+
+        //get search person_id
+        UserID = get_searching_user();
+
+        //get search transaction type
+        if (flag == "go") {
+            DocTransactionType = get_searching_type();
+        }
+
+        if (UserID != "" && DocTransactionType != "") {
+            //get start date
+           if (document.getElementById("txtStartDay").value == '') {
+                alert("please insert start date");
+                document.getElementById("txtStartDay").value = '';
+                document.getElementById("txtStartDay").focus();
+                return false;
+            } else if (isDate(document.getElementById("txtStartDay").value) == false) {
+                document.getElementById("txtStartDay").value = '';
+                document.getElementById("txtStartDay").focus();
+                return false;
+            } else startdate = document.getElementById("txtStartDay").value;
+
+            //get end date
+            if (document.getElementById("txtEndDay").value == '') {
+                alert("please insert end date");
+                document.getElementById("txtEndDay").value = '';
+                document.getElementById("txtEndDay").focus();
+                return false;
+            } else if (isDate(document.getElementById("txtEndDay").value) == false) {
+                document.getElementById("txtEndDay").value = '';
+                document.getElementById("txtEndDay").focus();
+                return false;
+            } else enddate = document.getElementById("txtEndDay").value;
+
+            if (startdate > enddate) {
+                alert("The end date must be later than start date");
+                return false;
+            }
+
+            if (startdate != "" && enddate != "" && enddate > startdate) {
+                var url= "@Url.Action("To_Create_Report", "DocTransactionReport")?transaction_type=" + DocTransactionType + "&person_id=" + UserID + "&start_date=" + startdate + "&end_date=" + enddate;
+                //alert(url);
+                window.self.location.href = url;
+            }
+        }
+    }
+
+    function show_doc(docurl) {
+        var ImageServer = document.getElementById("hidImageServer").value;
+        //alert(docurl);
+        if (docurl.substring(0, 12) == "https://s2s.") {
+            var url = "@Url.Action("show_era_doc", "EgrantsDoc")?docurl=" + docurl;
+        }else if (docurl.substring(0, 5) == "/data") {
+            var url = ImageServer + docurl.substring(1, docurl.length);
+        }else if (docurl.substring(0, 5) == "data/") {
+            var url = ImageServer + docurl;
+        }else url = docurl;
+
+        //alert(url);
+        window.open(url);
+   }
+
+//    function get_document_date() {
+//       if (document.getElementById("txtStartDay").value == "") {
+//          alert("Please insert document date");
+//          document.getElementById("txtStartDay").focus();
+//          return false;
+//       } else if (document.getElementById("txtStartDay").value.charAt(4) == '/') {
+//          var year = document.getElementById("txtStartDay").value.substring(0, 4);
+//          var month = document.getElementById("txtStartDay").value.substring(5, 7);
+//          var day = document.getElementById("txtStartDay").value.substring(8, 10);
+//          doc_date = month + "/" + day + "/" + year;
+//       } else doc_date = document.getElementById("txtStartDay").value;
+//
+//       //check date format
+//       if (isDate(doc_date) == false) {
+//          document.getElementById("txtStartDay").value = "";
+//          document.getElementById("txtStartDay").focus();
+//          return false;
+//       } else DocDate = doc_date;
+//       return true;
+//    }
+</script>
+
+<form name="frmInfo">
+   <input type="text" hidden id="hidStartDate" value="@ViewBag.StartDate" />
+   <input type="text" hidden id="hidEndDate" value="@ViewBag.EndDate" />
+   <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Session["ImageServerUrl"])" />
+</form>
+
+<div id="main">
+   <!--start main-->
+   <div style="text-align:left">
+      <!--start sub link-->
+      @Html.ActionLink("QC Assignment Report", "index", "Management", new { area = "Management" }, null)&#0160;&#47;
+      @Html.ActionLink("Document Transaction Report", "index", "DocTransactionReport", new { area = "Management" }, null)&#0160;&#47;
+      @Html.ActionLink("System Report", "index", "SystemReport", new { area = "Management" }, null)
+   </div>
+   <div id="caption">
+      <b id="page_title">Document Transaction Report</b>
+   </div>
+   <br />
+
+   <div id="report" class=" form-inline">
+      <!--start well-->
+      <table class="table table-sm">
+         <caption>* Select user and transaction type, then search by date range or insert particular date to search.</caption>
+         <thead>
+            <tr>
+               <th scope="col">User:</th>
+               <th scope="col">Transaction Type:</th>
+               <th scope="col">Date Range:</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td>
+                  <select ID="ddlUsers" class="form-control my-1 mr-sm-2">
+                     <option selected></option>
+                     <option value=0>NCI</option>
+                     @foreach (var item in ViewBag.Specialists)
+                     {
+                        if (Convert.ToInt16(ViewBag.PersonID) == Convert.ToInt16(item.PersonId))
+                        {
+                           <option value=@item.PersonId selected="selected">@item.person_name</option>
+                        }
+                        else
+                        {
+                           <option value=@item.PersonId>@item.person_name</option>
+                        }
+                     }
+                  </select>
+               </td>
+
+               <td>
+                  <select id="ddlDocTransactionType" name="search_type" class="form-control my-1 mr-sm-2" onchange="get_searching_type();">
+                     <option></option>
+                     @if (Convert.ToString(ViewBag.TransactionType) == "created")
+                     {
+                        <option id="created" selected="selected">created</option>
+                     }
+                     else
+                     {
+                        <option id="created">created</option>
+                     }
+                     @if (Convert.ToString(ViewBag.TransactionType) == "deleted")
+                     {
+                        <option id="deleted" selected="selected">deleted</option>
+                     }
+                     else
+                     {
+                        <option id="deleted">deleted</option>
+                     }
+                     @if (Convert.ToString(ViewBag.TransactionType) == "image modified")
+                     {
+                        <option id="image modified" selected="selected">image modified</option>
+                     }
+                     else
+                     {
+                        <option id="image modified">image modified</option>
+                     }
+                     @if (Convert.ToString(ViewBag.TransactionType) == "index modified")
+                     {
+                        <option id="index modified" selected="selected">index modified</option>
+                     }
+                     else
+                     {
+                        <option id="index modified">index modified</option>
+                     }
+                     @if (Convert.ToString(ViewBag.TransactionType) == "stored")
+                     {
+                        <option id="stored" selected="selected">stored</option>
+                     }
+                     else
+                     {
+                        <option id="stored">stored</option>
+                     }
+                  </select>
+               </td>
+               <td>
+                  <select id="ddlDateRange" name="time_range" class="form-control  my-1 mr-sm-2" onchange="show_report();">
+                     <option selected></option>
+                     @if (Convert.ToString(ViewBag.DateRange) == "today")
+                     {
+                        <option id="today" selected="selected">Today</option>
+                     }
+                     else
+                     {
+                        <option id="today">Today</option>
+                     }
+                     @if (Convert.ToString(ViewBag.DateRange) == "last_week")
+                     {
+                        <option id="last_week" selected="selected">Last Week</option>
+                     }
+                     else
+                     {
+                        <option id="last_week">Last Week</option>
+                     }
+                     @if (Convert.ToString(ViewBag.DateRange) == "last_month")
+                     {
+                        <option id="last_month" selected="selected">Last Month</option>
+                     }
+                     else
+                     {
+                        <option id="last_month">Last Month</option>
+                     }
+                     @if (Convert.ToString(ViewBag.DateRange) == "this_week")
+                     {
+                        <option id="this_week" selected="selected">This Week</option>
+                     }
+                     else
+                     {
+                        <option id="this_week">This Week</option>
+                     }
+                     @if (Convert.ToString(ViewBag.DateRange) == "this_month")
+                     {
+                        <option id="this_month" selected="selected">This Month</option>
+                     }
+                     else
+                     {
+                        <option id="this_month">This Month</option>
+                     }
+                  </select>
+               </td>
+            </tr>
+         <tr>
+            <td colspan="3">                  
+               <button AccessKey="R" ID="btnRoute" class="btn btn-primary my-1 mr-sm-2" title="Click to route [shift + alt + R]" OnClick="show_search();">
+                  Range
+               </button></td>
+         </tr>
+         <tr>
+
+         </tr>
+            <tr>
+               @* <td colspan="1"> *@
+               @*    <button AccessKey="R" ID="btnRoute" class="btn btn-primary my-1 mr-sm-2" title="Click to route [shift + alt + R]" OnClick="show_search();"> *@
+               @*       Range *@
+               @*    </button> *@
+               @* </td> *@
+               <td colspan="3">
+                  <div id="ShowSearch" style="display: none" class="align-content-center">
+                     <label for="txtStartDay" class="float-left align-middle my-1 mr-sm-2">From:</label>
+                     <input type="text" class="form-control float-left  my-1" name="docdate" id="txtStartDay" style="width: 120px;" title="Insert document date"/>
+                     <script type="text/javascript">
+
+                        $('#txtStartDay').datepicker({
+//                           showOn: "both",
+                           buttonImageOnly: true,
+                           //buttonImage: '../Content/images/calendar.png',
+                           //buttonText: "Calendar"
+                        });
+                        </script>
+
+                     @* <input type="text" id="txtStartDay" class="form-control" style="width: 100px;" value="@ViewBag.StartDate" />&#0160;(mm/dd/yyyy) *@
+                     @* &#0160;&#0160;&#0160;&#0160; *@
+                     <label for="txtEndDay" class="float-left my-1 mx-2">To:</label>
+                     <input type="text" class="form-control float-left my-1" name="docdate" id="txtEndDay" style="width: 120px;" title="Insert document date"/>
+                     <script type="text/javascript">
+                        $('#txtEndDay').datepicker({
+//                        showOn: "both",
+                        buttonImageOnly: true,
+                        @*buttonImage: '../Content/images/calendar.png',
+                        buttonText: "Calendar"*@
+                        });
+                     </script>
+                     @* <input type="text" id="txtEndDay" class="form-control" style="width: 100px;" value="@ViewBag.EndDate" />&#0160;(mm/dd/yyyy) *@
+                     @* &#0160;&#0160; *@
+                     <button accesskey="V" class="btn btn-primary float-left my-1 mx-2" id="btnCreatReport" title="Click  to Search [shift + alt + V]" onclick="return create_report()"><u>V</u>iew Report</button>
+                  </div>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+   </div><!--end well-->
+   @*</form>*@
+
+<br />
+@if (ViewBag.EgrantsDocs != null && ViewBag.EgrantsDocs.Count >= 1)
+{
+
+   var DocsGrid = new WebGrid(
+      ViewBag.EgrantsDocs,
+      rowsPerPage: 50,
+
+      columnNames: new[] { "Grant Number", "Category Name", "Transaction By", "Date" }
+      );
+
+   @DocsGrid.GetHtml(
+           tableStyle: "webgrid-table",
+           headerStyle: "header",
+           footerStyle: "webgrid-footer",
+           rowStyle: "webgrid-odd-row-style",
+           alternatingRowStyle: "webgrid-even-row-style",
+           selectedRowStyle: "webgrid-selected-row",
+           numericLinksCount: 10,
+           fillEmptyRows: false,
+           mode: WebGridPagerModes.All,
+
+            columns: DocsGrid.Columns(
+                DocsGrid.Column("full_grant_num", "Grant Number", null, style: "col-exlarg", canSort: true),
+                DocsGrid.Column("category_name", "Category Name", format:@<a href="JavaScript:show_doc('@item.url')">@item.category_name</a>, style: "col-exlarg", canSort: true),
+DocsGrid.Column("person_name", "Transaction By", null, style: "col-larg", canSort: true),
+DocsGrid.Column("transaction_date", "Transaction Date", null, style: "col-larg", canSort: true)
+)
+)
+}
+</div><!--end main-->

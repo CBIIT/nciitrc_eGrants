@@ -220,7 +220,7 @@ namespace egrants_new
 
             if (userValidation == 0)
             {
-                this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+                this.Response.Redirect("~/Views/Shared/egrants_default.htm");
             }
         }
 
@@ -252,7 +252,7 @@ namespace egrants_new
 
             if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
             {
-                this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+                this.Response.Redirect("~/Views/Shared/egrants_default.htm");
 
                 return;
             }
@@ -275,7 +275,7 @@ namespace egrants_new
             // check user validation
             if (this.Session["Validation"].ToString() != "OK")
             {
-                this.Response.Redirect("~/Shared/Views/egrants_default.htm");
+                this.Response.Redirect("~/Views/Shared/egrants_default.htm");
 
                 return;
             }

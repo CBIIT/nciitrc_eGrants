@@ -1,0 +1,283 @@
+﻿
+@{
+    ViewBag.Title = "Docman [Access Control Module]";
+    Layout = "~/Views/Shared/_docman_header.cshtml";
+}
+
+<script language="JavaScript">
+        var currenturl = window.document.location.href;
+
+        $(document).ready(function () {
+            set_default();
+        });
+
+        //set nci as default ic
+        function set_default() {
+            document.getElementById("ddlIC").selectedIndex = 2;
+        }
+
+        //check chkIscoordinator and unselect ddlCoordinators
+        function switch_2() {
+            if (document.getElementById("chkIscoordinator").checked == true) {
+                document.getElementById("ddlCoordinators").selectedIndex = 0;
+            }
+        }
+
+        //selet ddlCoordinators and uncheck chkIscoordinator
+        function switch_1() {
+            if (document.getElementById("ddlCoordinators").selectedIndex != 0) {
+                document.getElementById("chkIscoordinator").checked = false;
+            }
+        }
+
+        //to validate user data from NED with web service
+        function to_validate() {
+            if (document.getElementById("txtUserid").value == '') {
+                alert("Please insert userid to validate");
+                document.getElementById("txtUserid").focus();
+                return false;
+            } else var userid = document.getElementById("txtUserid").value;
+            alert("to validate user data for " + userid);
+            return true;
+        }
+
+        //to create new
+        function to_create() {
+            if (currenturl.indexOf("DocmanAccess/") > 0) {
+                var url = "To_Create?act=create&active_id=1";
+            } else var url = "DocmanAccess/To_Create?act=create&active_id=1";
+
+            ////check user id
+            if (document.getElementById("txtUserid").value == '') {
+                alert("please insert user id...");
+                document.getElementById("txtUserid").focus();
+                return false;
+            } else var result = CheckACMusername(document.getElementById("txtUserid").value, "userid");
+            if (result == false || result == 'false') {
+                document.getElementById("txtUserid").value = "";
+                document.getElementById("txtUserid").focus();
+                return false;
+            } else var url = url + "&login_id=" + document.getElementById("txtUserid").value;
+
+            //check user first name
+            if (document.getElementById("txtFirstname").value == '') {
+                alert("please insert user first name...");
+                document.getElementById("txtFirstname").focus();
+                return false;
+            } else var result = CheckACMusername(document.getElementById("txtFirstname").value, "first name");
+            if (result == false || result == 'false') {
+                document.getElementById("txtFirstname").value = "";
+                document.getElementById("txtFirstname").focus();
+                return false;
+            } else var url = url + "&first_name=" + document.getElementById("txtFirstname").value;
+
+            //check user middle name
+            if (document.getElementById("txtMiddlename").value != '') {
+                var url = url + "&middle_name=" + document.getElementById("txtMiddlename").value;
+            } else var url = url + "&middle_name=";
+
+            //check user last name
+            if (document.getElementById("txtLastname").value == '') {
+                alert("please insert user last name...");
+                document.getElementById("txtLastname").focus();
+                return false;
+            } else var result = CheckACMusername(document.getElementById("txtLastname").value, "last name");
+            if (result == false || result == 'false') {
+                document.getElementById("txtLastname").value = "";
+                document.getElementById("txtLastname").focus();
+                return false;
+            } else var url = url + "&last_name=" + document.getElementById("txtLastname").value;
+
+            //check user email addrsss
+            if (document.getElementById("txtEmail").value != '') {
+                var url = url + "&email_address=" + document.getElementById("txtEmail").value;
+            } else url = url + "&email_address=";
+
+            //check user phone number
+            if (document.getElementById("txtPhonenumber").value != '') {
+                var result = isInteger(document.getElementById("txtPhonenumber").value);
+                if (result == false || result == 'false' || (document.getElementById("txtPhonenumber").value).length != 10) {
+                    alert("Please insert 10 digital as phone number");
+                    document.getElementById("txtPhonenumber").value = "";
+                    document.getElementById("txtPhonenumber").focus();
+                    return false;
+                } else var url = url + "&phone_num=" + document.getElementById("txtPhonenumber").value;
+            } else var url = url + "&phone_num=0";
+
+            //chedk tabs
+            if (document.getElementById("chkDocman").checked == false && document.getElementById("chkCft").checked == false) {
+                alert("Please select at least one tab to display");
+                return false;
+            }
+
+            if (document.getElementById("chkDocman").checked == true) {
+                var url = url + "&docman_tab=1";
+            } else var url = url + "&docman_tab=0";
+
+            if (document.getElementById("chkCft").checked == true) {
+                var url = url + "&cft_tab=1";
+            } else var url = url + "&cft_tab=0";
+
+            //check ic
+            var url = url + "&ic_id=" + document.getElementById("ddlIC").options[document.getElementById("ddlIC").selectedIndex].value;
+
+            //check user position
+            if (document.getElementById("ddlPositions").selectedIndex == 0) {
+                alert("Please select user position...");
+                return false;
+            } else var posision_name = document.getElementById("ddlPositions").options[document.getElementById("ddlPositions").selectedIndex].text;
+            var url = url + "&position_id=" + document.getElementById("ddlPositions").options[document.getElementById("ddlPositions").selectedIndex].value;
+
+            //check user coordinator id
+            if (posision_name != 'IC-Coordinator' && document.getElementById("ddlCoordinators").selectedIndex == 0 && document.getElementById("chkIscoordinator").checked != true) {
+                alert("Please select Coordinator...");
+                return false;
+            }
+
+            if (document.getElementById("ddlCoordinators").selectedIndex != 0) {
+                var url = url + "&coordinator_id=" + document.getElementById("ddlCoordinators").options[document.getElementById("ddlCoordinators").selectedIndex].value;
+            } else var url = url + "&coordinator_id=0";
+
+            if (document.getElementById("chkIscoordinator").checked == true) {
+                var url = url + "&is_coordinator=1";
+            } else var url = url + "&is_coordinator=0";
+
+            //check and Validate end date
+            if (document.getElementById("txtEndDate").value != "") {
+                if (isAnyDate(document.getElementById("txtEndDate").value) == false) {
+                    document.getElementById("txtEndDate").value = '';
+                    document.getElementById("txtEndDate").focus();
+                    return false;
+                } else var StartDate = document.getElementById("txtStartDate").value;
+                var EndDate = document.getElementById("txtEndDate").value;
+                //to compare
+                var start_date = new Date(document.getElementById("txtStartDate").value);
+                var end_date = new Date(document.getElementById("txtEndDate").value);
+
+                if (end_date <= start_date) {
+                    alert("The end date should be later than start date");
+                    document.getElementById("txtEndDate").value = '';
+                    document.getElementById("txtEndDate").focus();
+                    return false;
+                } else var url = url + "&end_date=" + EndDate;
+            } else var url = url + "&end_date=";
+
+            //alert(url);
+            window.document.location.href = url;
+        }
+</script>
+
+<div id="main">
+    <div>
+        @Html.Partial("~/Views/Egrants_Admin/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">Access Control Management</b>&#0160;{ Create New }<br />
+        @Html.ActionLink("User List", "Index", "DocmanAccess", new { area = "Egrants_Admin", active_id = 1, index_id = 2 }, null)
+    </div>
+
+    <div id="modify" class="form-inline">
+        <table width="900">
+            <tr style="height:10px">
+                <td width="120"></td>
+                <td width="350"></td>
+                <td width="100"></td>
+                <td width="100"></td>
+                <td width="150"></td>
+            </tr>
+            <tr style="height:15px">
+                <td><lable for="lblUserid"><b>Userid:</b></lable></td>
+                <td>
+                    <input name="userid" type="text" id="txtUserid" class="form-control" style="height:30px; width:160px;" title="Insert userid" />&#0160;&#0160;
+                    @*<button AccessKey="V" class="btn btn-primary btn-sm" title="Click here to validate user data [shift + alt + V]" onClick="JavaScript:return to_validate()"><u>V</u>alidate</button>*@
+                </td>
+                <td>
+                    <lable for="lblIC"><b>Institution:</b></lable>
+                </td>
+                <td>
+                    <select name="ic" id="ddlIC" class="form-control" style="height:30px; width:100px;" title="Set IC" onChange="goto('ic')">
+                        <option></option>
+                        @foreach (var profiles in ViewBag.Profiles)
+                        {
+                            if (Convert.ToString(Session["ic"]).ToUpper() == Convert.ToString(profiles.Profile))
+                            {
+                                <option id="Profile_id" value="@profiles.ProfileId" selected="selected">@profiles.Profile</option>
+                            }
+                            else
+                            {
+                                <option id="Profile_id" value="@profiles.ProfileId">@profiles.Profile</option>
+                            }
+                        }
+                    </select>
+                </td>
+                <td>
+                    <lable for="lblStatus"><b>Status:</b></lable>&#0160;Active
+                </td>
+            </tr>
+            <tr style="height:15px">
+                <td><lable for="lblFirst_name"><b>First Name:</b></lable></td>
+                <td>
+                    <input name="firstname" type="text" id="txtFirstname" class="form-control" style="height:30px; width:160px;" title="Insert first name" />&#0160;
+                    <lable for="lblMiddle_name"><b>Middle Initial:</b></lable>
+                    <input name="middlename" type="text" id="txtMiddlename" class="form-control" style="height:30px; width:40px;" title="Insert middle name" />
+                </td>
+                <td><lable for="lblLast_name"><b>Last Name:</b></lable></td>
+                <td colspan="2"><input name="lastname" type="text" id="txtLastname" class="form-control" style="height:30px; width:200px;" title="Insert last name" />                 </td>
+            </tr>
+            <tr style="height:15px">
+                <td><lable for="lblEmail"><b>Email:</b></lable></td>
+                <td><input name="email" type="text" id="txtEmail" class="form-control" style="height:30px; width:300px;" title="Insert email addess" />  </td>
+                <td><lable for="lblPhone_number"><b>Phone Num:</b></lable></td>
+                <td><input name="phone_number" type="text" id="txtPhonenumber" class="form-control" style="height:30px; width:120px;" title="Insert phone number" /> </td>
+                <td>10 only</td>
+            </tr>
+            <tr style="height:15px">
+                <td><lable for="lblTabs"><b>Display Tabs:</b></lable></td>
+                <td>
+                    <div class="checkbox">
+                        <input type="checkbox" name="tabs" id="chkDocman" value="docman" title="select to display Docman tab" />
+                        &#0160;Docman &#0160;
+                        <input type="checkbox" name="tabs" id="chkCft" value="cft" title="select to display Contract File Tracking tab" />
+                        &#0160;Contract File Tracking &#0160;
+                    </div>
+                </td>
+                <td><lable for="lalStartdate"><b>Start Date:</b></lable></td>
+                <td><input name="start_date" type="text" id="txtStartDate" class="form-control" style="height:30px; width:120px;" readonly="readonly" title="Show start date" value="@System.DateTime.Now.ToShortDateString()" /></td>
+                <td>mm/dd/yyyy</td>
+            </tr>
+            <tr style="height:15px">
+                <td><lable for="lblPosition_type"><b>Position:</b></lable></td>
+                <td>
+                    <select name="Positions" id="ddlPositions" class="form-control" style="height:30px; width:300px;" title="Select position type">
+                        <option></option>
+                        <option value="1">Read Only</option>
+                        <option value="2">Partial Contracts Access</option>
+                        <option value="3">Full Contracts Access</option>
+                    </select>
+                </td>
+                <td><lable for="lalEnddate"><b>End Date:</b></lable></td>
+                <td><input name="end_date" type="text" id="txtEndDate" class="form-control" style="height:30px; width:120px;" title="Insert end date" /></td>
+                <td>mm/dd/yyyy</td>
+            </tr>
+            <tr style="height:15px">
+                <td><lable for="lblCoordinator"><b>Coordinator:</b></lable></td>
+                <td>
+                    <select name="Coordinators" id="ddlCoordinators" class="form-control" style="height:30px; width:300px;" title="Select Coordinator" onchange="switch_1()">
+                        <option></option>
+                        @foreach (var coordinators in ViewBag.Coordinators)
+                        {
+                            <option id="coordinator_id" value="@coordinators.person_id">@coordinators.person_name</option>
+                        }
+                    </select>
+                </td>
+                <td><lable for="iscoordinator"><b>Is Coordinator:</b></lable></td>
+                <td><input type="checkbox" name="iscoordinator" id="chkIscoordinator" title="select for coordinator" onchange="switch_2()" /></td>
+                <td>
+                    <button AccessKey="A" class="btn btn-primary btn-sm" title="Click here to add new user's information [shift + alt + A]" onClick="JavaScript:to_create()"><u>A</u>dd New</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+

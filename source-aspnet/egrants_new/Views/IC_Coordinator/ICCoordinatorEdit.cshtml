@@ -1,0 +1,247 @@
+﻿@{
+    ViewBag.Title = "eGrants [IC Coordinator Edit Request]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<script language="Javascript">
+    var currenturl = window.document.location.href;
+
+    function to_review() {
+        if (document.getElementById("ddlCoordinators").selectedIndex > 0){
+            var id = document.getElementById("ddlCoordinators").options[document.getElementById("ddlCoordinators").selectedIndex].value;
+
+            //if (currenturl.indexOf("ICCoordinator/") > 0) {
+            //    var url = "To_Review?id=" + id;
+            //} else var url = "ICCoordinator/To_Review?id=" + id;
+
+            var url="@Url.Action("To_Review", "ICCoordinator")?id=" + i
+            window.document.location.href = url;
+        }
+    }
+
+    function to_update(id) {
+            //if (currenturl.indexOf("ICCoordinator/") > 0) {
+            //    var url = "To_Update?act=update&request_user_id=" + id;
+            //} else var url = "ICCoordinator/To_Update?act=update&request_user_id=" + id;
+
+            var url="@Url.Action("To_Update", "ICCoordinator")?act=update&request_user_id=" + id;
+
+            //check user first name
+            if (document.getElementById("txtFirstName").value == '') {
+                alert("please insert user first name");
+                document.getElementById("txtFirstName").focus();
+                return false;
+            } else var result = CheckACMusername(document.getElementById("txtFirstName").value, "first name");
+            if (result == false || result == 'false') {
+                document.getElementById("txtFirstName").value = "";
+                document.getElementById("txtFirstName").focus();
+                return false;
+            } else url = url + "&first_name=" + document.getElementById("txtFirstName").value;
+
+            //check user middle name
+            if (document.getElementById("txtMiddleName").value != '') {
+                var result = CheckACMusername(document.getElementById("txtMiddleName").value, "middle name");
+                if (result == false || result == 'false') {
+                    document.getElementById("txtMiddleName").value = "";
+                    document.getElementById("txtMiddleName").focus();
+                    return false;
+                } else url = url + "&middle_name=" + document.getElementById("txtMiddleName").value;
+            }else url = url + "&middle_name=null"
+
+            //check user last name
+            if (document.getElementById("txtLastName").value == '') {
+                alert("please insert user last name");
+                document.getElementById("txtLastName").focus();
+                return false;
+            } else var result = CheckACMusername(document.getElementById("txtLastName").value, "last name");
+            if (result == false || result == 'false') {
+                document.getElementById("txtLastName").value = "";
+                document.getElementById("txtLastName").focus();
+                return false;
+            } else url = url + "&last_name=" + document.getElementById("txtLastName").value;
+
+            //check user login id
+            if (document.getElementById("txtLoginID").value == '') {
+                alert("please insert user log in ID");
+                document.getElementById("txtLoginID").focus();
+                return false;
+            } else var result = CheckACMusername(document.getElementById("txtLoginID").value, "log in ID");
+            if (result == false || result == 'false') {
+                document.getElementById("txtLoginID").value = "";
+                document.getElementById("txtLoginID").focus();
+                return false;
+            } else url = url + "&login_id=" + document.getElementById("txtLoginID").value;
+
+            //check user email
+            if (document.getElementById("txtEmail").value == '') {
+                alert("please insert user email address");
+                document.getElementById("txtEmail").focus();
+                return false;
+            } else url = url + "&email_address=" + document.getElementById("txtEmail").value;
+
+            //check user phone number
+            if (document.getElementById("txtPhoneNumber").value == '') {
+                alert("please insert user Phone Number");
+                document.getElementById("txtPhoneNumber").focus();
+                return false;
+            } else var phone_number = document.getElementById("txtPhoneNumber").value;
+            phone_number = phone_number.replace(/ /g, "");
+            document.getElementById("txtPhoneNumber").value = phone_number;
+            var result = isInteger(phone_number);
+
+            if (result == false || result == 'false' || phone_number.length != 10) {
+                alert("Please insert 10 digit only for telephone number, and alphanumeric or special character is not allowed.");
+                document.getElementById("txtPhoneNumber").value = "";
+                document.getElementById("txtPhoneNumber").focus();
+                return false;
+            } else var url = url + "&phone_number=" + document.getElementById("txtPhoneNumber").value;
+
+            //check user division
+            if (document.getElementById("txtDivision").value == '') {
+                alert("please insert user Division");
+                document.getElementById("txtDivision").focus();
+                return false;
+            } else url = url + "&division=" + document.getElementById("txtDivision").value;
+
+            //check access type
+            if (document.getElementById("ddlActiveType").selectedIndex == 0) {
+                alert("Please select access type");
+                return false;
+            } else url = url + "&access_type=" + document.getElementById("ddlActiveType").options[document.getElementById("ddlActiveType").selectedIndex].text;
+
+            //check start date
+            if (document.getElementById("txtStartDate").value == '') {
+                alert("please insert start date");
+                document.getElementById("txtStartDate").focus();
+                return false;
+            } else url = url + "&start_date=" + document.getElementById("txtStartDate").value;
+
+            //check start date
+            if (document.getElementById("txtEndDate").value != '') {
+                url = url + "&end_date=" + document.getElementById("txtEndDate").value;
+            } else url = url + "&end_date=null";
+
+            //check comments
+            if (document.getElementById("txtComments").value != '') {
+                url = url + "&comments=" + document.getElementById("txtComments").value;
+            } else url = url + "&comments=null";
+
+            //make sure to update
+            if (confirm('Are you sure that you want to update request data?')) {
+                //alert(url);
+                window.document.location.href = url;
+            } else return false;
+    }
+</script>
+
+<!--start main-->
+<div id="main">
+    <div id="caption">
+        <center>
+            <b id="page_title">Edit Request List</b>
+            &#0160;&#0160;
+            @Html.ActionLink("Add New IC Coordinator", "To_Add", "ICCoordinator", new { area = "IC_Coordinator" }, null)
+        </center>
+    </div>
+    <br /><br />
+    <div class="form-inline">
+        <b>New Request initiated by IC Coordinator:</b>&#0160;&#0160;
+        <select name="Coordinator" id="ddlCoordinators" class="form-control" style="width:200px; height:30px;" size="1" title="Select Coordinator" onchange="to_review()">
+            <option></option>
+            <option value=0>All</option>
+            @foreach (var coordinators in ViewBag.Coordinators)
+            {
+                <option id="coordinator_id" value="@coordinators.person_id">@coordinators.person_name</option>
+            }
+        </select>
+    </div>
+    <br />
+    <div class="form-inline">
+        <table valign="top" width="850">
+            <thead>
+                <tr>
+                    <td width="150" align="left"></td>
+                    <td width="700" align="left">Field indicated * are mandetory fields</td>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var user in ViewBag.User)
+            {
+                <tr>
+                    <td><lable for="First Name"><b>First Name:*</b></lable></td>
+                    <td><input type="text" id="txtFirstName" class="form-control" style="width:150px;height:30px;" value="@user.first_name" /></td>
+                </tr>
+                <tr>
+                    <td><lable for="Moddle Name"><b>Middle Initial:</b></lable></td>
+                    <td><input type="text" id="txtMiddleName" class="form-control" style="width:150px;height:30px;" value="@user.middle_name" /></td>
+                </tr>
+                <tr>
+                    <td><lable for="Last Name"><b>Last Name:*</b></lable></td>
+                    <td><input type="text" id="txtLastName" class="form-control" style="width:150px;height:30px;" value="@user.last_name" /></td>
+                </tr>
+                <tr>
+                    <td><lable for="Login ID"><b>User Loginid:*</b></lable></td>
+                    <td><input type="text" id="txtLoginID" class="form-control" style="width:150px;height:30px;" value="@user.userid" /></td>
+                </tr>
+                <tr>
+                    <td><lable for="email"><b>Email:*</b></lable></td>
+                    <td><input type="text" id="txtEmail" class="form-control" style="width:340px;height:30px;" value="@user.email_address" /></td>
+                </tr>
+                <tr>
+                    <td><lable for="Phone Number"><b>Phone Number:</b></lable></td>
+                    <td><input type="text" id="txtPhoneNumber" class="form-control" style="width:150px;height:30px;" value="@user.phone_number" />&#0160;(Ten digit number only)</td>
+                </tr>
+                <tr>
+                    <td><lable for="Division"><b>Division/Office:*</b></lable></td>
+                    <td><input type="text" id="txtDivision" class="form-control" style="width:150px;height:30px;" value="@user.division" /></td>
+                </tr>
+                <tr>
+                    <td><lable for="Access type"><b>Access Type:*</b></lable></td>
+                    <td>
+                    <select name="access_type" id="ddlActiveType" class="form-control" style="width:150px; height:30px;" size="1" title="access type">
+                        <option></option>
+                            @if (user.access_type == "Read Only")
+                            {
+                                <option id="1" selected="selected">Read Only</option>
+                                <option id="2">Every Thing</option>
+                            }
+                            else if (user.access_type == "Every Thing")
+                            {
+                                <option id="2" selected="selected">Every Thing</option>
+                                <option id="1">Read Only</option>
+                            }
+                            else
+                            {
+                                <option id="1">Read Only</option>
+                                <option id="2">Every Thing</option>
+                            }
+                    </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><lable for="StartDate"><b>Start Date:*</b></lable></td>
+                    <td><input type="text" id="txtStartDate" class="form-control" style="width:150px;height:30px;" value="@user.start_date" />&#0160;(mm/dd/yyyy)</td>
+                </tr>
+                <tr>
+                    <td><lable for="EndDate"><b>End Date:</b></lable></td>
+                    <td>
+                        <input type="text" id="txtEndDate" class="form-control" style="width:150px;height:30px;" value="@user.end_date" />&#0160;(mm/dd/yyyy)
+                    </td>
+                </tr>
+                <tr>
+                    <td><lable for="Comment"><b>Comment:</b></lable><br />(max 200 characters)</td>
+                    <td><textarea id="txtComments" class="form-control" rows="3" style="width:600px">@user.comments</textarea></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <button id="btnUpdate" class="btn btn-primary btn-sm" onclick="to_update(@user.id)" title="Click here to save request [shift + alt + E]" AccessKey="E">
+                            <u>E</u>dit Request
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div><!--end main-->
