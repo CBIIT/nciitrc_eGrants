@@ -42,15 +42,13 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Web;
 using System.Web.Mvc;
-using egrants_new.Models;
-using Newtonsoft.Json;
+
 using egrants_new.Functions;
-using MsgReader.Outlook;
-using static System.Net.WebRequestMethods;
+using egrants_new.Models;
 
 #endregion
 
-namespace egrants_new.Controllers
+namespace egrants_new.Controllers.Egrants
 {
     /// <summary>
     /// The egrants doc controller.
@@ -675,7 +673,7 @@ namespace egrants_new.Controllers
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        [OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
+        [OutputCache(VaryByParam = "*", Duration = 0, NoStore = true)]
         [HttpPost]
         public ActionResult doc_upload_by_file(HttpPostedFileBase file, int doc_id)
         {
@@ -744,7 +742,7 @@ namespace egrants_new.Controllers
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        [OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
+        [OutputCache(VaryByParam = "*", Duration = 0, NoStore = true)]
         [HttpPost]
         public ActionResult doc_upload_by_ddrop(HttpPostedFileBase dropedfile, int doc_id)
         {

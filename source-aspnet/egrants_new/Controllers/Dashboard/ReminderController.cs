@@ -1,17 +1,9 @@
-﻿using egrants_new.Dashboard.Functions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System;
 using System.Web.Mvc;
-using System.Configuration;
-using System.Data;
-using System.Data.SqlClient;
-using egrants_new.Models;
-using egrants_new.Egrants.Models;
 
+using egrants_new.Dashboard.Functions;
 
-namespace egrants_new.Controllers
+namespace egrants_new.Controllers.Dashboard
 {
     public class ReminderController : Controller
     {

@@ -82,6 +82,8 @@ namespace egrants_new.Controllers
             ViewBag.CurrentView = "StandardForm";
 
             return View("~/Views/Egrants/Index.cshtml");
+
+            //return "Not Accessible through the Browser.";
         }
 
         /// <summary>
@@ -97,7 +99,7 @@ namespace egrants_new.Controllers
         public ActionResult SessionTimeout()
         {
             // update the timeout variable 
-            return Json("Winner", JsonRequestBehavior.AllowGet);
+            return Json("Session Extended.", JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>
@@ -270,7 +272,7 @@ namespace egrants_new.Controllers
         public string LoadYearsHome(string fiscalYear = null, string mechanism = null, string adminCode = null, string serialNumber = null)
         {
             // string fy, string mechan, s
-            List<string> list = Dashboard.Functions.Egrants.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
+            List<string> list = egrants_new.Dashboard.Functions.Egrants.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
             return JsonConvert.SerializeObject(list);
@@ -313,7 +315,7 @@ namespace egrants_new.Controllers
         /// </returns>
         public string LoadCategoriesHome(int grant_id, string years)
         {
-            List<string> list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
+            List<string> list = egrants_new.Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
             return JsonConvert.SerializeObject(list);

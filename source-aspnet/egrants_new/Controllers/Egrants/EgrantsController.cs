@@ -52,13 +52,14 @@ using System.Web.Mvc;
 using egrants_new.Egrants.Models;
 using egrants_new.Functions;
 using egrants_new.Models;
-
+using egrants_new.Dashboard.Functions;
 using Newtonsoft.Json;
+
 using Rotativa;
 
 #endregion
 
-namespace egrants_new.Controllers
+namespace egrants_new.Controllers.Egrants
 {
     /// <summary>
     /// The egrants controller.
@@ -527,7 +528,7 @@ namespace egrants_new.Controllers
             string serialNumber = null)
         {
             // string fy, string mechan, s
-            var list = Dashboard.Functions.Egrants.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
+            var list = egrants_new.Dashboard.Functions.Egrants.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
             return JsonConvert.SerializeObject(list);
@@ -570,7 +571,7 @@ namespace egrants_new.Controllers
         /// </returns>
         public string LoadCategories(int grant_id, string years)
         {
-            var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
+            var list = egrants_new.Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
             return JsonConvert.SerializeObject(list);
@@ -633,7 +634,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
                     // show pagination
-                    this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
+                    this.ViewBag.Pagination = egrants_new.Dashboard.Functions.Egrants.LoadPagination(
                         str,
                         Convert.ToString(this.Session["ic"]),
                         Convert.ToString(this.Session["userid"]),
@@ -686,7 +687,7 @@ namespace egrants_new.Controllers
             string mode = null)
         {
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-            var isexisting = Dashboard.Functions.Egrants.CheckGrantID(grant_id);
+            var isexisting = egrants_new.Dashboard.Functions.Egrants.CheckGrantID(grant_id);
 
             if (grant_id == 0 || isexisting == 0)
             {
@@ -706,7 +707,7 @@ namespace egrants_new.Controllers
                 if (categories == string.Empty || categories == "All" || categories == "all")
                     this.ViewBag.SelectedCategories = "All";
                 else if (categories != string.Empty && categories != "All" && categories != "all")
-                    this.ViewBag.SelectedCategories = Dashboard.Functions.Egrants.Get_CategoryName_by_id(categories);
+                    this.ViewBag.SelectedCategories = egrants_new.Dashboard.Functions.Egrants.Get_CategoryName_by_id(categories);
 
                 // load data from DB
                 Search.egrants_search(
@@ -815,7 +816,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.Mode = mode;
                 this.ViewBag.SearchStyle = "by_appl";
                 this.ViewBag.ApplID = appl_id;
-                this.ViewBag.GrantID = Dashboard.Functions.Egrants.GetGrantID(appl_id);
+                this.ViewBag.GrantID = egrants_new.Dashboard.Functions.Egrants.GetGrantID(appl_id);
                 this.ViewBag.SelectedCats = "All";
                 this.ViewBag.SelectedCategories = "All";
                 this.ViewBag.SelectedAppls = appl_id.ToString();
@@ -892,7 +893,7 @@ namespace egrants_new.Controllers
             this.ViewBag.doclayer = Search.doclayerproperty;
             this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
 
-            this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
+            this.ViewBag.Pagination = egrants_new.Dashboard.Functions.Egrants.LoadPagination(
                 "qc",
                 Convert.ToString(this.Session["ic"]),
                 Convert.ToString(this.Session["userid"]),
@@ -958,7 +959,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.FilterAdminCode = adminCode;
 
                 // create filters search sql query
-                var FilterSearchQuery = Dashboard.Functions.Egrants.GetSearchQuery(
+                var FilterSearchQuery = egrants_new.Dashboard.Functions.Egrants.GetSearchQuery(
                     fiscalYear,
                     mechanism,
                     adminCode,
@@ -986,7 +987,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.appllayer_All = Search.appllayerproperty;
 
                     // show pagination
-                    this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
+                    this.ViewBag.Pagination = egrants_new.Dashboard.Functions.Egrants.LoadPagination(
                         FilterSearchQuery,
                         Convert.ToString(this.Session["ic"]),
                         Convert.ToString(this.Session["userid"]),
@@ -1070,7 +1071,7 @@ namespace egrants_new.Controllers
                     this.ViewBag.FilterSerialNumber = serialNumber;
 
                 // create filters search sql query
-                var FilterSearchQuery = Dashboard.Functions.Egrants.GetSearchQuery(
+                var FilterSearchQuery = egrants_new.Dashboard.Functions.Egrants.GetSearchQuery(
                     fiscalYear,
                     mechanism,
                     adminCode,
@@ -1097,7 +1098,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
 
                 // show Pagination 
-                this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
+                this.ViewBag.Pagination = egrants_new.Dashboard.Functions.Egrants.LoadPagination(
                     FilterSearchQuery,
                     Convert.ToString(this.Session["ic"]),
                     Convert.ToString(this.Session["userid"]),
@@ -1171,11 +1172,11 @@ namespace egrants_new.Controllers
                     this.ViewBag.Mode = "qc";
 
                 // show Pagination 
-                this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
-                    str,
-                    Convert.ToString(this.Session["ic"]),
-                    Convert.ToString(this.Session["userid"]),
-                    package);
+                this.ViewBag.Pagination = egrants_new.Dashboard.Functions.Egrants.LoadPagination(
+                                              str,
+                                              Convert.ToString(this.Session["ic"]),
+                                              Convert.ToString(this.Session["userid"]),
+                                              package);
 
                 if (str == "qc")
                     this.ViewBag.UnidentifiedDocs = EgrantsDoc.LoadDocsUnidentified(
@@ -1338,7 +1339,7 @@ namespace egrants_new.Controllers
         /// </returns>
         public ActionResult stop_notice(int grant_id)
         {
-            this.ViewBag.StopNotice = Dashboard.Functions.Egrants.LoadStopNotice(grant_id, Convert.ToString(this.Session["ic"]));
+            this.ViewBag.StopNotice = egrants_new.Dashboard.Functions.Egrants.LoadStopNotice(grant_id, Convert.ToString(this.Session["ic"]));
 
             return this.View("~/Views/Egrants/_Modal_Stop_Notice.cshtml");
         }
@@ -1356,7 +1357,7 @@ namespace egrants_new.Controllers
         {
             var act = "to_view";
 
-            this.ViewBag.StopNotice = Dashboard.Functions.Egrants.LoadSupplement(
+            this.ViewBag.StopNotice = egrants_new.Dashboard.Functions.Egrants.LoadSupplement(
                 act,
                 grant_id,
                 0,
@@ -1406,36 +1407,14 @@ namespace egrants_new.Controllers
             return null;
         }
 
-        /// <summary>
-        /// Log out the user (clean up cookies, session, etc).
-        /// </summary>
-        /// <returns></returns>
-        //[HttpGet]
-        //public ActionResult SignOut()
-        //{
-        //    MvcApplication.GetMvcApplication().LogOut();
-        //    return this.View("~/Views/Shared/sign-out.cshtml");
 
-        //    //return;
-
-        //    //return this.View("~/Shared/Views/sign-out.htm");
-
-
-
-        //    //return Json(@"{ ""message"": ""logout complete."" }");
-
-        //}
-
-        /// <summary>
-        /// ASP.NET session timeouts are based on time between requests,
-        /// so send an additional request to this to explicitly keep session alive
-        /// </summary>
-       // [HttpPost]
-       // public ActionResult SessionTimeout()
-       // {
-           // return this.View("~/Shared/Views/Go_to_Default.cshtml");
-       //     return Json(@"{ ""message"": ""session renewed."" }");
-       // }
+        [HttpPost]
+        public ActionResult SessionTimeout()
+        {
+            
+            // update the timeout variable 
+            return Json("Session Extended.", JsonRequestBehavior.AllowGet);
+        }
     }
 
 }

@@ -63,7 +63,7 @@
             if (act == "fsr" || act=="closeout") {
                 var appl_id = $(this).data('assigned-id');
                 var route = '@Url.Action("impac_docs", "EgrantsDoc")?act=' + act + '&appl_id=' + appl_id;
-
+                Console.Write("ModalBody: " + route);
                 if (act == "closeout") {
                     modal_title = "Closeout Notification";
                 } else modal_title = "Show All FFR(s)";
@@ -131,8 +131,8 @@
     //});
 </script>
 
-<div id="NormalModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
-   <div class="modal-dialog">
+<div id="NormalModal" class="modal fade" data-keyboard="false"  aria-hidden="true"  data-backdrop="static" tabindex="-1" role="dialog">
+   <div class="modal-dialog" role="document">
       <div class="modal-content">
          <div class="modal-header">
             <h3 class="modal-title w-100 text-center" id="NormalModalTitle"></h3>
@@ -148,7 +148,27 @@
    </div>
 </div>
 
-            <!--display medium modal-->
+@* <div class="modal fade" id="session-expire-warning-modal" aria-hidden="true" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"> *@
+@*     <div class="modal-dialog" role="document"> *@
+@*         <div class="modal-content"> *@
+@*             <div class="modal-header"> *@
+@*                 <h4 class="modal-title">Session Expire Warning</h4> *@
+@*             </div> *@
+@*             <div class="modal-body"> *@
+@*                 <span id="modal-warning-text">Warning</span> Your session will expire in <span id="seconds-timer"></span> seconds.  *@
+@*                 <p> *@
+@*                 <p> *@
+@*                 Do you want to extend the session? *@
+@*             </div> *@
+@*             <div class="modal-footer"> *@
+@*                 $1$ <button id="btnOk" type="button" class="btn btn-default" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px;  background-color: #428bca; color: #FFF;">Continue</button>#1# *@
+@*                 <button id="btnSessionExpiredCancelled" onclick="sessionExtendedSelect()" type="button" class="btn btn-default" data-dismiss="modal" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px; background-color: #428bca; color: #FFF;">Continue</button> *@
+@*                 $1$<button id="btnLogoutNow" type="button" class="btn btn-default" style="padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: normal; border: 1px solid transparent; border-radius: 4px;  background-color: #428bca; color: #FFF;">Logout now</button>#1# *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+<!--display medium modal-->
 <div id="MediumModal" class="modal fade" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog">
    <div class="modal-dialog">
       <div class="modal-content">

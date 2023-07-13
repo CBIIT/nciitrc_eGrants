@@ -43,6 +43,7 @@ using System.Net;
 using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Optimization;
 using System.Web.Routing;
 
 using egrants_new.Integration.WebServices;
@@ -72,13 +73,13 @@ namespace egrants_new
         /// </summary>
         private string userid;
 
-        private static MvcApplication _mvcApplication;
+        //private static MvcApplication _mvcApplication;
 
 
-        public static MvcApplication GetMvcApplication()
-        {
-            return _mvcApplication;
-        }
+        //public static MvcApplication GetMvcApplication()
+        //{
+        //    return _mvcApplication;
+        //}
 
         /// <summary>
         ///     Gets the user id.
@@ -138,21 +139,19 @@ namespace egrants_new
         protected void Application_Start()
         {
 
-            _mvcApplication = this;
+          //  _mvcApplication = this;
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             this.Application["UsersOnline"] = 0;
 
-            ViewEngines.Engines.Clear();
-
-            ViewEngines.Engines.Add(new CustomRazorViewEngine());
+           // ViewEngines.Engines.Clear();
+//
+          //  ViewEngines.Engines.Add(new CustomRazorViewEngine());
 
             AreaRegistration.RegisterAllAreas();
-
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
-
             RouteConfig.RegisterRoutes(RouteTable.Routes);
-
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
             // HangfireAspNet.Use(this.GetHangfireServers);
 
             // var wsCronExp = ConfigurationManager.AppSettings[@"IntegrationCheckCronExp"];
