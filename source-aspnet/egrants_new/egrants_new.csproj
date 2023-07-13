@@ -2727,6 +2727,7 @@
     <Content Include="scripts\jquery.validate.js" />
     <Content Include="scripts\jquery.validate.min.js" />
     <Content Include="scripts\locatefile.js" />
+    <Content Include="scripts\modernizr-2.8.3.js" />
     <Content Include="scripts\moment-with-locales.js" />
     <Content Include="scripts\moment-with-locales.min.js" />
     <Content Include="scripts\moment.js" />
@@ -2830,6 +2831,7 @@
     <Content Include="scripts\popper-utils.js.map" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\Egrants\EgrantsController.cs" />
     <Compile Include="Controllers\Egrants\EgrantsDocController.cs" />

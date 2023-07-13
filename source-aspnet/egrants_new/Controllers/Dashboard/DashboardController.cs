@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-using System.Configuration;
-using System.Data;
-using System.Data.SqlClient;
-using egrants_new.Models;
+
 using egrants_new.Dashboard.Functions;
+using egrants_new.Models;
 
-
-namespace egrants_new.Controllers
+namespace egrants_new.Controllers.Dashboard
 {
     public class DashboardController : Controller
     {
@@ -18,44 +12,44 @@ namespace egrants_new.Controllers
         {       
                 Session["dashboard"] = 1;
                 var act = "get_assignment";
-                var idstr = "";
-                //ViewBag.ICList = Egrants.Models.Egrants.GetICList();
+                var idstr = string.Empty;
+                // ViewBag.ICList = Egrants.Models.Egrants.GetICList();
                 ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
-                //get GetTotalWidget
+                // get GetTotalWidget
                 ViewBag.TotalWidgets = DashboardFunctions.GetTotalWidgets();
 
-                //load default org
+                // load default org
                 ViewBag.Widgets = DashboardFunctions.LoadWidgets(act, idstr, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
 
-                //load user selected Widgets
+                // load user selected Widgets
                 ViewBag.SelectedWidgets = DashboardFunctions.LoadSeletedWidgets(Convert.ToString(Session["userid"]));
 
-                //load link list
+                // load link list
                 ViewBag.LinkLists = DashboardFunctions.LoadLinkList();
 
-                //load grants togo cc
+                // load grants togo cc
                 ViewBag.GrantsTogoCC =DashboardFunctions.LoadGrantsTogoCC(Convert.ToString(Session["userid"]), "cc");
 
-                //load grants togo nc
+                // load grants togo nc
                 ViewBag.GrantsTogoNC =DashboardFunctions.LoadGrantsTogoNC(Convert.ToString(Session["userid"]), "nc");
 
-                //load grants delayed
+                // load grants delayed
                 ViewBag.GrantsExpedited =DashboardFunctions.LoadGrantsExpedited(Convert.ToString(Session["userid"]));
 
-                //load late grants 
+                // load late grants 
                 ViewBag.GrantsDelayed =DashboardFunctions.LoadGrantsDelayed(Convert.ToString(Session["userid"]));
 
-                //load new grants 
+                // load new grants 
                 ViewBag.GrantsNew =DashboardFunctions.LoadGrantsNew(Convert.ToString(Session["userid"]), "");
 
-                //load Avgtime
+                // load Avgtime
                 ViewBag.Avgtime =DashboardFunctions.LoadAvgtime(Convert.ToString(Session["userid"]));
 
-                //load Grants Status 
+                // load Grants Status 
                 ViewBag.GrantsStatus =DashboardFunctions.LoadGrantsStatus();
 
-                //load audit report
+                // load audit report
                 ViewBag.AuditReport =DashboardFunctions.LoadAuditReport();
 
                 return View("~/Views/Dashboard/Index.cshtml");

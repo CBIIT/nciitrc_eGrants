@@ -12,8 +12,8 @@ var timer;
 var isIdleTimerOn = false;
 localStorage.setItem('sessionSlide', 'isStarted');
 
-// check the sessPingServer every 1.2 seconds
-function sessPingServer() {
+// check the sessionPingSerer every 1.2 seconds
+function sessionPingSerer() {
 //   if (!isTimout) {
 //        $.ajax({
 //            url: "~/Egrants/SessionTimeout",
@@ -25,28 +25,38 @@ function sessPingServer() {
     
 }
 
-function sessPostToServer() {
-    
-        console.log('Posting to Server - SessionTimeout');
-        $.ajax({
-            url: 'Home/SessionTimeout',
-            dataType: "json",
-            async: false,
-            type: "POST",
-            success: function(resp) {
-                console.log('winner');
-            }
-        });
+function sessionPostToServer() {
 
-        return true;
-    
+    var sessionTimeoutUrl = "";
+    var currentUrl = window.location.href;
+
+    if (currentUrl.includes("/Egrants")) {
+        sessionTimeoutUrl = "SessionTimeout";
+    }
+    else {
+        sessionTimeoutUrl = "Home/SessionTimeout";
+    }
+
+    $.ajax({
+        url: sessionTimeoutUrl,
+        dataType: "json",
+        type: "POST",
+        success: function(resp) {
+            console.log("In Success");
+        },
+        error: function(resp) {
+            console.log("In Error");
+        }
+    });
+
+    return true;
 }
 
-function sessServerAlive() {
-    console.log('in sessServerAlive');
-    sessionIntervalID = setInterval('sessPingServer()', sessionServerAliveTime);
-    console.log('sessionIntervalID : ' + sessionIntervalID);
-}
+//function sessionServerAlive() {
+//    console.log('in sessionServerAlive');
+//   // sessionIntervalID = setInterval('sessionPingSerer()', sessionServerAliveTime);
+//    console.log('sessionIntervalID : ' + sessionIntervalID);
+//}
 
 function initSessionMonitor() {
     $(document).bind('keypress.session', function (ed, e) {
@@ -56,20 +66,18 @@ function initSessionMonitor() {
 
         sessKeyPressed(ed, e);
     });
-    sessServerAlive();
+    //sessionServerAlive();
     startIdleTime();
 }
 
 
 
 $(window).scroll(function (e) {
-//   console.log('in scolling');
     localStorage.setItem('sessionSlide', 'isStarted');
     startIdleTime();
 });
 
 function sessKeyPressed(ed, e) {
-    console.log('in sessKeyPressed');
     var target = ed ? ed.target : window.event.srcElement;
     var sessionTarget = $(target).parents("#session-expire-warning-modal").length;
 
@@ -77,7 +85,6 @@ function sessKeyPressed(ed, e) {
         if (ed.target.id != "btnSessionExpiredCancelled" && ed.target.id != "btnSessionModal" && ed.currentTarget.activeElement.id != "session-expire-warning-modal" && ed.target.id != "btnExpiredOk"
              && ed.currentTarget.activeElement.className != "modal fade modal-overflow in" && ed.currentTarget.activeElement.className != 'modal-header'
             && sessionTarget != 1 && ed.target.id != "session-expire-warning-modal") {
- //           console.log('met big condition');
             localStorage.setItem('sessionSlide', 'isStarted');
             startIdleTime();
         }
@@ -85,12 +92,8 @@ function sessKeyPressed(ed, e) {
 }
 
 function startIdleTime() {
-    console.log('in startIdleTime');
     stopIdleTime();
-   // console.log('ran stop idle time');
-   // console.log('setting idle counter to: ' + $.now());
     localStorage.setItem("sessIdleTimeCounter", $.now());
-   // console.log('setting idleIntervalID checkIdleTimeout : 1000');
     idleIntervalID = setInterval('checkIdleTimeout()', 1000);
     isIdleTimerOn = false;
 }
@@ -109,9 +112,6 @@ function startIdleTime() {
 
 
 function stopIdleTime() {
-    console.log('in stopIdleTimeout');
-//    console.log('clearInterval: idleIntervalID');
-//    console.log('clearInterval: remainingTimer');
     clearInterval(idleIntervalID);
     clearInterval(remainingTimer);
 }
@@ -141,7 +141,7 @@ function checkIdleTimeout() {
         $('#btnExpiredOk').css('background-color', '#428bca');
         $('#btnExpiredOk').css('color', '#fff');
 
-        isTimout = true;
+        //isTimout = true;
 
         localStorage.setItem('sessionSlide', 'loggedOut');
         // stop the countdown
@@ -176,7 +176,7 @@ function checkIdleTimeout() {
     }
 }
 function sessionExtendedSelect() {
-    sessPostToServer();
+    sessionPostToServer();
     // when the "Continue" button is clicked, the countdown starts over and the user stays logged in
     localStorage.setItem('sessionSlide', 'isStarted');
     isPostForLife = true;

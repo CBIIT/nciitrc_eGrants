@@ -38,7 +38,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
 using System.Web;
 using System.Web.Mvc;
 
@@ -46,7 +45,7 @@ using egrants_new.Egrants.Models;
 
 #endregion
 
-namespace egrants_new.Controllers
+namespace egrants_new.Controllers.Egrants
 {
     /// <summary>
     /// The institutional files controller.
