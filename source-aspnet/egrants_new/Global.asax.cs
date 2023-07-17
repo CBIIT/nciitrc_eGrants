@@ -306,7 +306,8 @@ namespace egrants_new
             this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
             this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
 
-            //this.Session["test"] = "Hello";
+            // session is started so update the last login date
+            EgrantsCommon.UpdateUsersLastLoginDate(this.userid);
         }
 
         /// <summary>
