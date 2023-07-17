@@ -52,6 +52,31 @@ namespace egrants_new.Models
     /// </summary>
     public class EgrantsCommon
     {
+        /// <summary>
+        /// Update the logged in users last_login_date to the value of Sql Sever GETDATE().
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public static bool UpdateUsersLastLoginDate(string userId)
+        {
+            bool count = false;
+
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand(
+                    "UPDATE people SET last_login_date = GETDATE() where userid = @userId",
+                    conn);
+
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userId", SqlDbType.VarChar).Value = userId;
+                conn.Open();
+
+
+                int i = cmd.ExecuteNonQuery();
+            }
+
+            return true;
+        }
 
         // check user validation
         /// <summary>
