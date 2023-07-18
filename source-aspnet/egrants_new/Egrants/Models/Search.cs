@@ -218,6 +218,21 @@ namespace egrants_new.Egrants.Models
                     grant.SelectedGrantPiEmail = rdr["specific_year_pi_email_address"].ToString();
                     grant.SelectedProjectName = rdr["specific_year_project_name"].ToString();
 
+                    if (string.IsNullOrEmpty(grant.SelectedGrantPiName))
+                    {
+                        grant.SelectedGrantPiName = grant.current_pi_name;
+                    }
+
+                    if (string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
+                    {
+                        grant.SelectedGrantPiEmail = grant.current_pi_email_address;
+                    }
+
+                    if (string.IsNullOrEmpty(grant.SelectedProjectName))
+                    {
+                        grant.SelectedProjectName = grant.project_title;
+                    }
+
                     string selectedorgname = rdr["specific_year_org_name"].ToString();
                     grant.SelectedOrganizationName = selectedorgname;
                     grant.SelectedOrganizationNameToolTip = selectedorgname;
@@ -305,7 +320,8 @@ namespace egrants_new.Egrants.Models
                             if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
                                                                         || string.Equals(appl.appl_type_code, "6")
                                                                         || string.Equals(appl.appl_type_code, "8") 
-                                                                        || appl.deleted_by_impac.ToUpper() == "Y")
+                                                                        || appl.deleted_by_impac.ToUpper() == "Y"
+                                                                        || Convert.ToInt32(appl.appl_id) < 0)
                             {
                                 continue;
                             }

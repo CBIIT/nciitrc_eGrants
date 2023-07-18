@@ -65,7 +65,7 @@ namespace egrants_new.Egrants.Models
             }
             set
             {
-                orgName = value.Truncate(30);
+                orgName = value.Truncate(44);
             }
         }
 
