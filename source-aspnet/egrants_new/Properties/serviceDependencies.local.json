@@ -10,6 +10,10 @@
       "resourceId": null,
       "type": "appInsights.sdk",
       "connectionId": null
+    },
+    "identityapp1": {
+      "type": "identityapp.default",
+      "dynamicId": null
     }
   }
 }
