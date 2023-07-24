@@ -2898,6 +2898,7 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="CustomRazorViewEngine.cs" />
+    <Compile Include="DAL\IDocumentRepository.cs" />
     <Compile Include="Dashboard\Controllers\ReminderController.cs" />
     <Compile Include="Dashboard\Controllers\DashboardController.cs" />
     <Compile Include="Dashboard\Models\Appls.cs" />
@@ -3003,6 +3004,7 @@
     <Compile Include="Models\AdminMenus.cs" />
     <Compile Include="Models\CharacterIndex.cs" />
     <Compile Include="Models\DocmanCommon.cs" />
+    <Compile Include="DAL\DocumentsObject.cs" />
     <Compile Include="Models\EgrantsCommon.cs" />
     <Compile Include="Models\EgrantsUsers.cs" />
     <Compile Include="Models\positions.cs" />
@@ -3123,6 +3125,7 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="scripts\index.d.ts" />

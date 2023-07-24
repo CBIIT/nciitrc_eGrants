@@ -30,6 +30,7 @@ namespace egrants_new.Functions
         {
             var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString);
             var cmd = new SqlCommand("sp_web_egrants_doc_error", conn);
+
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add("@error", SqlDbType.VarChar).Value = errormsg;
             cmd.Parameters.Add("@docid", SqlDbType.Int).Value = doc_id;
@@ -57,22 +58,23 @@ namespace egrants_new.Functions
             var cmd = new SqlCommand(
                 "SELECT distinct former_num, former_appl_id FROM dbo.IMPP_Admin_Supplements_WIP "
               + " WHERE Serial_num =(select serial_num from grants where grant_id = @grant_id)",
-                conn
-            );
+                conn);
 
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.Add("@grant_id", SqlDbType.Int).Value = grant_id;
             conn.Open();
 
-            var FormerAppls = new List<former_appls>();
+            var list = new List<former_appls>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                FormerAppls.Add(new former_appls { former_num = rdr["former_num"]?.ToString(), former_appl_id = rdr["former_appl_id"]?.ToString() });
+            {
+                list.Add(new former_appls { former_num = rdr["former_num"]?.ToString(), former_appl_id = rdr["former_appl_id"]?.ToString() });
+            }
 
             conn.Close();
 
-            return FormerAppls;
+            return list;
         }
 
         // to load supplement documents
@@ -113,37 +115,38 @@ namespace egrants_new.Functions
             cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
             conn.Open();
 
-            var Supplement = new List<supplement>();
+            var list = new List<supplement>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                Supplement.Add(
+            {
+                list.Add(
                     new supplement
-                        {
-                            tag = rdr["tag"]?.ToString(),
-                            grant_id = rdr["grant_id"]?.ToString(),
-                            serial_num = rdr["serial_num"]?.ToString(),
-                            id = rdr["id"]?.ToString(),
-                            full_grant_num = rdr["full_grant_num"]?.ToString(),
-                            supp_appl_id = rdr["supp_appl_id"]?.ToString(),
-                            support_year = rdr["support_year"]?.ToString(),
-                            suffix_code = rdr["suffix_code"]?.ToString(),
-                            former_num = rdr["former_num"]?.ToString(),
-                            former_appl_id = rdr["former_appl_id"]?.ToString(),
-                            date_of_submitted = rdr["submitted_date"]?.ToString(),
-                            category_name = rdr["category_name"]?.ToString(),
-                            sub_category_name = rdr["sub_category_name"]?.ToString(),
-                            status = rdr["status"]?.ToString(),
-                            url = rdr["url"]?.ToString(),
-                            moved_date = rdr["moved_date"]?.ToString(),
-                            moved_by = rdr["moved_by"]?.ToString(),
-                            accession_number = rdr["accession_number"]?.ToString()
-                        }
-                );
+                    {
+                        tag = rdr["tag"]?.ToString(),
+                        grant_id = rdr["grant_id"]?.ToString(),
+                        serial_num = rdr["serial_num"]?.ToString(),
+                        id = rdr["id"]?.ToString(),
+                        full_grant_num = rdr["full_grant_num"]?.ToString(),
+                        supp_appl_id = rdr["supp_appl_id"]?.ToString(),
+                        support_year = rdr["support_year"]?.ToString(),
+                        suffix_code = rdr["suffix_code"]?.ToString(),
+                        former_num = rdr["former_num"]?.ToString(),
+                        former_appl_id = rdr["former_appl_id"]?.ToString(),
+                        date_of_submitted = rdr["submitted_date"]?.ToString(),
+                        category_name = rdr["category_name"]?.ToString(),
+                        sub_category_name = rdr["sub_category_name"]?.ToString(),
+                        status = rdr["status"]?.ToString(),
+                        url = rdr["url"]?.ToString(),
+                        moved_date = rdr["moved_date"]?.ToString(),
+                        moved_by = rdr["moved_by"]?.ToString(),
+                        accession_number = rdr["accession_number"]?.ToString()
+                    });
+            }
 
             conn.Close();
 
-            return Supplement;
+            return list;
         }
 
         // to modify document index, delete, store or update for normal document 
@@ -190,9 +193,9 @@ namespace egrants_new.Functions
             conn.Close();
         }
 
-        // to load specialist list
+        // to load 
         /// <summary>
-        ///     The load users.
+        ///     Get the load specialist listusers.
         /// </summary>
         /// <param name="ic">The ic.</param>
         /// <returns>
@@ -205,19 +208,20 @@ namespace egrants_new.Functions
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
 
-            var UserList = new List<EgrantsUsers>();
+            var list = new List<EgrantsUsers>();
             conn.Open();
 
             cmd.CommandTimeout = 120;
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                UserList.Add(
-                    new EgrantsUsers { PersonId = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
+            {
+                list.Add(new EgrantsUsers { PersonId = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
+            }
 
             conn.Close();
 
-            return UserList;
+            return list;
         }
 
         // to load all Category list by ic
@@ -269,31 +273,32 @@ namespace egrants_new.Functions
 
             conn.Open();
 
-            var CategoryList = new List<EgrantsCategories>();
+            var list = new List<EgrantsCategories>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                CategoryList.Add(
+            {
+                list.Add(
                     new EgrantsCategories
-                        {
-                            category_id = rdr["category_id"]?.ToString(),
-                            category_name = rdr["category_name"]?.ToString(),
-                            package = rdr["package"]?.ToString(),
-                            input_type = rdr["input_type"]?.ToString(),
-                            input_constraint = rdr["input_constraint"]?.ToString()
-                        });
+                    {
+                        category_id = rdr["category_id"]?.ToString(),
+                        category_name = rdr["category_name"]?.ToString(),
+                        package = rdr["package"]?.ToString(),
+                        input_type = rdr["input_type"]?.ToString(),
+                        input_constraint = rdr["input_constraint"]?.ToString()
+                    });
+            }
 
             conn.Close();
 
-            return CategoryList;
+            return list;
         }
 
-        // to load max Categoryid
         /// <summary>
         ///     The get max categoryid.
         /// </summary>
         /// <param name="ic">The ic.</param>
-        /// <returns>
+        /// <returns>rasmu
         ///     The <see cref="int" /> .
         /// </returns>
         public static int GetMaxCategoryid(string ic)
@@ -303,52 +308,54 @@ namespace egrants_new.Functions
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
             conn.Open();
-            var MaxCategoryid = 0;
+            var maxCategoryid = 0;
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                MaxCategoryid = Convert.ToInt32(rdr["max_category_id"]);
+            {
+                maxCategoryid = Convert.ToInt32(rdr["max_category_id"]);
+            }
 
             conn.Close();
 
-            return MaxCategoryid;
+            return maxCategoryid;
         }
 
-        // to load sub category list
         /// <summary>
-        ///     The load sub category list.
+        ///     Load sub category list.
         /// </summary>
         /// <returns>
         ///     The <see cref="System.Collections.Generic.List`1" /> .
         /// </returns>
         public static List<EgrantsSubCategories> LoadSubCategoryList()
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
-            var cmd = new SqlCommand("select parent_category_id,sub_category_name FROM categories_subcat_lookup", conn);
-            cmd.CommandType = CommandType.Text;
+            var list = new List<EgrantsSubCategories>();
 
-            conn.Open();
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("select parent_category_id,sub_category_name FROM categories_subcat_lookup", conn);
+                cmd.CommandType = CommandType.Text;
 
-            var SubCategoryList = new List<EgrantsSubCategories>();
-            var rdr = cmd.ExecuteReader();
+                conn.Open();
 
-            while (rdr.Read())
-                SubCategoryList.Add(
-                    new EgrantsSubCategories
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(
+                        new EgrantsSubCategories
                         {
                             parent_category_id = rdr["parent_category_id"]?.ToString(), sub_category_name = rdr["sub_category_name"]?.ToString()
-                        }
-                );
+                        });
+                }
+            }
 
-            rdr.Close();
-            conn.Close();
-
-            return SubCategoryList;
+            return list;
         }
 
-        // to return document information 
         /// <summary>
-        ///     The get doc info.
+        ///     Get document info
         /// </summary>
         /// <param name="doc_id">The doc_id.</param>
         /// <returns>
@@ -356,24 +363,26 @@ namespace egrants_new.Functions
         /// </returns>
         public static List<DocumentInforamtion> GetDocInfo(int doc_id)
         {
-            var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString);
+            var list = new List<DocumentInforamtion>();
 
-            // System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("select document_name + ' (' + convert(varchar, document_date, 101) +')' as DocumentInfo from egrants where document_id = @document_id", conn);
-            var cmd = new SqlCommand(
-                "select admin_phs_org_code, serial_num, full_grant_num, appl_id, category_id, ISNULL(sub_category_name, null) as sub_category_name, document_id, document_name, convert(varchar, document_date, 101) as document_date from egrants where document_id = @document_id",
-                conn
-            );
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            {
 
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add("@document_id", SqlDbType.Int).Value = doc_id;
-            conn.Open();
+                // System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("select document_name + ' (' + convert(varchar, document_date, 101) +')' as DocumentInfo from egrants where document_id = @document_id", conn);
+                var cmd = new SqlCommand(
+                    "select admin_phs_org_code, serial_num, full_grant_num, appl_id, category_id, ISNULL(sub_category_name, null) as sub_category_name, document_id, document_name, convert(varchar, document_date, 101) as document_date from egrants where document_id = @document_id",
+                    conn);
 
-            var DocInfo = new List<DocumentInforamtion>();
-            var rdr = cmd.ExecuteReader();
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@document_id", SqlDbType.Int).Value = doc_id;
+                conn.Open();
 
-            while (rdr.Read())
-                DocInfo.Add(
-                    new DocumentInforamtion
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(
+                        new DocumentInforamtion
                         {
                             admin_phs_org_code = rdr["admin_phs_org_code"].ToString(),
                             serial_num = rdr["serial_num"]?.ToString(),
@@ -384,22 +393,15 @@ namespace egrants_new.Functions
                             document_id = rdr["document_id"]?.ToString(),
                             document_date = rdr["document_date"]?.ToString(),
                             document_name = rdr["document_name"]?.ToString()
-                        }
-                );
+                        });
+                }
+            }
 
-            rdr.Close();
-            conn.Close();
-
-            return DocInfo;
-
-            // var document_info = (string)cmd.ExecuteScalar();
-            // conn.Close();  
-            // return document_info;
+            return list;
         }
 
-        // to create a new document and return new document_id
         /// <summary>
-        ///     The get doc id.
+        ///     Creates a new document and returns the new document_id.
         /// </summary>
         /// <param name="applid">The applid.</param>
         /// <param name="categoryid">The categoryid.</param>
@@ -472,27 +474,28 @@ namespace egrants_new.Functions
             cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
 
             conn.Open();
-            var EgrantsDocs = new List<DocTransactionHistory>();
+            var list = new List<DocTransactionHistory>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                EgrantsDocs.Add(
+            {
+                list.Add(
                     new DocTransactionHistory
-                        {
-                            transaction_type = rdr["transaction_type"]?.ToString(),
-                            document_id = rdr["document_id"]?.ToString(),
-                            full_grant_num = rdr["full_grant_num"]?.ToString(),
-                            category_name = rdr["category_name"]?.ToString(),
-                            person_name = rdr["person_name"]?.ToString(),
-                            url = rdr["url"]?.ToString(),
-                            transaction_date = rdr["transaction_date"]?.ToString()
-                        }
-                );
+                    {
+                        transaction_type = rdr["transaction_type"]?.ToString(),
+                        document_id = rdr["document_id"]?.ToString(),
+                        full_grant_num = rdr["full_grant_num"]?.ToString(),
+                        category_name = rdr["category_name"]?.ToString(),
+                        person_name = rdr["person_name"]?.ToString(),
+                        url = rdr["url"]?.ToString(),
+                        transaction_date = rdr["transaction_date"]?.ToString()
+                    });
+            }
 
             rdr.Close();
             conn.Close();
 
-            return EgrantsDocs;
+            return list;
         }
 
         /// <summary>
@@ -518,19 +521,21 @@ namespace egrants_new.Functions
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
+            {
                 list.Add(
                     new ImpacDocs
-                        {
-                            tag = rdr["tag"]?.ToString(),
-                            appl_id = rdr["appl_id"]?.ToString(),
-                            full_grant_num = rdr["full_grant_num"]?.ToString(),
-                            accepted_date = rdr["accepted_date"]?.ToString(),
-                            category_name = rdr["category_name"]?.ToString(),
-                            created_date = rdr["created_date"]?.ToString(),
-                            url = rdr["url"]?.ToString(),
-                           // document_id = rdr["document_id"]?
-                        }
-                );
+                    {
+                        tag = rdr["tag"]?.ToString(),
+                        appl_id = rdr["appl_id"]?.ToString(),
+                        full_grant_num = rdr["full_grant_num"]?.ToString(),
+                        accepted_date = rdr["accepted_date"]?.ToString(),
+                        category_name = rdr["category_name"]?.ToString(),
+                        created_date = rdr["created_date"]?.ToString(),
+                        url = rdr["url"]?.ToString(),
+
+                        // document_id = rdr["document_id"]?
+                    });
+            }
 
             conn.Close();
 
@@ -553,36 +558,36 @@ namespace egrants_new.Functions
                 "SELECT document_id,convert(varchar, document_date, 101) as document_date, document_name,"
               + " created_by,convert(varchar, created_date, 101) as created_date, convert(varchar, qc_date, 101) as qc_date, category_id, @imageserver + url as url from egrants"
               + " where appl_id is null and qc_date is not null and parent_id is null and qc_userid=@operator",
-                conn
-            );
+                conn);
 
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.Add("@imageserver", SqlDbType.VarChar).Value = imageserver;
             cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
 
             conn.Open();
-            var UnidentifiedDocs = new List<DocsUnidentified>();
+            var list = new List<DocsUnidentified>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                UnidentifiedDocs.Add(
+            {
+                list.Add(
                     new DocsUnidentified
-                        {
-                            document_id = rdr["document_id"]?.ToString(),
-                            document_name = rdr["document_name"]?.ToString(),
-                            document_date = rdr["document_date"]?.ToString(),
-                            category_id = rdr["category_id"].ToString(),
-                            created_date = rdr["created_date"]?.ToString(),
-                            created_by = rdr["created_by"]?.ToString(),
-                            qc_date = rdr["qc_date"]?.ToString(),
-                            url = rdr["url"]?.ToString()
-                        }
-                );
+                    {
+                        document_id = rdr["document_id"]?.ToString(),
+                        document_name = rdr["document_name"]?.ToString(),
+                        document_date = rdr["document_date"]?.ToString(),
+                        category_id = rdr["category_id"].ToString(),
+                        created_date = rdr["created_date"]?.ToString(),
+                        created_by = rdr["created_by"]?.ToString(),
+                        qc_date = rdr["qc_date"]?.ToString(),
+                        url = rdr["url"]?.ToString()
+                    });
+            }
 
             rdr.Close();
             conn.Close();
 
-            return UnidentifiedDocs;
+            return list;
         }
 
         // load doc attachments
@@ -601,16 +606,18 @@ namespace egrants_new.Functions
             cmd.Parameters.Add("@document_id", SqlDbType.Int).Value = document_id;
 
             conn.Open();
-            var DocAttachments = new List<DocAttachment>();
+            var list = new List<DocAttachment>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
-                DocAttachments.Add(new DocAttachment { document_name = rdr["document_name"]?.ToString(), url = rdr["url"]?.ToString() });
+            {
+                list.Add(new DocAttachment { document_name = rdr["document_name"]?.ToString(), url = rdr["url"]?.ToString() });
+            }
 
             rdr.Close();
             conn.Close();
 
-            return DocAttachments;
+            return list;
         }
 
         /// <summary>
@@ -623,9 +630,9 @@ namespace egrants_new.Functions
         /// </returns>
         public static Notification getCloseoutNotif(string applid, string notifName)
         {
-            var cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
-            var cert_pass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
-            var certificate = new X509Certificate2(cert_url, cert_pass);
+            var certUrl = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+            var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+            var certificate = new X509Certificate2(certUrl, certPass);
             var request = (HttpWebRequest)WebRequest.Create(@"https://s2s.era.nih.gov/grantfolder/services/GrantDocumentInfo");
             request.ContentType = "application/xml";
             request.Method = "POST";
@@ -643,8 +650,7 @@ namespace egrants_new.Functions
                     <mes:applId>" + applid + @"</mes:applId>               
                     </mes:GrantCorrespondenceRequest> 
                     </soap:Body>
-                    </soap:Envelope>"
-            );
+                    </soap:Envelope>");
 
             using (var stream = request.GetRequestStream())
             {
