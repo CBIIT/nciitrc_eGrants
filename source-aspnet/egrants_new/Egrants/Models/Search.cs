@@ -227,6 +227,11 @@ namespace egrants_new.Egrants.Models
                     {
                         grant.SelectedGrantPiEmail = grant.current_pi_email_address;
                     }
+                    //// else
+                    //// {
+                    ////     grant.current_pi_email_address = grant.SelectedGrantPiEmail;
+                    //// }
+                    ////
 
                     if (string.IsNullOrEmpty(grant.SelectedProjectName))
                     {
