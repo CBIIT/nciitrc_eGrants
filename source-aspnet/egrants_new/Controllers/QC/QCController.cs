@@ -39,7 +39,7 @@ using System.Web.Mvc;
 
 #endregion
 
-namespace egrants_new.Controllers.QC
+namespace egrants_new.Controllers
 {
     /// <summary>
     /// The qc controller.

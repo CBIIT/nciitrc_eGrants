@@ -48,7 +48,7 @@ using egrants_new.Models;
 
 #endregion
 
-namespace egrants_new.Controllers.Egrants
+namespace egrants_new.Controllers
 {
     /// <summary>
     /// The egrants doc controller.

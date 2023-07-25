@@ -30,12 +30,14 @@ function sessionPostToServer() {
     var sessionTimeoutUrl = "";
     var currentUrl = window.location.href;
 
-    if (currentUrl.includes("/Egrants")) {
+    if (currentUrl.includes("/Egrants") || currentUrl.includes("/InstitutionalFiles")) {
         sessionTimeoutUrl = "SessionTimeout";
     }
-    else {
-        sessionTimeoutUrl = "Home/SessionTimeout";
-    }
+//    else if (currentUrl.includes("/EgrantsAccess")) {
+//        sessionTimeoutUrl = "Home/SessionTimeout";
+        else {
+            sessionTimeoutUrl = "Home/SessionTimeout";
+        }
 
     $.ajax({
         url: sessionTimeoutUrl,
@@ -160,12 +162,12 @@ function checkIdleTimeout() {
 
             $('.modal-backdrop').css("z-index", parseInt($('.modal-backdrop').css('z-index')) + 500);
             $('#session-expire-warning-modal').css('z-index', 1500);
-            $('#btnOk').css('background-color', '#428bca');
-            $('#btnOk').css('color', '#fff');
+           // $('#btnOk').css('background-color', '#428bca');
+           // $('#btnOk').css('color', '#fff');
             $('#btnSessionExpiredCancelled').css('background-color', '#428bca');
             $('#btnSessionExpiredCancelled').css('color', '#fff');
-            $('#btnLogoutNow').css('background-color', '#428bca');
-            $('#btnLogoutNow').css('color', '#fff');
+           // $('#btnLogoutNow').css('background-color', '#428bca');
+          // $('#btnLogoutNow').css('color', '#fff');
 
             $("#seconds-timer").empty();
             $("#session-expire-warning-modal").modal('show');
@@ -176,6 +178,7 @@ function checkIdleTimeout() {
     }
 }
 function sessionExtendedSelect() {
+    $('.modal-backdrop').css("z-index", parseInt($('.modal-backdrop').css('z-index')) - 500);
     sessionPostToServer();
     // when the "Continue" button is clicked, the countdown starts over and the user stays logged in
     localStorage.setItem('sessionSlide', 'isStarted');

@@ -43,7 +43,7 @@ using egrants_new.Models;
 
 #endregion
 
-namespace egrants_new.Controllers.IC_Coordinator
+namespace egrants_new.Controllers
 {
     /// <summary>
     /// The ic coordinator controller.

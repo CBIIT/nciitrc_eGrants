@@ -43,7 +43,7 @@ using egrants_new.Models;
 
 #endregion
 
-namespace egrants_new.Controllers.Management
+namespace egrants_new.Controllers
 {
     /// <summary>
     /// The system report controller.

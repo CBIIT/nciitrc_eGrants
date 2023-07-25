@@ -3,7 +3,7 @@ using System.Web.Mvc;
 
 using egrants_new.Dashboard.Functions;
 
-namespace egrants_new.Controllers.Dashboard
+namespace egrants_new.Controllers
 {
     public class ReminderController : Controller
     {
