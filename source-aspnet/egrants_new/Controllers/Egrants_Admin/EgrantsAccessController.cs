@@ -604,5 +604,13 @@ namespace egrants_new.Controllers.Egrants_Admin
 
             return this.View("~/Views/Egrants_Admin/EgrantsAccessRequest.cshtml");
         }
+
+        [HttpPost]
+        public ActionResult SessionTimeout()
+        {
+
+            // update the timeout variable 
+            return Json("Session Extended.", JsonRequestBehavior.AllowGet);
+        }
     }
 }

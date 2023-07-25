@@ -45,7 +45,7 @@ using egrants_new.Egrants.Models;
 
 #endregion
 
-namespace egrants_new.Controllers.Egrants
+namespace egrants_new.Controllers
 {
     /// <summary>
     /// The institutional files controller.

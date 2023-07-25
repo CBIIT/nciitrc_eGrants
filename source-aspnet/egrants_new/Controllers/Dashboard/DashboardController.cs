@@ -4,7 +4,7 @@ using System.Web.Mvc;
 using egrants_new.Dashboard.Functions;
 using egrants_new.Models;
 
-namespace egrants_new.Controllers.Dashboard
+namespace egrants_new.Controllers
 {
     public class DashboardController : Controller
     {

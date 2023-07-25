@@ -59,7 +59,7 @@ using Rotativa;
 
 #endregion
 
-namespace egrants_new.Controllers.Egrants
+namespace egrants_new.Controllers
 {
     /// <summary>
     /// The egrants controller.

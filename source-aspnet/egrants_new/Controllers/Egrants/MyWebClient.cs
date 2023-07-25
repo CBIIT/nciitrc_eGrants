@@ -3,7 +3,7 @@ using System.Configuration;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 
-namespace egrants_new.Controllers.Egrants
+namespace egrants_new.Controllers
 {
     class MyWebClient : WebClient
     {
