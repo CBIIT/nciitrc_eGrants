@@ -275,7 +275,11 @@ namespace egrants_new.Egrants.Models
                     appl.irppr_id = rdr["irppr_id"]?.ToString();
                     appl.can_add_funding = rdr["can_add_funding"]?.ToString();
 
-                    applList.Add(appl);
+                    if (appl.support_year.IndexOf("d", StringComparison.OrdinalIgnoreCase) == -1)
+                    {
+                        // it's not soft deleted, so include it here
+                        applList.Add(appl);
+                    }
                 }
                 else if (tag == 3)
                 {
