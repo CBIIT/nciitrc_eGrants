@@ -1,13 +1,13 @@
 USE [EIM]
 GO
-/****** Object:  StoredProcedure [dbo].[sp_egrants_maint_impacdocs]    Script Date: 9/6/2023 8:37:48 AM ******/
+/****** Object:  StoredProcedure [dbo].[sp_egrants_maint_impacdocs]    Script Date: 9/7/2023 1:36:22 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 
 
-ALTER      PROCEDURE [dbo].[sp_egrants_maint_impacdocs] 
+ALTER        PROCEDURE [dbo].[sp_egrants_maint_impacdocs] 
 AS
 
 DECLARE @impacID int
@@ -137,7 +137,7 @@ SELECT appl_id,
        (case when isdate(appl_received_date) = 1 THEN convert(datetime, appl_received_date, 121) END) appl_received_dateview
 FROM openquery(IRDB, 'select appl_id, a.accession_num, CAST(a.appl_received_date AS varchar2(30)) appl_received_date
 from DOC_AVAILABLE_MV g, appls_t a 
-where doc_type_code = ''GI''
+where doc_type_code = ''DMS''
 and g.doc_key_id = a.appl_id
 and a.serial_num is not null')
 
