@@ -5,7 +5,7 @@
 <script language="JavaScript" type="text/javascript">
 
     function show_doc(docurl) {
-        if (docurl.substring(0,12) == "https://s2s."){
+        if (docurl.StartsWith("https://services.")){
             var url = "@Url.Action("show_era_doc", "EgrantsDoc")?docurl=" + docurl;
         }
         else

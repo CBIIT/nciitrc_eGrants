@@ -204,7 +204,7 @@ namespace egrants_new.Controllers
                     }
 
                     // if this is a file on the ERA Server
-                    if (url.Contains("https://s2s."))
+                    if (url.Contains("https://services."))
                     {
                         var uri = new Uri(url);
 
