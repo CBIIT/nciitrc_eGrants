@@ -112,6 +112,7 @@ namespace egrants_new.Egrants.Models
             bool isGrant = false;
             bool isStr = false;
             bool isAppl = false;
+            bool searchApplIdIsSoftDeleted = false;     // bail if true
 
             if (grant_id != 0)
             {
@@ -275,10 +276,15 @@ namespace egrants_new.Egrants.Models
                     appl.irppr_id = rdr["irppr_id"]?.ToString();
                     appl.can_add_funding = rdr["can_add_funding"]?.ToString();
 
-                    if (appl.support_year.IndexOf("d", StringComparison.OrdinalIgnoreCase) == -1)
+                    bool foundSoftDeletedYear = appl.support_year.IndexOf("d", StringComparison.OrdinalIgnoreCase) != -1;
+                    if (!foundSoftDeletedYear)
                     {
                         // it's not soft deleted, so include it here
                         applList.Add(appl);
+                    } else
+                    {
+                        if (!string.IsNullOrWhiteSpace(appl.appl_id) && (appl.appl_id.ToString().Equals(appl_id.ToString(), StringComparison.InvariantCultureIgnoreCase)))
+                            searchApplIdIsSoftDeleted = true;
                     }
                 }
                 else if (tag == 3)
@@ -293,6 +299,12 @@ namespace egrants_new.Egrants.Models
 
             // added by Leon 5/11/2019
             conn.Close();
+
+            if (searchApplIdIsSoftDeleted)
+            {
+                grantList.Clear();
+                applList.Clear();
+            }
 
             if (isGrant || isStr)
             {
