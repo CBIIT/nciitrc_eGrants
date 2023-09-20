@@ -1,0 +1,60 @@
+﻿@using egrants_new.Egrants.Models;
+@{
+    ViewBag.Title = "eGrants [Show Popup Rename Modal]";
+}
+
+<style>
+    .modal {
+        text-align: center;
+        padding: 0 !important;
+    }
+
+    #NormalModal .modal-dialog {
+        width: 600px !important;
+        height: 300px !important;
+    }
+
+    #NormalModal .modal-content {
+        width: 600px !important;
+        height: 300px !important;
+    }
+
+    #MediumModal .modal-dialog {
+        width: 700px !important;
+        height: 500px !important;
+    }
+
+    #MediumModal .modal-content {
+        width: 700px !important;
+        height: 500px !important;
+    }
+</style>
+
+
+
+@if (ViewBag.grantLayer != null)
+{
+    foreach (ApplLayerObject appl in ViewBag.appllayer)
+    {
+        //string mpiModalId = "mpiModal" + appl.appl_id;
+        //string grantId = appl.grant_id;
+        //List<GrantLayer> grants = ViewBag.grantLayer;
+        //var grant = grants.First(gl => gl.grant_id == grantId);
+        <div class="modal fade" id="renameModalId" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+
+                        <div>Squishy cinnamon</div>
+                    </div>
+                    <div class="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+

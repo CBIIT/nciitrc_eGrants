@@ -216,6 +216,12 @@
         window.document.location.href = url;
     }
 
+    function show_rename_dialog() {
+        $('#renameModalId').modal({
+            show: true
+        }); 
+    }
+
 
     function getByAll(grant_id) {
         check_selected_cats(grant_id);
@@ -319,11 +325,9 @@
                 }
             }
             if (thisApplId){
-                console.log(thisApplId);
                 $('#mpiModal' + thisApplId).modal({
                     show: true
                 }); 
-               // $("#mpiModal" + thisApplId).modal('show');
             }
 
             return;
@@ -623,7 +627,7 @@
                         </div>
                     </div>
                     <!--end show category zone-->
-                  
+
                     <div id="grant_zone_@grant.grant_id" style="border-bottom: groove; border-color: darkgrey; display: inline-block; float: left; width: 900px;">
                         <!--start grant infor-->
                         <div id="grant info_@grant.grant_id" class=" p-1" style="display: inline; float: left;">
@@ -722,9 +726,9 @@
                                     <span class="pl-2"> @grant.org_name.ToUpper()</span>
                                 }
                             </div>
-                        @*</div>*@
-                        
-                        <br />
+                            @*</div>*@
+
+                            <br />
                             @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) || !string.IsNullOrWhiteSpace(grant.current_pd_email_address) || !string.IsNullOrWhiteSpace(grant.prog_class_code))
                             {
                                 <div id="PD infor" style="display: inline">
@@ -999,6 +1003,11 @@
     <!--start show popup modal -->
     <div>
         @Html.Partial("~/Egrants/Views/_egrants_showModalMPIDialog.cshtml")
+    </div>
+    <!--end show popup modal-->
+    <!--start show popup modal -->
+    <div>
+        @Html.Partial("~/Egrants/Views/_egrants_showModalRenameDialog.cshtml")
     </div>
     <!--end show popup modal-->
 </div><!--end main-->
