@@ -111,7 +111,7 @@ foreach (var appl in ViewBag.appllayer)
                         // todo : make flags specific to renaming grant year and javascript call in the button
                         if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
                         {
-                            <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:create_new_doc('doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add Request Name</button>
+                            <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog()">Add Request Name</button>
                         }
                     }
 
