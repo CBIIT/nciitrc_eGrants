@@ -6,6 +6,15 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+	-- reset everyone to active
+	select TOP 1000 last_login_date from people
+	UPDATE [dbo].[people]
+	SET active = 1, last_login_date = GETDATE()
+	
+GO
+
+	
+
 
 ALTER   PROCEDURE [dbo].[sp_egrants_maint_check_expired_people]
 AS
