@@ -29,6 +29,7 @@ foreach (var appl in ViewBag.appllayer)
             <!--start appl header-->
                 <!--start show full_grant_num-->
                 <div style="float:left; margin-left:15px; display:inline;"><a href="Javascript:by_appl(@appl.appl_id)" title="View All Documents for @appl.full_grant_num" style="vertical-align:bottom;"><b style="font-size:medium;">@appl.full_grant_num</b></a></div>
+                <div id="yearName" style="float: left; margin-left: 30px; ">@ViewBag.yearName</div>
                 <!--start show flags-->
     <div id="flags_@appl_id" style="float:left;display:inline;">
         @if (Convert.ToString(appl.appl_ds_flag) == "y")
@@ -105,14 +106,11 @@ foreach (var appl in ViewBag.appllayer)
                 <!--end notice for PD-->
                 <!--start create new buttons-->
                 <div id="create new buttons" style="float:right; display:inline;">
-
-                    @if (Convert.ToInt16(Session["position_id"]) > 1)
+            
+                    @if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
                     {
                         // todo : make flags specific to renaming grant year and javascript call in the button
-                        if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
-                        {
-                            <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog()">Add Request Name</button>
-                        }
+                        <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog()">Add Request Name</button>
                     }
 
                     @if (Convert.ToInt16(Session["position_id"]) > 1)
