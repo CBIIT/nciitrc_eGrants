@@ -82,7 +82,11 @@ namespace egrants_new
                 this.userid = this.Context.Request.ServerVariables["HEADER_SM_USER"];
                 if (this.userid == null)
                 {
-                    this.userid = ""; // string.Empty
+                    this.userid = "";
+#if DEBUG
+
+                    this.userid = "hooverrl"; // should correspond to person table, column: active
+ #endif
                 }
 
                 return this.userid;
