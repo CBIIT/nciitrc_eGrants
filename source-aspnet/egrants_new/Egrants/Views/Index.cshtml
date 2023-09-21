@@ -223,6 +223,10 @@
         }); 
     }
 
+    function hide_rename_dialog() {
+        $('#renameModalId').modal('hide');
+    }
+
 
     function getByAll(grant_id) {
         check_selected_cats(grant_id);
@@ -420,6 +424,24 @@
         } else if (appls_list != "" && cats_list == "") {
             alert("Please select category to search");
         } else by_grant(grant_id, 'All', appls_list, cats_list, '');
+    }
+
+    function updateGrantYearName(newName) {
+        $.ajax(
+            {
+                type: 'POST',
+                url: "/Egrants/NewGrantYearName",
+                data: { name: newName },  
+                success: function (resp) {
+                    if (resp !== "True")
+                        console.log("Error on rename, failed on backend");
+                    document.getElementById('yearName').innerHTML = newName;
+                    //$('#renameModalId').modal({
+                    //    show: false
+                    //}); 
+                    hide_rename_dialog();
+                }
+            });
     }
 </script>
 

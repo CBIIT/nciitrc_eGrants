@@ -92,6 +92,8 @@ namespace egrants_new.Controllers
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CurrentView = "StandardForm";
 
+            Response.Write("Version: " + System.Environment.Version.ToString());
+
             return this.View("~/Egrants/Views/Index.cshtml");
         }
 
@@ -576,6 +578,25 @@ namespace egrants_new.Controllers
             return JsonConvert.SerializeObject(list);
         }
 
+        // get category list by grant_id and years
+        /// <summary>
+        /// The load categories.
+        /// </summary>
+        /// <param name="name">
+        /// The grant_id.
+        /// </param>
+        /// <returns>
+        /// The function returns true if successful<see cref="bool"/>.
+        /// </returns>
+        public bool NewGrantYearName(string name)
+        {
+            // TODO: update the database
+            //var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
+
+            // JavaScriptSerializer js = new JavaScriptSerializer();
+            return true;
+        }
+
         //public CountProperty<int> CountProperty;// = new CountProperty<int>();
         //countProperty.Value = 0;
 
@@ -837,6 +858,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
                 this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
+                this.ViewBag.yearName = "squishy cinnamon";
 
                // this.ViewBag.appllayer.
                 //GetApplValue()
