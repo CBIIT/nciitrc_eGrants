@@ -594,6 +594,9 @@ namespace egrants_new.Controllers
             //var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
 
             // JavaScriptSerializer js = new JavaScriptSerializer();
+
+            var truncatedName = name.Substring(0, 10);
+
             return true;
         }
 
