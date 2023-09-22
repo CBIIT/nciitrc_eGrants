@@ -216,7 +216,8 @@
                            <span>Update</span>
                         }
                      </th>
-                     <th>Report Error</th>
+                     <th> @*Report Error*@ </th>
+                       @*MLH: report document error  (MLH: remove the 'style='display:none' below and uncomment the <th> "Report Error" above to restore Report Error functionality)*@
                   </tr>
                </thead>
             </table>
@@ -394,10 +395,10 @@
                      }
                   },
                   {
-                     // report document error
+                     // report document error  (MLH: remove the 'style='display:none' below and uncomment the <th> "Report Error" above to restore Report Error functionality)
                      "render": function(data, type, full, meta) {
                         if (full.can_qc == "y" && full.frc_destroyed == 0) {
-                           return "<a href='#' class='NormalModal' data-toggle='modal' data-target='#NormalModal' data-id='error' data-assigned-id='" + full.document_id + "' title='Report problem with document'><img class='img_16_16' src='../Content/images/Report Doc Error.png'/></a>";
+                           return "<a href='#' class='NormalModal' style='display:none' data-toggle='modal' data-target='#NormalModal' data-id='error' data-assigned-id='" + full.document_id + "' title='Report problem with document'><img class='img_16_16' src='../Content/images/Report Doc Error.png'/></a>";
                         } else return "";
                      }
                   }
