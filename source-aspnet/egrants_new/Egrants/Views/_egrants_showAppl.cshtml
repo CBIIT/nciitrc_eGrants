@@ -105,31 +105,33 @@ foreach (var appl in ViewBag.appllayer)
                 </div>
                 <!--end notice for PD-->
                 <!--start create new buttons-->
-                <div id="create new buttons" style="float:right; display:inline;">
-            
-                    @if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
-                    {
-                        // todo : make flags specific to renaming grant year and javascript call in the button
-                        <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog()">Add Request Name</button>
-                    }
+    <div id="create new buttons" style="float:right; display:inline;">
 
-                    @if (Convert.ToInt16(Session["position_id"]) > 1)
-                    {
-                        <!--start create new doc and new funding doc-->
-                        if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
-                        {
-                            <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:150px;" title="Click here to add new document [shift + alt + O]" onclick="Javascript:create_new_doc('doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add D<u>o</u>cument</button>
-                        }
-                    }
+        @{var buttonText = string.IsNullOrWhiteSpace(@ViewBag.yearName) ? "Add Request Name" : "Edit Request Name";
+        }
+        @if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
+        {
+            // todo : make flags specific to renaming grant year and javascript call in the button
+            <button id="openGrantYearNameDialogButton" type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog()">@buttonText</button>
+        }
 
-                    @if (Convert.ToInt16(Session["position_id"]) > 2)
-                    {
-                        if (appl.can_add_funding == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
-                        {
-                            <button type="button" accesskey="F" class="btn btn-sm  btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:200px;" title="Click here to add new funding document [shift + alt + F]" onclick="Javascript:create_new_doc('funding_doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add <u>F</u>unding Document</button>
-                        }
-                    }
-                </div><!--end create new buttons-->
+        @if (Convert.ToInt16(Session["position_id"]) > 1)
+        {
+            <!--start create new doc and new funding doc-->
+            if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
+            {
+                <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:150px;" title="Click here to add new document [shift + alt + O]" onclick="Javascript:create_new_doc('doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add D<u>o</u>cument</button>
+            }
+        }
+
+        @if (Convert.ToInt16(Session["position_id"]) > 2)
+        {
+            if (appl.can_add_funding == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
+            {
+                <button type="button" accesskey="F" class="btn btn-sm  btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:200px;" title="Click here to add new funding document [shift + alt + F]" onclick="Javascript:create_new_doc('funding_doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add <u>F</u>unding Document</button>
+            }
+        }
+    </div><!--end create new buttons-->
             <!--end appl header-->    
             <!--start show dos-->
             @Html.Partial("~/Egrants/Views/_egrants_showDocs.cshtml", appl_id)
