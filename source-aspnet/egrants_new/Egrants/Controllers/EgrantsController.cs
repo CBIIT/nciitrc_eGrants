@@ -593,9 +593,12 @@ namespace egrants_new.Controllers
             // TODO: update the database
             //var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
 
-            // JavaScriptSerializer js = new JavaScriptSerializer();
-
-            var truncatedName = name.Substring(0, 10);
+            if (string.IsNullOrEmpty(name))
+            {
+                name = String.Empty;
+            }
+            var length = name.Length;
+            var truncatedName = name.Substring(0, Math.Min(length,10));
 
             return true;
         }

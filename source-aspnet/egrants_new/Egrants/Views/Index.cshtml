@@ -440,6 +440,14 @@
                     //    show: false
                     //}); 
                     hide_rename_dialog();
+
+                    // if empty name, hide the delete button and change name to Add
+                    if (!newName) {  // empty
+                        document.getElementById('deleteGrantYearName').style.visibility = 'hidden';
+                        document.getElementById('newGrantYearName').value = newName;    // user might not have erased it, so manually do that here
+                    } else {
+                        document.getElementById('deleteGrantYearName').style.visibility = 'visible';
+                    }
                 }
             });
     }
