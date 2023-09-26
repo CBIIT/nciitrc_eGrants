@@ -274,6 +274,7 @@ namespace egrants_new.Egrants.Models
                     appl.closeout_flag = rdr["closeout_flag"]?.ToString();
                     appl.irppr_id = rdr["irppr_id"]?.ToString();
                     appl.can_add_funding = rdr["can_add_funding"]?.ToString();
+                    appl.label = rdr["label"]?.ToString();
 
                     applList.Add(appl);
                 }
