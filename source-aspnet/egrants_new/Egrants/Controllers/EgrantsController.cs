@@ -56,6 +56,8 @@ using egrants_new.Models;
 using Newtonsoft.Json;
 using Rotativa;
 
+using RtfPipe.Tokens;
+
 #endregion
 
 namespace egrants_new.Controllers
@@ -583,12 +585,15 @@ namespace egrants_new.Controllers
         /// The load categories.
         /// </summary>
         /// <param name="name">
-        /// The grant_id.
+        /// The new label for the grant year
+        /// </param>
+        /// <param name="applId">
+        /// The appl_id for the grant year about to be renamed
         /// </param>
         /// <returns>
         /// The function returns true if successful<see cref="bool"/>.
         /// </returns>
-        public bool NewGrantYearName(string name)
+        public bool NewGrantYearName(string name, int applId)
         {
             // TODO: update the database
             //var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
@@ -599,6 +604,8 @@ namespace egrants_new.Controllers
             }
             var length = name.Length;
             var truncatedName = name.Substring(0, Math.Min(length,10));
+
+            Dashboard.Functions.Egrants.SetGrantYearLabel(name, applId);
 
             return true;
         }

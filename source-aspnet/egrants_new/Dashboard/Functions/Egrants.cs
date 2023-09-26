@@ -408,6 +408,45 @@ namespace egrants_new.Dashboard.Functions
             return CategoryList;
         }
 
+        /// <summary>
+        /// The get category list.
+        /// </summary>
+        /// <param name="newLabel">
+        /// The new grant year label
+        /// </param>
+        /// <param name="applId">
+        /// The appl_id that will get the new grant year
+        /// </param>
+        /// <returns>
+        /// The <see cref="System.Collections.Generic.List`1"/> .
+        /// </returns>
+        public static List<string> SetGrantYearLabel(string newLabel, int applId)
+        {
+            var CategoryList = new List<string>();
+
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("update [EIM].[dbo].[appls] set label=@label", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@label", SqlDbType.VarChar).Value = newLabel;
+                cmd.Parameters.AddWithValue("@appl_id", SqlDbType.VarChar).Value = applId.ToString();
+
+                conn.Open();
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    var category = rdr[0] + ":" + rdr[1];
+                    CategoryList.Add(category);
+                }
+
+                // added by Leon 5/11/2019
+                //conn.Close();
+            }
+
+            return CategoryList;
+        }
+
         // load category name string by year
         /// <summary>
         /// The get_ category name_by_id.
