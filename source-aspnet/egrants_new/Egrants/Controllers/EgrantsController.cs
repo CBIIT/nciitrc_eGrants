@@ -871,7 +871,6 @@ namespace egrants_new.Controllers
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
                 this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
-                this.ViewBag.yearName = "squishy cinnamon";
 
                // this.ViewBag.appllayer.
                 //GetApplValue()

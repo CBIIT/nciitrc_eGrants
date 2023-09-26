@@ -426,8 +426,8 @@ namespace egrants_new.Dashboard.Functions
 
             using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
             {
-                var cmd = new SqlCommand("update [EIM].[dbo].[appls] set label=@label", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
+                var cmd = new SqlCommand("update [EIM].[dbo].[appls] set label=@label where appl_id=@appl_id", conn);
+                cmd.CommandType = CommandType.Text;
                 cmd.Parameters.AddWithValue("@label", SqlDbType.VarChar).Value = newLabel;
                 cmd.Parameters.AddWithValue("@appl_id", SqlDbType.VarChar).Value = applId.ToString();
 
