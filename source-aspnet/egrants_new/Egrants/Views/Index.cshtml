@@ -426,12 +426,12 @@
         } else by_grant(grant_id, 'All', appls_list, cats_list, '');
     }
 
-    function updateGrantYearName(newName) {
+    function updateGrantYearName(newName, applId) {
         $.ajax(
             {
                 type: 'POST',
                 url: "/Egrants/NewGrantYearName",
-                data: { name: newName },  
+                data: { name: newName, applId: applId },  
                 success: function (resp) {
                     if (resp !== "True")
                         console.log("Error on rename, failed on backend");
