@@ -29,7 +29,7 @@ foreach (var appl in ViewBag.appllayer)
             <!--start appl header-->
                 <!--start show full_grant_num-->
                 <div style="float:left; margin-left:15px; display:inline;"><a href="Javascript:by_appl(@appl.appl_id)" title="View All Documents for @appl.full_grant_num" style="vertical-align:bottom;"><b style="font-size:medium;">@appl.full_grant_num</b></a></div>
-                <div id="yearName" style="float: left; margin-left: 30px; ">@appl.label</div>
+                <div id="yearName" style="float: left; margin-left: 10px; margin-top:3px;">@appl.label</div>
                 <!--start show flags-->
     <div id="flags_@appl_id" style="float:left;display:inline;">
         @if (Convert.ToString(appl.appl_ds_flag) == "y")
