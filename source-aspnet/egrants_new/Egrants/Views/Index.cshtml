@@ -448,6 +448,7 @@
                         openGrantYearNameDialogButton.innerHTML = "Add Request Name";
                     } else {
                         document.getElementById('deleteGrantYearName').style.visibility = 'visible';
+                        document.getElementById('newGrantYearName').value = newName;    // user might not have erased it, so manually do that here
                         openGrantYearNameDialogButton.innerHTML = "Edit Request Name";
                     }
                 }
