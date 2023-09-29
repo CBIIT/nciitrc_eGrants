@@ -277,6 +277,17 @@ namespace egrants_new.Egrants.Models
                     appl.can_add_funding = rdr["can_add_funding"]?.ToString();
                     appl.label = rdr["label"]?.ToString();
 
+                    if (ic.Equals("ca", StringComparison.InvariantCultureIgnoreCase) &&
+                        appl.appl_type_code.Equals("3") &&
+                        (appl.support_year.ToLower().Contains("s") || appl.support_year.ToLower().Contains("s"))
+                    )
+                    {
+                        appl.can_rename_label = "y";
+                    } else
+                    {
+                        appl.can_rename_label = "n";
+                    }
+
                     bool foundSoftDeletedYear = appl.support_year.IndexOf("d", StringComparison.OrdinalIgnoreCase) != -1;
                     if (!foundSoftDeletedYear)
                     {
