@@ -42,12 +42,15 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
 
-                    <h3>Add Request Name</h3>
+                    @{
+                        string renameTitle = string.IsNullOrWhiteSpace(ViewBag.yearName) ? "Add Request Name" : "Edit Request Name";
+                    }
+                    <h3><div id="renameDialogName">@renameTitle</div></h3>
                     <br />
                     <div style="margin-bottom: 20px; margin: auto; width: 378px">
                         <div style="float:left">
                             <input id="newGrantYearName" class="form-rename-control my-1 mr-sm-2" type="text" placeholder="Request Name" style="margin-right:10px;width:200px" value="@ViewBag.yearName" maxlength="10" />
-                            <br/><span class="small m-1 text-muted" id="charStatus" style="text-align:left;float:left">(10 char max)</span>
+                            <br /><span class="small m-1 text-muted" id="charStatus" style="text-align:left;float:left">(10 char max)</span>
                         </div>
                         <div style="float:left;margin-top:5px">
                             <button class="btn btn-primary btn-sm eGrantsDocBtn" style="width:80px" onclick="updateGrantYearName(document.getElementById('newGrantYearName').value, @ViewBag.ApplID)">Save</button>
