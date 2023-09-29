@@ -115,7 +115,10 @@ foreach (var appl in ViewBag.appllayer)
 
                     @if (Convert.ToInt16(Session["position_id"]) > 1)
                     {
-                        <button id="openGrantYearNameDialogButton" type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog()">@buttonText</button>
+                        if (appl.can_rename_label == "y")
+                        {
+                            <button id="openGrantYearNameDialogButton" type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog()">@buttonText</button>
+                        }
 
                         <!--start create new doc and new funding doc-->
                         if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
