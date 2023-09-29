@@ -445,10 +445,12 @@
                     if (!newName) {  // empty
                         document.getElementById('deleteGrantYearName').style.visibility = 'hidden';
                         document.getElementById('newGrantYearName').value = newName;    // user might not have erased it, so manually do that here
+                        document.getElementById('renameDialogName').innerHTML = "Add Request Name";
                         openGrantYearNameDialogButton.innerHTML = "Add Request Name";
                     } else {
                         document.getElementById('deleteGrantYearName').style.visibility = 'visible';
                         document.getElementById('newGrantYearName').value = newName;    // user might not have erased it, so manually do that here
+                        document.getElementById('renameDialogName').innerHTML = "Edit Request Name";
                         openGrantYearNameDialogButton.innerHTML = "Edit Request Name";
                     }
                 }
