@@ -94,7 +94,7 @@ namespace egrants_new.Controllers
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CurrentView = "StandardForm";
 
-            Response.Write("Version: " + System.Environment.Version.ToString());
+            //Response.Write("Version: " + System.Environment.Version.ToString());
 
             return this.View("~/Egrants/Views/Index.cshtml");
         }
@@ -871,10 +871,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
                 this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
-
-               // this.ViewBag.appllayer.
-                //GetApplValue()
-                // ViewBag.doclayer_All = ViewBag.doclayer;--commented by leon 4/1/2019
+                this.ViewBag.yearName = Search.appllayerproperty.First(a => a.appl_id == appl_id.ToString()).label;
             }
 
             return this.View("~/Egrants/Views/Index.cshtml");
