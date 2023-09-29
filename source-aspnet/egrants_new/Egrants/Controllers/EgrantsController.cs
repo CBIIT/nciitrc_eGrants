@@ -871,7 +871,12 @@ namespace egrants_new.Controllers
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
                 this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
-                this.ViewBag.yearName = Search.appllayerproperty.First(a => a.appl_id == appl_id.ToString()).label;
+                if (Search.appllayerproperty != null && Search.appllayerproperty.Count() > 0)
+                {
+                    var thisAppl = Search.appllayerproperty.FirstOrDefault(a => a.appl_id == appl_id.ToString());
+                    if (thisAppl != null)
+                        this.ViewBag.yearName = thisAppl.label;
+                }
             }
 
             return this.View("~/Egrants/Views/Index.cshtml");

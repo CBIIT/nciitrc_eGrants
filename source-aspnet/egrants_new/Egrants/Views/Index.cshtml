@@ -895,7 +895,7 @@
                                             var thisPagesApplID = (int)ViewBag.ApplID;
                                             var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
                                             var theAppl = appls.Where(a => a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
-                                            if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
+                                            if (theAppl != null && theAppl.Count > 0 && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
                                             {
                                                 displayMpiFlag = true;
                                             }
