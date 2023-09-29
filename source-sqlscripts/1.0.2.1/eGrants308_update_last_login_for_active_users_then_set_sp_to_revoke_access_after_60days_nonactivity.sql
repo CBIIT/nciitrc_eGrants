@@ -6,10 +6,14 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-	PRINT '----------- reset everyone to active ----------' 
-	select TOP 1000 last_login_date from people
+	PRINT '----------- reset last login date for inactive people ----------' 
 	UPDATE [dbo].[people]
-	SET active = 1, last_login_date = GETDATE()
+	SET last_login_date = GETDATE()
+	WHERE active = 1
+	
+GO
+
+
 	
 GO
 
