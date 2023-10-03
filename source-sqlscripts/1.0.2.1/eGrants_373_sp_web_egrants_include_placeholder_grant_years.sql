@@ -211,6 +211,8 @@ INSERT @a
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id 
 UNION
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1 --display new created appl_id
+UNION
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
 
 ----clean up search if there is no appls return
 SET @count=(select count(*) from @a)
@@ -296,6 +298,12 @@ INSERT @a
 SELECT DISTINCT appl_id FROM vw_appls_used_bygrant vg WHERE vg.grant_id=@grant_id
 UNION
 SELECT DISTINCT appl_id FROM vw_appls a WHERE a.grant_id=@grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+UNION
+SELECT DISTINCT appl_id FROM vw_appls a WHERE a.grant_id=@grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+
+declare @countRXKZ8				int
+SET @countRXKZ8=(select count(*) from @a)
+print(concat('size of table variable a in egrants_grant: ', @countRXKZ8))
 
 IF @package is null or @package ='' SET @package ='All'
 
@@ -377,6 +385,8 @@ INSERT @a(appl_id)
 SELECT appl_id FROM vw_appls_used_bygrant AS vg, @g AS g WHERE vg.grant_id=g.grant_id ---DISTINCT
 UNION 
 SELECT appl_id FROM vw_appls AS a, @g AS g WHERE a.grant_id=g.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+UNION
+SELECT DISTINCT appl_id FROM @g AS g, vw_appls a WHERE a.grant_id=g.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
 
 GOTO OUTPUT
 ------------------
