@@ -62,8 +62,6 @@ declare @per_tab			int
 declare @start				int
 declare @end				int
 
-print('made it to here')
-
 --find unser info
 SET @operator=LOWER(@operator)
 SELECT @profile_id=profile_id  FROM  profiles  WHERE  profile=@IC
@@ -177,8 +175,6 @@ INSERT queries(search_id,execution_time,ic,searched_by,page,browser_type)
 SELECT @search_id,null,UPPER(@IC),@operator,ISNULL(@current_page, null),@browser
 END
 
-print(CONCAT('goin to type: ', @type))	-- egrants_str
-
 --go to load data
 if @type='egrants_qc' GOTO egrants_qc
 if @type='egrants_str' GOTO egrants_str
@@ -224,22 +220,16 @@ END
 GOTO OUTPUT
 --------------------
 egrants_str:
-print('in output for egrants_str')
 --print(CONCAT('goin to type: ', @type))	-- egrants_str
 
 SET @str=LTRIM(RTRIM(dbo.fn_str_decode(@str)))
 SET @str=dbo.fn_str(@str)
-
-print(CONCAT('contains table query: ', 'select distinct grant_id, serial_num from containstable(ncieim_b..appls_txt,keywords,' + char(39) + @str + char(39) + ') c, vw_appls a where a.doc_count>0 and a.appl_id=c.[key] order by serial_num'))
 
 SET @sql='insert #t(grant_id, serial_num) select distinct grant_id, serial_num from containstable(ncieim_b..appls_txt,keywords,' + char(39) + @str + char(39) + ') c, vw_appls a where a.appl_id=c.[key] order by serial_num'
 --SET @sql='insert #t(grant_id, serial_num) select distinct grant_id, serial_num from containstable(ncieim_b..appls_txt,keywords,' + char(39) + @str + char(39) + ') c, vw_appls a where a.doc_count>0 and a.appl_id=c.[key] order by serial_num'
 --SET @sql='insert @t(grant_id, serial_num) select distinct grant_id, serial_num from containstable(ncieim_b..appls_txt,keywords,' + char(39) + @str + char(39) + ') c, vw_appls a where a.appl_id=c.[key] and a.admin_phs_org_code='+char(39)+'CA'+char(39)+' and a.closed_out='+char(39)+'no'+char(39)+ 'order by serial_num'
 EXEC(@sql)
 
-print('passed exec1')
-
---print('#t count:')
 --select count(*) from #t	--it's 0 here
 
 --for pagination
@@ -253,11 +243,6 @@ BEGIN
 INSERT @g(grant_id)SELECT grant_id FROM #t ORDER BY serial_num
 END
 
-print('@g count')
---select count(*) from @g	--it's 0 here
-
-print('passed insert')
-
 --insert appl_id with @g
 INSERT @a 
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id 
@@ -266,15 +251,6 @@ SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and
 UNION
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
 
---SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id
---UNION
---SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
---UNION
---SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
-
-
-
-print('passed insert appl_id with @g')
 
 --clean up search if there is no appls return
 SET @count=(select count(*) from @a)
@@ -284,8 +260,6 @@ delete from @g
 return
 END
 ELSE 
-
-print('going to output')
 
 GOTO OUTPUT
 --------------------
@@ -301,9 +275,9 @@ SELECT DISTINCT appl_id FROM vw_appls a WHERE a.grant_id=@grant_id and loaded_da
 UNION
 SELECT DISTINCT appl_id FROM vw_appls a WHERE a.grant_id=@grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
 
-declare @countRXKZ8				int
-SET @countRXKZ8=(select count(*) from @a)
-print(concat('size of table variable a in egrants_grant: ', @countRXKZ8))
+--declare @countRXKZ8				int
+--SET @countRXKZ8=(select count(*) from @a)
+--print(concat('size of table variable a in egrants_grant: ', @countRXKZ8))
 
 IF @package is null or @package ='' SET @package ='All'
 
@@ -340,10 +314,6 @@ SELECT document_id, appl_id FROM egrants WHERE appl_id=@appl_id
 UNION
 SELECT document_id, appl_id FROM vw_funding WHERE appl_id=@appl_id  --add in by leon 12/21/2016
 
-declare @countRXKZ7				int
-SET @countRXKZ7=(select count(*) from @d)
-print(concat('size of table variable d: ', @countRXKZ7))
---print(concat('size of table variable d: ', select count(*) from @a))
 
 INSERT @g(grant_id) SELECT grant_id FROM vw_appls WHERE appl_id = @appl_id
 
@@ -354,8 +324,6 @@ SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and
 UNION
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
 
-SET @countRXKZ7=(select count(*) from @a)
-print(concat('size of table variable a: ', @countRXKZ7))
 
 ---IF (SELECT COUNT(*) FROM @d)=0 AND (SELECT COUNT(*) FROM @a)=0 GOTO foot
 
@@ -391,8 +359,6 @@ SELECT DISTINCT appl_id FROM @g AS g, vw_appls a WHERE a.grant_id=g.grant_id and
 GOTO OUTPUT
 ------------------
 OUTPUT:
-
-print('reached final output here')
 
 SELECT
 1		as tag, 
