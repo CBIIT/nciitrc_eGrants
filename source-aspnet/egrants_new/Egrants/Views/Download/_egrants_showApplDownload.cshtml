@@ -46,20 +46,7 @@ foreach (var appl in ViewBag.appllayer)
       // var grantShort = ViewBag.grantlayer;
        var passModel = new PageDownloadModel() { ApplId = appl_id, FullGrantNumber = fullGrantNum };
 
-       var doc_count = 0;
-
-       // check if with docs for this appl
-       foreach (var doc in ViewBag.doclayer)
-       {
-          if (Convert.ToInt32(doc.appl_id) == appl_id)
-          {
-             doc_count = Convert.ToInt16(doc.docs_count);
-          }
-       }
-
         <!-- start show single appl data -->
-        if (doc_count >= 1)
-        {
             <!-- start appl header -->
                 <!-- start show full_grant_num -->
                 <div style="float:left; margin-left:15px; display:inline;"><a href="Javascript:by_appl(@appl.appl_id)" title="View All Documents for @appl.full_grant_num" style="vertical-align:bottom;"><b style="font-size:medium;">@appl.full_grant_num</b></a></div>
@@ -149,7 +136,6 @@ foreach (var appl in ViewBag.appllayer)
             <div id="doc" style="height:20px"></div><!--add space for each appls-->
             <!--end show dos-->
         <!--end show single appl data-->
-        }
     }
     </div>
     <!--end all appls for one grant-->
