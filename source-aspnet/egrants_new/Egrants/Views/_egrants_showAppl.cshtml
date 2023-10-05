@@ -117,7 +117,8 @@ foreach (var appl in ViewBag.appllayer)
                     {
                         if (appl.can_rename_label == "y")
                         {
-                            <button id="openGrantYearNameDialogButton" type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog()">@buttonText</button>
+                            String openGrantYearNameDialogButtonId = "openGrantYearNameDialogButton" + appl.appl_id;
+                            <button id="@openGrantYearNameDialogButtonId" type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog(@appl.appl_id)">@buttonText</button>
                         }
 
                         <!--start create new doc and new funding doc-->
@@ -138,7 +139,9 @@ foreach (var appl in ViewBag.appllayer)
             </div>
 
             <br style="clear:both;"/>
-            <div id="yearName" style="margin-left: 15px; margin-top: 3px; font-weight: bold;">@appl.label</div>
+            String yearNameId = "yearName" + appl.appl_id;
+
+            <div id="@yearNameId" style="margin-left: 15px; margin-top: 3px; font-weight: bold;">@appl.label</div>
             <!--end appl header-->
             <!--start show dos-->
             @Html.Partial("~/Egrants/Views/_egrants_showDocs.cshtml", appl_id)

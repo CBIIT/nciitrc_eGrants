@@ -217,14 +217,14 @@
         window.document.location.href = url;
     }
 
-    function show_rename_dialog() {
-        $('#renameModalId').modal({
+    function show_rename_dialog(applId) {
+        $('#renameModalId' + applId).modal({
             show: true
         }); 
     }
 
-    function hide_rename_dialog() {
-        $('#renameModalId').modal('hide');
+    function hide_rename_dialog(applId) {
+        $('#renameModalId' + applId).modal('hide');
     }
 
 
@@ -435,23 +435,25 @@
                 success: function (resp) {
                     if (resp !== "True")
                         console.log("Error on rename, failed on backend");
-                    document.getElementById('yearName').innerHTML = newName;
+                    document.getElementById('yearName' + applId).innerHTML = newName;
                     //$('#renameModalId').modal({
                     //    show: false
                     //}); 
-                    hide_rename_dialog();
+                    hide_rename_dialog(applId);
 
                     // if empty name, hide the delete button and change name to Add
                     if (!newName) {  // empty
-                        document.getElementById('deleteGrantYearName').style.visibility = 'hidden';
-                        document.getElementById('newGrantYearName').value = newName;    // user might not have erased it, so manually do that here
-                        document.getElementById('renameDialogName').innerHTML = "Add Request Name";
-                        openGrantYearNameDialogButton.innerHTML = "Add Request Name";
+                        document.getElementById('deleteGrantYearName' + applId).style.visibility = 'hidden';
+                        document.getElementById('newGrantYearName' + applId).value = newName;    // user might not have erased it, so manually do that here
+                        document.getElementById('renameDialogName' + applId).innerHTML = "Add Request Name";
+                        document.getElementById('openGrantYearNameDialogButton' + applId).innerHTML = "Add Request Name";
+//                        openGrantYearNameDialogButton.innerHTML = "Add Request Name";
                     } else {
-                        document.getElementById('deleteGrantYearName').style.visibility = 'visible';
-                        document.getElementById('newGrantYearName').value = newName;    // user might not have erased it, so manually do that here
-                        document.getElementById('renameDialogName').innerHTML = "Edit Request Name";
-                        openGrantYearNameDialogButton.innerHTML = "Edit Request Name";
+                        document.getElementById('deleteGrantYearName' + applId).style.visibility = 'visible';
+                        document.getElementById('newGrantYearName' + applId).value = newName;    // user might not have erased it, so manually do that here
+                        document.getElementById('renameDialogName' + applId).innerHTML = "Edit Request Name";
+                        document.getElementById('openGrantYearNameDialogButton' + applId).innerHTML = "Edit Request Name";
+                        //openGrantYearNameDialogButton.innerHTML = "Edit Request Name";
                     }
                 }
             });

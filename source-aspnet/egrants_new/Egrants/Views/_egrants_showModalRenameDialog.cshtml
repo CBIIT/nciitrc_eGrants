@@ -33,35 +33,43 @@
 
 
 @if (ViewBag.grantLayer != null)
-{
-    <div class="modal fade" id="renameModalId" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+    {
+        foreach (ApplLayerObject appl in ViewBag.appllayer)
+        {
+            string renameModalId = "renameModalId" + appl.appl_id;
+            string renameDialogNameId = "renameDialogName" + appl.appl_id;
+            string newGrantYearNameId = "newGrantYearName" + appl.appl_id;
+            string deleteGrantYearNameId = "deleteGrantYearName" + appl.appl_id;
 
-                    @{
-                        string renameTitle = string.IsNullOrWhiteSpace(ViewBag.yearName) ? "Add Request Name" : "Edit Request Name";
-                    }
-                    <h3><div id="renameDialogName">@renameTitle</div></h3>
-                    <br />
-                    <div style="margin-bottom: 20px; margin: auto; width: 378px">
-                        <div style="float:left">
-                            <input id="newGrantYearName" class="form-rename-control my-1 mr-sm-2" type="text" placeholder="Request Name" style="margin-right:10px;width:200px" value="@ViewBag.yearName" maxlength="10" />
-                            <br /><span class="small m-1 text-muted" id="charStatus" style="text-align:left;float:left">(10 char max)</span>
-                        </div>
-                        <div style="float:left;margin-top:5px">
-                            <button class="btn btn-primary btn-sm eGrantsDocBtn" style="width:80px" onclick="updateGrantYearName(document.getElementById('newGrantYearName').value, @ViewBag.ApplID)">Save</button>
-                            <button id="deleteGrantYearName" class="btn btn-primary btn-sm eGrantsDocBtn" style="width:80px" onclick="updateGrantYearName('', @ViewBag.ApplID)">Delete</button>
+            <div class="modal fade" id="@renameModalId" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+
+                        @{
+                            string renameTitle = string.IsNullOrWhiteSpace(appl.label) ? "Add Request Name" : "Edit Request Name";
+                        }
+                        <h3><div id="@renameDialogNameId">@renameTitle</div></h3>
+                        <br />
+                        <div style="margin-bottom: 20px; margin: auto; width: 378px">
+                            <div style="float:left">
+                                <input id="@newGrantYearNameId" class="form-rename-control my-1 mr-sm-2" type="text" placeholder="Request Name" style="margin-right:10px;width:200px" value="@appl.label" maxlength="10" />
+                                <br /><span class="small m-1 text-muted" id="charStatus" style="text-align:left;float:left">(10 char max)</span>
+                            </div>
+                            <div style="float:left;margin-top:5px">
+                                <button class="btn btn-primary btn-sm eGrantsDocBtn" style="width:80px" onclick="updateGrantYearName(document.getElementById('newGrantYearName' + @appl.appl_id).value, @appl.appl_id)">Save</button>
+                                <button id="@deleteGrantYearNameId" class="btn btn-primary btn-sm eGrantsDocBtn" style="width:80px" onclick="updateGrantYearName('', @appl.appl_id)">Delete</button>
+                            </div>
                         </div>
                     </div>
+                    @*<div class="modal-footer">
+                        </div>*@
                 </div>
-                @*<div class="modal-footer">
-                    </div>*@
             </div>
         </div>
-    </div>
+    }
 }
 
