@@ -436,9 +436,6 @@
                     if (resp !== "True")
                         console.log("Error on rename, failed on backend");
                     document.getElementById('yearName' + applId).innerHTML = newName;
-                    //$('#renameModalId').modal({
-                    //    show: false
-                    //}); 
                     hide_rename_dialog(applId);
 
                     // if empty name, hide the delete button and change name to Add
@@ -447,13 +444,11 @@
                         document.getElementById('newGrantYearName' + applId).value = newName;    // user might not have erased it, so manually do that here
                         document.getElementById('renameDialogName' + applId).innerHTML = "Add Request Name";
                         document.getElementById('openGrantYearNameDialogButton' + applId).innerHTML = "Add Request Name";
-//                        openGrantYearNameDialogButton.innerHTML = "Add Request Name";
                     } else {
                         document.getElementById('deleteGrantYearName' + applId).style.visibility = 'visible';
                         document.getElementById('newGrantYearName' + applId).value = newName;    // user might not have erased it, so manually do that here
                         document.getElementById('renameDialogName' + applId).innerHTML = "Edit Request Name";
                         document.getElementById('openGrantYearNameDialogButton' + applId).innerHTML = "Edit Request Name";
-                        //openGrantYearNameDialogButton.innerHTML = "Edit Request Name";
                     }
                 }
             });
