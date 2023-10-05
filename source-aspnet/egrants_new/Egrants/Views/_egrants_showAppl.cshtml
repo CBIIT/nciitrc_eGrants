@@ -7,7 +7,7 @@ var grant_id = Model;
 //loop with each appl
 foreach (var appl in ViewBag.appllayer)
 {    
-    if (appl.appl_id != ViewBag.ApplID.ToString())
+    if (ViewBag.ApplID == null || appl.appl_id != ViewBag.ApplID.ToString())
     {
         continue;
     }
