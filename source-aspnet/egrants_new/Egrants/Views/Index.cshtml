@@ -146,6 +146,8 @@
             document.getElementById(el).style.display = "inline";
         }
 
+        updateAuditOrGrantYearModeFromCookie();
+
         //if (currentView == "DownloadForm") {
         //    $('#downloadForm').attr("hidden", false);
         //    $('#standardForm').attr("hidden", true);
@@ -353,6 +355,22 @@
         document.getElementById("toggle_title").innerHTML = "";
     }
 
+    function displayDownloadOrAuditForms() {
+        if (currentView == "DownloadForm") {
+            // DownloadForm
+            $('#downloadForm').attr("hidden", false);
+            $('#standardForm').attr("hidden", true);
+            document.getElementById("toggle_title").innerHTML = "Audit File Download";
+            document.cookie = "auditMode=DownloadForm";
+        } else {
+            // StandardForm
+            $('#downloadForm').attr("hidden", true);
+            $('#standardForm').attr("hidden", false);
+            document.getElementById("toggle_title").innerHTML = "Grant Years";
+            document.cookie = "auditMode=StandardForm";
+        }
+    }
+
     // show or hide search form
     function toggle_download_forms() {
 
@@ -360,20 +378,15 @@
 
         if (currentView == "StandardForm") {
             console.log("in Standardform");
-            $('#downloadForm').attr("hidden", false);
-            $('#standardForm').attr("hidden", true);
-            document.getElementById("toggle_title").innerHTML = "Audit File Download";
             currentView = "DownloadForm";
+            displayDownloadOrAuditForms();
             return;
         }
 
         if (currentView == "DownloadForm") {
-
             console.log("in Downloadform");
-            $('#downloadForm').attr("hidden", true);
-            $('#standardForm').attr("hidden", false);
-            document.getElementById("toggle_title").innerHTML = "Grant Years";
             currentView = "StandardForm";
+            displayDownloadOrAuditForms();
             return;
         }
     }
@@ -415,6 +428,56 @@
         } else if (appls_list != "" && cats_list == "") {
             alert("Please select category to search");
         } else by_grant(grant_id, 'All', appls_list, cats_list, '');
+    }
+
+    function updateGrantYearName(newName, applId) {
+        $.ajax(
+            {
+                type: 'POST',
+                url: "/Egrants/NewGrantYearName",
+                data: { name: newName, applId: applId },  
+                success: function (resp) {
+                    if (resp !== "True")
+                        console.log("Error on rename, failed on backend");
+                    document.getElementById('yearName' + applId).innerHTML = newName;
+                    hide_rename_dialog(applId);
+
+                    // if empty name, hide the delete button and change name to Add
+                    if (!newName) {  // empty
+                        document.getElementById('deleteGrantYearName' + applId).style.visibility = 'hidden';
+                        document.getElementById('newGrantYearName' + applId).value = newName;    // user might not have erased it, so manually do that here
+                        document.getElementById('renameDialogName' + applId).innerHTML = "Add Request Name";
+                        document.getElementById('openGrantYearNameDialogButton' + applId).innerHTML = "Add Request Name";
+                    } else {
+                        document.getElementById('deleteGrantYearName' + applId).style.visibility = 'visible';
+                        document.getElementById('newGrantYearName' + applId).value = newName;    // user might not have erased it, so manually do that here
+                        document.getElementById('renameDialogName' + applId).innerHTML = "Edit Request Name";
+                        document.getElementById('openGrantYearNameDialogButton' + applId).innerHTML = "Edit Request Name";
+                    }
+                }
+            });
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') c = c.substring(1);
+            if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+        }
+        return "";
+    }
+
+    function updateAuditOrGrantYearModeFromCookie() {
+        var auditMode = getCookie("auditMode");
+        if (!auditMode) {
+            document.cookie = "auditMode=StandardForm";
+            auditMode = "StandardForm";
+        }
+        currentView = auditMode;
+        displayDownloadOrAuditForms();
+        //toggle_download_forms(); <-- this switches it
     }
 </script>
 
