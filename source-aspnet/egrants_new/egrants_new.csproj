@@ -286,6 +286,7 @@
     <Content Include="Content\checkbox-mixed.css" />
     <Content Include="Content\dataTables.bootstrap4.min.css" />
     <Content Include="Content\egrants.css" />
+    <Content Include="Content\egrantsModal.css" />
     <Content Include="Content\explanation.htm" />
     <Content Include="Content\font-awesome.css" />
     <Content Include="Content\font-awesome.min.css" />
@@ -2721,6 +2722,7 @@
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Content\bootstrap.min.css.map" />
     <Content Include="App_Browsers\qt.browser" />
+    <Content Include="Egrants\Views\_egrants_showModalRenameDialog.cshtml" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
