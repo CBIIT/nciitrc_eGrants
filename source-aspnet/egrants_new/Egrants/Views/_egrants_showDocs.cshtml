@@ -278,7 +278,8 @@
                "ajax": {
                   "url": "/Egrants/LoadDocsGrid?appl_id=" + @appl_id + "&search_type=@Convert.ToString(ViewBag.SearchStyle)" + "&category_list=@Convert.ToString(ViewBag.SelectedCats)",
                   "type": "GET",
-                  "datatype": "json"
+                   "datatype": "json",
+                   "timeout": 600000,
                },
                "stripeClasses": ['odd-row', 'even-row'],
                "columnDefs": [
