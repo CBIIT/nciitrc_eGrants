@@ -13,7 +13,7 @@ foreach (var appl in ViewBag.appllayer)
     }
 
     <!--start all appls for one grant-->
-    <div id="appls_@grant_id" style="float:left; width:900px;">           
+<div id="appls_@grant_id" style="float:left; width:900px;">
     @if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id))  //&& Convert.ToInt32(appl.doc_count) > 0 || Convert.ToInt16(appl.closeout_notcount) > 0
     {
         int appl_id = Convert.ToInt32(appl.appl_id);
@@ -21,51 +21,54 @@ foreach (var appl in ViewBag.appllayer)
         <!--start show single appl data-->
 
             <!--start appl header-->
-                <!--start show full_grant_num-->
+            <!--start show full_grant_num-->
+            <div>
                 <div style="float:left; margin-left:15px; display:inline;"><a href="Javascript:by_appl(@appl.appl_id)" title="View All Documents for @appl.full_grant_num" style="vertical-align:bottom;"><b style="font-size:medium;">@appl.full_grant_num</b></a></div>
+
                 <!--start show flags-->
-    <div id="flags_@appl_id" style="float:left;display:inline;">
-        @if (Convert.ToString(appl.appl_ds_flag) == "y")
-        {
-            <img src="~/Content/images/flag_ds.jpg" style="margin-left:5px; height:16px; display:inline" title="Diversity Supplement Funded Grant" />
-        }
 
-        @if (Convert.ToString(appl.appl_fda_flag) == "y")
-        {
-            <img src="~/Content/images/flag_fda.jpg" style="margin-left:5px; height:16px; display:inline" title="FDA Grant" />
-        }
+                <div id="flags_@appl_id" style="float:left;display:inline;">
+                    @if (Convert.ToString(appl.appl_ds_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_ds.jpg" style="margin-left:5px; height:16px; display:inline" title="Diversity Supplement Funded Grant" />
+                    }
 
-        @if (Convert.ToString(appl.appl_ms_flag) == "y")
-        {
-            <img src="~/Content/images/flag_ms.jpg" style="margin-left:5px; height:16px; display:inline" title="Moonshot Funded Grant" />
-        }
+                    @if (Convert.ToString(appl.appl_fda_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_fda.jpg" style="margin-left:5px; height:16px; display:inline" title="FDA Grant" />
+                    }
 
-        @if (Convert.ToString(appl.appl_od_flag) == "y")
-        {
-            <img src="~/Content/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
-        }
+                    @if (Convert.ToString(appl.appl_ms_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_ms.jpg" style="margin-left:5px; height:16px; display:inline" title="Moonshot Funded Grant" />
+                    }
 
-        @if (appl.deleted_by_impac == "y")
-        {
-            <img src="~/Content/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
-        }
+                    @if (Convert.ToString(appl.appl_od_flag) == "y")
+                    {
+                        <img src="~/Content/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
+                    }
 
-        @if (appl.competing == "yes")
-        {
-            <img src="~/Content/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
-        }
+                    @if (appl.deleted_by_impac == "y")
+                    {
+                        <img src="~/Content/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
+                    }
 
-        @if (Convert.ToInt16(appl.appl_type_code) == 4)
-        {
-            <img src="~/Content/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
-        }
+                    @if (appl.competing == "yes")
+                    {
+                        <img src="~/Content/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
+                    }
 
-        @if (Convert.ToInt16(appl.appl_type_code) == 7)
-        {
-            <img src="~/Content/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
-        }
+                    @if (Convert.ToInt16(appl.appl_type_code) == 4)
+                    {
+                        <img src="~/Content/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
+                    }
 
-    </div>
+                    @if (Convert.ToInt16(appl.appl_type_code) == 7)
+                    {
+                        <img src="~/Content/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
+                    }
+
+                </div>
                 <!--end show flags-->
                 <!--start notice for PD-->
                 <div id="notice_for_PD" style="display:inline;">
@@ -80,28 +83,39 @@ foreach (var appl in ViewBag.appllayer)
                             <span style="width:500px; float:right;">
                                 @if (Convert.ToString(appl.closeout_flag) == "f")
                                 {
-                                <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Acceptance</b></a>
+                                    <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Acceptance</b></a>
                                 }
                                 @if (Convert.ToString(appl.closeout_flag) == "i")
                                 {
-                                <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to FPR Close Out IRPPR Aceptance Module"><b>IRPPR Acceptance</b></a>
+                                    <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to FPR Close Out IRPPR Aceptance Module"><b>IRPPR Acceptance</b></a>
                                 }
                                 @if (Convert.ToString(appl.closeout_flag) == "fi")
                                 {
-                                <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Acceptance</b></a>
-                                <b>&nbsp;&nbsp;</b>
-                                <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to FPR Close Out IRPPR Aceptance Module"><b>IRPPR Acceptance</b></a>
+                                    <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Acceptance</b></a>
+                                    <b>&nbsp;&nbsp;</b>
+                                    <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to FPR Close Out IRPPR Aceptance Module"><b>IRPPR Acceptance</b></a>
                                 }
                             </span>
                         }
                     }
                 </div>
                 <!--end notice for PD-->
+
                 <!--start create new buttons-->
                 <div id="create new buttons" style="float:right; display:inline;">
+
+                    @{var buttonText = string.IsNullOrWhiteSpace(appl.label) ? "Add Request Name" : "Edit Request Name";
+                    }
+
                     @if (Convert.ToInt16(Session["position_id"]) > 1)
                     {
-                    <!--start create new doc and new funding doc-->
+                        if (appl.can_rename_label == "y")
+                        {
+                            String openGrantYearNameDialogButtonId = "openGrantYearNameDialogButton" + appl.appl_id;
+                            <button id="@openGrantYearNameDialogButtonId" type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:180px;" title="Click here to add request name" onclick="Javascript:show_rename_dialog(@appl.appl_id)">@buttonText</button>
+                        }
+
+                        <!--start create new doc and new funding doc-->
                         if (appl.can_add_doc == "y" && appl.deleted_by_impac == "n" && Convert.ToInt16(appl.frc_destroyed) == 0)
                         {
                             <button type="button" accesskey="O" class="btn btn-sm btn-primary" style="background-color:#008b8b;font-size:medium; height:35px;width:150px;" title="Click here to add new document [shift + alt + O]" onclick="Javascript:create_new_doc('doc','@appl.full_grant_num.Substring(4, 2)', '@appl.full_grant_num.Substring(6, 6)', '@appl.appl_id')">Add D<u>o</u>cument</button>
@@ -116,15 +130,21 @@ foreach (var appl in ViewBag.appllayer)
                         }
                     }
                 </div><!--end create new buttons-->
-            <!--end appl header-->    
+            </div>
+
+            <br style="clear:both;"/>
+            String yearNameId = "yearName" + appl.appl_id;
+
+            <div id="@yearNameId" style="margin-left: 15px; margin-top: 3px; font-weight: bold;">@appl.label</div>
+            <!--end appl header-->
             <!--start show dos-->
             @Html.Partial("~/Egrants/Views/_egrants_showDocs.cshtml", appl_id)
             <div id="doc" style="height:20px"></div><!--add space for each appls-->
-            <!--end show dos-->           
-        <!--end show single appl data-->
-
-    }           
-    </div>
+            <!--end show dos-->
+            <!--end show single appl data-->
+        }
+    }
+</div>
     <!--end all appls for one grant-->
     }
 }
