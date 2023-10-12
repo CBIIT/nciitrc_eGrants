@@ -56,6 +56,8 @@ using egrants_new.Models;
 using Newtonsoft.Json;
 using Rotativa;
 
+using RtfPipe.Tokens;
+
 #endregion
 
 namespace egrants_new.Controllers
@@ -91,6 +93,8 @@ namespace egrants_new.Controllers
             // return IC list
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CurrentView = "StandardForm";
+
+            //Response.Write("Version: " + System.Environment.Version.ToString());
 
             return this.View("~/Egrants/Views/Index.cshtml");
         }
@@ -576,6 +580,36 @@ namespace egrants_new.Controllers
             return JsonConvert.SerializeObject(list);
         }
 
+        // get category list by grant_id and years
+        /// <summary>
+        /// The load categories.
+        /// </summary>
+        /// <param name="name">
+        /// The new label for the grant year
+        /// </param>
+        /// <param name="applId">
+        /// The appl_id for the grant year about to be renamed
+        /// </param>
+        /// <returns>
+        /// The function returns true if successful<see cref="bool"/>.
+        /// </returns>
+        public bool NewGrantYearName(string name, int applId)
+        {
+            // TODO: update the database
+            //var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
+
+            if (string.IsNullOrEmpty(name))
+            {
+                name = String.Empty;
+            }
+            var length = name.Length;
+            var truncatedName = name.Substring(0, Math.Min(length,10));
+
+            Dashboard.Functions.Egrants.SetGrantYearLabel(name, applId);
+
+            return true;
+        }
+
         //public CountProperty<int> CountProperty;// = new CountProperty<int>();
         //countProperty.Value = 0;
 
@@ -837,10 +871,12 @@ namespace egrants_new.Controllers
                 this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
                 this.ViewBag.doclayer = Search.doclayerproperty;
                 this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
-
-               // this.ViewBag.appllayer.
-                //GetApplValue()
-                // ViewBag.doclayer_All = ViewBag.doclayer;--commented by leon 4/1/2019
+                if (Search.appllayerproperty != null && Search.appllayerproperty.Count() > 0)
+                {
+                    var thisAppl = Search.appllayerproperty.FirstOrDefault(a => a.appl_id == appl_id.ToString());
+                    if (thisAppl != null)
+                        this.ViewBag.yearName = thisAppl.label;
+                }
             }
 
             return this.View("~/Egrants/Views/Index.cshtml");
