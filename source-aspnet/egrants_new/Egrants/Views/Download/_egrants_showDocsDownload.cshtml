@@ -1179,6 +1179,7 @@
                             contentType: 'application/json; charset=utf=8',
                             url: "/Egrants/IsDownloadForm",
                             data: JSON.stringify(dataToSend),
+                            timeout: 600000,
                             success: function(data) {
                                 console.log("SUCCESS: ");
                                 console.log(JSON.stringify(data));
