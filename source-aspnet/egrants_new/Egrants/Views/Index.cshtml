@@ -369,13 +369,27 @@
             // DownloadForm
             $('#downloadForm').attr("hidden", false);
             $('#standardForm').attr("hidden", true);
-            document.getElementById("toggle_title").innerHTML = "Audit File Download";
+            if (document.getElementById("toggle_title"))
+                document.getElementById("toggle_title").innerHTML = "Audit File Download";
+            if (document.getElementById("download_link"))
+                document.getElementById("download_link").title = "Grant Years";
+            if (document.getElementById("upload_icon"))
+                document.getElementById("upload_icon").style.display = "inline";
+            if (document.getElementById("download_icon"))
+                document.getElementById("download_icon").style.display = "none";
             document.cookie = "auditMode=DownloadForm";
         } else {
             // StandardForm
             $('#downloadForm').attr("hidden", true);
             $('#standardForm').attr("hidden", false);
-            document.getElementById("toggle_title").innerHTML = "Grant Years";
+            if (document.getElementById("toggle_title"))
+                document.getElementById("toggle_title").innerHTML = "Grant Years";
+            if (document.getElementById("download_link"))
+                document.getElementById("download_link").title = "Audit File Download";
+            if (document.getElementById("upload_icon"))
+                document.getElementById("upload_icon").style.display = "none";
+            if (document.getElementById("download_icon"))
+                document.getElementById("download_icon").style.display = "inline";
             document.cookie = "auditMode=StandardForm";
         }
     }
