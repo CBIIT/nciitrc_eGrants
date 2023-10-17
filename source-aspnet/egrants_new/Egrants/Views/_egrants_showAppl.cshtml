@@ -7,11 +7,6 @@ var grant_id = Model;
 //loop with each appl
 foreach (var appl in ViewBag.appllayer)
 {    
-    if (ViewBag.ApplID == null || appl.appl_id != ViewBag.ApplID.ToString())
-    {
-        continue;
-    }
-
     <!--start all appls for one grant-->
 <div id="appls_@grant_id" style="float:left; width:900px;">
     @if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id))  //&& Convert.ToInt32(appl.doc_count) > 0 || Convert.ToInt16(appl.closeout_notcount) > 0
