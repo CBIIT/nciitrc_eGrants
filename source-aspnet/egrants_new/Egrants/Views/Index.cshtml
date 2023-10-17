@@ -7,6 +7,7 @@
 
 <!-- Bootstrap Font Icon CSS -->
 <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css" />
+<link rel='stylesheet' type='text/css' href='~/Content/egrantsModal.css' />
 <!--start display appls and documents-->
 <link href="~/Content/jquery-ui.min.css" rel="stylesheet" />
 <script src="~/scripts/EgrantsCatsZone.js"></script>
@@ -216,6 +217,16 @@
         window.document.location.href = url;
     }
 
+    function show_rename_dialog(applId) {
+        $('#renameModalId' + applId).modal({
+            show: true
+        });
+    }
+
+    function hide_rename_dialog(applId) {
+        $('#renameModalId' + applId).modal('hide');
+    }
+
 
     function getByAll(grant_id) {
         check_selected_cats(grant_id);
@@ -319,11 +330,9 @@
                 }
             }
             if (thisApplId){
-                console.log(thisApplId);
                 $('#mpiModal' + thisApplId).modal({
                     show: true
-                }); 
-               // $("#mpiModal" + thisApplId).modal('show');
+                });
             }
 
             return;
@@ -421,6 +430,38 @@
         } else if (appls_list != "" && cats_list == "") {
             alert("Please select category to search");
         } else by_grant(grant_id, 'All', appls_list, cats_list, '');
+    }
+
+    function updateGrantYearName(newName, applId) {
+        $.ajax(
+            {
+                type: 'POST',
+                url: "/Egrants/NewGrantYearName",
+                data: { name: newName, applId: applId },
+                success: function (resp) {
+                    if (resp !== "True")
+                        console.log("Error on rename, failed on backend");
+                    document.getElementById('yearName' + applId).innerHTML = newName;
+                    hide_rename_dialog(applId);
+
+                    // if empty name, hide the delete button and change name to Add
+                    if (!newName) {  // empty
+                        document.getElementById('deleteGrantYearName' + applId).style.visibility = 'hidden';
+                        document.getElementById('newGrantYearName' + applId).value = newName;
+                        document.getElementById('renameDialogName' + applId).innerHTML = "Add Request Name";
+                        document.getElementById('openGrantYearNameDialogButton' + applId).innerHTML = "Add Request Name";
+                    } else {
+                        document.getElementById('deleteGrantYearName' + applId).style.visibility = 'visible';
+                        document.getElementById('newGrantYearName' + applId).value = newName;
+                        document.getElementById('renameDialogName' + applId).innerHTML = "Edit Request Name";
+                        document.getElementById('openGrantYearNameDialogButton' + applId).innerHTML = "Edit Request Name";
+                    }
+                }
+            });
+    }
+
+    function cancelGrantYearNameRename(applId) {
+        document.getElementById('newGrantYearName' + applId).value = document.getElementById('yearName' + applId).innerHTML;
     }
 </script>
 
@@ -630,7 +671,7 @@
                         </div>
                     </div>
                     <!--end show category zone-->
-                  
+
                     <div id="grant_zone_@grant.grant_id" style="border-bottom: groove; border-color: darkgrey; display: inline-block; float: left; width: 900px;">
                         <!--start grant infor-->
                         <div id="grant info_@grant.grant_id" class=" p-1" style="display: inline; float: left;">
@@ -729,9 +770,9 @@
                                     <span class="pl-2"> @grant.org_name.ToUpper()</span>
                                 }
                             </div>
-                        @*</div>*@
-                        
-                        <br />
+                            @*</div>*@
+
+                            <br />
                             @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) || !string.IsNullOrWhiteSpace(grant.current_pd_email_address) || !string.IsNullOrWhiteSpace(grant.prog_class_code))
                             {
                                 <div id="PD infor" style="display: inline">
@@ -862,7 +903,7 @@
                                             var thisPagesApplID = (int)ViewBag.ApplID;
                                             var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
                                             var theAppl = appls.Where(a => a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
-                                            if (theAppl != null && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
+                                            if (theAppl != null && theAppl.Count > 0 && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
                                             {
                                                 displayMpiFlag = true;
                                             }
@@ -1006,6 +1047,11 @@
     <!--start show popup modal -->
     <div>
         @Html.Partial("~/Egrants/Views/_egrants_showModalMPIDialog.cshtml")
+    </div>
+    <!--end show popup modal-->
+    <!--start show popup modal -->
+    <div>
+        @Html.Partial("~/Egrants/Views/_egrants_showModalRenameDialog.cshtml")
     </div>
     <!--end show popup modal-->
 </div><!--end main-->
