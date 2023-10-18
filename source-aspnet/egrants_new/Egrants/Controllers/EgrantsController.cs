@@ -595,9 +595,6 @@ namespace egrants_new.Controllers
         /// </returns>
         public bool NewGrantYearName(string name, int applId)
         {
-            // TODO: update the database
-            //var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
-
             if (string.IsNullOrEmpty(name))
             {
                 name = String.Empty;
