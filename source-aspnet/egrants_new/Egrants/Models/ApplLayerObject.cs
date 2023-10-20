@@ -139,6 +139,16 @@ namespace egrants_new.Egrants.Models
         public string can_add_funding { get; set; }
 
         /// <summary>
+        ///     Gets or sets the can_rename_label.
+        /// </summary>
+        public string can_rename_label { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the label.
+        /// </summary>
+        public string label { get; set; }
+
+        /// <summary>
         /// Gets or sets the MPI contact info.
         /// </summary>
         public List<PersonContact> MPIContacts { get; set; }
