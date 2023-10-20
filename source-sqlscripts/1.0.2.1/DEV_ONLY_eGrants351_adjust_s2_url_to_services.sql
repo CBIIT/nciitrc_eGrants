@@ -20,11 +20,12 @@ print('Cleanup complete.')
 
 print('OK, actually converting the data.')
 
-IF EXISTS
-(
-	-- old https://s2s.era.nih.gov/
-	select * from [dbo].[EnvUrl] where URL like '%s2%'
-)
+IF EXISTS (
+	SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = '[dbo]' 
+                 AND  TABLE_NAME = 'temp_micah_envurl_test_table'
+	)
 	BEGIN
 		PRINT('old s2s url with s2s.era.nih.gov discovered in table [EnvUrl]') 
 		-- first "SPEC, "
@@ -36,7 +37,7 @@ IF EXISTS
 	END
 ELSE
 	BEGIN
-		PRINT('[dbo].[EnvUrl] was already already pointing everything to services.internal.era.nih.gov') 
+		PRINT('[dbo].[EnvUrl] was already already pointing everything to services.internal.dev.era.nih.gov') 
 	END
 
 

@@ -1,9 +1,11 @@
 print('Checking for potential cleanup ...')
 
-IF EXISTS
-(
-	select OBJECT_ID (N'temp_micah_envurl_test_table', N'U')
-)
+IF EXISTS (
+	SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = '[dbo]' 
+                 AND  TABLE_NAME = 'temp_micah_envurl_test_table'
+	)
 	BEGIN
 		PRINT('temp_micah_envurl_test_table test table still exists ... cleaning it up') 
 		DROP table temp_micah_envurl_test_table
