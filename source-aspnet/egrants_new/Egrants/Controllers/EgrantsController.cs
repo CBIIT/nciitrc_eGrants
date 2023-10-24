@@ -1346,6 +1346,42 @@ namespace egrants_new.Controllers
             return Json(res, JsonRequestBehavior.AllowGet);
         }
 
+        // load documents by appl_id
+        /// <summary>
+        /// The load docs grid.
+        /// </summary>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="search_type">
+        /// The search_type.
+        /// </param>
+        /// <param name="category_list">
+        /// The category_list.
+        /// </param>
+        /// <param name="mode">
+        /// The mode.
+        /// </param>
+        /// <returns>
+        /// The <see cref="JsonResult"/>.
+        /// </returns>
+        public JsonResult LoadDocsGridMulti(string appl_ids, string search_type = null, string category_list = null, string mode = null)
+        {
+            Search_by_appl_id.LoadDocs(
+                appl_ids,
+                search_type,
+                category_list,
+                Convert.ToString(this.Session["ic"]),
+                Convert.ToString(this.Session["userid"]));
+
+            this.ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
+
+            // ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
+            dynamic res = new { data = this.ViewBag.doclayer };
+
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)
         {
             Search_by_appl_id.LoadDocs(
