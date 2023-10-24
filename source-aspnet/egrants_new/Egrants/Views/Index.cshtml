@@ -37,6 +37,271 @@
 
     $(document).ready(function () {
         set_default();
+
+        // do the initial populate of the docs here
+        @{
+            var appl_ids_string = string.Empty;
+        }
+        @if (ViewBag.appllayer != null)
+        {
+            var applIds = new List<int>();
+            foreach (var appl in ViewBag.appllayer)
+            {
+                int appl_id = Convert.ToInt32(appl.appl_id);
+                applIds.Add(appl_id);
+            }
+            appl_ids_string = string.Join(",", applIds.Select(x => x.ToString()).ToArray());
+        }
+        var appls_list = '@appl_ids_string';
+
+        if (appls_list) {
+                $.ajax({
+                    url: "/Egrants/LoadDocsGridMulti?appl_ids=" + appls_list + "&search_type=@Convert.ToString(ViewBag.SearchStyle)" + "&category_list=@Convert.ToString(ViewBag.SelectedCats)",
+                    type: "GET",
+                    contentType: 'application/json; charset=utf=8',
+                    dataType: 'JSON',
+                    timeout: 600000,
+                    success: function(response) {
+                        appls_list.split(',').forEach(function (applId) {
+                            var rowsThisAppl = Object.values(response.data).filter( i => 
+                                i.appl_id == applId
+                            );
+                            //alert('count: ' + rowsThisAppl.length);
+                            $("#loadgrid_" + applId).dataTable({
+                                data: rowsThisAppl,
+
+                                paging: false, // for reinitialize
+                                searching: false, // for reinitialize
+                                ordering: true,
+                                order: [[2, 'asc']], // desc
+                                processing: true, // for show progress bar
+                                serverSide: false, // for process server side
+                                filter: true, // this is for disable filter (search box)
+                                orderMulti: false, // for disable multiple column at once
+                                bInfo: false,
+                                timeout: 600000,
+                                initComplete: function (settings, json) {
+                                    $("#overlay").hide();
+                                    var info = this.api().page.info();
+                                },
+
+                                bDestroy: true,
+                                stripeClasses: ['odd-row', 'even-row'],
+                                columnDefs: [
+                                    {
+                                        targets: [0, 3],
+                                        orderable: false
+                                    },
+                                    {
+                                        visible: true,
+                                        searching: false,
+                                        paging: false
+                                    },
+                                    {
+                                        type: 'dateNonStandard',
+                                        targets: [2]
+                                    }
+                                ],
+                                columns: [
+                                    //{
+                                    //    className: "details-control",
+                                    //    autoWidth: true,
+                                    // show qc icon
+                                    //render: function(data, type, full, meta) {
+                                    //    return "<div id='show_qc_dl_" +
+                                    //        full.document_id +
+                                    //        "'  class='show_qc_dl' style='width:30px; display:inline'>" +
+                                    //        "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
+                                    //        "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
+                                    //        "<div id='hide_qc_dl_" +
+                                    //        full.document_id +
+                                    //        "' class='hide_qc_dl' style='width:30px; display:none'>" +
+                                    //        "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
+                                    //        "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
+                                    //    }
+                                    //},
+                                    {
+                                        className: "details-control",
+                                        autoWidth: true,
+                                        // show the checkox's that allow a user to download files
+                                        render: function (data, type, full, meta) {
+                                            if (full.frc_destroyed == 0) {
+                                                if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
+                                                    console.log("must be one or the other FFR or Financial Report :" + JSON.stringify(full));
+
+                                                    return "<div id=\"dl_checkbox_" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        " name=\"dl_checkbox\" class=\"show_dl\"> " +
+                                                        " <input type=\"checkbox\" class=\"showDownload FinancialReport FFR\" id=\"" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        " class=\"qc\" name=\"qc\" value=\"" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                                        "/></div>";
+
+                                                    if (full.document_name == "Financial Report") {
+                                                        console.log("must be Financial Report full.document_name :" + full.category_name);
+                                                        console.log("Rendering and Financial Report with class Financial Report");
+                                                        return "<div id=\"dl_checkbox_" +
+                                                            full.document_id +
+                                                            "\"" +
+                                                            " name=\"dl_checkbox\" class=\"show_dl\"> " +
+                                                            " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+                                                            full.document_id +
+                                                            "\"" +
+                                                            " class=\"qc\" name=\"qc\" value=\"" +
+                                                            full.document_id +
+                                                            "\"" +
+                                                            ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                                            "/></div>";
+                                                    }
+                                                    if (full.document_name == "FFR") {
+                                                        console.log("must be FFR full.document_name :" + full.category_name);
+                                                        console.log("Rendering and FFR with class FFR");
+                                                        return "<div id=\"dl_checkbox_" +
+                                                            full.document_id +
+                                                            "\"" +
+                                                            " name=\"dl_checkbox\" class=\"show_dl\"> " +
+                                                            " <input type=\"checkbox\" class=\"showDownload FFR\" id=\"" +
+                                                            full.document_id +
+                                                            "\"" +
+                                                            " class=\"qc\" name=\"qc\" value=\"" +
+                                                            full.document_id +
+                                                            "\"" +
+                                                            ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                                            "/></div>";
+                                                    }
+                                                } else if (full.attachment_count > 0) {
+                                                    return "<div id=\"dl_checkbox_" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        " name=\"dl_checkbox\" class=\"show_dl\"> " +
+                                                        " <input type=\"checkbox\" class=\"showDownload Attachments\" id=\"" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        " class=\"qc\" name=\"qc\" value=\"" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                                        "/></div>";
+                                                } else if (full.document_name == "Closeout Notification") {
+                                                    return "<div id=\"dl_checkbox_" +
+                                                        full.appl_id +
+                                                        full.grant_id +
+                                                        "\"" +
+                                                        " name=\"dl_checkbox\" class=\"show_dl\"> " +
+                                                        " <input type=\"checkbox\" class=\"showDownload CloseoutNotifications\" id=\"" +
+                                                        full.appl_id +
+                                                        "\"" +
+                                                        " class=\"qc\" name=\"qc\" value=\"" +
+                                                        full.appl_id +
+                                                        full.grant_id +
+                                                        "\"" +
+                                                        ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                                        "/></div>";
+                                                } else
+                                                    return "<div id=\"dl_checkbox_" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        " name=\"dl_checkbox\" class=\"show_dl\"> " +
+                                                        " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        " class=\"qc\" name=\"qc\" value=\"" +
+                                                        full.document_id +
+                                                        "\"" +
+                                                        ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                                                        "/></div>";
+
+                                            } else return "<strike>" + full.document_name + "</strike>";
+                                        }
+                                    },
+                                    {
+                                        // show document_name with url
+                                        autoWidth: true,
+                                        render: function (data, type, full, meta) {
+                                            if (full.frc_destroyed == 0) {
+                                                if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
+                                                    console.log("In Document Link: " + full);
+                                                    if (full.document_name == "Financial Report") {
+                                                        var str = "<a href=JavaScript:show_doc('" +
+                                                            full.url +
+                                                            "') title='show document'>" +
+                                                            full.document_name +
+                                                            "</a>";
+                                                    }
+                                                    if (full.document_name == "FFR") {
+                                                        var str = "<a href = '#'" +
+                                                            "') title='Select Item To View'>" +
+                                                            full.document_name +
+                                                            "</a>";
+                                                    }
+                                                    return str;
+
+                                                } else if (full.attachment_count > 0) {
+                                                    var str = "<a href=JavaScript:show_doc('" +
+                                                        full.url +
+                                                        "') title='show document'>" +
+                                                        full.document_name +
+                                                        "</a>";
+
+                                                    return str;
+
+                                                } else if (full.document_name == "Closeout Notification") {
+                                                    var str = "<a href = '#'" +
+                                                        "') title='Select Item To View'>" +
+                                                        full.document_name +
+                                                        "</a>";
+
+                                                    return str;
+
+                                                } else {
+                                                    var str = "<a href=JavaScript:show_doc(\"" + full.url + "\") title=\"show document\">" + full.document_name + "</a>";
+
+                                                    return str;
+                                                }
+                                            } else return "<strike>" + full.document_name + "</strike>";
+                                        }
+
+
+                                    },
+                                    {
+                                        className: 'document_date',
+                                        data: "doc_date",
+                                        autoWidth: true,
+                                        render: function (data, type, full, meta) {
+                                            if (full.document_date == "") {
+                                                return '';
+                                            } else {
+                                                return moment(data).format('MM/DD/YYYY');
+                                            }
+                                        }
+                                    },
+                                    {
+                                        // replace document image
+                                        className: 'icon_display',
+                                        authWidth: true,
+                                        render: function (data, type, full, meta) {
+
+                                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<i class=\"fa fa-file-excel\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"File URL is not supported.\"></i>" : "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>"));
+
+                                            return str;
+                                        }
+                                    }
+                                ]
+                                //"data": [
+                                //    ["Tiger Nixon", "System Architect", "$3,120", "2011/04/25", "Edinburgh", 5421],
+                                //    ["Garrett Winters", "Director", "$8,422", "2011/07/25", "Edinburgh", 8422],
+                                //    // ...
+                                //]
+                            });
+                        });
+                    }
+            });
+        }
     });
 
     function set_default() {

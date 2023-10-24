@@ -411,14 +411,15 @@
                             $('#checkboxall_@appl_id').attr("disabled", false);
                         }*@
                 },
-
-                ajax: {
+                /*               This is the big bahonkin data grab for audit file download */
+                @*ajax: {
                     url: "/Egrants/LoadDocsGrid?appl_id=" + @appl_id + "&search_type=@Convert.ToString(ViewBag.SearchStyle)" + "&category_list=@Convert.ToString(ViewBag.SelectedCats)",
                     type: "GET",
                     contentType: 'application/json; charset=utf=8',
                     dataType: 'JSON',
                     timeout: 600000,
-                },
+                    bDestroy: true,
+                },*@
                 // rowId: 'id',
                 stripeClasses: ['odd-row', 'even-row'],
                 columnDefs: [
