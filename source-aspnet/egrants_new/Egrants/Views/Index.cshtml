@@ -66,8 +66,9 @@
                             var rowsThisAppl = Object.values(response.data).filter( i => 
                                 i.appl_id == applId
                             );
-                            //alert('count: ' + rowsThisAppl.length);
-                            $("#loadgrid_" + applId).dataTable({
+                            var currentId = "#loadgrid_" + applId;
+                            var currentTable = $(currentId);
+                            $(currentId).dataTable({
                                 data: rowsThisAppl,
 
                                 paging: false, // for reinitialize
@@ -102,24 +103,8 @@
                                         targets: [2]
                                     }
                                 ],
+                                //columns: currentTable.DataTable().columns([0, 6]).nodes().to$()
                                 columns: [
-                                    //{
-                                    //    className: "details-control",
-                                    //    autoWidth: true,
-                                    // show qc icon
-                                    //render: function(data, type, full, meta) {
-                                    //    return "<div id='show_qc_dl_" +
-                                    //        full.document_id +
-                                    //        "'  class='show_qc_dl' style='width:30px; display:inline'>" +
-                                    //        "<a class='showmodedl' href='javascript:void(0);' title='show qc mode'>" +
-                                    //        "<img name='show_qc_dl' style='height:30px;' src='../../Content/images/plus.png'/></a></div>" +
-                                    //        "<div id='hide_qc_dl_" +
-                                    //        full.document_id +
-                                    //        "' class='hide_qc_dl' style='width:30px; display:none'>" +
-                                    //        "<a class='hidemodedl' href='javascript:void(0);' title='hide qc mode'>" +
-                                    //        "<img name='hide_qc_dl' style='height:30px;' src='../../Content/images/minus.png'/></a></div>";
-                                    //    }
-                                    //},
                                     {
                                         className: "details-control",
                                         autoWidth: true,
