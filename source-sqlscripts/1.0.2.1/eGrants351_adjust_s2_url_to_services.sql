@@ -30,7 +30,7 @@ IF EXISTS
 	BEGIN
 		PRINT('old s2s url with s2s.era.nih.gov discovered in table [EnvUrl]') 
 		UPDATE [dbo].[EnvUrl] SET url=REPLACE(url,'https://s2s.era.nih.gov/','https://services.internal.era.nih.gov/')
-			where URL like '%s2%'
+			where URL like '%s2s%'
 		PRINT('updated to services.internal.era.nih.gov') 
 	END
 ELSE
