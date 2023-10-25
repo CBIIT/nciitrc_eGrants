@@ -10,7 +10,7 @@ if ( @retVal > 0)
 	BEGIN
 		print('found some old URLs ... cleaning up')
 		update documents set URL= REPLACE(url,'https://s2s.era.nih.gov/','https://services.internal.era.nih.gov/')
-			where URL like '%s2%'
+			where URL like '%s2s%'
 	END
 ELSE
 	BEGIN
