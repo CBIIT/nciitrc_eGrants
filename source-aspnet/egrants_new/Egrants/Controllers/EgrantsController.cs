@@ -1328,12 +1328,30 @@ namespace egrants_new.Controllers
         /// </returns>
         public JsonResult LoadDocsGrid(int appl_id, string search_type = null, string category_list = null, string mode = null)
         {
-            Search_by_appl_id.LoadDocs(
-                appl_id,
-                search_type,
-                category_list,
-                Convert.ToString(this.Session["ic"]),
-                Convert.ToString(this.Session["userid"]));
+            int MAX_RETRIES = 3;
+            Exception exceptionKeeper = null;
+            bool completed = false;
+            for (int i = 0; i < MAX_RETRIES; ++i)
+            {
+                try
+                {
+                    Search_by_appl_id.LoadDocs(
+                    appl_id,
+                    search_type,
+                    category_list,
+                    Convert.ToString(this.Session["ic"]),
+                    Convert.ToString(this.Session["userid"]));
+                    completed = true;
+                    break;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    exceptionKeeper = ex;
+                    // 5 retries, ok now log and deal with the error.
+                }
+            }
+            if (!completed)
+                throw exceptionKeeper;
 
             this.ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
 
