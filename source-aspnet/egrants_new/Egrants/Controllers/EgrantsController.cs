@@ -789,7 +789,10 @@ namespace egrants_new.Controllers
                         foreach (var appl in this.ViewBag.appllayer)
                         {
                             if (app.Any(n => n == appl.appl_id))
+                            {
+                                appl.display_docs = "y";
                                 appllist.Add(appl);
+                            }
                         }
 
                         this.ViewBag.appllayer = appllist;
@@ -804,8 +807,10 @@ namespace egrants_new.Controllers
                         // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
                         foreach (var appl in this.ViewBag.appllayer)
                             if (app.Any(n => n == appl.appl_id))
+                            {
+                                appl.display_docs = "y";
                                 appllist.Add(appl);
-
+                            }
                         this.ViewBag.appllayer = appllist;
                     }
                 }

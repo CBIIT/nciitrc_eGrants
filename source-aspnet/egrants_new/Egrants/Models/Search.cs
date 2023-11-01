@@ -277,6 +277,10 @@ namespace egrants_new.Egrants.Models
                     appl.can_add_funding = rdr["can_add_funding"]?.ToString();
                     appl.label = rdr["label"]?.ToString();
 
+                    appl.display_docs = "n";
+                    if (appl_id != 0 && appl_id.ToString().Equals(appl.appl_id))
+                        appl.display_docs = "y";
+
                     if ((ic.Equals("ca", StringComparison.InvariantCultureIgnoreCase) || ic.Equals("nci", StringComparison.InvariantCultureIgnoreCase)) &&
                         appl.appl_type_code.Equals("3") &&
                         (appl.support_year.ToLower().Contains("s") || appl.support_year.ToLower().Contains("w"))

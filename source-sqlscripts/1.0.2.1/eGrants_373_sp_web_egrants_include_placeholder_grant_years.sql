@@ -1,6 +1,6 @@
 USE [EIM]
 GO
-/****** Object:  StoredProcedure [dbo].[sp_web_egrants]    Script Date: 9/29/2023 1:42:11 PM ******/
+/****** Object:  StoredProcedure [dbo].[sp_web_egrants]    Script Date: 10/13/2023 9:32:06 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER OFF
@@ -206,9 +206,14 @@ END
 INSERT @a 
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id 
 UNION
-SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1 --display new created appl_id
-UNION
-SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
+	(loaded_date>'2023-09-30 1:1:01.01' and appl_id<1 )		OR
+	--(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
+	(appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0)
+)
+--SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1 --display new created appl_id
+--UNION
+--SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
 
 ----clean up search if there is no appls return
 SET @count=(select count(*) from @a)
@@ -232,6 +237,10 @@ EXEC(@sql)
 
 --select count(*) from #t	--it's 0 here
 
+--declare @countRXKZ8				int
+--SET @countRXKZ8=(select count(*) from #t)
+--print(concat('size of table variable a in egrants_grant: ', @countRXKZ8))
+
 --for pagination
 SET @total_grants=(SELECT count(*)FROM #t)
 IF @total_grants>@per_page 
@@ -244,12 +253,21 @@ INSERT @g(grant_id)SELECT grant_id FROM #t ORDER BY serial_num
 END
 
 --insert appl_id with @g
+--INSERT @a 
+--SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id 
+--UNION
+--SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1 --display new created appl_id
+--UNION
+--SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+
 INSERT @a 
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id 
 UNION
-SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1 --display new created appl_id
-UNION
-SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
+	(loaded_date>'2023-09-30 1:1:01.01' and appl_id<1 )		OR
+	--(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
+	(appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0)
+)
 
 
 --clean up search if there is no appls return
@@ -268,12 +286,21 @@ egrants_grant:
 INSERT @g(grant_id) SELECT @grant_id
 
 ---insert appls by grant_id
+--INSERT @a 
+--SELECT DISTINCT appl_id FROM vw_appls_used_bygrant vg WHERE vg.grant_id=@grant_id
+--UNION
+--SELECT DISTINCT appl_id FROM vw_appls a WHERE a.grant_id=@grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+--UNION
+--SELECT DISTINCT appl_id FROM vw_appls a WHERE a.grant_id=@grant_id and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+
 INSERT @a 
-SELECT DISTINCT appl_id FROM vw_appls_used_bygrant vg WHERE vg.grant_id=@grant_id
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id 
 UNION
-SELECT DISTINCT appl_id FROM vw_appls a WHERE a.grant_id=@grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
-UNION
-SELECT DISTINCT appl_id FROM vw_appls a WHERE a.grant_id=@grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
+	(loaded_date>'2023-09-30 1:1:01.01' and appl_id<1 )		OR
+	--(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
+	(appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0)
+)
 
 --declare @countRXKZ8				int
 --SET @countRXKZ8=(select count(*) from @a)
@@ -317,13 +344,21 @@ SELECT document_id, appl_id FROM vw_funding WHERE appl_id=@appl_id  --add in by 
 
 INSERT @g(grant_id) SELECT grant_id FROM vw_appls WHERE appl_id = @appl_id
 
-INSERT @a(appl_id)
-SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id
-UNION
-SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
-UNION
-SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+--INSERT @a(appl_id)
+--SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id
+--UNION
+--SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+--UNION
+--SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
 
+INSERT @a 
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id 
+UNION
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
+	(loaded_date>'2023-09-30 1:1:01.01' and appl_id<1 )		OR
+	--(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
+	(appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0)
+)
 
 ---IF (SELECT COUNT(*) FROM @d)=0 AND (SELECT COUNT(*) FROM @a)=0 GOTO foot
 
@@ -349,12 +384,21 @@ END
 INSERT @d(document_id, appl_id) SELECT document_id, appl_id FROM egrants e, @g g  ---DISTINCT 
 WHERE e.grant_id=g.grant_id and qc_person_id=@person_id and qc_date is not null ---and appl_id is not null and parent_id is null
 
-INSERT @a(appl_id)
-SELECT appl_id FROM vw_appls_used_bygrant AS vg, @g AS g WHERE vg.grant_id=g.grant_id ---DISTINCT
-UNION 
-SELECT appl_id FROM vw_appls AS a, @g AS g WHERE a.grant_id=g.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+--INSERT @a(appl_id)
+--SELECT appl_id FROM vw_appls_used_bygrant AS vg, @g AS g WHERE vg.grant_id=g.grant_id ---DISTINCT
+--UNION 
+--SELECT appl_id FROM vw_appls AS a, @g AS g WHERE a.grant_id=g.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_id<1---display new created appl_id
+--UNION
+--SELECT DISTINCT appl_id FROM @g AS g, vw_appls a WHERE a.grant_id=g.grant_id and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+
+INSERT @a 
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id=t.grant_id 
 UNION
-SELECT DISTINCT appl_id FROM @g AS g, vw_appls a WHERE a.grant_id=g.grant_id and loaded_date>convert(varchar,getdate(),101) and appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0 ---display new created appl_id
+SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
+	(loaded_date>'2023-09-30 1:1:01.01' and appl_id<1 )		OR
+	--(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
+	(appl_type_code =3 and admin_phs_org_code ='CA' and doc_count = 0)
+)
 
 GOTO OUTPUT
 ------------------
