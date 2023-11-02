@@ -67,7 +67,7 @@ namespace egrants_new.Controllers
     /// </summary>
     public class EgrantsController : Controller
     {
-
+        const int MAX_RETRIES = 3;
 
         // go to default 
         /// <summary>
@@ -208,7 +208,7 @@ namespace egrants_new.Controllers
                     }
 
                     // if this is a file on the ERA Server
-                    if (url.Contains("https://s2s."))
+                    if (url.Contains("https://services."))
                     {
                         var uri = new Uri(url);
 
@@ -595,9 +595,6 @@ namespace egrants_new.Controllers
         /// </returns>
         public bool NewGrantYearName(string name, int applId)
         {
-            // TODO: update the database
-            //var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
-
             if (string.IsNullOrEmpty(name))
             {
                 name = String.Empty;
@@ -630,7 +627,6 @@ namespace egrants_new.Controllers
            // CountProperty = new CountProperty<int>();
            // CountProperty.Value = 0;
 
-
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
 
             if (string.IsNullOrEmpty(str))
@@ -646,43 +642,56 @@ namespace egrants_new.Controllers
                 this.ViewBag.CurrentPage = 1;
                 this.ViewBag.SearchStyle = "by_str";
 
-                // load data           
-                Search.egrants_search(
-                    str,
-                    0,
-                    string.Empty,
-                    0,
-                    0,
-                    Convert.ToString(this.Session["browser"]),
-                    Convert.ToString(this.Session["ic"]),
-                    Convert.ToString(this.Session["userid"]));
-
-                if (Search.grantlayerproperty != null)
+                
+                Exception exceptionKeeper = null;
+                bool completed = false;
+                for (int i = 0; i < MAX_RETRIES; ++i)
                 {
-                    this.ViewBag.grantlayer = Search.grantlayerproperty;
-                    this.ViewBag.appllayer = Search.appllayerproperty;
-                    this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
-                    this.ViewBag.appllayer_All = Search.appllayerproperty;
-                    this.ViewBag.doclayer = Search.doclayerproperty;
-                    this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
+                    try
+                    {
+                        // load data           
+                        Search.egrants_search(
+                            str,
+                            0,
+                            string.Empty,
+                            0,
+                            0,
+                            Convert.ToString(this.Session["browser"]),
+                            Convert.ToString(this.Session["ic"]),
+                            Convert.ToString(this.Session["userid"]));
 
-                    // show pagination
-                    this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
-                        str,
-                        Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"]),
-                        string.Empty);
+                        if (Search.grantlayerproperty != null)
+                        {
+                            this.ViewBag.grantlayer = Search.grantlayerproperty;
+                            this.ViewBag.appllayer = Search.appllayerproperty;
+                            this.ViewBag.ApplCount = this.ViewBag.appllayer.Count;
+                            this.ViewBag.appllayer_All = Search.appllayerproperty;
+                            this.ViewBag.doclayer = Search.doclayerproperty;
+                            this.ViewBag.DocCount = this.ViewBag.doclayer.Count;
+
+                            // show pagination
+                            this.ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
+                                str,
+                                Convert.ToString(this.Session["ic"]),
+                                Convert.ToString(this.Session["userid"]),
+                                string.Empty);
+                        }
+                        else
+                        {
+                            this.ViewBag.Message = "No data found for the search";
+                            this.ViewBag.grantlayer = null;
+                        }
+                        completed = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptionKeeper = ex;
+                        // 5 retries, ok now log and deal with the error.
+                    }
                 }
-                else
-                {
-                    this.ViewBag.Message = "No data found for the search";
-                    this.ViewBag.grantlayer = null;
-                }
+                if (!completed)
+                    throw exceptionKeeper;
             }
-
-
-
-
 
             return this.View("~/Egrants/Views/Index.cshtml");
         }
@@ -1336,12 +1345,29 @@ namespace egrants_new.Controllers
         /// </returns>
         public JsonResult LoadDocsGrid(int appl_id, string search_type = null, string category_list = null, string mode = null)
         {
-            Search_by_appl_id.LoadDocs(
-                appl_id,
-                search_type,
-                category_list,
-                Convert.ToString(this.Session["ic"]),
-                Convert.ToString(this.Session["userid"]));
+            Exception exceptionKeeper = null;
+            bool completed = false;
+            for (int i = 0; i < MAX_RETRIES; ++i)
+            {
+                try
+                {
+                    Search_by_appl_id.LoadDocs(
+                    appl_id,
+                    search_type,
+                    category_list,
+                    Convert.ToString(this.Session["ic"]),
+                    Convert.ToString(this.Session["userid"]));
+                    completed = true;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    exceptionKeeper = ex;
+                    // 5 retries, ok now log and deal with the error.
+                }
+            }
+            if (!completed)
+                throw exceptionKeeper;
 
             this.ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
 

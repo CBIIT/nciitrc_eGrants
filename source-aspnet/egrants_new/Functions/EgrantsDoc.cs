@@ -633,7 +633,8 @@ namespace egrants_new.Functions
             var certUrl = ConfigurationManager.ConnectionStrings["certPath"].ToString();
             var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
             var certificate = new X509Certificate2(certUrl, certPass);
-            var request = (HttpWebRequest)WebRequest.Create(@"https://s2s.era.nih.gov/grantfolder/services/GrantDocumentInfo");
+            var eraUrl = ConfigurationManager.AppSettings["era_url_base"];
+            var request = (HttpWebRequest)WebRequest.Create($"{eraUrl}grantfolder/services/GrantDocumentInfo");
             request.ContentType = "application/xml";
             request.Method = "POST";
             request.ClientCertificates.Add(certificate);

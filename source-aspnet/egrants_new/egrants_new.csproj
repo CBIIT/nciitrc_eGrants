@@ -2591,6 +2591,7 @@
     <Content Include="Content\images\uplem.png" />
     <Content Include="Content\images\Upload File.png" />
     <Content Include="Content\images\upload.gif" />
+    <Content Include="Content\images\upload.png" />
     <Content Include="Content\images\vertical_line.JPG" />
     <Content Include="Content\images\write.gif" />
     <Content Include="Content\jquery-ui.min.css" />
