@@ -785,7 +785,7 @@ namespace egrants_new.Controllers
                 this.ViewBag.SelectedAppls = appls_list;
 
                 // reset appllayer and limit show appls if appls_list with search parameters
-                if (appls_list != null && appls_list != "All" && appls_list != "all")
+                if (appls_list != null && !appls_list.Equals("All", StringComparison.InvariantCultureIgnoreCase))
                 {
                     var appllist = new List<ApplLayerObject>();
 
@@ -815,12 +815,19 @@ namespace egrants_new.Controllers
 
                         // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
                         foreach (var appl in this.ViewBag.appllayer)
-                            if (app.Any(n => n == appl.appl_id))
-                            {
-                                appl.display_docs = "y";
-                                appllist.Add(appl);
-                            }
+                        if (app.Any(n => n == appl.appl_id))
+                        {
+                            appl.display_docs = "y";
+                            appllist.Add(appl);
+                        }
                         this.ViewBag.appllayer = appllist;
+                    }
+                }
+                else if (appls_list != null && appls_list.Equals("All", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    foreach (var appl in this.ViewBag.appllayer)
+                    {
+                        appl.display_docs = "y";
                     }
                 }
             }
