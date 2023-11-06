@@ -141,7 +141,7 @@ foreach (var appl in ViewBag.appllayer)
             <br style="clear:both;"/>
             String yearNameId = "yearName" + appl.appl_id;
 
-            <div id="@yearNameId" style="margin-left: 15px; margin-top: 3px; font-weight: bold;">@appl.label</div>
+            <div id="@yearNameId" style="margin-left: 15px; margin-top: -3px; font-weight: bold; margin-bottom: -19px;">@appl.label</div>
             <!--end appl header-->
             <!--start show dos-->
             @Html.Partial("~/Egrants/Views/_egrants_showDocs.cshtml", appl_id)
