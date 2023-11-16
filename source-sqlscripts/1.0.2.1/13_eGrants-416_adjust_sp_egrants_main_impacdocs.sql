@@ -139,6 +139,8 @@ FROM openquery(IRDB, 'select appl_id, a.accession_num, CAST(a.appl_received_date
 from DOC_AVAILABLE_MV g, appls_t a 
 where doc_type_code = ''DMS''
 AND a.admin_phs_org_code=''CA''
+AND a.appl_status_code = ''35''
+AND a.APPL_TYPE_CODE <> ''3''
 and g.doc_key_id = a.appl_id
 and a.serial_num is not null')
 
