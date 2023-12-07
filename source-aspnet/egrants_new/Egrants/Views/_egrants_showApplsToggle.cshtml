@@ -619,7 +619,7 @@ function updateMPIToolTip(grantId) {
         }
     }
     var toolTip = "Has Multi-PI Grant Year(s)";
-    if (thisApplId) {
+    if (thisApplId && messages[thisApplId]) {
         toolTip = messages[thisApplId].replace(/conspicuousNewLine/g, '\r\n');
     }
 
