@@ -364,6 +364,12 @@
         document.getElementById("toggle_title").innerHTML = "";
     }
 
+    function auditFileDownloadMenuClicked() {
+        //displayDownloadOrAuditForms();
+        toggle_download_forms();
+        window.location.href = "/";
+    }
+
     function displayDownloadOrAuditForms() {
         if (currentView == "DownloadForm") {
             // DownloadForm
