@@ -47,15 +47,14 @@ print('using years=number')
 SET @sql='insert #a select distinct appl_id from vw_appls 
 where grant_id = '+convert(varchar,@grant_id) + ' and appl_id in (
 select appl_id from vw_appls where grant_id='+convert(varchar, @grant_id)+') 
-and (raw_doc_count = 0 OR 
-	(raw_doc_count != 0 AND all_docs_disabled = 0))
+and (deleted_by_impac = ''n'' OR (raw_doc_count = 0 OR 
+	(raw_doc_count != 0 AND all_docs_disabled = 0)))
 and support_year in(
 select distinct top '+ convert(varchar,@years)+' support_year from vw_appls 
-where grant_id = '+convert(varchar,@grant_id) +' and (raw_doc_count != 0 OR 
+where grant_id = '+convert(varchar,@grant_id) +' and (
 	(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
-	(appl_type_code =3 and admin_phs_org_code =''CA'' and (
-	raw_doc_count = 0 OR 
-	(raw_doc_count != 0 AND all_docs_disabled = 0)) and loaded_date>''2023-09-30 1:1:01.01'')
+	(appl_type_code =3 and admin_phs_org_code =''CA'' and (deleted_by_impac = ''n'' OR (
+	(raw_doc_count != 0 AND all_docs_disabled = 0))) and loaded_date>''2023-09-30 1:1:01.01'')
 )  order by support_year desc)'
 -- impac deleted years with no documents are filtered out elsewhere
 END

@@ -208,9 +208,8 @@ SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id
 UNION
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
 	(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
-	(appl_type_code =3 and admin_phs_org_code ='CA' and (
-	(raw_doc_count = 0 and deleted_by_impac = 'n') OR 
-	(raw_doc_count != 0 AND all_docs_disabled = 0)) and loaded_date>'2023-09-30 1:1:01.01')
+	(appl_type_code =3 and admin_phs_org_code ='CA' and (deleted_by_impac = 'n' OR (
+	(raw_doc_count != 0 AND all_docs_disabled = 0))) and loaded_date>'2023-09-30 1:1:01.01')
 )
 
 ----clean up search if there is no appls return
@@ -263,9 +262,8 @@ SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id
 UNION
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
 	(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
-	(appl_type_code =3 and admin_phs_org_code ='CA' and (
-	(raw_doc_count = 0 and deleted_by_impac = 'n') OR 
-	(raw_doc_count != 0 AND all_docs_disabled = 0)) and loaded_date>'2023-09-30 1:1:01.01')
+	(appl_type_code =3 and admin_phs_org_code ='CA' and (deleted_by_impac = 'n' OR (
+	(raw_doc_count != 0 AND all_docs_disabled = 0))) and loaded_date>'2023-09-30 1:1:01.01')
 )
 
 
@@ -297,9 +295,8 @@ SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id
 UNION
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
 	(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
-	(appl_type_code =3 and admin_phs_org_code ='CA' and (
-	(raw_doc_count = 0 and deleted_by_impac = 'n') OR 
-	(raw_doc_count != 0 AND all_docs_disabled = 0)) and loaded_date>'2023-09-30 1:1:01.01')
+	(appl_type_code =3 and admin_phs_org_code ='CA' and (deleted_by_impac = 'n' OR (
+	(raw_doc_count != 0 AND all_docs_disabled = 0))) and loaded_date>'2023-09-30 1:1:01.01')
 )
 
 --declare @countRXKZ8				int
@@ -356,9 +353,8 @@ SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id
 UNION
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
 	(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
-	(appl_type_code =3 and admin_phs_org_code ='CA' and (
-	(raw_doc_count = 0 and deleted_by_impac = 'n') OR 
-	(raw_doc_count != 0 AND all_docs_disabled = 0)) and loaded_date>'2023-09-30 1:1:01.01')
+	(appl_type_code =3 and admin_phs_org_code ='CA' and (deleted_by_impac = 'n' OR (
+	(raw_doc_count != 0 AND all_docs_disabled = 0))) and loaded_date>'2023-09-30 1:1:01.01')
 )
 
 ---IF (SELECT COUNT(*) FROM @d)=0 AND (SELECT COUNT(*) FROM @a)=0 GOTO foot
@@ -397,9 +393,8 @@ SELECT DISTINCT appl_id FROM @g AS t, vw_appls_used_bygrant vg WHERE vg.grant_id
 UNION
 SELECT DISTINCT appl_id FROM @g AS t, vw_appls a WHERE a.grant_id=t.grant_id and (
 	(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
-	(appl_type_code =3 and admin_phs_org_code ='CA' and (
-	(raw_doc_count = 0 and deleted_by_impac = 'n') OR 
-	(raw_doc_count != 0 AND all_docs_disabled = 0)) and loaded_date>'2023-09-30 1:1:01.01')
+	(appl_type_code =3 and admin_phs_org_code ='CA' and (deleted_by_impac = 'n' OR (
+	(raw_doc_count != 0 AND all_docs_disabled = 0))) and loaded_date>'2023-09-30 1:1:01.01')
 )
 
 GOTO OUTPUT
