@@ -42,22 +42,30 @@ END
 ---return selected appls by years=number
 IF (@flag_type is null or @flag_type='') and (@years is not null and @years<>'' and @years<>'All' and @years<>'all' and ISNUMERIC(convert(int, @years))=1) ---and Len(@years)<=2 
 BEGIN
--- MLH used to do a doc count > 0 here, removed for eGrants-373
-print('using years=number')
 SET @sql='insert #a select distinct appl_id from vw_appls 
 where grant_id = '+convert(varchar,@grant_id) + ' and appl_id in (
-select appl_id from vw_appls where grant_id='+convert(varchar, @grant_id)+') 
-and (deleted_by_impac = ''n'' OR (raw_doc_count = 0 OR 
-	(raw_doc_count != 0 AND all_docs_disabled = 0)))
+	select appl_id from egrants where grant_id='+convert(varchar, @grant_id)+'
+		union
+	select appl_id from vw_appls where grant_id='+convert(varchar, @grant_id)+') 
+	and (deleted_by_impac = ''n'' OR (raw_doc_count = 0 OR 
+		(raw_doc_count != 0 AND all_docs_disabled = 0))
+	)
 and support_year in(
-select distinct top '+ convert(varchar,@years)+' support_year from vw_appls 
-where grant_id = '+convert(varchar,@grant_id) +' and (
-	(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
-	(appl_type_code =3 and admin_phs_org_code =''CA'' and (deleted_by_impac = ''n'' OR (
-	(raw_doc_count != 0 AND all_docs_disabled = 0))) and loaded_date>''2023-09-30 1:1:01.01'')
-)  order by support_year desc)'
--- impac deleted years with no documents are filtered out elsewhere
+	select distinct top '+ convert(varchar,@years)+' support_year from vw_appls 
+	where grant_id = '+convert(varchar,@grant_id) +' and 
+		(
+			doc_count<>0
+				OR
+			(	--placeholder year
+				(loaded_date>convert(varchar,getdate(),101) and appl_id<1 ) OR
+				(appl_type_code =3 and admin_phs_org_code =''CA'' and (deleted_by_impac = ''n'' OR (
+				(raw_doc_count != 0 AND all_docs_disabled = 0))) and loaded_date>''2023-09-30 1:1:01.01'')
+			)
+		)
+	order by support_year desc
+)'
 END
+
 
 --return selected appls by years=appl_id
 IF (@flag_type is null or @flag_type='') and (@years is not null and @years<>'' and @years<>'All' and @years<>'all' and Len(@years)>2) 
@@ -78,6 +86,12 @@ END
 --print @sql
 exec (@sql)
 --select * from #a
+
+Declare @SumVal int;
+Select @SumVal=Sum(appl_id) From #a;
+Print CONCAT('total results from eval: ', @SumVal);
+Print CONCAT('sql: ', @sql);
+
 
 set @appl_list=''
 set @RowNum=1
