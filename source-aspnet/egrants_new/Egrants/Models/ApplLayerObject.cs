@@ -149,6 +149,11 @@ namespace egrants_new.Egrants.Models
         public string label { get; set; }
 
         /// <summary>
+        ///     If this grant year docs should be displayed (if its the only one they asked for)
+        /// </summary>
+        public string display_docs { get; set; }
+
+        /// <summary>
         /// Gets or sets the MPI contact info.
         /// </summary>
         public List<PersonContact> MPIContacts { get; set; }

@@ -23,7 +23,7 @@
     //check appls copunt for each grant
     foreach (var appl in ViewBag.appllayer_All)
     {
-        if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) && Convert.ToInt16(appl.doc_count) > 0)
+        if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) )
         {
             appls_count = appls_count + 1;
         }
@@ -34,7 +34,7 @@
     {
         foreach (var appl in ViewBag.appllayer_All)
         {
-            if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) && Convert.ToInt16(appl.doc_count) > 0)
+            if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) )
             {
                 <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.support_year</a>
             }
@@ -47,7 +47,7 @@
             @foreach (var appl in ViewBag.appllayer_All)
             {
                 if (show_appls < 12) { 
-                    if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) && Convert.ToInt16(appl.doc_count) > 0)
+                    if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) )
                     {
                         <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.support_year</a>
                         show_appls = show_appls + 1;
@@ -62,7 +62,7 @@
         <div id="appls_all_@grant_id" style="display:none;">
             @foreach (var appl in ViewBag.appllayer_All)
             {
-                if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) && Convert.ToInt16(appl.doc_count) > 0)
+                if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id) )
                 {
                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.support_year</a>         
                 }

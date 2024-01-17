@@ -266,6 +266,7 @@
                "order": [[2, 'asc']], // desc
                "processing": true, // for show progress bar
                "serverSide": false, // for process server side
+               "timeout": 600000,
                "filter": true, // this is for disable filter (search box)
                "orderMulti": false, // for disable multiple column at once
                "bInfo": false,
@@ -277,7 +278,8 @@
                "ajax": {
                   "url": "/Egrants/LoadDocsGrid?appl_id=" + @appl_id + "&search_type=@Convert.ToString(ViewBag.SearchStyle)" + "&category_list=@Convert.ToString(ViewBag.SelectedCats)",
                   "type": "GET",
-                  "datatype": "json"
+                   "datatype": "json",
+                   "timeout": 600000,
                },
                "stripeClasses": ['odd-row', 'even-row'],
                "columnDefs": [
