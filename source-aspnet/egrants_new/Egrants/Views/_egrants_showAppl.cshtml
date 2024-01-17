@@ -12,20 +12,9 @@ foreach (var appl in ViewBag.appllayer)
     @if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id))  //&& Convert.ToInt32(appl.doc_count) > 0 || Convert.ToInt16(appl.closeout_notcount) > 0
     {
         int appl_id = Convert.ToInt32(appl.appl_id);
-        var doc_count = 0;
-
-        //check if with docs for this appl
-        foreach (var doc in ViewBag.doclayer)
-        {
-            if (Convert.ToInt32(doc.appl_id) == appl_id)
-            {
-                doc_count = Convert.ToInt16(doc.docs_count);
-            }
-        }
 
         <!--start show single appl data-->
-        if (doc_count >= 1)
-        {
+        if (appl.display_docs == "y") {
             <!--start appl header-->
             <!--start show full_grant_num-->
             <div>

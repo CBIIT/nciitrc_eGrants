@@ -41,25 +41,13 @@ foreach (var appl in ViewBag.appllayer)
     <div id="appls_@grant_id" style="float:left; width:900px;">           
     @if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id))  //&& Convert.ToInt32(appl.doc_count) > 0 || Convert.ToInt16(appl.closeout_notcount) > 0
     {
-       int appl_id = Convert.ToInt32(appl.appl_id);
-       string fullGrantNum = Convert.ToString(appl.full_grant_num);
-      // var grantShort = ViewBag.grantlayer;
-       var passModel = new PageDownloadModel() { ApplId = appl_id, FullGrantNumber = fullGrantNum };
-
-       var doc_count = 0;
-
-       // check if with docs for this appl
-       foreach (var doc in ViewBag.doclayer)
-       {
-          if (Convert.ToInt32(doc.appl_id) == appl_id)
-          {
-             doc_count = Convert.ToInt16(doc.docs_count);
-          }
-       }
+        int appl_id = Convert.ToInt32(appl.appl_id);
+        string fullGrantNum = Convert.ToString(appl.full_grant_num);
+        // var grantShort = ViewBag.grantlayer;
+        var passModel = new PageDownloadModel() { ApplId = appl_id, FullGrantNumber = fullGrantNum };
 
         <!-- start show single appl data -->
-        if (doc_count >= 1)
-        {
+        if (appl.display_docs == "y") {
             <!-- start appl header -->
                 <!-- start show full_grant_num -->
                 <div style="float:left; margin-left:15px; display:inline;"><a href="Javascript:by_appl(@appl.appl_id)" title="View All Documents for @appl.full_grant_num" style="vertical-align:bottom;"><b style="font-size:medium;">@appl.full_grant_num</b></a></div>
@@ -71,9 +59,9 @@ foreach (var appl in ViewBag.appllayer)
                    }
                    
                     @if (Convert.ToString(appl.appl_fda_flag) == "y")
-                   {
+                    {
                     <img src="~/Content/images/flag_fda.jpg" style="margin-left:5px; height:16px; display:inline" title="FDA Grant" />
-                   }
+                    }
 
                     @if (Convert.ToString(appl.appl_ms_flag) == "y")
                     {
@@ -144,8 +132,8 @@ foreach (var appl in ViewBag.appllayer)
 
 
            @Html.Partial("~/Egrants/Views/Download/_egrants_showDocsDownload.cshtml", passModel)
-    
-    
+
+
             <div id="doc" style="height:20px"></div><!--add space for each appls-->
             <!--end show dos-->
         <!--end show single appl data-->
