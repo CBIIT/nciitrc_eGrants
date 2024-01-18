@@ -19,7 +19,7 @@ startTimeStamp=Now
 	Dim OtlkApps 'as Object
 	Dim objNS 'As Outlook.NameSpace
 	dBug="n"
-	dBugEmail = "robin.briggs@nih.gov"
+	dBugEmail = "micah.hoover@nih.gov"
 	eGrantsDevEmail = "eGrantsDev@mail.nih.gov"
 	eGrantsTestEmail = "eGrantsTest1@mail.nih.gov"
 	eGrantsStageEmail = "eGrantsStage@mail.nih.gov"
@@ -369,6 +369,29 @@ Sub Process (dirpath,oConn,oRS)
 						End With					
 					END IF
 					Set OutMail=nothing								
+			ELSEIF InStr(v_SubLine,"JIT Documents Have Been Submitted for Grant ") > 0    Then  		' mhoover 1/2024
+					replysubj="category=eRA Notification, sub=JIT Submitted, extract=1, " & CItem.subject
+					Set OutMail = CItem.Forward
+					IF (dBug="n") Then								
+						With OutMail
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
+													
+							'.Recipients.Add("leul.ayana@nih.gov")
+							.Subject = replysubj 
+							.Send
+						End With
+					ELSE
+						''wscript.echo "DON'T WANT THIS" & v_SubLine
+						With OutMail
+							.Recipients.Add(dBugEmail)	
+							.Subject = replysubj
+							.Send
+						End With					
+					END IF
+					Set OutMail=nothing																												 
 			ELSEIF InStr(v_SubLine,"NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant") > 0 Then
 			    IF (InStr(v_SubLine," R15 ") > 0) Then
 				replysubj="category=eRANotification, sub=Late Progress Report, extract=1, " & CItem.subject
@@ -838,7 +861,7 @@ End Function
 Function RaiseErrortoAdmin(CItem,eRRMsg1,eRRMsg2)
 	Set OutMail = CItem.Forward
 	With OutMail
-		.Recipients.Add("robin.briggs@nih.gov")
+		.Recipients.Add("micah.hoover@nih.gov")
 		.Recipients.Add("leul.ayana@nih.gov")
 		.Subject = eRRMsg1 & " >>(Subj: " & CItem.Subject & ")" 
 		.body=eRRMsg2 & vbCrLf & vbCrLf & CItem.body
@@ -854,7 +877,7 @@ Function emailme(SubjMSG,BodyMSG)
 		
 	Set Mitem = OtlkApps.CreateItem(olMailItem )
 	With Mitem
-		.To="robin.briggs@nih.gov"			
+		.To="micah.hoover@nih.gov"			
 		'.CC="leul.ayana@nih.gov"	
 		.Subject = SubjMSG
 		.BodyFormat = 2
