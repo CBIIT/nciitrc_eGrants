@@ -223,7 +223,11 @@ Sub Process(dirpath,oConn)
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
 					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
-				
+				ELSEIF (Category = "eRA Notification") AND (subcat="JIT Submission") THEN 'AND (subcat="Reminder") THEN	'eGrants-407	MLH
+					V_flType="pdf"
+					call clearOldJITSubmissions(documentid)
+					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 				ELSE 
 					V_flType="txt"				
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
@@ -620,6 +624,14 @@ Function getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_f
 			getDocumentId=oRS2.Fields("value").value		
 		End If
 		set oRS2=Nothing
+End Function
+'==========================================
+'==========================================
+Function clearOldJITSubmissions(documentid)
+	
+	Dim oRS2
+	strSQL = "exec SP_CLEAR_OLD_JIT_SUBMISSIONS '"&documentid&"'"
+	set oRS2 =  oConn.execute(strSQL , , adCmdTable)
 End Function
 '==========================================
 '==========================================
