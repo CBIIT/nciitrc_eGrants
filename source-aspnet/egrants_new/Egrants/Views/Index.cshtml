@@ -15,7 +15,6 @@
 <script src="~/scripts/bluebird.js"></script>
 <script src="~/scripts/jquery-ui-1.13.2.min.js"></script>
 
-
 <script language="JavaScript" type="text/javascript">
     var currenturl = window.document.location.href;
     var mode;
@@ -32,8 +31,6 @@
     var appls_list = [];
 
     var SelectAllApplsCheckBox = 0;
-
-    var currentView = "StandardForm";
 
     $(document).ready(function () {
         set_default();
@@ -147,15 +144,7 @@
             document.getElementById(el).style.display = "inline";
         }
 
-        updateAuditOrGrantYearModeFromCookie();
-
-        //if (currentView == "DownloadForm") {
-        //    $('#downloadForm').attr("hidden", false);
-        //    $('#standardForm').attr("hidden", true);
-        //} else if (currentView == "StandardForm") {
-        //    $('#downloadForm').attr("hidden", true);
-        //    $('#standardForm').attr("hidden", false);
-        //}
+        displayDownloadOrAuditForms();  // re-render because the category code above may interfere with rendering AFD
     }
 
     function by_str(str) {
@@ -364,61 +353,6 @@
         document.getElementById("toggle_title").innerHTML = "";
     }
 
-    function auditFileDownloadMenuClicked() {
-        //displayDownloadOrAuditForms();
-        toggle_download_forms();
-        window.location.href = "/";
-    }
-
-    function displayDownloadOrAuditForms() {
-        if (currentView == "DownloadForm") {
-            // DownloadForm
-            //$('#downloadForm').attr("hidden", false);
-            //$('#standardForm').attr("hidden", true);
-            if (document.getElementById("toggle_title"))
-                document.getElementById("toggle_title").innerHTML = "Audit File Download";
-            if (document.getElementById("download_link"))
-                document.getElementById("download_link").title = "Grant Years";
-            if (document.getElementById("upload_icon"))
-                document.getElementById("upload_icon").style.display = "inline";
-            if (document.getElementById("download_icon"))
-                document.getElementById("download_icon").style.display = "none";
-            document.cookie = "auditMode=DownloadForm";
-        } else {
-            // StandardForm
-            //$('#downloadForm').attr("hidden", true);
-            //$('#standardForm').attr("hidden", false);
-            if (document.getElementById("toggle_title"))
-                document.getElementById("toggle_title").innerHTML = "Grant Years";
-            if (document.getElementById("download_link"))
-                document.getElementById("download_link").title = "Audit File Download";
-            if (document.getElementById("upload_icon"))
-                document.getElementById("upload_icon").style.display = "none";
-            if (document.getElementById("download_icon"))
-                document.getElementById("download_icon").style.display = "inline";
-            document.cookie = "auditMode=StandardForm";
-        }
-    }
-
-    // show or hide search form
-    function toggle_download_forms() {
-
-        console.log("Check Toggle");
-
-        if (currentView == "StandardForm") {
-            console.log("in Standardform");
-            currentView = "DownloadForm";
-            displayDownloadOrAuditForms();
-        } else if (currentView == "DownloadForm") {
-            console.log("in Downloadform");
-            currentView = "StandardForm";
-            displayDownloadOrAuditForms();
-        }
-
-        // need to re-render the razor that displays regular or audit file download
-        location.reload();
-    }
-
     // This is the callback function that
     // processes the Web Service return value.
     function SucceededCallback(result) {
@@ -486,28 +420,6 @@
             });
     }
 
-    function getCookie(cname) {
-        var name = cname + "=";
-        var ca = document.cookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) == ' ') c = c.substring(1);
-            if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
-        }
-        return "";
-    }
-
-    function updateAuditOrGrantYearModeFromCookie() {
-        var auditMode = getCookie("auditMode");
-        if (!auditMode) {
-            document.cookie = "auditMode=StandardForm";
-            auditMode = "StandardForm";
-        }
-        currentView = auditMode;
-        displayDownloadOrAuditForms();
-        //toggle_download_forms(); <-- this switches it
-    }
-
     function cancelGrantYearNameRename(applId) {
         document.getElementById('newGrantYearName' + applId).value = document.getElementById('yearName' + applId).innerHTML;
     }
@@ -572,13 +484,13 @@
             @if (@Convert.ToInt16(Session["position_id"]) >= 2)
             {
                 <div id="show_download_toggle" style="display: none;">
-                    <a href="#" id="download_link" onclick="Javascript:return toggle_download_forms()" title="Audit File Download">
+                    @*<a href="#" id="download_link" onclick="Javascript:return toggle_download_forms()" title="Audit File Download">*@
                         <svg id="download_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
                             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
                             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
                         </svg>
                         <img id="upload_icon" style="display:none" width="16" height="16" src="~/Content/images/upload.png" />
-                    </a>
+                    @*</a>*@
                 </div>
             }
 

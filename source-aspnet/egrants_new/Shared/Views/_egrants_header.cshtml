@@ -8,152 +8,247 @@
 <!DOCTYPE html>
 <html>
 <head>
-   <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
-   <meta name="viewport" content="width=device-width"/>
-   <title></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
 
-   <link href="~/Content/egrants.css" rel="stylesheet" type="text/css"/>
-   <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="~/Content/egrants.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
 
-   <script src="~/scripts/jquery-3.6.4.min.js"></script>
-   <script src="~/scripts/bootstrap.min.js"></script>
-   <script src="~/scripts/validation.js"></script>
-   
+    <script src="~/scripts/jquery-3.6.4.min.js"></script>
+    <script src="~/scripts/bootstrap.min.js"></script>
+    <script src="~/scripts/validation.js"></script>
 
-   <script>
-      var user_position_id = @Convert.ToInt16(Session["position_id"]);
-      var QuickLinkType = [];
+    <script>
+        var user_position_id = @Convert.ToInt16(Session["position_id"]);
+        var QuickLinkType = [];
 
-      $(document).ready(function() {
-         //check Session["position_id"]
-         if (user_position_id >= 2) {
+        var currentView = "StandardForm";
+
+        $(document).ready(function() {
+            //check Session["position_id"]
+            if (user_position_id >= 2) {
             QuickLink = document.getElementById("leftpanelS");
-         } else {
+            } else {
             QuickLink = document.getElementById("leftpanelP");
-         }
+            }
 
-         //set
-         if (user_position_id >= 1) {
+            //set
+            if (user_position_id >= 1) {
             if (sessionStorage.getItem("QuickLinks") == null) {
-               sessionStorage.setItem("QuickLinks", "1");
+                sessionStorage.setItem("QuickLinks", "1");
             }
 
             //get
             if (sessionStorage.getItem("QuickLinks") == "1") {
-               QuickLink.style.display = "block";
+                QuickLink.style.display = "block";
             } else QuickLink.style.display = "none";
-         }
-      });
+            }
 
-      function toggleleftpanel() {
-         if (QuickLink.style.display === "none") {
+            updateAuditOrGrantYearModeFromCookie();
+        });
+
+        function toggleleftpanel() {
+            if (QuickLink.style.display === "none") {
             QuickLink.style.display = "block";
             sessionStorage.removeItem("QuickLinks");
             sessionStorage.setItem("QuickLinks", "1");
             //alert(sessionStorage.getItem("QuickLinks"));
-         } else {
+            } else {
             QuickLink.style.display = "none";
             sessionStorage.removeItem("QuickLinks");
             sessionStorage.setItem("QuickLinks", "0");
             //alert(sessionStorage.getItem("QuickLinks"));
-         }
-      }
+            }
+        }
 
-   </script>
-   <style>
+        function auditFileDownloadMenuClicked() {
+            toggle_download_forms();
+            window.location.href = "/";
+        }
 
-      .navbar-default { border-bottom: none !important; }
+        // show or hide search form
+        function toggle_download_forms() {
 
-      .navbar { background-color: #808080 !important; }
+            console.log("Check Toggle");
 
-      .navbar-nav > li{
-         padding-left:10px;
-      }
+            if (currentView == "StandardForm") {
+                console.log("in Standardform");
+                currentView = "DownloadForm";
+                displayDownloadOrAuditForms();
+            } else if (currentView == "DownloadForm") {
+                console.log("in Downloadform");
+                currentView = "StandardForm";
+                displayDownloadOrAuditForms();
+            }
 
-      .navbar .nav > li > a, 
-      .navbar .nav > li > a:first-letter,
-      .navbar .nav > li.current-menu-item > a,
-      .navbar .nav > li.current-menu-ancestor > a {
-            display: inline;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-size: large !important;
-            padding: 10px 20px;
-         }
+            // need to re-render the razor that displays regular or audit file download
+            location.reload();
+        }
 
-      .navbar-light .navbar-brand {
-         color: #FFFFFF;
-         padding-right: 50px
-      }
+        function displayDownloadOrAuditForms() {
+            if (currentView == "DownloadForm") {
+                // DownloadForm
+                //$('#downloadForm').attr("hidden", false);
+                //$('#standardForm').attr("hidden", true);
+                if (document.getElementById("toggle_title"))
+                    document.getElementById("toggle_title").innerHTML = "Audit File Download";
+                if (document.getElementById("download_link"))
+                    document.getElementById("download_link").title = "Grant Years";
+                if (document.getElementById("upload_icon"))
+                    document.getElementById("upload_icon").style.display = "inline";
+                if (document.getElementById("download_icon"))
+                    document.getElementById("download_icon").style.display = "none";
+                document.cookie = "auditMode=DownloadForm;path=/";
+            } else {
+                // StandardForm
+                //$('#downloadForm').attr("hidden", true);
+                //$('#standardForm').attr("hidden", false);
+                if (document.getElementById("toggle_title"))
+                    document.getElementById("toggle_title").innerHTML = "Grant Years";
+                if (document.getElementById("download_link"))
+                    document.getElementById("download_link").title = "Audit File Download";
+                if (document.getElementById("upload_icon"))
+                    document.getElementById("upload_icon").style.display = "none";
+                if (document.getElementById("download_icon"))
+                    document.getElementById("download_icon").style.display = "inline";
+                document.cookie = "auditMode=StandardForm;path=/";
+            }
+        }
 
-      .navbar-light .navbar-nav .active>.nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .show>.nav-link {
-         color: #FFFFFF;
-      }
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1);
+                if (c.indexOf(name) == 0) {
+                    var result = c.substring(name.length, c.length);
+                    console.log('cookie ' + cname + ': ' + result);
+                    return c.substring(name.length, c.length);
+                }
+            }
+            
+            return "";
+        }
 
-      .navbar-light .navbar-nav .nav-link {
-         color: #FFFFFF;
-      }
+        function updateAuditOrGrantYearModeFromCookie() {
+            var auditMode = getCookie("auditMode");
+            if (!auditMode) {
+                document.cookie = "auditMode=StandardForm;path=/";
+                auditMode = "StandardForm";
+            }
+            currentView = auditMode;
+            displayDownloadOrAuditForms();
+            //toggle_download_forms(); <-- this switches it
+        }
 
-      .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
-         color: #555 !important;
-      }
+    </script>
+    <style>
 
-      #loginas {
-         color: dimgray !important;
-         /*font: arial !important;*/
-         font-size: large !important;
-         vertical-align: auto !important;
-         text-align: right !important;
-      }
+          .navbar-default {
+              border-bottom: none !important;
+          }
 
-      body {
-         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-         font-size: 90% !important;
-         /* font-size:medium */
-      }
+          .navbar {
+              background-color: #808080 !important;
+          }
 
-      #loginas a { color: blue !important; }
+          .navbar-nav > li {
+              padding-left: 10px;
+          }
 
-      .eGrantsWhiteTxt { border-top: 4px solid white !important; }
+          .navbar .nav > li > a,
+          .navbar .nav > li > a:first-letter,
+          .navbar .nav > li.current-menu-item > a,
+          .navbar .nav > li.current-menu-ancestor > a {
+              display: inline;
+              font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+              font-size: large !important;
+              padding: 10px 20px;
+          }
 
-      .eGrantsDDbkgrnd { background-color: #808080 !important; }
+          .navbar-light .navbar-brand {
+              color: #FFFFFF;
+              padding-right: 50px
+          }
 
-      .eGrantsUpldBtnColor { background-color: #1D8215 !important; }
+          .navbar-light .navbar-nav .active > .nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .show > .nav-link {
+              color: #FFFFFF;
+          }
 
-      .eGrantsReturnBtn {
-         font-size:medium;
-         border: none;
-         color: white;
-         background-color: #808080;
-      }
+          .navbar-light .navbar-nav .nav-link {
+              color: #FFFFFF;
+          }
 
-      .eGrantsDocBtn {
-         font-size:medium;
-         background-color: #4169e1;
-         
-      }
+              .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
+                  color: #555 !important;
+              }
 
-      /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+          #loginas {
+              color: dimgray !important;
+              /*font: arial !important;*/
+              font-size: large !important;
+              vertical-align: auto !important;
+              text-align: right !important;
+          }
 
-      #myBtn { /*--Ayu*/
-         display: none; /* Hidden by default */
-         position: fixed; /* Fixed/sticky position */
-         bottom: 20px; /* Place the button at the bottom of the page */
-         right: 30px; /* Place the button 30px from the right */
-         z-index: 99; /* Make sure it does not overlap */
-         border: none; /* Remove borders */
-         outline: none; /* Remove outline */
-         background-color: darkcyan; /* Set a background color */
-         color: white; /* Text color */
-         cursor: pointer; /* Add a mouse pointer on hover */
-         padding: 15px; /* Some padding */
-         border-radius: 10px; /* Rounded corners */
-         font-size: 18px;/* Increase font size  
-      }
+          body {
+              font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+              font-size: 90% !important;
+              /* font-size:medium */
+          }
 
-      #myBtn:hover { /*--Ayu*/
-         background-color: #555; /* Add a dark-grey background on hover */
-      }
-   </style>
+          #loginas a {
+              color: blue !important;
+          }
+
+          .eGrantsWhiteTxt {
+              border-top: 4px solid white !important;
+          }
+
+          .eGrantsDDbkgrnd {
+              background-color: #808080 !important;
+          }
+
+          .eGrantsUpldBtnColor {
+              background-color: #1D8215 !important;
+          }
+
+          .eGrantsReturnBtn {
+              font-size: medium;
+              border: none;
+              color: white;
+              background-color: #808080;
+          }
+
+          .eGrantsDocBtn {
+              font-size: medium;
+              background-color: #4169e1;
+          }
+
+          /*adde 4/3/2019 for return to the TOP functionality by Ayu*/
+
+          #myBtn { /*--Ayu*/
+              display: none; /* Hidden by default */
+              position: fixed; /* Fixed/sticky position */
+              bottom: 20px; /* Place the button at the bottom of the page */
+              right: 30px; /* Place the button 30px from the right */
+              z-index: 99; /* Make sure it does not overlap */
+              border: none; /* Remove borders */
+              outline: none; /* Remove outline */
+              background-color: darkcyan; /* Set a background color */
+              color: white; /* Text color */
+              cursor: pointer; /* Add a mouse pointer on hover */
+              padding: 15px; /* Some padding */
+              border-radius: 10px; /* Rounded corners */
+              font-size: 18px; /* Increase font size
+        }
+
+        #myBtn:hover { /*--Ayu*/
+              background-color: #555; /* Add a dark-grey background on hover */
+          }
+    </style>
 </head>
 <body>
 
