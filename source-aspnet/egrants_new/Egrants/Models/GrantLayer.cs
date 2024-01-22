@@ -69,6 +69,23 @@ namespace egrants_new.Egrants.Models
             }
         }
 
+        private string orgFullName = string.Empty;
+
+        /// <summary>
+        ///     Gets or sets the org_name.
+        /// </summary>
+        public string OrgFullName
+        {
+            get
+            {
+                return orgFullName;
+            }
+            set
+            {
+                orgFullName = value;
+            }
+        }
+
         private string orgNameToolTip = string.Empty;
 
         /// <summary>
@@ -260,6 +277,19 @@ namespace egrants_new.Egrants.Models
             set
             {
                 selectProjectName = value.Truncate(60);
+            }
+        }
+
+        private string selectOrgFullName = string.Empty;
+        public string SelectedOrganizationFullName
+        {
+            get
+            {
+                return selectOrgFullName;
+            }
+            set
+            {
+                selectOrgFullName = value;
             }
         }
 

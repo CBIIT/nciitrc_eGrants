@@ -396,6 +396,7 @@
                 filter: true, // this is for disable filter (search box)
                 orderMulti: false, // for disable multiple column at once
                 bInfo: false,
+                timeout: 600000,
                 initComplete: function(settings, json) {
                     $("#overlay").hide();
                     var info = this.api().page.info();
@@ -416,6 +417,7 @@
                     type: "GET",
                     contentType: 'application/json; charset=utf=8',
                     dataType: 'JSON',
+                    timeout: 600000,
                 },
                 // rowId: 'id',
                 stripeClasses: ['odd-row', 'even-row'],
@@ -1177,6 +1179,7 @@
                             contentType: 'application/json; charset=utf=8',
                             url: "/Egrants/IsDownloadForm",
                             data: JSON.stringify(dataToSend),
+                            timeout: 600000,
                             success: function(data) {
                                 console.log("SUCCESS: ");
                                 console.log(JSON.stringify(data));

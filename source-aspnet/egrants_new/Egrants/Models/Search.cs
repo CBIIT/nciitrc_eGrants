@@ -168,6 +168,7 @@ namespace egrants_new.Egrants.Models
                     string orgname = rdr["org_name"]?.ToString();
                     grant.org_name = orgname;
                     grant.OrgNameToolTip = orgname;
+                    grant.OrgFullName = orgname;
 
                     grant.serial_num = rdr["serial_num"]?.ToString();
                     grant.grant_num = string.Concat(rdr["admin_phs_org_code"] + Convert.ToInt32(rdr["serial_num"]).ToString("000000"));
@@ -242,6 +243,7 @@ namespace egrants_new.Egrants.Models
                     string selectedorgname = rdr["specific_year_org_name"].ToString();
                     grant.SelectedOrganizationName = selectedorgname;
                     grant.SelectedOrganizationNameToolTip = selectedorgname;
+                    grant.SelectedOrganizationFullName = orgname;
                     grant.FullGrantNumber = rdr["specific_year_full_grant_num"].ToString();
 
 
@@ -276,6 +278,10 @@ namespace egrants_new.Egrants.Models
                     appl.irppr_id = rdr["irppr_id"]?.ToString();
                     appl.can_add_funding = rdr["can_add_funding"]?.ToString();
                     appl.label = rdr["label"]?.ToString();
+
+                    appl.display_docs = "n";
+                    if (appl_id != 0 && appl_id.ToString().Equals(appl.appl_id))
+                        appl.display_docs = "y";
 
                     if ((ic.Equals("ca", StringComparison.InvariantCultureIgnoreCase) || ic.Equals("nci", StringComparison.InvariantCultureIgnoreCase)) &&
                         appl.appl_type_code.Equals("3") &&
