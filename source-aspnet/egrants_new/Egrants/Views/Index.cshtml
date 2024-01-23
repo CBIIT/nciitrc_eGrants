@@ -947,28 +947,26 @@
                 <!--show appls with documents-->
                 @*@if (ViewBag.GrantID != null || ViewBag.ApplID != null || ViewBag.SearchStyle == "by_qc" || (ViewBag.SearchStyle == "by_page" && ViewBag.Str == "qc")){*@
                 @*<div id="standardForm">*@
-                @if (Convert.ToInt16(ViewBag.DocCount) >= 1)
-                {
-                    // if(CurrentDownloadValue == "Standard")
-                    @*<b>@grant_id</b>*@
-                    if (Context.Request.Cookies["auditMode"] != null && Context.Request.Cookies["auditMode"].Value == "DownloadForm")
-                    {
-                        <div id="downloadForm">
-                            <div style="float: left; padding-top: 15px;">
-                                @Html.Partial("~/Egrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div id="standardForm">
-                            <div style="float: left; padding-top: 15px;">
-                                @Html.Partial("~/Egrants/Views/_egrants_showAppl.cshtml", grant_id)
-                            </div>
-                        </div>
-                    }
+                @*// if(CurrentDownloadValue == "Standard")*@
+                @*<b>@grant_id</b>*@
 
+                @if (Context.Request.Cookies["auditMode"] != null && Context.Request.Cookies["auditMode"].Value == "DownloadForm")
+                {
+                    <div id="downloadForm">
+                        <div style="float: left; padding-top: 15px;">
+                            @Html.Partial("~/Egrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
+                        </div>
+                    </div>
                 }
+                else
+                {
+                    <div id="standardForm">
+                        <div style="float: left; padding-top: 15px;">
+                            @Html.Partial("~/Egrants/Views/_egrants_showAppl.cshtml", grant_id)
+                        </div>
+                    </div>
+                }
+
             </div>
                 <!--end grant zone-->
                 <!--end appl with documents-->

@@ -300,13 +300,13 @@
                             Resources
                         </a>
                         <div class="dropdown-menu shadow p-3 mb-5 bg-white rounded" aria-labelledby="navLink1">
+                            @if (@Convert.ToInt16(Session["position_id"]) >= 2)
+                            {
+                                <a class="hard_link dropdown-item" target="_self" onclick="auditFileDownloadMenuClicked();" title="Audit File Download">Audit File Download</a>
+                            }
                             <a class="dropdown-item" target="_new" href="~/Content/eGrants Category Glossary.docx" title="eGrants Glossary">eGrants Glossary</a>
                             <a class="dropdown-item" target="_new" href="~/Content/access_number2.pdf" title="Accession">Accession</a>
                             <a class="dropdown-item" target="_self" href="~/EgrantsFunding/funding_index" title="Funding Files">Funding Files</a>
-                            @if (@Convert.ToInt16(Session["position_id"]) >= 2)
-                            {
-                                <a class="dropdown-item" onclick="auditFileDownloadMenuClicked();" title="Audit File Download">Audit File Download</a>
-                            }
                         </div>
                     </li>
                     <li id="navDropDown2" class="nav-item dropdown">
