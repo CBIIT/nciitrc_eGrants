@@ -15,7 +15,6 @@
 <script src="~/scripts/bluebird.js"></script>
 <script src="~/scripts/jquery-ui-1.13.2.min.js"></script>
 
-
 <script language="JavaScript" type="text/javascript">
     var currenturl = window.document.location.href;
     var mode;
@@ -32,8 +31,6 @@
     var appls_list = [];
 
     var SelectAllApplsCheckBox = 0;
-
-    var currentView = "StandardForm";
 
     $(document).ready(function () {
         set_default();
@@ -117,9 +114,7 @@
 
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-            if (ShowToggleDownload == 1) {
-                document.getElementById("show_download_toggle").style.display = "inline";
-            }
+            //document.getElementById("show_download_toggle").style.display = "inline";
             show_toggle_appls();
         }
 
@@ -136,9 +131,7 @@
             document.getElementById("show_appls_toggle").style.display = "none";
             document.getElementById("show_search_form").style.display = "inline";
             document.getElementById("show_cats_toggle").style.display = "inline";
-            if (ShowToggleDownload == 1) {
-                document.getElementById("show_download_toggle").style.display = "inline";
-            }
+            //document.getElementById("show_download_toggle").style.display = "inline";
         }
 
         // check tab data and show tab
@@ -147,15 +140,7 @@
             document.getElementById(el).style.display = "inline";
         }
 
-        updateAuditOrGrantYearModeFromCookie();
-
-        //if (currentView == "DownloadForm") {
-        //    $('#downloadForm').attr("hidden", false);
-        //    $('#standardForm').attr("hidden", true);
-        //} else if (currentView == "StandardForm") {
-        //    $('#downloadForm').attr("hidden", true);
-        //    $('#standardForm').attr("hidden", false);
-        //}
+        displayDownloadOrAuditForms();  // re-render because the category code above may interfere with rendering AFD
     }
 
     function by_str(str) {
@@ -356,62 +341,10 @@
         document.getElementById("show_appls_toggle").style.display = "inline";
         document.getElementById("toggle_appls").style.display = "none";
         // clean toggle_cats at all
-        if (ShowToggleDownload == 1) {
-            document.getElementById("show_download_toggle").style.display = "none";
-        }
+        //document.getElementById("show_download_toggle").style.display = "none";
         document.getElementById("show_cats_toggle").style.display = "none";
         document.getElementById("toggle_cats").style.display = "none";
         document.getElementById("toggle_title").innerHTML = "";
-    }
-
-    function displayDownloadOrAuditForms() {
-        if (currentView == "DownloadForm") {
-            // DownloadForm
-            $('#downloadForm').attr("hidden", false);
-            $('#standardForm').attr("hidden", true);
-            if (document.getElementById("toggle_title"))
-                document.getElementById("toggle_title").innerHTML = "Audit File Download";
-            if (document.getElementById("download_link"))
-                document.getElementById("download_link").title = "Grant Years";
-            if (document.getElementById("upload_icon"))
-                document.getElementById("upload_icon").style.display = "inline";
-            if (document.getElementById("download_icon"))
-                document.getElementById("download_icon").style.display = "none";
-            document.cookie = "auditMode=DownloadForm";
-        } else {
-            // StandardForm
-            $('#downloadForm').attr("hidden", true);
-            $('#standardForm').attr("hidden", false);
-            if (document.getElementById("toggle_title"))
-                document.getElementById("toggle_title").innerHTML = "Grant Years";
-            if (document.getElementById("download_link"))
-                document.getElementById("download_link").title = "Audit File Download";
-            if (document.getElementById("upload_icon"))
-                document.getElementById("upload_icon").style.display = "none";
-            if (document.getElementById("download_icon"))
-                document.getElementById("download_icon").style.display = "inline";
-            document.cookie = "auditMode=StandardForm";
-        }
-    }
-
-    // show or hide search form
-    function toggle_download_forms() {
-
-        console.log("Check Toggle");
-
-        if (currentView == "StandardForm") {
-            console.log("in Standardform");
-            currentView = "DownloadForm";
-            displayDownloadOrAuditForms();
-            return;
-        }
-
-        if (currentView == "DownloadForm") {
-            console.log("in Downloadform");
-            currentView = "StandardForm";
-            displayDownloadOrAuditForms();
-            return;
-        }
     }
 
     // This is the callback function that
@@ -481,28 +414,6 @@
             });
     }
 
-    function getCookie(cname) {
-        var name = cname + "=";
-        var ca = document.cookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) == ' ') c = c.substring(1);
-            if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
-        }
-        return "";
-    }
-
-    function updateAuditOrGrantYearModeFromCookie() {
-        var auditMode = getCookie("auditMode");
-        if (!auditMode) {
-            document.cookie = "auditMode=StandardForm";
-            auditMode = "StandardForm";
-        }
-        currentView = auditMode;
-        displayDownloadOrAuditForms();
-        //toggle_download_forms(); <-- this switches it
-    }
-
     function cancelGrantYearNameRename(applId) {
         document.getElementById('newGrantYearName' + applId).value = document.getElementById('yearName' + applId).innerHTML;
     }
@@ -564,19 +475,6 @@
             <div id="title_for_toggle" style="display: inline; margin-left: 300px; width: 950px;">
                 <b id="toggle_title" style="font-size: medium;"></b>
             </div>
-            @if (@Convert.ToInt16(Session["position_id"]) >= 2)
-            {
-                <div id="show_download_toggle" style="display: none;">
-                    <a href="#" id="download_link" onclick="Javascript:return toggle_download_forms()" title="Audit File Download">
-                        @*<svg id="download_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
-                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
-                        </svg>
-                        <img id="upload_icon" style="display:none" width="16" height="16" src="~/Content/images/upload.png" />*@
-                    </a>
-                </div>
-            }
-
         </div>
 
         // show appls toggle
@@ -645,375 +543,375 @@
                     }
                 }
 
-                <div id="grant_layer_@grant.grant_id" class="pt-2" style="display: inline; float: left; width: 900px;">
-                    @*padding: 10px 5px 10px 0;*@
-                    <div class="row">
-                        <div class="col-md-6" class="float-left" style="vertical-align: center; width: auto">
+            <div id="grant_layer_@grant.grant_id" class="pt-2" style="display: inline; float: left; width: 900px;">
+                @*padding: 10px 5px 10px 0;*@
+                <div class="row">
+                    <div class="col-md-6" class="float-left" style="vertical-align: center; width: auto">
 
-                            <img class="pl-1" style="height: 24px;" src="~/Content/images/Folder-icon.png" title="Grant Folder" />
-                            <b class="ml-2" style="font-size: medium;">
-                                <!--Robin - Comment out this line and uncomment the section directly below this if they want to show the select grant year on appl views -->
-                                @*@Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)*@
+                        <img class="pl-1" style="height: 24px;" src="~/Content/images/Folder-icon.png" title="Grant Folder" />
+                        <b class="ml-2" style="font-size: medium;">
+                            <!--Robin - Comment out this line and uncomment the section directly below this if they want to show the select grant year on appl views -->
+                            @*@Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)*@
 
-                                <!-- Robin - Comment in this code to get the current year grant year for appl views -->
-                                @if (string.IsNullOrEmpty(grant.FullGrantNumber))
-                                {
-                                    @Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)
-                                }
-                                else
-                                {
-                                    @grant.FullGrantNumber
-                                }
-                            </b>
-                            @if (Convert.ToString(grant.former_grant_num) != string.Empty)
+                            <!-- Robin - Comment in this code to get the current year grant year for appl views -->
+                            @if (string.IsNullOrEmpty(grant.FullGrantNumber))
                             {
-                                <b>Formerly: @grant.former_grant_num</b>
-                            }
-                        </div>
-                        <!--start search bar-->
-                        <div class="col-md-5" id="search_bar_@grant.grant_id" class="float-right" style="display: inline;">
-
-                            <a class="btn btn-default" style="background-color: #808080; color: white" id="all_appl" href="javascript:getByAll(@grant.grant_id)" title="View Categories and Grant Years for @grant.grant_num">All</a>
-
-                            <label style="font-size: medium; margin-left: 10px;">
-                                <strong># of Grant Years</strong>
-                            </label>
-                            <input type="text" id="txtYears_@grant.grant_id" name="years_@grant.grant_id" class="form-control" style="display: inline; height: 35px; width: 50px;" placeholder="Yrs" onkeyup="return checkYears(event, @Convert.ToInt32(grant.grant_id))" /> @*onkeyup="if (event.keyCode == 13) return checkYears(@Convert.ToInt32(grant.grant_id))"*@
-
-                            @if (ViewBag.SelectedCats != string.Empty && ViewBag.SelectedCats != null)
-                            {
-                                <a href="Javascript:show_cats_zone(@grant.grant_id)">
-                                    <img height="34" src="~/Content/images/filter_selected.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
-                                </a>
+                                @Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)
                             }
                             else
                             {
-                                <a href="Javascript:show_cats_zone(@grant.grant_id)">
-                                    <img height="40" src="~/Content/images/filter.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
-                                </a>
+                                @grant.FullGrantNumber
                             }
+                        </b>
+                        @if (Convert.ToString(grant.former_grant_num) != string.Empty)
+                        {
+                            <b>Formerly: @grant.former_grant_num</b>
+                        }
+                    </div>
+                    <!--start search bar-->
+                    <div class="col-md-5" id="search_bar_@grant.grant_id" class="float-right" style="display: inline;">
 
-                            <button type="button" class="btn btn-default" onclick="return getBySelected(@Convert.ToInt32(grant.grant_id))" title="View Selected Years and Categories for @grant.grant_num">
-                                <img src="~/Content/images/searchicon.png" width="22" height="22" />
-                            </button>
+                        <a class="btn btn-default" style="background-color: #808080; color: white" id="all_appl" href="javascript:getByAll(@grant.grant_id)" title="View Categories and Grant Years for @grant.grant_num">All</a>
+
+                        <label style="font-size: medium; margin-left: 10px;">
+                            <strong># of Grant Years</strong>
+                        </label>
+                        <input type="text" id="txtYears_@grant.grant_id" name="years_@grant.grant_id" class="form-control" style="display: inline; height: 35px; width: 50px;" placeholder="Yrs" onkeyup="return checkYears(event, @Convert.ToInt32(grant.grant_id))" /> @*onkeyup="if (event.keyCode == 13) return checkYears(@Convert.ToInt32(grant.grant_id))"*@
+
+                        @if (ViewBag.SelectedCats != string.Empty && ViewBag.SelectedCats != null)
+                        {
+                            <a href="Javascript:show_cats_zone(@grant.grant_id)">
+                                <img height="34" src="~/Content/images/filter_selected.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="Javascript:show_cats_zone(@grant.grant_id)">
+                                <img height="40" src="~/Content/images/filter.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
+                            </a>
+                        }
+
+                        <button type="button" class="btn btn-default" onclick="return getBySelected(@Convert.ToInt32(grant.grant_id))" title="View Selected Years and Categories for @grant.grant_num">
+                            <img src="~/Content/images/searchicon.png" width="22" height="22" />
+                        </button>
+                    </div>
+                </div>
+
+
+                <!--padding:10px 5px 10px 20px-->
+                <!--end search bar-->
+                <!--start show category zone-->
+                <div id="cats_zone_@grant.grant_id" class="cats_zone" style="border-bottom: groove; border-color: darkgrey; border-top: groove; display: none; float: left; min-height: 50px; width: 900px;">
+                    <input type="checkbox" id="all_cats_@grant.grant_id" onClick="JavaScript:select_all_cats_zone(@grant.grant_id);" /><b>Select All</b><br />
+                    <div id="catlist_@Convert.ToString(grant.grant_id)" style="display: inline; float: left; width: 900px;">
+                        <div class="row">
+                            <div class="col-sm" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                            <div class="col-sm" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
+                            <div class="col-sm" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
                         </div>
                     </div>
+                </div>
+                <!--end show category zone-->
 
-
-                    <!--padding:10px 5px 10px 20px-->
-                    <!--end search bar-->
-                    <!--start show category zone-->
-                    <div id="cats_zone_@grant.grant_id" class="cats_zone" style="border-bottom: groove; border-color: darkgrey; border-top: groove; display: none; float: left; min-height: 50px; width: 900px;">
-                        <input type="checkbox" id="all_cats_@grant.grant_id" onClick="JavaScript:select_all_cats_zone(@grant.grant_id);" /><b>Select All</b><br />
-                        <div id="catlist_@Convert.ToString(grant.grant_id)" style="display: inline; float: left; width: 900px;">
-                            <div class="row">
-                                <div class="col-sm" id="cats_zone_column_1_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                                <div class="col-sm" id="cats_zone_column_2_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                                <div class="col-sm" id="cats_zone_column_3_@Convert.ToString(grant.grant_id)" style="display: inline"></div>
-                            </div>
+                <div id="grant_zone_@grant.grant_id" style="border-bottom: groove; border-color: darkgrey; display: inline-block; float: left; width: 900px;">
+                    <!--start grant infor-->
+                    <div id="grant info_@grant.grant_id" class=" p-1" style="display: inline; float: left;">
+                        @*<div id="PT infor" style="display: inline">*@
+                        <div id="grantbar1" style="float: left">
+                            <b>
+                                <span class="p-1">Project Title:</span>
+                            </b>
                         </div>
-                    </div>
-                    <!--end show category zone-->
+                        <div id="grantbar2" style="width: 500px;">
+                            @if (!string.IsNullOrEmpty(grant.SelectedProjectName))
+                            {
+                                <span class="p-0">
+                                    @grant.SelectedProjectName.ToUpper()
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="p-0">
+                                    @grant.project_title.ToUpper()
+                                </span>
+                            }
+                        </div>
+                        @*</div>*@
+                        <br />
+                        @*<div id="PI infor" style="display: inline">*@
+                        <div id="grantbar1" style="float: left">
+                            <b>
+                                <span class="p-1">PI:</span>
+                            </b>
+                        </div>
+                        <div id="grantbar2" style="width: 500px;">
 
-                    <div id="grant_zone_@grant.grant_id" style="border-bottom: groove; border-color: darkgrey; display: inline-block; float: left; width: 900px;">
-                        <!--start grant infor-->
-                        <div id="grant info_@grant.grant_id" class=" p-1" style="display: inline; float: left;">
-                            @*<div id="PT infor" style="display: inline">*@
-                            <div id="grantbar1" style="float: left">
-                                <b>
-                                    <span class="p-1">Project Title:</span>
-                                </b>
-                            </div>
-                            <div id="grantbar2" style="width: 500px;">
-                                @if (!string.IsNullOrEmpty(grant.SelectedProjectName))
+                            @if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && !string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
+                            {
+                                // add the current_bo email to the email
+                                if (!string.IsNullOrEmpty(grant.current_bo_email_address))
+                                {
+                                    pi_email = grant.current_pi_email_address + ";" + grant.current_bo_email_address;
+                                }
+                                else
+                                {
+                                    pi_email = grant.current_pi_email_address;
+                                }
+
+                                if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper())
                                 {
                                     <span class="p-0">
-                                        @grant.SelectedProjectName.ToUpper()
+                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="p-0">
-                                        @grant.project_title.ToUpper()
-                                    </span>
-                                }
-                            </div>
-                            @*</div>*@
-                            <br />
-                            @*<div id="PI infor" style="display: inline">*@
-                            <div id="grantbar1" style="float: left">
-                                <b>
-                                    <span class="p-1">PI:</span>
-                                </b>
-                            </div>
-                            <div id="grantbar2" style="width: 500px;">
-
-                                @if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && !string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
-                                {
-                                    // add the current_bo email to the email
-                                    if (!string.IsNullOrEmpty(grant.current_bo_email_address))
-                                    {
-                                        pi_email = grant.current_pi_email_address + ";" + grant.current_bo_email_address;
-                                    }
-                                    else
-                                    {
-                                        pi_email = grant.current_pi_email_address;
-                                    }
-
-                                    if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper())
-                                    {
-                                        <span class="p-0">
-                                            <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="p-0">@grant.SelectedGrantPiName.ToUpper()</span>
-                                    }
-                                }
-                                else if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
-                                {
                                     <span class="p-0">@grant.SelectedGrantPiName.ToUpper()</span>
                                 }
-                                else if (!string.IsNullOrEmpty(grant.current_pi_name) && !string.IsNullOrEmpty(grant.current_pi_email_address))
+                            }
+                            else if (!string.IsNullOrEmpty(grant.SelectedGrantPiName) && string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
+                            {
+                                <span class="p-0">@grant.SelectedGrantPiName.ToUpper()</span>
+                            }
+                            else if (!string.IsNullOrEmpty(grant.current_pi_name) && !string.IsNullOrEmpty(grant.current_pi_email_address))
+                            {
+                                if (grant.current_bo_email_address != string.Empty)
                                 {
-                                    if (grant.current_bo_email_address != string.Empty)
-                                    {
-                                        pi_email = grant.current_pi_email_address + ";" + grant.current_bo_email_address;
-                                    }
-                                    else
-                                    {
-                                        pi_email = grant.current_pi_email_address;
-                                    }
-
-                                    if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper() || string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
-                                    {
-                                        <span class="p-0">
-                                            <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name.ToUpper()</a>
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="p-0">@grant.current_pi_name.ToUpper()</span>
-                                    }
+                                    pi_email = grant.current_pi_email_address + ";" + grant.current_bo_email_address;
                                 }
-                                else if (!string.IsNullOrEmpty(grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address))
+                                else
+                                {
+                                    pi_email = grant.current_pi_email_address;
+                                }
+
+                                if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper() || string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
+                                {
+                                    <span class="p-0">
+                                        <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name.ToUpper()</a>
+                                    </span>
+                                }
+                                else
                                 {
                                     <span class="p-0">@grant.current_pi_name.ToUpper()</span>
                                 }
+                            }
+                            else if (!string.IsNullOrEmpty(grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address))
+                            {
+                                <span class="p-0">@grant.current_pi_name.ToUpper()</span>
+                            }
 
-                                @if (!string.IsNullOrEmpty(grant.SelectedOrganizationName))
-                                {
-                                    <span class="pl-2">
-                                        @grant.SelectedOrganizationName.ToUpper()
-                                    </span>
-                                }
-                                else if (grant.org_name != string.Empty)
-                                {
-                                    <span class="pl-2"> @grant.org_name.ToUpper()</span>
-                                }
-                            </div>
-                            @*</div>*@
-
-                            <br />
-                            @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) || !string.IsNullOrWhiteSpace(grant.current_pd_email_address) || !string.IsNullOrWhiteSpace(grant.prog_class_code))
-                            {
-                                <div id="PD infor" style="display: inline">
-                                    <div id="grantbar1" class="float-left">
-                                        @if (!string.IsNullOrWhiteSpace(grant.current_pd_name))
-                                        {
-                                            <span class="p-1">
-                                                <b>Program Director:</b>
-                                            </span>
-                                        }
-                                    </div>
-                                    <div id="grantbar2" style="width: 500px;">
-                                        @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && !string.IsNullOrWhiteSpace(grant.current_pd_email_address))
-                                        {
-                                            <span class="p-0">
-                                                <a href="JavaScript:send_email('@grant.current_pd_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pd_name">@grant.current_pd_name.ToUpper() </a>
-                                            </span>
-                                            <b>
-                                                <span class="pl-2">Code:</span>
-                                            </b>
-                                            @grant.prog_class_code
-                                        }
-                                        else if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && string.IsNullOrWhiteSpace(grant.current_pd_email_address))
-                                        {
-                                            @grant.current_pd_name.ToUpper()
-                                            <b>
-                                                <span class="pl-2">Code:</span>
-                                            </b>
-                                            @grant.prog_class_code.ToUpper()
-                                        }
-                                    </div>
-                                </div>
-                                <br />
-                            }
-                            @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) || !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
-                            {
-                                <div id="SPEC infor" style="display: inline">
-                                    <div id="grantbar1" class="float-left">
-                                        <span class="p-1">
-                                            <b> Specialist:</b>
-                                        </span>
-                                    </div>
-                                    <div id="grantbar2" style="width: 500px;">
-                                        @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
-                                        {
-                                            <span class="p-0">
-                                                <a href="JavaScript:send_email('@grant.current_spec_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_spec_name">@grant.current_spec_name.ToUpper()</a>
-                                            </span>
-                                        }
-                                        else if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && string.IsNullOrWhiteSpace(grant.current_spec_email_address))
-                                        {
-                                            <span class="p-0">
-                                                @grant.current_spec_name.ToUpper()
-                                            </span>
-                                        }
-                                    </div>
-                                </div>
-                                <br />
-                            }
-                            @if (ViewBag.GrantID == null && ViewBag.appllayer_All != null)
-                            {
-                                <div id="Year info" style="display: inline">
-                                    <div id="grantbar1" class="float-left">
-                                        <span class="p-1">
-                                            <b>Years:</b>
-                                        </span>
-                                    </div>
-                                    <div id="grantbar2" style="width: 500px;">
-                                        <span class="pl-0"> @Html.Partial("~/Egrants/Views/_egrants_showApplsList.cshtml", grant_id)</span>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                        <!--end grant zone-->
-                        <!--start show flag zone-->
-                        <div id="flag_infor_@grant_id" style="display: inline; float: right; height: 80px; width: 250px;">
-                            <!--show adm supplement requests-->
-                            @if (Convert.ToInt16(grant.adm_supp) > 0)
+                            @if (!string.IsNullOrEmpty(grant.SelectedOrganizationName))
                             {
                                 <span class="pl-2">
-                                    <a href="Javascript:show_supplement('@grant.grant_id','to_view')">
-                                        <b style="vertical-align: bottom;" title="View Supplement Files">Supplement</b>
+                                    @grant.SelectedOrganizationName.ToUpper()
+                                </span>
+                            }
+                            else if (grant.org_name != string.Empty)
+                            {
+                                <span class="pl-2"> @grant.org_name.ToUpper()</span>
+                            }
+                        </div>
+                        @*</div>*@
+
+                        <br />
+                        @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) || !string.IsNullOrWhiteSpace(grant.current_pd_email_address) || !string.IsNullOrWhiteSpace(grant.prog_class_code))
+                        {
+                            <div id="PD infor" style="display: inline">
+                                <div id="grantbar1" class="float-left">
+                                    @if (!string.IsNullOrWhiteSpace(grant.current_pd_name))
+                                    {
+                                        <span class="p-1">
+                                            <b>Program Director:</b>
+                                        </span>
+                                    }
+                                </div>
+                                <div id="grantbar2" style="width: 500px;">
+                                    @if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && !string.IsNullOrWhiteSpace(grant.current_pd_email_address))
+                                    {
+                                        <span class="p-0">
+                                            <a href="JavaScript:send_email('@grant.current_pd_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pd_name">@grant.current_pd_name.ToUpper() </a>
+                                        </span>
+                                        <b>
+                                            <span class="pl-2">Code:</span>
+                                        </b>
+                                        @grant.prog_class_code
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(grant.current_pd_name) && string.IsNullOrWhiteSpace(grant.current_pd_email_address))
+                                    {
+                                        @grant.current_pd_name.ToUpper()
+                                        <b>
+                                            <span class="pl-2">Code:</span>
+                                        </b>
+                                        @grant.prog_class_code.ToUpper()
+                                    }
+                                </div>
+                            </div>
+                            <br />
+                        }
+                        @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) || !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
+                        {
+                            <div id="SPEC infor" style="display: inline">
+                                <div id="grantbar1" class="float-left">
+                                    <span class="p-1">
+                                        <b> Specialist:</b>
+                                    </span>
+                                </div>
+                                <div id="grantbar2" style="width: 500px;">
+                                    @if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && !string.IsNullOrWhiteSpace(grant.current_spec_email_address))
+                                    {
+                                        <span class="p-0">
+                                            <a href="JavaScript:send_email('@grant.current_spec_email_address','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_spec_name">@grant.current_spec_name.ToUpper()</a>
+                                        </span>
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(grant.current_spec_name) && string.IsNullOrWhiteSpace(grant.current_spec_email_address))
+                                    {
+                                        <span class="p-0">
+                                            @grant.current_spec_name.ToUpper()
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                            <br />
+                        }
+                        @if (ViewBag.GrantID == null && ViewBag.appllayer_All != null)
+                        {
+                            <div id="Year info" style="display: inline">
+                                <div id="grantbar1" class="float-left">
+                                    <span class="p-1">
+                                        <b>Years:</b>
+                                    </span>
+                                </div>
+                                <div id="grantbar2" style="width: 500px;">
+                                    <span class="pl-0"> @Html.Partial("~/Egrants/Views/_egrants_showApplsList.cshtml", grant_id)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <!--end grant zone-->
+                    <!--start show flag zone-->
+                    <div id="flag_infor_@grant_id" style="display: inline; float: right; height: 80px; width: 250px;">
+                        <!--show adm supplement requests-->
+                        @if (Convert.ToInt16(grant.adm_supp) > 0)
+                        {
+                            <span class="pl-2">
+                                <a href="Javascript:show_supplement('@grant.grant_id','to_view')">
+                                    <b style="vertical-align: bottom;" title="View Supplement Files">Supplement</b>
+                                </a>
+                            </span>
+                            <br />
+                        }
+                        <!--show grant flags-->
+                        <div id="flag_zone_@grant_id" style="display: inline; float: right; height: 80px; width: 250px;">
+                            @if (Convert.ToString(grant.ds_flag) == "y")
+                            {
+                                <span class="pl-2">
+                                    <a href="JavaScript:show_grant_with_flag('DS', @Convert.ToInt32(grant.grant_id))">
+                                        <img src="~/Content/images/flag_ds.jpg" style="height: 16px; margin-left: 5px" title="View Diversity Supplement Funded Grant for @grant.grant_num" />
                                     </a>
                                 </span>
-                                <br />
                             }
-                            <!--show grant flags-->
-                            <div id="flag_zone_@grant_id" style="display: inline; float: right; height: 80px; width: 250px;">
-                                @if (Convert.ToString(grant.ds_flag) == "y")
+
+                            @if (Convert.ToString(grant.ms_flag) == "y")
+                            {
+                                <span class="pl-2">
+                                    <a href="JavaScript:show_grant_with_flag('MS', @Convert.ToInt32(grant.grant_id))">
+                                        <img src="~/Content/images/flag_ms.jpg" style="height: 16px; margin-left: 5px" title="View Moonshot Funded Grant for @grant.grant_num" />
+                                    </a>
+                                </span>
+                            }
+
+                            @if (Convert.ToString(grant.od_flag) == "y")
+                            {
+                                <span class="pl-2">
+                                    <a href="JavaScript:show_grant_with_flag('OD', @Convert.ToInt32(grant.grant_id))">
+                                        <img src="~/Content/images/flag_od.jpg" style="height: 18px; margin-left: 5px" title="View OD Funded Grant for @grant.grant_num" />
+                                    </a>
+                                </span>
+                            }
+
+                            @{
+                                var displayMpiFlag = true;
+                                if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
                                 {
-                                    <span class="pl-2">
-                                        <a href="JavaScript:show_grant_with_flag('DS', @Convert.ToInt32(grant.grant_id))">
-                                            <img src="~/Content/images/flag_ds.jpg" style="height: 16px; margin-left: 5px" title="View Diversity Supplement Funded Grant for @grant.grant_num" />
-                                        </a>
-                                    </span>
+                                    displayMpiFlag = false;
                                 }
-
-                                @if (Convert.ToString(grant.ms_flag) == "y")
+                                else if (ViewBag.ApplID != null)
                                 {
-                                    <span class="pl-2">
-                                        <a href="JavaScript:show_grant_with_flag('MS', @Convert.ToInt32(grant.grant_id))">
-                                            <img src="~/Content/images/flag_ms.jpg" style="height: 16px; margin-left: 5px" title="View Moonshot Funded Grant for @grant.grant_num" />
-                                        </a>
-                                    </span>
-                                }
-
-                                @if (Convert.ToString(grant.od_flag) == "y")
-                                {
-                                    <span class="pl-2">
-                                        <a href="JavaScript:show_grant_with_flag('OD', @Convert.ToInt32(grant.grant_id))">
-                                            <img src="~/Content/images/flag_od.jpg" style="height: 18px; margin-left: 5px" title="View OD Funded Grant for @grant.grant_num" />
-                                        </a>
-                                    </span>
-                                }
-
-                                @{
-                                    var displayMpiFlag = true;
-                                    if (grant.MPIContacts == null || grant.MPIContacts.Count == 0)
+                                    // this is appl specific, so hide MPI flag if this appl is not MPI
+                                    displayMpiFlag = false;
+                                    if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
                                     {
-                                        displayMpiFlag = false;
-                                    }
-                                    else if (ViewBag.ApplID != null)
-                                    {
-                                        // this is appl specific, so hide MPI flag if this appl is not MPI
-                                        displayMpiFlag = false;
-                                        if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
-                                        {
-                                            var thisPagesApplID = (int)ViewBag.ApplID;
-                                            var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                            var theAppl = appls.Where(a => a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
-                                            if (theAppl != null && theAppl.Count > 0 && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
-                                            {
-                                                displayMpiFlag = true;
-                                            }
-                                        }
-                                    }
-                                    else if (ViewBag.SelectedAppls != null)
-                                    {
-                                        // it's in ViewBag.SelectedAppls
-                                        displayMpiFlag = false;
-
-                                        var appls_from_vb = (string)ViewBag.SelectedAppls;
+                                        var thisPagesApplID = (int)ViewBag.ApplID;
                                         var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                        var appl_ids = appls_from_vb.Split(',');
-                                        var theAppls = appls;
-                                        if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
-                                        {
-                                            // if there's only ONE then selectively display the MPI based on if that ONE appl has MPI
-                                            theAppls = appls.Where(a => appl_ids.Contains(a.appl_id.ToString())).ToList();
-                                        }
-
-                                        if (theAppls.Any(ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
+                                        var theAppl = appls.Where(a => a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
+                                        if (theAppl != null && theAppl.Count > 0 && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
                                         {
                                             displayMpiFlag = true;
                                         }
                                     }
-                                    else
+                                }
+                                else if (ViewBag.SelectedAppls != null)
+                                {
+                                    // it's in ViewBag.SelectedAppls
+                                    displayMpiFlag = false;
+
+                                    var appls_from_vb = (string)ViewBag.SelectedAppls;
+                                    var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                    var appl_ids = appls_from_vb.Split(',');
+                                    var theAppls = appls;
+                                    if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
                                     {
-                                        // grant search and grant MPI info is populated
-                                        displayMpiFlag = false;
-                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
-                                        var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
-                                        if (theAppls.Any(apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
-                                        {
-                                            displayMpiFlag = true;
-                                        }
+                                        // if there's only ONE then selectively display the MPI based on if that ONE appl has MPI
+                                        theAppls = appls.Where(a => appl_ids.Contains(a.appl_id.ToString())).ToList();
                                     }
 
+                                    if (theAppls.Any(ap => ap.MPIContacts != null && ap.MPIContacts.Count() > 1))
+                                    {
+                                        displayMpiFlag = true;
+                                    }
+                                }
+                                else
+                                {
+                                    // grant search and grant MPI info is populated
+                                    displayMpiFlag = false;
+                                    var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                    var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
+                                    if (theAppls.Any(apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
+                                    {
+                                        displayMpiFlag = true;
+                                    }
                                 }
 
-                                @if (displayMpiFlag)
-                                {
-                                    string grantLinkId = "grantLink" + grant.grant_id;
-                                    string imgLinkId = "imgLink" + grant.grant_id;
-                                    <span class="pl-2">
-                                        <a id="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))">
-                                            <img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height: 16px;" title="Has Multi-PI Grant Year(s)" />
-                                        </a>
-                                    </span>
-                                }
+                            }
 
-                                @if (Convert.ToString(grant.fda_flag) == "y")
-                                {
-                                    <span class="pl-2">
-                                        <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))">
-                                            <img src="~/Content/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num" />
-                                        </a>
-                                    </span>
-                                }
+                            @if (displayMpiFlag)
+                            {
+                                string grantLinkId = "grantLink" + grant.grant_id;
+                                string imgLinkId = "imgLink" + grant.grant_id;
+                                <span class="pl-2">
+                                    <a id="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))">
+                                        <img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height: 16px;" title="Has Multi-PI Grant Year(s)" />
+                                    </a>
+                                </span>
+                            }
 
-                                @if (Convert.ToString(grant.stop_flag) == "y")
-                                {
-                                    <span class="pl-2">
-                                        <a href="#" class="NormalModal" data-toggle="modal" data-target="#NormalModal" data-id="stop" data-assigned-id="@grant.grant_id" title="View Stop Notice for @grant.grant_num">
-                                            <img src="~/Content/images/flag_stp.png" style="height: 18px; margin-left: 15px" />
-                                        </a>
-                                    </span>
-                                }
+                            @if (Convert.ToString(grant.fda_flag) == "y")
+                            {
+                                <span class="pl-2">
+                                    <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))">
+                                        <img src="~/Content/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num" />
+                                    </a>
+                                </span>
+                            }
+
+                            @if (Convert.ToString(grant.stop_flag) == "y")
+                            {
+                                <span class="pl-2">
+                                    <a href="#" class="NormalModal" data-toggle="modal" data-target="#NormalModal" data-id="stop" data-assigned-id="@grant.grant_id" title="View Stop Notice for @grant.grant_num">
+                                        <img src="~/Content/images/flag_stp.png" style="height: 18px; margin-left: 15px" />
+                                    </a>
+                                </span>
+                            }
 
                                 @if (grant.sv_url != string.Empty)
                                 {
@@ -1039,31 +937,37 @@
                                         </a>
                                     </span>
                                 }
-                            </div>
-                            <!--end grant flags-->
                         </div>
-                        <!--end flag zone-->
+                        <!--end grant flags-->
                     </div>
-                    <!--end grant zone-->
-                    @*<div style="float:left; padding-bottom:15px; padding-top:15px;"></div>*@
-                    <!--show appls with documents-->
-                    @*@if (ViewBag.GrantID != null || ViewBag.ApplID != null || ViewBag.SearchStyle == "by_qc" || (ViewBag.SearchStyle == "by_page" && ViewBag.Str == "qc")){*@
-                    @*<div id="standardForm">*@
-
-                        @*// if(CurrentDownloadValue == "Standard")*@
-                        @*<b>@grant_id</b>*@
-                        <div id="standardForm">
-                            <div style="float: left; padding-top: 15px;">
-                                @Html.Partial("~/Egrants/Views/_egrants_showAppl.cshtml", grant_id)
-                            </div>
-                        </div>
-                        @*<div hidden id="downloadForm">
-                            <div style="float: left; padding-top: 15px;">
-                                @Html.Partial("~/Egrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
-                            </div>
-                        </div>
-                    }*@
+                    <!--end flag zone-->
                 </div>
+                <!--end grant zone-->
+                @*<div style="float:left; padding-bottom:15px; padding-top:15px;"></div>*@
+                <!--show appls with documents-->
+                @*@if (ViewBag.GrantID != null || ViewBag.ApplID != null || ViewBag.SearchStyle == "by_qc" || (ViewBag.SearchStyle == "by_page" && ViewBag.Str == "qc")){*@
+                @*<div id="standardForm">*@
+                @*// if(CurrentDownloadValue == "Standard")*@
+                @*<b>@grant_id</b>*@
+
+                @if (Context.Request.Cookies["auditMode"] != null && Context.Request.Cookies["auditMode"].Value == "DownloadForm")
+                {
+                    <div id="downloadForm">
+                        <div style="float: left; padding-top: 15px;">
+                            @Html.Partial("~/Egrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div id="standardForm">
+                        <div style="float: left; padding-top: 15px;">
+                            @Html.Partial("~/Egrants/Views/_egrants_showAppl.cshtml", grant_id)
+                        </div>
+                    </div>
+                }
+
+            </div>
                 <!--end grant zone-->
                 <!--end appl with documents-->
             }
