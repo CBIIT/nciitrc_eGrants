@@ -62,6 +62,13 @@
             }
         }
 
+        function eGrantLogoClicked() {
+            console.log("in Downloadform");
+            currentView = "StandardForm";
+            displayDownloadOrAuditForms();
+            window.location.href = "/";
+        }
+
         function auditFileDownloadMenuClicked() {
             toggle_download_forms();
             window.location.href = "/";
@@ -247,19 +254,9 @@
 <div class="row">
     <div class="col-lg-2" id="logo">
         <a title="Skip Header" href="#skip header">Skip Repetitive Navigation Links</a>
-        @if (@Convert.ToInt16(Session["position_id"]) >= 2)
-        {
-            <a onclick="auditFileDownloadMenuClicked();">
-                <img alt="alt tag" src="~/Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E" />
-            </a>
-            @*<a class="hard_link dropdown-item" target="_self"  title="Audit File Download">Audit File Download</a>*@
-        }
-        else
-        {
-            <a href="@Url.Action("Index", "Egrants")">
-                <img alt="alt tag" src="~/Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E" />
-            </a>
-        }
+        <a onclick="eGrantLogoClicked();">
+            <img alt="alt tag" src="~/Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E" />
+        </a>
     </div>
     <div class="col-lg-10" id="loginas">
         <p>Logged in as:@Session["UserName"]</p>
@@ -310,6 +307,10 @@
                             Resources
                         </a>
                         <div class="dropdown-menu shadow p-3 mb-5 bg-white rounded" aria-labelledby="navLink1">
+                            @if (@Convert.ToInt16(Session["position_id"]) >= 2)
+                            {
+                                <a class="hard_link dropdown-item" target="_self" onclick="auditFileDownloadMenuClicked();" title="Audit File Download">Audit File Download</a>
+                            }
                             <a class="dropdown-item" target="_new" href="~/Content/eGrants Category Glossary.docx" title="eGrants Glossary">eGrants Glossary</a>
                             <a class="dropdown-item" target="_new" href="~/Content/access_number2.pdf" title="Accession">Accession</a>
                             <a class="dropdown-item" target="_self" href="~/EgrantsFunding/funding_index" title="Funding Files">Funding Files</a>
