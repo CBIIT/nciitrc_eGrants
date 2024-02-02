@@ -63,34 +63,17 @@
         }
 
         function eGrantLogoClicked() {
-            console.log("in Downloadform");
+            console.log("going to Grant Year");
             currentView = "StandardForm";
             displayDownloadOrAuditForms();
             window.location.href = "/";
         }
 
         function auditFileDownloadMenuClicked() {
-            toggle_download_forms();
+            console.log("going to Grant Year");
+            currentView = "DownloadForm";
+            displayDownloadOrAuditForms();
             window.location.href = "/";
-        }
-
-        // show or hide search form
-        function toggle_download_forms() {
-
-            console.log("Check Toggle");
-
-            if (currentView == "StandardForm") {
-                console.log("in Standardform");
-                currentView = "DownloadForm";
-                displayDownloadOrAuditForms();
-            } else if (currentView == "DownloadForm") {
-                console.log("in Downloadform");
-                currentView = "StandardForm";
-                displayDownloadOrAuditForms();
-            }
-
-            // need to re-render the razor that displays regular or audit file download
-            location.reload();
         }
 
         function displayDownloadOrAuditForms() {
