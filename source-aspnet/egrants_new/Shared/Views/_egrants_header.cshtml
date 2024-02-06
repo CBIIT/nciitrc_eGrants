@@ -1,8 +1,10 @@
 ﻿@using egrants_new.Models;
 
 @{
-   Layout = null;
+    Layout = null;
 
+    string browserTimeout = "5000";   // 15 minutes
+    //string browserTimeout = "900000";   // 15 minutes
 }
 
 <!DOCTYPE html>
@@ -46,7 +48,13 @@
             }
 
             updateAuditOrGrantYearModeFromCookie();
+
+            setTimeout(function () { display_popup();}, @browserTimeout);
         });
+
+        function display_popup() {
+     //       $("#timeoutModalId").modal('show');
+        }
 
         function toggleleftpanel() {
             if (QuickLink.style.display === "none") {
@@ -120,7 +128,7 @@
                     return c.substring(name.length, c.length);
                 }
             }
-            
+
             return "";
         }
 
@@ -358,10 +366,18 @@
             </ul>
         }
     </div>
- 
+
     <div class="col-lg-9" id="mainbody">
-        <br/>@RenderBody()
+        <br />@RenderBody()
     </div><!--end container body-content-->
+
+    <div>
+        @Html.Partial("~/Shared/Views/_egrants_showModalTimeoutDialog.cshtml")
+    </div>
+    <div>
+        @Html.Partial("~/Shared/Views/_egrants_showModalTimedoutDialog.cshtml")
+    </div>
+
 </div>
 
 </body>

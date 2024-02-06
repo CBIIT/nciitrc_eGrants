@@ -1,0 +1,68 @@
+﻿@using egrants_new.Egrants.Models;
+@{
+    ViewBag.Title = "eGrants [Show Popup Timeout Modal]";
+}
+
+<style>
+    .modal {
+        text-align: center;
+        padding: 0 !important;
+    }
+
+    #NormalModal .modal-dialog {
+        width: 600px !important;
+        height: 300px !important;
+    }
+
+    #NormalModal .modal-content {
+        width: 600px !important;
+        height: 300px !important;
+    }
+
+    #MediumModal .modal-dialog {
+        width: 700px !important;
+        height: 500px !important;
+    }
+
+    #MediumModal .modal-content {
+        width: 700px !important;
+        height: 500px !important;
+    }
+</style>
+
+
+
+<div class="modal fade" id="timeoutModalId" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @*onclick="cancelGrantYearNameRename(@appl.appl_id)"*@>
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <div style="float:left">
+                    <h3>Inactivity timeout warning</h3>
+                </div>
+                <br />
+                <div>Warning: You will be logged off in 15:00 due to inactivity.</div>
+                <div>Click Continue to extend the session.</div>
+                        
+                @*<div style="margin-bottom: 20px; margin: auto; width: 378px">
+                    <div style="float:left">
+                        <input id="@newGrantYearNameId" class="form-rename-control my-1 mr-sm-2" type="text" placeholder="Request Name" style="margin-right:10px;width:200px" value="@appl.label" maxlength="10" />
+                        <br /><span class="small m-1 text-muted" id="charStatus" style="text-align:left;float:left">(10 char max)</span>
+                    </div>
+                    <div style="float:left;margin-top:5px">
+                        <button class="btn btn-primary btn-sm eGrantsDocBtn" style="width:80px" onclick="updateGrantYearName(document.getElementById('newGrantYearName' + @appl.appl_id).value, @appl.appl_id)">Save</button>
+                        <button id="@deleteGrantYearNameId" class="btn btn-primary btn-sm eGrantsDocBtn" style="width:80px" onclick="updateGrantYearName('', @appl.appl_id)">Delete</button>
+                    </div>
+                </div>*@
+
+            </div>
+            <div class="modal-footer">
+                <div>Continue</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
