@@ -3,7 +3,8 @@
 @{
     Layout = null;
 
-    string browserTimeout = "5000";   // 15 minutes
+    string browserTimeout = "902000";   // "7200000" 2 * 60 * 60 * 1000
+    string whenToDisplayTimoutDialog = "900000";      // 15000 * 60 (900000)
     //string browserTimeout = "900000";   // 15 minutes
 }
 
@@ -26,6 +27,8 @@
         var QuickLinkType = [];
 
         var currentView = "StandardForm";
+        var remainingAutoLogoutMS = @browserTimeout;
+        var displayDialogAtRemainingTime = @whenToDisplayTimoutDialog;       // 15000 * 60
 
         $(document).ready(function() {
             //check Session["position_id"]
@@ -49,11 +52,40 @@
 
             updateAuditOrGrantYearModeFromCookie();
 
-            setTimeout(function () { display_popup();}, @browserTimeout);
+            setInterval(updateTimeout, 1000);
+            //setTimeout(function () { display_popup();}, @browserTimeout);
         });
 
-        function display_popup() {
-     //       $("#timeoutModalId").modal('show');
+        function timeoutExtended() {
+            remainingAutoLogoutMS = @browserTimeout;
+            $("#timeoutModalId").modal('hide');
+        }
+
+        function updateTimeout() {
+            var wasAboveWarning = remainingAutoLogoutMS > displayDialogAtRemainingTime;
+            if (remainingAutoLogoutMS >= 1000)
+                remainingAutoLogoutMS -= 1000;
+            var isAboveWarning = remainingAutoLogoutMS > displayDialogAtRemainingTime;
+            if (wasAboveWarning && !isAboveWarning)
+                $("#timeoutModalId").modal('show');
+            var seconds = remainingAutoLogoutMS / 1000;
+            var mins = 0;
+            while (seconds > 59) {
+                seconds -= 60;
+                mins += 1;
+            }
+            var secondsText = "" + seconds;
+            if (seconds <= 9)
+                secondsText = "0" + secondsText;
+            var minutesText = "" + mins;
+            if (mins <= 9)
+                minutesText = "0" + minutesText;
+            document.getElementById('timeout-mins').innerHTML = minutesText;
+            document.getElementById('timeout-secs').innerHTML = secondsText;
+            if (seconds == 0 && mins == 0) {
+                $("#timeoutModalId").modal('hide');
+                $("#timedoutModalId").modal('show');
+            }
         }
 
         function toggleleftpanel() {
