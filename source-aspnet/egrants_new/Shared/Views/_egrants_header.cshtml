@@ -62,28 +62,20 @@
             }
         }
 
-        function auditFileDownloadMenuClicked() {
-            toggle_download_forms();
+        console.log = function () { };     // MLH disable console log as requested by QA
+
+        function eGrantLogoClicked() {
+            console.log("going to Grant Year");
+            currentView = "StandardForm";
+            displayDownloadOrAuditForms();
             window.location.href = "/";
         }
 
-        // show or hide search form
-        function toggle_download_forms() {
-
-            console.log("Check Toggle");
-
-            if (currentView == "StandardForm") {
-                console.log("in Standardform");
-                currentView = "DownloadForm";
-                displayDownloadOrAuditForms();
-            } else if (currentView == "DownloadForm") {
-                console.log("in Downloadform");
-                currentView = "StandardForm";
-                displayDownloadOrAuditForms();
-            }
-
-            // need to re-render the razor that displays regular or audit file download
-            location.reload();
+        function auditFileDownloadMenuClicked() {
+            console.log("going to Grant Year");
+            currentView = "DownloadForm";
+            displayDownloadOrAuditForms();
+            window.location.href = "/";
         }
 
         function displayDownloadOrAuditForms() {
@@ -247,8 +239,8 @@
 <div class="row">
     <div class="col-lg-2" id="logo">
         <a title="Skip Header" href="#skip header">Skip Repetitive Navigation Links</a>
-        <a href="@Url.Action("Index", "Egrants")">
-            <img alt="alt tag" src="~/Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E"/>
+        <a onclick="eGrantLogoClicked();">
+            <img alt="alt tag" src="~/Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E" />
         </a>
     </div>
     <div class="col-lg-10" id="loginas">
