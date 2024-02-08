@@ -3,8 +3,17 @@
 @{
     Layout = null;
 
+    // dev mode
+    //string browserTimeout = "20 * 1000";   // "7200000" 2 * 60 * 60 * 1000     // 2 hours
+    //string whenToDisplayTimoutDialog = "10 * 1000";      // 15 minutes
+
+    // testing mode
     string browserTimeout = "20 * 60 * 1000";   // "7200000" 2 * 60 * 60 * 1000     // 2 hours
     string whenToDisplayTimoutDialog = "15 * 60 * 1000";      // 15 minutes
+
+    // prod mode
+    //string browserTimeout = "2 * 60 * 60 * 1000";   // "7200000" 2 * 60 * 60 * 1000     // 2 hours
+    //string whenToDisplayTimoutDialog = "15 * 60 * 1000";      // 15 minutes
 }
 
 <!DOCTYPE html>
@@ -69,14 +78,18 @@
 
         function timeoutExtended() {
             remainingAutoLogoutMS = @browserTimeout;
-            $("#timeoutModalId").modal('hide');
+            if ($('#timeoutModalId').is(':visible'))
+                $("#timeoutModalId").modal('hide');
+            if ($('#timedoutModalId').is(':visible'))
+                $("#timedoutModalId").modal('hide');
         }
 
         function updateTimeout() {
             if (remainingAutoLogoutMS >= 1000)
                 remainingAutoLogoutMS -= 1000;
             var dialogCurrentlyVisible = $('#timeoutModalId').is(':visible');
-            if ((remainingAutoLogoutMS < displayDialogAtRemainingTime) && !dialogCurrentlyVisible) {
+            var timedOutDialogCurrentlyVisible = $('#timedoutModalId').is(':visible');
+            if ((remainingAutoLogoutMS < displayDialogAtRemainingTime) && !dialogCurrentlyVisible && !timedOutDialogCurrentlyVisible) {
                 $("#timeoutModalId").modal('show');
             }
             var seconds = remainingAutoLogoutMS / 1000;
@@ -93,7 +106,8 @@
                 minutesText = "0" + minutesText;
             document.getElementById('timeout-mins').innerHTML = minutesText;
             document.getElementById('timeout-secs').innerHTML = secondsText;
-            if (seconds == 0 && mins == 0) {
+            
+            if (seconds == 0 && mins == 0 && !timedOutDialogCurrentlyVisible) {
                 $("#timeoutModalId").modal('hide');
                 $("#timedoutModalId").modal('show');
             }
