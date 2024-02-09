@@ -1,8 +1,11 @@
 ﻿@using egrants_new.Models;
 
 @{
-   Layout = null;
+    Layout = null;
 
+    // prod mode
+    string browserTimeout = "2 * 60 * 60 * 1000";   // "7200000" 2 * 60 * 60 * 1000     // 2 hours
+    string whenToDisplayTimoutDialog = "15 * 60 * 1000";      // 15 minutes
 }
 
 <!DOCTYPE html>
@@ -24,6 +27,10 @@
         var QuickLinkType = [];
 
         var currentView = "StandardForm";
+        var remainingAutoLogoutMS = @browserTimeout;
+        var displayDialogAtRemainingTime = @whenToDisplayTimoutDialog;       // 15000 * 60
+
+        //console.log = function () { };     // MLH disable console log as requested by QA
 
         $(document).ready(function() {
             //check Session["position_id"]
@@ -45,8 +52,58 @@
             } else QuickLink.style.display = "none";
             }
 
+            document.addEventListener('mousemove', keyAndMouseListener, false);
+            document.addEventListener('keypress', keyAndMouseListener, false);
+
             updateAuditOrGrantYearModeFromCookie();
+
+            setInterval(updateTimeout, 1000);
         });
+
+        var keyAndMouseListener = function () {
+            var dialogCurrentlyVisible = $('#timeoutModalId').is(':visible');
+            // if timed out dialog is up, just let it be hosed for AWOL user
+            if (!dialogCurrentlyVisible) {
+                remainingAutoLogoutMS = @browserTimeout;
+            }
+        };
+
+        function timeoutExtended() {
+            remainingAutoLogoutMS = @browserTimeout;
+            if ($('#timeoutModalId').is(':visible'))
+                $("#timeoutModalId").modal('hide');
+            if ($('#timedoutModalId').is(':visible'))
+                $("#timedoutModalId").modal('hide');
+        }
+
+        function updateTimeout() {
+            if (remainingAutoLogoutMS >= 1000)
+                remainingAutoLogoutMS -= 1000;
+            var dialogCurrentlyVisible = $('#timeoutModalId').is(':visible');
+            var timedOutDialogCurrentlyVisible = $('#timedoutModalId').is(':visible');
+            if ((remainingAutoLogoutMS < displayDialogAtRemainingTime) && !dialogCurrentlyVisible && !timedOutDialogCurrentlyVisible) {
+                $("#timeoutModalId").modal('show');
+            }
+            var seconds = remainingAutoLogoutMS / 1000;
+            var mins = 0;
+            while (seconds > 59) {
+                seconds -= 60;
+                mins += 1;
+            }
+            var secondsText = "" + seconds;
+            if (seconds <= 9)
+                secondsText = "0" + secondsText;
+            var minutesText = "" + mins;
+            if (mins <= 9)
+                minutesText = "0" + minutesText;
+            document.getElementById('timeout-mins').innerHTML = minutesText;
+            document.getElementById('timeout-secs').innerHTML = secondsText;
+            
+            if (seconds == 0 && mins == 0 && !timedOutDialogCurrentlyVisible) {
+                $("#timeoutModalId").modal('hide');
+                $("#timedoutModalId").modal('show');
+            }
+        }
 
         function toggleleftpanel() {
             if (QuickLink.style.display === "none") {
@@ -61,8 +118,6 @@
             //alert(sessionStorage.getItem("QuickLinks"));
             }
         }
-
-        console.log = function () { };     // MLH disable console log as requested by QA
 
         function eGrantLogoClicked() {
             console.log("going to Grant Year");
@@ -112,7 +167,7 @@
                     return c.substring(name.length, c.length);
                 }
             }
-            
+
             return "";
         }
 
@@ -350,10 +405,18 @@
             </ul>
         }
     </div>
- 
+
     <div class="col-lg-9" id="mainbody">
-        <br/>@RenderBody()
+        <br />@RenderBody()
     </div><!--end container body-content-->
+
+    <div>
+        @Html.Partial("~/Shared/Views/_egrants_showModalTimeoutDialog.cshtml")
+    </div>
+    <div>
+        @Html.Partial("~/Shared/Views/_egrants_showModalTimedoutDialog.cshtml")
+    </div>
+
 </div>
 
 </body>
