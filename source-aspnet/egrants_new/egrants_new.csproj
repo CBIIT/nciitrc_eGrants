@@ -3074,6 +3074,8 @@
     <Content Include="Egrants_Admin\Views\SupplementEmailTemplate.cshtml" />
     <Content Include="Egrants_Admin\Views\SupplementWorkflow.cshtml" />
     <None Include="Properties\PublishProfiles\Dev45.pubxml" />
+    <Content Include="Shared\Views\_egrants_showModalTimeoutDialog.cshtml" />
+    <Content Include="Shared\Views\_egrants_showModalTimedoutDialog.cshtml" />
     <None Include="Web.base.config" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
