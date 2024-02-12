@@ -360,14 +360,6 @@
                                         }
                                     }
 
-                                    @*if ($(this).hasClass('FFR')) {
-                                            var tr = $(this).parents('tr');
-                                            var row = table.row(tr);
-                                            if (!row.child.isShown()) {
-                                                getFfrReport(row, @appl_id);
-                                            }
-                                        }*@
-
                                     if ($(this).hasClass('CloseoutNotifications')) {
                                         var tr = $(this).closest('tr');
                                         var row = table.row(tr);
@@ -419,14 +411,6 @@
                                     getFinancialReport(row, @appl_id);
                                 }
                             }
-
-//                                if ($(this).hasClass('FFR')) {
-//                                    var tr = $(this).parents('tr');
-//                                    var row = table.row(tr);
-//                                    if (!row.child.isShown()) {
-//                                        getFfrReport(row, @appl_id);
-//                                    }
-//                                }
 
                             if ($(this).hasClass('CloseoutNotifications')) {
                                 var tr = $(this).closest('tr');
@@ -486,14 +470,6 @@
                         }
                     });
 
-                    //$("#ffrChildRowTable@appl_id tr").each(function() {
-                    //    console.log("Check all Children");
-                    //    if (!$(this).prop('disabled') && !$(this).prop('checked')) {
-                    //        isAllChecked = false;
-                    //        console.log("isAllChecked = false");
-                    //    }
-                    //});
-
                     $("#grantChildTable_@appl_id tr").each(function() {
                         console.log("Check all Children");
                         if (!$(this).prop('disabled') && !$(this).prop('checked')) {
@@ -501,14 +477,6 @@
                             console.log("isAllChecked = false");
                         }
                     });
-
-                    @*$("#attchmentsChildTable_@appl_id tr").each(function () {
-                            console.log("Check all Children");
-                            if (!$(this).prop('disabled') && !$(this).prop('checked')) {
-                                isAllChecked = false;
-                                console.log("isAllChecked = false");
-                            }
-                        });*@
 
                     // if all checkboxes are checked, check the header checkbox
                     if (isAllChecked) {
