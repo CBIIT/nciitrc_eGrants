@@ -200,7 +200,7 @@
                 url: '/Egrants/impac_docs_data',
                 data: JSON.stringify(dataToSend),
                 success: function(data) {
-                    console.log("Response Returned:" + JSON.stringify(data));
+                    //console.log("Response Returned:" + JSON.stringify(data));
                     console.log("going  in...");
                     row.child(formatFinancialReportChildRow(row.data(), data, appl_id)).show();
                 },
@@ -228,7 +228,7 @@
                 url: '/Egrants/impac_docs_data',
                 data: JSON.stringify(dataToSend),
                 success: function(data) {
-                    console.log("Response Returned:" + JSON.stringify(data));
+                    //console.log("Response Returned:" + JSON.stringify(data));
                     console.log("closeout going in....");
 
                     row.child(formatCloseoutNotificationChildRow(data, appl_id)).show();
@@ -257,7 +257,7 @@
                 url: '/Egrants/doc_attachments_data',
                 data: JSON.stringify(dataToSend),
                 success: function(data) {
-                    console.log("Response Returned:" + JSON.stringify(data));
+                    //console.log("Response Returned:" + JSON.stringify(data));
                     console.log("attachments going in....");
 
                     //  row.child(formatAttachmentsChildRow(data)).show();
@@ -524,7 +524,7 @@
         $.each($('#loadgridDownload_' + applId + ' input.showDownload'),
 		    function() {
                 var tr = outer_this.closest('tr');
-			    console.log(JSON.stringify(tr));
+			    //console.log(JSON.stringify(tr));
 
 			    var row = table.row(tr);
 			    var datvals;
@@ -667,7 +667,7 @@
 
 	    dataToSend.listOfUrl = list;
 
-	    console.log("Data To C# = " + JSON.stringify(list));
+	   // console.log("Data To C# = " + JSON.stringify(list));
 
 	    // post the data to the server
 	    $.ajax(
@@ -682,14 +682,14 @@
 			    timeout: 600000,
 			    success: function(data) {
 				    console.log("SUCCESS: ");
-				    console.log(JSON.stringify(data));
+				    //console.log(JSON.stringify(data));
 
 				    var countSuccess = 0;
 
 				    $.each($("#loadgridDownload_" + applId + " input.showDownload"),
 					    function() {
 						    var tr = outer_this.closest('tr');
-						    console.log(JSON.stringify(tr));
+						    //console.log(JSON.stringify(tr));
 
 						    var row = table.row(tr);
 						    // if the row is checked add the url of the link is the same as one found in the object,
@@ -710,7 +710,7 @@
 												    var trSvg = outer_this.find('[data-fa-i2svg]');
 												    console.log("Found: ");
 
-												    console.log(JSON.stringify(found));
+												    //console.log(JSON.stringify(found));
 												    console.log(found[0].Error);
 												    if (found[0].Error == null) {
 													    trSvg
@@ -746,7 +746,7 @@
 											    var trSvg = outer_this.find('[data-fa-i2svg]');
 											    console.log("Found: ");
 
-											    console.log(JSON.stringify(found));
+											    //console.log(JSON.stringify(found));
 											    console.log(found[0].Error);
 											    if (found[0].Error == null) {
 												    trSvg
@@ -779,7 +779,7 @@
 
 								    var rowData = row.data();
 
-								    console.log("RowData:" + JSON.stringify(rowData));
+								    //console.log("RowData:" + JSON.stringify(rowData));
 
 								    var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
 
@@ -787,7 +787,7 @@
 									    var trSvg = tr.find('[data-fa-i2svg]');
 									    console.log("Found: ");
 
-									    console.log(JSON.stringify(found));
+									    //console.log(JSON.stringify(found));
 									    // console.log(found[0].Error);
 									    if (found[0].Error == null) {
 										    trSvg
@@ -830,7 +830,7 @@
     function renderDetailsControl(data, type, full, meta) {
 	    if (full.frc_destroyed == 0) {
 		    if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-			    console.log("must be one or the other FFR or Financial Report :" + JSON.stringify(full));
+			    //console.log("must be one or the other FFR or Financial Report :" + JSON.stringify(full));
 
 			    return "<div id=\"dl_checkbox_" +
 				    full.document_id +
