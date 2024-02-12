@@ -186,7 +186,7 @@
                 success: function(data) {
                     console.log("Response Returned:" + JSON.stringify(data));
                     console.log("going  in...");
-                    row.child(formatFinancialReportChildRow(row.data(), data)).show();
+                    row.child(formatFinancialReportChildRow(row.data(), data, appl_id)).show();
                 },
                 error: function(reply) {
                     console.log(reply);
@@ -243,7 +243,7 @@
                     console.log("Response Returned:" + JSON.stringify(data));
                     console.log("closeout going in....");
 
-                    row.child(formatCloseoutNotificationChildRow(data)).show();
+                    row.child(formatCloseoutNotificationChildRow(data, appl_id)).show();
 
                 },
                 error: function(resp) {
@@ -1406,10 +1406,10 @@
 
         }
 
-        function formatFinancialReportChildRow(d, q) {
+        function formatFinancialReportChildRow(d, q, applId) {
 
             var str = "";
-            var str = "<table id=\"ffrChildTable_@appl_id\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
+            var str = "<table id=\"ffrChildTable_" + applId + "\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
             for (var i = 0; i < q.length; i++) {
                 if (q[i].tag == 2) {
 
@@ -1417,7 +1417,7 @@
                         "<tr>" +
                         "<td>" +
                         "<input type=\"checkbox\" checked class=\"input.showDownload, .FinancialReport\"" +
-                        "id=\"ffrRowCheckbox_@appl_id\"" +
+                        "id=\"ffrRowCheckbox_" + applId + "\"" +
                         "class=\"qc pr-2\" name=\"qc\" value=\"" +
                         q[i].category_name +
                         "\"" +
@@ -1450,13 +1450,13 @@
                 }
                 if (q[i].tag == 3) {
 
-                    var url = get_closeoutnotification_url(@appl_id, q[i].category_name);
+                    var url = get_closeoutnotification_url(applId, q[i].category_name);
 
                     str = str +
                         "<tr>" +
                         "<td>" +
                         "<input type=\"checkbox\" checked class=\"input.showDownload, .FFR\"" +
-                        "id=\"ffrRowCheckbox_@appl_id\"" +
+                        "id=\"ffrRowCheckbox_" + applId + "\"" +
                         "class=\"qc pr-2\" name=\"qc\" value=\"" +
                         q[i].category_name +
                         "\"" +
@@ -1464,7 +1464,7 @@
                         "</td>" +
                         "<td>" +
                         "<a href = JavaScript:show_notification('" +
-                        @appl_id +
+                        applId +
                         "'," +
                         "'" +
                         q[i].category_name +
@@ -1498,9 +1498,9 @@
         }
 
 
-        function formatCloseoutNotificationChildRow(d) {
+        function formatCloseoutNotificationChildRow(d, applId) {
 
-            var str = "<table id=\"closeoutChildTable_@appl_id\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
+            var str = "<table id=\"closeoutChildTable_" + applId + "\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
             for (var i = 0; i < d.length; i++) {
                 var full_grant_num;
                 var category_name;
@@ -1518,7 +1518,7 @@
                     console.log(category_name);
                     console.log(created_date);
 
-                    var url = get_closeoutnotification_url(@appl_id, category_name);
+                    var url = get_closeoutnotification_url(applId, category_name);
 
                     console.log(url);
 
@@ -1526,7 +1526,7 @@
                         "<tr>" +
                         "<td>" +
                         "<input type=\"checkbox\" checked class=\"input.showDownload, .CloseoutNotifications\"" +
-                        "id=\"closeoutRowCheckbox_@appl_id\"" +
+                        "id=\"closeoutRowCheckbox_" + applId + "\"" +
                         "class=\"qc pr-2\" name=\"qc\" value=\"" +
                         category_name +
                         "\"" +
