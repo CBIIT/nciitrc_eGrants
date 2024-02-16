@@ -2724,6 +2724,7 @@
     <Content Include="Content\bootstrap.min.css.map" />
     <Content Include="App_Browsers\qt.browser" />
     <Content Include="Egrants\Views\_egrants_showModalRenameDialog.cshtml" />
+    <Content Include="Egrants\Views\Download\_egrants_showDocsDownloadSupportFunctions.cshtml" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
