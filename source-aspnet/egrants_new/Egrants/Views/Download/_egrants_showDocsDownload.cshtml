@@ -96,24 +96,6 @@
         z-index: 99999;
     }
 
-    .fa-file-excel { color: grey; }
-
-    .fa-file-lines {
-        color: blue;
-        display: none;
-    }
-
-    .fa-folder-open {
-        color: green;
-        display: none;
-    }
-
-
-    .fa-circle-check { color: green; }
-
-    .fa-rotate { color: blueviolet }
-
-    .fa-circle-exclamation { color: red; }
 </style>
 
 
@@ -326,7 +308,7 @@
                         authWidth: true,
                         render: function(data, type, full, meta) {
 
-                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<i class=\"fa fa-file-excel\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"File URL is not supported.\"></i><img src=\"/Content/images/new-fa-file-excel.gif\"/>" : "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/>"));
+                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"/Content/images/new-fa-file-excel.gif\"/>" : "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/>"));
 
                             return str;
                         }
@@ -597,24 +579,6 @@
 
                                                 list.push(fsrUrl + "|" + categoryName + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + tag);
 
-                                                if (trSvg.attr("class") === "fa-circle-check") {
-                                                    trSvg
-                                                        .toggleClass('fa-circle-check');
-                                                }
-
-                                                if (trSvg.attr("class") === "fa-circle-exclamation") {
-                                                    trSvg
-                                                        .toggleClass('fa-circle-exclamation');
-                                                }
-
-                                                if (trSvg.attr("class") === "fa-file-lines") {
-                                                    trSvg
-                                                        .toggleClass('fa-file-lines');
-                                                }
-
-                                                trSvg
-                                                    .toggleClass('fa-solid fa-rotate fa-spin');
-
                                                 tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
                                                 tr.find('img').css('visibility', 'visible');
 
@@ -641,24 +605,6 @@
 
                                             list.push(closeoutUrl + "|" + "CloseoutNotification" + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + "");
 
-                                            if (trSvg.attr("class") === "fa-circle-check") {
-                                                trSvg
-                                                    .toggleClass('fa-circle-check');
-                                            }
-
-                                            if (trSvg.attr("class") === "fa-circle-exclamation") {
-                                                trSvg
-                                                    .toggleClass('fa-circle-exclamation');
-                                            }
-
-                                            if (trSvg.attr("class") === "fa-file-lines") {
-                                                trSvg
-                                                    .toggleClass('fa-file-lines');
-                                            }
-
-                                            trSvg
-                                                .toggleClass('fa-solid fa-rotate fa-spin');
-
                                             tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
                                             tr.find('img').css('visibility', 'visible');
 
@@ -680,25 +626,6 @@
                                 if ($(this).prop('checked')) {
                                     if (!$(this).hasClass('FinancialReport') && !$(this).hasClass('CloseoutNotifications') && !$(this).hasClass('FFR')) {
                                         list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name + "|" + data.document_date + "|" + "");
-
-
-                                        if (trSvg.attr("class") === "fa-circle-check") {
-                                            trSvg
-                                                .toggleClass('fa-circle-check');
-                                        }
-
-                                        if (trSvg.attr("class") === "fa-circle-exclamation") {
-                                            trSvg
-                                                .toggleClass('fa-circle-exclamation');
-                                        }
-
-                                        if (trSvg.attr("class") === "fa-file-lines") {
-                                            trSvg
-                                                .toggleClass('fa-file-lines');
-                                        }
-
-                                        trSvg
-                                            .toggleClass('fa-solid fa-rotate fa-spin');
 
                                         tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
                                         tr.find('img').css('visibility', 'visible');
@@ -757,10 +684,6 @@
                                                                 //console.log(JSON.stringify(found));
                                                                 console.log(found[0].Error);
                                                                 if (found[0].Error == null) {
-                                                                    trSvg
-                                                                        .toggleClass('fa-circle-check')
-                                                                        .toggleClass('fa-solid fa-rotate fa-spin');
-
                                                                     tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
                                                                     tr.find('img').css('visibility', 'visible');
 
@@ -768,10 +691,6 @@
 
                                                                     countSuccess++;
                                                                 } else {
-                                                                    trSvg
-                                                                        .toggleClass('fa-circle-exclamation')
-                                                                        .toggleClass('fa-solid fa-rotate fa-spin');
-
                                                                     tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
                                                                     tr.find('img').css('visibility', 'visible');
 
@@ -799,10 +718,6 @@
                                                             //console.log(JSON.stringify(found));
                                                             console.log(found[0].Error);
                                                             if (found[0].Error == null) {
-                                                                trSvg
-                                                                    .toggleClass('fa-circle-check')
-                                                                    .toggleClass('fa-solid fa-rotate fa-spin');
-
                                                                 tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
                                                                 tr.find('img').css('visibility', 'visible');
 
@@ -810,10 +725,6 @@
 
                                                                 countSuccess++;
                                                             } else {
-                                                                trSvg
-                                                                    .toggleClass('fa-circle-exclamation')
-                                                                    .toggleClass('fa-solid fa-rotate fa-spin');
-
                                                                 tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
                                                                 tr.find('img').css('visibility', 'visible');
 
@@ -846,10 +757,6 @@
                                                     //console.log(JSON.stringify(found));
                                                     // console.log(found[0].Error);
                                                     if (found[0].Error == null) {
-                                                        trSvg
-                                                            .toggleClass('fa-circle-check')
-                                                            .toggleClass('fa-solid fa-rotate fa-spin');
-
                                                         tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
                                                         tr.find('img').css('visibility', 'visible');
 
@@ -857,10 +764,6 @@
 
                                                         countSuccess++;
                                                     } else {
-                                                        trSvg
-                                                            .toggleClass('fa-circle-exclamation')
-                                                            .toggleClass('fa-solid fa-rotate fa-spin');
-
                                                         tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
                                                         tr.find('img').css('visibility', 'visible');
 
