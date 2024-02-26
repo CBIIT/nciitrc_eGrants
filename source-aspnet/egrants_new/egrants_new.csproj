@@ -2484,7 +2484,7 @@
     <Content Include="Content\images\ncmhd.gif" />
     <Content Include="Content\images\new-fa-circle-check.gif" />
     <Content Include="Content\images\new-fa-file-excel.gif" />
-    <Content Include="Content\images\new-fa-exclamation.gif" />
+    <Content Include="Content\images\new-fa-circle-exclamation.gif" />
     <Content Include="Content\images\new-fa-file-lines.gif" />
     <Content Include="Content\images\new-fa-spin.gif" />
     <Content Include="Content\images\nhlbi.gif" />
