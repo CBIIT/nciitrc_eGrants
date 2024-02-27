@@ -308,7 +308,7 @@
                         authWidth: true,
                         render: function(data, type, full, meta) {
 
-                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"/Content/images/new-fa-file-excel.gif\"/>" : "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/>"));
+                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"/Content/images/new-fa-file-excel.gif\" title=\"File URL is not supported.\" />" : "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\" title=\"File URL is supported.\"/>"));
 
                             return str;
                         }
@@ -579,8 +579,9 @@
 
                                                 list.push(fsrUrl + "|" + categoryName + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + tag);
 
-                                                tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
-                                                tr.find('img').css('visibility', 'visible');
+                                                $(this).find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                                $(this).find('img').attr('title', 'Downloading ...');
+                                                $(this).find('img').css('visibility', 'visible');
 
                                                 trSvg.attr("title", "Downloading...");
                                             }
@@ -605,8 +606,9 @@
 
                                             list.push(closeoutUrl + "|" + "CloseoutNotification" + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + "");
 
-                                            tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
-                                            tr.find('img').css('visibility', 'visible');
+                                            $(this).find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                            $(this).find('img').attr('title', 'Downloading ...');
+                                            $(this).find('img').css('visibility', 'visible');
 
                                             trSvg.attr("title", "Downloading...");
                                         }
@@ -628,6 +630,7 @@
                                         list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name + "|" + data.document_date + "|" + "");
 
                                         tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                        tr.find('img').attr('title', 'Downloading ...');
                                         tr.find('img').css('visibility', 'visible');
 
                                         trSvg.attr("title", "Downloading...");
@@ -684,15 +687,17 @@
                                                                 //console.log(JSON.stringify(found));
                                                                 console.log(found[0].Error);
                                                                 if (found[0].Error == null) {
-                                                                    tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
-                                                                    tr.find('img').css('visibility', 'visible');
+                                                                    $(this).find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
+                                                                    $(this).find('img').attr('title', 'File Download Successful!');
+                                                                    $(this).find('img').css('visibility', 'visible');
 
                                                                     trSvg.attr("title", "File Download Successful!");
 
                                                                     countSuccess++;
                                                                 } else {
-                                                                    tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
-                                                                    tr.find('img').css('visibility', 'visible');
+                                                                    $(this).find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                                    $(this).find('img').attr('title', 'File Not Found.');
+                                                                    $(this).find('img').css('visibility', 'visible');
 
                                                                     trSvg.attr("title", found[0].Error);
                                                                 }
@@ -718,15 +723,17 @@
                                                             //console.log(JSON.stringify(found));
                                                             console.log(found[0].Error);
                                                             if (found[0].Error == null) {
-                                                                tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
-                                                                tr.find('img').css('visibility', 'visible');
+                                                                $(this).find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
+                                                                $(this).find('img').attr('title', 'File Download Successful!');
+                                                                $(this).find('img').css('visibility', 'visible');
 
                                                                 trSvg.attr("title", "File Download Successful!");
 
                                                                 countSuccess++;
                                                             } else {
-                                                                tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
-                                                                tr.find('img').css('visibility', 'visible');
+                                                                $(this).find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                                $(this).find('img').attr('title', 'File Not Found.');
+                                                                $(this).find('img').css('visibility', 'visible');
 
                                                                 trSvg.attr("title", found[0].Error);
                                                             }
@@ -759,15 +766,13 @@
                                                     if (found[0].Error == null) {
                                                         tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
                                                         tr.find('img').css('visibility', 'visible');
-
-                                                        trSvg.attr("title", "File Download Successful!");
+                                                        tr.attr("title", "File Download Successful!");
 
                                                         countSuccess++;
                                                     } else {
                                                         tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
                                                         tr.find('img').css('visibility', 'visible');
-
-                                                        trSvg.attr("title", found[0].Error);
+                                                        tr.attr("title", found[0].Error);
                                                     }
                                                 }
 
