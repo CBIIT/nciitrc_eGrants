@@ -766,13 +766,13 @@
                                                     if (found[0].Error == null) {
                                                         tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
                                                         tr.find('img').css('visibility', 'visible');
-                                                        tr.attr("title", "File Download Successful!");
+                                                        tr.find('img').attr("title", "File Download Successful!");
 
                                                         countSuccess++;
                                                     } else {
                                                         tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
                                                         tr.find('img').css('visibility', 'visible');
-                                                        tr.attr("title", found[0].Error);
+                                                        tr.find('img').attr("title", found[0].Error);
                                                     }
                                                 }
 
