@@ -308,7 +308,7 @@
                         authWidth: true,
                         render: function(data, type, full, meta) {
 
-                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"/Content/images/new-fa-file-excel.gif\" title=\"File URL is not supported.\" />" : "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\" title=\"File URL is supported.\"/>"));
+                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"/Content/images/new-fa-file-excel.gif\" title=\"File URL is not supported.\" />" : "<img id=\"dl_status_" + full.document_id + "\" style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\" title=\"File URL is supported.\"/>"));
 
                             return str;
                         }
@@ -753,18 +753,23 @@
 
                                                 var rowData = row.data();
 
-                                                //console.log("RowData:" + JSON.stringify(rowData));
-
                                                 var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
 
                                                 if (found != null) {
                                                     var trSvg = tr.find('[data-fa-i2svg]');
-                                                    console.log("Found: ");
 
-                                                    //console.log(JSON.stringify(found));
-                                                    // console.log(found[0].Error);
                                                     if (found[0].Error == null) {
-                                                        tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
+                                                        var old_image = document.getElementById('dl_status_' + rowData.document_id);
+
+                                                        var new_image = document.createElement('img');
+                                                        setTimeout(function () {
+                                                            // if you move everything here to outside setTimeout, it will work on every browser except fussy fox
+                                                            new_image.setAttribute("src", "/Content/images/new-fa-circle-check.gif?" + new Date().getTime());
+                                                            new_image.setAttribute("id", 'dl_status_' + rowData.document_id);
+                                                        }, 200);
+                                                        old_image.parentElement.appendChild(new_image);    
+                                                        old_image.parentElement.removeChild(old_image);
+
                                                         tr.find('img').css('visibility', 'visible');
                                                         tr.find('img').attr("title", "File Download Successful!");
 
