@@ -679,15 +679,19 @@
                                                         console.log("In Financial Report Row");
                                                         if ($(this).find("input[type='checkbox']").prop('checked') == true) {
 
-                                                            var found = data.DownloadDataList.filter(function (item) { return item.Url === fsrUrl; });
+                                                            var rx = /(?<=show_doc\(').+?(?='\))/g;
+                                                            var scrapedURLThisRow = $(this).html();
+                                                            var this_Row_URL = rx.exec(scrapedURLThisRow)[0];
+                                                            var found = data.DownloadDataList.filter(function (item) { return item.Url === this_Row_URL; });  // was item.Url === fsrUrl
                                                             if (found != null) {
                                                                 var trSvg = $(this).find('[data-fa-i2svg]');
-                                                                console.log("Found: ");
 
-                                                                //console.log(JSON.stringify(found));
                                                                 console.log(found[0].Error);
                                                                 if (found[0].Error == null) {
-                                                                    $(this).find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
+                                                                    var doc_date = getDocumentDate(found[0].DocumentDate);
+
+                                                                    updateImage("ffr_" + @appl_id + "_" + doc_date, "/Content/images/new-fa-circle-check.gif?" + new Date().getTime());
+
                                                                     $(this).find('img').attr('title', 'File Download Successful!');
                                                                     $(this).find('img').css('visibility', 'visible');
 
@@ -695,7 +699,9 @@
 
                                                                     countSuccess++;
                                                                 } else {
-                                                                    $(this).find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                                    var doc_date = getDocumentDate(found[0].DocumentDate);
+                                                                    updateImage("ffr_" + @appl_id + "_" + doc_date, "/Content/images/new-fa-circle-exclamation.gif?" + new Date().getTime());
+
                                                                     $(this).find('img').attr('title', 'File Not Found.');
                                                                     $(this).find('img').css('visibility', 'visible');
 
@@ -715,15 +721,20 @@
                                                     //var row = table.row(tr);
                                                     if ($(this).find("input[type='checkbox']").prop('checked') == true) {
 
-                                                        var found = data.DownloadDataList.filter(function (item) { return item.Url === closeoutUrl; });
+                                                        var rx = /(?<=;notifName=).*?(?=">)/g;
+                                                        var scrapedNameThisRow = $(this).html();
+                                                        var this_Row_Name = rx.exec(scrapedNameThisRow)[0];
+                                                        var found = data.DownloadDataList.filter(function (item) { return item.DocumentName === this_Row_Name; });
                                                         if (found != null) {
                                                             var trSvg = $(this).find('[data-fa-i2svg]');
                                                             console.log("Found: ");
 
-                                                            //console.log(JSON.stringify(found));
                                                             console.log(found[0].Error);
                                                             if (found[0].Error == null) {
-                                                                $(this).find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
+                                                                var doc_date = getDocumentDate(found[0].DocumentDate);
+
+                                                                updateImage("co_" + @appl_id + "_" + doc_date, "/Content/images/new-fa-circle-check.gif?" + new Date().getTime());
+
                                                                 $(this).find('img').attr('title', 'File Download Successful!');
                                                                 $(this).find('img').css('visibility', 'visible');
 
@@ -731,7 +742,10 @@
 
                                                                 countSuccess++;
                                                             } else {
-                                                                $(this).find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                                var doc_date = getDocumentDate(found[0].DocumentDate);
+
+                                                                updateImage("co_" + @appl_id + "_" + doc_date, "/Content/images/new-fa-circle-exclamation.gif?" + new Date().getTime());
+
                                                                 $(this).find('img').attr('title', 'File Not Found.');
                                                                 $(this).find('img').css('visibility', 'visible');
 
@@ -759,23 +773,15 @@
                                                     var trSvg = tr.find('[data-fa-i2svg]');
 
                                                     if (found[0].Error == null) {
-                                                        var old_image = document.getElementById('dl_status_' + rowData.document_id);
-
-                                                        var new_image = document.createElement('img');
-                                                        setTimeout(function () {
-                                                            // if you move everything here to outside setTimeout, it will work on every browser except fussy fox
-                                                            new_image.setAttribute("src", "/Content/images/new-fa-circle-check.gif?" + new Date().getTime());
-                                                            new_image.setAttribute("id", 'dl_status_' + rowData.document_id);
-                                                        }, 200);
-                                                        old_image.parentElement.appendChild(new_image);    
-                                                        old_image.parentElement.removeChild(old_image);
+                                                        updateImage(rowData.document_id, "/Content/images/new-fa-circle-check.gif?" + new Date().getTime());
 
                                                         tr.find('img').css('visibility', 'visible');
                                                         tr.find('img').attr("title", "File Download Successful!");
 
                                                         countSuccess++;
                                                     } else {
-                                                        tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                        updateImage(rowData.document_id, "/Content/images/new-fa-circle-exclamation.gif?" + new Date().getTime());
+
                                                         tr.find('img').css('visibility', 'visible');
                                                         tr.find('img').attr("title", found[0].Error);
                                                     }
@@ -802,6 +808,40 @@
                         });
                 });
         });
+
+        function updateImage(doc_id, imageURI) {
+            var selector = 'dl_status_' + doc_id;
+            console.log("old image selector : " + selector);
+            var old_image = document.getElementById(selector);
+            console.log("is it null ? " + (old_image === null));
+            var new_image = document.createElement('img');
+            setTimeout(function () {
+                // if you move everything here to outside setTimeout, it will work on every browser except fussy fox
+                new_image.setAttribute("src", imageURI);
+                new_image.setAttribute("id", selector);
+            }, 200);
+            console.log("new image: " + new_image);
+            old_image.parentElement.appendChild(new_image);
+            old_image.parentElement.removeChild(old_image);
+        }
+
+        function getDocumentDate(dateText) {
+            var regExp = /\(([^)]+)\)/;
+            var matches = regExp.exec(dateText);
+            var epoch_date = matches[1];
+            var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
+            var alt_val = epoch_date.substring(0, epoch_date.length - 3);
+            d.setUTCSeconds(alt_val);
+            var month = (d.getMonth() + 1).toString();
+            if (month.length === 1)
+                month = "0" + month;
+            var dayOfMonth = (d.getDate()).toString();
+            if (dayOfMonth.length === 1)
+                dayOfMonth = "0" + dayOfMonth;
+            var year = d.getYear() + 1900;
+            var doc_date = month + "/" + dayOfMonth + "/" + year;
+            return doc_date;
+        }
 
         window.onload = function() {
             $("#overlay").hide();
