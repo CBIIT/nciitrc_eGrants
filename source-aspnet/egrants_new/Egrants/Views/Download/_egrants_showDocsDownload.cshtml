@@ -308,7 +308,7 @@
                         authWidth: true,
                         render: function(data, type, full, meta) {
 
-                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"/Content/images/new-fa-file-excel.gif\" title=\"File URL is not supported.\" />" : "<img id=\"dl_status_" + full.document_id + "\" style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\" title=\"File URL is supported.\"/>"));
+                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"/Content/images/new-fa-file-excel.gif\" title=\"File URL is not supported.\" />" : "<img class=\"dl_status_" + full.document_id + "\" style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\" title=\"File URL is supported.\"/>"));
 
                             return str;
                         }
@@ -681,8 +681,16 @@
 
                                                             var rx = /(?<=show_doc\(').+?(?='\))/g;
                                                             var scrapedURLThisRow = $(this).html();
-                                                            var this_Row_URL = rx.exec(scrapedURLThisRow)[0];
-                                                            var found = data.DownloadDataList.filter(function (item) { return item.Url === this_Row_URL; });  // was item.Url === fsrUrl
+                                                            var this_Row_URL_search = rx.exec(scrapedURLThisRow);
+                                                            var found = {};
+                                                            if (this_Row_URL_search != null) {
+                                                                found = data.DownloadDataList.filter(function (item) { return item.Url === this_Row_URL_search[0]; });  // was item.Url === fsrUrl
+                                                            } else {
+                                                                rx = /(?<=;notifName=).*?(?=">)/g;
+                                                                scrapedNameThisRow = $(this).html();
+                                                                this_Row_Name = rx.exec(scrapedNameThisRow)[0];
+                                                                found = data.DownloadDataList.filter(function (item) { return item.DocumentName === this_Row_Name; });
+                                                            }
                                                             if (found != null) {
                                                                 var trSvg = $(this).find('[data-fa-i2svg]');
 
@@ -694,6 +702,7 @@
 
                                                                     $(this).find('img').attr('title', 'File Download Successful!');
                                                                     $(this).find('img').css('visibility', 'visible');
+                                                                    //$(this).find('img').addClass("ffr_" + @appl_id + "_" + doc_date);
 
                                                                     trSvg.attr("title", "File Download Successful!");
 
@@ -704,6 +713,7 @@
 
                                                                     $(this).find('img').attr('title', 'File Not Found.');
                                                                     $(this).find('img').css('visibility', 'visible');
+                                                                    //$(this).find('img').addClass("ffr_" + @appl_id + "_" + doc_date);
 
                                                                     trSvg.attr("title", found[0].Error);
                                                                 }
@@ -737,6 +747,7 @@
 
                                                                 $(this).find('img').attr('title', 'File Download Successful!');
                                                                 $(this).find('img').css('visibility', 'visible');
+                                                                //$(this).find('img').addClass("co_" + @appl_id + "_" + doc_date);
 
                                                                 trSvg.attr("title", "File Download Successful!");
 
@@ -748,6 +759,7 @@
 
                                                                 $(this).find('img').attr('title', 'File Not Found.');
                                                                 $(this).find('img').css('visibility', 'visible');
+                                                                //$(this).find('img').addClass("co_" + @appl_id + "_" + doc_date);
 
                                                                 trSvg.attr("title", found[0].Error);
                                                             }
@@ -812,17 +824,25 @@
         function updateImage(doc_id, imageURI) {
             var selector = 'dl_status_' + doc_id;
             console.log("old image selector : " + selector);
-            var old_image = document.getElementById(selector);
-            console.log("is it null ? " + (old_image === null));
-            var new_image = document.createElement('img');
-            setTimeout(function () {
-                // if you move everything here to outside setTimeout, it will work on every browser except fussy fox
-                new_image.setAttribute("src", imageURI);
-                new_image.setAttribute("id", selector);
-            }, 200);
-            console.log("new image: " + new_image);
-            old_image.parentElement.appendChild(new_image);
-            old_image.parentElement.removeChild(old_image);
+
+            const collection = document.getElementsByClassName(selector);
+            for (let i = 0; i < collection.length; i++) {
+                var old_image = collection[i];
+                //                collection[i].style.backgroundColor = "red";
+
+                //var old_image = document.getElementById(selector);
+                console.log("is it null ? " + (old_image === null));
+                var new_image = document.createElement('img');
+                setTimeout(function () {
+                    // if you move everything here to outside setTimeout, it will work on every browser except fussy fox
+                    new_image.setAttribute("src", imageURI);
+                    new_image.setAttribute("id", selector);
+                    new_image.classList.add(selector);
+                }, 200);
+                console.log("new image: " + new_image);
+                old_image.parentElement.appendChild(new_image);
+                old_image.parentElement.removeChild(old_image);
+            }
         }
 
         function getDocumentDate(dateText) {
