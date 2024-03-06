@@ -107,6 +107,9 @@
     <div id="overlay">
         <img style="height: 150px; margin-left: 400px; margin-top: 150px; width: 150px;" src="~/Content/images/Loading.gif"/>
     </div>
+    <div id="afd_ff_warning" style="float:left;padding-left:30px;display:none;padding-top:1px;">
+        <div style="font-weight:bold; float:left;">Warning</div> : icon status for audit file download not supported in Firefox 
+    </div>
     <div id="create new buttons" style="display: inline; float: right;">
         <button type="button" id="downloadData_@appl_id" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
     </div>
@@ -159,6 +162,11 @@
         $("#overlay").show();
 
         $(document).ready(function () {
+
+            var userAgent = navigator.userAgent;
+            if (userAgent.indexOf("Firefox") > -1) {
+                document.getElementById("afd_ff_warning").style.display = 'inline';
+            } 
 
             $.fn.dataTable.moment('MM/DD/YYYY');
             jQuery.extend(jQuery.fn.dataTableExt.oSort,
