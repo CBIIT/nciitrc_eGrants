@@ -5,10 +5,10 @@
 <link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet" />
 <script src="~/scripts/dataTables.bootstrap4.min.js"></script>
 <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css">
-<script src="~/scripts/fontawesome/fontawesome.min.js" data-auto-replace-svg="nest"></script>
+@*<script src="~/scripts/fontawesome/fontawesome.min.js" data-auto-replace-svg="nest"></script>*@
 
-<script src="~/scripts/fontawesome/solid.min.js"></script>
-<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet" />
+@*<script src="~/scripts/fontawesome/solid.min.js"></script>
+<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet" />*@
 <script src="~/scripts/bootstrap-checkbox.js"></script>
 <link rel="stylesheet" href="~/Content/bootstrap-checkbox.css">
 
@@ -104,32 +104,6 @@
         z-index: 99999;
     }
 
-    .fa-file-excel {
-        color: grey;
-    }
-
-    .fa-file-lines {
-        color: blue;
-        display: none;
-    }
-
-    .fa-folder-open {
-        color: green;
-        display: none;
-    }
-
-
-    .fa-circle-check {
-        color: green;
-    }
-
-    .fa-rotate {
-        color: blueviolet
-    }
-
-    .fa-circle-exclamation {
-        color: red;
-    }
 </style>
 
 <script language="JavaScript" type="text/javascript">
@@ -335,7 +309,7 @@
                     "</span>" +
                     "</td>" +
                     "<td class=\"float-right\">" +
-                    "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>" +
+                    "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/>df<br/>" +
                     "</td>" +
                     "</tr>";
 
@@ -385,7 +359,7 @@
                     "</span>" +
                     "</td>" +
                     "<td class=\"float-right\">" +
-                    "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>" +
+                    "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/><br/>" +
                     "</td>" +
                     "</tr>";
 
@@ -427,7 +401,7 @@
                     "</span>" +
                     "</td>" +
                     "<td class=\"float-right\">" +
-                    "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>" +
+                    "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/><br/>" +
                     "</td>" +
                     "</tr>";
             }
@@ -496,7 +470,7 @@
                     "</span>" +
                     "</td>" +
                     "<td class=\"float-right\">" +
-                    "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i><br>" +
+                    "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/><br/>" +
                     "</td>" +
                     "</tr>";
 
@@ -506,326 +480,6 @@
         str = str + "</table>";
         return str;
     }
-
-    // functions that were previously inline with the AFD tables
-
-    /* function downloadAllCheckedRowsAFD(applId, fullGrantNumber, outer_this) {
-	    // var trSvg;
-	    var fsrUrl;
-	    var closeoutUrl;
-	    // create an object of appl_id and list of urls to send to save method
-	    var dataToSend = {};
-        dataToSend.appl = applId;
-        dataToSend.fullGrantNumber = fullGrantNumber;
-
-	    var list = new Array();
-
-	    // loop through each row and add the checked items to a list
-        $.each($('#loadgridDownload_' + applId + ' input.showDownload'),
-		    function() {
-                var tr = outer_this.closest('tr');
-			    //console.log(JSON.stringify(tr));
-
-			    var row = table.row(tr);
-			    var datvals;
-
-			    // if the row has a class that include "FinancialReport"
-			    if (outer_this.hasClass('FinancialReport') || outer_this.hasClass('FFR')) {
-				    if (row.child.isShown()) {
-					    var tr = outer_this.closest('tr');
-					    var row = table.row(tr);
-					    console.log("In Financial Report Row and FFR");
-					    if (outer_this.hasClass('FinancialReport')) {
-                            $("#ffrChildTable_" + applId + " tr").each(function() {
-							    //var category_name;
-							    console.log("In Financial Report for data");
-							    // if the checkbox is ccked then extract the data from the row and add it to the list to be sent for download.
-							    if (outer_this.find("input[type='checkbox']").prop('checked') == true) {
-
-								    fsrUrl = outer_this.find("a[href^='JavaScript']").attr('name');
-
-								    var tag = outer_this.find("a[href^='JavaScript']").attr('id');
-								    console.log("Tag:" + tag);
-								    var categoryName = outer_this.find("input[type='checkbox']").attr('value');
-
-								    var documentDate;
-
-								    if (tag == 2) {
-									    documentDate = outer_this.find("span[name='accepted_date']").text();
-									    console.log("tag 2 documentDate:" + documentDate);
-								    } else if (tag == 3) {
-									    documentDate = outer_this.find("span[name='created_date']").text();
-									    console.log("tag 3 documentDate:" + documentDate);
-								    } else {
-									    documentDate = null;
-									    console.log("null documentDate:" + documentDate);
-								    }
-
-								    var trSvg = outer_this.find('[data-fa-i2svg]');
-
-								    list.push(fsrUrl + "|" + categoryName + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + tag);
-
-								    if (trSvg.attr("class") === "fa-circle-check") {
-									    trSvg
-										    .toggleClass('fa-circle-check');
-								    }
-
-								    if (trSvg.attr("class") === "fa-circle-exclamation") {
-									    trSvg
-										    .toggleClass('fa-circle-exclamation');
-								    }
-
-								    if (trSvg.attr("class") === "fa-file-lines") {
-									    trSvg
-										    .toggleClass('fa-file-lines');
-								    }
-
-								    trSvg
-									    .toggleClass('fa-solid fa-rotate fa-spin');
-								    trSvg.attr("title", "Downloading...");
-							    }
-						    });
-					    }
-				    }
-			    } else if (outer_this.hasClass('CloseoutNotifications')) {
-				    if (row.child.isShown()) {
-					    // for each table row (tr) in the closeout notification child rows (which contains a bootstrap table)
-					    $("#closeoutChildTable_" + applId + " tr").each(function() {
-
-						    // if the checkbox is checked then extract the data from the row and add it to the list to be sent for download
-						    if (outer_this.find("input[type='checkbox']").prop('checked') == true) {
-
-							    closeoutUrl = outer_this.find("a[href^='JavaScript']").attr('name');
-
-							    var categoryName = outer_this.find("input[type='checkbox']").attr('value');
-
-							    var documentDate = outer_this.find("span[name='created_date']").text();
-
-							    var trSvg = outer_this.find('[data-fa-i2svg]');
-
-							    list.push(closeoutUrl + "|" + "CloseoutNotification" + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + "");
-
-							    if (trSvg.attr("class") === "fa-circle-check") {
-								    trSvg
-									    .toggleClass('fa-circle-check');
-							    }
-
-							    if (trSvg.attr("class") === "fa-circle-exclamation") {
-								    trSvg
-									    .toggleClass('fa-circle-exclamation');
-							    }
-
-							    if (trSvg.attr("class") === "fa-file-lines") {
-								    trSvg
-									    .toggleClass('fa-file-lines');
-							    }
-
-							    trSvg
-								    .toggleClass('fa-solid fa-rotate fa-spin');
-							    trSvg.attr("title", "Downloading...");
-						    }
-					    });
-
-				    }
-
-			    } else {
-
-				    // console.log(JSON.stringify(row));
-				    var data = row.data();
-
-				    var trSvg = tr.find('[data-fa-i2svg]');
-
-
-				    // if the row is checked add the url to the list of data
-				    if (outer_this.prop('checked')) {
-					    if (!outer_this.hasClass('FinancialReport') && !outer_this.hasClass('CloseoutNotifications') && !outer_this.hasClass('FFR')) {
-						    list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name + "|" + data.document_date + "|" + "");
-
-
-						    if (trSvg.attr("class") === "fa-circle-check") {
-							    trSvg
-								    .toggleClass('fa-circle-check');
-						    }
-
-						    if (trSvg.attr("class") === "fa-circle-exclamation") {
-							    trSvg
-								    .toggleClass('fa-circle-exclamation');
-						    }
-
-						    if (trSvg.attr("class") === "fa-file-lines") {
-							    trSvg
-								    .toggleClass('fa-file-lines');
-						    }
-
-						    trSvg
-							    .toggleClass('fa-solid fa-rotate fa-spin');
-						    trSvg.attr("title", "Downloading...");
-					    }
-				    }
-			    }
-		    });
-
-	    dataToSend.listOfUrl = list;
-
-	   // console.log("Data To C# = " + JSON.stringify(list));
-
-	    // post the data to the server
-	    $.ajax(
-		    {
-			    cache: false,
-			    async: true,
-			    type: 'POST',
-			    dataType: 'JSON',
-			    contentType: 'application/json; charset=utf=8',
-			    url: "/Egrants/IsDownloadForm",
-			    data: JSON.stringify(dataToSend),
-			    timeout: 600000,
-			    success: function(data) {
-				    console.log("SUCCESS: ");
-				    //console.log(JSON.stringify(data));
-
-				    var countSuccess = 0;
-
-				    $.each($("#loadgridDownload_" + applId + " input.showDownload"),
-					    function() {
-						    var tr = outer_this.closest('tr');
-						    //console.log(JSON.stringify(tr));
-
-						    var row = table.row(tr);
-						    // if the row is checked add the url of the link is the same as one found in the object,
-						    // check the error flag to see if there is an error and show the success or error icon
-
-						    if (outer_this.hasClass('FinancialReport') || outer_this.hasClass('FFR')) {
-							    if (row.child.isShown()) {
-								    var tr = outer_this.closest('tr');
-								    var row = table.row(tr);
-								    console.log("In Financial Report Row and FFR");
-								    if (outer_this.hasClass('FinancialReport') || outer_this.hasClass('FFR')) {
-									    $("#ffrChildTable_" + applId + " tr").each(function() {
-										    console.log("In Financial Report Row");
-										    if (outer_this.find("input[type='checkbox']").prop('checked') == true) {
-
-											    var found = data.DownloadDataList.filter(function (item) { return item.Url === fsrUrl; });
-											    if (found != null) {
-												    var trSvg = outer_this.find('[data-fa-i2svg]');
-												    console.log("Found: ");
-
-												    //console.log(JSON.stringify(found));
-												    console.log(found[0].Error);
-												    if (found[0].Error == null) {
-													    trSvg
-														    .toggleClass('fa-circle-check')
-														    .toggleClass('fa-solid fa-rotate fa-spin');
-
-													    trSvg.attr("title", "File Download Successful!");
-
-													    countSuccess++;
-												    } else {
-													    trSvg
-														    .toggleClass('fa-circle-exclamation')
-														    .toggleClass('fa-solid fa-rotate fa-spin');
-
-													    trSvg.attr("title", found[0].Error);
-												    }
-											    }
-										    }
-									    });
-								    }
-							    }
-						    } else if (outer_this.hasClass('CloseoutNotifications')) {
-							    if (row.child.isShown()) {
-								    var tr = outer_this.closest('tr');
-								    var row = table.row(tr);
-								    $("#closeoutChildTable_" + applId + " tr").each(function() {
-									    //var tr = outer_this.closest('tr');
-									    //var row = table.row(tr);
-									    if (outer_this.find("input[type='checkbox']").prop('checked') == true) {
-
-										    var found = data.DownloadDataList.filter(function (item) { return item.Url === closeoutUrl; });
-										    if (found != null) {
-											    var trSvg = outer_this.find('[data-fa-i2svg]');
-											    console.log("Found: ");
-
-											    //console.log(JSON.stringify(found));
-											    console.log(found[0].Error);
-											    if (found[0].Error == null) {
-												    trSvg
-													    .toggleClass('fa-circle-check')
-													    .toggleClass('fa-solid fa-rotate fa-spin');
-
-												    trSvg.attr("title", "File Download Successful!");
-
-												    countSuccess++;
-											    } else {
-												    trSvg
-													    .toggleClass('fa-circle-exclamation')
-													    .toggleClass('fa-solid fa-rotate fa-spin');
-
-												    trSvg.attr("title", found[0].Error);
-											    }
-										    }
-									    }
-								    });
-
-							    }
-
-						    } else {
-							    var tr = outer_this.closest('tr');
-							    var row = table.row(tr);
-							    if (outer_this.prop('checked')) {
-
-								    console.log("row: ");
-								    console.log(row);
-
-								    var rowData = row.data();
-
-								    //console.log("RowData:" + JSON.stringify(rowData));
-
-								    var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
-
-								    if (found != null) {
-									    var trSvg = tr.find('[data-fa-i2svg]');
-									    console.log("Found: ");
-
-									    //console.log(JSON.stringify(found));
-									    // console.log(found[0].Error);
-									    if (found[0].Error == null) {
-										    trSvg
-											    .toggleClass('fa-circle-check')
-											    .toggleClass('fa-solid fa-rotate fa-spin');
-
-										    trSvg.attr("title", "File Download Successful!");
-
-										    countSuccess++;
-									    } else {
-										    trSvg
-											    .toggleClass('fa-circle-exclamation')
-											    .toggleClass('fa-solid fa-rotate fa-spin');
-
-										    trSvg.attr("title", found[0].Error);
-									    }
-								    }
-
-							    }
-						    }
-						    //else {
-						    //      alert("A matching row was never found! Notify the System Developer of this error! This should not happen!");
-						    // }
-
-
-					    });
-
-				    if (countSuccess > 0) {
-					    window.location = '/Egrants/Download?fileGuid=' + data.Handle + '&filename=' + data.ZipFilename;
-				    } else {
-					    alert("No files were successfully downloaded!");
-				    }
-			    },
-			    error: function(resp) {
-				    console.log("ERROR: " + JSON.stringify(resp));
-			    }
-		    });
-    }*/
 
     function renderDetailsControl(data, type, full, meta) {
 	    if (full.frc_destroyed == 0) {

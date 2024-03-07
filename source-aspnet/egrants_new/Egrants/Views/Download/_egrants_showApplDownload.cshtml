@@ -7,37 +7,9 @@
     List<ApplLayerObject> list = ViewBag.appllayer;
     var count = list.Count;
 
-    @*<div id="DownloadAll" class="shadow-sm p-3 mb-5 bg-white rounded">
-
-            @if (count > 1)
-            {
-                <label><h4>Multiple Downloads</h4></label>
-                <ul class="nav justify-content-center">
-                    <li class="nav-item">
-                        <button type="button" id="checkAllItems" accesskey="D" class="nav-link active btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to check all boxes in all rows [shift + alt + C]"><u>C</u>heck All</button>
-
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Link</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Link</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled">Disabled</a>
-                    </li>
-                </ul>
-
-                <p>Select All Items</p>
-            <button type="button" id="downloadAllData" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download all Selected Years and corresponding rows [shift + alt + A]">Download <u>A</u>ll</button>
-            }
-        </div>*@
-
     <!-- common function here used by all appls -->
     @Html.Partial("~/Egrants/Views/Download/_egrants_showDocsDownloadSupportFunctions.cshtml")
     <!-- end common function here used by all appls -->
-
-
 
     //loop with each appl
     foreach (var appl in ViewBag.appllayer)

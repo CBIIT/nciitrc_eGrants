@@ -5,10 +5,10 @@
 <link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet"/>
 <script src="~/scripts/dataTables.bootstrap4.min.js"></script>
 <link rel="stylesheet" href="~/Content/bootstrap-icons.min.css">
-<script src="~/scripts/fontawesome/fontawesome.min.js" data-auto-replace-svg="nest"></script>
+@*<script src="~/scripts/fontawesome/fontawesome.min.js" data-auto-replace-svg="nest"></script>*@
 
-<script src="~/scripts/fontawesome/solid.min.js"></script>
-<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet"/>
+@*<script src="~/scripts/fontawesome/solid.min.js"></script>
+<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet"/>*@
 <script src="~/scripts/bootstrap-checkbox.js"></script>
 <link rel="stylesheet" href="~/Content/bootstrap-checkbox.css">
 
@@ -96,24 +96,6 @@
         z-index: 99999;
     }
 
-    .fa-file-excel { color: grey; }
-
-    .fa-file-lines {
-        color: blue;
-        display: none;
-    }
-
-    .fa-folder-open {
-        color: green;
-        display: none;
-    }
-
-
-    .fa-circle-check { color: green; }
-
-    .fa-rotate { color: blueviolet }
-
-    .fa-circle-exclamation { color: red; }
 </style>
 
 
@@ -125,7 +107,9 @@
     <div id="overlay">
         <img style="height: 150px; margin-left: 400px; margin-top: 150px; width: 150px;" src="~/Content/images/Loading.gif"/>
     </div>
-
+    <div id="afd_ff_warning" style="float:left;padding-left:30px;display:none;padding-top:1px;">
+        <div style="font-weight:bold; float:left;">Warning</div> : icon status for audit file download not supported in Firefox 
+    </div>
     <div id="create new buttons" style="display: inline; float: right;">
         <button type="button" id="downloadData_@appl_id" accesskey="D" class="btn btn-sm btn-primary" style="background-color: #008b8b; font-size: medium; height: 35px; width: 150px;" title="Click here to download documents selected [shift + alt + O]"><u>D</u>ownload</button>
     </div>
@@ -177,7 +161,12 @@
         // start load document dat to data table
         $("#overlay").show();
 
-        $(document).ready(function() {
+        $(document).ready(function () {
+
+            var userAgent = navigator.userAgent;
+            if (userAgent.indexOf("Firefox") > -1) {
+                document.getElementById("afd_ff_warning").style.display = 'inline';
+            } 
 
             $.fn.dataTable.moment('MM/DD/YYYY');
             jQuery.extend(jQuery.fn.dataTableExt.oSort,
@@ -326,7 +315,7 @@
                         authWidth: true,
                         render: function(data, type, full, meta) {
 
-                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<i class=\"fa fa-file-excel\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"File URL is not supported.\"></i>" : "<i class=\"fa fa-file-lines\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"\"></i>"));
+                            var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"/Content/images/new-fa-file-excel.gif\" title=\"File URL is not supported.\" />" : "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\" title=\"File URL is supported.\"/>"));
 
                             return str;
                         }
@@ -597,23 +586,10 @@
 
                                                 list.push(fsrUrl + "|" + categoryName + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + tag);
 
-                                                if (trSvg.attr("class") === "fa-circle-check") {
-                                                    trSvg
-                                                        .toggleClass('fa-circle-check');
-                                                }
+                                                $(this).find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                                $(this).find('img').attr('title', 'Downloading ...');
+                                                $(this).find('img').css('visibility', 'visible');
 
-                                                if (trSvg.attr("class") === "fa-circle-exclamation") {
-                                                    trSvg
-                                                        .toggleClass('fa-circle-exclamation');
-                                                }
-
-                                                if (trSvg.attr("class") === "fa-file-lines") {
-                                                    trSvg
-                                                        .toggleClass('fa-file-lines');
-                                                }
-
-                                                trSvg
-                                                    .toggleClass('fa-solid fa-rotate fa-spin');
                                                 trSvg.attr("title", "Downloading...");
                                             }
                                         });
@@ -637,23 +613,10 @@
 
                                             list.push(closeoutUrl + "|" + "CloseoutNotification" + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + "");
 
-                                            if (trSvg.attr("class") === "fa-circle-check") {
-                                                trSvg
-                                                    .toggleClass('fa-circle-check');
-                                            }
+                                            $(this).find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                            $(this).find('img').attr('title', 'Downloading ...');
+                                            $(this).find('img').css('visibility', 'visible');
 
-                                            if (trSvg.attr("class") === "fa-circle-exclamation") {
-                                                trSvg
-                                                    .toggleClass('fa-circle-exclamation');
-                                            }
-
-                                            if (trSvg.attr("class") === "fa-file-lines") {
-                                                trSvg
-                                                    .toggleClass('fa-file-lines');
-                                            }
-
-                                            trSvg
-                                                .toggleClass('fa-solid fa-rotate fa-spin');
                                             trSvg.attr("title", "Downloading...");
                                         }
                                     });
@@ -673,24 +636,10 @@
                                     if (!$(this).hasClass('FinancialReport') && !$(this).hasClass('CloseoutNotifications') && !$(this).hasClass('FFR')) {
                                         list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name + "|" + data.document_date + "|" + "");
 
+                                        tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                        tr.find('img').attr('title', 'Downloading ...');
+                                        tr.find('img').css('visibility', 'visible');
 
-                                        if (trSvg.attr("class") === "fa-circle-check") {
-                                            trSvg
-                                                .toggleClass('fa-circle-check');
-                                        }
-
-                                        if (trSvg.attr("class") === "fa-circle-exclamation") {
-                                            trSvg
-                                                .toggleClass('fa-circle-exclamation');
-                                        }
-
-                                        if (trSvg.attr("class") === "fa-file-lines") {
-                                            trSvg
-                                                .toggleClass('fa-file-lines');
-                                        }
-
-                                        trSvg
-                                            .toggleClass('fa-solid fa-rotate fa-spin');
                                         trSvg.attr("title", "Downloading...");
                                     }
                                 }
@@ -745,17 +694,17 @@
                                                                 //console.log(JSON.stringify(found));
                                                                 console.log(found[0].Error);
                                                                 if (found[0].Error == null) {
-                                                                    trSvg
-                                                                        .toggleClass('fa-circle-check')
-                                                                        .toggleClass('fa-solid fa-rotate fa-spin');
+                                                                    $(this).find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
+                                                                    $(this).find('img').attr('title', 'File Download Successful!');
+                                                                    $(this).find('img').css('visibility', 'visible');
 
                                                                     trSvg.attr("title", "File Download Successful!");
 
                                                                     countSuccess++;
                                                                 } else {
-                                                                    trSvg
-                                                                        .toggleClass('fa-circle-exclamation')
-                                                                        .toggleClass('fa-solid fa-rotate fa-spin');
+                                                                    $(this).find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                                    $(this).find('img').attr('title', 'File Not Found.');
+                                                                    $(this).find('img').css('visibility', 'visible');
 
                                                                     trSvg.attr("title", found[0].Error);
                                                                 }
@@ -781,17 +730,17 @@
                                                             //console.log(JSON.stringify(found));
                                                             console.log(found[0].Error);
                                                             if (found[0].Error == null) {
-                                                                trSvg
-                                                                    .toggleClass('fa-circle-check')
-                                                                    .toggleClass('fa-solid fa-rotate fa-spin');
+                                                                $(this).find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
+                                                                $(this).find('img').attr('title', 'File Download Successful!');
+                                                                $(this).find('img').css('visibility', 'visible');
 
                                                                 trSvg.attr("title", "File Download Successful!");
 
                                                                 countSuccess++;
                                                             } else {
-                                                                trSvg
-                                                                    .toggleClass('fa-circle-exclamation')
-                                                                    .toggleClass('fa-solid fa-rotate fa-spin');
+                                                                $(this).find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                                $(this).find('img').attr('title', 'File Not Found.');
+                                                                $(this).find('img').css('visibility', 'visible');
 
                                                                 trSvg.attr("title", found[0].Error);
                                                             }
@@ -822,19 +771,15 @@
                                                     //console.log(JSON.stringify(found));
                                                     // console.log(found[0].Error);
                                                     if (found[0].Error == null) {
-                                                        trSvg
-                                                            .toggleClass('fa-circle-check')
-                                                            .toggleClass('fa-solid fa-rotate fa-spin');
-
-                                                        trSvg.attr("title", "File Download Successful!");
+                                                        tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
+                                                        tr.find('img').css('visibility', 'visible');
+                                                        tr.find('img').attr("title", "File Download Successful!");
 
                                                         countSuccess++;
                                                     } else {
-                                                        trSvg
-                                                            .toggleClass('fa-circle-exclamation')
-                                                            .toggleClass('fa-solid fa-rotate fa-spin');
-
-                                                        trSvg.attr("title", found[0].Error);
+                                                        tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                        tr.find('img').css('visibility', 'visible');
+                                                        tr.find('img').attr("title", found[0].Error);
                                                     }
                                                 }
 

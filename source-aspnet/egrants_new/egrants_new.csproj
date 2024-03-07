@@ -2482,6 +2482,11 @@
     <Content Include="Content\images\nci_logo.gif" />
     <Content Include="Content\images\nci_logo_small.jpg" />
     <Content Include="Content\images\ncmhd.gif" />
+    <Content Include="Content\images\new-fa-circle-check.gif" />
+    <Content Include="Content\images\new-fa-file-excel.gif" />
+    <Content Include="Content\images\new-fa-circle-exclamation.gif" />
+    <Content Include="Content\images\new-fa-file-lines.gif" />
+    <Content Include="Content\images\new-fa-spin.gif" />
     <Content Include="Content\images\nhlbi.gif" />
     <Content Include="Content\images\niaid.gif" />
     <Content Include="Content\images\nibib.gif" />
