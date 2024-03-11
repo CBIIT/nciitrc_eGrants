@@ -582,15 +582,23 @@
                                                     console.log("null documentDate:" + documentDate);
                                                 }
 
-                                                var trSvg = $(this).find('[data-fa-i2svg]');
+                                                if (!fsrUrl) {
+                                                    tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                    tr.find('img').attr('title', 'File Not Found');
+                                                    tr.find('img').css('visibility', 'visible');
 
-                                                list.push(fsrUrl + "|" + categoryName + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + tag);
+                                                    trSvg.attr("title", "File Not Found");
+                                                } else {
+                                                    var trSvg = $(this).find('[data-fa-i2svg]');
 
-                                                $(this).find('img').attr('src', '/Content/images/new-fa-spin.gif');
-                                                $(this).find('img').attr('title', 'Downloading ...');
-                                                $(this).find('img').css('visibility', 'visible');
+                                                    list.push(fsrUrl + "|" + categoryName + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + tag);
 
-                                                trSvg.attr("title", "Downloading...");
+                                                    $(this).find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                                    $(this).find('img').attr('title', 'Downloading ...');
+                                                    $(this).find('img').css('visibility', 'visible');
+
+                                                    trSvg.attr("title", "Downloading...");
+                                                }
                                             }
                                         });
                                     }
@@ -611,13 +619,21 @@
 
                                             var trSvg = $(this).find('[data-fa-i2svg]');
 
-                                            list.push(closeoutUrl + "|" + "CloseoutNotification" + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + "");
+                                            if (!closeoutUrl) {
+                                                tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                                tr.find('img').attr('title', 'File Not Found');
+                                                tr.find('img').css('visibility', 'visible');
 
-                                            $(this).find('img').attr('src', '/Content/images/new-fa-spin.gif');
-                                            $(this).find('img').attr('title', 'Downloading ...');
-                                            $(this).find('img').css('visibility', 'visible');
+                                                trSvg.attr("title", "File Not Found");
+                                            } else {
+                                                list.push(closeoutUrl + "|" + "CloseoutNotification" + "|" + "" + "|" + "" + "|" + categoryName + "|" + documentDate + "|" + "");
 
-                                            trSvg.attr("title", "Downloading...");
+                                                $(this).find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                                $(this).find('img').attr('title', 'Downloading ...');
+                                                $(this).find('img').css('visibility', 'visible');
+
+                                                trSvg.attr("title", "Downloading...");
+                                            }
                                         }
                                     });
 
@@ -634,13 +650,21 @@
                                 // if the row is checked add the url to the list of data
                                 if ($(this).prop('checked')) {
                                     if (!$(this).hasClass('FinancialReport') && !$(this).hasClass('CloseoutNotifications') && !$(this).hasClass('FFR')) {
-                                        list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name + "|" + data.document_date + "|" + "");
+                                        if (!data.url) {
+                                            tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
+                                            tr.find('img').attr('title', 'File Not Found');
+                                            tr.find('img').css('visibility', 'visible');
 
-                                        tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
-                                        tr.find('img').attr('title', 'Downloading ...');
-                                        tr.find('img').css('visibility', 'visible');
+                                            trSvg.attr("title", "File Not Found");
+                                        } else {
+                                            list.push(data.url + "|" + data.category_name + "|" + data.sub_category_name + "|" + data.document_id + "|" + data.document_name + "|" + data.document_date + "|" + "");
 
-                                        trSvg.attr("title", "Downloading...");
+                                            tr.find('img').attr('src', '/Content/images/new-fa-spin.gif');
+                                            tr.find('img').attr('title', 'Downloading ...');
+                                            tr.find('img').css('visibility', 'visible');
+
+                                            trSvg.attr("title", "Downloading...");
+                                        }
                                     }
                                 }
                             }
@@ -693,7 +717,7 @@
 
                                                                 //console.log(JSON.stringify(found));
                                                                 console.log(found[0].Error);
-                                                                if (found[0].Error == null) {
+                                                                if (found != null && found[0] != null && found[0].Error == null) {
                                                                     $(this).find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
                                                                     $(this).find('img').attr('title', 'File Download Successful!');
                                                                     $(this).find('img').css('visibility', 'visible');
@@ -770,7 +794,7 @@
 
                                                     //console.log(JSON.stringify(found));
                                                     // console.log(found[0].Error);
-                                                    if (found[0].Error == null) {
+                                                    if (found[0] != null && found[0].Error == null) {
                                                         tr.find('img').attr('src', '/Content/images/new-fa-circle-check.gif');
                                                         tr.find('img').css('visibility', 'visible');
                                                         tr.find('img').attr("title", "File Download Successful!");
@@ -779,7 +803,11 @@
                                                     } else {
                                                         tr.find('img').attr('src', '/Content/images/new-fa-circle-exclamation.gif');
                                                         tr.find('img').css('visibility', 'visible');
-                                                        tr.find('img').attr("title", found[0].Error);
+                                                        if (found.length == 0) {
+                                                            tr.find('img').attr("title", 'No error message could be recovered');
+                                                        } else {
+                                                            tr.find('img').attr("title", found[0].Error);
+                                                        }
                                                     }
                                                 }
 
