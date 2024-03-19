@@ -695,6 +695,31 @@ Sub Process (dirpath,oConn,oRS)
 				
 				Set OutMail=nothing	
 				
+			ELSEIF InStr(lcase(v_SubLine),"closeout action required") > 0 Then  
+				replysubj="category=closeout, sub=Past Due Documents Reminder, extract=1," & CItem.subject
+				Set OutMail = CItem.Forward
+				IF (dBug="n") Then
+					With OutMail
+						.Recipients.Add(eFileEmail)
+						.Recipients.Add(eGrantsDevEmail)
+						.Recipients.Add(eGrantsTestEmail)
+						.Recipients.Add(eGrantsStageEmail)
+						.Subject = replysubj 
+						.Body=" "
+						.Send
+					End With
+				ELSE
+					''wscript.echo "FOUND->"&v_SubLine
+					With OutMail
+						.Recipients.Add(eGrantsDevEmail)
+						.Recipients.Add(dBugEmail)	
+						.Subject = replysubj 
+						.Body=" "
+						.Send
+					End With				
+				END IF
+				Set OutMail=nothing	
+				
 			ELSEIF InStr(v_SubLine,"Imran") > 0 Then
 				''wscript.echo "FOUND Imran->"&v_SubLine		
 			End If
