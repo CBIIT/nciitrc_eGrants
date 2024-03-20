@@ -705,7 +705,6 @@ Sub Process (dirpath,oConn,oRS)
 						.Recipients.Add(eGrantsTestEmail)
 						.Recipients.Add(eGrantsStageEmail)
 						.Subject = replysubj 
-						.Body=" "
 						.Send
 					End With
 				ELSE
@@ -714,7 +713,6 @@ Sub Process (dirpath,oConn,oRS)
 						.Recipients.Add(eGrantsDevEmail)
 						.Recipients.Add(dBugEmail)	
 						.Subject = replysubj 
-						.Body=" "
 						.Send
 					End With				
 				END IF
