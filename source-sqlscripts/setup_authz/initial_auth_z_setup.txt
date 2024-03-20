@@ -1,0 +1,46 @@
+
+	eGrants connection info :
+	
+		dev
+			NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000
+		
+		test
+			NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500
+		
+		stage
+			NCIDB-S390-V.nci.nih.gov\MSSQLEGRANTSQ,55900
+			
+		Note : You can also grab this info from the eGrants web.configs if you expand the top level version of the file and drill into the sub-environments
+		
+	eGrants setting up user access :
+	
+		Looking for yourself in the system :
+	
+			SELECT TOP (1000) [person_id]
+			  ,[person_name]
+			  ,[userid]
+			  ,[profile_id]
+			  ,[position_id]
+			  ,[type]
+			  ,[active]
+			  ,[last_login_date]
+			FROM [EIM].[dbo].[people]
+			WHERE person_Name like '%riggs%'		-- replace riggs with some part of your last name
+			--where [person_name] like '%alyaa%'
+
+		If you don't find yourself there ... look for a variation of your name.
+			If that doesn't work, INSERT it.
+			
+			  INSERT into [EIM].[dbo].[People] (person_name, userid, profile_id, position_id, active, application_type, team_id, cft, econ,gft,mgt,egrants,admin,docman,
+					start_date,created_by, created_date, last_updated_by, last_updated_date, first_name, last_name, email, is_coordinator, iccoord,
+					dashboard, last_login_date)
+				VALUES							('Feroz, Aalyaan', 'feroza', 1, 8, 1, 'eGrants', 0, 1, 1, 1, 1, 1, 1, 1,
+													GETDATE(), 3243, GETDATE(), 3243, GETDATE(), 'Aalyaan', 'Feroz', 'aalyaan.feroz@nih.gov', 1, 0,
+													1, GETDATE())
+
+		Adjusting the record so you can log in (example) :
+
+			UPDATE [EIM].[dbo].[people] SET active = 1, last_login_date = '2023-8-10' WHERE person_id = [result from queries above]
+
+		
+		
