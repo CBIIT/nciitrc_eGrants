@@ -630,6 +630,39 @@ Sub Process (dirpath,oConn,oRS)
 				
 				Set OutMail=nothing	
 				
+			ELSEIF InStr(lcase(v_SubLine),"closeout action required") > 0 Then  
+				'wscript.echo "Hello you are closing out a thing ..."
+				
+				'' get the appl id from the grant number in the subject line
+				IF  len(Trim(v_SubLine))<>0  THEN
+					isolated = getNthWord(v_SubLine, 4)
+					'wscript.echo "isolated: '" & isolated & "'"
+					applid = getApplid(removespcharacters(isolated),oConn)
+				END IF
+				
+				replysubj="category=closeout, sub=Past Due Documents Reminder, applid=" & applid & ", extract=1," & CItem.subject
+				Set OutMail = CItem.Forward
+				IF (dBug="n") Then
+					With OutMail
+						.Recipients.Add(eFileEmail)
+						.Recipients.Add(eGrantsDevEmail)
+						.Recipients.Add(eGrantsTestEmail)
+						.Recipients.Add(eGrantsStageEmail)
+						.Subject = replysubj 
+						.Send
+					End With
+				ELSE
+					''wscript.echo "FOUND->"&v_SubLine
+					With OutMail
+						.Recipients.Add(eGrantsDevEmail)
+						.Recipients.Add(dBugEmail)	
+						.Subject = replysubj 
+						.Send
+					End With				
+				END IF
+				Set OutMail=nothing		
+				'wscript.echo "Hello you closed out a thing"
+				
 			ELSEIF InStr(v_SubLine,"FFR Reminder") > 0 AND InStr(v_SubLine, "FFR Past Due") > 0   Then  
 		
 				'' get the appl id from the grant number in the subject line
@@ -693,31 +726,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With						
 				END IF
 				
-				Set OutMail=nothing	
-				
-			ELSEIF InStr(lcase(v_SubLine),"closeout action required") > 0 Then  
-				replysubj="category=closeout, sub=Past Due Documents Reminder, extract=1," & CItem.subject
-				Set OutMail = CItem.Forward
-				IF (dBug="n") Then
-					With OutMail
-						.Recipients.Add(eFileEmail)
-						.Recipients.Add(eGrantsDevEmail)
-						.Recipients.Add(eGrantsTestEmail)
-						.Recipients.Add(eGrantsStageEmail)
-						.Subject = replysubj 
-						.Send
-					End With
-				ELSE
-					''wscript.echo "FOUND->"&v_SubLine
-					With OutMail
-						.Recipients.Add(eGrantsDevEmail)
-						.Recipients.Add(dBugEmail)	
-						.Subject = replysubj 
-						.Send
-					End With				
-				END IF
-				Set OutMail=nothing	
-				
+				Set OutMail=nothing		
 			ELSEIF InStr(v_SubLine,"Imran") > 0 Then
 				''wscript.echo "FOUND Imran->"&v_SubLine		
 			End If
@@ -895,4 +904,15 @@ Function getLastWord(str)
 	numberOfWords = Ubound(wordz)
 	lastWord = wordz(numberOfWords) 'Remember arrays start at index 0
     getLastWord = lastWord
+End Function
+'==========================================
+Function getNthWord(str,number)
+	'Dim wordz
+	'Dim numberOfWords
+	'Dim lastWord
+
+	wordz  = Split(str, " ")    
+	lastWord = wordz(number - 1) 'Remember arrays start at index 0
+    getNthWord = lastWord
+
 End Function
