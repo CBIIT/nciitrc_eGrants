@@ -155,6 +155,10 @@ Sub Process(dirpath,oConn)
 				substr=Mid(substr, beginpos, Len(substr))   
         	WEND	
 			
+			'wscript.echo "category: '" & category & "'"
+			'wscript.echo "subcat: '" & subcat & "'"
+			'wscript.echo "applid: '" & applid & "'"
+			
 			V_saStr=substr
 			pos = Len(V_saStr)
 			IF InStr(LCase(V_saStr),"grantnumber") > 0 Then
@@ -223,9 +227,11 @@ Sub Process(dirpath,oConn)
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
 					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
-				ELSEIF (category = "closeout") AND (subcat = "Past Due Documents Reminder") THEN
+				ELSEIF (lcase(category) = "closeout") AND (lcase(subcat) = "past due documents reminder") THEN
+					'wscript.echo "handling closeout, past due documents reminder" 
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					'wscript.echo "Documentid: " & Documentid
 					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 				ELSE 
 					V_flType="txt"				
