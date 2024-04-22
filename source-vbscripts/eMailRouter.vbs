@@ -438,29 +438,29 @@ Sub Process (dirpath,oConn,oRS)
 						End With					
 					END IF
 					Set OutMail=nothing			
-			ELSEIF InStr(v_SubLine,"JIT Documents Have Been Submitted for Grant ") > 0    Then  		' mhoover 1/2024
-					replysubj="category=eRA Notification, sub=JIT Submitted, extract=1, " & CItem.subject
-					Set OutMail = CItem.Forward
-					IF (dBug="n") Then								
-						With OutMail
-							.Recipients.Add(eFileEmail)
-							.Recipients.Add(eGrantsDevEmail)
-							.Recipients.Add(eGrantsTestEmail)
-							.Recipients.Add(eGrantsStageEmail)
-													
-							'.Recipients.Add("leul.ayana@nih.gov")
-							.Subject = replysubj 
-							.Send
-						End With
-					ELSE
-						''wscript.echo "DON'T WANT THIS" & v_SubLine
-						With OutMail
-							.Recipients.Add(dBugEmail)	
-							.Subject = replysubj
-							.Send
-						End With					
-					END IF
-					Set OutMail=nothing						
+			'ELSEIF InStr(v_SubLine,"JIT Documents Have Been Submitted for Grant ") > 0    Then  		' mhoover 1/2024
+			'		replysubj="category=eRA Notification, sub=JIT Submitted, extract=1, " & CItem.subject
+			'		Set OutMail = CItem.Forward
+			'		IF (dBug="n") Then								
+			'			With OutMail
+			'				.Recipients.Add(eFileEmail)
+			'				.Recipients.Add(eGrantsDevEmail)
+			'				.Recipients.Add(eGrantsTestEmail)
+			'				.Recipients.Add(eGrantsStageEmail)
+			'										
+			'				'.Recipients.Add("leul.ayana@nih.gov")
+			'				.Subject = replysubj 
+			'				.Send
+			'			End With
+			'		ELSE
+			'			''wscript.echo "DON'T WANT THIS" & v_SubLine
+			'			With OutMail
+			'				.Recipients.Add(dBugEmail)	
+			'				.Subject = replysubj
+			'				.Send
+			'			End With					
+			'		END IF
+			'		Set OutMail=nothing						
 			ELSEIF InStr(v_SubLine,"NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant") > 0 Then
 			    IF (InStr(v_SubLine," R15 ") > 0) Then
 				replysubj="category=eRANotification, sub=Late Progress Report, extract=1, " & CItem.subject
@@ -724,38 +724,38 @@ Sub Process (dirpath,oConn,oRS)
 				END IF
 				Set OutMail=nothing	
 				
-			ELSEIF InStr(lcase(v_SubLine),"closeout action required") > 0 Then  
+			'ELSEIF InStr(lcase(v_SubLine),"closeout action required") > 0 Then  
 				'wscript.echo "Hello you are closing out a thing ..."
 				
 				'' get the appl id from the grant number in the subject line
-				IF  len(Trim(v_SubLine))<>0  THEN
-					isolated = getNthWord(v_SubLine, 4)
-					'wscript.echo "isolated: '" & isolated & "'"
-					applid = getApplid(removespcharacters(isolated),oConn)
-				END IF
+			'	IF  len(Trim(v_SubLine))<>0  THEN
+			'		isolated = getNthWord(v_SubLine, 4)
+			'		'wscript.echo "isolated: '" & isolated & "'"
+			'		applid = getApplid(removespcharacters(isolated),oConn)
+			'	END IF
 				
-				replysubj="category=closeout, sub=Past Due Documents Reminder, applid=" & applid & ", extract=1," & CItem.subject
-				Set OutMail = CItem.Forward
-				IF (dBug="n") Then
-					With OutMail
-						.Recipients.Add(eFileEmail)
-						.Recipients.Add(eGrantsDevEmail)
-						.Recipients.Add(eGrantsTestEmail)
-						.Recipients.Add(eGrantsStageEmail)
-						.Subject = replysubj 
-						.Send
-					End With
-				ELSE
-					''wscript.echo "FOUND->"&v_SubLine
-					With OutMail
-						.Recipients.Add(eGrantsDevEmail)
-						.Recipients.Add(dBugEmail)	
-						.Subject = replysubj 
-						.Send
-					End With				
-				END IF
-				Set OutMail=nothing		
-				'wscript.echo "Hello you closed out a thing"
+			'	replysubj="category=closeout, sub=Past Due Documents Reminder, applid=" & applid & ", extract=1," & CItem.subject
+			'	Set OutMail = CItem.Forward
+			'	IF (dBug="n") Then
+			'		With OutMail
+			'			.Recipients.Add(eFileEmail)
+			'			.Recipients.Add(eGrantsDevEmail)
+			'			.Recipients.Add(eGrantsTestEmail)
+			'			.Recipients.Add(eGrantsStageEmail)
+			'			.Subject = replysubj 
+			'			.Send
+			'		End With
+			'	ELSE
+			'		''wscript.echo "FOUND->"&v_SubLine
+			'		With OutMail
+			'			.Recipients.Add(eGrantsDevEmail)
+			'			.Recipients.Add(dBugEmail)	
+			'			.Subject = replysubj 
+			'			.Send
+			'		End With				
+			'	END IF
+			'	Set OutMail=nothing		
+			'	'wscript.echo "Hello you closed out a thing"
 
 			ELSEIF InStr(v_SubLine,"FFR Reminder") > 0 AND InStr(v_SubLine, "FFR Past Due") > 0   Then  
 		
@@ -1009,13 +1009,13 @@ Function getLastWord(str)
 End Function
 
 '==========================================
-Function getNthWord(str,number)
+'Function getNthWord(str,number)
 	'Dim wordz
 	'Dim numberOfWords
 	'Dim lastWord
 
-	wordz  = Split(str, " ")    
-	lastWord = wordz(number - 1) 'Remember arrays start at index 0
-    getNthWord = lastWord
+'	wordz  = Split(str, " ")    
+'	lastWord = wordz(number - 1) 'Remember arrays start at index 0
+'    getNthWord = lastWord
 
-End Function
+'End Function

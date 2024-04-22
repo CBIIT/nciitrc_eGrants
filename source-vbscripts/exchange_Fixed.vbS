@@ -250,12 +250,12 @@ Sub Process(dirpath,oConn)
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
 					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
-				ELSEIF (lcase(category) = "closeout") AND (lcase(subcat) = "past due documents reminder") THEN
+				'ELSEIF (lcase(category) = "closeout") AND (lcase(subcat) = "past due documents reminder") THEN
 					'wscript.echo "handling closeout, past due documents reminder" 
-					V_flType="pdf"
-					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+				'	V_flType="pdf"
+				'	Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
 					'wscript.echo "Documentid: " & Documentid
-					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
+				'	call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 					'wscript.echo "pdf generated"
 				ELSE 
 					V_flType="txt"				
