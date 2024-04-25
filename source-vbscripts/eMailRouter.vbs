@@ -1,4 +1,4 @@
-'wscript.echo "Hello"
+''wscript.echo "Hello"
 '''''===============================================================
 ''''' 8/7/2017 : Imran : This app will act as main router to all theirs as well users. If an email is set to be uploaded this 
 ''''' should be uploaded to all tiers. Now that we have servers/loaders for all tiers. we can afford to separate apps for different tiers runn on the tier itself.
@@ -18,21 +18,20 @@ startTimeStamp=Now
 	Dim oPkg, oConn, oRs, oRsU, cmd, dBug
 	Dim OtlkApps 'as Object
 	Dim objNS 'As Outlook.NameSpace
-	dBug="y"
-	dBugEmail = "eGrantsDev@mail.nih.gov"
+	dBug="n"
+	dBugEmail = "leul.ayana@nih.gov"
 	eGrantsDevEmail = "eGrantsDev@mail.nih.gov"
 	eGrantsTestEmail = "eGrantsTest1@mail.nih.gov"
 	eGrantsStageEmail = "eGrantsStage@mail.nih.gov"
 	eFileEmail = "efile@mail.nih.gov"
+	nciGrantsPostAwardEmail = "NCIGrantsPostAward@nih.gov"
 	
-
-	conStr = "Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants"
+conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 
 	Set oConn = CreateObject("ADODB.Connection")
 	Set oRS = CreateObject("ADODB.Recordset")
 
-    
-	dirpath="Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\"
+	dirpath="NCI CA eRA Notifications (NIH/NCI)\Inbox\"	
 	'dirpath="NCUOgaegrantsdev@mail.nih.gov\NCI\GAB\eGrantsDev\emailRouterTestRB
 	
 	Call Process(dirpath,oConn,oRS)
@@ -94,8 +93,8 @@ Sub Process (dirpath,oConn,oRS)
 
 	'wscript.echo "About to set old fldr "
 
-	'Set OldFldr = CFolder.Folders("Old emails")
-	Set OldFldr = CFolder.Folders("old")
+	Set OldFldr = CFolder.Folders("Old emails")
+	'Set OldFldr = CFolder.Folders("old")
 	
 	'wscript.echo "Mail count=" & CFolder.Items.Count
 
@@ -147,6 +146,7 @@ Sub Process (dirpath,oConn,oRS)
 						ELSE
 							With OutMail
 								.Recipients.Add(dBugEmail)
+								.Recipients.Add(eGrantsDevEmail)
 								.Subject = replysubj
 								.Send								
 							End With						
@@ -169,7 +169,8 @@ Sub Process (dirpath,oConn,oRS)
 					ELSE
 						''wscript.echo "FOUND->"&v_SubLine
 						With OutMail 
-							.Recipients.Add(dBugEmail)	
+							    .Recipients.Add(dBugEmail)
+							    .Recipients.Add(eGrantsDevEmail)
 							.Send	
 						End With					
 					END IF
@@ -188,7 +189,8 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail 
-						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(dBugEmail)
+						.Recipients.Add(eGrantsDevEmail)
 						.Send
 					End With
 				END IF
@@ -209,7 +211,8 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail						
-						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(dBugEmail)
+						.Recipients.Add(eGrantsDevEmail)
 						.Send
 					End With
 				END IF
@@ -226,7 +229,8 @@ Sub Process (dirpath,oConn,oRS)
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail
-						.Recipients.Add(dBugEmail)						
+						.Recipients.Add(dBugEmail)
+						.Recipients.Add(eGrantsDevEmail)
 						.Send
 					End With				
 				END IF
@@ -268,7 +272,6 @@ Sub Process (dirpath,oConn,oRS)
 				IF (dBug="n") Then				
 					With OutMail
 						.Recipients.Add("jonesni@mail.nih.gov")
-						.Recipients.Add("hue.tran@nih.gov")
 						.Recipients.Add("bakerb@mail.nih.gov")
 						.Recipients.Add("dvellaj@mail.nih.gov")
 						.Recipients.Add("agyemann@mail.nih.gov")
@@ -288,7 +291,8 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				ELSE					
 					With OutMail
-						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(dBugEmail)  
+						.Recipients.Add(eGrantsDevEmail)
 						IF  len(Trim(p_SpecEmail)) <> 0  AND  len(Trim(b_SpecEmail)) <> 0 AND p_SpecEmail <> b_SpecEmail THEN
 							replysubj="P="&p_SpecEmail&"B="&b_SpecEmail
 						ELSEIF  len(Trim(p_SpecEmail)) <> 0  AND  len(Trim(b_SpecEmail)) <> 0 AND p_SpecEmail =  b_SpecEmail THEN	
@@ -328,6 +332,7 @@ Sub Process (dirpath,oConn,oRS)
 					With OutMail
 						''wscript.echo "FOUND->"&replysubj
 						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(eGrantsDevEmail)
 						'''''''''''''-----------ADD THE FOLLOWING FOR DEVELOPMENT TIER	AS NEEDED BASIS					
 						.Subject = replysubj
 						.Send
@@ -349,6 +354,7 @@ Sub Process (dirpath,oConn,oRS)
 					''wscript.echo "Subject->"&v_SubLine
 					With OutMail
 						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(eGrantsDevEmail)
 						.Subject = replysubj
 						.Send
 					End With				
@@ -392,18 +398,18 @@ Sub Process (dirpath,oConn,oRS)
 					IF (dBug="n") Then
 						With OutMail
 							''''===>STOPPING THIS UNTILL FIX IT/5/30 started
-							.Recipients.Add("efile@mail.nih.gov")
-							.Recipients.Add("eGrantsDev@mail.nih.gov")
-							.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add(eFileEmail)
+						.Recipients.Add(eGrantsDevEmail)
+						.Recipients.Add(eGrantsTestEmail)
+						.Recipients.Add(eGrantsStageEmail)
 							.Subject = replysubj 
 							.Send
 						End With
 					ELSE
 						With OutMail
 							''wscript.echo "FOUND->"&replysubj
-							.Recipients.Add("eGrantsDev@mail.nih.gov")
-							.Recipients.Add("eGrantsTest@mail.nih.gov")
-							.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(eGrantsDevEmail)
 							.Subject = replysubj 
 							.Send
 						End With				
@@ -424,20 +430,19 @@ Sub Process (dirpath,oConn,oRS)
 							.Recipients.Add(eGrantsDevEmail)
 							.Recipients.Add(eGrantsTestEmail)
 							.Recipients.Add(eGrantsStageEmail)
-													
-							'.Recipients.Add("leul.ayana@nih.gov")
 							.Subject = replysubj 
 							.Send
 						End With
 					ELSE
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
-							.Recipients.Add(dBugEmail)	
+							.Recipients.Add(dBugEmail)
+							.Recipients.Add(eGrantsDevEmail)							
 							.Subject = replysubj & "URGENT ERROR"
 							.Send
 						End With					
 					END IF
-					Set OutMail=nothing			
+					'Set OutMail=nothing			
 			'ELSEIF InStr(v_SubLine,"JIT Documents Have Been Submitted for Grant ") > 0    Then  		' mhoover 1/2024
 			'		replysubj="category=eRA Notification, sub=JIT Submitted, extract=1, " & CItem.subject
 			'		Set OutMail = CItem.Forward
@@ -460,7 +465,7 @@ Sub Process (dirpath,oConn,oRS)
 			'				.Send
 			'			End With					
 			'		END IF
-			'		Set OutMail=nothing						
+					Set OutMail=nothing						
 			ELSEIF InStr(v_SubLine,"NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant") > 0 Then
 			    IF (InStr(v_SubLine," R15 ") > 0) Then
 				replysubj="category=eRANotification, sub=Late Progress Report, extract=1, " & CItem.subject
@@ -473,17 +478,14 @@ Sub Process (dirpath,oConn,oRS)
 						.Recipients.Add(eGrantsDevEmail)
 						.Recipients.Add(eGrantsTestEmail)
 						.Recipients.Add(eGrantsStageEmail)
-											
-						.Recipients.Add("leul.ayana@nih.gov")
-						'.Recipients.Add("kochers@mail.nih.gov")
-						'.Recipients.Add(eGrantsDevEmail)
 						.Subject = replysubj 
 						.Send
 					End With
 				ELSE
 					''wscript.echo "FOUND->"&replysubj
 					With OutMail
-						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(dBugEmail)
+						.Recipients.Add(eGrantsDevEmail)
 						.Subject = replysubj 
 						.Send
 					End With				
@@ -497,8 +499,10 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then
 					With OutMail
+						.Recipients.Add(eFileEmail)
 						.Recipients.Add(eGrantsDevEmail)
-						'.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add(eGrantsTestEmail)
+						.Recipients.Add(eGrantsStageEmail)
 						.Subject = replysubj 
 						.Body=" "
 						.Send
@@ -518,19 +522,14 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then					
 					With OutMail
-					.Recipients.Add(eGrantsDevEmail)
-						'.Recipients.Add("bakerb@mail.nih.gov")
-       					'.Recipients.Add("emily.driskell@nih.gov")
-						'.Recipients.Add("lisa.vytlacil@nih.gov")
-						'.Recipients.Add("edward.mikulich@nih.gov")																			
-						'.Recipients.Add("jonesni@mail.nih.gov")
+						.Recipients.Add(nciGrantsPostAwardEmail)
 						.Send					
 					End With
 				ELSE
 					''wscript.echo "FOUND->"&v_SubLine
 					With OutMail
 						.Recipients.Add(dBugEmail)	
-						.Recipients.Add(eGransDevEmail)
+						.Recipients.Add(eGrantsDevEmail)
 						.Send
 					End With				
 				END IF
@@ -550,9 +549,6 @@ Sub Process (dirpath,oConn,oRS)
 							.Recipients.Add(eGrantsDevEmail)
 							.Recipients.Add(eGrantsTestEmail)
 							.Recipients.Add(eGrantsStageEmail)
-							
-						
-							'''.Recipients.Add("leul.ayana@nih.gov")
 							.Subject = replysubj 
 							.Send
 						End With
@@ -560,6 +556,7 @@ Sub Process (dirpath,oConn,oRS)
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
 							.Recipients.Add(dBugEmail)	
+							.Recipients.Add(eGrantsDevEmail)
 							.Subject = replysubj 
 							.Send
 						End With					
@@ -588,6 +585,7 @@ Sub Process (dirpath,oConn,oRS)
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
 							.Recipients.Add(dBugEmail)	
+		                    .Recipients.Add(eGrantsDevEmail)
 							.Subject = replysubj 
 							.Send
 						End With					
@@ -616,6 +614,7 @@ Sub Process (dirpath,oConn,oRS)
 						''wscript.echo "DON'T WANT THIS" & v_SubLine
 						With OutMail
 							.Recipients.Add(dBugEmail)	
+							.Recipients.Add(eGrantsDevEmail)
 							.Subject = replysubj 
 							.Send
 						End With					
@@ -646,11 +645,10 @@ Sub Process (dirpath,oConn,oRS)
 					
 				IF (dBug="n") Then								
 					With OutMail
-						'.Recipients.Add(eFileEmail)
-						.Recipients.Add(eGrantsDevEmail)
-						'.Recipients.Add(eGrantsTestEmail)
-						'.Recipients.Add(eGrantsStageEmail)
-					
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
 						.Subject = replysubj 
 						.Send
 					End With
@@ -676,13 +674,12 @@ Sub Process (dirpath,oConn,oRS)
 				replysubj = "applid=" & applid & ", category=eRA Notification, sub=Application Withdrawn, extract=1, " & CItem.subject
 
 				Set OutMail = CItem.Forward
-					
 				IF (dBug="n") Then								
 					With OutMail
-						'.Recipients.Add(eFileEmail)
-						.Recipients.Add(eGrantsDevEmail)
-						'.Recipients.Add(eGrantsTestEmail)
-						'.Recipients.Add(eGrantsStageEmail)
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
 						.Subject = replysubj 
 						.Send
 					End With
@@ -696,7 +693,6 @@ Sub Process (dirpath,oConn,oRS)
 					End With					
 				END IF
 				Set OutMail=nothing														   
-
 			ELSEIF InStr(v_SubLine,"IRPPR Reminder") > 0 THEN
 		
 				'' get the appl id from the grant number in the subject line
@@ -710,7 +706,10 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then								
 					With OutMail
-						.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
 						.Subject = replysubj 
 						.Send
 					End With
@@ -770,17 +769,17 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then								
 					With OutMail
-						.Recipients.Add("efile@mail.nih.gov")
-						.Recipients.Add("eGrantsDev@mail.nih.gov")
-						.Recipients.Add("eGrantsTest1@mail.nih.gov")
-						.Recipients.Add("eGrantsStage@mail.nih.gov")
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
 						.Subject = replysubj 
 						.Send
 					End With
 				ELSE
 					With OutMail
-						.Recipients.Add("micah.hoover@nih.gov")
-						.Recipients.Add("leul.ayana@nih.gov")
+						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(eGrantsDevEmail)
 						.Subject = replysubj 
 						.Send
 					End With						
@@ -803,19 +802,21 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then								
 					With OutMail
-						.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
 						.Subject = replysubj 
 						.Send
 					End With
 				ELSE
 					With OutMail
 						.Recipients.Add(dBugEmail)	
-						.Recipients.Add(eGrantsDevEmail)		
+						.Recipients.Add(eGrantsDevEmail)
 						.Subject = replysubj 
 						.Send
 					End With						
 				END IF
-
 				Set OutMail=nothing	
 			ELSEIF InStr(v_SubLine,"Imran") > 0 Then
 				''wscript.echo "FOUND Imran->"&v_SubLine		
@@ -825,8 +826,8 @@ Sub Process (dirpath,oConn,oRS)
 	
 		'wscript.echo "Error count here : " & Err.Number
 
-		itmscncnt=itmscncnt+1
-		CItem.Move(OldFldr)	
+			itmscncnt=itmscncnt+1
+			CItem.Move(OldFldr)	
 	
 			processTimeStamp=Now
 			If Err.Number <> 0 Then
@@ -964,8 +965,8 @@ End Function
 Function RaiseErrortoAdmin(CItem,eRRMsg1,eRRMsg2)
 	Set OutMail = CItem.Forward
 	With OutMail
-		.Recipients.Add("micah.hoover@nih.gov")
-		.Recipients.Add(eGrantsDevEmail)
+		.Recipients.Add("leul.ayana@nih.gov")
+		.Recipients.Add("leul.ayana@nih.gov")
 		.Subject = eRRMsg1 & " >>(Subj: " & CItem.Subject & ")" 
 		.body=eRRMsg2 & vbCrLf & vbCrLf & CItem.body
 		.Send
@@ -980,7 +981,7 @@ Function emailme(SubjMSG,BodyMSG)
 		
 	Set Mitem = OtlkApps.CreateItem(olMailItem )
 	With Mitem
-		.To="micah.hoover@nih.gov"			
+		.To="leul.ayana@nih.gov"		
 		'.CC="leul.ayana@nih.gov"	
 		.Subject = SubjMSG
 		.BodyFormat = 2
