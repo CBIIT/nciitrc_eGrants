@@ -8,7 +8,7 @@
 
 startTimeStamp=Now	
 	'logDir="C:\eGrants\apps\log\"	
-	wscript.echo "starting router"
+	'wscript.echo "starting router"
 	logDir = getConfigVal("logDir")
     forAppending=8	
 	taskStartMssg="...........Task Started!..........."
@@ -101,8 +101,8 @@ Sub Process (dirpath,oConn,oRS)
 		Loop
 	End If  'If dirpath <> "" Then
 	
-	wscript.echo "Finished stepping through CFolder xarray"
-	wscript.echo "Error Number : " & Err.Number
+	'wscript.echo "Finished stepping through CFolder xarray"
+	'wscript.echo "Error Number : " & Err.Number
 
 	'wscript.echo "About to set old fldr "
 
@@ -124,15 +124,15 @@ Sub Process (dirpath,oConn,oRS)
 	'Do While itmcnt >= itmscncnt
 	Do While CFolder.Items.Count > 0
 		IF (dBug="y") Then
-			wscript.echo "Mail count=" & CFolder.Items.Count
+			'wscript.echo "Mail count=" & CFolder.Items.Count
 		END IF
 		
   		Set CItem = CFolder.Items(CFolder.Items.Count)
 		itmtoprocess=itmtoprocess+1
 		v_SubLine = CItem.Subject
 		v_Body = CItem.Body
-		wscript.echo "subject: " & v_SubLine 
-		wscript.echo "Error Number : " & Err.Number
+		'wscript.echo "subject: " & v_SubLine 
+		'wscript.echo "Error Number : " & Err.Number
 		
 		v_SenderID = getSenderID(CItem)
 		'wscript.echo "Subject= "  & InStr(v_SubLine,"Undeliverable: ")
@@ -850,11 +850,12 @@ Sub Process (dirpath,oConn,oRS)
 				IF  len(Trim(v_SubLine))<>0  THEN
 					'wscript.echo "v_Body :" & v_Body
 					applid = Split(v_Body, " ")(1)
-					wscript.echo "applid step 1 :" & applid
+					'wscript.echo "applid step 1 :" & applid
 					'should look somethin like this :		(10921643)
 					'applid = Replace(applid, ""("", "")
 					'applid = Replace(applid, "")"", "")
-					wscript.echo "applid step 2 :" & applid
+					applid = Replace(Replace(applid, "(", ")"), ")", "")
+					'wscript.echo "applid step 2 :" & applid
 					'secondHalf = Split(dirpath, "(")(0)
 					'middle = secondHalf = Split(
 					'lastWordInSubject = getLastWord(CItem.Subject)
@@ -868,8 +869,8 @@ Sub Process (dirpath,oConn,oRS)
 				IF InStr(v_SubLine,"Not Cleared") > 0 THEN
 					replysubj = "applid=" & applid & ", category=Funding, sub=DCI-InTh Not Cleared, extract=1, " & CItem.subject
 				END IF
-				wscript.echo "replysubj :" & replysubj
-				wscript.echo "Error Number : " & Err.Number
+				'wscript.echo "replysubj :" & replysubj
+				'wscript.echo "Error Number : " & Err.Number
 
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then								
@@ -908,8 +909,8 @@ Sub Process (dirpath,oConn,oRS)
 			
 			CItem.Move(OldFldr)	
 			
-			wscript.echo "CItem.Move"	' fails here
-			wscript.echo "Error Number : " & Err.Number
+			'wscript.echo "CItem.Move"	' fails here
+			'wscript.echo "Error Number : " & Err.Number
 	
 			processTimeStamp=Now
 			If Err.Number <> 0 Then
@@ -1134,7 +1135,7 @@ Function getConfigVal(name)
 	Loop
 	
 	If found = False Then
-		WScript.Echo "could not find config for : '" & name & "'"
+		'WScript.Echo "could not find config for : '" & name & "'"
 		'Err.Raise 5 ' Invalid procedure call or argument
 	End If
 
