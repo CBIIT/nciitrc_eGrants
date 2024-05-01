@@ -262,6 +262,10 @@ Sub Process(dirpath,oConn)
 					'wscript.echo "Documentid: " & Documentid
 				'	call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 					'wscript.echo "pdf generated"
+				ELSEIF (category = "Funding") AND ( InStr(LCase(subcat),"dci-inth") > 0) THEN
+					V_flType="pdf"
+					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 				ELSE 
 					V_flType="txt"				
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
