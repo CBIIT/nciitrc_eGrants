@@ -1,7 +1,8 @@
 'wscript.echo "Exchange_latest script is going to run!! "
  
 	startTimeStamp=Now	
-	logDir="C:\egrants\apps\log\"	
+'	logDir="C:\egrants\apps\log\"	
+	logDir = getConfigVal("logDir")
     forAppending=8	
 	taskStartMssg="...........Task Started!..........."
 	Dim objFslog
@@ -14,7 +15,10 @@
 	Dim oConn
 	Dim ItemsProcessed
 	
-	conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
+	conStr = getConfigVal("conStr")
+	'conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
+	'qa connection string
+	'conStr = "Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants"
 
 	
 	
@@ -33,13 +37,19 @@
 	Set oConn = CreateObject("ADODB.Connection")
 	
 	'dirpath="Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\test\"
-	dirpath="Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\efile\"
-			  
+	'dirpath="Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\efile\"
+	'dirpath="Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsTest\"	  
+	dirpath = getConfigVal("dirpathFixed")
+	'wscript.echo "dirpath : " & dirpath
  
-	OutDir = "C:\eGrants\watch\out\"
+	'OutDir = "C:\eGrants\watch\out\"
+	'OutDir = "E:\eGrants\watch\out\"
+	OutDir = getConfigVal("OutDir")
  
 		
 	Call Process(dirpath,oConn)	
+	
+	'wscript.echo "Process complete"
 	
 	'set colProcessList=Nothing
 	'set objWMIService=Nothing
@@ -50,6 +60,8 @@
 	taskEndMssg="******* Task Completed! *******" & ItemsProcessed & " Mail Items Have Been Processed"
 	endTimeStamp=Now	
 	call writeLog(forAppending, taskEndMssg, "", endTimeStamp)	
+	
+	'wscript.echo "Pau ladat"
 	
 '==========================================
 Sub Process(dirpath,oConn)
@@ -71,6 +83,7 @@ Sub Process(dirpath,oConn)
 	ItemsProcessed = 0
 	totcnt = CFolder.Items.Count
 	'wscript.echo "Total number of mail items to be processed are " &  totcnt
+	'wscript.echo "Error Number : " & Err.Number
 	ItemtoProcess=totcnt
 	oConn.Open conStr
 	
@@ -210,18 +223,33 @@ Sub Process(dirpath,oConn)
 				movetoqc="no"
 				call emailme2("Late Progress Report uploaded",applid )
 			end If
-
-
+			
 			IF extract="1" THEN    '''===Extract body only
 				IF (len(applid)=0) THEN	movetoqc="yes" ELSE movetoqc="no" END IF
+				
+				'wscript.echo "profileid: '" & profileid & "'"
+				'wscript.echo "docdt: '" & docdt & "'"
+				'wscript.echo "v_SenderID: '" & v_SenderID & "'"
+				'wscript.echo "V_flType: '" & V_flType & "'"
+				'wscript.echo "movetoqc: '" & movetoqc & "'"
+				'wscript.echo "Error Number : " & Err.Number
+				
 				If(category="PublicAccess") Then
+					'wscript.echo "handling PublicAccess" 
 					V_flType="pdf"
-					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)					
+					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					'wscript.echo "Documentid: " & Documentid
 					IF Documentid = "" Then
 						RetVal = RaiseErrortoAdmin(CItem,"DB Error: Document_id NOT Found, PROD Exchange_Latest vbs /extract=1", "")
 					ELSE
+						'wscript.echo "Waiting to save"
+						'wscript.echo "Error Number : " & Err.Number
 						WScript.Sleep 10000
+						'wscript.echo "Saving mail as PDF"
+						'wscript.echo "Error Number : " & Err.Number
 						Call saveMailAsPdf(citem, Documentid)
+						'wscript.echo "Saved"
+						'wscript.echo "Error Number : " & Err.Number
 					End If					
 				ELSEIF (category = "JIT Info") OR (category = "CT.gov") THEN
 					V_flType="pdf"
@@ -232,6 +260,17 @@ Sub Process(dirpath,oConn)
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
 					'wscript.echo "Documentid: " & Documentid
+					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
+				'ELSEIF (lcase(category) = "closeout") AND (lcase(subcat) = "past due documents reminder") THEN
+					'wscript.echo "handling closeout, past due documents reminder" 
+				'	V_flType="pdf"
+				'	Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					'wscript.echo "Documentid: " & Documentid
+				'	call GeneratePDFWithEmbeddedImages(CItem,Documentid)
+					'wscript.echo "pdf generated"
+				ELSEIF (category = "Funding") AND ( InStr(LCase(subcat),"dci-inth") > 0) THEN
+					V_flType="pdf"
+					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
 					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 				ELSE 
 					V_flType="txt"				
@@ -297,8 +336,7 @@ Sub Process(dirpath,oConn)
 					IF Documentid = "" Then
 						RetVal = RaiseErrortoAdmin(CItem,"DB Error: Document_id NOT Found, PROD Exchange_Latest vbs /extract=1", "")
 					ELSE
-						WScript.Sleep 10000
-						Call saveMailAsPdf(citem, Documentid)
+					Call saveMailAsPdf(citem, Documentid)
 					End If					
 				Else
 				V_flType="txt"
@@ -352,9 +390,10 @@ Sub Process(dirpath,oConn)
 			END IF		''''else if extract
 			
 				Call MovetoOldFolder(CFolder,CItem)		
-				
 				processTimeStamp=Now
+				
 				If Err.Number <> 0 Then
+					'wscript.echo "Error here"
 					logMssg= "Error Occured! => EmailSender:" & v_SenderID & "; " & "Subjectline :" & v_SubLine & "; "& " Recieved Date: " & CItem.ReceivedTime
 					errorMssg= "Error Number: " & Err.Number & "," & "Error Description: " & Err.Description & ", " & "Error Source: " & Err.Source
 				Else		
@@ -366,6 +405,7 @@ Sub Process(dirpath,oConn)
 				Call writeLog(forAppending, logMssg, errorMssg, processTimeStamp)
 
 			If Err.Number <> 0 Then
+				'wscript.echo "Error here2"
 				Errmsg1="Error Occured! PROD Exchange_Latest vbs"
 				Errmsg2=errorMssg
 				Call RaiseErrortoAdmin(CItem,Errmsg1,Errmsg2)
@@ -395,11 +435,14 @@ Sub Process(dirpath,oConn)
 							Set oShell = WScript.CreateObject("WScript.Shell")
 							oShell.Run "outlook" 
 							
+				'wscript.echo "setting objects to nothing"
 				
 				Set colProcessList=Nothing
 				Set colListOfServices=Nothing
 				set oShell=Nothing 
 				Set objWMIService=Nothing
+				
+				'wscript.echo "objects set to nothing"
 				
 				End If
 				Err.Clear
@@ -418,6 +461,8 @@ Sub Process(dirpath,oConn)
 	
 	ItemtoProcess = CFolder.Items.Count
 	LOOP		
+	
+	'wscript.echo "Closing connections ..."
 	
 	oConn.close
 	set oConn=Nothing	
@@ -574,9 +619,13 @@ End Function
 '==========================================
 
 Function MovetoOldFolder(CFolder,CItem)
+	'wscript.echo "setting old folder "
 	set oldfolder = CFolder.Folders("old")
+	'wscript.echo "set"
 	CItem.Move(oldfolder)
+	'wscript.echo "moved "
 	MovetoOldFolder="Done"
+	'wscript.echo "doned"
 End Function
 
 '==========================================
@@ -672,37 +721,47 @@ End Function
 
 Function saveMailAsPdf(citem, Documentid)
 	set objFs=CreateObject("Scripting.FileSystemObject")
-	pdfdir = "C:\eGrants\publicaccess\"
-	pdfbackup = "C:\eGrants\publicaccess\backup\"
-	bodypdf = "C:\eGrants\publicaccess\body.pdf"
-	subjtxt = "C:\eGrants\publicaccess\subj.txt"
-	subjpdf = "C:\eGrants\publicaccess\subj.pdf"
-	pdfdoc = "C:\eGrants\publicaccess\" & Documentid & ".pdf"	
+	'PublicAccessBackup = C:\eGrants\publicaccess\
+	publicAccessBackup = getConfigVal("PublicAccessBackup")
+	pdfdir = publicAccessBackup		'"C:\eGrants\publicaccess\"
+	pdfbackup = publicAccessBackup & "backup\" 	'"C:\eGrants\publicaccess\backup\"
+	bodypdf = publicAccessBackup & "body.pdf" 	'"C:\eGrants\publicaccess\body.pdf"
+	subjtxt = publicAccessBackup & "subj.txt" 	'"C:\eGrants\publicaccess\subj.txt"
+	subjpdf = publicAccessBackup & "subj.pdf" 	'"C:\eGrants\publicaccess\subj.pdf"
+	pdfdoc =  publicAccessBackup & Documentid & ".pdf"	'"C:\eGrants\publicaccess\" & Documentid & ".pdf"	
 	Set pdfFld=objFs.getFolder(pdfdir)	
 	If(pdfFld.Files.Count>0) Then
-	set old_files=pdfFld.Files
-	For each old_file in old_files
-	 objFs.DeleteFile pdfdir & old_file.name 
-	 Next
+		set old_files=pdfFld.Files
+		For each old_file in old_files
+		objFs.DeleteFile pdfdir & old_file.name 
+		Next
 	End If
+	'wscript.echo "About to acrobat"
+	'wscript.echo "Error Number : " & Err.Number
 	Set app = CreateObject("AcroExch.App") 
 	'Set objAVDoc = CreateObject("AcroExch.AVDoc")
 	Set objInspector = citem.GetInspector
     Set objDoc = objInspector.WordEditor
 	objDoc.ExportAsFixedFormat bodypdf ,17
-	WScript.Sleep 2000
+
+	WScript.Sleep 3000
 	set outfile = objFs.OpenTextFile(subjtxt, 8, True)
+		'wscript.echo "opened file : " & subjtxt
 		outfile.WriteLine("From: " & CItem.SenderName)
 		outfile.WriteLine("Sent: " & CItem.ReceivedTime)
 		outfile.WriteLine("To: " & CItem.To)                                                                        
 		outfile.WriteLine("Subject: " & CItem.Subject)	
+		'wscript.echo "written meta" 
 		set CAttachments=CItem.Attachments					
 		If(CAttachments.Count>0) Then
 			attchlist=""  
 			'i=1
+			'wscript.echo "found attachments" 
 			For Each attch In CAttachments
 				
+				'wscript.echo "removin junk for " & attch.FileName 
 				CName = removejunk(attch.FileName)		
+				'wscript.echo "removed " & attch.FileName 
 							       	
 				IF (Left(CName, 3) <> "ATT") THEN				
 					If(attchlist="") Then
@@ -717,23 +776,35 @@ Function saveMailAsPdf(citem, Documentid)
 		outfile.WriteLine("Attachments: " & attchlist )                                                                    
 		'outfile.WriteLine(CItem.Body)
 		outfile.close
+		'wscript.echo "out file closed2" 
 		 Set subjobj = CreateObject("AcroExch.AVDoc")
+			 'wscript.echo "created the acro obj" 
 			 subjobj.open subjtxt, ""
+			 'wscript.echo "opened subjtxt" 
 			 Set subjpdfobj = subjobj.GetPDDoc
-			 subjpdfobj.Save 1, subjpdf
+			 'wscript.echo "got the subjpdfobj" 
+			 subjpdfobj.Save 1, subjpdf			'fails here if files are still in C:\eGrants\publicaccess (or E:/ depending on what env this is)
+			 'wscript.echo "subjpdfobj saved" 
 			 subjpdfobj.Close
+			 'wscript.echo "closed" 
 			 subjobj.Close -1
 			 objFs.DeleteFile subjtxt
 			 'objFs.MoveFile subjtxt, backdir & "subj.txt"
 			 
+			 'wscript.echo "setting basepdf and insrtpdf" 
+			 
 			 Set basepdf = CreateObject("AcroExch.PDDoc") 
 			 Set insrtpdf = CreateObject("AcroExch.PDDoc") 
+			 
+			 'wscript.echo "setting basepdf and insrtpdf" 
 			 
 			 basepdf.Open  subjpdf
 			 insrtpdf.Open  bodypdf
 			 pages= insrtpdf.GetNumPages()	
 			 
 		    ''.Zoom = False  'Ayu
+			
+			 'wscript.echo "opened and page numbers gotten" 
 			
 			 basepdf.InsertPages 0, insrtpdf, 0, pages, 1        
 			 basepdf.Save 1, pdfdoc
@@ -744,6 +815,8 @@ Function saveMailAsPdf(citem, Documentid)
 			 objFs.DeleteFile bodypdf
 			 'objFs.MoveFile bodypdf, backdir & "body.doc"
 	set objFs=Nothing
+	
+	'wscript.echo "objFs set to nothing" 
 	
 	app.CloseAllDocs
     app.Exit 	
@@ -849,12 +922,47 @@ Function GeneratePDFWithEmbeddedImages(Item, Documentid)
 End Function
 
 
+Function getConfigVal(name)
+'    getConfigVal = "423"
+	
+	filename = ".\config.csv"
+	found = False
+
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set f = fso.OpenTextFile(filename)
+
+	Do Until f.AtEndOfStream
+	  ' WScript.Echo f.ReadLine
+		line = f.ReadLine
+		delimiter = ",,,,,"
+		a=Split(line,delimiter)
+		'If a = "" Then
+		If InStr(line,delimiter) > 0 Then
+			IF a(0) = name Then
+				getConfigVal = a(1)
+				found = True
+			End If
+		End If
+		
+	Loop
+	
+	If found = False Then
+		'WScript.Echo "could not find config for : '" & name & "'"
+		'Err.Raise 5 ' Invalid procedure call or argument
+	End If
+
+	f.Close	
+	
+End Function
+
 
 Function CreateGUID
   Dim TypeLib
   Set TypeLib = CreateObject("Scriptlet.TypeLib")
   CreateGUID = Mid(TypeLib.Guid, 2, 36)
 End Function
+
+
 
 
 
