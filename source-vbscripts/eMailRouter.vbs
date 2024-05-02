@@ -7,7 +7,9 @@
 '''''===============================================================
 
 startTimeStamp=Now	
-	logDir="C:\eGrants\apps\log\"	
+	'logDir="C:\eGrants\apps\log\"	
+	'wscript.echo "starting router"
+	logDir = getConfigVal("logDir")
     forAppending=8	
 	taskStartMssg="...........Task Started!..........."
 	Dim objFS
@@ -18,7 +20,8 @@ startTimeStamp=Now
 	Dim oPkg, oConn, oRs, oRsU, cmd, dBug
 	Dim OtlkApps 'as Object
 	Dim objNS 'As Outlook.NameSpace
-	dBug="n"
+	dBug = getConfigVal("dBug")
+'	dBug="n"
 	dBugEmail = "leul.ayana@nih.gov"
 	eGrantsDevEmail = "eGrantsDev@mail.nih.gov"
 	eGrantsTestEmail = "eGrantsTest1@mail.nih.gov"
@@ -26,12 +29,14 @@ startTimeStamp=Now
 	eFileEmail = "efile@mail.nih.gov"
 	nciGrantsPostAwardEmail = "NCIGrantsPostAward@nih.gov"
 	
-conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
+	conStr = getConfigVal("conStr")
+'	conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 
 	Set oConn = CreateObject("ADODB.Connection")
 	Set oRS = CreateObject("ADODB.Recordset")
 
-	dirpath="NCI CA eRA Notifications (NIH/NCI)\Inbox\"	
+	dirpath = getConfigVal("dirpathRouter")
+	'dirpath="NCI CA eRA Notifications (NIH/NCI)\Inbox\"	
 	'dirpath="NCUOgaegrantsdev@mail.nih.gov\NCI\GAB\eGrantsDev\emailRouterTestRB
 	
 	Call Process(dirpath,oConn,oRS)
@@ -53,6 +58,7 @@ conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;Use
 
 Sub Process (dirpath,oConn,oRS)
 	'wscript.echo "Hello you are in Process"
+	'wscript.echo "Error Number : " & Err.Number
 		
 	Dim cmd	
 	Dim sepchar 'As String
@@ -78,6 +84,7 @@ Sub Process (dirpath,oConn,oRS)
 	sepchar = "\"
 
 	'wscript.echo "dirpath: " & dirpath
+	'wscript.echo "Error Number : " & Err.Number
 
 	'Parse inputstr and Navigate to the folder
 	If dirpath <> "" Then
@@ -86,20 +93,31 @@ Sub Process (dirpath,oConn,oRS)
 		Set CFolder = objNS.Folders(xArray(0))
 
 		Do While i < UBound(xArray)
+			'wscript.echo "xArray " & i & " : " & xArray
+			'wscript.echo "xArray i " & xArray(i)
+			'wscript.echo "Error Number : " & Err.Number
 			Set CFolder = CFolder.Folders(xArray(i))
 			i = i + 1
 		Loop
 	End If  'If dirpath <> "" Then
+	
+	'wscript.echo "Finished stepping through CFolder xarray"
+	'wscript.echo "Error Number : " & Err.Number
 
 	'wscript.echo "About to set old fldr "
 
-	Set OldFldr = CFolder.Folders("Old emails")
+	Set OldFldr = CFolder.Folders("Old emails")	'this is what it is in other envs
 	'Set OldFldr = CFolder.Folders("old")
 	
+	'wscript.echo "went to Old emails"
+	'wscript.echo "Error Number : " & Err.Number
+	
 	'wscript.echo "Mail count=" & CFolder.Items.Count
+	'wscript.echo "Error Number : " & Err.Number
 
 	itmcnt = CFolder.Items.Count
-	''wscript.echo "Mail count in Inbox=" & itmcnt
+	'wscript.echo "Mail count in Inbox=" & itmcnt
+	'wscript.echo "Error Number : " & Err.Number
 	itmscncnt = 1
 	itmtoprocess=0
 	ItemsProcessed=0
@@ -112,7 +130,9 @@ Sub Process (dirpath,oConn,oRS)
   		Set CItem = CFolder.Items(CFolder.Items.Count)
 		itmtoprocess=itmtoprocess+1
 		v_SubLine = CItem.Subject
+		v_Body = CItem.Body
 		'wscript.echo "subject: " & v_SubLine 
+		'wscript.echo "Error Number : " & Err.Number
 		
 		v_SenderID = getSenderID(CItem)
 		'wscript.echo "Subject= "  & InStr(v_SubLine,"Undeliverable: ")
@@ -817,7 +837,63 @@ Sub Process (dirpath,oConn,oRS)
 						.Send
 					End With						
 				END IF
+				Set OutMail=nothing
+				
+			ELSEIF InStr(v_SubLine,"SBIR/STTR Foreign Risk Management") > 0 THEN
+			
+				'wscript.echo "handling SBIR/STTR"
+				'wscript.echo "Error Number : " & Err.Number
+				'' example body we want to snatch the appl id from :
+				'1R43CA291415-01 (10921643) has undergone SBIR/STTR risk management assessment in accordance with the SBIR and STTR Extension Act of 2022 on 04/25/2024 12:19 PM. 
+		
+				'' get the appl id from the grant number in the subject line
+				IF  len(Trim(v_SubLine))<>0  THEN
+					'wscript.echo "v_Body :" & v_Body
+					applid = Split(v_Body, " ")(1)
+					'wscript.echo "applid step 1 :" & applid
+					'should look somethin like this :		(10921643)
+					'applid = Replace(applid, ""("", "")
+					'applid = Replace(applid, "")"", "")
+					applid = Replace(Replace(applid, "(", ")"), ")", "")
+					'wscript.echo "applid step 2 :" & applid
+					'secondHalf = Split(dirpath, "(")(0)
+					'middle = secondHalf = Split(
+					'lastWordInSubject = getLastWord(CItem.Subject)
+					'lastFourCharacters = Right(lastWordInSubject, 4)
+					'applid = getApplid(removespcharacters(v_SubLine),oConn)
+				END IF
+				
+				'' set the applid, category, subcategory and the extract type to 1
+				'TODO : confirm extract 1
+				replysubj = "applid=" & applid & ", category=Funding, sub=DCI-InTh Cleared, extract=1, " & CItem.subject
+				IF InStr(v_SubLine,"Not Cleared") > 0 THEN
+					replysubj = "applid=" & applid & ", category=Funding, sub=DCI-InTh Not Cleared, extract=1, " & CItem.subject
+				END IF
+				'wscript.echo "replysubj :" & replysubj
+				'wscript.echo "Error Number : " & Err.Number
+
+				Set OutMail = CItem.Forward
+				IF (dBug="n") Then								
+					With OutMail
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
+						.Subject = replysubj 
+						.Send
+					End With
+				ELSE
+					With OutMail
+						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(eGrantsDevEmail)
+						.Subject = replysubj 
+						.Send
+					End With						
+				END IF
 				Set OutMail=nothing	
+				'wscript.echo "completed SBIR"
+				'wscript.echo "Error Number : " & Err.Number
+				
 			ELSEIF InStr(v_SubLine,"Imran") > 0 Then
 				''wscript.echo "FOUND Imran->"&v_SubLine		
 			End If
@@ -827,7 +903,14 @@ Sub Process (dirpath,oConn,oRS)
 		'wscript.echo "Error count here : " & Err.Number
 
 			itmscncnt=itmscncnt+1
+			
+			'wscript.echo "incrementing count"
+			'wscript.echo "Error Number : " & Err.Number
+			
 			CItem.Move(OldFldr)	
+			
+			'wscript.echo "CItem.Move"	' fails here
+			'wscript.echo "Error Number : " & Err.Number
 	
 			processTimeStamp=Now
 			If Err.Number <> 0 Then
@@ -1020,3 +1103,42 @@ End Function
 '    getNthWord = lastWord
 
 'End Function
+
+'==========================================
+
+Function getConfigVal(name)
+'    getConfigVal = "423"
+	
+	filename = ".\config.csv"
+	found = False
+
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set f = fso.OpenTextFile(filename)
+
+	Do Until f.AtEndOfStream
+	  ' WScript.Echo f.ReadLine
+		line = f.ReadLine
+		delimiter = ",,,,,"
+		a=Split(line,delimiter)
+		'If a = "" Then
+		If InStr(line,delimiter) > 0 Then
+			IF a(0) = name Then
+				getConfigVal = a(1)
+				found = True
+			End If
+		End If
+		
+		'If loggedIn = true Then
+		'	document.write("Welcome")
+		'End If
+		
+	Loop
+	
+	If found = False Then
+		'WScript.Echo "could not find config for : '" & name & "'"
+		'Err.Raise 5 ' Invalid procedure call or argument
+	End If
+
+	f.Close	
+	
+End Function

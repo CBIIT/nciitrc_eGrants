@@ -1,7 +1,8 @@
 'wscript.echo "Exchange_latest script is going to run!! "
  
 	startTimeStamp=Now	
-	logDir="C:\egrants\apps\log\"	
+'	logDir="C:\egrants\apps\log\"	
+	logDir = getConfigVal("logDir")
     forAppending=8	
 	taskStartMssg="...........Task Started!..........."
 	Dim objFslog
@@ -14,7 +15,8 @@
 	Dim oConn
 	Dim ItemsProcessed
 	
-	conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
+	conStr = getConfigVal("conStr")
+	'conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 	'qa connection string
 	'conStr = "Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants"
 
@@ -35,11 +37,14 @@
 	Set oConn = CreateObject("ADODB.Connection")
 	
 	'dirpath="Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\test\"
-	dirpath="Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\efile\"
+	'dirpath="Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\efile\"
 	'dirpath="Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsTest\"	  
+	dirpath = getConfigVal("dirpathFixed")
+	'wscript.echo "dirpath : " & dirpath
  
-	OutDir = "C:\eGrants\watch\out\"
+	'OutDir = "C:\eGrants\watch\out\"
 	'OutDir = "E:\eGrants\watch\out\"
+	OutDir = getConfigVal("OutDir")
  
 		
 	Call Process(dirpath,oConn)	
@@ -257,6 +262,10 @@ Sub Process(dirpath,oConn)
 					'wscript.echo "Documentid: " & Documentid
 				'	call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 					'wscript.echo "pdf generated"
+				ELSEIF (category = "Funding") AND ( InStr(LCase(subcat),"dci-inth") > 0) THEN
+					V_flType="pdf"
+					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 				ELSE 
 					V_flType="txt"				
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
@@ -706,12 +715,14 @@ End Function
 
 Function saveMailAsPdf(citem, Documentid)
 	set objFs=CreateObject("Scripting.FileSystemObject")
-	pdfdir = "C:\eGrants\publicaccess\"
-	pdfbackup = "C:\eGrants\publicaccess\backup\"
-	bodypdf = "C:\eGrants\publicaccess\body.pdf"
-	subjtxt = "C:\eGrants\publicaccess\subj.txt"
-	subjpdf = "C:\eGrants\publicaccess\subj.pdf"
-	pdfdoc = "C:\eGrants\publicaccess\" & Documentid & ".pdf"	
+	'PublicAccessBackup = C:\eGrants\publicaccess\
+	publicAccessBackup = getConfigVal("PublicAccessBackup")
+	pdfdir = publicAccessBackup		'"C:\eGrants\publicaccess\"
+	pdfbackup = publicAccessBackup & "backup\" 	'"C:\eGrants\publicaccess\backup\"
+	bodypdf = publicAccessBackup & "body.pdf" 	'"C:\eGrants\publicaccess\body.pdf"
+	subjtxt = publicAccessBackup & "subj.txt" 	'"C:\eGrants\publicaccess\subj.txt"
+	subjpdf = publicAccessBackup & "subj.pdf" 	'"C:\eGrants\publicaccess\subj.pdf"
+	pdfdoc =  publicAccessBackup & Documentid & ".pdf"	'"C:\eGrants\publicaccess\" & Documentid & ".pdf"	
 	Set pdfFld=objFs.getFolder(pdfdir)	
 	If(pdfFld.Files.Count>0) Then
 		set old_files=pdfFld.Files
@@ -905,12 +916,47 @@ Function GeneratePDFWithEmbeddedImages(Item, Documentid)
 End Function
 
 
+Function getConfigVal(name)
+'    getConfigVal = "423"
+	
+	filename = ".\config.csv"
+	found = False
+
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set f = fso.OpenTextFile(filename)
+
+	Do Until f.AtEndOfStream
+	  ' WScript.Echo f.ReadLine
+		line = f.ReadLine
+		delimiter = ",,,,,"
+		a=Split(line,delimiter)
+		'If a = "" Then
+		If InStr(line,delimiter) > 0 Then
+			IF a(0) = name Then
+				getConfigVal = a(1)
+				found = True
+			End If
+		End If
+		
+	Loop
+	
+	If found = False Then
+		'WScript.Echo "could not find config for : '" & name & "'"
+		'Err.Raise 5 ' Invalid procedure call or argument
+	End If
+
+	f.Close	
+	
+End Function
+
 
 Function CreateGUID
   Dim TypeLib
   Set TypeLib = CreateObject("Scriptlet.TypeLib")
   CreateGUID = Mid(TypeLib.Guid, 2, 36)
 End Function
+
+
 
 
 
