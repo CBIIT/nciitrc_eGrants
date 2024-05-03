@@ -9,6 +9,11 @@ dBug,,,,,y
 --dBugTEST,,,,,y
 --dBugPROD,,,,,n
 
+Verbose,,,,,y
+--VerboseDEV,,,,,y
+--VerboseTEST,,,,,n
+--VerbosePROD,,,,,n
+
 conStr,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
 --conStrDEV,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
 --conStrDEVRB,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
@@ -31,11 +36,11 @@ dirpathFixed,,,,,Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Fold
 OutDir,,,,,C:\eGrants\watch\out\
 --OutDirDEV,,,,,C:\eGrants\watch\out\
 --OutDirTEST,,,,,
---OutDirPROD,,,,,E:\eGrants\watch\out\
+--OutDirPROD,,,,,C:\eGrants\watch\out\
 --MLH : note that OUTDIR is not in prod yet !
 
 PublicAccessBackup,,,,,C:\eGrants\publicaccess\
 --PublicAccessBackupDEV,,,,,C:\eGrants\publicaccess\
 --PublicAccessBackupTEST,,,,,C:\eGrants\publicaccess\
---PublicAccessBackupPROD,,,,,E:\eGrants\publicaccess\
+--PublicAccessBackupPROD,,,,,C:\eGrants\publicaccess\
 --Used by saveMailAsPdf function in fixed

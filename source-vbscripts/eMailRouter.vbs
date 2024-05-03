@@ -7,8 +7,11 @@
 '''''===============================================================
 
 startTimeStamp=Now	
-	'logDir="C:\eGrants\apps\log\"	
-	'wscript.echo "starting router"
+
+	dBug = getConfigVal("dBug")
+	Verbose = getConfigVal("Verbose")
+	ShowDiagnosticIfVerbose("starting Router ...", Verbose)
+	
 	logDir = getConfigVal("logDir")
     forAppending=8	
 	taskStartMssg="...........Task Started!..........."
@@ -20,8 +23,7 @@ startTimeStamp=Now
 	Dim oPkg, oConn, oRs, oRsU, cmd, dBug
 	Dim OtlkApps 'as Object
 	Dim objNS 'As Outlook.NameSpace
-	dBug = getConfigVal("dBug")
-'	dBug="n"
+
 	dBugEmail = "leul.ayana@nih.gov"
 	eGrantsDevEmail = "eGrantsDev@mail.nih.gov"
 	eGrantsTestEmail = "eGrantsTest1@mail.nih.gov"
@@ -30,16 +32,15 @@ startTimeStamp=Now
 	nciGrantsPostAwardEmail = "NCIGrantsPostAward@nih.gov"
 	
 	conStr = getConfigVal("conStr")
-'	conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 
 	Set oConn = CreateObject("ADODB.Connection")
 	Set oRS = CreateObject("ADODB.Recordset")
 
 	dirpath = getConfigVal("dirpathRouter")
-	'dirpath="NCI CA eRA Notifications (NIH/NCI)\Inbox\"	
-	'dirpath="NCUOgaegrantsdev@mail.nih.gov\NCI\GAB\eGrantsDev\emailRouterTestRB
 	
 	Call Process(dirpath,oConn,oRS)
+	
+	call ShowDiagnosticIfVerbose("Completed Process()", Verbose)
 
 	set oRS = Nothing
 	oConn.close
@@ -57,13 +58,11 @@ startTimeStamp=Now
 '==========================================	
 
 Sub Process (dirpath,oConn,oRS)
-	'wscript.echo "Hello you are in Process"
-	'wscript.echo "Error Number : " & Err.Number
+	call ShowDiagnosticIfVerbose("Hello you are in Process", Verbose)
 		
 	Dim cmd	
 	Dim sepchar 'As String
 	Dim Documentid
-
 	
 	On Error Resume Next
 	
@@ -71,20 +70,15 @@ Sub Process (dirpath,oConn,oRS)
 	Set cmd = CreateObject("ADODB.Command")     
 	set cmd.ActiveConnection = oConn 	
 
-	'wscript.echo "Connected"
+	call ShowDiagnosticIfVerbose("Connected", Verbose)
 
 	Const ForReading = 1, ForWriting = 2, ForAppending = 8
-	'Set filesys = CreateObject("Scripting.FileSystemObject")
-
-	'Set OtlkApps = CreateObject("Outlook.Application")
 	Set OtlkApps = GetObject("","Outlook.application")
-	'Set OtlkApps = GetObject(,"Outlook.application")
 	Set objNS = OtlkApps.GetNamespace("MAPI")	
 
 	sepchar = "\"
-
-	'wscript.echo "dirpath: " & dirpath
-	'wscript.echo "Error Number : " & Err.Number
+	
+	call ShowDiagnosticIfVerbose("dirpath: " & dirpath, Verbose)
 
 	'Parse inputstr and Navigate to the folder
 	If dirpath <> "" Then
@@ -93,53 +87,37 @@ Sub Process (dirpath,oConn,oRS)
 		Set CFolder = objNS.Folders(xArray(0))
 
 		Do While i < UBound(xArray)
-			'wscript.echo "xArray " & i & " : " & xArray
-			'wscript.echo "xArray i " & xArray(i)
-			'wscript.echo "Error Number : " & Err.Number
+			call ShowDiagnosticIfVerbose("xArray " & i & " : " & xArray, Verbose)
+			call ShowDiagnosticIfVerbose("xArray i " & xArray(i), Verbose)
 			Set CFolder = CFolder.Folders(xArray(i))
 			i = i + 1
 		Loop
 	End If  'If dirpath <> "" Then
 	
-	'wscript.echo "Finished stepping through CFolder xarray"
-	'wscript.echo "Error Number : " & Err.Number
-
-	'wscript.echo "About to set old fldr "
+	call ShowDiagnosticIfVerbose("Finished stepping through CFolder xarray", Verbose)
 
 	Set OldFldr = CFolder.Folders("Old emails")	'this is what it is in other envs
 	'Set OldFldr = CFolder.Folders("old")
 	
-	'wscript.echo "went to Old emails"
-	'wscript.echo "Error Number : " & Err.Number
+	call ShowDiagnosticIfVerbose("went to Old emails", Verbose)
+	call ShowDiagnosticIfVerbose("Mail count=" & CFolder.Items.Count, Verbose)
 	
-	'wscript.echo "Mail count=" & CFolder.Items.Count
-	'wscript.echo "Error Number : " & Err.Number
-
 	itmcnt = CFolder.Items.Count
-	'wscript.echo "Mail count in Inbox=" & itmcnt
-	'wscript.echo "Error Number : " & Err.Number
+	call ShowDiagnosticIfVerbose("Mail count in Inbox=" & itmcnt, Verbose)
 	itmscncnt = 1
 	itmtoprocess=0
 	ItemsProcessed=0
-	'Do While itmcnt >= itmscncnt
 	Do While CFolder.Items.Count > 0
-		IF (dBug="y") Then
-			'wscript.echo "Mail count=" & CFolder.Items.Count
-		END IF
+		call ShowDiagnosticIfVerbose("Mail count=" & CFolder.Items.Count, Verbose)
 		
   		Set CItem = CFolder.Items(CFolder.Items.Count)
 		itmtoprocess=itmtoprocess+1
 		v_SubLine = CItem.Subject
 		v_Body = CItem.Body
-		'wscript.echo "subject: " & v_SubLine 
-		'wscript.echo "Error Number : " & Err.Number
+		call ShowDiagnosticIfVerbose("subject: " & v_SubLine , Verbose)
 		
 		v_SenderID = getSenderID(CItem)
-		'wscript.echo "Subject= "  & InStr(v_SubLine,"Undeliverable: ")
-		'v_Sender = CItem.Sender
-		'wscript.echo "Sender= "  & v_Sender   Automatic reply
-		''wscript.echo "Sender= "  & v_Sender
-		''IF ((InStr(v_SubLine,"Undeliverable: ") < 1) OR (InStr(v_SubLine,"Automatic reply ") < 1)) Then
+		call ShowDiagnosticIfVerbose("Sender= "  & v_Sender , Verbose)
 		IF ((InStr(v_SubLine,"Undeliverable: ") < 1)) Then
 			v_Sender = CItem.Sender
 			IF (InStr(v_SubLine,"eSNAP Received at NIH") > 0)  OR  (InStr(v_SubLine,"eRA Commons: RPPR for Grant ") > 0) Then
@@ -148,8 +126,8 @@ Sub Process (dirpath,oConn,oRS)
 						''''(1) load into eGrants
 						''''---- IMP: STRIP SPACES FROM CATEGORY NAME "ERA NOTIFICATION"
 						replysubj="category=eRANotification, sub=RPPR Non-Compliance, extract=1," & CItem.subject
-						'''wscript.echo "FOUND->"&v_SubLine
-						'''wscript.echo "FOUND->"&replysubj
+						call ShowDiagnosticIfVerbose("FOUND->"&v_SubLine , Verbose)
+						call ShowDiagnosticIfVerbose("FOUND->"&replysubj , Verbose)
 						Set OutMail = CItem.Forward
 						IF (dBug="n") Then
 							With OutMail
@@ -158,7 +136,6 @@ Sub Process (dirpath,oConn,oRS)
 								.Recipients.Add(eGrantsTestEmail)
 								.Recipients.Add(eGrantsStageEmail)
 
-								
 								.Subject = replysubj
 								.Send
 								
@@ -229,7 +206,7 @@ Sub Process (dirpath,oConn,oRS)
 						.Send
 					End With
 				ELSE
-					''wscript.echo "FOUND->"&v_SubLine
+					call ShowDiagnosticIfVerbose("FOUND->"&v_SubLine , Verbose)
 					With OutMail						
 						.Recipients.Add(dBugEmail)
 						.Recipients.Add(eGrantsDevEmail)
@@ -238,7 +215,7 @@ Sub Process (dirpath,oConn,oRS)
 				END IF
 				Set OutMail=nothing
 			ELSEIF InStr(v_SubLine," Supplement Requested through ") > 0 Then
-				'''wscript.echo "FOUND->"&v_SubLine
+				call ShowDiagnosticIfVerbose("FOUND->"&v_SubLine , Verbose)
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then				
 					With OutMail
@@ -247,7 +224,7 @@ Sub Process (dirpath,oConn,oRS)
 						.Send
 					End With
 				ELSE
-					''wscript.echo "FOUND->"&v_SubLine
+					call ShowDiagnosticIfVerbose("FOUND->"&v_SubLine , Verbose)
 					With OutMail
 						.Recipients.Add(dBugEmail)
 						.Recipients.Add(eGrantsDevEmail)
@@ -258,7 +235,7 @@ Sub Process (dirpath,oConn,oRS)
 			ELSEIF (InStr(v_SubLine," FCOI ") > 0  AND InStr(1,v_SubLine,"Automatic reply:") = 0) Then				
 				IF  len(Trim(v_SubLine))<>0  THEN
 					applid=getApplid(removespcharacters(v_SubLine),oConn)
-					'''wscript.echo "FCOI => applid=" & applid
+					call ShowDiagnosticIfVerbose("FCOI => applid=" & applid , Verbose)
 				END IF
 				IF  len(Trim(applid)) <> 0  THEN	
 					cmd.CommandText = "sp_getOfficersEmailForGrantNum"
@@ -271,20 +248,17 @@ Sub Process (dirpath,oConn,oRS)
 					If (oRS.BOF = True and oRS.EOF = True) Then
 						SpecEmail=""
 					Else	
-						'''wscript.echo oRS.State
-						'''wscript.echo oRS(0)
-						'''wscript.echo oRS(1)
-						''''wscript.echo oRs.Fields("filenamenumber").value 
-						''''wscript.echo oRs.Fields("ABC").value & "Data found creating document in" & OutDir & Alias
+						call ShowDiagnosticIfVerbose(" oRS.State " &  oRS.State , Verbose)
+						call ShowDiagnosticIfVerbose(" oRS(0) " & oRS(0) , Verbose)
+						call ShowDiagnosticIfVerbose(" oRS(1) " &  oRS(1) , Verbose)
+						call ShowDiagnosticIfVerbose(" oRs.Fields(filenamenumber).value " & oRs.Fields("filenamenumber").value , Verbose)
+						call ShowDiagnosticIfVerbose(" Fields(ABC).value & Data found creating document in OutDir Alias " &  oRs.Fields("ABC").value & "Data found creating document in" & OutDir & Alias , Verbose)
 						p_SpecEmail=oRs.Fields("Email_address_p").value
 						b_SpecEmail=oRs.Fields("Email_address_b").value
-						'set oRS = Nothing
-						'''wscript.echo  "Return from poroc (SPEC EMAIL)=>"& p_SpecEmail
-						'''wscript.echo  "Return from poroc (BACKUP_SPEC EMAIL)=>"& b_SpecEmail
-						'Alias = filenumbername & ".txt"
-						''''wscript.echo OutDir & Alias
-						'CItem.SaveAs OutDir & Alias, olTXT	
-						''''wscript.echo "BODY  saved as Alias="&Alias		
+						call ShowDiagnosticIfVerbose("Return from poroc (SPEC EMAIL)=>" & p_SpecEmail , Verbose)
+						call ShowDiagnosticIfVerbose("Return from poroc (BACKUP_SPEC EMAIL)=>"& b_SpecEmail , Verbose)
+						call ShowDiagnosticIfVerbose(" OutDir & Alias " &  OutDir & Alias, Verbose)
+						call ShowDiagnosticIfVerbose("BODY  saved as Alias="&Alias, Verbose)
 					end if
 					set oRS = Nothing
 				END IF
@@ -322,18 +296,18 @@ Sub Process (dirpath,oConn,oRS)
 						ELSEIF  len(Trim(p_SpecEmail)) = 0  AND  len(Trim(b_SpecEmail)) <> 0  THEN	
 							replysubj="P="&b_SpecEmail
 						END IF
-						'wscript.echo "FCOI FOUND SPEC ID->"&replysubj
+						call ShowDiagnosticIfVerbose("FCOI FOUND SPEC ID->" & replysubj, Verbose)
 						.Subject = replysubj 
 						.Send
-						'''wscript.echo SpecEmail
+						call ShowDiagnosticIfVerbose("wscript.echo SpecEmail"& SpecEmail, Verbose)
 					End With				
 				END IF
 				Set OutMail=nothing
 			''''---- IMP: STRIP SPACES FROM CATEGORY NAME "ERA NOTIFICATION"	
 			ELSEIF InStr(v_SubLine,"No Cost Extension Submitted") > 0 Then
 				replysubj="category=eRANotification, sub=No Cost Extension, extract=1," & CItem.subject
-				'''wscript.echo "FOUND->"&v_SubLine
-				'''wscript.echo "FOUND->"&replysubj
+				call ShowDiagnosticIfVerbose("FOUND->"&v_SubLine, Verbose)
+				call ShowDiagnosticIfVerbose("FOUND->"&replysubj, Verbose)
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then
 					With OutMail
@@ -350,7 +324,7 @@ Sub Process (dirpath,oConn,oRS)
 					End With
 				ELSE
 					With OutMail
-						''wscript.echo "FOUND->"&replysubj
+						call ShowDiagnosticIfVerbose( "FOUND-> replysubj: "&replysubj, Verbose)
 						.Recipients.Add(dBugEmail)	
 						.Recipients.Add(eGrantsDevEmail)
 						'''''''''''''-----------ADD THE FOLLOWING FOR DEVELOPMENT TIER	AS NEEDED BASIS					
@@ -371,7 +345,7 @@ Sub Process (dirpath,oConn,oRS)
 						.Send
 					End With
 				ELSE
-					''wscript.echo "Subject->"&v_SubLine
+					call ShowDiagnosticIfVerbose( "Subject->"&v_SubLine, Verbose)
 					With OutMail
 						.Recipients.Add(dBugEmail)	
 						.Recipients.Add(eGrantsDevEmail)
@@ -381,38 +355,38 @@ Sub Process (dirpath,oConn,oRS)
 				END IF
 				Set OutMail=nothing
 			ELSEIF InStr(v_Sender,"public") > 0 Then
-				'wscript.echo "found a public access email."
+				call ShowDiagnosticIfVerbose( "found a public access email.", Verbose)
 				'' get the appl id from the grant number in the subject line
 				'' example : PASC: 5U24CA213274-08 - RUDIN, CHARLES M
 				'' example2 : Compliant PASC: 5R01CA258784-04 - SEN, TRIPARNA
 				IF  len(Trim(v_SubLine))<>0  THEN
-					'wscript.echo "x v_SubLine: '" & v_SubLine & "'"
+					call ShowDiagnosticIfVerbose( "x v_SubLine: '" & v_SubLine & "'", Verbose)
 
 					a=Split(v_SubLine,": ")
-					'wscript.echo "second part: '" & a(1) & "'"
+					call ShowDiagnosticIfVerbose( "second part: '" & a(1) & "'", Verbose)
 					secondPart=a(1)
 					
 					subCat = ""
-					'wscript.echo "LCase(v_SubLine): '" & LCase(v_SubLine) & "'"
+					call ShowDiagnosticIfVerbose( "LCase(v_SubLine): '" & LCase(v_SubLine) & "'", Verbose)
 					'adding a " " here so if compliant is the first part of the string it never returns 0
 					IF InStr(LCase(" " & v_SubLine),"compliant") >= 1 THEN
-						'wscript.echo "found compliant"
+						call ShowDiagnosticIfVerbose( "found compliant", Verbose)
 						subCat = "Compliant"
 					END IF
-					'wscript.echo "subCat: '" & subCat & "'"
+					call ShowDiagnosticIfVerbose( "subCat: '" & subCat & "'", Verbose)
 
 					b=Split(secondPart, " - ")
 					middle = b(0)
 
-					'wscript.echo "isolated grant id: '" & middle & "'"
+					call ShowDiagnosticIfVerbose( "isolated grant id: '" & middle & "'", Verbose)
 					applid = getApplid(removespcharacters(middle),oConn)
-					'wscript.echo "applid  '" & applid & "'"
+					call ShowDiagnosticIfVerbose( "applid  '" & applid & "'", Verbose)
 
 					replysubj="category=PublicAccess, sub=" & subCat & ", applid=" & applid & ", extract=1, " & CItem.subject
 
-					'wscript.echo "dBugEmail : " & dBugEmail
-					'wscript.echo "eGrantsDevEmail : " & eGrantsDevEmail
-					'wscript.echo "replysubj : " & replysubj 
+					call ShowDiagnosticIfVerbose( "dBugEmail : " & dBugEmail, Verbose)
+					call ShowDiagnosticIfVerbose( "eGrantsDevEmail : " & eGrantsDevEmail, Verbose)
+					call ShowDiagnosticIfVerbose( "replysubj : " & replysubj , Verbose)
 
 					Set OutMail = CItem.Forward
 					IF (dBug="n") Then
@@ -427,7 +401,6 @@ Sub Process (dirpath,oConn,oRS)
 						End With
 					ELSE
 						With OutMail
-							''wscript.echo "FOUND->"&replysubj
 						.Recipients.Add(dBugEmail)	
 						.Recipients.Add(eGrantsDevEmail)
 							.Subject = replysubj 
@@ -438,9 +411,9 @@ Sub Process (dirpath,oConn,oRS)
 					
 					
 				END IF
-				'wscript.echo "done"
+				call ShowDiagnosticIfVerbose( "done" , Verbose)
 				Set OutMail=nothing
-				'wscript.echo "done2"
+				call ShowDiagnosticIfVerbose( "done2" , Verbose)
 			ELSEIF InStr(v_SubLine,"JIT Request for Grant") > 0    Then  
 					replysubj="category=JIT Info, sub=Reminder, extract=1, " & CItem.subject
 					Set OutMail = CItem.Forward
@@ -454,7 +427,7 @@ Sub Process (dirpath,oConn,oRS)
 							.Send
 						End With
 					ELSE
-						''wscript.echo "DON'T WANT THIS" & v_SubLine
+						call ShowDiagnosticIfVerbose("DON'T WANT THIS" & v_SubLine , Verbose)
 						With OutMail
 							.Recipients.Add(dBugEmail)
 							.Recipients.Add(eGrantsDevEmail)							
@@ -489,8 +462,8 @@ Sub Process (dirpath,oConn,oRS)
 			ELSEIF InStr(v_SubLine,"NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant") > 0 Then
 			    IF (InStr(v_SubLine," R15 ") > 0) Then
 				replysubj="category=eRANotification, sub=Late Progress Report, extract=1, " & CItem.subject
-				'''wscript.echo "FOUND->"&v_SubLine
-				'''wscript.echo "FOUND->"&replysubj
+				call ShowDiagnosticIfVerbose("FOUND->"&v_SubLine , Verbose)
+				call ShowDiagnosticIfVerbose("FOUND->"&replysubj, Verbose)
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then
 					With OutMail
@@ -502,7 +475,7 @@ Sub Process (dirpath,oConn,oRS)
 						.Send
 					End With
 				ELSE
-					''wscript.echo "FOUND->"&replysubj
+					call ShowDiagnosticIfVerbose("FOUND->"&replysubj, Verbose)
 					With OutMail
 						.Recipients.Add(dBugEmail)
 						.Recipients.Add(eGrantsDevEmail)
@@ -513,8 +486,8 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail=nothing
 			    END IF
 			ELSEIF InStr(v_SubLine,"Expiring Funds") > 0  OR InStr(v_SubLine,"EXPIRING FUNDS-") > 0  Then  
+				call ShowDiagnosticIfVerbose("FOUND->"&replysubj, Verbose)
 				'''Only attached document has to be extracted so many make Body=""
-				'''wscript.echo "FOUND->"&v_SubLine
 				replysubj="category=Closeout, extract=2, " & CItem.subject
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then
@@ -528,7 +501,7 @@ Sub Process (dirpath,oConn,oRS)
 						.Send
 					End With
 				ELSE
-					''wscript.echo "FOUND->"&v_SubLine
+					call ShowDiagnosticIfVerbose("FOUND->"&replysubj, Verbose)
 					With OutMail
 						.Recipients.Add(eGrantsDevEmail)
 						.Recipients.Add(dBugEmail)	
@@ -546,7 +519,7 @@ Sub Process (dirpath,oConn,oRS)
 						.Send					
 					End With
 				ELSE
-					''wscript.echo "FOUND->"&v_SubLine
+					call ShowDiagnosticIfVerbose("FOUND->"&replysubj, Verbose)
 					With OutMail
 						.Recipients.Add(dBugEmail)	
 						.Recipients.Add(eGrantsDevEmail)
@@ -558,7 +531,7 @@ Sub Process (dirpath,oConn,oRS)
 			ELSEIF InStr(v_SubLine,"FFR NOTIFICATION : REJECTED") > 0    Then  
 
 				IF (InStr(lcASE(v_SubLine),"re: ffr notification") > 0  OR  InStr(LCase(v_SubLine),"fw: ffr notification") > 0)  Then  
-					'''wscript.echo "DON'T WANT THIS" & v_SubLine
+					call ShowDiagnosticIfVerbose("DON'T WANT THIS" & v_SubLine, Verbose)
 				ELSE
 					replysubj="category=Notification, sub=FFR Rejection, extract=1, " & CItem.subject
 					Set OutMail = CItem.Forward
@@ -573,7 +546,7 @@ Sub Process (dirpath,oConn,oRS)
 							.Send
 						End With
 					ELSE
-						''wscript.echo "DON'T WANT THIS" & v_SubLine
+						call ShowDiagnosticIfVerbose("DON'T WANT THIS" & v_SubLine, Verbose)
 						With OutMail
 							.Recipients.Add(dBugEmail)	
 							.Recipients.Add(eGrantsDevEmail)
@@ -586,7 +559,7 @@ Sub Process (dirpath,oConn,oRS)
 			ELSEIF InStr(v_SubLine,"eRA Commons: The Final RPPR - Additional Materials for Award") > 0    Then  
 
 				IF (InStr(lcASE(v_SubLine),"re: eRA Commons: The Final RPPR ") > 0  OR  InStr(LCase(v_SubLine),"fw: eRA Commons: The Final RPPR ") > 0)  Then  
-					'''wscript.echo "DON'T WANT THIS" & v_SubLine
+					call ShowDiagnosticIfVerbose("DON'T WANT THIS" & v_SubLine, Verbose)
 				ELSE
 					replysubj="category=FRAM: Request, sub=The Final RPPR, extract=1, " & CItem.subject
 					Set OutMail = CItem.Forward
@@ -602,7 +575,7 @@ Sub Process (dirpath,oConn,oRS)
 							.Send
 						End With
 					ELSE
-						''wscript.echo "DON'T WANT THIS" & v_SubLine
+						call ShowDiagnosticIfVerbose("DON'T WANT THIS" & v_SubLine, Verbose)
 						With OutMail
 							.Recipients.Add(dBugEmail)	
 		                    .Recipients.Add(eGrantsDevEmail)
@@ -615,7 +588,7 @@ Sub Process (dirpath,oConn,oRS)
 			ELSEIF InStr(v_SubLine,"eRA Commons: PRAM for Grant") > 0    Then  
 
 				IF (InStr(lcASE(v_SubLine),"re: eRA Commons: PRAM for Grant") > 0  OR  InStr(LCase(v_SubLine),"fw: eRA Commons: PRAM for Grant") > 0)  Then  
-					'''wscript.echo "DON'T WANT THIS" & v_SubLine
+					call ShowDiagnosticIfVerbose("DON'T WANT THIS" & v_SubLine, Verbose)
 				ELSE
 					replysubj="category=PRAM: Requested, sub=PRAM for Grant, extract=1, " & CItem.subject
 					Set OutMail = CItem.Forward
@@ -631,7 +604,7 @@ Sub Process (dirpath,oConn,oRS)
 							.Send
 						End With
 					ELSE
-						''wscript.echo "DON'T WANT THIS" & v_SubLine
+						call ShowDiagnosticIfVerbose("DON'T WANT THIS" & v_SubLine, Verbose)
 						With OutMail
 							.Recipients.Add(dBugEmail)	
 							.Recipients.Add(eGrantsDevEmail)
@@ -673,7 +646,7 @@ Sub Process (dirpath,oConn,oRS)
 						.Send
 					End With
 				ELSE
-					''wscript.echo "DON'T WANT THIS" & v_SubLine
+					call ShowDiagnosticIfVerbose("DON'T WANT THIS" & v_SubLine, Verbose)
 					With OutMail
 						.Recipients.Add(dBugEmail)	
 						.Recipients.Add(eGrantsDevEmail)
@@ -743,25 +716,13 @@ Sub Process (dirpath,oConn,oRS)
 				END IF
 				Set OutMail=nothing	
 				
-			'ELSEIF InStr(lcase(v_SubLine),"closeout action required") > 0 Then  
-				'wscript.echo "Hello you are closing out a thing ..."
-				
-				'' get the appl id from the grant number in the subject line
-			'	IF  len(Trim(v_SubLine))<>0  THEN
-			'		isolated = getNthWord(v_SubLine, 4)
-			'		'wscript.echo "isolated: '" & isolated & "'"
-			'		applid = getApplid(removespcharacters(isolated),oConn)
-			'	END IF
-				
-				Set OutMail=nothing	
-				
 			ELSEIF InStr(lcase(v_SubLine),"closeout action required") > 0 Then  
-				'wscript.echo "Hello you are closing out a thing ..."
+				call ShowDiagnosticIfVerbose("Hello you are closing out a thing ...", Verbose)
 				
 				'' get the appl id from the grant number in the subject line
 				IF  len(Trim(v_SubLine))<>0  THEN
 					isolated = getNthWord(v_SubLine, 4)
-					'wscript.echo "isolated: '" & isolated & "'"
+					call ShowDiagnosticIfVerbose("isolated: '" & isolated & "'", Verbose)
 					applid = getApplid(removespcharacters(isolated),oConn)
 				END IF
 				
@@ -777,7 +738,7 @@ Sub Process (dirpath,oConn,oRS)
 						.Send
 					End With
 				ELSE
-					''wscript.echo "FOUND->"&v_SubLine
+					call ShowDiagnosticIfVerbose("FOUND->"&v_SubLine, Verbose)
 					With OutMail
 						.Recipients.Add(eGrantsDevEmail)
 						.Recipients.Add(dBugEmail)	
@@ -786,7 +747,39 @@ Sub Process (dirpath,oConn,oRS)
 					End With				
 				END IF
 				Set OutMail=nothing		
-				'wscript.echo "Hello you closed out a thing"
+				call ShowDiagnosticIfVerbose("Hello you closed out a thing", Verbose)
+			ELSEIF InStr(lcase(v_SubLine),"closeout program action required") > 0 Then  
+				call ShowDiagnosticIfVerbose("Hello you are closing out a PROGRAM thing ...", Verbose)
+				
+				'' get the appl id from the grant number in the subject line
+				IF  len(Trim(v_SubLine))<>0  THEN
+					isolated = getNthWord(v_SubLine, 4)
+					call ShowDiagnosticIfVerbose("isolated: '" & isolated & "'", Verbose)
+					applid = getApplid(removespcharacters(isolated),oConn)
+				END IF
+				
+				replysubj="category=closeout, sub=F-RPPR Acceptance Past Due Reminder, applid=" & applid & ", extract=1," & CItem.subject
+				Set OutMail = CItem.Forward
+				IF (dBug="n") Then
+					With OutMail
+						.Recipients.Add(eFileEmail)
+						.Recipients.Add(eGrantsDevEmail)
+						.Recipients.Add(eGrantsTestEmail)
+						.Recipients.Add(eGrantsStageEmail)
+						.Subject = replysubj 
+						.Send
+					End With
+				ELSE
+					call ShowDiagnosticIfVerbose("FOUND->"&v_SubLine, Verbose)
+					With OutMail
+						.Recipients.Add(eGrantsDevEmail)
+						.Recipients.Add(dBugEmail)	
+						.Subject = replysubj 
+						.Send
+					End With				
+				END IF
+				Set OutMail=nothing		
+				call ShowDiagnosticIfVerbose("Hello you closed out a PROGRAM thing", Verbose)
 				
 			ELSEIF InStr(v_SubLine,"FFR Reminder") > 0 AND InStr(v_SubLine, "FFR Past Due") > 0   Then  
 		
@@ -852,37 +845,25 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail=nothing
 				
 			ELSEIF InStr(v_SubLine,"SBIR/STTR Foreign Risk Management") > 0 THEN
-			
-				'wscript.echo "handling SBIR/STTR"
-				'wscript.echo "Error Number : " & Err.Number
+				call ShowDiagnosticIfVerbose(""handling SBIR/STTR", Verbose)
 				'' example body we want to snatch the appl id from :
 				'1R43CA291415-01 (10921643) has undergone SBIR/STTR risk management assessment in accordance with the SBIR and STTR Extension Act of 2022 on 04/25/2024 12:19 PM. 
 		
 				'' get the appl id from the grant number in the subject line
 				IF  len(Trim(v_SubLine))<>0  THEN
-					'wscript.echo "v_Body :" & v_Body
 					applid = Split(v_Body, " ")(1)
-					'wscript.echo "applid step 1 :" & applid
+					call ShowDiagnosticIfVerbose("applid step 1 :" & applid, Verbose)
 					'should look somethin like this :		(10921643)
-					'applid = Replace(applid, ""("", "")
-					'applid = Replace(applid, "")"", "")
 					applid = Replace(Replace(applid, "(", ")"), ")", "")
-					'wscript.echo "applid step 2 :" & applid
-					'secondHalf = Split(dirpath, "(")(0)
-					'middle = secondHalf = Split(
-					'lastWordInSubject = getLastWord(CItem.Subject)
-					'lastFourCharacters = Right(lastWordInSubject, 4)
-					'applid = getApplid(removespcharacters(v_SubLine),oConn)
+					call ShowDiagnosticIfVerbose("applid step 2 :" & applid, Verbose)
 				END IF
 				
 				'' set the applid, category, subcategory and the extract type to 1
-				'TODO : confirm extract 1
 				replysubj = "applid=" & applid & ", category=Funding, sub=DCI-InTh Cleared, extract=1, " & CItem.subject
 				IF InStr(v_SubLine,"Not Cleared") > 0 THEN
 					replysubj = "applid=" & applid & ", category=Funding, sub=DCI-InTh Not Cleared, extract=1, " & CItem.subject
 				END IF
-				'wscript.echo "replysubj :" & replysubj
-				'wscript.echo "Error Number : " & Err.Number
+				call ShowDiagnosticIfVerbose("replysubj :" & replysubj, Verbose)
 
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then								
@@ -903,26 +884,21 @@ Sub Process (dirpath,oConn,oRS)
 					End With						
 				END IF
 				Set OutMail=nothing	
-				'wscript.echo "completed SBIR"
-				'wscript.echo "Error Number : " & Err.Number
+				call ShowDiagnosticIfVerbose("completed SBIR", Verbose)
 				
 			ELSEIF InStr(v_SubLine,"Imran") > 0 Then
-				''wscript.echo "FOUND Imran->"&v_SubLine		
+				call ShowDiagnosticIfVerbose("FOUND Imran->"&v_SubLine, Verbose)
 			End If
-			'wscript.echo "outer loop complete."
-		END IF	'''''((InStr(v_SubLine,"Undeliverable: ") < 1)) Then
+			call ShowDiagnosticIfVerbose("outer loop complete.", Verbose)
+		END IF
 	
-		'wscript.echo "Error count here : " & Err.Number
-
 			itmscncnt=itmscncnt+1
-			
-			'wscript.echo "incrementing count"
-			'wscript.echo "Error Number : " & Err.Number
-			
+
+			call ShowDiagnosticIfVerbose("incrementing count", Verbose)
+				
 			CItem.Move(OldFldr)	
 			
-			'wscript.echo "CItem.Move"	' fails here
-			'wscript.echo "Error Number : " & Err.Number
+			call ShowDiagnosticIfVerbose("CItem.Moved", Verbose)
 	
 			processTimeStamp=Now
 			If Err.Number <> 0 Then
@@ -1039,6 +1015,14 @@ Function getSenderID(CItem)
 
 End Function
 '==========================================
+Function ShowDiagnosticIfVerbose(Message,Verbose)
+	If (Verbose="y") Then
+		wscript.echo Message
+		If Err.Number <> 0 Then
+			wscript.echo "Error Number: " & Err.Number
+		End If	
+	End If
+End Function
 '==========================================
 Function writeLog(code, message, errorInfo, timeStamp)	
 	
@@ -1090,10 +1074,6 @@ Function emailme(SubjMSG,BodyMSG)
 End Function
 '==========================================
 Function getLastWord(str)
-	'Dim wordz
-	'Dim numberOfWords
-	'Dim lastWord
-
 	wordz  = Split(str, " ")
     
 	numberOfWords = Ubound(wordz)
@@ -1104,12 +1084,7 @@ Function getLastWord(str)
 End Function
 '==========================================
 Function getNthWord(str,number)
-	'Dim wordz
-	'Dim numberOfWords
-	'Dim lastWord
-
 	wordz  = Split(str, " ")    
 	lastWord = wordz(number - 1) 'Remember arrays start at index 0
     getNthWord = lastWord
-
 End Function
