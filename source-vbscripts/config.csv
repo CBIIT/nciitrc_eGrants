@@ -4,17 +4,12 @@ logDir,,,,,C:\eGrants\apps\log\
 --logDirTEST,,,,,C:\eGrants\apps\log\
 --logDirPROD,,,,,C:\eGrants\apps\log\
 
-dBug,,,,,y
+dBug,,,,,n
 --dBugDEV,,,,,y
 --dBugTEST,,,,,y
 --dBugPROD,,,,,n
 
-Verbose,,,,,y
---VerboseDEV,,,,,y
---VerboseTEST,,,,,n
---VerbosePROD,,,,,n
-
-conStr,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
+conStr,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants
 --conStrDEV,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
 --conStrDEVRB,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
 --conStrTESTOld,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
@@ -22,13 +17,13 @@ conStr,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;U
 --conStrPROD,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants
 --MLH : note that some providers used to be MSOLEDBSQL
 
-dirpathRouter,,,,,Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
+dirpathRouter,,,,,NCI CA eRA Notifications (NIH/NCI)\Inbox\
 --dirpathRouterDEV2,,,,,Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
 --dirpathRouterDEV,,,,,NCI CA eRA Notifications (NIH/NCI)\Inbox\
 --dirpathRouterTEST,,,,,Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
 --dirpathRouterPROD,,,,,NCI CA eRA Notifications (NIH/NCI)\Inbox\
 
-dirpathFixed,,,,,Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsTest\
+dirpathFixed,,,,,Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\efile\
 --dirpathFixedDEV,,,,,Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\test\
 --dirpathFixedTEST,,,,,Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsTest\
 --dirpathFixedPROD,,,,,Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\efile\
@@ -37,7 +32,6 @@ OutDir,,,,,C:\eGrants\watch\out\
 --OutDirDEV,,,,,C:\eGrants\watch\out\
 --OutDirTEST,,,,,
 --OutDirPROD,,,,,C:\eGrants\watch\out\
---MLH : note that OUTDIR is not in prod yet !
 
 PublicAccessBackup,,,,,C:\eGrants\publicaccess\
 --PublicAccessBackupDEV,,,,,C:\eGrants\publicaccess\
