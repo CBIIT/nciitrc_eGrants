@@ -9,6 +9,11 @@ dBug,,,,,n
 --dBugTEST,,,,,y
 --dBugPROD,,,,,n
 
+Verbose,,,,,n
+--VerboseDEV,,,,,y
+--VerboseTEST,,,,,y
+--VerbosePROD,,,,,n
+
 conStr,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants
 --conStrDEV,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
 --conStrDEVRB,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
