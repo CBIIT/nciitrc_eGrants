@@ -664,8 +664,10 @@ End Function
 Function saveMailAsPdf(citem, Documentid, Verbose)
 	set objFs=CreateObject("Scripting.FileSystemObject")
 	publicAccessBackup = getConfigVal("PublicAccessBackup")
-	pdfdir = publicAccessBackup		'"C:\eGrants\publicaccess\"
+	call ShowDiagnosticIfVerbose("publicAccessBackup: '" & publicAccessBackup & "'", Verbose)
+	pdfdir = publicAccessBackup		'"C:\eGrants\publicaccess\"	
 	pdfbackup = publicAccessBackup & "backup\" 	'"C:\eGrants\publicaccess\backup\"
+	call ShowDiagnosticIfVerbose("pdfbackup: '" & pdfbackup & "'", Verbose)
 	bodypdf = publicAccessBackup & "body.pdf" 	'"C:\eGrants\publicaccess\body.pdf"
 	subjtxt = publicAccessBackup & "subj.txt" 	'"C:\eGrants\publicaccess\subj.txt"
 	subjpdf = publicAccessBackup & "subj.pdf" 	'"C:\eGrants\publicaccess\subj.pdf"
@@ -752,19 +754,27 @@ Function saveMailAsPdf(citem, Documentid, Verbose)
 	app.CloseAllDocs
     app.Exit 	
 	 set app=Nothing  	'Ayu
-	call converttopdf(pdfdir, pdfdoc)
+	call ShowDiagnosticIfVerbose("pdfdir : '" & pdfdir & "'", Verbose)		'
+	call ShowDiagnosticIfVerbose("pdfdoc : '" & pdfdoc & "'", Verbose)
+	call converttopdf(pdfdir, pdfdoc, Verbose)
+	call ShowDiagnosticIfVerbose("converted.", Verbose)
 		
 End Function
 '==========================================
 '==========================================
 
 Function converttopdf(pdfdir, pdfdoc, Verbose)
+	call ShowDiagnosticIfVerbose("in converttopdf", Verbose)
 	set objFs=CreateObject("Scripting.FileSystemObject")
 	Set app = CreateObject("AcroExch.App") 
+	call ShowDiagnosticIfVerbose("converttopdf objects created", Verbose)
 	Set srcFld=objFs.getFolder(pdfdir)	
+	call ShowDiagnosticIfVerbose("got the folder", Verbose)
 	If(srcFld.Files.Count>0) Then
+		call ShowDiagnosticIfVerbose("> 1 file", Verbose)
 		Set fileOBJ = CreateObject("AcroExch.AVDoc")
 		For Each objfile In srcFld.Files
+			call ShowDiagnosticIfVerbose("processing another file from srcFld.Files", Verbose)
 			IF (LCase(objFS.GetExtensionName(objfile))<>"pdf")  Then
 				fileOBJ.Open objfile, ""
 				set filepdf=fileOBJ.GetPDDoc
@@ -775,11 +785,12 @@ Function converttopdf(pdfdir, pdfdoc, Verbose)
 			End If
 		Next	
 	
+		call ShowDiagnosticIfVerbose("checking for file exists at pdfdoc", Verbose)
 		If(objFs.FileExists(pdfdoc)) Then	
 			call ShowDiagnosticIfVerbose("file count : " & srcFld.Files.count, Verbose)
 			j=1
 			For Each file In srcFld.Files
-			
+				call ShowDiagnosticIfVerbose("saving another file", Verbose)
 				If(pdfdir & file.name<>pdfdoc) Then			
 					Set basepdf = CreateObject("AcroExch.PDDoc") 
 					Set insrtpdf = CreateObject("AcroExch.PDDoc") 
