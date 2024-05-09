@@ -1,12 +1,13 @@
 USE [EIM]
 GO
 
-/****** Object:  View [dbo].[egrants]    Script Date: 5/2/2024 8:46:33 AM ******/
+/****** Object:  View [dbo].[egrants]    Script Date: 5/3/2024 4:06:16 PM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 
@@ -66,7 +67,7 @@ SELECT     dbo.profiles.profile AS ic, dbo.grants.grant_id, dbo.grants.admin_phs
                       WHEN (dbo.documents.category_id in (
 						 select (category_id) from categories where (category_name = 'Application File' OR category_name = 'Data Management and Sharing (DMS) Plan'
 							OR category_name = 'Prior Approval' OR sub_category_name = 'Past Due Documents Reminder')
-							OR sub_category_name like '%DCI-InTh%')
+							OR sub_category_name like '%DCI-InTh%' OR sub_category_name like '%F-RPPR Acceptance Past%')
 					  ) then 'y'
 					  WHEN dbo.fn_appl_deleted_by_impac (dbo.appls.appl_id)='n' AND (url LIKE 'data/%' or url LIKE '/data/%') AND people_create.userid != 'system' AND parent_id IS NULL THEN 'y' 
                       WHEN dbo.fn_appl_deleted_by_impac (dbo.appls.appl_id)='n' AND (dbo.documents.category_id IS NULL OR dbo.documents.appl_id IS NULL) AND dbo.documents.qc_date IS NOT NULL THEN 'y'
