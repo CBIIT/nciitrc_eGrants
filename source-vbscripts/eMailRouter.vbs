@@ -602,7 +602,7 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 					END IF
 				END IF
 
-				replysubj="applid=" & applid & ",category=Correspondence, sub=RPPR Unobligated Balance, extract=1, " & CItem.subject
+				replysubj="applid=" & applid & ", category=Correspondence, sub=RPPR Unobligated Balance, extract=1, " & CItem.subject
 				Set OutMail = CItem.Forward
 				
 				IF (dBug="n") Then								
