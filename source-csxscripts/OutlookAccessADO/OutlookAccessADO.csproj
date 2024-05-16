@@ -25,12 +25,4 @@
     <PackageReference Include="System.Data.OleDb" Version="8.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Microsoft.Vbe.Interop">
-	  <SpecificVersion>False</SpecificVersion>
-	  <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\..\..\..\..\Windows\assembly\GAC_MSIL\Microsoft.Vbe.Interop\15.0.0.0__71e9bce111e9429c\Microsoft.Vbe.Interop.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>
