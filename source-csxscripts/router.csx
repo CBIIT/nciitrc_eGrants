@@ -1,10 +1,12 @@
 // Install support for CSX scripts (C# scripts) using this command on Windows Powershell:
 //      (new-object Net.WebClient).DownloadString("https://raw.githubusercontent.com/dotnet-script/dotnet-script/master/install/install.ps1") | iex
 // Run using :
-// dotnet script router.csx
+//      dotnet script router.csx
+// MLH 5/16/2024 Update : According to the interwebs, Office interop is not supported by .NET Core :(
+// migrating the code from here to Dot Net Core
 
 #r "nuget: SqlConnection, 1.0.4"
-#r "nuget: Microsoft.Office.Interop.Outlook, 15.0.4797.1004"
+#r "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-csxscripts\Interop.Microsoft.Office.Interop.Outlook.dll"
 
 using System.Data.SqlClient;
 using Outlook = Microsoft.Office.Interop.Outlook;
@@ -48,12 +50,15 @@ public int Process(string dirPath, SqlConnection con, string verbose, string deb
 
     ShowDiagnosticIfVerbose("Hello you are in Process", verbose);
 
+    Outlook.Application oApp = new Outlook.Application();
+    ShowDiagnosticIfVerbose("Created the object ...", verbose);
+
     //string sepchar = "\";
 
     //var dirPathSections = dirPath.Split(sepchar);
     //var i = 1;
     //var CFolder = dirPathSections[0];
-    var appOutlook = new Microsoft.Office.Interop.Outlook.Application();
+    //var appOutlook = new Microsoft.Office.Interop.Outlook.Application();
 
     	// 	xArray = Split(dirpath, sepchar)
 		// i = 1
@@ -67,7 +72,7 @@ public int Process(string dirPath, SqlConnection con, string verbose, string deb
 		// 	i = i + 1
 		// Loop
     
-    var CFolder = GetFolder(dirPath, appOutlook);
+    //var CFolder = GetFolder(dirPath, appOutlook);
 
     return itemsProcessed;
 }
