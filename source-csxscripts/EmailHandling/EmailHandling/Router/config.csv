@@ -23,7 +23,8 @@ conStr,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;I
 --conStrPROD,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants
 --MLH : note that some providers used to be MSOLEDBSQL
 
-dirpathRouter,,,,,Public Folders - micah.hoover@nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
+dirpathRouter,,,,,Public Folders - micah.hoover@nih.gov\All Public Folders\NCI\GAB\eGrantsDev\localTestMH\
+--dirpathRouterMicah2,,,,,Public Folders - micah.hoover@nih.gov\All Public Folders\NCI\GAB\eGrantsDev\localTestMH\
 --dirpathRouterMicah,,,,,Public Folders - micah.hoover@nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
 --dirpathRouterDEV2,,,,,Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
 --dirpathRouterDEV,,,,,NCI CA eRA Notifications (NIH/NCI)\Inbox\

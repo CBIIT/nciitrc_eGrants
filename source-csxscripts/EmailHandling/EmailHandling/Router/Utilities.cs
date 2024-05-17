@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Router
 {
@@ -63,6 +64,25 @@ namespace Router
             }
 
             File.AppendAllText(LogDir + "\\" + fileName, outputContent + Environment.NewLine);
+        }
+
+        public static string RemoveSpaceCharacters(string inbound) {
+            var txt = inbound.Replace("vbLf", "vbCrLF");
+            txt = inbound.Replace(":", " ");
+            txt = inbound.Replace("/", " ");
+            txt = inbound.Replace("\\", " ");
+            txt = inbound.Replace("&", "and");
+            txt = inbound.Replace(";", " ");
+            txt = inbound.Replace("<", " ");
+            txt = inbound.Replace(">", " ");
+            txt = inbound.Replace("<<", " ");
+            txt = inbound.Replace(">>", " ");
+            txt = inbound.Replace("^", " ");
+            txt = inbound.Replace("%", " ");
+            txt = inbound.Replace("@", " ");
+            txt = inbound.Replace("'", " ");
+            txt = inbound.Replace(" ", "");
+            return txt.Trim();
         }
     }
 }
