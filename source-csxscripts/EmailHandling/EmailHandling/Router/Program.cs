@@ -38,12 +38,13 @@ namespace Router
             var _taskStartMssg = "...........Task Started!...........";
             Utilities.WriteLog(_forAppending, _taskStartMssg, null, _startTimeStamp);
 
-            var _dBugEmail = "leul.ayana@nih.gov";
-            var _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-            var _eGrantsTestEmail = "eGrantsTest1@mail.nih.gov";
-            var _eGrantsStageEmail = "eGrantsStage@mail.nih.gov";
-            var _eFileEmail = "efile@mail.nih.gov";
-            var _nciGrantsPostAwardEmail = "NCIGrantsPostAward@nih.gov";
+            // moved to Process
+            //var _dBugEmail = "leul.ayana@nih.gov";
+            //var _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
+            //var _eGrantsTestEmail = "eGrantsTest1@mail.nih.gov";
+            //var _eGrantsStageEmail = "eGrantsStage@mail.nih.gov";
+            //var _eFileEmail = "efile@mail.nih.gov";
+            //var _nciGrantsPostAwardEmail = "NCIGrantsPostAward@nih.gov";
 
             // System.ArgumentException: 'Keyword not supported: 'provider'.'
             SqlConnection _con = new SqlConnection(_conStr);
