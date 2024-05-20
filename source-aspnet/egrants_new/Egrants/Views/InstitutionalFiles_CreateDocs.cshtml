@@ -352,7 +352,10 @@
                         </div>
                      </form>
                         <div style="display: inline">
-                           <button style="display: inline" type="button" name="btnCreate" id="btnFileUpload" disabled="disabled" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Model.SelectedInstitutionalOrg.OrgName')"><u>C</u>reate New</button>
+                            @{ 
+                                string sanitizedOrgName = Model.SelectedInstitutionalOrg.OrgName.Replace("'", "\\'");
+                            }
+                           <button style="display: inline" type="button" name="btnCreate" id="btnFileUpload" disabled="disabled" class="btn btn-primary eGrantsDocBtn" accesskey="C" title="Click here to create new [shift + alt + C]" onclick="return create_doc_by_file('@Model.SelectedInstitutionalOrg.OrgId', '@Html.Raw(sanitizedOrgName)')"><u>C</u>reate New</button>
                         </div>
                         <div style="display: inline">By clicking Create New, I confirm that no sensitive PII or PHI is included in this file.</div>
                   </div>
