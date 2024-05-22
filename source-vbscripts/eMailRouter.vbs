@@ -10,7 +10,7 @@ startTimeStamp=Now
 
 	dBug = getConfigVal("dBug")
 	Verbose = getConfigVal("Verbose")
-	ShowDiagnosticIfVerbose("starting Router ...", Verbose)
+	call ShowDiagnosticIfVerbose("starting Router ...", Verbose)
 	
 	logDir = getConfigVal("logDir")
     forAppending=8	
@@ -38,7 +38,7 @@ startTimeStamp=Now
 
 	dirpath = getConfigVal("dirpathRouter")
 	
-	Call Process(dirpath,oConn,oRS)
+	Call Process(dirpath,oConn,oRS,Verbose,Debug)
 	
 	call ShowDiagnosticIfVerbose("Completed Process()", Verbose)
 
@@ -57,7 +57,7 @@ startTimeStamp=Now
 
 '==========================================	
 
-Sub Process (dirpath,oConn,oRS)
+Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 	call ShowDiagnosticIfVerbose("Hello you are in Process", Verbose)
 		
 	Dim cmd	
@@ -84,10 +84,11 @@ Sub Process (dirpath,oConn,oRS)
 	If dirpath <> "" Then
 		xArray = Split(dirpath, sepchar)
 		i = 1
+		call ShowDiagnosticIfVerbose("Setting objNS.Folders to " & xArray(0), Verbose)
 		Set CFolder = objNS.Folders(xArray(0))
+		call ShowDiagnosticIfVerbose("Set", Verbose)
 
 		Do While i < UBound(xArray)
-			call ShowDiagnosticIfVerbose("xArray " & i & " : " & xArray, Verbose)
 			call ShowDiagnosticIfVerbose("xArray i " & xArray(i), Verbose)
 			Set CFolder = CFolder.Folders(xArray(i))
 			i = i + 1
@@ -585,6 +586,44 @@ Sub Process (dirpath,oConn,oRS)
 					END IF
 					Set OutMail=nothing								
 				END IF
+			ELSEIF InStr(v_SubLine,"RPPR Unobligated Balance: Additional Information Needed") > 0    Then  
+
+				call ShowDiagnosticIfVerbose("Handlin RPPR for unobligated balance w/ this subject : " & v_SubLine, Verbose)
+				'eRA Commons: RPPR for Grant R01CA278703-02 submitted to NIH with a Non-Compliance warning
+				
+				IF  len(Trim(v_SubLine))<>0  THEN
+					grantid = Split(Trim(v_SubLine), " ")(7)
+					call ShowDiagnosticIfVerbose("grantid step 1 :" & grantid, Verbose)
+					
+					'' get the appl id from the grant number in the subject line
+					IF  len(Trim(grantid))<>0  THEN
+						applid = getApplid(removespcharacters(grantid),oConn)
+						call ShowDiagnosticIfVerbose("applid step 1 : '" & applid & "'", Verbose)
+					END IF
+				END IF
+
+				replysubj="applid=" & applid & ", category=Correspondence, sub=RPPR Unobligated Balance, extract=1, " & CItem.subject
+				Set OutMail = CItem.Forward
+				
+				IF (dBug="n") Then								
+					With OutMail
+						.Recipients.Add(eGrantsDevEmail)
+						.Recipients.Add(eGrantsTestEmail)
+						.Recipients.Add(eGrantsStageEmail)
+					
+						.Subject = replysubj 
+						.Send
+					End With
+				ELSE
+					With OutMail
+						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(eGrantsDevEmail)
+						.Subject = replysubj 
+						.Send
+					End With					
+				END IF
+				Set OutMail=nothing								
+					
 			ELSEIF InStr(v_SubLine,"eRA Commons: PRAM for Grant") > 0    Then  
 
 				IF (InStr(lcASE(v_SubLine),"re: eRA Commons: PRAM for Grant") > 0  OR  InStr(LCase(v_SubLine),"fw: eRA Commons: PRAM for Grant") > 0)  Then  
@@ -750,10 +789,12 @@ Sub Process (dirpath,oConn,oRS)
 				call ShowDiagnosticIfVerbose("Hello you closed out a thing", Verbose)
 			ELSEIF InStr(lcase(v_SubLine),"closeout program action required") > 0 Then  
 				call ShowDiagnosticIfVerbose("Hello you are closing out a PROGRAM thing ...", Verbose)
+				'' Closeout Program Action Required: 5R21CA249649-02 - Sun, Jingjing F-RPPR Acceptance Past Due
 				
 				'' get the appl id from the grant number in the subject line
 				IF  len(Trim(v_SubLine))<>0  THEN
-					isolated = getNthWord(v_SubLine, 4)
+					program_subj = Trim(v_SubLine)
+					isolated = getNthWord(v_SubLine, 5)
 					call ShowDiagnosticIfVerbose("isolated: '" & isolated & "'", Verbose)
 					applid = getApplid(removespcharacters(isolated),oConn)
 				END IF
@@ -845,7 +886,7 @@ Sub Process (dirpath,oConn,oRS)
 				Set OutMail=nothing
 				
 			ELSEIF InStr(v_SubLine,"SBIR/STTR Foreign Risk Management") > 0 THEN
-				call ShowDiagnosticIfVerbose(""handling SBIR/STTR", Verbose)
+				call ShowDiagnosticIfVerbose("handling SBIR/STTR", Verbose)
 				'' example body we want to snatch the appl id from :
 				'1R43CA291415-01 (10921643) has undergone SBIR/STTR risk management assessment in accordance with the SBIR and STTR Extension Act of 2022 on 04/25/2024 12:19 PM. 
 		
@@ -1054,6 +1095,31 @@ Function RaiseErrortoAdmin(CItem,eRRMsg1,eRRMsg2)
 	RaiseErrortoAdmin ="Done"
 End Function
 '==========================================
+
+Function getConfigVal(name)
+	filename = ".\config.csv"
+	found = False
+
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set f = fso.OpenTextFile(filename)
+
+	Do Until f.AtEndOfStream
+		line = f.ReadLine
+		delimiter = ",,,,,"
+		a=Split(line,delimiter)
+		If InStr(line,delimiter) > 0 Then
+			IF a(0) = name Then
+				getConfigVal = a(1)
+				found = True
+			End If
+		End If
+		
+	Loop
+
+	f.Close	
+	
+End Function
+
 
 '==========================================
 Function emailme(SubjMSG,BodyMSG)
