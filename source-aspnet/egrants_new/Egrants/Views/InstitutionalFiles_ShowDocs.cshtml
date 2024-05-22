@@ -126,36 +126,37 @@
                      rowclass = Model.DocFiles.IndexOf(doc) % 2 == 0 ? "odd-row" : "even-row";
 
                      <tr class="@rowclass">
-                        <td>
-                           <a href="JavaScript:show_doc('@doc.url')" title="Click here to display document">
-                              @{
-                                 var docCategoryName = doc.category_name;
-                                 if (!string.IsNullOrWhiteSpace(doc.comments))
-                                 {
-                                    docCategoryName += ": " + doc.comments;
-                                 }
+                         <td>
+                             <a href="JavaScript:show_doc('@doc.url')" title="Click here to display document">
+                                 @{
+                                     var docCategoryName = doc.category_name;
+                                     if (!string.IsNullOrWhiteSpace(doc.comments))
+                                     {
+                                         docCategoryName += ": " + doc.comments;
+                                     }
 
-                              }
-                              @docCategoryName
-                           </a>
-                        </td>
-                        <td>@doc.created_date</td>
-                        <td>@doc.start_date</td>
-                        <td>@doc.end_date</td>
-                        @*<td class="text-wrap">@doc.comments</td>*@
-                        @if (Convert.ToInt16(Session["position_id"]) != 1)
-                        {
-                           <td class="text-center">
-                              <a href="JavaScript:to_update_doc('@doc.DocumentId', '@doc.org_id', '@doc.org_name')" title="Click here to update this document">
-                                 <img class="img_12_12" SRC="~/Content/images/Update File.png"/>
-                              </a>
-                           </td>
-                           <td class="text-center">
-                              <a href="JavaScript:delete_doc('@doc.DocumentId', '@doc.category_name','@doc.org_id', '@doc.org_name')" title="Click here to delete this document">
-                                 <img class="img_12_12" SRC="~/Content/images/Clear.jpg"/>
-                              </a>
-                           </td>
-                        }
+                                 }
+                                 @docCategoryName
+                             </a>
+                         </td>
+                         <td>@doc.created_date</td>
+                         <td>@doc.start_date</td>
+                         <td>@doc.end_date</td>
+                         @*<td class="text-wrap">@doc.comments</td>*@
+                         @if (Convert.ToInt16(Session["position_id"]) != 1)
+                         {
+                             string sanitizedOrgName = Model.SelectedInstitutionalOrg.OrgName.Replace("'", "\\'");
+                             <td class="text-center">
+                                 <a href="JavaScript:to_update_doc('@doc.DocumentId', '@doc.org_id', '@Html.Raw(sanitizedOrgName)')" title="Click here to update this document">
+                                     <img class="img_12_12" SRC="~/Content/images/Update File.png" />
+                                 </a>
+                             </td>
+                             <td class="text-center">
+                                 <a href="JavaScript:delete_doc('@doc.DocumentId', '@doc.category_name','@doc.org_id', '@Html.Raw(sanitizedOrgName)')" title="Click here to delete this document">
+                                     <img class="img_12_12" SRC="~/Content/images/Clear.jpg" />
+                                 </a>
+                             </td>
+                         }
                      </tr>
                   }
                }
