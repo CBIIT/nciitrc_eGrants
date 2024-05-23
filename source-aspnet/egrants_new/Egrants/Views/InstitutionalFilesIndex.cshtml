@@ -59,8 +59,8 @@
    }
 
 
-   function to_create_doc(org_name, org_id) {
-      var url = "@Url.Action("Show_Create_Doc", "InstitutionalFiles")?org_name=" + org_name + "&org_id=" + org_id;
+   function to_create_doc(org_id) {
+      var url = "@Url.Action("Show_Create_Doc", "InstitutionalFiles")?org_id=" + org_id;
       window.document.location.href = url;
    }
 
