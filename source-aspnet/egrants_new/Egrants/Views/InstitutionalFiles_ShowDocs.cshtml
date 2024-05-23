@@ -104,7 +104,7 @@
             <td width="150" class="text-right">
                 @if (Convert.ToInt16(Session["position_id"]) != 1 && Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
                 {
-                    <a href="JavaScript:to_create_doc('@Html.Raw(systemOrgName2)','@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
+                    <a href="JavaScript:to_create_doc('@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
                 }
             </td>
         </tr>
