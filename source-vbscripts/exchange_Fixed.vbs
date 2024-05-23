@@ -177,6 +177,7 @@ Sub Process(dirpath,oConn,Verbose,dBug)
 				call ShowDiagnosticIfVerbose( "v_SenderID: '" & v_SenderID & "'", Verbose)
 				call ShowDiagnosticIfVerbose( "V_flType: '" & V_flType & "'", Verbose)
 				call ShowDiagnosticIfVerbose( "movetoqc: '" & movetoqc & "'", Verbose)
+				call ShowDiagnosticIfVerbose( "subcat: '" & subcat & "'", Verbose)
 				
 				If(category="PublicAccess") Then
 					call ShowDiagnosticIfVerbose( "handling PublicAccess", Verbose)
@@ -205,6 +206,13 @@ Sub Process(dirpath,oConn,Verbose,dBug)
 					call ShowDiagnosticIfVerbose("pdf generated", Verbose)
 				ELSEIF (lcase(category) = "closeout") AND (lcase(subcat) = "f-rppr acceptance past due reminder") THEN
 					call ShowDiagnosticIfVerbose( "handling program closeout, f-rppr style" , Verbose)
+					V_flType="pdf"
+					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					call ShowDiagnosticIfVerbose("Documentid: " & Documentid, Verbose)
+					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
+					call ShowDiagnosticIfVerbose("pdf generated", Verbose)
+				ELSEIF (lcase(category) = "correspondence") AND (lcase(subcat) = "rppr unobligated balance") THEN
+					call ShowDiagnosticIfVerbose( "handling obligatory rppr email" , Verbose)
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
 					call ShowDiagnosticIfVerbose("Documentid: " & Documentid, Verbose)
@@ -331,6 +339,8 @@ Sub Process(dirpath,oConn,Verbose,dBug)
 				End If
 			END IF		''''else if extract
 			
+				call ShowDiagnosticIfVerbose("Moving old email with subject : '" & CItem.Subject & "'", Verbose)
+				call ShowDiagnosticIfVerbose("Moving to old folder which is : '" & CFolder.FolderPath & "'", Verbose)
 				Call MovetoOldFolder(CFolder,CItem,Verbose)		
 				processTimeStamp=Now
 				
