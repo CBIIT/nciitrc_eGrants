@@ -49,7 +49,7 @@ namespace Router
             return "FAILED TO FIND VALUE";
         }
 
-        public static void WriteLog(int code, string message, Exception errorInfo, DateTime timeStamp)
+        public static void WriteLog(int code, string message, string errorInfo, DateTime timeStamp)
         {
             var fileName = $"eMailRouter-Log-{timeStamp.Year}-{timeStamp.Month}-{timeStamp.Day}.txt";
 
@@ -60,7 +60,7 @@ namespace Router
             }
             else
             {
-                outputContent = $"{timeStamp}  -\t{message}\t\t\t{errorInfo.Message}";
+                outputContent = $"{timeStamp}  -\t{message}\t\t\t{errorInfo}";
             }
 
             File.AppendAllText(LogDir + "\\" + fileName, outputContent + Environment.NewLine);
