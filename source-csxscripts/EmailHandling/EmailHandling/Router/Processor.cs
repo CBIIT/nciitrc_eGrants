@@ -84,7 +84,7 @@ namespace Router
                 Utilities.ShowDiagnosticIfVerbose("went to Old emails", verbose);
                 Utilities.ShowDiagnosticIfVerbose($"Mail count={currentFolder.Items.Count}", verbose);
 
-                var itemCount = currentFolder.Items.Count;
+                var itemCount = currentFolder.Items.Count;      // itmscncnt
 
                 int itemsToProcess = 0;
                 int itemsProcessed = 0;
@@ -495,9 +495,411 @@ namespace Router
                                 outmail.Recipients.Add(_eGrantsDevEmail);
                                 outmail.Send();
                             }
-                        } // WWLLO is FFR
+                        }
+                        else if (v_SubLine.Contains("FFR NOTIFICATION : REJECTED"))
+                        {
+                            if (v_SubLine.ToLower().Contains("re: ffr notification") || v_SubLine.ToLower().Contains("fw: ffr notification"))
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                            }
+                            else
+                            {
+                                var replySubj = $"category=Notification, sub=FFR Rejection, extract=1, {currentItem.Subject}";
+                                var outmail = currentItem.Forward();
+                                if (debug == "n")
+                                {
+                                    outmail.Recipients.Add(_eFileEmail);
+                                    outmail.Recipients.Add(_eGrantsDevEmail);
+                                    outmail.Recipients.Add(_eGrantsTestEmail);
+                                    outmail.Recipients.Add(_eGrantsStageEmail);
+                                    outmail.Subject = replySubj;
+                                    outmail.Send();
+                                }
+                                else
+                                {
+                                    outmail.Recipients.Add(_dBugEmail);
+                                    outmail.Recipients.Add(_eGrantsDevEmail);
+                                    outmail.Subject = replySubj;
+                                    outmail.Send();
+                                }
+                            }
+                        }
+                        else if (v_SubLine.Contains("eRA Commons: The Final RPPR - Additional Materials for Award"))
+                        {
+                            if (v_SubLine.Contains("re: eRA Commons: The Final RPPR ") || v_SubLine.Contains("fw: eRA Commons: The Final RPPR "))
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                            }
+                            else
+                            {
+                                var replySubject = $"category=FRAM: Request, sub=The Final RPPR, extract=1, {currentItem.Subject}";
+                                var outmail = currentItem.Forward();
+                                if (debug == "n")
+                                {
+                                    outmail.Recipients.Add(_eFileEmail);
+                                    outmail.Recipients.Add(_eGrantsDevEmail);
+                                    outmail.Recipients.Add(_eGrantsTestEmail);
+                                    outmail.Recipients.Add(_eGrantsStageEmail);
+                                    outmail.Subject = replySubject;
+                                    outmail.Send();
+                                }
+                                else
+                                {
+                                    Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                    outmail.Recipients.Add(_dBugEmail);
+                                    outmail.Recipients.Add(_eGrantsDevEmail);
+                                    outmail.Send();
+                                }
+                            }
+                        }
+                        else if (v_SubLine.Contains("RPPR Unobligated Balance: Additional Information Needed"))
+                        {
+                            Utilities.ShowDiagnosticIfVerbose($"Handlin RPPR for unobligated balance w/ this subject :  {v_SubLine}", verbose);
+                            var applid = string.Empty;
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                var grantid = v_SubLine.Trim().Split(' ')[7];
+                                Utilities.ShowDiagnosticIfVerbose($"Grant Id step 1 result : {grantid}", verbose);
+                                if (!string.IsNullOrWhiteSpace(grantid))
+                                {
+                                    applid = GetApplId(RemoveSpCharacters(grantid), con);
+                                    Utilities.ShowDiagnosticIfVerbose($"Appl Id step 2 result : {applid}", verbose);
+                                }
+                            }
 
+                            var replySubject = $"applid={applid}, category=Correspondence, sub=RPPR Unobligated Balance, extract=1, {currentItem.Subject}";
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.Contains("eRA Commons: PRAM for Grant"))
+                        {
+                            if (v_SubLine.Contains("re: eRA Commons: PRAM for Grant") || v_SubLine.Contains("fw: eRA Commons: PRAM for Grant"))
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                            }
+                            else
+                            {
+                                var replySubject = $"category=PRAM: Requested, sub=PRAM for Grant, extract=1, {currentItem.Subject}";
+                                var outmail = currentItem.Forward();
+                                if (debug == "n")
+                                {
+                                    //outmail.Recipients.Add(_eFileEmail);
+                                    outmail.Recipients.Add(_eGrantsDevEmail);
+                                    outmail.Recipients.Add(_eGrantsTestEmail);
+                                    outmail.Recipients.Add(_eGrantsStageEmail);
+                                    outmail.Subject = replySubject;
+                                    outmail.Send();
+                                }
+                                else
+                                {
+                                    Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                    outmail.Recipients.Add(_dBugEmail);
+                                    outmail.Recipients.Add(_eGrantsDevEmail);
+                                    outmail.Subject = replySubject;
+                                    outmail.Send();
+                                }
+                            }
+                        }
+                        else if (v_SubLine.Contains("FRAM Requested") || v_SubLine.Contains("PRAM Requested"))
+                        {
+                            var replySubject = string.Empty;
+                            var applId = string.Empty;
+
+                            if (v_SubLine.Contains("FRAM Requested"))
+                            {
+                                if (!string.IsNullOrWhiteSpace(v_SubLine))
+                                {
+                                    applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
+                                }
+                                replySubject = $"applid={applId}, category=FRAM, sub=Request, extract=1, {currentItem.Subject}";
+                            }
+                            else if (v_SubLine.Contains("PRAM Requested"))
+                            {
+                                if (!string.IsNullOrWhiteSpace(v_SubLine))
+                                {
+                                    applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
+                                }
+                                replySubject = $"applid={applId}, category=PRAM, sub=Request, extract=1, {currentItem.Subject}";
+                            }
+
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+
+                        }
+                        else if (v_SubLine.Contains("CHANGE_NOTICE_FOR") && v_SubLine.Contains("Application is withdrawn request"))
+                        {
+                            var replySubject = string.Empty;
+                            var applId = string.Empty;
+
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
+                            }
+                            replySubject = $"applid={applId}, category=eRA Notification, sub=Application Withdrawn, extract=1, {currentItem.Subject}";
+
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                //Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+
+                        }
+                        else if (v_SubLine.Contains("IRPPR Reminder") )
+                        {
+                            var replySubject = string.Empty;
+                            var applId = string.Empty;
+
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
+                            }
+                            replySubject = $"applid={applId}, category=IRPPR, sub=Reminder, extract=1, {currentItem.Subject}";
+
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                //Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.ToLower().Contains("closeout action required"))
+                        {
+                            Utilities.ShowDiagnosticIfVerbose($"Hello you are closing out a thing ...", verbose);
+                            var applId = string.Empty;
+
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                var isolated = GetNthWord(v_SubLine, 4);
+                                Utilities.ShowDiagnosticIfVerbose($"Isolated : {isolated}", verbose);
+                                applId = GetApplId(RemoveSpCharacters(isolated), con);
+                                Utilities.ShowDiagnosticIfVerbose($"Appl Id : {applId}", verbose);
+                            }
+
+                            var replySubject = $"category=closeout, sub=Past Due Documents Reminder, applid={applId}, extract=1, {currentItem.Subject}";
+
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"FOUND -> {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            Utilities.ShowDiagnosticIfVerbose($"Hello you closed out a thing", verbose);
+                        }
+                        else if (v_SubLine.ToLower().Contains("closeout program action required"))
+                        {
+                            Utilities.ShowDiagnosticIfVerbose($"Hello you are closing out a PROGRAM thing ...", verbose);
+                            // example subject here : Closeout Program Action Required: 5R21CA249649-02 - Sun, Jingjing F-RPPR Acceptance Past Due
+                            var applId = string.Empty;
+
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                var isolated = GetNthWord(v_SubLine.Trim(), 5);
+                                Utilities.ShowDiagnosticIfVerbose($"Isolated : {isolated}", verbose);
+                                applId = GetApplId(RemoveSpCharacters(isolated), con);
+                                Utilities.ShowDiagnosticIfVerbose($"Appl Id : {applId}", verbose);
+                            }
+
+                            var replySubject = $"category=closeout, sub=F-RPPR Acceptance Past Due Reminder, applid={applId}, extract=1, {currentItem.Subject}";
+
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"FOUND -> {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            Utilities.ShowDiagnosticIfVerbose($"Hello you closed out a PROGRAM thing", verbose);
+                        }
+                        else if (v_SubLine.Contains("FFR Reminder") && v_SubLine.Contains("FFR Past Due"))
+                        {
+                            var replySubject = string.Empty;
+                            var applId = string.Empty;
+
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
+                            }
+                            replySubject = $"applid={applId}, category=FFR, sub=Reminder, extract=1, {currentItem.Subject}";
+
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.Contains("ClinicalTrials.gov Results Reporting for Grant"))
+                        {
+                            var replySubject = string.Empty;
+                            var applId = string.Empty;
+
+                            var lastFourCharacters = string.Empty;
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                var lastWordInSubject = GetLastWord(v_SubLine);
+                                lastFourCharacters = lastWordInSubject.Substring(Math.Max(0, lastWordInSubject.Length - 4));
+                                applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
+                            }
+                            replySubject = $"applid={applId}, category=CT.gov, sub=Results Reporting Reminder NCT{lastFourCharacters} , extract=1, {currentItem.Subject}";
+
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.Contains("SBIR/STTR Foreign Risk Management"))
+                        {
+                            Utilities.ShowDiagnosticIfVerbose("handling SBIR/STTR", verbose);
+                            // example body we want to snatch the appl id from :
+				            // 1R43CA291415-01 (10921643) has undergone SBIR/STTR risk management assessment in accordance with the SBIR and STTR Extension Act of 2022 on 04/25/2024 12:19 PM. 
+
+                            // get the appl id from the grant number in the subject line
+                            var replySubject = string.Empty;
+                            var applId = string.Empty;
+                            var lastFourCharacters = string.Empty;
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                applId = v_SubLine.Split(' ')[1];   // e.g. (10921643)
+                                Utilities.ShowDiagnosticIfVerbose($"SBIR/STTR extraction 1 : {applId}", verbose);
+                                applId = applId.Replace("(", "");
+                                applId = applId.Replace(")", "");
+                                Utilities.ShowDiagnosticIfVerbose($"SBIR/STTR extraction 2 : {applId}", verbose);
+                            }
+                            replySubject = $"applid={applId}, category=Funding, sub=DCI-InTh Cleared, extract=1, {currentItem.Subject}";
+                            if (v_SubLine.Contains("Not Cleared"))
+                                replySubject = $"applid={applId}, category=Funding, sub=DCI-InTh Not Cleared, extract=1, {currentItem.Subject}";
+                            Utilities.ShowDiagnosticIfVerbose($"replySubject : {replySubject}", verbose);
+
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubject;
+                                outmail.Send();
+                            }
+                            Utilities.ShowDiagnosticIfVerbose("completed SBIR", verbose);
+                        }
+                        Utilities.ShowDiagnosticIfVerbose("Outer loop complete", verbose);
                     }
+
+                    itemCount++;
+                    Utilities.ShowDiagnosticIfVerbose("Incrementing count", verbose);
+                    currentItem.Move(oldFolder);
+                    Utilities.ShowDiagnosticIfVerbose("current Item moved", verbose);
+
+                    var processTimeStamp = DateTime.Now;
 
                 }
 
@@ -508,6 +910,21 @@ namespace Router
 
 
             return itemsProcessedCount;
+        }
+
+        private static string GetLastWord(string inbound)
+        {
+            var wordz = inbound.Split(' ');
+            var numberOfWords = wordz.Length;   // Ubound(wordz)
+            var lastWord = wordz[numberOfWords-1]   // Remember arrays start at index 0
+            return lastWord;
+        }
+
+        private static string GetNthWord(string inbound, int number)
+        {
+            var wordz = inbound.Split(' ');
+            var lastWord = wordz[number - 1];
+            return lastWord;
         }
 
         private static string GetApplId(string str, SqlConnection con)

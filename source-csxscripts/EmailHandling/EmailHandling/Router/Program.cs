@@ -49,6 +49,10 @@ namespace Router
             // System.ArgumentException: 'Keyword not supported: 'provider'.'
             SqlConnection _con = new SqlConnection(_conStr);
 
+            // TODO :
+            // Test getNthWord
+            // Add error layer
+
 
             var _itemsProcessed = Processor.Process(_dirPath, _con, _verbose, _debug);
 
