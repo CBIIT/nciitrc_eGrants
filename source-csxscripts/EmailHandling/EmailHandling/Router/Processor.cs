@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
 using System.Security.Policy;
 using System.Text;
@@ -96,10 +97,10 @@ namespace Router
                     // TODO refactor these variable names
                     var v_SubLine = currentItem.Subject;
                     var v_Body = currentItem.Body;
-                    
+
                     Utilities.ShowDiagnosticIfVerbose($"Subject : {v_SubLine}", verbose);
                     Utilities.ShowDiagnosticIfVerbose($"Body : {v_Body}", verbose);
-                    
+
                     if (!v_SubLine.ToLower().Contains("undeliverable: "))
                     {
                         var v_SenderID = GetSenderId(currentItem);
@@ -109,7 +110,7 @@ namespace Router
                         if (v_SubLine.Contains("eSNAP Received at NIH") || v_SubLine.Contains("eRA Commons: RPPR for Grant"))
                         {
                             //IF (InStr(v_SubLine," submitted to NIH with a Non-Compliance ") > 0) Then
-                            if (v_SubLine.Contains("submitted to NIH with a Non-Compliance") )
+                            if (v_SubLine.Contains("submitted to NIH with a Non-Compliance"))
                             {
                                 //(1) load into eGrants
                                 //---- IMP: STRIP SPACES FROM CATEGORY NAME "ERA NOTIFICATION"
@@ -125,7 +126,8 @@ namespace Router
                                     outmail.Recipients.Add(_eGrantsStageEmail);
                                     outmail.Subject = replysubj;
                                     outmail.Send();
-                                } else
+                                }
+                                else
                                 {
                                     outmail.Recipients.Add(_dBugEmail);
                                     outmail.Recipients.Add(_eGrantsDevEmail);
@@ -152,7 +154,7 @@ namespace Router
                                 outmail2.Send();
                             }
                         }
-                        else if (!v_SubLine.Contains("IC ACTION REQUIRED - Relinquishing Statement"))
+                        else if (v_SubLine.Contains("IC ACTION REQUIRED - Relinquishing Statement"))
                         {
                             var outmail2 = currentItem.Forward();
                             if (debug == "n")
@@ -190,7 +192,7 @@ namespace Router
                         }
                         //ELSEIF (InStr(v_SubLine," FCOI ") > 0  AND InStr(1,v_SubLine,"Automatic reply:") = 0) Then
                         // MLH : I'm confident that InStr(1,v_SubLine,"Automatic reply:") = 0 here means that it didn't begin with "automatic reply"
-                        else if (!v_SubLine.Contains(" FCOI ") && !v_SubLine.StartsWith("Automatic reply:"))
+                        else if (v_SubLine.Contains(" FCOI ") && !v_SubLine.StartsWith("Automatic reply:"))
                         {
                             string applId = string.Empty;
                             if (string.IsNullOrWhiteSpace(v_SubLine))
@@ -244,10 +246,12 @@ namespace Router
                                 {
                                     outmail2.Recipients.Add(p_SpecEmail);
                                 }
-                                else if (!string.IsNullOrWhiteSpace(p_SpecEmail) && string.IsNullOrWhiteSpace(b_SpecEmail)) {
+                                else if (!string.IsNullOrWhiteSpace(p_SpecEmail) && string.IsNullOrWhiteSpace(b_SpecEmail))
+                                {
                                     outmail2.Recipients.Add(p_SpecEmail);
                                 }
-                                else if (!string.IsNullOrWhiteSpace(b_SpecEmail) && string.IsNullOrWhiteSpace(p_SpecEmail)) {
+                                else if (!string.IsNullOrWhiteSpace(b_SpecEmail) && string.IsNullOrWhiteSpace(p_SpecEmail))
+                                {
                                     outmail2.Recipients.Add(b_SpecEmail);
                                 }
                                 outmail2.Send();
@@ -275,12 +279,229 @@ namespace Router
                             }
                         }
                         //---- IMP: STRIP SPACES FROM CATEGORY NAME "ERA NOTIFICATION"	
-                        // next one here : No Cost Extension Submitted
+                        else if (v_SubLine.Contains("No Cost Extension Submitted"))
+                        {
+                            var replysubj = $"category=eRANotification, sub=No Cost Extension, extract=1,{currentItem.Subject}";
+                            Utilities.ShowDiagnosticIfVerbose($"FOUND->{v_SubLine}", verbose);
+                            Utilities.ShowDiagnosticIfVerbose($"reply : {replysubj}", verbose);
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                //-----------ADD THE FOLLOWING FOR DEVELOPMENT TIER	AS NEEDED BASIS					
+                                //outmail.Recipients.Add("leul.ayana@nih.gov")
+                                outmail.Subject = replysubj;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"reply : {replysubj}", verbose);
+                                //                              outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replysubj;
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.Contains("Change of Institution request for Grant"))
+                        {
+                            var replysubj = currentItem.Subject;
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add("dvellaj@mail.nih.gov");
+                                outmail.Recipients.Add("emily.driskell@nih.gov");
+                                outmail.Recipients.Add("edward.mikulich@nih.gov");
+                                outmail.Subject = replysubj;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"FOUND->{v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replysubj;
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SenderID.ToLower().Contains("public"))
+                        {
+                            Utilities.ShowDiagnosticIfVerbose($"Found a public access email", verbose);
+                            // get the appl id from the grant number in the subject line
+                            // example: PASC: 5U24CA213274 - 08 - RUDIN, CHARLES M
+                            // example2: Compliant PASC: 5R01CA258784 - 04 - SEN, TRIPARNA
+                            if (!string.IsNullOrWhiteSpace(v_SubLine))
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"FOUND subject ->{v_SubLine}", verbose);
+                                string[] tokens = v_SubLine.Split(new[] { ": " }, StringSplitOptions.None);
+                                var secondPart = tokens[1].Trim();
+                                Utilities.ShowDiagnosticIfVerbose($"Second part : {secondPart}", verbose);
+
+                                var subCat = string.Empty;
+                                if (v_SubLine.ToLower().Contains("compliant"))
+                                {
+                                    Utilities.ShowDiagnosticIfVerbose($"Found compliant", verbose);
+                                    subCat = "Compliant";
+                                }
+                                else
+                                {
+                                    Utilities.ShowDiagnosticIfVerbose($"Found non compliant", verbose);
+                                }
+
+                                string[] tokens2 = secondPart.Split(new[] { " - " }, StringSplitOptions.None);
+                                var middle = tokens2[0];
+                                Utilities.ShowDiagnosticIfVerbose($"Isolated middle part :{middle}", verbose);
+
+                                var applId = GetApplId(RemoveSpCharacters(middle), con);
+                                Utilities.ShowDiagnosticIfVerbose($"appl id :{applId}", verbose);
+
+                                // replysubj="category=PublicAccess, sub=" & subCat & ", applid=" & applid & ", extract=1, " & CItem.subject
+                                var replySubj = $"category=PublicAccess, sub={subCat}, applid={applId}, extract=1, {currentItem.Subject}";
+
+                                Utilities.ShowDiagnosticIfVerbose($"dBugEmail :{_dBugEmail}", verbose);
+                                Utilities.ShowDiagnosticIfVerbose($"eGrantsDevEmail :{_eGrantsDevEmail}", verbose);
+                                Utilities.ShowDiagnosticIfVerbose($"replySubj :{replySubj}", verbose);
+
+                                var outmail = currentItem.Forward();
+                                if (debug == "n")
+                                {
+                                    outmail.Recipients.Add(_eFileEmail);
+                                    outmail.Recipients.Add(_eGrantsDevEmail);
+                                    outmail.Recipients.Add(_eGrantsTestEmail);
+                                    outmail.Recipients.Add(_eGrantsStageEmail);
+                                    //===>STOPPING THIS UNTILL FIX IT/5/30 started
+                                    outmail.Subject = replySubj;
+                                    outmail.Send();
+                                }
+                                else
+                                {
+                                    Utilities.ShowDiagnosticIfVerbose($"reply : {replySubj}", verbose);
+                                    outmail.Recipients.Add(_dBugEmail);
+                                    outmail.Recipients.Add(_eGrantsDevEmail);
+                                    outmail.Subject = replySubj;
+                                    outmail.Send();
+                                }
+                                Utilities.ShowDiagnosticIfVerbose($"done w / handling a public email", verbose);
+                            }
+                        }
+                        else if (v_SubLine.Contains("JIT Request for Grant"))
+                        {
+                            var replySubj = $"category=JIT Info, sub=Reminder, extract=1, {currentItem.Subject}";
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubj;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubj + "URGENT ERROR";
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.Contains("JIT Documents Have Been Submitted for Grant"))
+                        {
+                            var replySubj = $"category=eRA Notification, sub=JIT Submitted, extract=1, {currentItem.Subject}";
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                //outmail.Recipients.Add("leul.ayana@nih.gov")
+                                outmail.Subject = replySubj;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Subject = replySubj;
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.Contains("NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant"))
+                        {
+                            var replySubj = string.Empty;
+                            if (v_SubLine.Contains(" R15 "))
+                                replySubj = $"category=eRANotification, sub=Late Progress Report, extract=1, {currentItem.Subject}";
+                            Utilities.ShowDiagnosticIfVerbose($"Current subject : {currentItem.Subject}", verbose);
+                            Utilities.ShowDiagnosticIfVerbose($"Reply subject :  {replySubj}", verbose);
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                //outmail.Recipients.Add("leul.ayana@nih.gov")
+                                outmail.Subject = replySubj;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubj;
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.Contains("Expiring Funds") || v_SubLine.Contains("EXPIRING FUNDS-"))
+                        {
+                            //Only attached document has to be extracted so many make Body=""
+                            var replySubj = $"category=Closeout, extract=2, {currentItem.Subject}";
+                            Utilities.ShowDiagnosticIfVerbose($"Reply subject : {replySubj}", verbose);
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_eFileEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Recipients.Add(_eGrantsTestEmail);
+                                outmail.Recipients.Add(_eGrantsStageEmail);
+                                outmail.Subject = replySubj;
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Subject = replySubj;
+                                outmail.Send();
+                            }
+                        }
+                        else if (v_SubLine.Contains("Prior Approval: "))
+                        {
+                            var outmail = currentItem.Forward();
+                            if (debug == "n")
+                            {
+                                outmail.Recipients.Add(_nciGrantsPostAwardEmail);
+                                outmail.Send();
+                            }
+                            else
+                            {
+                                outmail.Recipients.Add(_dBugEmail);
+                                outmail.Recipients.Add(_eGrantsDevEmail);
+                                outmail.Send();
+                            }
+                        } // WWLLO is FFR
+
                     }
 
                 }
 
-  
+
             }
 
 
@@ -290,7 +511,7 @@ namespace Router
         }
 
         private static string GetApplId(string str, SqlConnection con)
-        {            
+        {
             try
             {
                 var queryText = $"select dbo.Imm_fn_applid_match( ' @LocalId ') as applid";
@@ -314,9 +535,25 @@ namespace Router
             }
         }
 
-        private static object RemoveSpCharacters(string v_SubLine)
+        private static string RemoveSpCharacters(string text)
         {
-            throw new NotImplementedException();
+            var result = text;
+            result = result.Replace("vbLf", "vbCrLF");
+            result = result.Replace(":", " ");
+            result = result.Replace("/", " ");
+            result = result.Replace("\\", " ");
+            result = result.Replace("&", "and");
+            result = result.Replace(";", " ");
+            result = result.Replace("<", " ");
+            result = result.Replace(">", " ");
+            result = result.Replace("<<", " ");
+            result = result.Replace(">>", " ");
+            result = result.Replace("^", " ");
+            result = result.Replace("%", " ");
+            result = result.Replace("@", " ");
+            result = result.Replace("'", " ");
+            result = result.Replace(" ", "");
+            return result;
         }
 
         private static string GetSenderId(Outlook.MailItem currentItem)
@@ -341,7 +578,8 @@ namespace Router
                 //    //id = GetAlias(currentItem);
                 //}
 
-            } else if (currentItem.SenderEmailType.Equals("smtp", StringComparison.InvariantCultureIgnoreCase))
+            }
+            else if (currentItem.SenderEmailType.Equals("smtp", StringComparison.InvariantCultureIgnoreCase))
             {
                 id = currentItem.SenderEmailAddress;
             }
