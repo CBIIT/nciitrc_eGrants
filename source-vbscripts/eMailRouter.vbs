@@ -440,8 +440,11 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 			ELSEIF InStr(v_SubLine,"JIT Documents Have Been Submitted for Grant ") > 0    Then  		' mhoover 1/2024
 					call ShowDiagnosticIfVerbose( "handling JIT Submitted", Verbose)
 					replysubj="category=eRA Notification, sub=JIT Submitted, extract=1, " & CItem.subject
+					call ShowDiagnosticIfVerbose( "set replySubj", Verbose)		
 					Set OutMail = CItem.Forward
-					IF (dBug="n") Then								
+					call ShowDiagnosticIfVerbose( "created fwd outmail", Verbose)	
+					IF (dBug="n") Then		
+						call ShowDiagnosticIfVerbose( "dBug is n", Verbose)	
 						With OutMail
 							.Recipients.Add(eFileEmail)
 							.Recipients.Add(eGrantsDevEmail)
@@ -451,16 +454,15 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 							.Send
 						End With
 					ELSE
+						call ShowDiagnosticIfVerbose( "dBug is y", Verbose)	
 						With OutMail
 							.Recipients.Add(dBugEmail)	
 							.Recipients.Add(eGrantsDevEmail)
-							.Subject = replysubj
-							.Send
 						.Subject = replysubj 
 						.Send
-							
 						End With					
 					END IF
+					call ShowDiagnosticIfVerbose( "sent", Verbose)	
 					Set OutMail=nothing				
 					call ShowDiagnosticIfVerbose( "handled JIT Submitted", Verbose)					
 			ELSEIF InStr(v_SubLine,"NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant") > 0 Then
