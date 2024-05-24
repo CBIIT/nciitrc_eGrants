@@ -26,8 +26,6 @@ namespace Router
         {
             int itemsProcessedCount = 0;
 
-            //Utilities.ShowDiagnosticIfVerbose($"_conStr: '{_conStr}'", _verbose);
-
             Utilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
             Outlook.Application oApp = new Outlook.Application();
             Utilities.ShowDiagnosticIfVerbose("Created the outlook object.", verbose);
@@ -50,12 +48,6 @@ namespace Router
                 Utilities.ShowDiagnosticIfVerbose($"Setting objNS.Folders to {dirs[0]}", verbose);
                 Outlook.MAPIFolder startingFolder = null;
 
-                // try going directly to the folder and put it currentFolder...
-                //Outlook.MAPIFolder currentFolder = oNS.Folders[dirPath];
-                //		currentFolder.Name	error CS1061: 'MAPIFolder' does not contain a definition for 'Name' and no accessible extension method 'Name' accepting a first argument of type 'MAPIFolder' could be found (are you missing a using directive or an assembly reference?)	
-
-                //oNS.Folders.GetFolder(dirPath);        // this is a vbscript only command
-
                 Outlook.MAPIFolder currentFolder = oNS.Folders[dirs[0]];
                 bool first = true;
                 foreach (var dir in dirs)
@@ -68,14 +60,6 @@ namespace Router
                     currentFolder = currentFolder.Folders[dir];       // All Public Folders could not be found
                 }
                 Utilities.ShowDiagnosticIfVerbose("Finished stepping through CFolder xarray", verbose);
-
-                // this works !!
-                //foreach (var item in currentFolder.Items)
-                //{
-                //    Outlook.MailItem mail = item as Outlook.MailItem;
-                //    Utilities.ShowDiagnosticIfVerbose($"Item : {item.ToString()}", verbose);
-                //}
-                //Utilities.ShowDiagnosticIfVerbose("Set", verbose);
 
                 Outlook.MAPIFolder oldFolder = currentFolder.Folders["Old emails"];
 
@@ -268,7 +252,7 @@ namespace Router
                         outmail2.Send();
                     }
                 }
-                else if (!v_SubLine.Contains(" Supplement Requested through "))
+                else if (v_SubLine.Contains(" Supplement Requested through "))
                 {
                     Utilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
                     var outmail2 = currentItem.Forward();
@@ -956,7 +940,7 @@ namespace Router
                     var lastFourCharacters = string.Empty;
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
-                        applId = v_SubLine.Split(' ')[1];   // e.g. (10921643)
+                        applId = v_Body.Split(' ')[1];   // e.g. (10921643)
                         Utilities.ShowDiagnosticIfVerbose($"SBIR/STTR extraction 1 : {applId}", verbose);
                         applId = applId.Replace("(", "");
                         applId = applId.Replace(")", "");
