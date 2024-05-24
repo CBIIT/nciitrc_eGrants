@@ -203,7 +203,7 @@ namespace egrants_new.Controllers
         /// The <see cref="ActionResult"/>.
         /// </returns>
         [HttpGet]
-        public ActionResult Show_Create_Doc(int org_id, string org_name)
+        public ActionResult Show_Create_Doc(int org_id)
         {
             var repository = new InstitutionalFilesRepo();
 
