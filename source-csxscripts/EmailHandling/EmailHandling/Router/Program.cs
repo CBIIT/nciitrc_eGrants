@@ -53,8 +53,8 @@ namespace Router
             // Test getNthWord
             // Add error layer
 
-
-            var _itemsProcessed = Processor.Process(_dirPath, _con, _verbose, _debug);
+            var processor = new Processor();
+            var _itemsProcessed = processor.Process(_dirPath, _con, _verbose, _debug);
 
             var _taskEndMssg = $"******* Task Completed! ******* {_itemsProcessed} Mail Items Have Been Processed";
             var _endTimeStamp = DateTime.Now;
