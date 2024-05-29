@@ -15,16 +15,26 @@ using Exception = System.Exception;
 using Outlook = Microsoft.Office.Interop.Outlook;
 
 using System.Management;
+using System.Security.Cryptography;
 
 namespace Router
 {
-    internal class Processor
+    public class Processor
     {
         public static string v_SenderID { get; private set; }
 
-        public static int Process(string dirPath, SqlConnection con, string verbose, string debug)
+        // Used by tests
+        public Dictionary<string,string> emailsSentThisSession { get; private set; }
+
+        public Processor()
+        {
+            emailsSentThisSession = new Dictionary<string, string>();
+        }
+
+        public int Process(string dirPath, SqlConnection con, string verbose, string debug)
         {
             int itemsProcessedCount = 0;
+            emailsSentThisSession.Clear();
 
             Utilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
             Outlook.Application oApp = new Outlook.Application();
@@ -123,6 +133,18 @@ namespace Router
             return itemsProcessedCount;
         }
 
+        /// <summary>
+        /// Override this method for testing.
+        /// </summary>
+        /// <param name="mailItem"></param>
+        /// <returns></returns>
+        protected virtual Dictionary<string,string> Send(MailItem mailItem)
+        {
+            mailItem.Send();
+
+            return null;
+        }
+
         private static bool EmailMe(string subject, string bodyMessage)
         {
             //Outlook.MailItem mailItem = (Outlook.MailItem)
@@ -161,17 +183,35 @@ namespace Router
         }
 
 
-        private static string RaiseErrorToAdmin(MailItem currentItem, string errorMessage1, string errorMessage2)
+        private string RaiseErrorToAdmin(MailItem currentItem, string errorMessage1, string errorMessage2)
         {
             var outmail = currentItem.Forward();
             outmail.Recipients.Add("leul.ayana@nih.gov");
             outmail.Recipients.Add("leul.ayana@nih.gov");   // NB : original system had this duplicated [sic]
             outmail.Subject = $"{errorMessage1}  >>(Subj: {currentItem.Subject} )" ;
-            outmail.Send();
+            Send(outmail);
             return "done";
         }
 
-        private static void HandleSingleEmail(MailItem currentItem, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
+        /// <summary>
+        /// Overload for test objects that cannot create or pass COM objects due to registry conflicts
+        /// </summary>
+        /// <param name="v_SubLine"></param>
+        /// <param name="v_Body"></param>
+        /// <param name="verbose"></param>
+        /// <param name="con"></param>
+        /// <param name="debug"></param>
+        public void HandleSingleEmail(string from, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
+        {
+            var newMail = new MailItem();
+            //newMail.SenderEmailAddress = from;    // won't allow setting, try moving this around later
+
+            newMail.Subject = v_SubLine;
+            newMail.Body = v_Body;
+            HandleSingleEmail(newMail, v_SubLine, v_Body, verbose, con, debug);
+        }
+
+        public void HandleSingleEmail(MailItem currentItem, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
         {
             var _dBugEmail = "leul.ayana@nih.gov";
             var _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
@@ -204,14 +244,14 @@ namespace Router
                             outmail.Recipients.Add(_eGrantsTestEmail);
                             outmail.Recipients.Add(_eGrantsStageEmail);
                             outmail.Subject = replysubj;
-                            outmail.Send();
+                            Send(outmail);
                         }
                         else
                         {
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replysubj;
-                            outmail.Send();
+                            Send(outmail);
                         }
 
                     } // end submitted to NIH with a Non-Compliance
@@ -224,13 +264,13 @@ namespace Router
                         outmail2.Recipients.Add("jonesni@mail.nih.gov");
                         outmail2.Recipients.Add("bakerb@mail.nih.gov");
                         outmail2.Recipients.Add("edward.mikulich@nih.gov");
-                        outmail2.Send();
+                        Send(outmail2);
                     }
                     else
                     {
                         outmail2.Recipients.Add(_dBugEmail);
                         outmail2.Recipients.Add(_eGrantsDevEmail);
-                        outmail2.Send();
+                        Send(outmail2);
                     }
                 }
                 else if (v_SubLine.Contains("IC ACTION REQUIRED - Relinquishing Statement"))
@@ -242,14 +282,14 @@ namespace Router
                         outmail2.Recipients.Add("emily.driskell@nih.gov");
                         outmail2.Recipients.Add("dvellaj@mail.nih.gov");
                         outmail2.Recipients.Add("edward.mikulich@nih.gov");
-                        outmail2.Send();
+                        Send(outmail2);
                     }
                     else
                     {
                         Utilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
                         outmail2.Recipients.Add(_dBugEmail);
                         outmail2.Recipients.Add(_eGrantsDevEmail);
-                        outmail2.Send();
+                        Send(outmail2);
                     }
                 }
                 else if (v_SubLine.Contains(" Supplement Requested through "))
@@ -259,14 +299,14 @@ namespace Router
                     if (debug == "n")
                     {
                         outmail2.Recipients.Add("NCIOGASupplements@mail.nih.gov");
-                        outmail2.Send();
+                        Send(outmail2);
                     }
                     else
                     {
                         Utilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
                         outmail2.Recipients.Add(_dBugEmail);
                         outmail2.Recipients.Add(_eGrantsDevEmail);
-                        outmail2.Send();
+                        Send(outmail2);
                     }
                 }
                 //ELSEIF (InStr(v_SubLine," FCOI ") > 0  AND InStr(1,v_SubLine,"Automatic reply:") = 0) Then
@@ -333,7 +373,7 @@ namespace Router
                         {
                             outmail2.Recipients.Add(b_SpecEmail);
                         }
-                        outmail2.Send();
+                        Send(outmail2);
                     }
                     else
                     {
@@ -354,7 +394,7 @@ namespace Router
                             replysubj = $"B={b_SpecEmail}";
                         Utilities.ShowDiagnosticIfVerbose($"FCOI FOUND SPEC ID->{replysubj}", verbose);
                         outmail2.Subject = replysubj;
-                        outmail2.Send();
+                        Send(outmail2);
                     }
                 }
                 //---- IMP: STRIP SPACES FROM CATEGORY NAME "ERA NOTIFICATION"	
@@ -373,7 +413,7 @@ namespace Router
                         //-----------ADD THE FOLLOWING FOR DEVELOPMENT TIER	AS NEEDED BASIS					
                         //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replysubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -381,7 +421,7 @@ namespace Router
                         //                              outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replysubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("Change of Institution request for Grant"))
@@ -394,7 +434,7 @@ namespace Router
                         outmail.Recipients.Add("emily.driskell@nih.gov");
                         outmail.Recipients.Add("edward.mikulich@nih.gov");
                         outmail.Subject = replysubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -402,7 +442,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replysubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SenderID.ToLower().Contains("public"))
@@ -452,7 +492,7 @@ namespace Router
                             outmail.Recipients.Add(_eGrantsStageEmail);
                             //===>STOPPING THIS UNTILL FIX IT/5/30 started
                             outmail.Subject = replySubj;
-                            outmail.Send();
+                            Send(outmail);
                         }
                         else
                         {
@@ -460,7 +500,7 @@ namespace Router
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubj;
-                            outmail.Send();
+                            Send(outmail);
                         }
                         Utilities.ShowDiagnosticIfVerbose($"done w / handling a public email", verbose);
                     }
@@ -476,7 +516,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -484,7 +524,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj + "URGENT ERROR";
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("JIT Documents Have Been Submitted for Grant"))
@@ -499,14 +539,14 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replySubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
                         Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Subject = replySubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant"))
@@ -525,7 +565,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replySubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -533,7 +573,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("Expiring Funds") || v_SubLine.Contains("EXPIRING FUNDS-"))
@@ -549,7 +589,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -557,7 +597,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("Prior Approval: "))
@@ -566,13 +606,13 @@ namespace Router
                     if (debug == "n")
                     {
                         outmail.Recipients.Add(_nciGrantsPostAwardEmail);
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("FFR NOTIFICATION : REJECTED"))
@@ -592,14 +632,14 @@ namespace Router
                             outmail.Recipients.Add(_eGrantsTestEmail);
                             outmail.Recipients.Add(_eGrantsStageEmail);
                             outmail.Subject = replySubj;
-                            outmail.Send();
+                            Send(outmail);
                         }
                         else
                         {
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubj;
-                            outmail.Send();
+                            Send(outmail);
                         }
                     }
                 }
@@ -620,14 +660,14 @@ namespace Router
                             outmail.Recipients.Add(_eGrantsTestEmail);
                             outmail.Recipients.Add(_eGrantsStageEmail);
                             outmail.Subject = replySubject;
-                            outmail.Send();
+                            Send(outmail);
                         }
                         else
                         {
                             Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
-                            outmail.Send();
+                            Send(outmail);
                         }
                     }
                 }
@@ -654,14 +694,14 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
                         Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("eRA Commons: PRAM for Grant"))
@@ -681,7 +721,7 @@ namespace Router
                             outmail.Recipients.Add(_eGrantsTestEmail);
                             outmail.Recipients.Add(_eGrantsStageEmail);
                             outmail.Subject = replySubject;
-                            outmail.Send();
+                            Send(outmail);
                         }
                         else
                         {
@@ -689,7 +729,7 @@ namespace Router
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubject;
-                            outmail.Send();
+                            Send(outmail);
                         }
                     }
                 }
@@ -723,7 +763,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -731,7 +771,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
 
                 }
@@ -754,7 +794,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -762,7 +802,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
 
                 }
@@ -785,7 +825,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -793,7 +833,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.ToLower().Contains("closeout action required"))
@@ -819,7 +859,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -827,7 +867,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     Utilities.ShowDiagnosticIfVerbose($"Hello you closed out a thing", verbose);
                 }
@@ -855,7 +895,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
@@ -863,7 +903,7 @@ namespace Router
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     Utilities.ShowDiagnosticIfVerbose($"Hello you closed out a PROGRAM thing", verbose);
                 }
@@ -886,14 +926,14 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("ClinicalTrials.gov Results Reporting for Grant"))
@@ -918,14 +958,14 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("SBIR/STTR Foreign Risk Management"))
@@ -959,19 +999,20 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     else
                     {
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
-                        outmail.Send();
+                        Send(outmail);
                     }
                     Utilities.ShowDiagnosticIfVerbose("completed SBIR", verbose);
                 }
-                Utilities.ShowDiagnosticIfVerbose("Outer loop complete", verbose);
+                Utilities.ShowDiagnosticIfVerbose("Finished handling the program type", verbose);
             }
+            Utilities.ShowDiagnosticIfVerbose("Done checking if it was undeliverable", verbose);
         }
 
         private static string GetLastWord(string inbound)
@@ -1038,6 +1079,9 @@ namespace Router
         private static string GetSenderId(Outlook.MailItem currentItem)
         {
             string id = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(currentItem.SenderEmailAddress))
+                return id;
 
             if (currentItem.SenderEmailType.Equals("ex", StringComparison.InvariantCultureIgnoreCase))
             {
