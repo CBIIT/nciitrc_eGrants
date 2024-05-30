@@ -22,7 +22,7 @@ Verbose,,,,,y
 --VerboseTEST,,,,,y
 --VerbosePROD,,,,,n
 
-conStr,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
+conStr,,,,,Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Persist Security Info=True;Initial Catalog=EIM;User Id=egrantsuser;Password=Jo0ne62017!;Connect Timeout=45
 --System.ArgumentException: 'Keyword not supported: 'provider'.'
 --conStrDEV,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
 --conStrDEVRB,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants

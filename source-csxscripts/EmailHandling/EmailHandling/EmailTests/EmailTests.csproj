@@ -52,8 +52,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="eSNAPTests.cs" />
+    <Compile Include="FCOITests.cs" />
     <Compile Include="ICActionRequiredTests.cs" />
     <Compile Include="SBIRTests.cs" />
+    <Compile Include="SupplementRequestedTests.cs" />
     <Compile Include="TestProcessor.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -24,6 +24,7 @@ namespace EmailTests
             var verbose = TestUtilities.GetConfigVal("Verbose");
             var debug = "y";    // NEVER send out emails from these tests
             SqlConnection connection = new SqlConnection(conStr);
+            connection.Open();
 
             HandleSingleEmail(testEmail, testEmail.Subject, testEmail.Body, verbose, connection, debug);
             var result = emailsSentThisSession;
@@ -37,6 +38,7 @@ namespace EmailTests
             var verbose = TestUtilities.GetConfigVal("Verbose");
             var debug = "y";    // NEVER send out emails from these tests
             SqlConnection connection = new SqlConnection(conStr);
+            connection.Open();
 
             HandleSingleEmail(From, Subject, Body, verbose, connection, debug);
             //public void HandleSingleEmail(string from, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)

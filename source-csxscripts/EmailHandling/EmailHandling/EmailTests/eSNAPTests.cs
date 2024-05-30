@@ -28,7 +28,7 @@ namespace EmailTests
             var Body = " \r\n";
             testEmail.Body = Body;
             var testProcessor = new TestProcessor();
-            ;
+
             // Act
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
@@ -47,7 +47,7 @@ namespace EmailTests
             var Body = " \r\n";
             testEmail.Body = Body;
             var testProcessor = new TestProcessor();
-            ;
+
             // Act
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
@@ -66,7 +66,7 @@ namespace EmailTests
             var Body = " \r\n";
             testEmail.Body = Body;
             var testProcessor = new TestProcessor();
-            ;
+
             // Act
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
