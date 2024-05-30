@@ -10,18 +10,20 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 namespace EmailTests
 {
     [TestClass]
-    public class FCOITests
+    public class ChangeOfInstitutionTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
         private string _josniEmail = "jonesni@mail.nih.gov";
 
+        // MLH : I have no record of ever seeing an email like this, so these tests may be a bit pass through
+
         [TestMethod]
-        public void FCOISendToDevEmail()
+        public void ChangeOfInstitutionSendToDevEmail()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "Change of Institution request for Grant";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -35,12 +37,12 @@ namespace EmailTests
         }
 
         [TestMethod]
-        public void FCOIAdjustedSubject()
+        public void ChangeOfInstitutionSameSubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "Change of Institution request for Grant";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -50,18 +52,17 @@ namespace EmailTests
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
             // Assert
-            var subj = sentResults["subject"].ToUpper();
-            Assert.IsTrue(subj.Contains("P=") || subj.Contains("B="));
+            Assert.IsTrue(sentResults["subject"].Contains(Subject));
         }
 
 
         [TestMethod]
-        public void FCOISameSubjectNegative()
+        public void ChangeOfInstitutionSameSubjectNegative()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOL report 27381 for grant number: 5U01CA265713-03";       //      <----- an off subject (FCOL instead of FCOI)
+            var Subject = "Change of Scenery request for Grant";       //      <----- an off subject (look closely) ;)
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;

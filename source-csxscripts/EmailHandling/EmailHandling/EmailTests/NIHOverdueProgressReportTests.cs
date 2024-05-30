@@ -10,18 +10,20 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 namespace EmailTests
 {
     [TestClass]
-    public class FCOITests
+    public class NIHOverdueProgressReportTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
         private string _josniEmail = "jonesni@mail.nih.gov";
 
+        // MLH : warning the test subject here is in code and an actual email subject containing part or all of these tokens was not found to populate these tests
+
         [TestMethod]
-        public void FCOISendToDevEmail()
+        public void NIHOverdueProgressReportSendToDevEmail()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant"; 
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -35,12 +37,12 @@ namespace EmailTests
         }
 
         [TestMethod]
-        public void FCOIAdjustedSubject()
+        public void NIHOverdueProgressReportAdjustedSubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -50,18 +52,38 @@ namespace EmailTests
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
             // Assert
-            var subj = sentResults["subject"].ToUpper();
-            Assert.IsTrue(subj.Contains("P=") || subj.Contains("B="));
+            var subj = sentResults["subject"];
+            Assert.IsTrue(string.IsNullOrWhiteSpace(subj));
         }
 
-
         [TestMethod]
-        public void FCOISameSubjectNegative()
+        public void NIHOverdueProgressReportAdjustedR15Subject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOL report 27381 for grant number: 5U01CA265713-03";       //      <----- an off subject (FCOL instead of FCOI)
+            var Subject = "NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant  R15 ";     //          <--- NB the "R15" at the end
+            testEmail.Subject = Subject;
+            var Body = " \r\n";
+            testEmail.Body = Body;
+            var testProcessor = new TestProcessor();
+
+            // Act
+            var sentResults = testProcessor.TestSingleEmail(testEmail);
+
+            // Assert
+            var subj = sentResults["subject"];
+            Assert.IsTrue(subj.Contains("category=eRANotification, sub=Late Progress Report"));
+        }
+
+
+        [TestMethod]
+        public void NIHOverdueProgressReportSameSubjectNegative()
+        {
+            // Arrange
+            Outlook.Application oApp = new Outlook.Application();
+            var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
+            var Subject = "NIH Automated Email: SLACKING OFF REQUIRED - Overdue Progress Report for Grant";       //      <----- an off subject (instead of ACTION, it's SLACKING OFF)
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;

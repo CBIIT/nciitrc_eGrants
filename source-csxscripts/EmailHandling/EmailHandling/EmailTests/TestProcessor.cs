@@ -60,7 +60,7 @@ namespace EmailTests
                 recipients.Add(recipient.Name);     
             }
 
-            if (emailsSentThisSession.ContainsKey("subject"))
+            if (emailsSentThisSession.ContainsKey("recipients"))
             {
                 var combinedFromHere = String.Join(", ", recipients.ToArray());
                 emailsSentThisSession["recipients"] = $"{emailsSentThisSession["recipients"]},{combinedFromHere}";
