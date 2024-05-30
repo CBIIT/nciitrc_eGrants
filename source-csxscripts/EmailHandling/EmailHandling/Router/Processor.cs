@@ -326,12 +326,11 @@ namespace Router
                             command.CommandType = System.Data.CommandType.StoredProcedure;
                             command.Parameters.Add(new SqlParameter("@APPLID", applId));
                             command.Parameters.Add(new SqlParameter("@OffCode", "SPEC"));
-                            command.ExecuteReader();
                             SqlDataReader reader = command.ExecuteReader();
 
                             while (reader.Read())
                             {
-                                Utilities.ShowDiagnosticIfVerbose($" Fields(ABC).value Data found creating document in OutDir Alias {reader["ABC"]} Data found creating document ", verbose);
+                                // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
                                 p_SpecEmail = $"{reader["Email_address_p"]}";
                                 b_SpecEmail = $"{reader["Email_address_b"]}";
                                 Utilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
@@ -1031,25 +1030,16 @@ namespace Router
         {
             try
             {
-                var queryText = $"select dbo.Imm_fn_applid_match( ' @LocalId ') as applid";
+                var queryText = "select dbo.Imm_fn_applid_match(  @LocalId ) as applid";
                 using (SqlCommand command = new SqlCommand(queryText, con))
                 {
-                    //command.Parameters.Add("@LocalId", SqlDbType.NVarChar).Value = str;
-                    //command.Parameters.AddWithValue("@LocalId", str);
-                    //command.Parameters.Add("@LocalId", SqlDbType.VarChar, 100).Value = str;
-                    //command.Parameters.Add(new SqlParameter("LocalId", str));
                     command.Parameters.Add(new SqlParameter("@LocalId", str));
-                    //command.ExecuteReader();
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             int returnedVal = reader.GetInt32(0);
-                            //var a1 = reader["applid"];
-
-                            //string applId = reader.GetString(0);// .GetInt64(0)}";    // appl Id
                             string applId = $"{returnedVal}";
-                            //string applId = $"{(int)a1}";
                             return applId;
                         }
                     }

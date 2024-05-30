@@ -35,7 +35,7 @@ namespace EmailTests
         }
 
         [TestMethod]
-        public void SupplementRequestedSameSubject()
+        public void FCOIAdjustedSubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
@@ -50,7 +50,8 @@ namespace EmailTests
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
             // Assert
-            Assert.IsTrue(sentResults["subject"].Contains(Subject));
+            var subj = sentResults["subject"].ToUpper();
+            Assert.IsTrue(subj.Contains("P=") || subj.Contains("B="));
         }
 
 
@@ -60,7 +61,7 @@ namespace EmailTests
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a groundhog with a New FCOI affidavit report 27381 for grant buzz number: 5U01CA265713-03";       //      <----- an off subject
+            var Subject = "Receipt of a New FCOL report 27381 for grant number: 5U01CA265713-03";       //      <----- an off subject (FCOL instead of FCOI)
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
