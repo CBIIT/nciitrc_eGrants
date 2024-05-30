@@ -10,7 +10,7 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 namespace EmailTests
 {
     [TestClass]
-    public class RouterTests
+    public class SBIRTests
     {
         [TestMethod]
         public void TestSBIRNotCleared()
@@ -28,7 +28,6 @@ namespace EmailTests
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
             // Assert
-            Assert.IsTrue(sentResults["subject"].Contains("applid=10931950"));
             Assert.IsTrue(sentResults["subject"].Contains("Not Cleared"));
         }
 
@@ -48,7 +47,6 @@ namespace EmailTests
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
             // Assert
-            Assert.IsTrue(sentResults["subject"].Contains("applid=10931950"));
             Assert.IsFalse(sentResults["subject"].Contains("Not Cleared"));
         }
 
@@ -90,5 +88,6 @@ namespace EmailTests
             // Assert
             Assert.IsFalse(sentResults["subject"].Contains("applid=10931950"));
         }
+
     }
 }

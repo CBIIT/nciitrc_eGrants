@@ -225,10 +225,8 @@ namespace Router
                 v_SenderID = GetSenderId(currentItem);
                 Utilities.ShowDiagnosticIfVerbose($"Sender : {v_SenderID}", verbose);
 
-                // IF(InStr(v_SubLine, "eSNAP Received at NIH") > 0)  OR(InStr(v_SubLine, "eRA Commons: RPPR for Grant ") > 0) Then
                 if (v_SubLine.Contains("eSNAP Received at NIH") || v_SubLine.Contains("eRA Commons: RPPR for Grant"))
                 {
-                    //IF (InStr(v_SubLine," submitted to NIH with a Non-Compliance ") > 0) Then
                     if (v_SubLine.Contains("submitted to NIH with a Non-Compliance"))
                     {
                         //(1) load into eGrants
@@ -309,8 +307,6 @@ namespace Router
                         Send(outmail2);
                     }
                 }
-                //ELSEIF (InStr(v_SubLine," FCOI ") > 0  AND InStr(1,v_SubLine,"Automatic reply:") = 0) Then
-                // MLH : I'm confident that InStr(1,v_SubLine,"Automatic reply:") = 0 here means that it didn't begin with "automatic reply"
                 else if (v_SubLine.Contains(" FCOI ") && !v_SubLine.StartsWith("Automatic reply:"))
                 {
                     string applId = string.Empty;
