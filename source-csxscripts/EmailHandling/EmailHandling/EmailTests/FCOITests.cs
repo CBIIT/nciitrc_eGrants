@@ -10,18 +10,18 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 namespace EmailTests
 {
     [TestClass]
-    public class ICActionRequiredTests
+    public class FCOITests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
         private string _josniEmail = "jonesni@mail.nih.gov";
 
         [TestMethod]
-        public void TestICActionRequiredSendToDevEmail()
+        public void FCOISendToDevEmail()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "IC ACTION REQUIRED - Relinquishing Statement";
+            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -35,12 +35,12 @@ namespace EmailTests
         }
 
         [TestMethod]
-        public void TestICActionRequiredSameSubject()
+        public void SupplementRequestedSameSubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "IC ACTION REQUIRED - Relinquishing Statement";
+            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -55,12 +55,12 @@ namespace EmailTests
 
 
         [TestMethod]
-        public void TestICActionRequiredSameSubjectNegative()
+        public void SupplementRequestedSameSubjectNegative()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "IC ACTION - Relish Statement";       //      <----- an off subject
+            var Subject = "Receipt of a groundhog with a New FCOI affidavit report 27381 for grant buzz number: 5U01CA265713-03";       //      <----- an off subject
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;

@@ -68,20 +68,20 @@ namespace Router
 
         public static string RemoveSpaceCharacters(string inbound) {
             var txt = inbound.Replace("vbLf", "vbCrLF");
-            txt = inbound.Replace(":", " ");
-            txt = inbound.Replace("/", " ");
-            txt = inbound.Replace("\\", " ");
-            txt = inbound.Replace("&", "and");
-            txt = inbound.Replace(";", " ");
-            txt = inbound.Replace("<", " ");
-            txt = inbound.Replace(">", " ");
-            txt = inbound.Replace("<<", " ");
-            txt = inbound.Replace(">>", " ");
-            txt = inbound.Replace("^", " ");
-            txt = inbound.Replace("%", " ");
-            txt = inbound.Replace("@", " ");
-            txt = inbound.Replace("'", " ");
-            txt = inbound.Replace(" ", "");
+            txt = txt.Replace(":", " ");
+            txt = txt.Replace("/", " ");
+            txt = txt.Replace("\\", " ");
+            txt = txt.Replace("&", "and");
+            txt = txt.Replace(";", " ");
+            txt = txt.Replace("<", " ");
+            txt = txt.Replace(">", " ");
+            txt = txt.Replace("<<", " ");
+            txt = txt.Replace(">>", " ");
+            txt = txt.Replace("^", " ");
+            txt = txt.Replace("%", " ");
+            txt = txt.Replace("@", " ");
+            txt = txt.Replace("'", " ");
+            txt = txt.Replace(" ", "");
             return txt.Trim();
         }
     }

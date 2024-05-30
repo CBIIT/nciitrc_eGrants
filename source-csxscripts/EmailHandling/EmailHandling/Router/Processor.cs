@@ -16,6 +16,7 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 
 using System.Management;
 using System.Security.Cryptography;
+using System.Data;
 
 namespace Router
 {
@@ -310,7 +311,7 @@ namespace Router
                 else if (v_SubLine.Contains(" FCOI ") && !v_SubLine.StartsWith("Automatic reply:"))
                 {
                     string applId = string.Empty;
-                    if (string.IsNullOrWhiteSpace(v_SubLine))
+                    if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
                         applId = GetApplId(Utilities.RemoveSpaceCharacters(v_SubLine), con);
                         Utilities.ShowDiagnosticIfVerbose($"FCOI => applid : {applId}", verbose);
@@ -1033,21 +1034,32 @@ namespace Router
                 var queryText = $"select dbo.Imm_fn_applid_match( ' @LocalId ') as applid";
                 using (SqlCommand command = new SqlCommand(queryText, con))
                 {
-                    command.Parameters.Add(new SqlParameter("LocalId", str));
-                    command.ExecuteReader();
-                    SqlDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
+                    //command.Parameters.Add("@LocalId", SqlDbType.NVarChar).Value = str;
+                    //command.Parameters.AddWithValue("@LocalId", str);
+                    //command.Parameters.Add("@LocalId", SqlDbType.VarChar, 100).Value = str;
+                    //command.Parameters.Add(new SqlParameter("LocalId", str));
+                    command.Parameters.Add(new SqlParameter("@LocalId", str));
+                    //command.ExecuteReader();
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        string applId = $"{reader.GetInt64(0)}";    // appl Id
-                        return applId;
+                        while (reader.Read())
+                        {
+                            int returnedVal = reader.GetInt32(0);
+                            //var a1 = reader["applid"];
+
+                            //string applId = reader.GetString(0);// .GetInt64(0)}";    // appl Id
+                            string applId = $"{returnedVal}";
+                            //string applId = $"{(int)a1}";
+                            return applId;
+                        }
                     }
                 }
                 return string.Empty;
             }
-            catch
+            catch(Exception ex)
             {
                 Console.WriteLine("Query failed.");
-                throw new System.Exception($"Get Appl Id query failed. Input string : '{str}'");
+                throw new System.Exception($"Get Appl Id query failed. Input string : '{str}'\r\n Message: {ex.Message}");
             }
         }
 
