@@ -697,6 +697,7 @@ namespace Router
                         Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Subject = replySubject;
                         Send(outmail);
                     }
                 }

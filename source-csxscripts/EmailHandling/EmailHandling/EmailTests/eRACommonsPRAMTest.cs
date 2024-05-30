@@ -10,18 +10,20 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 namespace EmailTests
 {
     [TestClass]
-    public class FCOITests
+    public class eRACommonsPRAMTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
         private string _josniEmail = "jonesni@mail.nih.gov";
 
+        // MLH : didn't see any actual emails with this subject, so just using this
+
         [TestMethod]
-        public void FCOISendToDevEmail()
+        public void eRACommonsPRAMSendToDevEmail()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "eRA Commons: PRAM for Grant";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -35,12 +37,12 @@ namespace EmailTests
         }
 
         [TestMethod]
-        public void FCOIAdjustedSubject()
+        public void eRACommonsPRAMSameSubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "eRA Commons: PRAM for Grant";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -50,18 +52,35 @@ namespace EmailTests
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
             // Assert
-            var subj = sentResults["subject"].ToUpper();
-            Assert.IsTrue(subj.Contains("P=") || subj.Contains("B="));
+            Assert.IsTrue(sentResults["subject"].Contains(Subject));
         }
 
-
         [TestMethod]
-        public void FCOISameSubjectNegative()
+        public void eRACommonsPRAMReSubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOL report 27381 for grant number: 5U01CA265713-03";       //      <----- an off subject (FCOL instead of FCOI)
+            var Subject = "re: eRA Commons: PRAM for Grant";
+            testEmail.Subject = Subject;
+            var Body = " \r\n";
+            testEmail.Body = Body;
+            var testProcessor = new TestProcessor();
+
+            // Act
+            var sentResults = testProcessor.TestSingleEmail(testEmail);
+
+            // Assert
+            Assert.IsFalse(sentResults.ContainsKey("subject"));
+        }
+
+        [TestMethod]
+        public void eRACommonsPRAMSameSubjectNegative()
+        {
+            // Arrange
+            Outlook.Application oApp = new Outlook.Application();
+            var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
+            var Subject = "eRA Cheesecake: PRAM for Grant";       //      <----- an off subject (Cheesecake)
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;

@@ -10,18 +10,20 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 namespace EmailTests
 {
     [TestClass]
-    public class FCOITests
+    public class IRPPRTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
         private string _josniEmail = "jonesni@mail.nih.gov";
 
+        // MLH : Note I haven't seen any emails with a subject that capture on this
+
         [TestMethod]
-        public void FCOISendToDevEmail()
+        public void IRPPRSendToDevEmail()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "IRPPR Reminder mlh fabricated this email subject could be waay off 1R41CA298615-01     - Application is belong to us";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -35,12 +37,12 @@ namespace EmailTests
         }
 
         [TestMethod]
-        public void FCOIAdjustedSubject()
+        public void IRPPRCheckedSubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "IRPPR Reminder mlh fabricated this email subject could be waay off 1R41CA298615-01     - Application is belong to us";
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -50,18 +52,18 @@ namespace EmailTests
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
             // Assert
-            var subj = sentResults["subject"].ToUpper();
-            Assert.IsTrue(subj.Contains("P=") || subj.Contains("B="));
+            var subj = sentResults["subject"];
+            Assert.IsTrue(subj.Contains("applid=11076534, category=IRPPR, sub=Reminder, extract=1"));
         }
 
 
         [TestMethod]
-        public void FCOISameSubjectNegative()
+        public void IRPPRSameSubjectNegative()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOL report 27381 for grant number: 5U01CA265713-03";       //      <----- an off subject (FCOL instead of FCOI)
+            var Subject = "IRPPPPPPPR Reminder mlh fabricated this email subject could be waay off 1R41CA298615-01     - Application is belong to us";       //      <----- an off subject (too many PPPP's)
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
