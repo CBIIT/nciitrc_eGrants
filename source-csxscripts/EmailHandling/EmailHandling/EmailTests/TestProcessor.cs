@@ -54,11 +54,27 @@ namespace EmailTests
 
             foreach (Recipient recipient in mailItem.Recipients)
             {
-                recipients.Add(recipient.Address);
+                // somehow recipient.Address is always null and the email isn't in the object
+                recipients.Add(recipient.Name);     
             }
 
-            emailsSentThisSession["recipients"] = String.Join(", ", recipients.ToArray());
-            emailsSentThisSession["subject"] = mailItem.Subject;
+            if (emailsSentThisSession.ContainsKey("subject"))
+            {
+                var combinedFromHere = String.Join(", ", recipients.ToArray());
+                emailsSentThisSession["recipients"] = $"{emailsSentThisSession["recipients"]},{combinedFromHere}";
+            } else
+            {
+                emailsSentThisSession["recipients"] = String.Join(", ", recipients.ToArray());
+            }
+
+            if (emailsSentThisSession.ContainsKey("subject"))
+            {
+                emailsSentThisSession["subject"] = $"{emailsSentThisSession["subject"]},{mailItem.Subject}";
+            } else
+            {
+                emailsSentThisSession["subject"] = mailItem.Subject;
+            }
+            
 
             return null;
         }
