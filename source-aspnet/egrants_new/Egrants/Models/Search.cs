@@ -167,6 +167,7 @@ namespace egrants_new.Egrants.Models
 
                     string orgname = rdr["org_name"]?.ToString();
                     grant.org_name = orgname;
+                    grant.OrgId = Convert.ToInt64(rdr["org_id"]);
                     grant.OrgNameToolTip = orgname;
                     grant.OrgFullName = orgname;
 
