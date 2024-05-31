@@ -53,12 +53,16 @@
   <ItemGroup>
     <Compile Include="ChangeNoticeForTests.cs" />
     <Compile Include="ChangeOfInstitutionTests.cs" />
+    <Compile Include="ClinicalTrialDotGov.cs" />
+    <Compile Include="CloseOutActionTests.cs" />
+    <Compile Include="CloseOutProgramTests.cs" />
     <Compile Include="eRACommonsPRAMTest.cs" />
     <Compile Include="eRAFinalRPPRTests.cs" />
     <Compile Include="eSNAPTests.cs" />
     <Compile Include="ExpiringFundsTests.cs" />
     <Compile Include="FCOITests.cs" />
     <Compile Include="FFRNotificationTests.cs" />
+    <Compile Include="FFRReminderPastDue.cs" />
     <Compile Include="ICActionRequiredTests.cs" />
     <Compile Include="IRPPRTests.cs" />
     <Compile Include="JITTests.cs" />
