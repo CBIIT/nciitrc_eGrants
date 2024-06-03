@@ -70,6 +70,7 @@
     <Compile Include="NoCostExtensionTests.cs" />
     <Compile Include="PRAMFRAMTests.cs" />
     <Compile Include="PriorApprovalTests.cs" />
+    <Compile Include="RPPRTests.cs" />
     <Compile Include="RPPRUnobligatedBalanceTests.cs" />
     <Compile Include="SBIRTests.cs" />
     <Compile Include="SupplementRequestedTests.cs" />
