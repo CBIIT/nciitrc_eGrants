@@ -803,6 +803,36 @@ namespace Router
                     }
 
                 }
+                else if (v_SubLine.StartsWith("RPPR Reminder"))
+                {
+                    var replySubject = string.Empty;
+                    var applId = string.Empty;
+
+                    if (!string.IsNullOrWhiteSpace(v_SubLine))
+                    {
+                        applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
+                    }
+                    replySubject = $"applid={applId}, category=RPPR, sub=Reminder, extract=1, {currentItem.Subject}";
+
+                    var outmail = currentItem.Forward();
+                    if (debug == "n")
+                    {
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
+                        outmail.Subject = replySubject;
+                        Send(outmail);
+                    }
+                    else
+                    {
+                        //Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Subject = replySubject;
+                        Send(outmail);
+                    }
+                }
                 else if (v_SubLine.Contains("IRPPR Reminder"))
                 {
                     var replySubject = string.Empty;
