@@ -1,72 +1,79 @@
 ﻿@model egrants_new.Egrants.Models.InstitutionalFilesPage
 
+@{
+    var systemOrgName2 = Html.Raw(Model.SelectedInstitutionalOrg.OrgName.Replace("'", "\\'")).ToString();
+    var displayedOrgName2 = Html.Raw(Model.SelectedInstitutionalOrg.OrgName).ToString();
+}
+
 <style>
-   table.dataTable tbody tr.even-row {
-      background-color: #ffffff;
-      height: 30px;
-   }
+    table.dataTable tbody tr.even-row {
+        background-color: #ffffff;
+        height: 30px;
+    }
 
-   table.dataTable tbody tr.odd-row {
-      background-color: #AED6F1;
-      height: 30px;
-   }
+    table.dataTable tbody tr.odd-row {
+        background-color: #AED6F1;
+        height: 30px;
+    }
 
-   table.dataTable thead > tr > td.sorting { padding-right: 30px; }
+    table.dataTable thead > tr > td.sorting {
+        padding-right: 30px;
+    }
 
-   table.dataTable thead .sorting:nth-child(2)::after {
-      left: 120px;
-      right: 0;
-   }
+    table.dataTable thead .sorting:nth-child(2)::after {
+        left: 120px;
+        right: 0;
+    }
 
-   table.dataTable thead .sorting_desc:nth-child(2)::after {
-      left: 120px;
-      right: 0;
-   }
+    table.dataTable thead .sorting_desc:nth-child(2)::after {
+        left: 120px;
+        right: 0;
+    }
 
 
-   table.dataTable thead .sorting_asc:nth-child(2)::after {
-      left: 120px;
-      right: 0;
-   }
+    table.dataTable thead .sorting_asc:nth-child(2)::after {
+        left: 120px;
+        right: 0;
+    }
 
-   table .dataTable thead .sorting:nth-child(2)::after {
-      left: 120px;
-      right: 0;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center left;
-   }
+    table .dataTable thead .sorting:nth-child(2)::after {
+        left: 120px;
+        right: 0;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center left;
+    }
 
-   table.dataTable thead .sorting_desc:nth-child(3)::after {
-      left: 45px;
-      right: 0;
-   }
+    table.dataTable thead .sorting_desc:nth-child(3)::after {
+        left: 45px;
+        right: 0;
+    }
 
-   table.dataTable thead .sorting_asc:nth-child(3)::after {
-      left: 45px;
-      right: 0;
-   }
+    table.dataTable thead .sorting_asc:nth-child(3)::after {
+        left: 45px;
+        right: 0;
+    }
 
-   table.dataTable thead .sorting:nth-child(3)::after {
-      left: 45px;
-      right: 0;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center right;
-   }
+    table.dataTable thead .sorting:nth-child(3)::after {
+        left: 45px;
+        right: 0;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center right;
+    }
 
-   #overlay {
-      height: 100%;
-      width: 100%;
-      position: absolute;
-      top: 0px;
-      left: 0px;
-      z-index: 99999;
-      /*background-color: white;*/
-      filter: alpha(opacity=75);
-      opacity: 0.75;
-      display: none;
-   }
+    #overlay {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        z-index: 99999;
+        /*background-color: white;*/
+        filter: alpha(opacity=75);
+        opacity: 0.75;
+        display: none;
+    }
 </style>
 
 
@@ -83,90 +90,90 @@
 </script>
 
 
-<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet"/>
+<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet" />
 @{
-   var rowclass = string.Empty;
+    var rowclass = string.Empty;
 }
 
 <div id="data_table">
-   <table width="850" valign="left" class="dataTable">
-      <tr>
-         <td width="250">
-            <b>Institution:&nbsp;@Model.SelectedInstitutionalOrg.OrgName</b>
-         </td>
-         <td width="150" class="text-right">
-            @if (Convert.ToInt16(Session["position_id"]) != 1 && Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
-            {
-               <a href="JavaScript:to_create_doc('@Model.SelectedInstitutionalOrg.OrgName','@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
-            }
-         </td>
-      </tr>
-      <tr>
-         <td colspan="2">
-            <table class="">
-               <thead>
-               <tr>
-                  <th width="450">Document Name</th>
-                  <th width="100">Created Date</th>
-                  <th width="100">Flag Start</th>
-                  <th width="100">Flag End</th>
-                  @if (Convert.ToInt16(Session["position_id"]) != 1)
-                  {
-                     <th width="75" class="text-center">Update</th>
-                     <th width="75" class="text-center">Delete</th>
-                  }
-               </tr>
-               </thead>
-               <tbody>
-               @if (Model.DocFiles.Count > 0)
-               {
-                  foreach (var doc in Model.DocFiles)
-                  {
-                     rowclass = Model.DocFiles.IndexOf(doc) % 2 == 0 ? "odd-row" : "even-row";
-
-                     <tr class="@rowclass">
-                        <td>
-                           <a href="JavaScript:show_doc('@doc.url')" title="Click here to display document">
-                              @{
-                                 var docCategoryName = doc.category_name;
-                                 if (!string.IsNullOrWhiteSpace(doc.comments))
-                                 {
-                                    docCategoryName += ": " + doc.comments;
-                                 }
-
-                              }
-                              @docCategoryName
-                           </a>
-                        </td>
-                        <td>@doc.created_date</td>
-                        <td>@doc.start_date</td>
-                        <td>@doc.end_date</td>
-                        @*<td class="text-wrap">@doc.comments</td>*@
-                        @if (Convert.ToInt16(Session["position_id"]) != 1)
+    <table width="850" valign="left" class="dataTable">
+        <tr>
+            <td width="250">
+                <b>Institution:&nbsp;@displayedOrgName2</b>
+            </td>
+            <td width="150" class="text-right">
+                @if (Convert.ToInt16(Session["position_id"]) != 1 && Model.SelectedInstitutionalOrg.OrgId != 0 && Model.SelectedInstitutionalOrg.OrgId > 0)
+                {
+                    <a href="JavaScript:to_create_doc('@Model.SelectedInstitutionalOrg.OrgId')" title="Click here to create new document">Create New Document</a>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <table class="">
+                    <thead>
+                        <tr>
+                            <th width="450">Document Name</th>
+                            <th width="100">Created Date</th>
+                            <th width="100">Flag Start</th>
+                            <th width="100">Flag End</th>
+                            @if (Convert.ToInt16(Session["position_id"]) != 1)
+                            {
+                                <th width="75" class="text-center">Update</th>
+                                <th width="75" class="text-center">Delete</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.DocFiles.Count > 0)
                         {
-                           <td class="text-center">
-                              <a href="JavaScript:to_update_doc('@doc.DocumentId', '@doc.org_id', '@doc.org_name')" title="Click here to update this document">
-                                 <img class="img_12_12" SRC="~/Content/images/Update File.png"/>
-                              </a>
-                           </td>
-                           <td class="text-center">
-                              <a href="JavaScript:delete_doc('@doc.DocumentId', '@doc.category_name','@doc.org_id', '@doc.org_name')" title="Click here to delete this document">
-                                 <img class="img_12_12" SRC="~/Content/images/Clear.jpg"/>
-                              </a>
-                           </td>
+                            foreach (var doc in Model.DocFiles)
+                            {
+                                rowclass = Model.DocFiles.IndexOf(doc) % 2 == 0 ? "odd-row" : "even-row";
+
+                                <tr class="@rowclass">
+                                    <td>
+                                        <a href="JavaScript:show_doc('@doc.url')" title="Click here to display document">
+                                            @{
+                                                var docCategoryName = doc.category_name;
+                                                if (!string.IsNullOrWhiteSpace(doc.comments))
+                                                {
+                                                    docCategoryName += ": " + doc.comments;
+                                                }
+
+                                            }
+                                            @docCategoryName
+                                        </a>
+                                    </td>
+                                    <td>@doc.created_date</td>
+                                    <td>@doc.start_date</td>
+                                    <td>@doc.end_date</td>
+                                    @*<td class="text-wrap">@doc.comments</td>*@
+                                    @if (Convert.ToInt16(Session["position_id"]) != 1)
+                                    {
+                                        <td class="text-center">
+                                            <a href="JavaScript:to_update_doc('@doc.DocumentId', '@doc.org_id', '@systemOrgName2')" title="Click here to update this document">
+                                                <img class="img_12_12" SRC="~/Content/images/Update File.png" />
+                                            </a>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="JavaScript:delete_doc('@doc.DocumentId', '@doc.category_name','@doc.org_id', '@systemOrgName2')" title="Click here to delete this document">
+                                                <img class="img_12_12" SRC="~/Content/images/Clear.jpg" />
+                                            </a>
+                                        </td>
+                                    }
+                                </tr>
+                            }
                         }
-                     </tr>
-                  }
-               }
-               else
-               {
-                  <tr>
-                     <td colspan="6">No Documents</td>
-                  </tr>
-               }
-               </tbody>
-            </table>
-         </td>
-      </tr>
-   </table>
+                        else
+                        {
+                            <tr>
+                                <td colspan="6">No Documents</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </table>
 </div>
