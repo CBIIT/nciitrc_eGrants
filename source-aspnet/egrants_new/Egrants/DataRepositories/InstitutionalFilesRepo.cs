@@ -201,7 +201,8 @@ namespace egrants_new.Egrants.Models
 
             // TODO:  This should branched to different Stored procedures based on the revision MAdhu does
             cmd.Parameters.Add("@org_id", SqlDbType.Int).Value = org_id;
-            cmd.Parameters.Add("@org_name", SqlDbType.VarChar).Value = org_name;
+            var sanitizedOrgName = org_name.Replace("'", "''");
+            cmd.Parameters.Add("@org_name", SqlDbType.VarChar).Value = sanitizedOrgName;
 
             this.conn.Open();
 
