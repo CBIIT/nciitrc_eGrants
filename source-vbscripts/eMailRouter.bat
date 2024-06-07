@@ -1,1 +1,3 @@
-wscript C:\eGrants\apps\eMailRouter.vbs
+cd E:\egrants\scripts\apps\router\
+.\Router
+cd ..

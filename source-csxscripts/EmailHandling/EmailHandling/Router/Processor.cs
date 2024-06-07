@@ -17,6 +17,7 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 using System.Management;
 using System.Security.Cryptography;
 using System.Data;
+using System.Threading;
 
 namespace Router
 {
@@ -32,7 +33,7 @@ namespace Router
             emailsSentThisSession = new Dictionary<string, string>();
         }
 
-        public int Process(string dirPath, SqlConnection con, string verbose, string debug)
+        public int Process(string dirPath, SqlConnection con, string verbose, string debug, int routingBreakDuration)
         {
             int itemsProcessedCount = 0;
             emailsSentThisSession.Clear();
@@ -78,12 +79,22 @@ namespace Router
                 Utilities.ShowDiagnosticIfVerbose($"Mail count={currentFolder.Items.Count}", verbose);
 
                 var itemCount = currentFolder.Items.Count;      // itmscncnt
+                Items items = currentFolder.Items;
+                List<MailItem> eachEmailToProcess = new List<MailItem>();
+                foreach(MailItem mailItem in items)
+                {
+                    eachEmailToProcess.Add(mailItem);
+                }
+                Utilities.ShowDiagnosticIfVerbose($"staging email list count={eachEmailToProcess.Count}", verbose);
 
                 int itemsToProcess = 0;
                 int itemsProcessed = 0;
 
-                foreach (var item in currentFolder.Items)
+                Utilities.ShowDiagnosticIfVerbose($"****************** starting ********************", verbose);
+
+                foreach (var item in eachEmailToProcess)
                 {
+                    Utilities.ShowDiagnosticIfVerbose($" ", verbose);
                     Outlook.MailItem currentItem = item as Outlook.MailItem;
                     Utilities.ShowDiagnosticIfVerbose($"Item : {currentItem.ToString()}", verbose);
 
@@ -92,7 +103,7 @@ namespace Router
                     var v_Body = currentItem.Body;
 
                     Utilities.ShowDiagnosticIfVerbose($"Subject : {v_SubLine}", verbose);
-                    Utilities.ShowDiagnosticIfVerbose($"Body : {v_Body}", verbose);
+                    //Utilities.ShowDiagnosticIfVerbose($"Body : {v_Body}", verbose);
 
                     bool failedToProcess = false;
                     string exceptionType = string.Empty;
@@ -117,8 +128,12 @@ namespace Router
 
                     itemCount++;
                     Utilities.ShowDiagnosticIfVerbose("Incrementing count", verbose);
-                    currentItem.Move(oldFolder);
+                    Utilities.ShowDiagnosticIfVerbose($"Old folder: {oldFolder}", verbose);
+                    var result = currentItem.Move(oldFolder);
+                    Thread.Sleep(routingBreakDuration);
+
                     Utilities.ShowDiagnosticIfVerbose("current Item moved", verbose);
+                    Utilities.ShowDiagnosticIfVerbose("**************************************************************************", verbose);
 
                     itemsProcessedCount++;
 

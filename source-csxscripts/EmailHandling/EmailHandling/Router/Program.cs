@@ -31,6 +31,18 @@ namespace Router
             Utilities.ShowDiagnosticIfVerbose($"_conStr: '{_conStr}'", _verbose);
             var _dirPath = Utilities.GetConfigVal("dirpathRouter");
             Utilities.ShowDiagnosticIfVerbose($"_dirPath: '{_dirPath}'", _verbose);
+            var _routingBreakDurationToken = Utilities.GetConfigVal("routingBreakDuration");
+            var _routingBreakDuration = 1000;
+            if (!string.IsNullOrWhiteSpace(_routingBreakDurationToken) && !_routingBreakDurationToken.ToLower().Contains("fail"))
+            {
+                bool success = int.TryParse(_routingBreakDurationToken, out _routingBreakDuration);
+                if (!success)
+                {
+                    _routingBreakDuration = 1000;
+                    Utilities.ShowDiagnosticIfVerbose($"Unable to load routingBreakDuration from config : ({_routingBreakDurationToken}), so settin to 1000 milliseconds", _verbose);
+                }
+            }
+            Utilities.ShowDiagnosticIfVerbose($"_routingBreakDuration: '{_routingBreakDuration}'", _verbose);
 
             Utilities.ShowDiagnosticIfVerbose("Running the router", _verbose);
 
@@ -38,23 +50,10 @@ namespace Router
             var _taskStartMssg = "...........Task Started!...........";
             Utilities.WriteLog(_forAppending, _taskStartMssg, null, _startTimeStamp);
 
-            // moved to Process
-            //var _dBugEmail = "leul.ayana@nih.gov";
-            //var _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-            //var _eGrantsTestEmail = "eGrantsTest1@mail.nih.gov";
-            //var _eGrantsStageEmail = "eGrantsStage@mail.nih.gov";
-            //var _eFileEmail = "efile@mail.nih.gov";
-            //var _nciGrantsPostAwardEmail = "NCIGrantsPostAward@nih.gov";
-
-            // System.ArgumentException: 'Keyword not supported: 'provider'.'
             SqlConnection _con = new SqlConnection(_conStr);
 
-            // TODO :
-            // Test getNthWord
-            // Add error layer
-
             var processor = new Processor();
-            var _itemsProcessed = processor.Process(_dirPath, _con, _verbose, _debug);
+            var _itemsProcessed = processor.Process(_dirPath, _con, _verbose, _debug, _routingBreakDuration);
 
             var _taskEndMssg = $"******* Task Completed! ******* {_itemsProcessed} Mail Items Have Been Processed";
             var _endTimeStamp = DateTime.Now;
