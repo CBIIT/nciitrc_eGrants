@@ -177,6 +177,7 @@ Sub Process(dirpath,oConn,Verbose,dBug)
 				call ShowDiagnosticIfVerbose( "v_SenderID: '" & v_SenderID & "'", Verbose)
 				call ShowDiagnosticIfVerbose( "V_flType: '" & V_flType & "'", Verbose)
 				call ShowDiagnosticIfVerbose( "movetoqc: '" & movetoqc & "'", Verbose)
+				call ShowDiagnosticIfVerbose( "category: '" & category & "'", Verbose)
 				call ShowDiagnosticIfVerbose( "subcat: '" & subcat & "'", Verbose)
 				
 				If(category="PublicAccess") Then
@@ -196,6 +197,13 @@ Sub Process(dirpath,oConn,Verbose,dBug)
 				ELSEIF (category = "JIT Info") OR (category = "CT.gov") THEN
 					V_flType="pdf"
 					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
+				ELSEIF (Category = "eRA Notification") AND (subcat="JIT Submitted") THEN   'eGrants-407	MLH
+					V_flType="pdf"					
+					Documentid=getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_flType,movetoqc,subcat)
+					call ShowDiagnosticIfVerbose( "Documentid: " & Documentid, Verbose)
+					call clearOldJITSubmissions(documentid)
+					call ShowDiagnosticIfVerbose( "Cleared old JIT submitted submissions", Verbose)
 					call GeneratePDFWithEmbeddedImages(CItem,Documentid)
 				ELSEIF (lcase(category) = "closeout") AND (lcase(subcat) = "past due documents reminder") THEN
 					call ShowDiagnosticIfVerbose( "handling closeout" , Verbose)
@@ -630,6 +638,14 @@ Function getDocumentId(documentid,category,applid,profileid,docdt,v_SenderID,V_f
 			getDocumentId=oRS2.Fields("value").value		
 		End If
 		set oRS2=Nothing
+End Function
+'==========================================
+'==========================================
+Function clearOldJITSubmissions(documentid)
+	
+	Dim oRS2
+	strSQL = "exec SP_CLEAR_OLD_JIT_SUBMISSIONS '"&documentid&"'"
+	set oRS2 =  oConn.execute(strSQL , , adCmdTable)
 End Function
 '==========================================
 '==========================================
