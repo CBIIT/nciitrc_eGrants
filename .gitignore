@@ -2,3 +2,15 @@ source-aspnet/.vs/egrants_new/v17/fileList.bin
 source-aspnet/.vs/
 source-aspnet/packages/
 
+/source-csxscripts/OutlookAccessADO/.vs/*
+/source-csxscripts/OutlookAccessADO/bin/*
+/source-csxscripts/OutlookAccessADO/obj/*
+/source-csxscripts/EmailHandling/EmailHandling/.vs/*
+/source-csxscripts/EmailHandling/EmailHandling/Router/bin/*
+/source-csxscripts/EmailHandling/EmailHandling/Router/obj/*
+/source-csxscripts/EmailHandling/EmailHandling/EmailTests/bin/*
+/source-csxscripts/EmailHandling/EmailHandling/EmailTests/obj/*
+/source-csxscripts/EmailHandling/EmailHandling/packages/*
+/source-csxscripts/EmailHandling/EmailHandling/Router/.vs/*
+/source-csxscripts/EmailHandling/EmailHandling/Out/*
+/source-csxscripts/log/*

@@ -437,29 +437,34 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 						End With					
 					END IF
 					'Set OutMail=nothing			
-			'ELSEIF InStr(v_SubLine,"JIT Documents Have Been Submitted for Grant ") > 0    Then  		' mhoover 1/2024
-			'		replysubj="category=eRA Notification, sub=JIT Submitted, extract=1, " & CItem.subject
-			'		Set OutMail = CItem.Forward
-			'		IF (dBug="n") Then								
-			'			With OutMail
-			'				.Recipients.Add(eFileEmail)
-			'				.Recipients.Add(eGrantsDevEmail)
-			'				.Recipients.Add(eGrantsTestEmail)
-			'				.Recipients.Add(eGrantsStageEmail)
-			'										
-			'				'.Recipients.Add("leul.ayana@nih.gov")
-			'				.Subject = replysubj 
-			'				.Send
-			'			End With
-			'		ELSE
-			'			''wscript.echo "DON'T WANT THIS" & v_SubLine
-			'			With OutMail
-			'				.Recipients.Add(dBugEmail)	
-			'				.Subject = replysubj
-			'				.Send
-			'			End With					
-			'		END IF
-					Set OutMail=nothing						
+			ELSEIF InStr(v_SubLine,"JIT Documents Have Been Submitted for Grant ") > 0    Then  		' mhoover 1/2024
+					call ShowDiagnosticIfVerbose( "handling JIT Submitted", Verbose)
+					replysubj="category=eRA Notification, sub=JIT Submitted, extract=1, " & CItem.subject
+					call ShowDiagnosticIfVerbose( "set replySubj", Verbose)		
+					Set OutMail = CItem.Forward
+					call ShowDiagnosticIfVerbose( "created fwd outmail", Verbose)	
+					IF (dBug="n") Then		
+						call ShowDiagnosticIfVerbose( "dBug is n", Verbose)	
+						With OutMail
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
+							.Subject = replysubj 
+							.Send
+						End With
+					ELSE
+						call ShowDiagnosticIfVerbose( "dBug is y", Verbose)	
+						With OutMail
+							.Recipients.Add(dBugEmail)	
+							.Recipients.Add(eGrantsDevEmail)
+						.Subject = replysubj 
+						.Send
+						End With					
+					END IF
+					call ShowDiagnosticIfVerbose( "sent", Verbose)	
+					Set OutMail=nothing				
+					call ShowDiagnosticIfVerbose( "handled JIT Submitted", Verbose)					
 			ELSEIF InStr(v_SubLine,"NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant") > 0 Then
 			    IF (InStr(v_SubLine," R15 ") > 0) Then
 				replysubj="category=eRANotification, sub=Late Progress Report, extract=1, " & CItem.subject
