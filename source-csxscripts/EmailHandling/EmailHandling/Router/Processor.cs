@@ -79,11 +79,15 @@ namespace Router
                 Utilities.ShowDiagnosticIfVerbose($"Mail count={currentFolder.Items.Count}", verbose);
 
                 var itemCount = currentFolder.Items.Count;      // itmscncnt
-                Items items = currentFolder.Items;
+                //Items items = currentFolder.Items;
                 List<MailItem> eachEmailToProcess = new List<MailItem>();
-                foreach(MailItem mailItem in items)
+                foreach(object item in currentFolder.Items)     // fails here
                 {
-                    eachEmailToProcess.Add(mailItem);
+                    Outlook.MailItem mailItem = item as Outlook.MailItem;
+                    if (mailItem != null)
+                        eachEmailToProcess.Add(mailItem);
+                    else
+                        Utilities.ShowDiagnosticIfVerbose($"skipping a non mail item ...", verbose);
                 }
                 Utilities.ShowDiagnosticIfVerbose($"staging email list count={eachEmailToProcess.Count}", verbose);
 
@@ -534,7 +538,7 @@ namespace Router
                         Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
-                        outmail.Subject = replySubj + "URGENT ERROR";
+                        outmail.Subject = replySubj;
                         Send(outmail);
                     }
                 }
@@ -556,15 +560,14 @@ namespace Router
                     {
                         Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant"))
                 {
-                    var replySubj = string.Empty;
-                    if (v_SubLine.Contains(" R15 "))
-                        replySubj = $"category=eRANotification, sub=Late Progress Report, extract=1, {currentItem.Subject}";
+                    var replySubj = $"category=eRANotification, sub=Late Progress Report, extract=1, {currentItem.Subject}";
                     Utilities.ShowDiagnosticIfVerbose($"Current subject : {currentItem.Subject}", verbose);
                     Utilities.ShowDiagnosticIfVerbose($"Reply subject :  {replySubj}", verbose);
                     var outmail = currentItem.Forward();
@@ -678,6 +681,7 @@ namespace Router
                             Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
+                            outmail.Subject = replySubject;
                             Send(outmail);
                         }
                     }
