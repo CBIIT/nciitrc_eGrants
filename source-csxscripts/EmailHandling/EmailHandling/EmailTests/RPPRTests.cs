@@ -56,6 +56,31 @@ namespace EmailTests
             Assert.IsTrue(subj.Contains("applid=11076534, category=RPPR, sub=Reminder, extract=1"));
         }
 
+        [TestMethod]
+        public void RPPRCheckedWithWGrantYearFailsSubject()
+        {
+            // Arrange
+            Outlook.Application oApp = new Outlook.Application();
+            var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
+            var Subject = "RPPR Reminder: 3P30CA125123-18W1 RPPR Past Due";
+            testEmail.Subject = Subject;
+            var Body = " \r\n";
+            testEmail.Body = Body;
+            var testProcessor = new TestProcessor();
+            string exceptionMessage = string.Empty;
+
+            // Act
+            try
+            {
+                var sentResults = testProcessor.TestSingleEmail(testEmail);
+            } catch (Exception ex)
+            {
+                exceptionMessage = ex.Message;
+            }
+
+            // Assert
+            Assert.IsTrue(exceptionMessage.Contains("Get Appl Id query failed"));
+        }
 
         [TestMethod]
         public void RPPRSameSubjectNegative()
