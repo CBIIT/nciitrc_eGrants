@@ -79,7 +79,6 @@ namespace Router
                 Utilities.ShowDiagnosticIfVerbose($"Mail count={currentFolder.Items.Count}", verbose);
 
                 var itemCount = currentFolder.Items.Count;      // itmscncnt
-                //Items items = currentFolder.Items;
                 List<MailItem> eachEmailToProcess = new List<MailItem>();
                 foreach(object item in currentFolder.Items)     // fails here
                 {
@@ -491,7 +490,6 @@ namespace Router
                         var applId = GetApplId(RemoveSpCharacters(middle), con);
                         Utilities.ShowDiagnosticIfVerbose($"appl id :{applId}", verbose);
 
-                        // replysubj="category=PublicAccess, sub=" & subCat & ", applid=" & applid & ", extract=1, " & CItem.subject
                         var replySubj = $"category=PublicAccess, sub={subCat}, applid={applId}, extract=1, {currentItem.Subject}";
 
                         Utilities.ShowDiagnosticIfVerbose($"dBugEmail :{_dBugEmail}", verbose);
@@ -824,6 +822,7 @@ namespace Router
                 }
                 else if (v_SubLine.StartsWith("RPPR Reminder"))
                 {
+                    Utilities.ShowDiagnosticIfVerbose($"Handlin RPPR for Reminder w/ this subject :  {v_SubLine}", verbose);
                     var replySubject = string.Empty;
                     var applId = string.Empty;
 
@@ -831,6 +830,8 @@ namespace Router
                     {
                         applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
                     }
+                    Utilities.ShowDiagnosticIfVerbose($"applId :  {applId}", verbose);
+                    Utilities.ShowDiagnosticIfVerbose($"replySubject :  {replySubject}", verbose);
                     replySubject = $"applid={applId}, category=RPPR, sub=Reminder, extract=1, {currentItem.Subject}";
 
                     var outmail = currentItem.Forward();
@@ -1078,9 +1079,9 @@ namespace Router
 
         private static string GetApplId(string str, SqlConnection con)
         {
+            var queryText = "select dbo.Imm_fn_applid_match(  @LocalId ) as applid";
             try
             {
-                var queryText = "select dbo.Imm_fn_applid_match(  @LocalId ) as applid";
                 using (SqlCommand command = new SqlCommand(queryText, con))
                 {
                     command.Parameters.Add(new SqlParameter("@LocalId", str));
@@ -1099,6 +1100,8 @@ namespace Router
             catch(Exception ex)
             {
                 Console.WriteLine("Query failed.");
+                Console.WriteLine($"The string parameter for Imm_fn_applid_match was '{str}'");
+                Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
                 throw new System.Exception($"Get Appl Id query failed. Input string : '{str}'\r\n Message: {ex.Message}");
             }
         }

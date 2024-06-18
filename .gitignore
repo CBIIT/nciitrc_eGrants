@@ -10,3 +10,13 @@ source-aspnet/packages/
 /source-csxscripts/EmailHandling/EmailHandling/packages/*
 /source-csxscripts/EmailHandling/EmailHandling/Router/bin/*
 /source-csxscripts/EmailHandling/EmailHandling/Router/obj/*
+/EmailHandling/EmailHandling/.vs/*
+/EmailHandling/.vs/*
+/EmailHandling/EmailTests/.vs/*
+/EmailHandling/EmailTests/bin/*
+/EmailHandling/EmailTests/obj/*
+/EmailHandling/Out/*
+/EmailHandling/packages/*
+/EmailHandling/Router/bin/*
+/EmailHandling/Router/obj/*
+/EmailHandling/Router/.vs/*
