@@ -83,6 +83,27 @@ namespace EmailTests
         }
 
         [TestMethod]
+        public void RPPRWithSupplementSubject()
+        {
+            // Arrange
+            Outlook.Application oApp = new Outlook.Application();
+            var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
+            var Subject = "RPPR Reminder: 3P30CA125123-19S2 RPPR Past Due";
+            testEmail.Subject = Subject;
+            var Body = " \r\n";
+            testEmail.Body = Body;
+            var testProcessor = new TestProcessor();
+            string exceptionMessage = string.Empty;
+
+            // Act
+            var sentResults = testProcessor.TestSingleEmail(testEmail);
+            var subj = sentResults["subject"];
+
+            // Assert
+            Assert.IsTrue(subj.Contains("applid=-41340015, category=RPPR, sub=Reminder, extract=1"));
+        }
+
+        [TestMethod]
         public void RPPRSameSubjectNegative()
         {
             // Arrange
