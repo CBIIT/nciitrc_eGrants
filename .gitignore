@@ -20,3 +20,4 @@ source-aspnet/packages/
 /EmailHandling/Router/bin/*
 /EmailHandling/Router/obj/*
 /EmailHandling/Router/.vs/*
+/source-aspnet/egrants_new/App_Data/*
