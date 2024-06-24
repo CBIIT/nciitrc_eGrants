@@ -612,6 +612,7 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 				
 				IF (dBug="n") Then								
 					With OutMail
+						.Recipients.Add(eFileEmail)
 						.Recipients.Add(eGrantsDevEmail)
 						.Recipients.Add(eGrantsTestEmail)
 						.Recipients.Add(eGrantsStageEmail)
