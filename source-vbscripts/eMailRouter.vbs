@@ -295,7 +295,7 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 						ELSEIF  len(Trim(p_SpecEmail)) <> 0  AND  len(Trim(b_SpecEmail)) = 0  THEN	
 							replysubj="P="&p_SpecEmail
 						ELSEIF  len(Trim(p_SpecEmail)) = 0  AND  len(Trim(b_SpecEmail)) <> 0  THEN	
-							replysubj="P="&b_SpecEmail
+							replysubj="P="&b_SpecEmail	' MLH : this is SHORELY a bug
 						END IF
 						call ShowDiagnosticIfVerbose("FCOI FOUND SPEC ID->" & replysubj, Verbose)
 						.Subject = replysubj 
