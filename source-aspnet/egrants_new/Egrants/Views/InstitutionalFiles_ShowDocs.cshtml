@@ -1,8 +1,8 @@
 ﻿@model egrants_new.Egrants.Models.InstitutionalFilesPage
 
 @{
-    var systemOrgName2 = Html.Raw(Model.SelectedInstitutionalOrg.OrgName.Replace("'", "\\'")).ToString();
-    var displayedOrgName2 = Html.Raw(Model.SelectedInstitutionalOrg.OrgName).ToString();
+    var systemOrgName2 = (Model.SelectedInstitutionalOrg.OrgName != null) ? Html.Raw(Model.SelectedInstitutionalOrg.OrgName.Replace("'", "\\'")).ToString() : String.Empty;
+    var displayedOrgName2 = (Model.SelectedInstitutionalOrg.OrgName != null) ? Html.Raw(Model.SelectedInstitutionalOrg.OrgName).ToString() : String.Empty;
 }
 
 <style>

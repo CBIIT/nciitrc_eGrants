@@ -86,6 +86,23 @@ namespace egrants_new.Egrants.Models
             }
         }
 
+        private long orgId = -1;
+
+        /// <summary>
+        ///     Gets or sets the org_name.
+        /// </summary>
+        public long OrgId
+        {
+            get
+            {
+                return orgId;
+            }
+            set
+            {
+                orgId = value;
+            }
+        }
+
         private string orgNameToolTip = string.Empty;
 
         /// <summary>

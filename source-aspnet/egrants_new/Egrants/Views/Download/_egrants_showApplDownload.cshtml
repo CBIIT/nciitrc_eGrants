@@ -85,17 +85,17 @@
                                 <span style="width:500px; float:right;">
                                     @if (Convert.ToString(appl.closeout_flag) == "f")
                                     {
-                                        <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
+                                        <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
                                     }
                                     @if (Convert.ToString(appl.closeout_flag) == "i")
                                     {
-                                        <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to FPR Close Out IRPPR Aceptance Module"><b>IRPPR Approval Link</b></a>
+                                        <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to PMM IRPPR Acceptance Module"><b>IRPPR Approval Link</b></a>
                                     }
                                     @if (Convert.ToString(appl.closeout_flag) == "fi")
                                     {
-                                        <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to FPR Close Out FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
+                                        <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
                                         <b>&nbsp;&nbsp;</b>
-                                        <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to FPR Close Out IRPPR Aceptance Module"><b>IRPPR Approval Link</b></a>
+                                        <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to PMM IRPPR Acceptance Module"><b>IRPPR Approval Link</b></a>
                                     }
                                 </span>
                             }
