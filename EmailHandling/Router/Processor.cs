@@ -346,16 +346,16 @@ namespace Router
                             command.Parameters.Add(new SqlParameter("@OffCode", "SPEC"));
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
-                                while (reader.Read())
-                                {
-                                    // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
-                                    p_SpecEmail = $"{reader["Email_address_p"]}";
-                                    b_SpecEmail = $"{reader["Email_address_b"]}";
-                                    Utilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
-                                    Utilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
-                                }
+                            while (reader.Read())
+                            {
+                                // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
+                                p_SpecEmail = $"{reader["Email_address_p"]}";
+                                b_SpecEmail = $"{reader["Email_address_b"]}";
+                                Utilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
+                                Utilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
                             }
                         }
+                    }
                     }
                     var outmail2 = currentItem.Forward();
 
@@ -394,6 +394,7 @@ namespace Router
                     {
                         outmail2.Recipients.Add(_dBugEmail);
                         outmail2.Recipients.Add(_eGrantsDevEmail);
+                        var replysubj = string.Empty;
                         // if they're not equal, send to both
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && !p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
