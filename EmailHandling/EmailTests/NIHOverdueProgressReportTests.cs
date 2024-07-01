@@ -37,7 +37,7 @@ namespace EmailTests
         }
 
         [TestMethod]
-        public void NIHOverdueProgressReportAdjustedSubject()
+        public void NIHOverdueNoR15ThenNoSubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
@@ -53,8 +53,7 @@ namespace EmailTests
 
             // Assert
             var subj = sentResults["subject"];
-            //  category=eRANotification, sub=Late Progress Report, extract=1, NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant
-            Assert.IsTrue(subj.Contains("category=eRANotification, sub=Late Progress Report, extract=1"));
+            Assert.IsTrue(string.IsNullOrWhiteSpace(subj));
         }
 
         [TestMethod]
