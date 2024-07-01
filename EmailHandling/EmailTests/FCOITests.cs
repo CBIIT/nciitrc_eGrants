@@ -35,12 +35,12 @@ namespace EmailTests
         }
 
         [TestMethod]
-        public void FCOIAdjustedSubject()
+        public void FCOIAutoReplySubject()
         {
             // Arrange
             Outlook.Application oApp = new Outlook.Application();
             var testEmail = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            var Subject = "Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03";
+            var Subject = "Automatic reply: Receipt of a New FCOI report 27381 for grant number: 5U01CA265713-03"; //            <--- starts with Automatic reply:
             testEmail.Subject = Subject;
             var Body = " \r\n";
             testEmail.Body = Body;
@@ -50,8 +50,7 @@ namespace EmailTests
             var sentResults = testProcessor.TestSingleEmail(testEmail);
 
             // Assert
-            var subj = sentResults["subject"].ToUpper();
-            Assert.IsTrue(subj.Contains("P=") || subj.Contains("B="));
+            Assert.IsFalse(sentResults.ContainsKey("subject"));
         }
 
 

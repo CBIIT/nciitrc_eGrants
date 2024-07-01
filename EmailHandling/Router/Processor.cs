@@ -344,8 +344,8 @@ namespace Router
                             command.CommandType = System.Data.CommandType.StoredProcedure;
                             command.Parameters.Add(new SqlParameter("@APPLID", applId));
                             command.Parameters.Add(new SqlParameter("@OffCode", "SPEC"));
-                            SqlDataReader reader = command.ExecuteReader();
-
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
                             while (reader.Read())
                             {
                                 // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
@@ -355,6 +355,7 @@ namespace Router
                                 Utilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
                             }
                         }
+                    }
                     }
                     var outmail2 = currentItem.Forward();
 
@@ -397,17 +398,23 @@ namespace Router
                         // if they're not equal, send to both
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && !p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
-                            replysubj = $"P={p_SpecEmail}B={b_SpecEmail}";
+                        {
+                            Utilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}B={b_SpecEmail}", verbose);
+                        }
                         // they do equal, just send to p specEmail
                         else if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
-                            replysubj = $"P={p_SpecEmail}";
+                        {
+                            Utilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}", verbose);
+                        }
                         else if (!string.IsNullOrWhiteSpace(p_SpecEmail) && string.IsNullOrWhiteSpace(b_SpecEmail))
-                            replysubj = $"P={p_SpecEmail}";
+                        {
+                            Utilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}", verbose);
+                        }
                         else if (!string.IsNullOrWhiteSpace(b_SpecEmail) && string.IsNullOrWhiteSpace(p_SpecEmail))
-                            replysubj = $"B={b_SpecEmail}";
-                        Utilities.ShowDiagnosticIfVerbose($"FCOI FOUND SPEC ID->{replysubj}", verbose);
-                        outmail2.Subject = replysubj;
+                        {
+                            Utilities.ShowDiagnosticIfVerbose($"B={b_SpecEmail}", verbose);
+                        }
                         Send(outmail2);
                     }
                 }
@@ -565,7 +572,9 @@ namespace Router
                 }
                 else if (v_SubLine.Contains("NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant"))
                 {
-                    var replySubj = $"category=eRANotification, sub=Late Progress Report, extract=1, {currentItem.Subject}";
+                    var replySubj = string.Empty;
+                    if (v_SubLine.Contains(" R15 "))
+                        replySubj = $"category=eRANotification, sub=Late Progress Report, extract=1, {currentItem.Subject}";
                     Utilities.ShowDiagnosticIfVerbose($"Current subject : {currentItem.Subject}", verbose);
                     Utilities.ShowDiagnosticIfVerbose($"Reply subject :  {replySubj}", verbose);
                     var outmail = currentItem.Forward();
@@ -703,6 +712,7 @@ namespace Router
                     var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
+                        outmail.Recipients.Add(_eFileEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
