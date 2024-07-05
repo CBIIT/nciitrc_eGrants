@@ -572,6 +572,9 @@ namespace Router
                 }
                 else if (v_SubLine.Contains("NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant"))
                 {
+                    // July 2024: Per OGA (Lisa Vytlacil) no changes are needed. Leave upload criteria as is.
+                    Utilities.ShowDiagnosticIfVerbose("Very old email detected and tagged as NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant", verbose);
+
                     var replySubj = string.Empty;
                     if (v_SubLine.Contains(" R15 "))
                         replySubj = $"category=eRANotification, sub=Late Progress Report, extract=1, {currentItem.Subject}";
