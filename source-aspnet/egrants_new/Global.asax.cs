@@ -117,10 +117,6 @@ namespace egrants_new
                         this.ic = "nci";
                     }
 
-                    if (this.userid == "hindsrr")
-                    {
-                        this.ic = "nci";
-                    }
                 }
 
                 return this.ic;
