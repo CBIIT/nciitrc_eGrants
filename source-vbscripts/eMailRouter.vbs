@@ -295,7 +295,7 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 						ELSEIF  len(Trim(p_SpecEmail)) <> 0  AND  len(Trim(b_SpecEmail)) = 0  THEN	
 							replysubj="P="&p_SpecEmail
 						ELSEIF  len(Trim(p_SpecEmail)) = 0  AND  len(Trim(b_SpecEmail)) <> 0  THEN	
-							replysubj="P="&b_SpecEmail	' MLH : this is SHORELY a bug
+							replysubj="P="&b_SpecEmail
 						END IF
 						call ShowDiagnosticIfVerbose("FCOI FOUND SPEC ID->" & replysubj, Verbose)
 						.Subject = replysubj 
@@ -729,7 +729,39 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 						.Send
 					End With					
 				END IF
-				Set OutMail=nothing														   
+				Set OutMail=nothing				
+
+			ELSEIF InStr(v_SubLine,"RPPR Reminder") > 0 THEN
+				call ShowDiagnosticIfVerbose("Handling RPPR Reminder for subject : " & v_SubLine, Verbose)
+				'' get the appl id from the grant number in the subject line
+				IF  len(Trim(v_SubLine))<>0  THEN
+					applid = getApplid(removespcharacters(v_SubLine),oConn)
+					call ShowDiagnosticIfVerbose("applid : " & applid, Verbose)
+				END IF
+				
+				'' set the applid, category, subcategory and the extract type to 1
+				replysubj = "applid=" & applid & ", category=RPPR, sub=Reminder, extract=1, " & CItem.subject
+				
+				Set OutMail = CItem.Forward
+				IF (dBug="n") Then								
+					With OutMail
+							.Recipients.Add(eFileEmail)
+							.Recipients.Add(eGrantsDevEmail)
+							.Recipients.Add(eGrantsTestEmail)
+							.Recipients.Add(eGrantsStageEmail)
+						.Subject = replysubj 
+						.Send
+					End With
+				ELSE
+					With OutMail
+						.Recipients.Add(dBugEmail)	
+						.Recipients.Add(eGrantsDevEmail)
+						.Subject = replysubj 
+						.Send
+					End With						
+				END IF
+				Set OutMail=nothing	
+				
 			ELSEIF InStr(v_SubLine,"IRPPR Reminder") > 0 THEN
 		
 				'' get the appl id from the grant number in the subject line
