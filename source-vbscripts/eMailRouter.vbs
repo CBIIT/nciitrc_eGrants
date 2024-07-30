@@ -11,6 +11,7 @@ startTimeStamp=Now
 	dBug = getConfigVal("dBug")
 	Verbose = getConfigVal("Verbose")
 	call ShowDiagnosticIfVerbose("starting Router ...", Verbose)
+	call ShowDiagnosticIfVerbose("Verbose : " & Verbose, Verbose)
 	
 	logDir = getConfigVal("logDir")
     forAppending=8	
@@ -120,7 +121,9 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 		v_SenderID = getSenderID(CItem)
 		call ShowDiagnosticIfVerbose("Sender= "  & v_Sender , Verbose)
 		IF ((InStr(v_SubLine,"Undeliverable: ") < 1)) Then
+			''call ShowDiagnosticIfVerbose("Getting sender", Verbose)
 			v_Sender = CItem.Sender
+			''call ShowDiagnosticIfVerbose("sender : " & v_Sender, Verbose)
 			IF (InStr(v_SubLine,"eSNAP Received at NIH") > 0)  OR  (InStr(v_SubLine,"eRA Commons: RPPR for Grant ") > 0) Then
                            IF (InStr(v_SubLine," submitted to NIH with a Non-Compliance ") > 0) Then
 				IF (InStr(v_SubLine," submitted to NIH with a Non-Compliance ") > 0) Then
@@ -730,9 +733,9 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 					End With					
 				END IF
 				Set OutMail=nothing				
-
-			ELSEIF InStr(v_SubLine,"RPPR Reminder") > 0 THEN
-				call ShowDiagnosticIfVerbose("Handling RPPR Reminder for subject : " & v_SubLine, Verbose)
+				
+			ELSEIF InStr(v_SubLine,"IRPPR Reminder") > 0 THEN
+				call ShowDiagnosticIfVerbose("Handling IRPPR ...", Verbose)
 				'' get the appl id from the grant number in the subject line
 				IF  len(Trim(v_SubLine))<>0  THEN
 					applid = getApplid(removespcharacters(v_SubLine),oConn)
@@ -740,8 +743,8 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 				END IF
 				
 				'' set the applid, category, subcategory and the extract type to 1
-				replysubj = "applid=" & applid & ", category=RPPR, sub=Reminder, extract=1, " & CItem.subject
-				
+				replysubj = "applid=" & applid & ", category=IRPPR, sub=Reminder, extract=1, " & CItem.subject
+
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then								
 					With OutMail
@@ -762,16 +765,17 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 				END IF
 				Set OutMail=nothing	
 				
-			ELSEIF InStr(v_SubLine,"IRPPR Reminder") > 0 THEN
-		
+			ELSEIF InStr(v_SubLine,"RPPR Reminder") > 0 THEN
+				call ShowDiagnosticIfVerbose("Handling RPPR Reminder for subject : " & v_SubLine, Verbose)
 				'' get the appl id from the grant number in the subject line
 				IF  len(Trim(v_SubLine))<>0  THEN
 					applid = getApplid(removespcharacters(v_SubLine),oConn)
+					call ShowDiagnosticIfVerbose("applid : " & applid, Verbose)
 				END IF
 				
 				'' set the applid, category, subcategory and the extract type to 1
-				replysubj = "applid=" & applid & ", category=IRPPR, sub=Reminder, extract=1, " & CItem.subject
-
+				replysubj = "applid=" & applid & ", category=RPPR, sub=Reminder, extract=1, " & CItem.subject
+				
 				Set OutMail = CItem.Forward
 				IF (dBug="n") Then								
 					With OutMail
