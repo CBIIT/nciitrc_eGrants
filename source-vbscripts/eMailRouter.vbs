@@ -121,9 +121,7 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 		v_SenderID = getSenderID(CItem)
 		call ShowDiagnosticIfVerbose("Sender= "  & v_Sender , Verbose)
 		IF ((InStr(v_SubLine,"Undeliverable: ") < 1)) Then
-			''call ShowDiagnosticIfVerbose("Getting sender", Verbose)
 			v_Sender = CItem.Sender
-			''call ShowDiagnosticIfVerbose("sender : " & v_Sender, Verbose)
 			IF (InStr(v_SubLine,"eSNAP Received at NIH") > 0)  OR  (InStr(v_SubLine,"eRA Commons: RPPR for Grant ") > 0) Then
                            IF (InStr(v_SubLine," submitted to NIH with a Non-Compliance ") > 0) Then
 				IF (InStr(v_SubLine," submitted to NIH with a Non-Compliance ") > 0) Then
