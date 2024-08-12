@@ -9,6 +9,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailTests", "EmailTests\EmailTests.csproj", "{CF293A9D-D8C9-47F0-9484-49E45D067DFD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OGARequestAccountDisable", "OGARequestAccountDisable\OGARequestAccountDisable.csproj", "{F8DEDE06-FBEB-44EB-A2FD-E450BD0E06F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonUtilties", "CommonUtilties\CommonUtilties.csproj", "{3A6E2403-6D3D-4783-A929-4A30009AFB58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +27,14 @@ Global
 		{CF293A9D-D8C9-47F0-9484-49E45D067DFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF293A9D-D8C9-47F0-9484-49E45D067DFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF293A9D-D8C9-47F0-9484-49E45D067DFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8DEDE06-FBEB-44EB-A2FD-E450BD0E06F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8DEDE06-FBEB-44EB-A2FD-E450BD0E06F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8DEDE06-FBEB-44EB-A2FD-E450BD0E06F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8DEDE06-FBEB-44EB-A2FD-E450BD0E06F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A6E2403-6D3D-4783-A929-4A30009AFB58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A6E2403-6D3D-4783-A929-4A30009AFB58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A6E2403-6D3D-4783-A929-4A30009AFB58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A6E2403-6D3D-4783-A929-4A30009AFB58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
