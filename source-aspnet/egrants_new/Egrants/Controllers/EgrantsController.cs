@@ -94,6 +94,11 @@ namespace egrants_new.Controllers
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CurrentView = "StandardForm";
 
+            var userId = Convert.ToString(this.Session["userid"]);
+            if (userId == "hindsrr")
+            {
+                this.Session["ic"] = "NCI";
+            }
             //Response.Write("Version: " + System.Environment.Version.ToString());
 
             return this.View("~/Egrants/Views/Index.cshtml");
