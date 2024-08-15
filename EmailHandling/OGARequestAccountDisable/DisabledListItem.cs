@@ -14,9 +14,15 @@ namespace OGARequestAccountDisable
         public string PersonNameFromDB { get; set; }
         public string FirstNameFromDB { get; set; }
         public string LastNameFromDB { get; set; }
+        public string LastLoginDateFromDB { get; set; }
+        public string UserIdFromDB { get; set; }
 
         public string FinalNameForOGA { get; set; }
 
         public bool FailedToRenderName { get; set; }
+
+        public DisabledListItem() { 
+            FailedToRenderName = false;
+        }
     }
 }

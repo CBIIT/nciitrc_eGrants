@@ -42,11 +42,14 @@ namespace OGARequestAccountDisable
             var message = CreateEmailBody(usersWhoHaveEmailsToDisable);
             CommonUtilities.ShowDiagnosticIfVerbose($"Created the body for the email to OGA.", verbose);
 
-            SendEmailToOGA(message, oApp, debug);
-            CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to OGA.", verbose);
+            if (usersToDisable.Count() > 0)
+            {
+                SendEmailToOGA(message, oApp, debug);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to OGA.", verbose);
 
-            UpdateStatusOfOGAEmailsToDisable(usersWhoHaveEmailsToDisable, con, verbose);
-            CommonUtilities.ShowDiagnosticIfVerbose($"Updated the status of users in table people_for_oga_to_disable", verbose);
+                UpdateStatusOfOGAEmailsToDisable(usersWhoHaveEmailsToDisable, con, verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Updated the status of users in table people_for_oga_to_disable", verbose);
+            }
 
             return usersWhoHaveEmailsToDisable.Count;
         }
@@ -80,11 +83,8 @@ namespace OGARequestAccountDisable
             sb.AppendLine("The following eGrants accounts have been deactivated due to 120 days of inactivity in the system:");
             foreach(var disabledUser in usersWhoHaveEmailsToBeDisabled)
             {
-                // MLH : Microsoft Outlook barks about just putting two words on a line and mangles it onto the same line
-                // I'm putting two preceding spaces to override this
-                sb.AppendLine($"{disabledUser.FinalNameForOGA}");
-                //sb.AppendLine($"  {disabledUser.FinalNameForOGA}");
-                //sb.AppendFormat("{0}{1}{2}{3}", "  ", disabledUser.FinalNameForOGA, Environment.NewLine, "\r\n");
+                sb.AppendLine($"{disabledUser.FinalNameForOGA} {disabledUser.UserIdFromDB} {disabledUser.LastLoginDateFromDB}");
+                //sb.AppendLine($"{disabledUser.FinalNameForOGA} {disabledUser.UserIdFromDB} {disabledUser.LastLoginDateFromDB}<br/>");
             }
 
             return sb.ToString();
@@ -128,7 +128,9 @@ namespace OGARequestAccountDisable
 
         private static List<DisabledListItem> GetDisabledAccounts(SqlConnection con)
         {
-            var queryText = "select p.person_id, p.first_name, p.last_name, p.person_name, p.email from [dbo].[people_for_oga_to_disable] pod " +
+            var queryText = "select p.person_id, p.first_name, p.last_name, p.person_name, p.email, p.userid, " +
+                "CONVERT(varchar, last_login_date, 121) as last_login_date_tx " +
+                "from [dbo].[people_for_oga_to_disable] pod " +
                 "inner join [dbo].[people] p on p.person_id = pod.person_id " +
                 "where sent_to_oga_date is null";
             var disabledUsers = new List<DisabledListItem>();
@@ -147,7 +149,8 @@ namespace OGARequestAccountDisable
                                 LastNameFromDB = reader[2] as string,
                                 PersonNameFromDB = reader[3] as string,
                                 EmailFromDB = reader[4] as string,
-                                FailedToRenderName = false          // update this later
+                                UserIdFromDB = reader[5] as string,
+                                LastLoginDateFromDB = reader[6] as string
                             };
                             disabledUsers.Add(disabledPerson);
                         }
@@ -176,10 +179,22 @@ namespace OGARequestAccountDisable
             {
                 mailItem.To = _eGrantsDevEmail;
             }
+            //mailItem.Body = bodyMessage;
+            // MLH : rendering as HTML will cause Outlook to put the names on the same line as the rest of the content :p
+            //mailItem.BodyFormat = OlBodyFormat.olFormatPlain;
+
+            //mailItem.IsBodyHtml = false;  // no definition
+            //mailItem.BodyFormat = OlBodyFormat.olFormatPlain;
+            //mailItem.Body = bodyMessage;
+
+            mailItem.BodyFormat = OlBodyFormat.olFormatRichText;
+            //mailItem.RTFBody = bodyMessage;   // COM : operation failed
+            mailItem.Body = bodyMessage;
+
+
             //mailItem.HTMLBody = bodyMessage;
             //mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
-            mailItem.Body = bodyMessage;
-            mailItem.BodyFormat = OlBodyFormat.olFormatPlain;
+
             mailItem.Send();
 
             return true;

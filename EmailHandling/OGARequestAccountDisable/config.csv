@@ -21,12 +21,12 @@ Verbose,,,,,y
 --VerboseTEST,,,,,y
 --VerbosePROD,,,,,n
 
-conStr,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
+conStr,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
 --System.ArgumentException: 'Keyword not supported: 'provider'.'
---conStrDEV,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
+--conStrDEV,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
 --conStrDEVRB,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
 --conStrTESTOld,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
---conStrTEST,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
+--conStrTEST,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
 --conStrPROD,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants
 --MLH : note that some providers used to be MSOLEDBSQL
 
