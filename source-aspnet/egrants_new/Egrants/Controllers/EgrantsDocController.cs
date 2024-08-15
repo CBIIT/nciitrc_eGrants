@@ -47,6 +47,7 @@ using Newtonsoft.Json;
 using egrants_new.Functions;
 using MsgReader.Outlook;
 using static System.Net.WebRequestMethods;
+using egrants_new.Integration.WebServices;
 
 #endregion
 
@@ -351,6 +352,11 @@ namespace egrants_new.Controllers
             string document_date = null,
             string previous_url = null)
         {
+            var userId = Convert.ToString(this.Session["userid"]);
+            if (userId == "hindsrr")
+            {
+                this.Session["ic"] = "NCI";
+            }
             this.ViewBag.Act = "Add";
             this.ViewBag.admincode = admin_code;
             this.ViewBag.serialnum = serial_num;
@@ -377,6 +383,11 @@ namespace egrants_new.Controllers
         [HttpGet]
         public ActionResult doc_create_without_applid(string previous_url = null)
         {
+            var userId = Convert.ToString(this.Session["userid"]); 
+            if (userId == "hindsrr")
+            {
+                this.Session["ic"] = "NCI";
+            }
             this.ViewBag.Act = "Add";
             this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"])); // load categories that could only be upload
