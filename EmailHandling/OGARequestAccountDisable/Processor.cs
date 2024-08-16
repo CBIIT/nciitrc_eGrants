@@ -79,13 +79,20 @@ namespace OGARequestAccountDisable
 
         private string CreateEmailBody(List<DisabledListItem> usersWhoHaveEmailsToBeDisabled)
         {
+            //The following eGrants accounts have been deactivated due to 120 days of inactivity in the system:
+            //Barbara Fisher bfisher 2024-01-04 06:03:27.940
+
             var sb = new StringBuilder();
             sb.AppendLine("The following eGrants accounts have been deactivated due to 120 days of inactivity in the system:");
+            sb.AppendLine("<br/>&nbsp;&nbsp;<br/>");
+            sb.AppendLine(@"<table style=""padding-top:10px""><tr><th style=""text-align:left"">User</th><th style=""text-align:left"">UserName</th><th style=""text-align:left"">Last Login Date</th></tr>");
             foreach(var disabledUser in usersWhoHaveEmailsToBeDisabled)
             {
-                sb.AppendLine($"{disabledUser.FinalNameForOGA} {disabledUser.UserIdFromDB} {disabledUser.LastLoginDateFromDB}");
+                sb.AppendLine($"<tr><td>{disabledUser.FinalNameForOGA}</td><td>{disabledUser.UserIdFromDB}</td><td>{disabledUser.LastLoginDateFromDB}</td></tr>");
+                //sb.AppendLine($"{disabledUser.FinalNameForOGA},{disabledUser.UserIdFromDB},{disabledUser.LastLoginDateFromDB}");
                 //sb.AppendLine($"{disabledUser.FinalNameForOGA} {disabledUser.UserIdFromDB} {disabledUser.LastLoginDateFromDB}<br/>");
             }
+            sb.AppendLine("</table>");
 
             return sb.ToString();
         }
@@ -129,7 +136,7 @@ namespace OGARequestAccountDisable
         private static List<DisabledListItem> GetDisabledAccounts(SqlConnection con)
         {
             var queryText = "select p.person_id, p.first_name, p.last_name, p.person_name, p.email, p.userid, " +
-                "CONVERT(varchar, last_login_date, 121) as last_login_date_tx " +
+                "CONVERT(varchar, last_login_date, 101) as last_login_date_tx " +
                 "from [dbo].[people_for_oga_to_disable] pod " +
                 "inner join [dbo].[people] p on p.person_id = pod.person_id " +
                 "where sent_to_oga_date is null";
@@ -187,13 +194,11 @@ namespace OGARequestAccountDisable
             //mailItem.BodyFormat = OlBodyFormat.olFormatPlain;
             //mailItem.Body = bodyMessage;
 
-            mailItem.BodyFormat = OlBodyFormat.olFormatRichText;
-            //mailItem.RTFBody = bodyMessage;   // COM : operation failed
-            mailItem.Body = bodyMessage;
+            //mailItem.BodyFormat = OlBodyFormat.olFormatRichText;
+            //mailItem.Body = bodyMessage;
 
-
-            //mailItem.HTMLBody = bodyMessage;
-            //mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
+            mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
+            mailItem.HTMLBody = bodyMessage;
 
             mailItem.Send();
 
