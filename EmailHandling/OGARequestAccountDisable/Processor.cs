@@ -89,8 +89,6 @@ namespace OGARequestAccountDisable
             foreach(var disabledUser in usersWhoHaveEmailsToBeDisabled)
             {
                 sb.AppendLine($"<tr><td>{disabledUser.FinalNameForOGA}</td><td>{disabledUser.UserIdFromDB}</td><td>{disabledUser.LastLoginDateFromDB}</td></tr>");
-                //sb.AppendLine($"{disabledUser.FinalNameForOGA},{disabledUser.UserIdFromDB},{disabledUser.LastLoginDateFromDB}");
-                //sb.AppendLine($"{disabledUser.FinalNameForOGA} {disabledUser.UserIdFromDB} {disabledUser.LastLoginDateFromDB}<br/>");
             }
             sb.AppendLine("</table>");
 
@@ -186,16 +184,6 @@ namespace OGARequestAccountDisable
             {
                 mailItem.To = _eGrantsDevEmail;
             }
-            //mailItem.Body = bodyMessage;
-            // MLH : rendering as HTML will cause Outlook to put the names on the same line as the rest of the content :p
-            //mailItem.BodyFormat = OlBodyFormat.olFormatPlain;
-
-            //mailItem.IsBodyHtml = false;  // no definition
-            //mailItem.BodyFormat = OlBodyFormat.olFormatPlain;
-            //mailItem.Body = bodyMessage;
-
-            //mailItem.BodyFormat = OlBodyFormat.olFormatRichText;
-            //mailItem.Body = bodyMessage;
 
             mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
             mailItem.HTMLBody = bodyMessage;
