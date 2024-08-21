@@ -21,3 +21,7 @@ source-aspnet/packages/
 /EmailHandling/Router/obj/*
 /EmailHandling/Router/.vs/*
 /source-aspnet/egrants_new/App_Data/*
+/EmailHandling/CommonUtilties/obj/*
+/EmailHandling/CommonUtilties/bin/*
+/EmailHandling/OGARequestAccountDisable/bin/*
+/EmailHandling/OGARequestAccountDisable/obj/*
