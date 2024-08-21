@@ -1,4 +1,5 @@
-﻿using Microsoft.Office.Interop.Outlook;
+﻿using CommonUtilties;
+using Microsoft.Office.Interop.Outlook;
 using Router;
 using System;
 using System.Collections.Generic;
@@ -19,9 +20,9 @@ namespace EmailTests
         /// <returns></returns>
         internal Dictionary<string, string> TestSingleEmail(MailItem testEmail)
         {
-            var dirPath = TestUtilities.GetConfigVal("logDir");
-            var conStr = TestUtilities.GetConfigVal("conStr");
-            var verbose = TestUtilities.GetConfigVal("Verbose");
+            var dirPath = CommonUtilities.GetConfigVal("logDir");
+            var conStr = CommonUtilities.GetConfigVal("conStr");
+            var verbose = CommonUtilities.GetConfigVal("Verbose");
             var debug = "y";    // NEVER send out emails from these tests
             SqlConnection connection = new SqlConnection(conStr);
             connection.Open();
@@ -33,9 +34,9 @@ namespace EmailTests
 
         internal Dictionary<string, string> TestSingleEmail(string From, string Subject, string Body)
         {
-            var dirPath = TestUtilities.GetConfigVal("logDir");
-            var conStr = TestUtilities.GetConfigVal("conStr");
-            var verbose = TestUtilities.GetConfigVal("Verbose");
+            var dirPath = CommonUtilities.GetConfigVal("logDir");
+            var conStr = CommonUtilities.GetConfigVal("conStr");
+            var verbose = CommonUtilities.GetConfigVal("Verbose");
             var debug = "y";    // NEVER send out emails from these tests
             SqlConnection connection = new SqlConnection(conStr);
             connection.Open();

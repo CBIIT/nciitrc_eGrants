@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D3195831-3A7A-48BC-A62B-067E1DBFD4D7}</ProjectGuid>
+    <ProjectGuid>{F8DEDE06-FBEB-44EB-A2FD-E450BD0E06F4}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Router</RootNamespace>
-    <AssemblyName>Router</AssemblyName>
+    <RootNamespace>OGARequestAccountDisable</RootNamespace>
+    <AssemblyName>OGARequestAccountDisable</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -35,7 +35,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,15 +43,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DisabledListItem.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Content Include="config.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommonUtilties\CommonUtilties.csproj">
+      <Project>{3A6E2403-6D3D-4783-A929-4A30009AFB58}</Project>
+      <Name>CommonUtilties</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="Microsoft.Office.Core">
@@ -84,10 +87,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommonUtilties\CommonUtilties.csproj">
-      <Project>{3A6E2403-6D3D-4783-A929-4A30009AFB58}</Project>
-      <Name>CommonUtilties</Name>
-    </ProjectReference>
+    <Content Include="config.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
