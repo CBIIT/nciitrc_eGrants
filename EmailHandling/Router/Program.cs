@@ -9,6 +9,8 @@ using System.Data.OleDb;
 using System.Data.SqlClient;
 using Router;
 using Outlook = Microsoft.Office.Interop.Outlook;
+using CommonUtilties;
+using System.IO;
 
 
 namespace Router
@@ -20,18 +22,20 @@ namespace Router
 
             var _startTimeStamp = DateTime.Now;
 
-            var _verbose = Utilities.GetConfigVal("Verbose");
-            Utilities.ShowDiagnosticIfVerbose($"_verbose: '{_verbose}'", _verbose);
-            var _debug = Utilities.GetConfigVal("dBug");
-            Utilities.ShowDiagnosticIfVerbose($"_debug: '{_debug}'", _verbose);
-            var _logDir = Utilities.GetConfigVal("logDir");
-            Utilities.LogDir = _logDir;
-            Utilities.ShowDiagnosticIfVerbose($"_logDir: '{_logDir}'", _verbose);
-            var _conStr = Utilities.GetConfigVal("conStr");
-            Utilities.ShowDiagnosticIfVerbose($"_conStr: '{_conStr}'", _verbose);
-            var _dirPath = Utilities.GetConfigVal("dirpathRouter");
-            Utilities.ShowDiagnosticIfVerbose($"_dirPath: '{_dirPath}'", _verbose);
-            var _routingBreakDurationToken = Utilities.GetConfigVal("routingBreakDuration");
+            Console.WriteLine("The current directory is {0}", Directory.GetCurrentDirectory());
+
+            var _verbose = CommonUtilities.GetConfigVal("Verbose");
+            CommonUtilities.ShowDiagnosticIfVerbose($"_verbose: '{_verbose}'", _verbose);
+            var _debug = CommonUtilities.GetConfigVal("dBug");
+            CommonUtilities.ShowDiagnosticIfVerbose($"_debug: '{_debug}'", _verbose);
+            var _logDir = CommonUtilities.GetConfigVal("logDir");
+            CommonUtilities.LogDir = _logDir;
+            CommonUtilities.ShowDiagnosticIfVerbose($"_logDir: '{_logDir}'", _verbose);
+            var _conStr = CommonUtilities.GetConfigVal("conStr");
+            CommonUtilities.ShowDiagnosticIfVerbose($"_conStr: '{_conStr}'", _verbose);
+            var _dirPath = CommonUtilities.GetConfigVal("dirpathRouter");
+            CommonUtilities.ShowDiagnosticIfVerbose($"_dirPath: '{_dirPath}'", _verbose);
+            var _routingBreakDurationToken = CommonUtilities.GetConfigVal("routingBreakDuration");
             var _routingBreakDuration = 1000;
             if (!string.IsNullOrWhiteSpace(_routingBreakDurationToken) && !_routingBreakDurationToken.ToLower().Contains("fail"))
             {
@@ -39,16 +43,16 @@ namespace Router
                 if (!success)
                 {
                     _routingBreakDuration = 1000;
-                    Utilities.ShowDiagnosticIfVerbose($"Unable to load routingBreakDuration from config : ({_routingBreakDurationToken}), so settin to 1000 milliseconds", _verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Unable to load routingBreakDuration from config : ({_routingBreakDurationToken}), so settin to 1000 milliseconds", _verbose);
                 }
             }
-            Utilities.ShowDiagnosticIfVerbose($"_routingBreakDuration: '{_routingBreakDuration}'", _verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"_routingBreakDuration: '{_routingBreakDuration}'", _verbose);
 
-            Utilities.ShowDiagnosticIfVerbose("Running the router", _verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose("Running the router", _verbose);
 
             int _forAppending = 8;
             var _taskStartMssg = "...........Task Started!...........";
-            Utilities.WriteLog(_forAppending, _taskStartMssg, null, _startTimeStamp);
+            CommonUtilities.WriteLog(_forAppending, _taskStartMssg, null, _startTimeStamp);
 
             SqlConnection _con = new SqlConnection(_conStr);
 
@@ -57,9 +61,9 @@ namespace Router
 
             var _taskEndMssg = $"******* Task Completed! ******* {_itemsProcessed} Mail Items Have Been Processed";
             var _endTimeStamp = DateTime.Now;
-            Utilities.WriteLog(_forAppending, _taskEndMssg, null, _endTimeStamp);
+            CommonUtilities.WriteLog(_forAppending, _taskEndMssg, null, _endTimeStamp);
 
-            Utilities.ShowDiagnosticIfVerbose("Router.cs completed successfully.", _verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose("Router.cs completed successfully.", _verbose);
 
 
         }

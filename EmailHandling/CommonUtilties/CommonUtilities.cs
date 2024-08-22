@@ -5,15 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace Router
+namespace CommonUtilties
 {
-    internal class Utilities
+    public class CommonUtilities
     {
         public static string LogDir { get; set; }
 
-        public Utilities()
+        public CommonUtilities()
         {
             LogDir = string.Empty;
         }
@@ -66,7 +65,8 @@ namespace Router
             File.AppendAllText(LogDir + "\\" + fileName, outputContent + Environment.NewLine);
         }
 
-        public static string RemoveSpaceCharacters(string inbound) {
+        public static string RemoveSpaceCharacters(string inbound)
+        {
             var txt = inbound.Replace("vbLf", "vbCrLF");
             txt = txt.Replace(":", " ");
             txt = txt.Replace("/", " ");
