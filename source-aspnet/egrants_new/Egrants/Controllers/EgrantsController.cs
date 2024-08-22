@@ -180,12 +180,14 @@ namespace egrants_new.Controllers
             var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
             var certificate = new X509Certificate2(cerUri, certPass);
 
+            var diagnostics = new StringBuilder();
+
             foreach (var dataInput in listOfUrl)
             {
                 try
                 {
                     downloadData = new DownloadData();
-
+                    
                     var split = dataInput.Split(new char[] { '|' }, StringSplitOptions.None);
 
                     var url = split[0];
@@ -221,7 +223,9 @@ namespace egrants_new.Controllers
                     // if this is a file on the ERA Server
                     if (url.Contains("https://services."))
                     {
+                        diagnostics.Append("Handling as era service. ");
                         var uri = new Uri(url);
+                        diagnostics.Append("Uri created. ");
 
                         // obtain the document url from the remote system
                         // var cerUri = ConfigurationManager.ConnectionStrings["certPath"].ToString();
@@ -287,22 +291,27 @@ namespace egrants_new.Controllers
                     }
                     else
                     {
-
+                        diagnostics.Append("Not era file. ");
                         Uri uri;
-
+                        diagnostics.Append($"Creating w/ this url : {url} ");
                         if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
                         {
                             var imageServer = new Uri(this.Session["ImageServerUrl"].ToString());
-
+                            diagnostics.Append($"image server : {imageServer} ");
                             uri = new Uri(imageServer, url);
+                            diagnostics.Append("Created img server uri. ");
                         }
+                        diagnostics.Append("Completed uri creation. ");
 
                         if (category == "CloseoutNotification" || category == "FFR_REJECTION")
                         {
+                            diagnostics.Append("Closeout or FFR_Rej. ");
                             this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(appl, documentName);
+                            diagnostics.Append("Got notification. ");
                             this.ViewBag.applid = appl;
 
                             var report = new ViewAsPdf("~/Egrants/Views/CloseoutNotif.cshtml");
+                            diagnostics.Append($"Created report {appl}. ");
                             byte[] bytes = report.BuildFile(this.ControllerContext);
 
 
@@ -327,11 +336,14 @@ namespace egrants_new.Controllers
 
 
                             // move the file from the temp file to a file with the filename in the downloadDirectory
+                            diagnostics.Append($"Wrote file to {tmpFileName} ");
                             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                            diagnostics.Append($"Moved.");
                             downloadData.FileDownloaded = newFileName;
                         }
                         else
                         {
+                            diagnostics.Append($"Not closeout or FFR Rejection. ");
                             using (var myWebClient = new WebClient())
                             {
                                 myWebClient.UseDefaultCredentials = true;
@@ -375,7 +387,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception err)
                 {
-                    downloadData.Error = "General Exception! Screenshot and this message and notify the Development Team: " + Environment.NewLine + err.Message.ToString();
+                    downloadData.Error = "General Exception! Screenshot and this message and notify the Development Team: " + Environment.NewLine + err.Message.ToString() + diagnostics.ToString();
                     downloadModel.NumFailed += 1;
                 }
 

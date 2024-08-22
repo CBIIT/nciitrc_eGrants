@@ -1,0 +1,57 @@
+﻿
+
+-- -------------------------------------------------------------------------------------------------------- --
+--																											                                                    --
+--			WARNING ! THIS IS THE DEV TEST VERSION OF THIS FILE !!													                    --
+--																											                                                    --
+-- -------------------------------------------------------------------------------------------------------- --
+
+logDir,,,,,C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\EmailHandling\Out
+--llogDirDEV,,,,,C:\eGrants\apps\log\
+--logDirTEST,,,,,C:\eGrants\apps\log\
+--logDirPROD,,,,,C:\eGrants\apps\log\
+
+dBug,,,,,y
+--dBugDEV,,,,,y
+--dBugTEST,,,,,y
+--dBugPROD,,,,,n
+
+Verbose,,,,,y
+--VerboseDEV,,,,,y
+--VerboseTEST,,,,,y
+--VerbosePROD,,,,,n
+
+conStr,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
+--System.ArgumentException: 'Keyword not supported: 'provider'.'
+--conStrDEV,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
+--conStrDEVRB,,,,,Provider=MSOLEDBSQL;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D387-V.nci.nih.gov\MSSQLEGRANTSQ,52000;Application Name=egrants
+--conStrTESTOld,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
+--conStrTEST,,,,,Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
+--conStrPROD,,,,,Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants
+--MLH : note that some providers used to be MSOLEDBSQL
+
+dirpathRouter,,,,,Public Folders - micah.hoover@nih.gov\All Public Folders\NCI\GAB\eGrantsDev\localTestMH\
+--dirpathRouterMicah2,,,,,Public Folders - micah.hoover@nih.gov\All Public Folders\NCI\GAB\eGrantsDev\localTestMH\
+--dirpathRouterMicah,,,,,Public Folders - micah.hoover@nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
+--dirpathRouterDEV2,,,,,Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
+--dirpathRouterDEV,,,,,NCI CA eRA Notifications (NIH/NCI)\Inbox\
+--dirpathRouterTEST,,,,,Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
+--dirpathRouterPROD,,,,,NCI CA eRA Notifications (NIH/NCI)\Inbox\
+
+routingBreakDurationToken,,,,,0000
+
+dirpathFixed,,,,,Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\test\
+--dirpathFixedDEV,,,,,Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\test\
+--dirpathFixedTEST,,,,,Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsTest\
+--dirpathFixedPROD,,,,,Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\efile\
+
+OutDir,,,,,C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\EmailHandling\Out
+--OutDirDEV,,,,,C:\eGrants\watch\out\
+--OutDirTEST,,,,,
+--OutDirPROD,,,,,C:\eGrants\watch\out\
+
+PublicAccessBackup,,,,,C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-csxscripts\EmailHandling\EmailHandling\Out
+--PublicAccessBackupDEV,,,,,C:\eGrants\publicaccess\
+--PublicAccessBackupTEST,,,,,C:\eGrants\publicaccess\
+--PublicAccessBackupPROD,,,,,C:\eGrants\publicaccess\
+--Used by saveMailAsPdf function in fixed

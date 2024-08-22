@@ -18,6 +18,7 @@ using System.Management;
 using System.Security.Cryptography;
 using System.Data;
 using System.Threading;
+using CommonUtilties;
 
 namespace Router
 {
@@ -38,26 +39,26 @@ namespace Router
             int itemsProcessedCount = 0;
             emailsSentThisSession.Clear();
 
-            Utilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
             Outlook.Application oApp = new Outlook.Application();
-            Utilities.ShowDiagnosticIfVerbose("Created the outlook object.", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", verbose);
             Outlook.NameSpace oNS = oApp.GetNamespace("MAPI");
             oNS.Logon("", "", false, true);
-            Utilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
 
-            Utilities.ShowDiagnosticIfVerbose($"Opening SQL connection ...", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"Opening SQL connection ...", verbose);
             con.Open();
-            Utilities.ShowDiagnosticIfVerbose($"SQL connection opened.", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"SQL connection opened.", verbose);
 
             char sepchar = '\\';
 
-            Utilities.ShowDiagnosticIfVerbose($"dirpath: {dirPath}", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"dirpath: {dirPath}", verbose);
             //Parse inputstr and Navigate to the folder
             if (!string.IsNullOrWhiteSpace(dirPath))
             {
                 var dirs = dirPath.Split(sepchar);
                 var i = 0;
-                Utilities.ShowDiagnosticIfVerbose($"Setting objNS.Folders to {dirs[0]}", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Setting objNS.Folders to {dirs[0]}", verbose);
                 Outlook.MAPIFolder startingFolder = null;
 
                 Outlook.MAPIFolder currentFolder = oNS.Folders[dirs[0]];
@@ -71,12 +72,12 @@ namespace Router
                     }
                     currentFolder = currentFolder.Folders[dir];       // All Public Folders could not be found
                 }
-                Utilities.ShowDiagnosticIfVerbose("Finished stepping through CFolder xarray", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose("Finished stepping through CFolder xarray", verbose);
 
                 Outlook.MAPIFolder oldFolder = currentFolder.Folders["Old emails"];
 
-                Utilities.ShowDiagnosticIfVerbose("went to Old emails", verbose);
-                Utilities.ShowDiagnosticIfVerbose($"Mail count={currentFolder.Items.Count}", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose("went to Old emails", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Mail count={currentFolder.Items.Count}", verbose);
 
                 var itemCount = currentFolder.Items.Count;      // itmscncnt
                 List<MailItem> eachEmailToProcess = new List<MailItem>();
@@ -86,27 +87,27 @@ namespace Router
                     if (mailItem != null)
                         eachEmailToProcess.Add(mailItem);
                     else
-                        Utilities.ShowDiagnosticIfVerbose($"skipping a non mail item ...", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"skipping a non mail item ...", verbose);
                 }
-                Utilities.ShowDiagnosticIfVerbose($"staging email list count={eachEmailToProcess.Count}", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose($"staging email list count={eachEmailToProcess.Count}", verbose);
 
                 int itemsToProcess = 0;
                 int itemsProcessed = 0;
 
-                Utilities.ShowDiagnosticIfVerbose($"****************** starting ********************", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose($"****************** starting ********************", verbose);
 
                 foreach (var item in eachEmailToProcess)
                 {
-                    Utilities.ShowDiagnosticIfVerbose($" ", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($" ", verbose);
                     Outlook.MailItem currentItem = item as Outlook.MailItem;
-                    Utilities.ShowDiagnosticIfVerbose($"Item : {currentItem.ToString()}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Item : {currentItem.ToString()}", verbose);
 
                     // TODO refactor these variable names
                     var v_SubLine = currentItem.Subject;
                     var v_Body = currentItem.Body;
 
-                    Utilities.ShowDiagnosticIfVerbose($"Subject : {v_SubLine}", verbose);
-                    //Utilities.ShowDiagnosticIfVerbose($"Body : {v_Body}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Subject : {v_SubLine}", verbose);
+                    //CommonUtilities.ShowDiagnosticIfVerbose($"Body : {v_Body}", verbose);
 
                     bool failedToProcess = false;
                     string exceptionType = string.Empty;
@@ -120,7 +121,7 @@ namespace Router
                         var _errorMessage = $"Error Type : {ex.GetType().FullName}, Error Message: {ex.Message} , Error Stack: {ex.StackTrace}";
                         var _endTimeStamp = DateTime.Now;
                         int _forAppending = 8;
-                        Utilities.WriteLog(_forAppending, _logMessage, _errorMessage, _endTimeStamp);
+                        CommonUtilities.WriteLog(_forAppending, _logMessage, _errorMessage, _endTimeStamp);
 
                         RaiseErrorToAdmin(currentItem, "Error Occured! PROD eMailRouter vbs", _errorMessage);
                     }
@@ -130,13 +131,13 @@ namespace Router
                     }
 
                     itemCount++;
-                    Utilities.ShowDiagnosticIfVerbose("Incrementing count", verbose);
-                    Utilities.ShowDiagnosticIfVerbose($"Old folder: {oldFolder}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose("Incrementing count", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Old folder: {oldFolder}", verbose);
                     var result = currentItem.Move(oldFolder);
                     Thread.Sleep(routingBreakDuration);
 
-                    Utilities.ShowDiagnosticIfVerbose("current Item moved", verbose);
-                    Utilities.ShowDiagnosticIfVerbose("**************************************************************************", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose("current Item moved", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose("**************************************************************************", verbose);
 
                     itemsProcessedCount++;
 
@@ -242,7 +243,7 @@ namespace Router
             if (!v_SubLine.ToLower().Contains("undeliverable: "))
             {
                 v_SenderID = GetSenderId(currentItem);
-                Utilities.ShowDiagnosticIfVerbose($"Sender : {v_SenderID}", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Sender : {v_SenderID}", verbose);
 
                 if (v_SubLine.Contains("eSNAP Received at NIH") || v_SubLine.Contains("eRA Commons: RPPR for Grant"))
                 {
@@ -251,8 +252,8 @@ namespace Router
                         //(1) load into eGrants
                         //---- IMP: STRIP SPACES FROM CATEGORY NAME "ERA NOTIFICATION"
                         var replysubj = $"category=eRANotification, sub=RPPR Non-Compliance, extract=1,{v_SubLine}";
-                        Utilities.ShowDiagnosticIfVerbose($"Found : {v_SubLine}", verbose);
-                        Utilities.ShowDiagnosticIfVerbose($"replysubj : {replysubj}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Found : {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"replysubj : {replysubj}", verbose);
                         var outmail = currentItem.Forward();
                         if (debug == "n")
                         {
@@ -303,7 +304,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
                         outmail2.Recipients.Add(_dBugEmail);
                         outmail2.Recipients.Add(_eGrantsDevEmail);
                         Send(outmail2);
@@ -311,7 +312,7 @@ namespace Router
                 }
                 else if (v_SubLine.Contains(" Supplement Requested through "))
                 {
-                    Utilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
                     var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
@@ -320,7 +321,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
                         outmail2.Recipients.Add(_dBugEmail);
                         outmail2.Recipients.Add(_eGrantsDevEmail);
                         Send(outmail2);
@@ -331,8 +332,8 @@ namespace Router
                     string applId = string.Empty;
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
-                        applId = GetApplId(Utilities.RemoveSpaceCharacters(v_SubLine), con);
-                        Utilities.ShowDiagnosticIfVerbose($"FCOI => applid : {applId}", verbose);
+                        applId = GetApplId(CommonUtilities.RemoveSpaceCharacters(v_SubLine), con);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"FCOI => applid : {applId}", verbose);
                     }
                     string p_SpecEmail = String.Empty;
                     string b_SpecEmail = String.Empty;
@@ -351,8 +352,8 @@ namespace Router
                                 // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
                                 p_SpecEmail = $"{reader["Email_address_p"]}";
                                 b_SpecEmail = $"{reader["Email_address_b"]}";
-                                Utilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
-                                Utilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
+                                CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
+                                CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
                             }
                         }
                     }
@@ -399,21 +400,21 @@ namespace Router
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && !p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}B={b_SpecEmail}", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}B={b_SpecEmail}", verbose);
                         }
                         // they do equal, just send to p specEmail
                         else if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}", verbose);
                         }
                         else if (!string.IsNullOrWhiteSpace(p_SpecEmail) && string.IsNullOrWhiteSpace(b_SpecEmail))
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"P={p_SpecEmail}", verbose);
                         }
                         else if (!string.IsNullOrWhiteSpace(b_SpecEmail) && string.IsNullOrWhiteSpace(p_SpecEmail))
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"B={b_SpecEmail}", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"B={b_SpecEmail}", verbose);
                         }
                         Send(outmail2);
                     }
@@ -422,8 +423,8 @@ namespace Router
                 else if (v_SubLine.Contains("No Cost Extension Submitted"))
                 {
                     var replysubj = $"category=eRANotification, sub=No Cost Extension, extract=1,{currentItem.Subject}";
-                    Utilities.ShowDiagnosticIfVerbose($"FOUND->{v_SubLine}", verbose);
-                    Utilities.ShowDiagnosticIfVerbose($"reply : {replysubj}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"FOUND->{v_SubLine}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"reply : {replysubj}", verbose);
                     var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
@@ -438,7 +439,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"reply : {replysubj}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"reply : {replysubj}", verbose);
                         //                              outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replysubj;
@@ -459,7 +460,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"FOUND->{v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"FOUND->{v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replysubj;
@@ -468,40 +469,40 @@ namespace Router
                 }
                 else if (v_SenderID.ToLower().Contains("public"))
                 {
-                    Utilities.ShowDiagnosticIfVerbose($"Found a public access email", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Found a public access email", verbose);
                     // get the appl id from the grant number in the subject line
                     // example: PASC: 5U24CA213274 - 08 - RUDIN, CHARLES M
                     // example2: Compliant PASC: 5R01CA258784 - 04 - SEN, TRIPARNA
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"FOUND subject ->{v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"FOUND subject ->{v_SubLine}", verbose);
                         string[] tokens = v_SubLine.Split(new[] { ": " }, StringSplitOptions.None);
                         var secondPart = tokens[1].Trim();
-                        Utilities.ShowDiagnosticIfVerbose($"Second part : {secondPart}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Second part : {secondPart}", verbose);
 
                         var subCat = string.Empty;
                         if (v_SubLine.ToLower().Contains("compliant"))
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"Found compliant", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"Found compliant", verbose);
                             subCat = "Compliant";
                         }
                         else
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"Found non compliant", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"Found non compliant", verbose);
                         }
 
                         string[] tokens2 = secondPart.Split(new[] { " - " }, StringSplitOptions.None);
                         var middle = tokens2[0];
-                        Utilities.ShowDiagnosticIfVerbose($"Isolated middle part :{middle}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Isolated middle part :{middle}", verbose);
 
                         var applId = GetApplId(RemoveSpCharacters(middle), con);
-                        Utilities.ShowDiagnosticIfVerbose($"appl id :{applId}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"appl id :{applId}", verbose);
 
                         var replySubj = $"category=PublicAccess, sub={subCat}, applid={applId}, extract=1, {currentItem.Subject}";
 
-                        Utilities.ShowDiagnosticIfVerbose($"dBugEmail :{_dBugEmail}", verbose);
-                        Utilities.ShowDiagnosticIfVerbose($"eGrantsDevEmail :{_eGrantsDevEmail}", verbose);
-                        Utilities.ShowDiagnosticIfVerbose($"replySubj :{replySubj}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"dBugEmail :{_dBugEmail}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"eGrantsDevEmail :{_eGrantsDevEmail}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"replySubj :{replySubj}", verbose);
 
                         var outmail = currentItem.Forward();
                         if (debug == "n")
@@ -516,13 +517,13 @@ namespace Router
                         }
                         else
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"reply : {replySubj}", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"reply : {replySubj}", verbose);
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubj;
                             Send(outmail);
                         }
-                        Utilities.ShowDiagnosticIfVerbose($"done w / handling a public email", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"done w / handling a public email", verbose);
                     }
                 }
                 else if (v_SubLine.Contains("JIT Request for Grant"))
@@ -540,7 +541,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
@@ -563,7 +564,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
@@ -573,13 +574,13 @@ namespace Router
                 else if (v_SubLine.Contains("NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant"))
                 {
                     // July 2024: Per OGA (Lisa Vytlacil) no changes are needed. Leave upload criteria as is.
-                    Utilities.ShowDiagnosticIfVerbose("Very old email detected and tagged as NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose("Very old email detected and tagged as NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant", verbose);
 
                     var replySubj = string.Empty;
                     if (v_SubLine.Contains(" R15 "))
                         replySubj = $"category=eRANotification, sub=Late Progress Report, extract=1, {currentItem.Subject}";
-                    Utilities.ShowDiagnosticIfVerbose($"Current subject : {currentItem.Subject}", verbose);
-                    Utilities.ShowDiagnosticIfVerbose($"Reply subject :  {replySubj}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Current subject : {currentItem.Subject}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Reply subject :  {replySubj}", verbose);
                     var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
@@ -593,7 +594,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
@@ -604,7 +605,7 @@ namespace Router
                 {
                     //Only attached document has to be extracted so many make Body=""
                     var replySubj = $"category=Closeout, extract=2, {currentItem.Subject}";
-                    Utilities.ShowDiagnosticIfVerbose($"Reply subject : {replySubj}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Reply subject : {replySubj}", verbose);
                     var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
@@ -617,7 +618,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
@@ -643,7 +644,7 @@ namespace Router
                 {
                     if (v_SubLine.ToLower().Contains("re: ffr notification") || v_SubLine.ToLower().Contains("fw: ffr notification"))
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                     }
                     else
                     {
@@ -671,7 +672,7 @@ namespace Router
                 {
                     if (v_SubLine.Contains("re: eRA Commons: The Final RPPR ") || v_SubLine.Contains("fw: eRA Commons: The Final RPPR "))
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                     }
                     else
                     {
@@ -688,7 +689,7 @@ namespace Router
                         }
                         else
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubject;
@@ -698,16 +699,16 @@ namespace Router
                 }
                 else if (v_SubLine.Contains("RPPR Unobligated Balance: Additional Information Needed"))
                 {
-                    Utilities.ShowDiagnosticIfVerbose($"Handlin RPPR for unobligated balance w/ this subject :  {v_SubLine}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Handlin RPPR for unobligated balance w/ this subject :  {v_SubLine}", verbose);
                     var applid = string.Empty;
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
                         var grantid = v_SubLine.Trim().Split(' ')[7];
-                        Utilities.ShowDiagnosticIfVerbose($"Grant Id step 1 result : {grantid}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Grant Id step 1 result : {grantid}", verbose);
                         if (!string.IsNullOrWhiteSpace(grantid))
                         {
                             applid = GetApplId(RemoveSpCharacters(grantid), con);
-                            Utilities.ShowDiagnosticIfVerbose($"Appl Id step 2 result : {applid}", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"Appl Id step 2 result : {applid}", verbose);
                         }
                     }
 
@@ -724,7 +725,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
@@ -735,7 +736,7 @@ namespace Router
                 {
                     if (v_SubLine.Contains("re: eRA Commons: PRAM for Grant") || v_SubLine.Contains("fw: eRA Commons: PRAM for Grant"))
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                     }
                     else
                     {
@@ -752,7 +753,7 @@ namespace Router
                         }
                         else
                         {
-                            Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                            CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                             outmail.Recipients.Add(_dBugEmail);
                             outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubject;
@@ -794,7 +795,7 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
@@ -825,7 +826,7 @@ namespace Router
                     }
                     else
                     {
-                        //Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        //CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
@@ -835,7 +836,7 @@ namespace Router
                 }
                 else if (v_SubLine.StartsWith("RPPR Reminder"))
                 {
-                    Utilities.ShowDiagnosticIfVerbose($"Handlin RPPR for Reminder w/ this subject :  {v_SubLine}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Handlin RPPR for Reminder w/ this subject :  {v_SubLine}", verbose);
                     var replySubject = string.Empty;
                     var applId = string.Empty;
 
@@ -843,8 +844,8 @@ namespace Router
                     {
                         applId = GetApplId(RemoveSpCharacters(v_SubLine), con);
                     }
-                    Utilities.ShowDiagnosticIfVerbose($"applId :  {applId}", verbose);
-                    Utilities.ShowDiagnosticIfVerbose($"replySubject :  {replySubject}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"applId :  {applId}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"replySubject :  {replySubject}", verbose);
                     replySubject = $"applid={applId}, category=RPPR, sub=Reminder, extract=1, {currentItem.Subject}";
 
                     var outmail = currentItem.Forward();
@@ -859,7 +860,7 @@ namespace Router
                     }
                     else
                     {
-                        //Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        //CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
@@ -889,7 +890,7 @@ namespace Router
                     }
                     else
                     {
-                        //Utilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        //CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
@@ -898,15 +899,15 @@ namespace Router
                 }
                 else if (v_SubLine.ToLower().Contains("closeout action required"))
                 {
-                    Utilities.ShowDiagnosticIfVerbose($"Hello you are closing out a thing ...", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Hello you are closing out a thing ...", verbose);
                     var applId = string.Empty;
 
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
                         var isolated = GetNthWord(v_SubLine, 4);
-                        Utilities.ShowDiagnosticIfVerbose($"Isolated : {isolated}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Isolated : {isolated}", verbose);
                         applId = GetApplId(RemoveSpCharacters(isolated), con);
-                        Utilities.ShowDiagnosticIfVerbose($"Appl Id : {applId}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Appl Id : {applId}", verbose);
                     }
 
                     var replySubject = $"category=closeout, sub=Past Due Documents Reminder, applid={applId}, extract=1, {currentItem.Subject}";
@@ -923,26 +924,26 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"FOUND -> {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"FOUND -> {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
-                    Utilities.ShowDiagnosticIfVerbose($"Hello you closed out a thing", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Hello you closed out a thing", verbose);
                 }
                 else if (v_SubLine.ToLower().Contains("closeout program action required"))
                 {
-                    Utilities.ShowDiagnosticIfVerbose($"Hello you are closing out a PROGRAM thing ...", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Hello you are closing out a PROGRAM thing ...", verbose);
                     // example subject here : Closeout Program Action Required: 5R21CA249649-02 - Sun, Jingjing F-RPPR Acceptance Past Due
                     var applId = string.Empty;
 
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
                         var isolated = GetNthWord(v_SubLine.Trim(), 5);
-                        Utilities.ShowDiagnosticIfVerbose($"Isolated : {isolated}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Isolated : {isolated}", verbose);
                         applId = GetApplId(RemoveSpCharacters(isolated), con);
-                        Utilities.ShowDiagnosticIfVerbose($"Appl Id : {applId}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Appl Id : {applId}", verbose);
                     }
 
                     var replySubject = $"category=closeout, sub=F-RPPR Acceptance Past Due Reminder, applid={applId}, extract=1, {currentItem.Subject}";
@@ -959,13 +960,13 @@ namespace Router
                     }
                     else
                     {
-                        Utilities.ShowDiagnosticIfVerbose($"FOUND -> {v_SubLine}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"FOUND -> {v_SubLine}", verbose);
                         outmail.Recipients.Add(_dBugEmail);
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
-                    Utilities.ShowDiagnosticIfVerbose($"Hello you closed out a PROGRAM thing", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Hello you closed out a PROGRAM thing", verbose);
                 }
                 else if (v_SubLine.Contains("FFR Reminder") && v_SubLine.Contains("FFR Past Due"))
                 {
@@ -1030,7 +1031,7 @@ namespace Router
                 }
                 else if (v_SubLine.Contains("SBIR/STTR Foreign Risk Management"))
                 {
-                    Utilities.ShowDiagnosticIfVerbose("handling SBIR/STTR", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose("handling SBIR/STTR", verbose);
                     // example body we want to snatch the appl id from :
                     // 1R43CA291415-01 (10921643) has undergone SBIR/STTR risk management assessment in accordance with the SBIR and STTR Extension Act of 2022 on 04/25/2024 12:19 PM. 
 
@@ -1041,15 +1042,15 @@ namespace Router
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
                         applId = v_Body.Split(' ')[1];   // e.g. (10921643)
-                        Utilities.ShowDiagnosticIfVerbose($"SBIR/STTR extraction 1 : {applId}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"SBIR/STTR extraction 1 : {applId}", verbose);
                         applId = applId.Replace("(", "");
                         applId = applId.Replace(")", "");
-                        Utilities.ShowDiagnosticIfVerbose($"SBIR/STTR extraction 2 : {applId}", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"SBIR/STTR extraction 2 : {applId}", verbose);
                     }
                     replySubject = $"applid={applId}, category=Funding, sub=DCI-InTh Cleared, extract=1, {currentItem.Subject}";
                     if (v_SubLine.Contains("Not Cleared"))
                         replySubject = $"applid={applId}, category=Funding, sub=DCI-InTh Not Cleared, extract=1, {currentItem.Subject}";
-                    Utilities.ShowDiagnosticIfVerbose($"replySubject : {replySubject}", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"replySubject : {replySubject}", verbose);
 
                     var outmail = currentItem.Forward();
                     if (debug == "n")
@@ -1068,11 +1069,11 @@ namespace Router
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
-                    Utilities.ShowDiagnosticIfVerbose("completed SBIR", verbose);
+                    CommonUtilities.ShowDiagnosticIfVerbose("completed SBIR", verbose);
                 }
-                Utilities.ShowDiagnosticIfVerbose("Finished handling the program type", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose("Finished handling the program type", verbose);
             }
-            Utilities.ShowDiagnosticIfVerbose("Done checking if it was undeliverable", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose("Done checking if it was undeliverable", verbose);
         }
 
         private static string GetLastWord(string inbound)
