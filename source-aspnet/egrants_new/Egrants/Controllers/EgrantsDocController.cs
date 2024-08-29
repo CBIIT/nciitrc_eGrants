@@ -383,11 +383,17 @@ namespace egrants_new.Controllers
         [HttpGet]
         public ActionResult doc_create_without_applid(string previous_url = null)
         {
-            var userId = Convert.ToString(this.Session["userid"]); 
+            /*
+            This code was added to hardcode IC for non-nci user to access file uploading/viewing page
+            It was removed on request. This code can potentially be used in the future to hardcode
+            access for non-nci employees (Replace "hindsrr" with user id of the user in question)
+
+            var userId = Convert.ToString(this.Session["userid"]);
             if (userId == "hindsrr")
             {
                 this.Session["ic"] = "NCI";
             }
+            */
             this.ViewBag.Act = "Add";
             this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"])); // load categories that could only be upload

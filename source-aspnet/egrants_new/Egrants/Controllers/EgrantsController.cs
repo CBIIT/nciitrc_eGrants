@@ -94,13 +94,19 @@ namespace egrants_new.Controllers
             this.ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
             this.ViewBag.CurrentView = "StandardForm";
 
+            /*
+            This code was added to hardcode IC for non-nci user to access file uploading/viewing page
+            It was removed on request. This code can potentially be used in the future to hardcode
+            access for non-nci employees (Replace "hindsrr" with user id of the user in question)
+
             var userId = Convert.ToString(this.Session["userid"]);
             if (userId == "hindsrr")
             {
                 this.Session["ic"] = "NCI";
             }
-            //Response.Write("Version: " + System.Environment.Version.ToString());
+            */
 
+            //Response.Write("Version: " + System.Environment.Version.ToString());
             return this.View("~/Egrants/Views/Index.cshtml");
         }
 
