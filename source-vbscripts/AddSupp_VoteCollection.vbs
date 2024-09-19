@@ -67,11 +67,9 @@ Sub Process(dirpath)
 				Set OutMail = CItem.Forward
 				FWDSubject="DO NOT REPLY :   Forwarding Responce [" & v_SubLine & "]"
 		   		With OutMail
-					'.Recipients.Add("NCIOGASupplements@mail.nih.gov")					
-					'.Recipients.Add("omairi@mail.nih.gov")		
+					'.Recipients.Add("NCIOGASupplements@mail.nih.gov")						
 					.Recipients.Add("emily.driskell@nih.gov")		
 					.Recipients.Add("jonesni@mail.nih.gov")
-					'.Recipients.Add("ayehualem.anteneh@nih.gov")
 					.Subject =FWDSubject
 					.Send
 		   		End With

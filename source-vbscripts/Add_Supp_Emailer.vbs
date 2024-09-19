@@ -117,7 +117,7 @@
 		
 		Set Mitem = OtlkApps.CreateItem(olMailItem )
 		
-		toemailstr="omairi@mail.nih.gov;nciogaissues@mail.nih.gov"
+		toemailstr="egrantsdevs@mail.nih.gov;nciogaissues@mail.nih.gov"
 		ccemailstr="emily.driskell@nih.gov;jonesni@mail.nih.gov"
 		
 			With Mitem
