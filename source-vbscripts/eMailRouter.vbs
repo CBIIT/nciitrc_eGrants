@@ -1124,7 +1124,7 @@ End Function
 Function RaiseErrortoAdmin(CItem,eRRMsg1,eRRMsg2)
 	Set OutMail = CItem.Forward
 	With OutMail
-		.Recipients.Add("leul.ayana@nih.gov")
+		.Recipients.Add("egrantsdevs@mail.nih.gov")
 		.Recipients.Add("leul.ayana@nih.gov")
 		.Subject = eRRMsg1 & " >>(Subj: " & CItem.Subject & ")" 
 		.body=eRRMsg2 & vbCrLf & vbCrLf & CItem.body
@@ -1165,8 +1165,7 @@ Function emailme(SubjMSG,BodyMSG)
 		
 	Set Mitem = OtlkApps.CreateItem(olMailItem )
 	With Mitem
-		.To="leul.ayana@nih.gov"		
-		'.CC="leul.ayana@nih.gov"	
+		.To="egrantsdevs@mail.nih.gov;leul.ayana@nih.gov"
 		.Subject = SubjMSG
 		.BodyFormat = 2
 		.HTMLBody = " " & BodyMSG

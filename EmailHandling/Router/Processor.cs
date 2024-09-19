@@ -278,7 +278,6 @@ namespace Router
                     var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
-                        //outmail.Recipients.Add("leul.ayana@nih.gov");
                         outmail2.Recipients.Add("jonesni@mail.nih.gov");
                         outmail2.Recipients.Add("bakerb@mail.nih.gov");
                         outmail2.Recipients.Add("edward.mikulich@nih.gov");
@@ -296,7 +295,6 @@ namespace Router
                     var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
-                        //outmail.Recipients.Add("leul.ayana@nih.gov");
                         outmail2.Recipients.Add("emily.driskell@nih.gov");
                         outmail2.Recipients.Add("dvellaj@mail.nih.gov");
                         outmail2.Recipients.Add("edward.mikulich@nih.gov");
@@ -432,8 +430,6 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
-                        //-----------ADD THE FOLLOWING FOR DEVELOPMENT TIER	AS NEEDED BASIS					
-                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replysubj;
                         Send(outmail);
                     }
@@ -558,7 +554,6 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
-                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
@@ -588,7 +583,6 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
-                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
