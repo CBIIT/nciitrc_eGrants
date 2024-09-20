@@ -198,7 +198,9 @@ Function emailme(substr,bodystr)
 
 	Set Mitem = OtlkApps.CreateItem(olMailItem )
 	With Mitem
-		.To="egrantsdevs@mail.nih.gov;leul.ayana@nih.gov"			
+		'.To="leul.ayana@nih.gov;hareeshj@mail.nih.gov"	
+		.To="guillermo.choy-leon@nih.gov;leul.ayana@nih.gov"	
+		.CC="leul.ayana@nih.gov"			
 		.Subject = "PROD: " & substr
 		.BodyFormat = 2
 		.HTMLBody = " " & bodystr
