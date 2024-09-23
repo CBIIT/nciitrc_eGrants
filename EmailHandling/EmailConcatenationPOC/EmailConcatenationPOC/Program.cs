@@ -13,7 +13,27 @@ namespace EmailConcatenationPOC
 {
     internal class Program
     {
-        //static createStreamedPdfDocFromText()
+        static PdfDocument createStreamedPdfDocFromText(string content)
+        {
+            Console.WriteLine($"Here's the message text: {content}");
+
+            var renderer = new ChromePdfRenderer();
+
+            using (var pdfDocument = renderer.RenderHtmlAsPdf(content))
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    //var newPdfFile = new PdfDocument(memoryStream);
+                    //pdfDocument.SaveAs(memoryStream);
+                    pdfDocument.Stream.CopyTo(memoryStream);
+                    // filesToMerge.Add(pdfDocument);   // contains nothing ?
+
+                    var bytes = memoryStream.ToArray();
+                    var pdfDocFromStream = new PdfDocument(bytes);
+                    return pdfDocFromStream;
+                }
+            }
+        }
 
         static void Main(string[] args)
         {
@@ -44,12 +64,15 @@ namespace EmailConcatenationPOC
             //var filesToMerge = new List<Storage.Attachment>();
             var filesToMerge = new List<PdfDocument>();
 
-            // make the first instance of FilesToMerge the original email message.
-
-
             using (var msg = new Storage.Message(examplePath2))
             {
-                //var pdfDocument = new PdfDocument();
+                // make the first instance of FilesToMerge the original email message.
+                Console.WriteLine($"Main email message text: {msg.BodyText}");
+                //var messageText = attachment.ToString();
+                var mainTextAsHtml = msg.BodyText;
+                var mainTextAsPdf = createStreamedPdfDocFromText(mainTextAsHtml);
+                filesToMerge.Add(mainTextAsPdf);
+
                 var attachments = msg.Attachments;
                 int count = 0;
                 foreach(var attachment in attachments)
@@ -72,25 +95,10 @@ namespace EmailConcatenationPOC
                         Console.WriteLine($"Storage Message filename : {messageAttachment.FileName}");
                         //var messageText = attachment.ToString();
                         var messageTextAsHtml = messageAttachment.BodyText;
-                        Console.WriteLine("Here's the message text: {messageText}");
-
-                        using (var pdfDocument = renderer.RenderHtmlAsPdf(messageTextAsHtml))
-                        {
-                            using (var memoryStream = new MemoryStream())
-                            {
-                                //var newPdfFile = new PdfDocument(memoryStream);
-                                //pdfDocument.SaveAs(memoryStream);
-                                pdfDocument.Stream.CopyTo(memoryStream);
-                                // filesToMerge.Add(pdfDocument);   // contains nothing ?
-
-                                var bytes = memoryStream.ToArray();
-                                var pdfDocFromStream = new PdfDocument(bytes);
-
-                                filesToMerge.Add(pdfDocFromStream);
-                            }
-                        }
+                        var messageAsPdf = createStreamedPdfDocFromText( messageTextAsHtml );
+                        filesToMerge.Add(messageAsPdf);
                     }
-                    
+
                     //File? attachmentFile = attachment as File;
                     //Console.WriteLine($"Got this attachment : {attachment.}")
                 }
