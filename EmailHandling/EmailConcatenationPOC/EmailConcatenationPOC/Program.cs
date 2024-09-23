@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MsgReader.Outlook;
 using System.IO;
+using System.Web.UI.WebControls;
 
 //using Iron
 
@@ -13,7 +14,7 @@ namespace EmailConcatenationPOC
 {
     internal class Program
     {
-        static PdfDocument createStreamedPdfDocFromText(string content)
+        static PdfDocument createStreamedPdfFromText(string content)
         {
             Console.WriteLine($"Here's the message text: {content}");
 
@@ -39,8 +40,6 @@ namespace EmailConcatenationPOC
         {
             Console.WriteLine("Looking for Outlook files with multiple attachments ...");
 
-            //var renderer = new ChromePdfRenderer();
-
             IronPdf.License.LicenseKey = "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
 
             // Disable local disk access or cross-origin requests
@@ -49,11 +48,6 @@ namespace EmailConcatenationPOC
             // Instantiate Renderer
             var renderer = new ChromePdfRenderer();
 
-           // renderer.Render
-
-            // var test = MsgReader.Outlook.Storage.Message;
-
-            //using (var msgReader = new Storage.MessageCodePage(""))
 
             // example 1 ... no embedded message files
             var examplePath1 = ".\\example_email_to_be_concatenated.msg";
@@ -68,9 +62,8 @@ namespace EmailConcatenationPOC
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message text: {msg.BodyText}");
-                //var messageText = attachment.ToString();
                 var mainTextAsHtml = msg.BodyText;
-                var mainTextAsPdf = createStreamedPdfDocFromText(mainTextAsHtml);
+                var mainTextAsPdf = createStreamedPdfFromText(mainTextAsHtml);
                 filesToMerge.Add(mainTextAsPdf);
 
                 var attachments = msg.Attachments;
@@ -83,24 +76,28 @@ namespace EmailConcatenationPOC
                     if (attachment is Storage.Attachment storageAttachment)
                     {
                         Console.WriteLine($"Storage Attachment filename : {storageAttachment.FileName}");
-                        // TODO : make this work with DocX
-                        //using(var memoryStream = new MemoryStream(storageAttachment.Data))
-                        //{
-                        //    var newPdfFile = new PdfDocument(memoryStream);
-                        //    filesToMerge.Add(newPdfFile);
-                        //}
+                        if (storageAttachment.FileName.ToLower().EndsWith(".pdf"))
+                        {
+                            using (var memoryStream = new MemoryStream(storageAttachment.Data))
+                            {
+                                var newPdfFile = new PdfDocument(memoryStream);
+                                filesToMerge.Add(newPdfFile);
+                            }
+                        }
+                        else if (storageAttachment.FileName.ToLower().EndsWith(".docx"))
+                        {
+                            DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
+                            PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(storageAttachment.Data);
+                            filesToMerge.Add(pdfDocument);
+                        }
                     }
                     else if (attachment is Storage.Message messageAttachment)
                     {
                         Console.WriteLine($"Storage Message filename : {messageAttachment.FileName}");
-                        //var messageText = attachment.ToString();
                         var messageTextAsHtml = messageAttachment.BodyText;
-                        var messageAsPdf = createStreamedPdfDocFromText( messageTextAsHtml );
+                        var messageAsPdf = createStreamedPdfFromText( messageTextAsHtml );
                         filesToMerge.Add(messageAsPdf);
                     }
-
-                    //File? attachmentFile = attachment as File;
-                    //Console.WriteLine($"Got this attachment : {attachment.}")
                 }
             }
 
