@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MsgReader.Outlook;
 using System.IO;
 using System.Web.UI.WebControls;
+using System.Text.RegularExpressions;
 
 //using Iron
 
@@ -14,13 +15,15 @@ namespace EmailConcatenationPOC
 {
     internal class Program
     {
-        static PdfDocument createStreamedPdfFromText(string content)
+        static PdfDocument CreateStreamedPdfFromText(string content)
         {
             Console.WriteLine($"Here's the message text: {content}");
 
             var renderer = new ChromePdfRenderer();
 
-            using (var pdfDocument = renderer.RenderHtmlAsPdf(content))
+            var imagesRemovedContent = RemoveImagesFromHtmlText(content);
+
+            using (var pdfDocument = renderer.RenderHtmlAsPdf(imagesRemovedContent))
             {
                 using (var memoryStream = new MemoryStream())
                 {
@@ -34,6 +37,19 @@ namespace EmailConcatenationPOC
                     return pdfDocFromStream;
                 }
             }
+        }
+
+        static string RemoveImagesFromHtmlText(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content) ||
+                !content.Contains("<html")) {
+                return content;
+            }
+
+            string output  = Regex.Replace(content, @"<img(.)*?>", " ");
+            //sb_trim becomes "John Smith,100,000.00,M"
+
+            return output;
         }
 
         static void Main(string[] args)
@@ -61,9 +77,10 @@ namespace EmailConcatenationPOC
             using (var msg = new Storage.Message(examplePath2))
             {
                 // make the first instance of FilesToMerge the original email message.
-                Console.WriteLine($"Main email message text: {msg.BodyText}");
-                var mainTextAsHtml = msg.BodyText;
-                var mainTextAsPdf = createStreamedPdfFromText(mainTextAsHtml);
+                Console.WriteLine($"Main email message body text: {msg.BodyText}");
+                Console.WriteLine($"Main email message body html: {msg.BodyHtml}");
+                var mainTextAsHtml = msg.BodyHtml;
+                var mainTextAsPdf = CreateStreamedPdfFromText(mainTextAsHtml);
                 filesToMerge.Add(mainTextAsPdf);
 
                 var attachments = msg.Attachments;
@@ -95,7 +112,8 @@ namespace EmailConcatenationPOC
                     {
                         Console.WriteLine($"Storage Message filename : {messageAttachment.FileName}");
                         var messageTextAsHtml = messageAttachment.BodyText;
-                        var messageAsPdf = createStreamedPdfFromText( messageTextAsHtml );
+                        var messageHtmlAsHtml = messageAttachment.BodyHtml;
+                        var messageAsPdf = CreateStreamedPdfFromText(messageHtmlAsHtml);
                         filesToMerge.Add(messageAsPdf);
                     }
                 }
