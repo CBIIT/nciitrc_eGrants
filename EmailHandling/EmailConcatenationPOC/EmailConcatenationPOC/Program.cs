@@ -71,10 +71,13 @@ namespace EmailConcatenationPOC
             // example 2 ... contains embedded message files
             var examplePath2 = ".\\mixed_message_example.msg";
 
+            // example 3 ... contains embedded excel file
+            var examplePath3 = ".\\email_test_with_single_sheet_excel_html.msg";
+
             //var filesToMerge = new List<Storage.Attachment>();
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(examplePath2))
+            using (var msg = new Storage.Message(examplePath3))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
@@ -106,6 +109,44 @@ namespace EmailConcatenationPOC
                             DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
                             PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(storageAttachment.Data);
                             filesToMerge.Add(pdfDocument);
+                        }
+                        else if (storageAttachment.FileName.ToLower().EndsWith(".xslx"))
+                        {
+                            throw new Exception("We can't handle that data type without purchasing IronXL :(");
+                        } else if (storageAttachment.FileName.ToLower().EndsWith(".html") ||
+                            storageAttachment.FileName.ToLower().EndsWith(".htm"))
+                        {
+                            //var htmlRenderer = new ChromePdfRenderer();
+                            //var document = renderer.RenderHtmlFileAsPdf(@"C:\Users\Administrator\Desktop\Inventory.html");
+                            //var mainTextAsPdf = CreateStreamedPdfFromText(storageAttachment.Data);
+
+                            //var document = renderer.RenderHtmlFileAsPdf(@"C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\EmailHandling\EmailConcatenationPOC\EmailConcatenationPOC\bin\Debug\simple_excel_test_doc.htm");
+                            //document.SaveAs("tempDirect.pdf");
+
+                            // this just creates a blank PDF :(
+                            using (var memoryStream = new MemoryStream(storageAttachment.Data))
+                            {
+                                var htmlRenderer = new ChromePdfRenderer();
+                                //var document = htmlRenderer.RenderHtmlFileAsPdf(@"C:\Users\Administrator\Desktop\Inventory.html");
+                                //var document = htmlRenderer.Render(memoryStream);
+                                //var newPdfFile = new PdfDocument(memoryStream);
+
+                                using (StreamReader reader = new StreamReader(memoryStream))
+                                {
+                                    string htmlContent = reader.ReadToEnd();
+
+                                    // Render the HTML content as a PDF
+                                    PdfDocument pdf = renderer.RenderHtmlAsPdf(htmlContent);
+                                    //pdf.SaveAs("temp.pdf");
+                                    Console.WriteLine("adding rendered pdf");
+                                    filesToMerge.Add(pdf);
+                                    // Save teh PDF to a file or further process it as needed
+                                    pdf.SaveAs("output.pdf");
+                                }
+                                //filesToMerge.Add(newPdfFile);
+                            }
+
+                            //filesToMerge.Add(document);
                         }
                     }
                     else if (attachment is Storage.Message messageAttachment)

@@ -133,7 +133,25 @@ namespace Router
                     itemCount++;
                     CommonUtilities.ShowDiagnosticIfVerbose("Incrementing count", verbose);
                     CommonUtilities.ShowDiagnosticIfVerbose($"Old folder: {oldFolder}", verbose);
-                    var result = currentItem.Move(oldFolder);
+                    try
+                    {
+                        var result = currentItem.Move(oldFolder);
+                    } catch(Exception ex)
+                    {
+                        string message = $"Failed to move an item at {DateTime.UtcNow} UTC. Most likely solution is to restart Outlook (or re-request public file permissions in Outlook). This behavior does not indicate a defect in this software. Written authorization is not required to restart Microsoft Outlook. Here is some info : {ex.Message} \r\n {ex.ToString()}";
+                        CommonUtilities.ShowDiagnosticIfVerbose(message, "y");
+                        Outlook.Application oApp2 = new Outlook.Application();
+                        CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", "y");
+
+                        Outlook.MailItem mailItem =
+                            (Outlook.MailItem)oApp2.CreateItem(Outlook.OlItemType.olMailItem);
+
+                        mailItem.Subject = "Failed to move an item to old. Please restart Outlook.";
+                        mailItem.To = "egrantsdevs@mail.nih.gov;leul.ayana@nih.gov";
+                        mailItem.HTMLBody = message;
+                        mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
+                        mailItem.Send();
+                    }
                     Thread.Sleep(routingBreakDuration);
 
                     CommonUtilities.ShowDiagnosticIfVerbose("current Item moved", verbose);
@@ -167,9 +185,13 @@ namespace Router
 
         private static bool EmailMe(string subject, string bodyMessage)
         {
+            CommonUtilities.ShowDiagnosticIfVerbose("Issuing email to leul ...", "y");
             //Outlook.MailItem mailItem = (Outlook.MailItem)
             //    this.Application.CreateItem(Outlook.OlItemType.olMailItem);
-            var mailItem = new Outlook.MailItem();
+            //var mailItem = new Outlook.MailItem();
+            Outlook.Application oApp = new Outlook.Application();
+            Outlook.MailItem mailItem =
+                (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
             mailItem.Subject = subject;
             mailItem.To = "leul.ayana@nih.gov";
             mailItem.HTMLBody = bodyMessage;
