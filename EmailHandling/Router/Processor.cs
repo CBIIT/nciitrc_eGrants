@@ -27,7 +27,7 @@ namespace Router
         public static string v_SenderID { get; private set; }
 
         // Used by tests
-        public Dictionary<string,string> emailsSentThisSession { get; private set; }
+        public Dictionary<string, string> emailsSentThisSession { get; private set; }
 
         public Processor()
         {
@@ -81,7 +81,7 @@ namespace Router
 
                 var itemCount = currentFolder.Items.Count;      // itmscncnt
                 List<MailItem> eachEmailToProcess = new List<MailItem>();
-                foreach(object item in currentFolder.Items)     // fails here
+                foreach (object item in currentFolder.Items)     // fails here
                 {
                     Outlook.MailItem mailItem = item as Outlook.MailItem;
                     if (mailItem != null)
@@ -114,7 +114,8 @@ namespace Router
                     try
                     {
                         HandleSingleEmail(currentItem, v_SubLine, v_Body, verbose, con, debug);
-                    } catch(Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         failedToProcess = true;
                         var _logMessage = $"Error Occured! => EmailSender:{v_SenderID}; Subjectline : {v_SubLine}; Recieved Date: {currentItem.ReceivedTime}";
@@ -133,7 +134,26 @@ namespace Router
                     itemCount++;
                     CommonUtilities.ShowDiagnosticIfVerbose("Incrementing count", verbose);
                     CommonUtilities.ShowDiagnosticIfVerbose($"Old folder: {oldFolder}", verbose);
-                    var result = currentItem.Move(oldFolder);
+                    try
+                    {
+                        var result = currentItem.Move(oldFolder);
+                    }
+                    catch (Exception ex)
+                    {
+                        string message = $"Failed to move an item at {DateTime.UtcNow} UTC. Most likely solution is to restart Outlook (or re-request public file permissions in Outlook). This behavior does not indicate a defect in this software. Written authorization is not required to restart Microsoft Outlook. Here is some info : {ex.Message} \r\n {ex.ToString()}";
+                        CommonUtilities.ShowDiagnosticIfVerbose(message, "y");
+                        Outlook.Application oApp2 = new Outlook.Application();
+                        CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", "y");
+
+                        Outlook.MailItem mailItem =
+                            (Outlook.MailItem)oApp2.CreateItem(Outlook.OlItemType.olMailItem);
+
+                        mailItem.Subject = "Failed to move an item to old. Please restart Outlook.";
+                        mailItem.To = "egrantsdevs@mail.nih.gov;leul.ayana@nih.gov";
+                        mailItem.HTMLBody = message;
+                        mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
+                        mailItem.Send();
+                    }
                     Thread.Sleep(routingBreakDuration);
 
                     CommonUtilities.ShowDiagnosticIfVerbose("current Item moved", verbose);
@@ -158,7 +178,7 @@ namespace Router
         /// </summary>
         /// <param name="mailItem"></param>
         /// <returns></returns>
-        protected virtual Dictionary<string,string> Send(MailItem mailItem)
+        protected virtual Dictionary<string, string> Send(MailItem mailItem)
         {
             mailItem.Send();
 
@@ -167,9 +187,13 @@ namespace Router
 
         private static bool EmailMe(string subject, string bodyMessage)
         {
+            CommonUtilities.ShowDiagnosticIfVerbose("Issuing email to leul ...", "y");
             //Outlook.MailItem mailItem = (Outlook.MailItem)
             //    this.Application.CreateItem(Outlook.OlItemType.olMailItem);
-            var mailItem = new Outlook.MailItem();
+            //var mailItem = new Outlook.MailItem();
+            Outlook.Application oApp = new Outlook.Application();
+            Outlook.MailItem mailItem =
+                (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
             mailItem.Subject = subject;
             mailItem.To = "leul.ayana@nih.gov";
             mailItem.HTMLBody = bodyMessage;
@@ -208,7 +232,7 @@ namespace Router
             var outmail = currentItem.Forward();
             outmail.Recipients.Add("leul.ayana@nih.gov");
             outmail.Recipients.Add("leul.ayana@nih.gov");   // NB : original system had this duplicated [sic]
-            outmail.Subject = $"{errorMessage1}  >>(Subj: {currentItem.Subject} )" ;
+            outmail.Subject = $"{errorMessage1}  >>(Subj: {currentItem.Subject} )";
             Send(outmail);
             return "done";
         }
@@ -278,6 +302,7 @@ namespace Router
                     var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
+                        //outmail.Recipients.Add("leul.ayana@nih.gov");
                         outmail2.Recipients.Add("jonesni@mail.nih.gov");
                         outmail2.Recipients.Add("bakerb@mail.nih.gov");
                         outmail2.Recipients.Add("edward.mikulich@nih.gov");
@@ -295,6 +320,7 @@ namespace Router
                     var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
+                        //outmail.Recipients.Add("leul.ayana@nih.gov");
                         outmail2.Recipients.Add("emily.driskell@nih.gov");
                         outmail2.Recipients.Add("dvellaj@mail.nih.gov");
                         outmail2.Recipients.Add("edward.mikulich@nih.gov");
@@ -345,16 +371,16 @@ namespace Router
                             command.Parameters.Add(new SqlParameter("@OffCode", "SPEC"));
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
-                            while (reader.Read())
-                            {
-                                // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
-                                p_SpecEmail = $"{reader["Email_address_p"]}";
-                                b_SpecEmail = $"{reader["Email_address_b"]}";
-                                CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
-                                CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
+                                while (reader.Read())
+                                {
+                                    // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
+                                    p_SpecEmail = $"{reader["Email_address_p"]}";
+                                    b_SpecEmail = $"{reader["Email_address_b"]}";
+                                    CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
+                                    CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
+                                }
                             }
                         }
-                    }
                     }
                     var outmail2 = currentItem.Forward();
 
@@ -430,6 +456,8 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
+                        //-----------ADD THE FOLLOWING FOR DEVELOPMENT TIER	AS NEEDED BASIS					
+                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replysubj;
                         Send(outmail);
                     }
@@ -554,6 +582,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
+                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
@@ -583,6 +612,7 @@ namespace Router
                         outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Recipients.Add(_eGrantsTestEmail);
                         outmail.Recipients.Add(_eGrantsStageEmail);
+                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
@@ -1105,7 +1135,7 @@ namespace Router
                 }
                 return string.Empty;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine("Query failed.");
                 Console.WriteLine($"The string parameter for Imm_fn_applid_match was '{str}'");
