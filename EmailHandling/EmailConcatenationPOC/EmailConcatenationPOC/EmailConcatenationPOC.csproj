@@ -73,6 +73,9 @@
     <Reference Include="IronSoftware.Shared, Version=2024.9.0.27, Culture=neutral, PublicKeyToken=c0ab8f6e415e2702, processorArchitecture=MSIL">
       <HintPath>..\packages\IronSoftware.Common.2024.9.27\lib\netstandard2.0\IronSoftware.Shared.dll</HintPath>
     </Reference>
+    <Reference Include="Markdig, Version=0.37.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Markdig.0.37.0\lib\net462\Markdig.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -255,6 +258,9 @@
     <Content Include="simple_excel_test_doc.htm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Text\simple.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="App.config" />
     <Content Include="example_email_to_be_concatenated.msg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -269,6 +275,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <Content Include="Text\simple_text_attach.msg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\IronPdf.Native.Chrome.Windows.2024.9.29\build\net\IronPdf.Native.Chrome.Windows.targets" Condition="Exists('..\packages\IronPdf.Native.Chrome.Windows.2024.9.29\build\net\IronPdf.Native.Chrome.Windows.targets')" />
