@@ -10,6 +10,8 @@ using System.Web.UI.WebControls;
 using System.Text.RegularExpressions;
 using System.Drawing;
 using System.Drawing.Imaging;
+using BitMiracle.LibTiff.Classic;
+using Markdig;
 
 //using Iron
 
@@ -81,10 +83,13 @@ namespace EmailConcatenationPOC
             // example 4 ... contains gif, jpg, png, tif image types as attachments
             var examplePath4 = ".\\Images\\four_image_types.msg";
 
+            // example 5 ... simple text
+            var examplePath5 = ".\\Text\\simple_text_attach.msg";
+
             //var filesToMerge = new List<Storage.Attachment>();
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(examplePath4))
+            using (var msg = new Storage.Message(examplePath5))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
@@ -119,49 +124,43 @@ namespace EmailConcatenationPOC
                         }
                         else if (storageAttachment.FileName.ToLower().EndsWith(".xslx"))
                         {
-                            throw new Exception("We can't handle that data type without purchasing IronXL :(");
-                        } else if (storageAttachment.FileName.ToLower().EndsWith(".html") ||
+                            throw new Exception("We can't directly handle that data type without purchasing IronXL. Save a single sheet Web (htm).");
+                        }
+                        else if (storageAttachment.FileName.ToLower().EndsWith(".html") ||
                             storageAttachment.FileName.ToLower().EndsWith(".htm"))
                         {
-                            //var htmlRenderer = new ChromePdfRenderer();
-                            //var document = renderer.RenderHtmlFileAsPdf(@"C:\Users\Administrator\Desktop\Inventory.html");
-                            //var mainTextAsPdf = CreateStreamedPdfFromText(storageAttachment.Data);
-
-                            //var document = renderer.RenderHtmlFileAsPdf(@"C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\EmailHandling\EmailConcatenationPOC\EmailConcatenationPOC\bin\Debug\simple_excel_test_doc.htm");
-                            //document.SaveAs("tempDirect.pdf");
-
                             // this just creates a blank PDF :(
                             using (var memoryStream = new MemoryStream(storageAttachment.Data))
                             {
                                 var htmlRenderer = new ChromePdfRenderer();
-                                //var document = htmlRenderer.RenderHtmlFileAsPdf(@"C:\Users\Administrator\Desktop\Inventory.html");
-                                //var document = htmlRenderer.Render(memoryStream);
-                                //var newPdfFile = new PdfDocument(memoryStream);
-
                                 using (StreamReader reader = new StreamReader(memoryStream))
                                 {
                                     string htmlContent = reader.ReadToEnd();
 
                                     // Render the HTML content as a PDF
                                     PdfDocument pdf = renderer.RenderHtmlAsPdf(htmlContent);
-                                    //pdf.SaveAs("temp.pdf");
                                     Console.WriteLine("adding rendered pdf");
                                     filesToMerge.Add(pdf);
-                                    // Save teh PDF to a file or further process it as needed
-                                    //pdf.SaveAs("output.pdf");
                                 }
-                                //filesToMerge.Add(newPdfFile);
                             }
+                        }
+                        else if (storageAttachment.FileName.ToLower().EndsWith(".txt"))
+                        {
+                            var textContent = System.Text.Encoding.Default.GetString(storageAttachment.Data);
+                            
+                            // MLH : there is likely going to be some "markdown" here (e.g. \n to mean new line)
+                            // and this won't be natively rendered by the IronPDF chrome HTML converter
+                            textContent = Markdown.ToHtml(textContent);
 
-                            //filesToMerge.Add(document);
-                        } else if (storageAttachment.FileName.ToLower().Contains(".") &&
+                            var messageAsPdf = CreateStreamedPdfFromText(textContent);  // uses HTML 
+                            filesToMerge.Add(messageAsPdf);
+
+                        }
+                        else if (storageAttachment.FileName.ToLower().Contains(".") &&
                             supportedImageTypes.Any( sit => storageAttachment.FileName.ToLower().Contains(sit)))
                         {
                             // Found an image with a supported type.
                             // Convert an image to a PDF
-                            //PdfDocument pdf = ImageToPdfConverter.ImageToPdf(imagePath);
-                            //PdfDocument pdf = ImageToPdfConverter.ImageToPdf(storageAttachment.Data);
-
                             var fileNameTokens = storageAttachment.FileName.ToLower().Split('.');
                             var fileNameExtension = fileNameTokens[fileNameTokens.Length - 1].ToLower();  // the file extension is the last one
                             Console.WriteLine($"Filename extension : '{fileNameExtension}'");
@@ -202,13 +201,10 @@ namespace EmailConcatenationPOC
                                     Console.WriteLine($"fileNameExtension : {fileNameExtension}");
                                 }
                             }
-
-                            // Export the PDF
-                            //pdf.SaveAs("imageToPdf.pdf");
-                        } else
+                        }
+                        else
                         {
                             throw new BadImageFormatException($"The file extension for {storageAttachment.FileName} is not recognized.");
-
                         }
                     }
                     else if (attachment is Storage.Message messageAttachment)
