@@ -8,6 +8,8 @@ using MsgReader.Outlook;
 using System.IO;
 using System.Web.UI.WebControls;
 using System.Text.RegularExpressions;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 //using Iron
 
@@ -15,6 +17,8 @@ namespace EmailConcatenationPOC
 {
     internal class Program
     {
+        static readonly List<string> supportedImageTypes = new List<string> { ".jpg", ".jpeg", ".png", ".gif", ".tif" };
+
         static PdfDocument CreateStreamedPdfFromText(string content)
         {
             Console.WriteLine($"Here's the message text: {content}");
@@ -74,10 +78,13 @@ namespace EmailConcatenationPOC
             // example 3 ... contains embedded excel file
             var examplePath3 = ".\\email_test_with_single_sheet_excel_html.msg";
 
+            // example 4 ... contains gif, jpg, png, tif image types as attachments
+            var examplePath4 = ".\\Images\\four_image_types.msg";
+
             //var filesToMerge = new List<Storage.Attachment>();
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(examplePath3))
+            using (var msg = new Storage.Message(examplePath4))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
@@ -141,12 +148,67 @@ namespace EmailConcatenationPOC
                                     Console.WriteLine("adding rendered pdf");
                                     filesToMerge.Add(pdf);
                                     // Save teh PDF to a file or further process it as needed
-                                    pdf.SaveAs("output.pdf");
+                                    //pdf.SaveAs("output.pdf");
                                 }
                                 //filesToMerge.Add(newPdfFile);
                             }
 
                             //filesToMerge.Add(document);
+                        } else if (storageAttachment.FileName.ToLower().Contains(".") &&
+                            supportedImageTypes.Any( sit => storageAttachment.FileName.ToLower().Contains(sit)))
+                        {
+                            // Found an image with a supported type.
+                            // Convert an image to a PDF
+                            //PdfDocument pdf = ImageToPdfConverter.ImageToPdf(imagePath);
+                            //PdfDocument pdf = ImageToPdfConverter.ImageToPdf(storageAttachment.Data);
+
+                            var fileNameTokens = storageAttachment.FileName.ToLower().Split('.');
+                            var fileNameExtension = fileNameTokens[fileNameTokens.Length - 1].ToLower();  // the file extension is the last one
+                            Console.WriteLine($"Filename extension : '{fileNameExtension}'");
+
+                            if (fileNameExtension.Equals("tif", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                Console.WriteLine("Handling special case .tif file ...");
+                                using (var tiffStream = new MemoryStream(storageAttachment.Data))
+                                {
+                                    Bitmap tiffBitmap = new Bitmap(tiffStream);
+                                    using (var pngStream = new MemoryStream())
+                                    {
+                                        tiffBitmap.Save(pngStream, ImageFormat.Png);
+                                        pngStream.Position = 0;
+
+                                        var chromeRenderer = new ChromePdfRenderer();
+                                        string base64Image = Convert.ToBase64String(pngStream.ToArray());
+                                        // should end up looking like this : <img src='data:image/png;base64,... [long number of characters] />' />";
+                                        string htmlString = $"<img src='data:image/{fileNameExtension};base64,{base64Image}' />";
+                                        var pdfDoc = chromeRenderer.RenderHtmlAsPdf(htmlString);
+                                        filesToMerge.Add(pdfDoc);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Handling general image case ...");
+                                using (var imageStream = new MemoryStream(storageAttachment.Data))
+                                {
+                                    Bitmap bitmap = new Bitmap(imageStream);
+                                    var chromeRenderer = new ChromePdfRenderer();
+                                    string base64Image = Convert.ToBase64String((byte[])new ImageConverter().ConvertTo(bitmap, typeof(byte[])));
+                                    // should end up looking like this : <img src='data:image/png;base64,... [long number of characters] />' />";
+                                    string htmlString = $"<img src='data:image/{fileNameExtension};base64,{base64Image}' />";
+                                    var pdfDoc = chromeRenderer.RenderHtmlAsPdf(htmlString);
+                                    filesToMerge.Add(pdfDoc);
+
+                                    Console.WriteLine($"fileNameExtension : {fileNameExtension}");
+                                }
+                            }
+
+                            // Export the PDF
+                            //pdf.SaveAs("imageToPdf.pdf");
+                        } else
+                        {
+                            throw new BadImageFormatException($"The file extension for {storageAttachment.FileName} is not recognized.");
+
                         }
                     }
                     else if (attachment is Storage.Message messageAttachment)
