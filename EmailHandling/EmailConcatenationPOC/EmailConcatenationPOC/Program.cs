@@ -20,6 +20,8 @@ namespace EmailConcatenationPOC
     internal class Program
     {
         static readonly List<string> supportedImageTypes = new List<string> { ".jpg", ".jpeg", ".png", ".gif", ".tif" };
+        static readonly List<string> undiscoveredFileTypes = new List<string> { ".wpd", ".mdi", ".oft", ".mht" };
+        static readonly List<string> explicitlyUnsupportedFileTypes = new List<string> { ".nal", ".qrp", ".exe", ".dot", ".pd", ".ms", ".wma", ".zip", ".inf" };
 
         static PdfDocument CreateStreamedPdfFromText(string content)
         {
@@ -105,9 +107,11 @@ namespace EmailConcatenationPOC
 
             var examplePath11 = ".\\Fillable\\fillable_form.msg";
 
+            var examplePath12 = ".\\Unsupported\\unsupported_file_types.msg";
+
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(examplePath3))
+            using (var msg = new Storage.Message(examplePath12))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
@@ -163,7 +167,7 @@ namespace EmailConcatenationPOC
                         }
                         else if (storageAttachment.FileName.ToLower().EndsWith(".txt") ||
                             storageAttachment.FileName.ToLower().EndsWith(".log") ||
-                            storageAttachment.FileName.ToLower().EndsWith(".dot"))
+                            storageAttachment.FileName.ToLower().EndsWith(".dat"))
                         {
                             var textContent = System.Text.Encoding.Default.GetString(storageAttachment.Data);
                             
@@ -242,9 +246,41 @@ namespace EmailConcatenationPOC
                                 }
                             }
                         }
+                        else if (storageAttachment.FileName.ToLower().Contains(".") &&
+                            undiscoveredFileTypes.Any(sit => storageAttachment.FileName.ToLower().Contains(sit)))
+                        {
+                            var sb = new StringBuilder();
+                            sb.AppendLine("<html><body><p><h1>Undiscovered Filetype</h1></p>");
+                            sb.AppendLine("<p>A file was discovered with an extension that is not supported due to its rarity.</p>");
+                            sb.AppendLine("<p>FYI : files with this type have been found to exist in the eGrants database.</p>");
+                            sb.AppendLine("<p>This file might just belong in a museum ! :)</p>");
+                            sb.AppendLine("<p>Please notify the eGrants development team at egrantsdev@mail.nih.gov</p>");
+                            sb.AppendLine("<p>And include as an attachment the file (or email) that this came from.</p>");
+                            sb.AppendLine($"<p>And include the offending file's name is : {storageAttachment.FileName}</p></body></html>");
+                            var mainTextFailAsPdf = CreateStreamedPdfFromText(sb.ToString());
+                            filesToMerge.Add(mainTextFailAsPdf);
+                        }
+                        else if (storageAttachment.FileName.ToLower().Contains(".") &&
+                            explicitlyUnsupportedFileTypes.Any(sit => storageAttachment.FileName.ToLower().Contains(sit)))
+                        {
+                            var sb = new StringBuilder();
+                            sb.AppendLine("<html><body><p><h1>Explicitly Unsupported Filetype</h1></p>");
+                            sb.AppendLine("<p>A file was discovered with an extension that does not render to PDF.</p>");
+                            sb.AppendLine("<p>FYI : files with this type have been found to exist in the eGrants database.</p>");
+                            sb.AppendLine($"<p>The offending file's name is : {storageAttachment.FileName}</p></body></html>");
+                            var mainTextFailAsPdf = CreateStreamedPdfFromText(sb.ToString());
+                            filesToMerge.Add(mainTextFailAsPdf);
+                        }
                         else
                         {
-                            throw new BadImageFormatException($"The file extension for {storageAttachment.FileName} is not recognized.");
+                            var sb = new StringBuilder();
+                            sb.AppendLine("<html><body><p><h1>Completely Unrecognized Filetype</h1></p>");
+                            sb.AppendLine("<p>A file was discovered with an extension that was completely unanticipated.</p>");
+                            sb.AppendLine("<p>Please notify the eGrants development team at egrantsdev@mail.nih.gov</p>");
+                            sb.AppendLine("<p>And include as an attachment the file (or email) that this came from.</p>");
+                            sb.AppendLine($"<p>And include the offending file's name is : {storageAttachment.FileName}</p></body></html>");
+                            var mainTextFailAsPdf = CreateStreamedPdfFromText(sb.ToString());
+                            filesToMerge.Add(mainTextFailAsPdf);
                         }
                     }
                     else if (attachment is Storage.Message messageAttachment)
