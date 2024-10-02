@@ -72,13 +72,13 @@ namespace EmailConcatenationPOC
 
 
             // example 1 ... no embedded message files
-            var examplePath1 = ".\\example_email_to_be_concatenated.msg";
+            var examplePath1 = ".\\Outlook\\example_email_to_be_concatenated.msg";
 
             // example 2 ... contains embedded message files
-            var examplePath2 = ".\\mixed_message_example.msg";
+            var examplePath2 = ".\\Outlook\\mixed_message_example.msg";
 
             // example 3 ... contains embedded excel file
-            var examplePath3 = ".\\email_test_with_single_sheet_excel_html.msg";
+            var examplePath3 = ".\\Outlook\\email_test_with_single_sheet_excel_html.msg";
 
             // example 4 ... contains gif, jpg, png, tif image types as attachments
             var examplePath4 = ".\\Images\\four_image_types.msg";
@@ -86,10 +86,28 @@ namespace EmailConcatenationPOC
             // example 5 ... simple text
             var examplePath5 = ".\\Text\\simple_text_attach.msg";
 
-            //var filesToMerge = new List<Storage.Attachment>();
+            // example 6 ... all (non-RTF) text types
+            var examplePath6 = ".\\Text\\all_simple_text_types.msg";
+
+            // example 7 ... RTF 1 (from Word) (has weird stuff at the beginning and a TON at the end ... (renders the junk in Acrobat and Chrome))
+            var examplePath7 = ".\\Text\\RTF_email_attachment_example.msg";
+
+            // example 8 ... RTF 2 (from Word Pad, PDF converion looks great)
+            var examplePath8 = ".\\Text\\RTF_file_from_wordpad.msg";
+
+            // example 9 ... RTF 3 (from Google)
+            var examplePath9 = ".\\Text\\rtf_from_google_docs.msg";
+
+            // example 10 ... mixed security (cheesecake pdf)
+            var examplePath10 = ".\\Secure\\attachments_mixed_security.msg";
+            //IronSoftware.Exceptions.IronSoftwareNativeException: 'Error while opening document from bytes:
+            //'Error while opening document from 132497 bytes: Invalid password'.
+
+            var examplePath11 = ".\\Fillable\\fillable_form.msg";
+
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(examplePath5))
+            using (var msg = new Storage.Message(examplePath3))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
@@ -129,7 +147,6 @@ namespace EmailConcatenationPOC
                         else if (storageAttachment.FileName.ToLower().EndsWith(".html") ||
                             storageAttachment.FileName.ToLower().EndsWith(".htm"))
                         {
-                            // this just creates a blank PDF :(
                             using (var memoryStream = new MemoryStream(storageAttachment.Data))
                             {
                                 var htmlRenderer = new ChromePdfRenderer();
@@ -144,7 +161,9 @@ namespace EmailConcatenationPOC
                                 }
                             }
                         }
-                        else if (storageAttachment.FileName.ToLower().EndsWith(".txt"))
+                        else if (storageAttachment.FileName.ToLower().EndsWith(".txt") ||
+                            storageAttachment.FileName.ToLower().EndsWith(".log") ||
+                            storageAttachment.FileName.ToLower().EndsWith(".dot"))
                         {
                             var textContent = System.Text.Encoding.Default.GetString(storageAttachment.Data);
                             
@@ -155,6 +174,27 @@ namespace EmailConcatenationPOC
                             var messageAsPdf = CreateStreamedPdfFromText(textContent);  // uses HTML 
                             filesToMerge.Add(messageAsPdf);
 
+                        }
+                        else if (storageAttachment.FileName.ToLower().EndsWith(".rtf"))
+                        {
+                            using (var memoryStream = new MemoryStream(storageAttachment.Data))
+                            {
+                                var htmlRenderer = new ChromePdfRenderer();
+                                using (StreamReader reader = new StreamReader(memoryStream))
+                                {
+                                    string rtfContent = reader.ReadToEnd();
+
+                                    // Render the HTML content as a PDF
+//                                    PdfDocument pdf = htmlRenderer.RenderRtfFileAsPdf(rtfContent);
+                                    PdfDocument pdf = htmlRenderer.RenderRtfStringAsPdf(rtfContent);
+                                    Console.WriteLine("adding rendered pdf");
+
+                                    // a lot of JUNK at the beginning that starts ... {\*\xmlnstbl {\xmlns1 http://schemas.microsoft.com/office/word/2003/wordml}}\paperw12240\
+                                    //      paperh15840\margl1440\margr1440\margt1440\margb1440\gutter0\ltrsect 
+                                    // a LOT of JUNK at the end that starts ... \par }{\*\themedata 504b03041400
+                                    filesToMerge.Add(pdf);
+                                }
+                            }
                         }
                         else if (storageAttachment.FileName.ToLower().Contains(".") &&
                             supportedImageTypes.Any( sit => storageAttachment.FileName.ToLower().Contains(sit)))
