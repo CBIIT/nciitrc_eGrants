@@ -124,6 +124,9 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject, Version=3.3.6.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ninject.3.3.6\lib\net45\Ninject.dll</HintPath>
+    </Reference>
     <Reference Include="OpenMcdf, Version=2.3.1.0, Culture=neutral, PublicKeyToken=fdbb1629d7c00800, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenMcdf.2.3.1\lib\net40\OpenMcdf.dll</HintPath>
     </Reference>
@@ -239,6 +242,34 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="ContentForPdf.cs" />
+    <Compile Include="Converters\EmailTextConverter.cs" />
+    <Compile Include="Converters\ExcelConverter.cs" />
+    <Compile Include="Converters\ExplicitlyUnsupportedTextConverter.cs" />
+    <Compile Include="Converters\FormattedTextConverter.cs" />
+    <Compile Include="Converters\GeneralImageConverter.cs" />
+    <Compile Include="Converters\HtmlConverter.cs" />
+    <Compile Include="Converters\PDFConverter.cs" />
+    <Compile Include="Converters\RTFConverter.cs" />
+    <Compile Include="Converters\TIFFConverter.cs" />
+    <Compile Include="Converters\UndiscoveredTextConverter.cs" />
+    <Compile Include="Converters\UnrecognizedTextConverter.cs" />
+    <Compile Include="Converters\WordConverter.cs" />
+    <Compile Include="Interfaces\IConvertToPdf.cs" />
+    <Compile Include="Interfaces\IEmailTextConverter.cs" />
+    <Compile Include="Interfaces\IExcelConverter.cs" />
+    <Compile Include="Interfaces\IExplicitlyUnsupportedTextConverter.cs" />
+    <Compile Include="Interfaces\IFormattedTextConverter.cs" />
+    <Compile Include="Interfaces\IGeneralImageConverter.cs" />
+    <Compile Include="Interfaces\IHtmlConverter.cs" />
+    <Compile Include="Interfaces\IPDFConverter.cs" />
+    <Compile Include="Interfaces\IRTFConverter.cs" />
+    <Compile Include="Interfaces\ITIFFConverter.cs" />
+    <Compile Include="Interfaces\IUndiscoveredTextConverter.cs" />
+    <Compile Include="Interfaces\IUnrecognizedTextConverter.cs" />
+    <Compile Include="Interfaces\IWordConverter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
