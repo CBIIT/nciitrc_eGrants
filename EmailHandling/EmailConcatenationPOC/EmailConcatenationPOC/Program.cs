@@ -80,7 +80,7 @@ namespace EmailConcatenationPOC
             var examplePath2 = ".\\Outlook\\mixed_message_example.msg";
 
             // example 3 ... contains embedded excel file
-            var examplePath3 = ".\\Outlook\\email_test_with_single_sheet_excel_html.msg";
+            var examplePath3 = ".\\Excel\\email_test_with_single_sheet_excel_html.msg";
 
             // example 4 ... contains gif, jpg, png, tif image types as attachments
             var examplePath4 = ".\\Images\\four_image_types.msg";
@@ -111,7 +111,7 @@ namespace EmailConcatenationPOC
 
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(examplePath12))
+            using (var msg = new Storage.Message(examplePath3))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
