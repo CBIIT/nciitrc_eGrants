@@ -121,7 +121,9 @@ Sub Process (dirpath,oConn,oRS,Verbose,Debug)
 		v_SenderID = getSenderID(CItem)
 		call ShowDiagnosticIfVerbose("Sender= "  & v_Sender , Verbose)
 		IF ((InStr(v_SubLine,"Undeliverable: ") < 1)) Then
+			''call ShowDiagnosticIfVerbose("Getting sender", Verbose)
 			v_Sender = CItem.Sender
+			''call ShowDiagnosticIfVerbose("sender : " & v_Sender, Verbose)
 			IF (InStr(v_SubLine,"eSNAP Received at NIH") > 0)  OR  (InStr(v_SubLine,"eRA Commons: RPPR for Grant ") > 0) Then
                            IF (InStr(v_SubLine," submitted to NIH with a Non-Compliance ") > 0) Then
 				IF (InStr(v_SubLine," submitted to NIH with a Non-Compliance ") > 0) Then
@@ -1124,7 +1126,7 @@ End Function
 Function RaiseErrortoAdmin(CItem,eRRMsg1,eRRMsg2)
 	Set OutMail = CItem.Forward
 	With OutMail
-		.Recipients.Add("egrantsdevs@mail.nih.gov")
+		.Recipients.Add("leul.ayana@nih.gov")
 		.Recipients.Add("leul.ayana@nih.gov")
 		.Subject = eRRMsg1 & " >>(Subj: " & CItem.Subject & ")" 
 		.body=eRRMsg2 & vbCrLf & vbCrLf & CItem.body
@@ -1165,7 +1167,8 @@ Function emailme(SubjMSG,BodyMSG)
 		
 	Set Mitem = OtlkApps.CreateItem(olMailItem )
 	With Mitem
-		.To="egrantsdevs@mail.nih.gov;leul.ayana@nih.gov"
+		.To="leul.ayana@nih.gov"		
+		'.CC="leul.ayana@nih.gov"	
 		.Subject = SubjMSG
 		.BodyFormat = 2
 		.HTMLBody = " " & BodyMSG
