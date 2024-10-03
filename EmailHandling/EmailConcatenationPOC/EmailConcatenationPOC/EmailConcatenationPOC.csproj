@@ -243,6 +243,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Excel\simple_excel_test_doc.htm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\micah_cheesecake.gif">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -253,9 +256,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\micah_cheesecake.tif">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="simple_excel_test_doc.htm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Text\simple_text.txt">
@@ -277,12 +277,12 @@
     <Content Include="Fillable\GDS_Clinical_Specimen_NO_PASSWORD.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Excel\email_test_with_single_sheet_excel_html.msg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Images\four_image_types.msg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Content Include="Outlook\email_test_with_single_sheet_excel_html.msg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Outlook\example_email_to_be_concatenated.msg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
