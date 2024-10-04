@@ -13,8 +13,13 @@ namespace EmailConcatenationPOC.Converters
     {
         public bool SupportsThisFileType(string fileName)
         {
+            // MLH : get .doc converting to .docx and then remove these two caveats here
+
             if (fileName.ToLower().Contains(".") &&
-                Constants.ExplicitlyUnsupportedFileTypes.Any(ftt => fileName.ToLower().Contains(ftt)))
+                Constants.ExplicitlyUnsupportedFileTypes
+                    .Any(ftt => fileName.ToLower().Contains(ftt) && !fileName.ToLower().Contains(".docx")) ||
+                Constants.ExcelTypes
+                    .Any(ftt => fileName.ToLower().Contains(ftt) && !fileName.ToLower().Contains(".docx")))
                 return true;
             return false;
         }

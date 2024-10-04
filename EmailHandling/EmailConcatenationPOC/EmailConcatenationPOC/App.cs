@@ -31,6 +31,8 @@ namespace EmailConcatenationPOC
         public IRTFConverter RTFConverter;
         public IEmailTextConverter EmailTextConverter;
 
+        public List<IConvertToPdf> orderedListOfPdfConverters;
+
         public App(IGeneralImageConverter _generalImageConverter, ITIFFConverter _tiffConverter, IFormattedTextConverter _formattedTextConverter,
             IUndiscoveredTextConverter _undiscoveredTextConverter, IExplicitlyUnsupportedTextConverter _explicitlyUnsupportedTextConverter,
             IUnrecognizedTextConverter _unrecognizedTextConverter, IExcelConverter _excelConverter, IWordConverter _wordConverter,
@@ -48,6 +50,9 @@ namespace EmailConcatenationPOC
             PDFConverter = _pDFConverter;
             RTFConverter = _rtfConverter;
             EmailTextConverter = _emailTextConverter;
+
+            orderedListOfPdfConverters = new List<IConvertToPdf> { EmailTextConverter, PDFConverter, wordConverter, excelConverter, htmlConverter, formattedTextConverter,
+                RTFConverter, generalImageConverter, TIFFConverter, undiscoveredTextConverter, explicitlyUnsupportedTextConverter, unrecognizedTextConverter};
         }
 
         public void Run()
@@ -61,7 +66,7 @@ namespace EmailConcatenationPOC
 
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(Constants.ExamplePath4))
+            using (var msg = new Storage.Message(Constants.ExamplePath1))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
@@ -71,7 +76,7 @@ namespace EmailConcatenationPOC
                 {
                     Message = msg
                 };
-                var mainEmailPdf = formattedTextConverter.ToPdfDocument(mainEmailContent);              // Top level email content
+                var mainEmailPdf = EmailTextConverter.ToPdfDocument(mainEmailContent);              // Top level email content
                 filesToMerge.Add(mainEmailPdf);
 
                 var attachments = msg.Attachments;
@@ -91,61 +96,20 @@ namespace EmailConcatenationPOC
 
                         Console.WriteLine($"Storage Attachment filename : {storageAttachment.FileName}");
 
-                        if (PDFConverter.SupportsThisFileType( storageAttachment.FileName ))                                // PDF
-                        {
-                            var pdfDoc = PDFConverter.ToPdfDocument(content);
-                            filesToMerge.Add(pdfDoc);
+                        bool fileHandled = false;
+                        foreach (var converter in orderedListOfPdfConverters)
+                        {                            
+                            if (converter.SupportsThisFileType(storageAttachment.FileName))
+                            {
+                                var pdfDoc = converter.ToPdfDocument(content);
+                                filesToMerge.Add(pdfDoc);
+                                fileHandled = true;
+                                break;
+                            }
                         }
-                        else if (wordConverter.SupportsThisFileType( storageAttachment.FileName))                           // Word
-                        {
-                            var wordDoc = wordConverter.ToPdfDocument(content);
-                            filesToMerge.Add(wordDoc);
-                        }
-                        else if (excelConverter.SupportsThisFileType( storageAttachment.FileName))                          // Excel
-                        {
-                            var explicitlyUnsupportedPDF = excelConverter.ToPdfDocument(content);
-                            filesToMerge.Add(explicitlyUnsupportedPDF);
-                        }
-                        else if (htmlConverter.SupportsThisFileType( storageAttachment.FileName))                           // Html
-                        {
-                            var webPdf = htmlConverter.ToPdfDocument(content);
-                            filesToMerge.Add(webPdf);
-                        }
-                        else if (formattedTextConverter.SupportsThisFileType( storageAttachment.FileName))                  // plain text
-                        {
-                            var formattedTextPdf = formattedTextConverter.ToPdfDocument(content);
-                            filesToMerge.Add(formattedTextPdf);
-                        }
-                        else if (RTFConverter.SupportsThisFileType( storageAttachment.FileName))                            // RTF
-                        {
-                            var rtfPdf = RTFConverter.ToPdfDocument(content);
-                            filesToMerge.Add(rtfPdf);
-                        }
-                        else if (generalImageConverter.SupportsThisFileType(storageAttachment.FileName))                    // general image
-                        {
-                            var generalImagePdf = generalImageConverter.ToPdfDocument(content);
-                            filesToMerge.Add(generalImagePdf);
-                        }
-                        else if (TIFFConverter.SupportsThisFileType(storageAttachment.FileName))                            // TIFF
-                        {
-                            var tifImagePdf = TIFFConverter.ToPdfDocument(content);
-                            filesToMerge.Add(tifImagePdf);
-                        }
-                        else if (undiscoveredTextConverter.SupportsThisFileType( storageAttachment.FileName))               // undiscovered
-                        {
-                            var undiscoveredPDF = undiscoveredTextConverter.ToPdfDocument(content);
-                            filesToMerge.Add(undiscoveredPDF);
-                        }
-                        else if (explicitlyUnsupportedTextConverter.SupportsThisFileType( storageAttachment.FileName))      // explicitly unsupported
-                        {
-                            var explicitlyUnsupportedPDF = explicitlyUnsupportedTextConverter.ToPdfDocument(content);
-                            filesToMerge.Add(explicitlyUnsupportedPDF);
-                        }
-                        else                                                                                                // last resort
-                        {
-                            var unrecogniedPDF = unrecognizedTextConverter.ToPdfDocument(content);
-                            filesToMerge.Add(unrecogniedPDF);
-                        }
+                        if (!fileHandled)
+                            throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{storageAttachment.FileName}'. Worst case is the unrecognized converter should at least do something and mark it handled.");
+
                     }
                     else if (attachment is Storage.Message messageAttachment)                                               // email message
                     {
