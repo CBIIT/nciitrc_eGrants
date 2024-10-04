@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace EmailConcatenationPOC.Converters
 {
@@ -14,7 +15,8 @@ namespace EmailConcatenationPOC.Converters
         public bool SupportsThisFileType(string fileName)
         {
             if (fileName.ToLower().Contains(".") &&
-                Constants.ExcelTypes.Any(ftt => fileName.ToLower().Contains(ftt)))
+                fileName.ToLower().Contains(".docx"))
+                //Constants.ExcelTypes.Any(ftt => fileName.ToLower().Contains(ftt)))    // TODO : get excel docs converting to DocX
                 return true;
             return false;
         }
@@ -36,7 +38,7 @@ namespace EmailConcatenationPOC.Converters
             sb.AppendLine("<p>FYI : files with this type have been found to exist in the eGrants database.</p>");
             sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p></body></html>");
 
-            using (var pdfDocument = renderer.RenderHtmlAsPdf(content.SimpleMessage))
+            using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
             {
                 using (var memoryStream = new MemoryStream())
                 {

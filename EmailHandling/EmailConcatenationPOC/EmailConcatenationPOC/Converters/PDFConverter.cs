@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace EmailConcatenationPOC.Converters
 {
-    internal abstract class PDFConverter : IPDFConverter, IConvertToPdf
+    internal class PDFConverter : IPDFConverter, IConvertToPdf
     {
         public bool SupportsThisFileType(string fileName)
         {

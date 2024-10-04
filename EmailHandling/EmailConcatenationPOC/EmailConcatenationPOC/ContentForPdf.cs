@@ -13,20 +13,23 @@ namespace EmailConcatenationPOC
         public bool IsAttachment { get { return Type == ContentType.DataAttachment; } }
         public bool IsSimpleMessage { get { return Type == ContentType.SimpleGeneratedMessage; } }
 
+        private Storage.Attachment attachment;
         public Storage.Attachment Attachment {
-            get { return Attachment; }
-            set { Attachment = value; Type = ContentType.DataAttachment; }
+            get { return attachment; }
+            set { attachment = value; Type = ContentType.DataAttachment; }
         }
 
+        private Storage.Message message;
         public Storage.Message Message {
-            get { return Message; }
-            set { Message = value; Type = ContentType.MailMessage; }
+            get { return message; }
+            set { message = value; Type = ContentType.MailMessage; }
         }
 
+        private string simpleMessage;
         public string SimpleMessage
         {
-            get { return SimpleMessage; }
-            set { SimpleMessage = value; Type = ContentType.SimpleGeneratedMessage; }
+            get { return simpleMessage; }
+            set { simpleMessage = value; Type = ContentType.SimpleGeneratedMessage; }
         }
 
         public enum ContentType
