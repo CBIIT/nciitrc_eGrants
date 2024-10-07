@@ -14,6 +14,9 @@ namespace EmailConcatenationPOC
         public static readonly List<string> FormattedTextTypes = new List<string> { ".txt", ".log", ".dat" };
         public static readonly List<string> ExcelTypes = new List<string> { ".xslt", ".xls", ".xlsm", ".xlsb", ".xltx", ".xlm", ".slk", ".xlt", ".xlw" };
 
+        // MLH: if you quint, it kind of looks like excel_separator_code
+        //public const string MultiSheetSeparator = "3xc31_53p424702_c0d3";   
+
         // example 1 ... no embedded message files
         public const string ExamplePath1 = ".\\Outlook\\example_email_to_be_concatenated.msg";
 
@@ -52,6 +55,9 @@ namespace EmailConcatenationPOC
 
         // simple, obsolete Excel (xls) .. majority of eGrants spreadsheets are this
         public const string ExamplePath13 = ".\\Excel\\three_excel_versions.msg";
+
+        // bold, italic, font size, borders, shading, underline, font color, justification
+        public const string ExamplePath14 = ".\\Excel\\complex_excel.msg";
 
     }
 }
