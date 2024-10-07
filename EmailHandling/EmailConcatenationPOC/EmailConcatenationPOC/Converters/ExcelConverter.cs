@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using EmailConcatenationPOC.Interfaces;
@@ -24,9 +25,8 @@ namespace EmailConcatenationPOC.Converters
         public bool SupportsThisFileType(string fileName)
         {
             if (!string.IsNullOrWhiteSpace(fileName) &&
-                fileName.ToLower().Contains(".xls"))
-                //fileName.ToLower().Contains(".xlsx"))
-                //Constants.ExcelTypes.Any(ftt => fileName.ToLower().Contains(ftt)))    // TODO : get excel docs converting to DocX
+                (fileName.ToLower().EndsWith(".xls") ||
+                fileName.ToLower().EndsWith(".xlsx")))
                 return true;
             return false;
         }
@@ -57,37 +57,118 @@ namespace EmailConcatenationPOC.Converters
             //var tempFilePathNew
 
             //            using (FileStream fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
+
+            // top formatting features :
+            // 1    cell borders, shading (is that like highlighting?) (supported!)
+            // 2    Conditional formatting (don't support this)
+            // 3    Number formatting (does this just happen for free already?)
+            // 4    Font styles and sizes (forget the styles !! not portable!)
+            // 5    Alignment and text wrapping
+
+
             try
             {
                 using (var memoryStream = new MemoryStream(content.Attachment.Data))
                 {
                     if (content.Attachment.FileName.ToLower().EndsWith(".xlsx"))
                     {
+                        sb.AppendLine("<html><body><style>.page-break { page-break-before:always; } </style>");
                         XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
-                        var sheet = workbook.GetSheetAt(0);             // TODO : support multiple sheets
-                        sb.AppendLine("<html><body><table>");
-                        for (int row = 0; row <= sheet.LastRowNum; row++)
+
+                        for (int i = 0; i < workbook.NumberOfSheets; i++)
                         {
-                            var currentRow = sheet.GetRow(row);
-                            if (currentRow != null )
+                            if (i > 0)
                             {
-                                sb.Append("<tr>");
-                                for (int col = 0; col < currentRow.LastCellNum; col++)
-                                {
-                                    var cell = currentRow.GetCell(col);
-                                    if (cell != null)
-                                    {
-                                        string formatString = String.Empty;
-                                        ICellStyle cellStyle = cell.CellStyle;
-                                        IDataFormat dataFormat = workbook.CreateDataFormat();
-                                        formatString = dataFormat.GetFormat(cellStyle.DataFormat);
-                                        sb.Append($"<td>{cell.ToString()}</td>");
-                                    }
-                                }
-                                sb.Append("</tr>");
+                                //sb.Append(Constants.MultiSheetSeparator);
+                                sb.Append("<div class=\"page-break\"></div>");
                             }
+
+                            //var sheet = workbook.GetSheetAt(0);             // TODO : support multiple sheets
+                            var sheet = workbook.GetSheetAt(i);             // TODO : support multiple sheets
+                            sb.AppendLine("<table>");
+                            for (int row = 0; row <= sheet.LastRowNum; row++)
+                            {
+                                var currentRow = sheet.GetRow(row);
+                                if (currentRow != null)
+                                {
+                                    sb.Append("<tr>");
+                                    for (int col = 0; col < currentRow.LastCellNum; col++)
+                                    {
+                                        var cell = currentRow.GetCell(col);
+                                        if (cell != null)
+                                        {
+                                            string formatString = String.Empty;
+                                            ICellStyle cellStyle = cell.CellStyle;
+                                            StringBuilder formatBuilder = new StringBuilder();
+                                            if (cellStyle.BorderTop != 0)
+                                            {
+                                                formatBuilder.Append("border-top: 1px solid black;");
+                                            }
+                                            if (cellStyle.BorderLeft != 0)
+                                            {
+                                                formatBuilder.Append("border-left: 1px solid black;");
+                                            }
+                                            if (cellStyle.BorderRight != 0)
+                                            {
+                                                formatBuilder.Append("border-right: 1px solid black;");
+                                            }
+                                            if (cellStyle.BorderBottom != 0)
+                                            {
+                                                formatBuilder.Append("border-bottom: 1px solid black;");
+                                            }
+                                            if (cellStyle.FillForegroundColorColor != null)
+                                            {
+                                                // this is a byte[3] with each byte correspondin to R, G, and B
+                                                var fgColor = cellStyle.FillForegroundColorColor.RGB;
+                                                formatBuilder.Append($"background-color: #{BitConverter.ToString(fgColor).Replace("-", "")};");
+                                                //formatBuilder.Append($"#{BitConverter.ToString(fgColor[0])}{fgColor[1]}{fgColor[2]}");
+                                            }
+                                            var contentText = cell.ToString();
+                                            if (contentText == "Red text")
+                                            {
+                                                Console.WriteLine("ahoy !");
+                                            }
+                                            XSSFCellStyle src = (XSSFCellStyle)cellStyle;
+                                            if (src != null)
+                                            {
+                                                var font = src.GetFont();
+                                                if (font.IsBold)
+                                                {
+                                                    formatBuilder.Append("font-weight: bold;");
+                                                }
+                                                if (font.IsStrikeout || font.IsItalic || (font.Underline != FontUnderlineType.None))
+                                                {
+                                                    var strikeout = font.IsStrikeout ? "line-through" : "";
+                                                    var italic = font.IsItalic ? "line-through" : "";
+                                                    var underline = (font.Underline != FontUnderlineType.None) ? "underline" : "";
+                                                    formatBuilder.Append($"text-decoration: {strikeout}{italic}{underline};");
+                                                    // css : underline (but where is this in NPOI ?)
+                                                }
+                                                //var color = font.Color;
+                                                //formatBuilder.Append($"color: {font.Color}px;");      // always 0
+                                                //formatBuilder.Append($"color: {src.FillForegroundColor}px;");
+                                                var fontColor = font.GetXSSFColor().RGB;
+                                                formatBuilder.Append($"color: #{BitConverter.ToString(fontColor).Replace("-", "")};");
+                                                formatBuilder.Append($"font-size: {font.FontHeightInPoints}px;");
+                                            }
+                                            //formatBuilder.Append($"color: {font.Color}px;");      // always 0
+                                            //formatBuilder.Append($"color: {src.FillForegroundColor}px;");
+                                            //formatBuilder.Append($"color: {src.GetXSFColor()}px;");
+
+                                            //                                        cell.Font
+                                            //cellStyle.GetFont()
+                                            //if (cellStyle.GetFont())
+                                            IDataFormat dataFormat = workbook.CreateDataFormat();
+                                            formatString = dataFormat.GetFormat(cellStyle.DataFormat);
+                                            sb.Append($"<td style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
+                                        }
+                                    }
+                                    sb.Append("</tr>");
+                                }
+                            }
+                            sb.AppendLine("</table></body>");
                         }
-                        sb.AppendLine("</table></body></html>");
+                        sb.AppendLine("</html>");
                     }
                     else
                     {
