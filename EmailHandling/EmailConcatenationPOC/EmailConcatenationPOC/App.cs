@@ -66,7 +66,7 @@ namespace EmailConcatenationPOC
 
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(Constants.ExamplePath1))
+            using (var msg = new Storage.Message(Constants.ExamplePath13))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
