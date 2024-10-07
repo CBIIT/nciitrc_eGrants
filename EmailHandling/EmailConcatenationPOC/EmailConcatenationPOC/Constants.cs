@@ -50,5 +50,8 @@ namespace EmailConcatenationPOC
 
         public const string ExamplePath12 = ".\\Unsupported\\unsupported_file_types.msg";
 
+        // simple, obsolete Excel (xls) .. majority of eGrants spreadsheets are this
+        public const string ExamplePath13 = ".\\Excel\\three_excel_versions.msg";
+
     }
 }
