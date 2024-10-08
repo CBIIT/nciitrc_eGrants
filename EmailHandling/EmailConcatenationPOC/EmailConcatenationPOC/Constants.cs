@@ -56,5 +56,11 @@ namespace EmailConcatenationPOC
         // bold, italic, font size, borders, shading, underline, font color, justification
         public const string ExamplePath14 = ".\\Excel\\complex_excel.msg";
 
+        // xlsm, formatting test, improved width for test
+        public const string ExamplePath15 = ".\\Excel\\complex_excel_files_b.msg";
+
+        // added missing xls file
+        public const string ExamplePath16 = ".\\Excel\\complex_excel_b2.msg";
+
     }
 }
