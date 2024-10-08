@@ -57,7 +57,7 @@
                     //alert(jsonobj);
                     //userid_count = jsonobj;
 
-                    if (jsonobj == 1) {
+                    if (jsonobj >= 1) {
                         alert(user_id + " already exists in the system");
                         document.getElementById("txtUserid").value = "";
                         document.getElementById("txtUserid").focus();
@@ -65,7 +65,7 @@
                     }
 
                     if (jsonobj == 0) {
-                        if (confirm (user_id + " does not exists in the system. Do you want to Create?")) {
+                        if (confirm (user_id + " does not exist in the system. Do you want to create a new account?")) {
                             document.getElementById("txtFirstname").focus();
                             return false;
                         } else  var url = "@Url.Action("Index", "EgrantsAccess")?index_id=2&active_id=1";
@@ -272,7 +272,7 @@
                     <td><lable for="lblUserid"><b>Userid:</b></lable></td>
                     <td>
                         <input name="userid" type="text" id="txtUserid" class="form-control" style="height:30px; width:160px;" title="Insert userid" />&#0160;&#0160;
-                        <button AccessKey="C" class="btn btn-primary btn-sm" title="Click here to check userid does already exists [shift + alt + C]" onClick="JavaScript:to_check_userid()"><u>C</u>heck</button>
+                        <button AccessKey="C" class="btn btn-primary btn-sm" title="Click here to check if user id already exists [shift + alt + C]" onClick="JavaScript:to_check_userid()"><u>C</u>heck</button>
                         @*<button AccessKey="V" class="btn btn-primary btn-sm" title="Click here to validate user data [shift + alt + V]" onClick="JavaScript:return to_validate()"><u>V</u>alidate</button>*@
                     </td>
                     <td><lable for="lblIC"><b>Institution:</b></lable></td>

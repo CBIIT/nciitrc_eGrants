@@ -668,7 +668,7 @@ namespace egrants_new.Egrants_Admin.Models
             using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
             {
                 var cmd = new SqlCommand(
-                    "select count(*) from vw_people where application_type='egrants' and profile_id=1 and userid = @userid",
+                    "select count(*) from people where application_type='egrants' and userid = @userid",
                     conn);
 
                 cmd.CommandType = CommandType.Text;
