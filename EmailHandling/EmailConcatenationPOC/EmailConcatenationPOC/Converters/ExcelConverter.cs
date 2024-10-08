@@ -54,12 +54,7 @@ namespace EmailConcatenationPOC.Converters
                 {
                     if (content.Attachment.FileName.ToLower().EndsWith(".xlsx"))
                     {
-                        sb.AppendLine("<html><body><style>" +
-                            ".page-break { page-break-before:always; }" +
-                            ".center {\r\n  text-align: center;\r\n }" +
-                            ".left {\r\n  text-align: left;\r\n }" +
-                            ".right {\r\n  text-align: right;\r\n }" +
-                            "</style>");
+                        sb.AppendLine(GetCSSClasses());
                         XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
 
                         for (int i = 0; i < workbook.NumberOfSheets; i++)
@@ -82,74 +77,23 @@ namespace EmailConcatenationPOC.Converters
                                         var cell = currentRow.GetCell(col);
                                         if (cell != null)
                                         {
-                                            string formatString = String.Empty;
                                             ICellStyle cellStyle = cell.CellStyle;
-                                            StringBuilder formatBuilder = new StringBuilder();
-                                            var classes = new List<string>();
+                                            
+                                            var classes = GetAlignmentClasses(cellStyle);
 
                                             // MLH : is there a way to handle cellStyle.WrapText == false ?
                                             // floating divs maybe ? sounds risky
 
-                                            if (cellStyle.BorderTop != 0)
-                                            {
-                                                formatBuilder.Append("border-top: 1px solid black;");
-                                            }
-                                            if (cellStyle.BorderLeft != 0)
-                                            {
-                                                formatBuilder.Append("border-left: 1px solid black;");
-                                            }
-                                            if (cellStyle.BorderRight != 0)
-                                            {
-                                                formatBuilder.Append("border-right: 1px solid black;");
-                                            }
-                                            if (cellStyle.BorderBottom != 0)
-                                            {
-                                                formatBuilder.Append("border-bottom: 1px solid black;");
-                                            }
-                                            if (cellStyle.FillForegroundColorColor != null)
-                                            {
-                                                // this is a byte[3] with each byte correspondin to R, G, and B
-                                                var fgColor = cellStyle.FillForegroundColorColor.RGB;
-                                                formatBuilder.Append($"background-color: #{BitConverter.ToString(fgColor).Replace("-", "")};");
-                                            }
-                                            if (cellStyle.Alignment == HorizontalAlignment.Left)
-                                            {
-                                                classes.Add("left");
-                                            } else if (cellStyle.Alignment == HorizontalAlignment.Right)
-                                            {
-                                                classes.Add("right");
-                                            }
-                                            if (cellStyle.Alignment == HorizontalAlignment.Center)
-                                            {
-                                                classes.Add("center");
-                                            }
                                             var contentText = cell.ToString();
-                                            if (contentText == "Red text")
+                                            if (contentText == "italic")
                                             {
                                                 Console.WriteLine("ahoy !");
                                             }
-                                            XSSFCellStyle src = (XSSFCellStyle)cellStyle;
-                                            if (src != null)
-                                            {
-                                                var font = src.GetFont();
-                                                if (font.IsBold)
-                                                {
-                                                    formatBuilder.Append("font-weight: bold;");
-                                                }
-                                                if (font.IsStrikeout || font.IsItalic || (font.Underline != FontUnderlineType.None))
-                                                {
-                                                    var strikeout = font.IsStrikeout ? "line-through" : "";
-                                                    var italic = font.IsItalic ? "line-through" : "";
-                                                    var underline = (font.Underline != FontUnderlineType.None) ? "underline" : "";
-                                                    formatBuilder.Append($"text-decoration: {strikeout}{italic}{underline};");
-                                                }
-                                                var fontColor = font.GetXSSFColor().RGB;
-                                                formatBuilder.Append($"color: #{BitConverter.ToString(fontColor).Replace("-", "")};");
-                                                formatBuilder.Append($"font-size: {font.FontHeightInPoints}px;");
-                                            }
+
+                                            StringBuilder formatBuilder = GetFormat(cellStyle, true, null);
 
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
-                                            formatString = dataFormat.GetFormat(cellStyle.DataFormat);
+                                            string formatString = dataFormat.GetFormat(cellStyle.DataFormat);
                                             sb.Append($"<td class=\"{string.Join(";",classes)}\" style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
                                         }
                                         else
@@ -167,12 +111,7 @@ namespace EmailConcatenationPOC.Converters
                     }
                     else  //    .xls
                     {
-                        sb.AppendLine("<html><body><style>" +
-                            ".page-break { page-break-before:always; } " +
-                            ".center {\r\n  text-align: center;\r\n } " +
-                            ".left {\r\n  text-align: left;\r\n } " +
-                            ".right {\r\n  text-align: right;\r\n } " +
-                            "</style>");
+                        sb.AppendLine(GetCSSClasses());
                         HSSFWorkbook workbook = new HSSFWorkbook(memoryStream);
 
                         for (int i = 0; i < workbook.NumberOfSheets; i++)
@@ -197,81 +136,15 @@ namespace EmailConcatenationPOC.Converters
                                         {
                                             string formatString = String.Empty;
                                             ICellStyle cellStyle = cell.CellStyle;
-                                            StringBuilder formatBuilder = new StringBuilder();
-                                            var classes = new List<string>();
+                                            var classes = GetAlignmentClasses(cellStyle);
 
-                                            // MLH : is there a way to handle cellStyle.WrapText == false ?
-                                            // floating divs maybe ? sounds risky
-
-                                            if (cellStyle.BorderTop != 0)
-                                            {
-                                                formatBuilder.Append("border-top: 1px solid black;");
-                                            }
-                                            if (cellStyle.BorderLeft != 0)
-                                            {
-                                                formatBuilder.Append("border-left: 1px solid black;");
-                                            }
-                                            if (cellStyle.BorderRight != 0)
-                                            {
-                                                formatBuilder.Append("border-right: 1px solid black;");
-                                            }
-                                            if (cellStyle.BorderBottom != 0)
-                                            {
-                                                formatBuilder.Append("border-bottom: 1px solid black;");
-                                            }
-                                            if (cellStyle.FillForegroundColorColor != null)
-                                            {
-                                                // this is a byte[3] with each byte correspondin to R, G, and B
-                                                var fgColor = cellStyle.FillForegroundColorColor.RGB;
-                                                // MLH : for some reason on XLS files, default white background is presented as 0,0,0 which becomes black
-                                                var convertedHexColor = BitConverter.ToString(fgColor).Replace("-", "");
-                                                if (convertedHexColor.Equals("000000"))
-                                                    convertedHexColor = "FFFFFF";
-                                                formatBuilder.Append($"background-color: #{convertedHexColor};");
-                                            }
-                                            if (cellStyle.Alignment == HorizontalAlignment.Left)
-                                            {
-                                                classes.Add("left");
-                                            }
-                                            else if (cellStyle.Alignment == HorizontalAlignment.Right)
-                                            {
-                                                classes.Add("right");
-                                            }
-                                            if (cellStyle.Alignment == HorizontalAlignment.Center)
-                                            {
-                                                classes.Add("center");
-                                            }
                                             var contentText = cell.ToString();
-                                            //if (contentText == "Red text")
-                                            //if (contentText.Contains("shading"))
                                             if (contentText.Contains("center justified"))
                                             {
                                                 Console.WriteLine("ahoy !");
                                             }
-                                            //                                            XSSFCellStyle src = (XSSFCellStyle)cellStyle; doesn't work for .xls files
-                                            HSSFCellStyle src = (HSSFCellStyle)cellStyle;
-                                            if (src != null)
-                                            {
-                                                //var font = src.GetFont();
-                                                //var font = cellStyle.GetFont();
-                                                var font = src.GetFont(workbook);
-                                                if (font.IsBold)
-                                                {
-                                                    formatBuilder.Append("font-weight: bold;");
-                                                }
-                                                if (font.IsStrikeout || font.IsItalic || (font.Underline != FontUnderlineType.None))
-                                                {
-                                                    var strikeout = font.IsStrikeout ? "line-through" : "";
-                                                    var italic = font.IsItalic ? "line-through" : "";
-                                                    var underline = (font.Underline != FontUnderlineType.None) ? "underline" : "";
-                                                    formatBuilder.Append($"text-decoration: {strikeout}{italic}{underline};");
-                                                }
-                                                //var fontColor = font.GetXSSFColor().RGB;
-                                                short colorIndex = font.Color;
-                                                string hexColor = ColorConverter.GetHexColor(colorIndex);
-                                                formatBuilder.Append($"color: {hexColor};");
-                                                formatBuilder.Append($"font-size: {font.FontHeightInPoints}px;");
-                                            }
+
+                                            var formatBuilder = GetFormat(cellStyle, false, workbook);
 
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             formatString = dataFormat.GetFormat(cellStyle.DataFormat);
@@ -318,6 +191,124 @@ namespace EmailConcatenationPOC.Converters
 
         }
 
+        private string GetCSSClasses()
+        {
+            return "<html><body><style>" +
+                        ".page-break { page-break-before:always; } " +
+                        ".center {\r\n  text-align: center;\r\n } " +
+                        ".left {\r\n  text-align: left;\r\n } " +
+                        ".right {\r\n  text-align: right;\r\n } " +
+                        "</style>";
+        }
+
+        private StringBuilder GetFormat(ICellStyle cellStyle, bool isXlsx, HSSFWorkbook workbook)
+        {
+            var formatBuilder = new StringBuilder();
+            if (cellStyle.BorderTop != 0)
+            {
+                formatBuilder.Append("border-top: 1px solid black;");
+            }
+            if (cellStyle.BorderLeft != 0)
+            {
+                formatBuilder.Append("border-left: 1px solid black;");
+            }
+            if (cellStyle.BorderRight != 0)
+            {
+                formatBuilder.Append("border-right: 1px solid black;");
+            }
+            if (cellStyle.BorderBottom != 0)
+            {
+                formatBuilder.Append("border-bottom: 1px solid black;");
+            }
+            if (cellStyle.FillForegroundColorColor != null)
+            {
+                // this is a byte[3] with each byte correspondin to R, G, and B
+                var fgColor = cellStyle.FillForegroundColorColor.RGB;
+
+                // MLH : for some reason on XLS files, default white background is presented as 0,0,0 which becomes black
+                var convertedHexColor = BitConverter.ToString(fgColor).Replace("-", "");
+                if (!isXlsx && convertedHexColor.Equals("000000"))
+                    convertedHexColor = "FFFFFF";
+
+                formatBuilder.Append($"background-color: #{convertedHexColor};");
+            }
+
+            bool isStrikeout = false;
+            bool isItalic = false;
+            bool isBold = false;
+            bool isUnderline = false;
+            string fontColor = "000000";
+            double fontSize = 12.0;
+
+
+            HSSFCellStyle src = cellStyle as HSSFCellStyle;
+            if (src != null)
+            {
+                // xls
+                var font = src.GetFont(workbook);
+
+                isStrikeout = font.IsStrikeout;
+                isItalic = font.IsItalic;
+                isBold = font.IsBold;
+                isUnderline = (font.Underline != FontUnderlineType.None);
+                short colorIndex = font.Color;
+                fontColor = ColorConverter.GetHexColor(colorIndex);
+            }
+            else
+            {   // xlsx
+                XSSFCellStyle src2 = (XSSFCellStyle)cellStyle;
+                if (src2 != null)
+                {
+                    var font = src2.GetFont();
+
+                    isStrikeout = font.IsStrikeout;
+                    isItalic = font.IsItalic;
+                    isBold = font.IsBold;
+                    isUnderline = (font.Underline != FontUnderlineType.None);
+                    short colorIndex = font.Color;
+                    var rgbColor = font.GetXSSFColor().RGB;
+                    fontColor = BitConverter.ToString(rgbColor).Replace("-", "");
+                }
+            }
+
+            if (isBold)
+            {
+                formatBuilder.Append("font-weight: bold;");
+            }
+            if (isStrikeout || isUnderline)
+            {
+                var strikeout = isStrikeout ? "line-through" : "";
+                var underline = (isUnderline) ? "underline" : "";
+                formatBuilder.Append($"text-decoration: {strikeout}{underline};");
+            }
+            if (isItalic)
+            {
+                formatBuilder.Append("font-style: italic;");
+            }
+
+            formatBuilder.Append($"color: {fontColor};");
+            formatBuilder.Append($"font-size: {fontSize}px;");
+
+            return formatBuilder;
+        }
+
+        public List<string> GetAlignmentClasses(ICellStyle cellStyle)
+        {
+            var classes = new List<string>();
+            if (cellStyle.Alignment == HorizontalAlignment.Left)
+            {
+                classes.Add("left");
+            }
+            else if (cellStyle.Alignment == HorizontalAlignment.Right)
+            {
+                classes.Add("right");
+            }
+            if (cellStyle.Alignment == HorizontalAlignment.Center)
+            {
+                classes.Add("center");
+            }
+            return classes;
+        }
 
 
     }
