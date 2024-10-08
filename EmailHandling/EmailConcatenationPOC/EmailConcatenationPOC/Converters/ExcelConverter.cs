@@ -72,14 +72,18 @@ namespace EmailConcatenationPOC.Converters
                 {
                     if (content.Attachment.FileName.ToLower().EndsWith(".xlsx"))
                     {
-                        sb.AppendLine("<html><body><style>.page-break { page-break-before:always; } </style>");
+                        sb.AppendLine("<html><body><style>" +
+                            ".page-break { page-break-before:always; }" +
+                            ".center {\r\n  text-align: center;\r\n }" +
+                            ".left {\r\n  text-align: left;\r\n }" +
+                            ".right {\r\n  text-align: right;\r\n }" +
+                            "</style>");
                         XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
 
                         for (int i = 0; i < workbook.NumberOfSheets; i++)
                         {
                             if (i > 0)
                             {
-                                //sb.Append(Constants.MultiSheetSeparator);
                                 sb.Append("<div class=\"page-break\"></div>");
                             }
 
@@ -100,6 +104,11 @@ namespace EmailConcatenationPOC.Converters
                                             string formatString = String.Empty;
                                             ICellStyle cellStyle = cell.CellStyle;
                                             StringBuilder formatBuilder = new StringBuilder();
+                                            var classes = new List<string>();
+
+                                            // MLH : is there a way to handle cellStyle.WrapText == false ?
+                                            // floating divs maybe ? sounds risky
+
                                             if (cellStyle.BorderTop != 0)
                                             {
                                                 formatBuilder.Append("border-top: 1px solid black;");
@@ -122,6 +131,17 @@ namespace EmailConcatenationPOC.Converters
                                                 var fgColor = cellStyle.FillForegroundColorColor.RGB;
                                                 formatBuilder.Append($"background-color: #{BitConverter.ToString(fgColor).Replace("-", "")};");
                                                 //formatBuilder.Append($"#{BitConverter.ToString(fgColor[0])}{fgColor[1]}{fgColor[2]}");
+                                            }
+                                            if (cellStyle.Alignment == HorizontalAlignment.Left)
+                                            {
+                                                classes.Add("left");
+                                            } else if (cellStyle.Alignment == HorizontalAlignment.Right)
+                                            {
+                                                classes.Add("right");
+                                            }
+                                            if (cellStyle.Alignment == HorizontalAlignment.Center)
+                                            {
+                                                classes.Add("center");
                                             }
                                             var contentText = cell.ToString();
                                             if (contentText == "Red text")
@@ -160,7 +180,7 @@ namespace EmailConcatenationPOC.Converters
                                             //if (cellStyle.GetFont())
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             formatString = dataFormat.GetFormat(cellStyle.DataFormat);
-                                            sb.Append($"<td style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
+                                            sb.Append($"<td class=\"{string.Join(";",classes)}\" style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
                                         }
                                     }
                                     sb.Append("</tr>");
