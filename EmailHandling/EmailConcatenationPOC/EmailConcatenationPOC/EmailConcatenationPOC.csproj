@@ -195,6 +195,9 @@
     <Reference Include="SixLabors.ImageSharp.Drawing, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d998eea7b14cab13, processorArchitecture=MSIL">
       <HintPath>..\packages\SixLabors.ImageSharp.Drawing.1.0.0\lib\net472\SixLabors.ImageSharp.Drawing.dll</HintPath>
     </Reference>
+    <Reference Include="Spire.Doc, Version=12.2.0.0, Culture=neutral, PublicKeyToken=663f351905198cb3, processorArchitecture=MSIL">
+      <HintPath>..\packages\FreeSpire.Doc.12.2.0\lib\net40\Spire.Doc.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.AppContext.4.3.0\lib\net463\System.AppContext.dll</HintPath>
@@ -414,7 +417,9 @@
     <Compile Include="Converters\UndiscoveredTextConverter.cs" />
     <Compile Include="Converters\UnrecognizedTextConverter.cs" />
     <Compile Include="Converters\WordConverter.cs" />
+    <Compile Include="Converters\WordDocConverter.cs" />
     <Compile Include="Interfaces\IConvertToPdf.cs" />
+    <Compile Include="Interfaces\IWordDocConverter.cs" />
     <Compile Include="Interfaces\IEmailTextConverter.cs" />
     <Compile Include="Interfaces\IExcelConverter.cs" />
     <Compile Include="Interfaces\IExcelXLSMConverter.cs" />
