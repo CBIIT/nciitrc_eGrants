@@ -31,6 +31,7 @@ namespace EmailConcatenationPOC
         public IPDFConverter PDFConverter;
         public IRTFConverter RTFConverter;
         public IEmailTextConverter EmailTextConverter;
+        public IWordDocConverter wordDocConverter;
 
         public List<IConvertToPdf> orderedListOfPdfConverters;
 
@@ -38,7 +39,7 @@ namespace EmailConcatenationPOC
             IUndiscoveredTextConverter _undiscoveredTextConverter, IExplicitlyUnsupportedTextConverter _explicitlyUnsupportedTextConverter,
             IUnrecognizedTextConverter _unrecognizedTextConverter, IExcelConverter _excelConverter, IWordConverter _wordConverter,
             IHtmlConverter _htmlConverter, IPDFConverter _pDFConverter, IRTFConverter _rtfConverter, IEmailTextConverter _emailTextConverter,
-            IExcelXLSMConverter _excelXLSMConverter)
+            IExcelXLSMConverter _excelXLSMConverter, IWordDocConverter _wordDocConverter)
         {
             generalImageConverter = _generalImageConverter;
             TIFFConverter = _tiffConverter;
@@ -48,15 +49,17 @@ namespace EmailConcatenationPOC
             unrecognizedTextConverter = _unrecognizedTextConverter;
             excelConverter = _excelConverter;
             wordConverter = _wordConverter;
+            wordDocConverter = _wordDocConverter;
             htmlConverter = _htmlConverter;
             PDFConverter = _pDFConverter;
             RTFConverter = _rtfConverter;
             EmailTextConverter = _emailTextConverter;
             excelXLSMConverter = _excelXLSMConverter;
 
-            orderedListOfPdfConverters = new List<IConvertToPdf> { EmailTextConverter, PDFConverter, wordConverter, excelConverter, excelXLSMConverter,
-                htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter, TIFFConverter, undiscoveredTextConverter,
-                explicitlyUnsupportedTextConverter, unrecognizedTextConverter};
+            orderedListOfPdfConverters = new List<IConvertToPdf> { EmailTextConverter, PDFConverter, wordConverter, wordDocConverter,
+                excelConverter, excelXLSMConverter,htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter,
+                TIFFConverter, undiscoveredTextConverter, explicitlyUnsupportedTextConverter, unrecognizedTextConverter};
+
         }
 
         public void Run()
@@ -70,7 +73,7 @@ namespace EmailConcatenationPOC
 
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(Constants.ExamplePath16))
+            using (var msg = new Storage.Message(Constants.ExamplePath17))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
