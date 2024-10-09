@@ -403,6 +403,7 @@
     <Compile Include="ContentForPdf.cs" />
     <Compile Include="Converters\EmailTextConverter.cs" />
     <Compile Include="Converters\ExcelConverter.cs" />
+    <Compile Include="Converters\ExcelXLSMConverter.cs" />
     <Compile Include="Converters\ExplicitlyUnsupportedTextConverter.cs" />
     <Compile Include="Converters\FormattedTextConverter.cs" />
     <Compile Include="Converters\GeneralImageConverter.cs" />
@@ -416,6 +417,7 @@
     <Compile Include="Interfaces\IConvertToPdf.cs" />
     <Compile Include="Interfaces\IEmailTextConverter.cs" />
     <Compile Include="Interfaces\IExcelConverter.cs" />
+    <Compile Include="Interfaces\IExcelXLSMConverter.cs" />
     <Compile Include="Interfaces\IExplicitlyUnsupportedTextConverter.cs" />
     <Compile Include="Interfaces\IFormattedTextConverter.cs" />
     <Compile Include="Interfaces\IGeneralImageConverter.cs" />

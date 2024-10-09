@@ -18,8 +18,11 @@ namespace EmailConcatenationPOC.Converters
             if (fileName.ToLower().Contains(".") &&
                 Constants.ExplicitlyUnsupportedFileTypes
                     .Any(ftt => fileName.ToLower().Contains(ftt) && !fileName.ToLower().Contains(".docx")) ||
-                Constants.ExcelTypes
-                    .Any(ftt => fileName.ToLower().Contains(ftt) && !fileName.ToLower().Contains(".docx")))
+                //Constants.ExcelTypes
+                //    .Any(ftt => fileName.ToLower().Contains(ftt) && !fileName.ToLower().Contains(".docx"))
+                Constants.UnsupportedExcelTypes
+                        .Any(ftt => fileName.ToLower().Contains(ftt))
+                    )
                 return true;
             return false;
         }

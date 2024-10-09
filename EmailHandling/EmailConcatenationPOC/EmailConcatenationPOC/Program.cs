@@ -40,6 +40,7 @@ namespace EmailConcatenationPOC
             kernel.Bind<IPDFConverter>().To<PDFConverter>();
             kernel.Bind<IRTFConverter>().To<RTFConverter>();
             kernel.Bind<IEmailTextConverter>().To<EmailTextConverter>();
+            kernel.Bind<IExcelXLSMConverter>().To<ExcelXLSMConverter>();
 
             kernel.Bind<App>().ToSelf();
 

@@ -26,6 +26,7 @@ namespace EmailConcatenationPOC
         public IUnrecognizedTextConverter unrecognizedTextConverter;
         public IWordConverter wordConverter;
         public IExcelConverter excelConverter;
+        public IExcelXLSMConverter excelXLSMConverter;
         public IHtmlConverter htmlConverter;
         public IPDFConverter PDFConverter;
         public IRTFConverter RTFConverter;
@@ -36,7 +37,8 @@ namespace EmailConcatenationPOC
         public App(IGeneralImageConverter _generalImageConverter, ITIFFConverter _tiffConverter, IFormattedTextConverter _formattedTextConverter,
             IUndiscoveredTextConverter _undiscoveredTextConverter, IExplicitlyUnsupportedTextConverter _explicitlyUnsupportedTextConverter,
             IUnrecognizedTextConverter _unrecognizedTextConverter, IExcelConverter _excelConverter, IWordConverter _wordConverter,
-            IHtmlConverter _htmlConverter, IPDFConverter _pDFConverter, IRTFConverter _rtfConverter, IEmailTextConverter _emailTextConverter)
+            IHtmlConverter _htmlConverter, IPDFConverter _pDFConverter, IRTFConverter _rtfConverter, IEmailTextConverter _emailTextConverter,
+            IExcelXLSMConverter _excelXLSMConverter)
         {
             generalImageConverter = _generalImageConverter;
             TIFFConverter = _tiffConverter;
@@ -50,9 +52,11 @@ namespace EmailConcatenationPOC
             PDFConverter = _pDFConverter;
             RTFConverter = _rtfConverter;
             EmailTextConverter = _emailTextConverter;
+            excelXLSMConverter = _excelXLSMConverter;
 
-            orderedListOfPdfConverters = new List<IConvertToPdf> { EmailTextConverter, PDFConverter, wordConverter, excelConverter, htmlConverter, formattedTextConverter,
-                RTFConverter, generalImageConverter, TIFFConverter, undiscoveredTextConverter, explicitlyUnsupportedTextConverter, unrecognizedTextConverter};
+            orderedListOfPdfConverters = new List<IConvertToPdf> { EmailTextConverter, PDFConverter, wordConverter, excelConverter, excelXLSMConverter,
+                htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter, TIFFConverter, undiscoveredTextConverter,
+                explicitlyUnsupportedTextConverter, unrecognizedTextConverter};
         }
 
         public void Run()
