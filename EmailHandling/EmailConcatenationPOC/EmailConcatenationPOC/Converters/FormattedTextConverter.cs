@@ -1,5 +1,6 @@
 ﻿using EmailConcatenationPOC.Interfaces;
 using IronPdf;
+using Markdig;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -62,20 +63,25 @@ namespace EmailConcatenationPOC.Converters
                 }
             } else
             {
-                using (var memoryStream = new MemoryStream(content.Attachment.Data))
+                var textContent = System.Text.Encoding.Default.GetString(content.Attachment.Data);
+
+                // MLH : there is likely going to be some "markdown" here (e.g. \n to mean new line)
+                // and this won't be natively rendered by the IronPDF chrome HTML converter
+                textContent = Markdown.ToHtml(textContent);
+
+                var renderer = new ChromePdfRenderer();
+
+                var imagesRemovedContent = RemoveImagesFromHtmlText(textContent);
+
+                using (var pdfDocument = renderer.RenderHtmlAsPdf(imagesRemovedContent))
                 {
-                    var htmlRenderer = new ChromePdfRenderer();
-
-                    using (StreamReader reader = new StreamReader(memoryStream))
+                    using (var memoryStream = new MemoryStream())
                     {
-                        string htmlContent = reader.ReadToEnd();
+                        pdfDocument.Stream.CopyTo(memoryStream);
 
-                        htmlContent = RemoveImagesFromHtmlText(htmlContent);
-
-                        // Render the HTML content as a PDF
-                        PdfDocument pdf = htmlRenderer.RenderHtmlAsPdf(htmlContent);
-                        Console.WriteLine("adding rendered pdf");
-                        return pdf;
+                        var bytes = memoryStream.ToArray();
+                        var pdfDocFromStream = new PdfDocument(bytes);
+                        return pdfDocFromStream;
                     }
                 }
             }
