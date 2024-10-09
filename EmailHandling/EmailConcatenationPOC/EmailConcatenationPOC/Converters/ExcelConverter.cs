@@ -91,7 +91,7 @@ namespace EmailConcatenationPOC.Converters
                                             }
 
                                             StringBuilder formatBuilder = GetFormat(cellStyle, true, null);
-
+                                            
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             string formatString = dataFormat.GetFormat(cellStyle.DataFormat);
                                             sb.Append($"<td class=\"{string.Join(";",classes)}\" style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
@@ -175,7 +175,6 @@ namespace EmailConcatenationPOC.Converters
                 sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p></body></html>");
             }
             
-
             var renderer = new ChromePdfRenderer();
             using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
             {
@@ -193,12 +192,12 @@ namespace EmailConcatenationPOC.Converters
 
         private string GetCSSClasses()
         {
-            return "<html><body><style>" +
+            return "<html><head><style>" +
                         ".page-break { page-break-before:always; } " +
                         ".center {\r\n  text-align: center;\r\n } " +
                         ".left {\r\n  text-align: left;\r\n } " +
                         ".right {\r\n  text-align: right;\r\n } " +
-                        "</style>";
+                        "</style></head><body>";
         }
 
         private StringBuilder GetFormat(ICellStyle cellStyle, bool isXlsx, HSSFWorkbook workbook)
@@ -253,6 +252,7 @@ namespace EmailConcatenationPOC.Converters
                 isUnderline = (font.Underline != FontUnderlineType.None);
                 short colorIndex = font.Color;
                 fontColor = ColorConverter.GetHexColor(colorIndex);
+                fontSize = font.FontHeightInPoints;
             }
             else
             {   // xlsx
@@ -268,6 +268,7 @@ namespace EmailConcatenationPOC.Converters
                     short colorIndex = font.Color;
                     var rgbColor = font.GetXSSFColor().RGB;
                     fontColor = BitConverter.ToString(rgbColor).Replace("-", "");
+                    fontSize = font.FontHeightInPoints;
                 }
             }
 
