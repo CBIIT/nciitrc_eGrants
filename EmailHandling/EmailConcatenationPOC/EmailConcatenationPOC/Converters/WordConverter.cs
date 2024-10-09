@@ -13,8 +13,8 @@ namespace EmailConcatenationPOC.Converters
     {
         public bool SupportsThisFileType(string fileName)
         {
-            if (fileName.ToLower().Contains(".") &&
-                Constants.UndiscoveredFileTypes.Any(ftt => fileName.ToLower().Contains(ftt)))
+            if (!string.IsNullOrWhiteSpace(fileName) &&
+                fileName.ToLower().EndsWith(".docx") )
                 return true;
             return false;
         }

@@ -63,5 +63,10 @@ namespace EmailConcatenationPOC
         // added missing xls file
         public const string ExamplePath16 = ".\\Excel\\complex_excel_b2.msg";
 
+        // very formatted Word files (docx and doc)
+        public const string ExamplePath17 = ".\\Word\\very_formatted_word.msg";
+
+
+
     }
 }
