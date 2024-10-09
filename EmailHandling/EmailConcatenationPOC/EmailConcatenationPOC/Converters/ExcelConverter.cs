@@ -11,12 +11,14 @@ using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Interop;
 using static System.Net.WebRequestMethods;
+using CellType = NPOI.SS.UserModel.CellType;
 
 namespace EmailConcatenationPOC.Converters
 {
@@ -85,7 +87,7 @@ namespace EmailConcatenationPOC.Converters
                                             // floating divs maybe ? sounds risky
 
                                             var contentText = cell.ToString();
-                                            if (contentText == "italic")
+                                            if (contentText.Contains("3.14"))
                                             {
                                                 Console.WriteLine("ahoy !");
                                             }
@@ -94,7 +96,8 @@ namespace EmailConcatenationPOC.Converters
                                             
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             string formatString = dataFormat.GetFormat(cellStyle.DataFormat);
-                                            sb.Append($"<td class=\"{string.Join(";",classes)}\" style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
+                                            string cellVal = GetFormattedCellValue(cell, workbook);
+                                            sb.Append($"<td class=\"{string.Join(";", classes)}\" style=\"{formatBuilder.ToString()}\">{cellVal}</td>");
                                         }
                                         else
                                         {
@@ -139,7 +142,7 @@ namespace EmailConcatenationPOC.Converters
                                             var classes = GetAlignmentClasses(cellStyle);
 
                                             var contentText = cell.ToString();
-                                            if (contentText.Contains("center justified"))
+                                            if (contentText.Contains("3.14"))
                                             {
                                                 Console.WriteLine("ahoy !");
                                             }
@@ -188,6 +191,44 @@ namespace EmailConcatenationPOC.Converters
                 }
             }
 
+        }
+
+        private string GetFormattedCellValue(ICell cell, IWorkbook workbook)
+        {
+            if (cell.CellType == CellType.Numeric)
+            {
+                if (DateUtil.IsCellDateFormatted(cell))
+                {
+                    cell.DateCellValue?.ToString("MM/dd/yyyy");
+                } else
+                {
+                    ICellStyle style = cell.CellStyle;
+                    IDataFormat format = workbook.CreateDataFormat();
+                    string formatString = style.GetDataFormatString();
+
+                    if (formatString == "General")
+                    {
+                        return cell.NumericCellValue.ToString("G", CultureInfo.InvariantCulture);
+                    }
+                    else if (formatString != null)
+                    {
+                        return cell.NumericCellValue.ToString(formatString, CultureInfo.InvariantCulture);
+                    } else
+                    {
+                        return cell.NumericCellValue.ToString(CultureInfo.InvariantCulture);
+                    }
+                }
+            } else if (cell.CellType == CellType.String)
+            {
+                return cell.StringCellValue;
+            } else if (cell.CellType == CellType.Boolean)
+            {
+                return cell.BooleanCellValue.ToString();
+            } else if (cell.CellType == CellType.Formula)
+            {
+                return cell.CellFormula;
+            }
+            return cell.ToString();
         }
 
         private string GetCSSClasses()
