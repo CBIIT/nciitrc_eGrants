@@ -58,6 +58,7 @@ namespace EmailConcatenationPOC.Converters
                     {
                         sb.AppendLine(GetCSSClasses());
                         XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
+                        XSSFFormulaEvaluator formula = new XSSFFormulaEvaluator(workbook);
 
                         for (int i = 0; i < workbook.NumberOfSheets; i++)
                         {
@@ -96,6 +97,7 @@ namespace EmailConcatenationPOC.Converters
                                             
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             string formatString = dataFormat.GetFormat(cellStyle.DataFormat);
+                                            formula.EvaluateInCell(cell);
                                             string cellVal = GetFormattedCellValue(cell, workbook);
                                             sb.Append($"<td class=\"{string.Join(";", classes)}\" style=\"{formatBuilder.ToString()}\">{cellVal}</td>");
                                         }
@@ -116,6 +118,11 @@ namespace EmailConcatenationPOC.Converters
                     {
                         sb.AppendLine(GetCSSClasses());
                         HSSFWorkbook workbook = new HSSFWorkbook(memoryStream);
+                        HSSFFormulaEvaluator formula = new HSSFFormulaEvaluator(workbook);
+
+                        // MLH : note that if for whatever this should happen on a cell by cell basis,
+                        // use formula.EvaluateInCell(cell); and render by cell.CellType
+                        formula.EvaluateAll();
 
                         for (int i = 0; i < workbook.NumberOfSheets; i++)
                         {
@@ -151,6 +158,7 @@ namespace EmailConcatenationPOC.Converters
 
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             formatString = dataFormat.GetFormat(cellStyle.DataFormat);
+                                            formula.EvaluateInCell(cell);
                                             sb.Append($"<td class=\"{string.Join(";", classes)}\" style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
                                         } else
                                         {
@@ -271,6 +279,13 @@ namespace EmailConcatenationPOC.Converters
                     convertedHexColor = "FFFFFF";
 
                 formatBuilder.Append($"background-color: #{convertedHexColor};");
+            }
+            if (cellStyle.WrapText)
+            {
+                formatBuilder.Append($"text-wrap: wrap;");
+            } else
+            {
+                formatBuilder.Append($"text-wrap: nowrap;");
             }
 
             bool isStrikeout = false;
