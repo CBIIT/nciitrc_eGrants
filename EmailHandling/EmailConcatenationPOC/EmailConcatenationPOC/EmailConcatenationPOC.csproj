@@ -516,6 +516,16 @@
     <Content Include="Excel\complex_excel_b2.msg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="Excel\calcs_test.msg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="Excel\workbook_calcs.xls">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Excel\workbook_calcs.xlsm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="Excel\workbook_calcs.xlsx" />
     <None Include="Images\four_image_types.msg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

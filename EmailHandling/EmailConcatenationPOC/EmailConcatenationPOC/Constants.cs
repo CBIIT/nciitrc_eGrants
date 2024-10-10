@@ -66,7 +66,8 @@ namespace EmailConcatenationPOC
         // very formatted Word files (docx and doc)
         public const string ExamplePath17 = ".\\Word\\very_formatted_word.msg";
 
-
+        // forumulas
+        public const string ExamplePath18 = ".\\Excel\\calcs_test.msg";
 
     }
 }
