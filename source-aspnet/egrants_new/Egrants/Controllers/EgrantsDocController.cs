@@ -48,6 +48,8 @@ using egrants_new.Functions;
 using MsgReader.Outlook;
 using static System.Net.WebRequestMethods;
 using egrants_new.Integration.WebServices;
+using System.Collections.Generic;
+using System.Linq;
 
 #endregion
 
@@ -572,7 +574,7 @@ namespace egrants_new.Controllers
         /// </returns>
         [HttpPost]
         public ActionResult doc_create_by_ddrop(
-            HttpPostedFileBase dropedfile,
+            HttpPostedFileBase[] dropedfiles,
             int appl_id,
             int category_id,
             string sub_category,
@@ -584,7 +586,7 @@ namespace egrants_new.Controllers
             var docName = string.Empty;
             string url = null;
             string mssg = null;
-
+            var dropedfile = dropedfiles.First();
             if (dropedfile != null && dropedfile.ContentLength > 0)
                 try
                 {

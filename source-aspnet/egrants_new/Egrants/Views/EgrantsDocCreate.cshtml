@@ -228,13 +228,15 @@
         }
 
         var frmdata = new FormData();
-        frmdata.append('dropedfile', dropedfile);
+        console.log(typeof(dropedfiles));
+        frmdata.append('dropedfiles', dropedfiles);
         frmdata.append('appl_id', Applid);
         frmdata.append('category_id', Categoryid);
         frmdata.append('sub_category', SubCategory);
         frmdata.append('doc_date', DocDate);
         frmdata.append('admin_code', AdminCode);
         frmdata.append('serial_num', SerialNum);
+        console.log(frmdata.getAll('dropedfiles'))
         docupload(frmdata, "/EgrantsDoc/doc_create_by_ddrop");
         clear_all("by_dd");
     }
