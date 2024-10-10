@@ -187,6 +187,14 @@ namespace EmailConcatenationPOC.Converters
                     formatBuilder.Append($"background-color: #{ConvertColorToHexString(color)};");
                 }
             }
+            if (cellStyle.Alignment.WrapText)
+            {
+                formatBuilder.Append($"text-wrap: wrap;");
+            }
+            else
+            {
+                formatBuilder.Append($"text-wrap: nowrap;");
+            }
 
             bool isStrikeout = false;
             bool isItalic = false;
