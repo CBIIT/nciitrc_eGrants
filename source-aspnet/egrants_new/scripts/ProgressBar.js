@@ -1,5 +1,6 @@
 ﻿function docupload(frmdata, ctrAction) {
     //5-16
+    console.log(frmData);
     var starttime;
     var endtime;
     $.ajax({
@@ -31,6 +32,7 @@
         processData: false,
         contentType: false,
         success: function (data) {
+            console.log(data);
             $(".progress").css('display', 'none');
             $('#notice').css('visibility', 'visible').attr('href', data.url);
             $('#mssg').text(data.message);
