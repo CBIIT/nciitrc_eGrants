@@ -28,7 +28,8 @@ namespace EmailConcatenationPOC.Converters
         {
             if (!string.IsNullOrWhiteSpace(fileName) &&
                 (fileName.ToLower().EndsWith(".xls") ||
-                fileName.ToLower().EndsWith(".xlsx")))
+                fileName.ToLower().EndsWith(".xlsx") ||
+                fileName.ToLower().EndsWith(".xlt")))
                 return true;
             return false;
         }
@@ -68,7 +69,7 @@ namespace EmailConcatenationPOC.Converters
                             }
 
                             var sheet = workbook.GetSheetAt(i);
-                            sb.AppendLine("<table>");
+                            sb.AppendLine("<table style=\"border-collapse: collapse;\">");
                             for (int row = 0; row <= sheet.LastRowNum; row++)
                             {
                                 var currentRow = sheet.GetRow(row);
@@ -90,7 +91,7 @@ namespace EmailConcatenationPOC.Converters
                                             var contentText = cell.ToString();
                                             if (contentText.Contains("3.14"))
                                             {
-                                                Console.WriteLine("ahoy !");
+                              //                  Console.WriteLine("ahoy !");
                                             }
 
                                             StringBuilder formatBuilder = GetFormat(cellStyle, true, null);
@@ -132,7 +133,7 @@ namespace EmailConcatenationPOC.Converters
                             }
 
                             var sheet = workbook.GetSheetAt(i);             // TODO : support multiple sheets
-                            sb.AppendLine("<table><body><html>");
+                            sb.AppendLine("<table style=\"border-collapse: collapse;\"><body><html>");
                             for (int row = 0; row <= sheet.LastRowNum; row++)
                             {
                                 var currentRow = sheet.GetRow(row);
@@ -151,7 +152,7 @@ namespace EmailConcatenationPOC.Converters
                                             var contentText = cell.ToString();
                                             if (contentText.Contains("3.14"))
                                             {
-                                                Console.WriteLine("ahoy !");
+                             //                   Console.WriteLine("ahoy !");
                                             }
 
                                             var formatBuilder = GetFormat(cellStyle, false, workbook);
