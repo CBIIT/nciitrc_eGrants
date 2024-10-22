@@ -418,6 +418,7 @@
     <Compile Include="Converters\UnrecognizedTextConverter.cs" />
     <Compile Include="Converters\WordConverter.cs" />
     <Compile Include="Converters\WordDocConverter.cs" />
+    <Compile Include="EGStyle.cs" />
     <Compile Include="Interfaces\IConvertToPdf.cs" />
     <Compile Include="Interfaces\IWordDocConverter.cs" />
     <Compile Include="Interfaces\IEmailTextConverter.cs" />

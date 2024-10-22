@@ -15,6 +15,9 @@ namespace EmailConcatenationPOC.Converters
 {
     internal class ExcelXLSMConverter : IExcelXLSMConverter, IConvertToPdf
     {
+        private readonly string DYNAMIC_SECTION_TAG= "|| Here is where the generated styles go ||";
+        private Dictionary<string, EGStyle> cssToClass = new Dictionary<string, EGStyle>();
+
         public bool SupportsThisFileType(string fileName)
         {
             if (!string.IsNullOrWhiteSpace(fileName) &&
@@ -100,9 +103,12 @@ namespace EmailConcatenationPOC.Converters
                                     // MLH : is there a way to handle cellStyle.WrapText == false ?
                                     // floating divs maybe ? sounds risky
 
-                                    StringBuilder formatBuilder = GetFormat(cellStyle, true, workbook);
+                                    //StringBuilder formatBuilder = GetFormat(cellStyle, true, workbook);
+                                    var egStyle = GetFormat(cellStyle, true, workbook);
+                                    AddOrReuseAStyleClass(egStyle, classes);
 
-                                    sb.Append($"<td class=\"{string.Join(";",classes)}\" style=\"{formatBuilder.ToString()}\">{cell.GetFormattedString()}</td>");
+                            //        sb.Append($"<td class=\"{string.Join(";", classes)}\" style=\"{formatBuilder.ToString()}\">{cell.GetFormattedString()}</td>");
+                                    sb.Append($"<td class=\"{string.Join(" ",classes)}\" >{cell.GetFormattedString()}</td>");
                                 }
                                 else
                                 {
@@ -131,14 +137,30 @@ namespace EmailConcatenationPOC.Converters
                 sb.AppendLine($"</body></html>");
             }
 
-            // MLH : diagnostics, delete later :
-            string createText = "Hello and Welcome" + Environment.NewLine;
-            File.WriteAllText(".\\giant.html", sb.ToString());
+            // add in the dynamic classes
+            var dynamicClasses = new StringBuilder();
+            foreach(var customStyle in cssToClass.Keys)
+            {
+                var styleElement = cssToClass[customStyle];
+                dynamicClasses.Append(styleElement.RenderFullCssWithName());
+            }
+            var finalML = sb.ToString().Replace(DYNAMIC_SECTION_TAG, dynamicClasses.ToString());
 
+            // MLH : diagnostics, delete later :
+            File.WriteAllText(".\\giantNew.html", finalML);
 
             var renderer = new ChromePdfRenderer();
-            using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
+
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            // the code that you want to measure comes here
+
+            //using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
+            using (var pdfDocument = renderer.RenderHtmlAsPdf(finalML))
             {
+                watch.Stop();
+                var elapsedMs = watch.ElapsedMilliseconds;
+                Console.WriteLine($"Elapsed milliseconds: {elapsedMs}");
+
                 using (var memoryStream = new MemoryStream())
                 {
                     pdfDocument.Stream.CopyTo(memoryStream);
@@ -151,6 +173,21 @@ namespace EmailConcatenationPOC.Converters
 
         }
 
+        private void AddOrReuseAStyleClass(EGStyle newStyle, List<string> classesThisTd)
+        {
+            var candidateCss = newStyle.RenderClassBodyToString();
+            if (cssToClass.ContainsKey(candidateCss))               // this is an exact match check
+            {
+                // already there ... lets use that one
+                var preExistingClass = cssToClass[candidateCss];
+                classesThisTd.Add(preExistingClass.GetName());
+            } else
+            {
+                cssToClass.Add(candidateCss, newStyle);
+                classesThisTd.Add(newStyle.GetName());
+            }
+        }
+
         private string GetCSSClasses()
         {
             return "<html><head><style>" +
@@ -158,28 +195,34 @@ namespace EmailConcatenationPOC.Converters
                         ".center {\r\n  text-align: center;\r\n } " +
                         ".left {\r\n  text-align: left;\r\n } " +
                         ".right {\r\n  text-align: right;\r\n } " +
+                        DYNAMIC_SECTION_TAG +
                         "</style></head><body>";
         }
 
 //        private StringBuilder GetFormat(IXLStyle cellStyle, bool isXlsx, HSSFWorkbook workbook)
-        private StringBuilder GetFormat(IXLStyle cellStyle, bool isXlsx, XLWorkbook workbook)
+        private EGStyle GetFormat(IXLStyle cellStyle, bool isXlsx, XLWorkbook workbook)
         {
+            var egStyle = new EGStyle();
             var formatBuilder = new StringBuilder();
             if (cellStyle.Border.TopBorder != XLBorderStyleValues.None)
             {
-                formatBuilder.Append("border-top: 1px solid black;");
+                egStyle.borderTop = true;
+//                formatBuilder.Append("border-top: 1px solid black;");
             }
             if (cellStyle.Border.LeftBorder != XLBorderStyleValues.None)
             {
-                formatBuilder.Append("border-left: 1px solid black;");
+                egStyle.borderLeft = true;
+                //formatBuilder.Append("border-left: 1px solid black;");
             }
             if (cellStyle.Border.RightBorder != XLBorderStyleValues.None)
             {
-                formatBuilder.Append("border-right: 1px solid black;");
+                egStyle.borderRight = true;
+                //formatBuilder.Append("border-right: 1px solid black;");
             }
             if (cellStyle.Border.BottomBorder != XLBorderStyleValues.None)
             {
-                formatBuilder.Append("border-bottom: 1px solid black;");
+                egStyle.borderBottom = true;
+                //formatBuilder.Append("border-bottom: 1px solid black;");
             }
             if (cellStyle.Fill != null && cellStyle.Fill.PatternType != null && cellStyle.Fill.PatternType != XLFillPatternValues.None)
             {
@@ -190,56 +233,58 @@ namespace EmailConcatenationPOC.Converters
                     if (!color.Color.Name.Equals("Transparent", StringComparison.InvariantCultureIgnoreCase))
                     {
                         formatBuilder.Append($"background-color: #{ConvertColorToHexString(color)};");
+                        egStyle.backgroundColor = ConvertColorToHexString(color);
                     }
                 } else
                 {
                     // MLH : slows things down too much ?
 
-                    //var themeColor = color.ThemeColor;
-                    //XLColor rgb;
-                    //switch(themeColor)
-                    //{
-                    //    case XLThemeColor.Accent1:
-                    //        //fontColor = ConvertColorToHexString(workbook.Theme.Background1);
-                    //        rgb = workbook.Theme.Accent1;
-                    //        break;
-                    //    case XLThemeColor.Accent2:
-                    //        rgb = workbook.Theme.Accent2;
-                    //        break;
-                    //    case XLThemeColor.Accent3:
-                    //        rgb = workbook.Theme.Accent3;
-                    //        break;
-                    //    case XLThemeColor.Accent4:
-                    //        rgb = workbook.Theme.Accent4;
-                    //        break;
-                    //    case XLThemeColor.Accent5:
-                    //        rgb = workbook.Theme.Accent5;
-                    //        break;
-                    //    case XLThemeColor.Accent6:
-                    //        rgb = workbook.Theme.Accent6;
-                    //        break;
-                    //    case XLThemeColor.Background1:
-                    //        rgb = workbook.Theme.Background1;
-                    //        break;
-                    //    case XLThemeColor.Background2:
-                    //        rgb = workbook.Theme.Background2;
-                    //        break;
-                    //    case XLThemeColor.Text1:
-                    //        rgb = workbook.Theme.Text1;
-                    //        break;
- 
-                    //    default:
-                    //        rgb = XLColor.FromName("White");
-                    //        break;
-                    //}
-                    //formatBuilder.Append($"background-color: #{ConvertColorToHexString(rgb)};");
-                    formatBuilder.Append($"background-color: #ffffff;");
+                    var themeColor = color.ThemeColor;
+                    XLColor rgb;
+                    switch (themeColor)
+                    {
+                        case XLThemeColor.Accent1:
+                            rgb = workbook.Theme.Accent1;
+                            break;
+                        case XLThemeColor.Accent2:
+                            rgb = workbook.Theme.Accent2;
+                            break;
+                        case XLThemeColor.Accent3:
+                            rgb = workbook.Theme.Accent3;
+                            break;
+                        case XLThemeColor.Accent4:
+                            rgb = workbook.Theme.Accent4;
+                            break;
+                        case XLThemeColor.Accent5:
+                            rgb = workbook.Theme.Accent5;
+                            break;
+                        case XLThemeColor.Accent6:
+                            rgb = workbook.Theme.Accent6;
+                            break;
+                        case XLThemeColor.Background1:
+                            rgb = workbook.Theme.Background1;
+                            break;
+                        case XLThemeColor.Background2:
+                            rgb = workbook.Theme.Background2;
+                            break;
+                        case XLThemeColor.Text1:
+                            rgb = workbook.Theme.Text1;
+                            break;
+
+                        default:
+                            rgb = XLColor.FromName("White");
+                            break;
+                    }
+//                    formatBuilder.Append($"background-color: #{ConvertColorToHexString(rgb)};");
+                    egStyle.backgroundColor = ConvertColorToHexString(rgb);
+                    //formatBuilder.Append($"background-color: #ffffff;");
                 }
 
             }
             if (cellStyle.Alignment.WrapText)
             {
-                formatBuilder.Append($"text-wrap: wrap;");
+                egStyle.wrapText = true;
+//                formatBuilder.Append($"text-wrap: wrap;");
             }
             //else
             //{
@@ -262,7 +307,8 @@ namespace EmailConcatenationPOC.Converters
             if (font.FontColor.ColorType == XLColorType.Color)
             {
                 // fontColor = font.FontColor.Color.ToString();    // has alpha value
-                fontColor = ConvertColorToHexString(font.FontColor);
+                //fontColor = ConvertColorToHexString(font.FontColor);
+                egStyle.fontColor = ConvertColorToHexString(font.FontColor);
             } else if (font.FontColor.ColorType == XLColorType.Theme)
             {
                 //fontColor = workbook.Theme.
@@ -299,29 +345,39 @@ namespace EmailConcatenationPOC.Converters
                     case XLThemeColor.Accent6:
                         fontColor = ConvertColorToHexString(workbook.Theme.Accent6);
                         break;
+
                 }
+                egStyle.fontColor = fontColor;
             }
-            fontSize = font.FontSize;
+//            fontSize = font.FontSize;
+            egStyle.fontSize = font.FontSize;
 
             if (isBold)
             {
-                formatBuilder.Append("font-weight: bold;");
+                egStyle.isBold = true;
+//                formatBuilder.Append("font-weight: bold;");
             }
-            if (isStrikeout || isUnderline)
-            {
-                var strikeout = isStrikeout ? "line-through" : "";
-                var underline = (isUnderline) ? "underline" : "";
-                formatBuilder.Append($"text-decoration: {strikeout}{underline};");
-            }
+            if (isStrikeout)
+                egStyle.isStrikeout = true;
+            if (isUnderline)
+                egStyle.isUnderline = true;
+            //if (isStrikeout || isUnderline)
+            //{
+            //    var strikeout = isStrikeout ? "line-through" : "";
+            //    var underline = (isUnderline) ? "underline" : "";
+            //    formatBuilder.Append($"text-decoration: {strikeout}{underline};");
+            //}
             if (isItalic)
             {
-                formatBuilder.Append("font-style: italic;");
+                egStyle.isItalic = true;
+//                formatBuilder.Append("font-style: italic;");
             }
 
-            formatBuilder.Append($"color: #{fontColor};");
-            formatBuilder.Append($"font-size: {fontSize}px;");
+            //formatBuilder.Append($"color: #{fontColor};");
+            //formatBuilder.Append($"font-size: {fontSize}px;");
 
-            return formatBuilder;
+            return egStyle;
+//            return formatBuilder;
         }
 
         public string ConvertColorToHexString(XLColor color)

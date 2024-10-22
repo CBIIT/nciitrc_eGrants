@@ -100,7 +100,7 @@ namespace EmailConcatenationPOC.Converters
                                             string formatString = dataFormat.GetFormat(cellStyle.DataFormat);
                                             formula.EvaluateInCell(cell);
                                             string cellVal = GetFormattedCellValue(cell, workbook);
-                                            sb.Append($"<td class=\"{string.Join(";", classes)}\" style=\"{formatBuilder.ToString()}\">{cellVal}</td>");
+                                            sb.Append($"<td class=\"{string.Join(" ", classes)}\" style=\"{formatBuilder.ToString()}\">{cellVal}</td>");
                                         }
                                         else
                                         {
@@ -160,7 +160,7 @@ namespace EmailConcatenationPOC.Converters
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             formatString = dataFormat.GetFormat(cellStyle.DataFormat);
                                             formula.EvaluateInCell(cell);
-                                            sb.Append($"<td class=\"{string.Join(";", classes)}\" style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
+                                            sb.Append($"<td class=\"{string.Join(" ", classes)}\" style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
                                         } else
                                         {
                                             // it's null, but add placeholder table data
