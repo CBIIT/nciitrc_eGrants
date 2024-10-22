@@ -489,7 +489,16 @@
     <Content Include="Excel\workbook_calcs.xlsm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Excel\simple_small_excel_example.msg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Excel\workbook_calcs.xlsx" />
+    <Content Include="Excel\workbook_calcs.xlt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Excel\xlt_email.msg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Images\four_image_types.msg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -497,6 +506,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Outlook\mixed_message_example.msg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="kitchen_sink_test.msg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lisa_test.msg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />

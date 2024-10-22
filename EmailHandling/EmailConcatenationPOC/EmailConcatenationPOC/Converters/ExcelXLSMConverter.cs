@@ -70,7 +70,7 @@ namespace EmailConcatenationPOC.Converters
                         int row = 1;
 
                         //var sheet = workbook.GetSheetAt(i);
-                        sb.AppendLine("<table>");
+                        sb.AppendLine("<table style=\"border-collapse: collapse;\">");
                         //                        for (int row = 0; row <= sheet.LastRowNum; row++)
                         //                      foreach(var currentRow in sheet.Rows())
                         while (row <= rowCount)
@@ -85,13 +85,12 @@ namespace EmailConcatenationPOC.Converters
                             while (column <= columnCount)
                             {
                                 var cell = sheet.Cell(row, column);
-//                                    var cell = currentRow.GetCell(col);
                                 if (cell != null)
                                 {
                                     var contentText = cell.Value.ToString();
                                     if (contentText.Contains("3.14159265359"))
                                     {
-                                        Console.WriteLine("ahoy !");
+                     //                   Console.WriteLine("ahoy !");
                                     }
 
                                     //ICellStyle cellStyle = cell.CellStyle;
@@ -131,7 +130,11 @@ namespace EmailConcatenationPOC.Converters
             //    sb.AppendLine($"<p>Exception : {ex}</p>");
                 sb.AppendLine($"</body></html>");
             }
-            
+
+            // MLH : diagnostics, delete later :
+            string createText = "Hello and Welcome" + Environment.NewLine;
+            File.WriteAllText(".\\giant.html", sb.ToString());
+
 
             var renderer = new ChromePdfRenderer();
             using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
@@ -182,19 +185,67 @@ namespace EmailConcatenationPOC.Converters
             {
                 var color = cellStyle.Fill.BackgroundColor;
 
-                if (!color.Color.Name.Equals("Transparent", StringComparison.InvariantCultureIgnoreCase))
+                if (color.ColorType != XLColorType.Theme)
                 {
-                    formatBuilder.Append($"background-color: #{ConvertColorToHexString(color)};");
+                    if (!color.Color.Name.Equals("Transparent", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        formatBuilder.Append($"background-color: #{ConvertColorToHexString(color)};");
+                    }
+                } else
+                {
+                    // MLH : slows things down too much ?
+
+                    //var themeColor = color.ThemeColor;
+                    //XLColor rgb;
+                    //switch(themeColor)
+                    //{
+                    //    case XLThemeColor.Accent1:
+                    //        //fontColor = ConvertColorToHexString(workbook.Theme.Background1);
+                    //        rgb = workbook.Theme.Accent1;
+                    //        break;
+                    //    case XLThemeColor.Accent2:
+                    //        rgb = workbook.Theme.Accent2;
+                    //        break;
+                    //    case XLThemeColor.Accent3:
+                    //        rgb = workbook.Theme.Accent3;
+                    //        break;
+                    //    case XLThemeColor.Accent4:
+                    //        rgb = workbook.Theme.Accent4;
+                    //        break;
+                    //    case XLThemeColor.Accent5:
+                    //        rgb = workbook.Theme.Accent5;
+                    //        break;
+                    //    case XLThemeColor.Accent6:
+                    //        rgb = workbook.Theme.Accent6;
+                    //        break;
+                    //    case XLThemeColor.Background1:
+                    //        rgb = workbook.Theme.Background1;
+                    //        break;
+                    //    case XLThemeColor.Background2:
+                    //        rgb = workbook.Theme.Background2;
+                    //        break;
+                    //    case XLThemeColor.Text1:
+                    //        rgb = workbook.Theme.Text1;
+                    //        break;
+ 
+                    //    default:
+                    //        rgb = XLColor.FromName("White");
+                    //        break;
+                    //}
+                    //formatBuilder.Append($"background-color: #{ConvertColorToHexString(rgb)};");
+                    formatBuilder.Append($"background-color: #ffffff;");
                 }
+
             }
             if (cellStyle.Alignment.WrapText)
             {
                 formatBuilder.Append($"text-wrap: wrap;");
             }
-            else
-            {
-                formatBuilder.Append($"text-wrap: nowrap;");
-            }
+            //else
+            //{
+            //    // MLH : this might be slowing things down to much and already true by default
+            //    formatBuilder.Append($"text-wrap: nowrap;");
+            //}
 
             bool isStrikeout = false;
             bool isItalic = false;

@@ -12,7 +12,7 @@ namespace EmailConcatenationPOC
         public static readonly List<string> UndiscoveredFileTypes = new List<string> { ".wpd", ".mdi", ".oft", ".mht" };
         public static readonly List<string> ExplicitlyUnsupportedFileTypes = new List<string> { ".nal", ".qrp", ".exe", ".dot", ".pd", ".ms", ".wma", ".zip", ".inf", ".doc" };
         public static readonly List<string> FormattedTextTypes = new List<string> { ".txt", ".log", ".dat" };
-        public static readonly List<string> ExcelTypes = new List<string> { ".xlst", ".xls", ".xlsm", ".xlsb", ".xltx", ".xlm", ".slk", ".xlt", ".xlw" };
+        public static readonly List<string> ExcelTypes = new List<string> { ".xlst", ".xls", ".xlsm", ".xlsb", ".xltx", ".xlm", ".slk", ".xlw" };
         public static readonly List<string> UnsupportedExcelTypes = new List<string> { ".xlst", ".xlsb", ".xltx", ".xlm", ".slk", ".xlt", ".xlw" };
 
         // example 1 ... no embedded message files
@@ -57,5 +57,16 @@ namespace EmailConcatenationPOC
         // forumulas
         public const string ExamplePath14 = ".\\Excel\\calcs_test.msg";
 
+        // xlt 
+        public const string ExamplePath15 = ".\\Excel\\xlt_email.msg";
+
+        // kitchen sink 
+        public const string ExamplePath16 = ".\\kitchen_sink_test.msg";
+
+        // lisa test
+        public const string ExamplePathLisa = ".\\lisa_test.msg";
+
+        // smaller version of lisa test, checking for quality, accuracy, completeness
+        public const string ExamplePathLisaSmall = ".\\Excel\\simple_small_excel_example.msg";
     }
 }
