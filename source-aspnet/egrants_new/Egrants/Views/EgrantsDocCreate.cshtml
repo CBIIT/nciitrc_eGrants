@@ -182,7 +182,7 @@
         //check loacte file, file type and file size
         if (!check_file()) {
             return false;
-        } else var file = document.getElementById('customFile').files[0];
+        } else var file = document.getElementById('customFile').files;
 
         var frmdata = new FormData();
         frmdata.append('file', file);
@@ -228,7 +228,6 @@
         }
 
         var frmdata = new FormData();
-        console.log(typeof(dropedfiles));
         frmdata.append('dropedfiles', dropedfiles);
         frmdata.append('appl_id', Applid);
         frmdata.append('category_id', Categoryid);
@@ -376,24 +375,32 @@
                 </div>
                 <div id="myTabContent" style="width: 700px;">
                    <!--start upload by drag drop -->
-                   <div class="tabcontent " id="by_ddrop" style="display: none">
-                      <br/>
-                      <div id="dropArea">Drag-drop only one file here to upload</div>
-                      <br/>
-                      <span>
-                         <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
-                         By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
-                      </span>
-                   </div>
+                    <div class="tabcontent " id="by_ddrop" style="display: none">
+                        <br />
+                        <div id="dropArea">Drag-drop files here to upload / convert and upload</div>
+                        <br />
+                        <span>
+                            <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
+                            By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
+                        </span>
+                        <br />
+                        <span>
+                            <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>C</u>onvert and add</button>&#0160;&#0160;
+                            By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
+                        </span>
+                    </div>
                    <!--end upload by drag drop-->
                    <!--start upload by file-->
                    <div class="tabcontent" id="by_file" style="display: none">
                       
                      <form>
-                        <div class="custom-file my-2"> @*style="width: 700px">*@
-                           <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
-                           <label class="custom-file-label" for="customFile">Choose file...</label>
-                        </div>
+                         <div class="custom-file my-2">
+                             @*style="width: 700px">*@
+                             <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                             <label class="custom-file-label" for="customFile">Choose file...</label>
+                             <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                             <label class="custom-file-label" for="customFile">Choose file...</label>
+                         </div>
                      </form>
                       @* <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br /> *@
                       <div style="display: inline"><button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to Add document [shift + alt + D]">A<u>d</u>d</button></div>

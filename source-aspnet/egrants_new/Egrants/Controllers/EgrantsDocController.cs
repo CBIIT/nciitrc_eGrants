@@ -436,7 +436,7 @@ namespace egrants_new.Controllers
         /// </returns>
         [HttpPost]
         public ActionResult doc_create_by_file(
-            HttpPostedFileBase file,
+            HttpPostedFileBase[] files,
             int appl_id,
             int category_id,
             string sub_category,
@@ -448,11 +448,11 @@ namespace egrants_new.Controllers
             string url = null;
             string mssg = null;
 
-            if (file != null && file.ContentLength > 0)
+            if (files[0] != null && files[0].ContentLength > 0)
                 try
                 {
                     // get file name and file Extension
-                    var fileName = Path.GetFileName(file.FileName);
+                    var fileName = Path.GetFileName(files[0].FileName);
                     var fileExtension = Path.GetExtension(fileName);
 
 
@@ -520,7 +520,7 @@ namespace egrants_new.Controllers
                     // upload to image sever 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
                     var filePath = Path.Combine(fileFolder, docName);
-                    file.SaveAs(filePath);
+                    files[0].SaveAs(filePath);
 
 
                     // create review url
