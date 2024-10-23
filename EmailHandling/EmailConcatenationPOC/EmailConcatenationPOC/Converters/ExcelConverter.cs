@@ -24,6 +24,9 @@ namespace EmailConcatenationPOC.Converters
 {
     internal class ExcelConverter : IExcelConverter, IConvertToPdf
     {
+        private readonly string DYNAMIC_SECTION_TAG = "|| Here is where the generated styles go ||";
+        private Dictionary<string, EGStyle> cssToClass = new Dictionary<string, EGStyle>();
+
         public bool SupportsThisFileType(string fileName)
         {
             if (!string.IsNullOrWhiteSpace(fileName) &&
@@ -36,6 +39,10 @@ namespace EmailConcatenationPOC.Converters
         public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             Console.WriteLine("Handling Excel file type case ...");
+
+            int row_break_interval = 200;
+
+            var allSheetsAsSeparatePdfs = new List<PdfDocument>();
 
             if (content.Type != ContentForPdf.ContentType.DataAttachment)
                 throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the Attachment.");
@@ -51,24 +58,29 @@ namespace EmailConcatenationPOC.Converters
             // 4    Font styles and sizes (forget the styles !! not portable!)
             // 5    Alignment and text wrapping
 
+            //if (content.Attachment.FileName == "workbook_calcs.xlsx")
+            //{
+            //    Console.WriteLine("ahoy !");
+            //}
+
             try
             {
                 using (var memoryStream = new MemoryStream(content.Attachment.Data))
                 {
                     if (content.Attachment.FileName.ToLower().EndsWith(".xlsx"))
                     {
-                        sb.AppendLine(GetCSSClasses());
+                        //sb.AppendLine(GetCSSClasses());
                         XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
                         XSSFFormulaEvaluator formula = new XSSFFormulaEvaluator(workbook);
 
                         for (int i = 0; i < workbook.NumberOfSheets; i++)
                         {
-                            if (i > 0)
-                            {
-                                sb.Append("<div class=\"page-break\"></div>");
-                            }
-
                             var sheet = workbook.GetSheetAt(i);
+
+                            Console.WriteLine($"Handling sheet : {i + 1}");
+                            int rowBreakCountdown = row_break_interval;
+                            sb.AppendLine(GetCSSClasses());
+
                             sb.AppendLine("<table style=\"border-collapse: collapse;\">");
                             for (int row = 0; row <= sheet.LastRowNum; row++)
                             {
@@ -94,13 +106,19 @@ namespace EmailConcatenationPOC.Converters
                               //                  Console.WriteLine("ahoy !");
                                             }
 
-                                            StringBuilder formatBuilder = GetFormat(cellStyle, true, null);
-                                            
+                                            //new : var egStyle = GetFormat(cellStyle, true, workbook);
+                                            //StringBuilder formatBuilder = GetFormat(cellStyle, true, null);
+                                            var egStyle = GetFormat(cellStyle, true, null);
+                                            AddOrReuseAStyleClass(egStyle, classes);
+
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             string formatString = dataFormat.GetFormat(cellStyle.DataFormat);
+
                                             formula.EvaluateInCell(cell);
+
+                                            
                                             string cellVal = GetFormattedCellValue(cell, workbook);
-                                            sb.Append($"<td class=\"{string.Join(" ", classes)}\" style=\"{formatBuilder.ToString()}\">{cellVal}</td>");
+                                            sb.Append($"<td class=\"{string.Join(" ", classes)}\" >{cellVal}</td>");
                                         }
                                         else
                                         {
@@ -109,15 +127,41 @@ namespace EmailConcatenationPOC.Converters
                                         }
                                     }
                                     sb.Append("</tr>");
+
+                                    // write this to the PDF list if its getting too long (and reset everything)
+                                    rowBreakCountdown--;
+                                    if (rowBreakCountdown <= 0)
+                                    {
+                                        Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
+                                        // make the PDF for this sheet ALONE (so we don't run out of memory)
+                                        sb.AppendLine("</table>");
+                                        sb.AppendLine("</body></html>");
+                                        var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                                        allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
+                                        // reset everything
+                                        sb.Clear();
+                                        cssToClass.Clear();
+
+                                        sb.AppendLine(GetCSSClasses());     // start a new HTML / body
+
+                                        rowBreakCountdown = row_break_interval;
+                                    }
                                 }
                             }
                             sb.AppendLine("</table>");
-                        }
-                        sb.AppendLine("</body></html>");
+
+                            sb.AppendLine("</body></html>");
+
+                            // make the PDF for anything remaining 
+                            var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                            allSheetsAsSeparatePdfs.Add(pdfThisSheet);
+                            // reset everything
+                            sb.Clear();
+                            cssToClass.Clear();
+                        } // cycle through all sheets
                     }
                     else  //    .xls
                     {
-                        sb.AppendLine(GetCSSClasses());
                         HSSFWorkbook workbook = new HSSFWorkbook(memoryStream);
                         HSSFFormulaEvaluator formula = new HSSFFormulaEvaluator(workbook);
 
@@ -127,13 +171,13 @@ namespace EmailConcatenationPOC.Converters
 
                         for (int i = 0; i < workbook.NumberOfSheets; i++)
                         {
-                            if (i > 0)
-                            {
-                                sb.Append("<div class=\"page-break\"></div>");
-                            }
-
                             var sheet = workbook.GetSheetAt(i);             // TODO : support multiple sheets
-                            sb.AppendLine("<table style=\"border-collapse: collapse;\"><body><html>");
+
+                            Console.WriteLine($"Handling sheet : {i + 1}");
+                            int rowBreakCountdown = row_break_interval;
+                            sb.AppendLine(GetCSSClasses());
+
+                            sb.AppendLine("<table style=\"border-collapse: collapse;\">");
                             for (int row = 0; row <= sheet.LastRowNum; row++)
                             {
                                 var currentRow = sheet.GetRow(row);
@@ -150,17 +194,20 @@ namespace EmailConcatenationPOC.Converters
                                             var classes = GetAlignmentClasses(cellStyle);
 
                                             var contentText = cell.ToString();
-                                            if (contentText.Contains("3.14"))
+                                            if (contentText.Contains("Red text"))
                                             {
-                             //                   Console.WriteLine("ahoy !");
+                                                Console.WriteLine("ahoy !");
                                             }
 
-                                            var formatBuilder = GetFormat(cellStyle, false, workbook);
+                                            //var formatBuilder = GetFormat(cellStyle, false, workbook);
+
+                                            var egStyle = GetFormat(cellStyle, false, workbook);
+                                            AddOrReuseAStyleClass(egStyle, classes);
 
                                             IDataFormat dataFormat = workbook.CreateDataFormat();
                                             formatString = dataFormat.GetFormat(cellStyle.DataFormat);
                                             formula.EvaluateInCell(cell);
-                                            sb.Append($"<td class=\"{string.Join(" ", classes)}\" style=\"{formatBuilder.ToString()}\">{cell.ToString()}</td>");
+                                            sb.Append($"<td class=\"{string.Join(" ", classes)}\" >{cell.ToString()}</td>");
                                         } else
                                         {
                                             // it's null, but add placeholder table data
@@ -168,11 +215,38 @@ namespace EmailConcatenationPOC.Converters
                                         }
                                     }
                                     sb.Append("</tr>");
+
+                                    // write this to the PDF list if its getting too long (and reset everything)
+                                    rowBreakCountdown--;
+                                    if (rowBreakCountdown <= 0)
+                                    {
+                                        Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
+                                        // make the PDF for this sheet ALONE (so we don't run out of memory)
+                                        sb.AppendLine("</table>");
+                                        sb.AppendLine("</body></html>");
+                                        var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                                        allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
+                                        // reset everything
+                                        sb.Clear();
+                                        cssToClass.Clear();
+
+                                        sb.AppendLine(GetCSSClasses());     // start a new HTML / body
+
+                                        rowBreakCountdown = row_break_interval;
+                                    }
                                 }
                             }
-                            sb.AppendLine("</table></html>");
+                            sb.AppendLine("</table>");
+
+                            sb.AppendLine("</body></html>");
+
+                            // make the PDF for anything remaining 
+                            var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                            allSheetsAsSeparatePdfs.Add(pdfThisSheet);
+                            // reset everything
+                            sb.Clear();
+                            cssToClass.Clear();
                         }
-                        sb.AppendLine("</body></html>");
                     }
                 }
             }
@@ -188,18 +262,83 @@ namespace EmailConcatenationPOC.Converters
             }
             
             var renderer = new ChromePdfRenderer();
-            using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
+            if (sb != null && sb.Length > 0)
             {
-                using (var memoryStream = new MemoryStream())
+                using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
                 {
-                    pdfDocument.Stream.CopyTo(memoryStream);
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        pdfDocument.Stream.CopyTo(memoryStream);
 
-                    var bytes = memoryStream.ToArray();
-                    var pdfDocFromStream = new PdfDocument(bytes);
-                    return new List<PdfDocument> { pdfDocFromStream };
+                        var bytes = memoryStream.ToArray();
+                        var pdfDocFromStream = new PdfDocument(bytes);
+                        allSheetsAsSeparatePdfs.Add(pdfDocFromStream);
+                        //return new List<PdfDocument> { pdfDocFromStream };
+                    }
                 }
             }
+            return allSheetsAsSeparatePdfs;
+        }
 
+        private PdfDocument WriteBufferToPdf(StringBuilder sb, Dictionary<string, EGStyle> cssToClass)
+        {
+            // add in the dynamic classes
+            var dynamicClasses = new StringBuilder();
+            foreach (var customStyle in cssToClass.Keys)
+            {
+                var styleElement = cssToClass[customStyle];
+                dynamicClasses.Append(styleElement.RenderFullCssWithName());
+            }
+            var finalML = sb.ToString().Replace(DYNAMIC_SECTION_TAG, dynamicClasses.ToString());
+
+            // MLH : diagnostics, delete later :
+            //File.WriteAllText(".\\giantNew.html", finalML);
+
+            var renderer = new ChromePdfRenderer();
+
+            renderer.RenderingOptions.Timeout = 5 * 60 * 1000;      // 5 minutes
+
+            // MLH : this might be necessary for PDF is blank or incomplete or 
+            //renderer.RenderingOptions.WaitFor.RenderDelay(5 * 60 * 1000);   // 5 minutes
+
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            // the code that you want to measure comes here
+
+            //using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
+            Console.WriteLine($"Total chars : {finalML.Length}");
+            using (var pdfDocument = renderer.RenderHtmlAsPdf(finalML))
+            {
+                watch.Stop();
+                var elapsedMs = watch.ElapsedMilliseconds;
+                Console.WriteLine($"Elapsed milliseconds: {elapsedMs}");
+
+                using (var memoryStream2 = new MemoryStream())
+                {
+                    pdfDocument.Stream.CopyTo(memoryStream2);
+
+                    var bytes = memoryStream2.ToArray();
+                    var pdfDocFromStream = new PdfDocument(bytes);
+                    return pdfDocFromStream;
+                    //allSheetsAsSeparatePdfs.Add(pdfDocFromStream);
+                    //return new List<PdfDocument> { pdfDocFromStream };
+                }
+            }
+        }
+
+        private void AddOrReuseAStyleClass(EGStyle newStyle, List<string> classesThisTd)
+        {
+            var candidateCss = newStyle.RenderClassBodyToString();
+            if (cssToClass.ContainsKey(candidateCss))               // this is an exact match check
+            {
+                // already there ... lets use that one
+                var preExistingClass = cssToClass[candidateCss];
+                classesThisTd.Add(preExistingClass.GetName());
+            }
+            else
+            {
+                cssToClass.Add(candidateCss, newStyle);
+                classesThisTd.Add(newStyle.GetName());
+            }
         }
 
         private string GetFormattedCellValue(ICell cell, IWorkbook workbook)
@@ -247,27 +386,33 @@ namespace EmailConcatenationPOC.Converters
                         ".center {\r\n  text-align: center;\r\n } " +
                         ".left {\r\n  text-align: left;\r\n } " +
                         ".right {\r\n  text-align: right;\r\n } " +
+                        DYNAMIC_SECTION_TAG +
                         "</style></head><body>";
         }
 
-        private StringBuilder GetFormat(ICellStyle cellStyle, bool isXlsx, HSSFWorkbook workbook)
+        private EGStyle GetFormat(ICellStyle cellStyle, bool isXlsx, HSSFWorkbook workbook)
         {
-            var formatBuilder = new StringBuilder();
+            var egStyle = new EGStyle();
+//            var formatBuilder = new StringBuilder();
             if (cellStyle.BorderTop != 0)
             {
-                formatBuilder.Append("border-top: 1px solid black;");
+                egStyle.borderTop = true;
+//                formatBuilder.Append("border-top: 1px solid black;");
             }
             if (cellStyle.BorderLeft != 0)
             {
-                formatBuilder.Append("border-left: 1px solid black;");
+                egStyle.borderLeft = true;
+//                formatBuilder.Append("border-left: 1px solid black;");
             }
             if (cellStyle.BorderRight != 0)
             {
-                formatBuilder.Append("border-right: 1px solid black;");
+                egStyle.borderRight = true;
+//                formatBuilder.Append("border-right: 1px solid black;");
             }
             if (cellStyle.BorderBottom != 0)
             {
-                formatBuilder.Append("border-bottom: 1px solid black;");
+                egStyle.borderBottom = true;
+   //             formatBuilder.Append("border-bottom: 1px solid black;");
             }
             if (cellStyle.FillForegroundColorColor != null)
             {
@@ -279,15 +424,19 @@ namespace EmailConcatenationPOC.Converters
                 if (!isXlsx && convertedHexColor.Equals("000000"))
                     convertedHexColor = "FFFFFF";
 
-                formatBuilder.Append($"background-color: #{convertedHexColor};");
+                egStyle.backgroundColor = convertedHexColor;        // this is a "fill foreground" color = background (???)
+                //formatBuilder.Append($"background-color: #{convertedHexColor};");
             }
             if (cellStyle.WrapText)
             {
-                formatBuilder.Append($"text-wrap: wrap;");
-            } else
-            {
-                formatBuilder.Append($"text-wrap: nowrap;");
+                egStyle.wrapText = true;
+                //formatBuilder.Append($"text-wrap: wrap;");
             }
+            //else
+            //{
+            // MLH : this might be slowing things down to much and already true by default
+            //    formatBuilder.Append($"text-wrap: nowrap;");
+            //}
 
             bool isStrikeout = false;
             bool isItalic = false;
@@ -329,25 +478,17 @@ namespace EmailConcatenationPOC.Converters
                 }
             }
 
-            if (isBold)
-            {
-                formatBuilder.Append("font-weight: bold;");
-            }
-            if (isStrikeout || isUnderline)
-            {
-                var strikeout = isStrikeout ? "line-through" : "";
-                var underline = (isUnderline) ? "underline" : "";
-                formatBuilder.Append($"text-decoration: {strikeout}{underline};");
-            }
-            if (isItalic)
-            {
-                formatBuilder.Append("font-style: italic;");
-            }
+            egStyle.isBold = isBold;
+            egStyle.isUnderline = isUnderline;
+            egStyle.isStrikeout = isStrikeout;
 
-            formatBuilder.Append($"color: {fontColor};");
-            formatBuilder.Append($"font-size: {fontSize}px;");
+            egStyle.fontColor = fontColor;
+            egStyle.fontSize = fontSize;
+            //egStyle.fontColor = ConvertColorToHexString(font.FontColor);
+            //egStyle.backgroundColor = fontColor;
+            //formatBuilder.Append($"font-size: {fontSize}px;");
 
-            return formatBuilder;
+            return egStyle;
         }
 
         public List<string> GetAlignmentClasses(ICellStyle cellStyle)

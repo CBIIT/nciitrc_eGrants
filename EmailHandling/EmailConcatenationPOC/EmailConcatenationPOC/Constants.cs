@@ -68,5 +68,8 @@ namespace EmailConcatenationPOC
 
         // smaller version of lisa test, checking for quality, accuracy, completeness
         public const string ExamplePathLisaSmall = ".\\Excel\\simple_small_excel_example.msg";
+
+        // mega example xlsx version
+        public const string ExamplePathMegaXls = ".\\mega_xls_example2.msg";
     }
 }

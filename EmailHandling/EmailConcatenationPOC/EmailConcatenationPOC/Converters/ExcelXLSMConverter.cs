@@ -144,7 +144,7 @@ namespace EmailConcatenationPOC.Converters
                         sb.AppendLine("</table>");
                         sb.AppendLine("</body></html>");
 
-                        // make the PDF for this sheet ALONE (so we don't run out of memory)
+                        // make the PDF for anything remaining 
                         var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
                         allSheetsAsSeparatePdfs.Add(pdfThisSheet);
                         // reset everything
@@ -167,6 +167,22 @@ namespace EmailConcatenationPOC.Converters
                 sb.AppendLine($"</body></html>");
             }
 
+            var renderer = new ChromePdfRenderer();
+            if (sb != null && sb.Length > 0)
+            {
+                using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        pdfDocument.Stream.CopyTo(memoryStream);
+
+                        var bytes = memoryStream.ToArray();
+                        var pdfDocFromStream = new PdfDocument(bytes);
+                        allSheetsAsSeparatePdfs.Add(pdfDocFromStream);
+                        //return new List<PdfDocument> { pdfDocFromStream };
+                    }
+                }
+            }
 
             return allSheetsAsSeparatePdfs;
         }
@@ -246,7 +262,7 @@ namespace EmailConcatenationPOC.Converters
         private EGStyle GetFormat(IXLStyle cellStyle, bool isXlsx, XLWorkbook workbook)
         {
             var egStyle = new EGStyle();
-            var formatBuilder = new StringBuilder();
+            // var formatBuilder = new StringBuilder();
             if (cellStyle.Border.TopBorder != XLBorderStyleValues.None)
             {
                 egStyle.borderTop = true;
@@ -275,7 +291,7 @@ namespace EmailConcatenationPOC.Converters
                 {
                     if (!color.Color.Name.Equals("Transparent", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        formatBuilder.Append($"background-color: #{ConvertColorToHexString(color)};");
+                        //formatBuilder.Append($"background-color: #{ConvertColorToHexString(color)};");
                         egStyle.backgroundColor = ConvertColorToHexString(color);
                     }
                 } else
