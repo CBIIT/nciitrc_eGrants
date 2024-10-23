@@ -66,6 +66,12 @@ namespace EmailConcatenationPOC
         {
             Console.WriteLine("Looking for Outlook files with multiple attachments ...");
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            // the code that you want to measure comes here
+
+
+
+
             IronPdf.License.LicenseKey = "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
 
             // Disable local disk access or cross-origin requests
@@ -150,6 +156,11 @@ namespace EmailConcatenationPOC
             }
 
             Console.WriteLine("Attachments processed.");
+
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            Console.WriteLine($"Elapsed seconds: {elapsedMs / 1000}");
+
             Console.ReadLine();
         }
     }
