@@ -84,7 +84,7 @@ namespace EmailConcatenationPOC
                     Message = msg
                 };
                 var mainEmailPdf = EmailTextConverter.ToPdfDocument(mainEmailContent);              // Top level email content
-                filesToMerge.Add(mainEmailPdf);
+                filesToMerge.AddRange(mainEmailPdf);
 
                 var attachments = msg.Attachments;
                 int count = 0;
@@ -109,7 +109,7 @@ namespace EmailConcatenationPOC
                             if (converter.SupportsThisFileType(storageAttachment.FileName))
                             {
                                 var pdfDoc = converter.ToPdfDocument(content);
-                                filesToMerge.Add(pdfDoc);
+                                filesToMerge.AddRange(pdfDoc);
                                 fileHandled = true;
                                 break;
                             }
@@ -125,7 +125,7 @@ namespace EmailConcatenationPOC
                             Message = messageAttachment
                         };
                         var messagePdf = EmailTextConverter.ToPdfDocument(plainTextContent);
-                        filesToMerge.Add(messagePdf);
+                        filesToMerge.AddRange(messagePdf);
                     }
                     else
                     {
@@ -134,7 +134,7 @@ namespace EmailConcatenationPOC
                             SimpleMessage = "This file was not recognized as either an email message nor as an attachment file."
                         };
                         var unrecogniedPDF = unrecognizedTextConverter.ToPdfDocument(content);
-                        filesToMerge.Add(unrecogniedPDF);
+                        filesToMerge.AddRange(unrecogniedPDF);
                     }
                 }
             }

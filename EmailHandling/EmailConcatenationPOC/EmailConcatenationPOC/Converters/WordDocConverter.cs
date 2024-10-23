@@ -20,7 +20,7 @@ namespace EmailConcatenationPOC.Converters
             return false;
         }
 
-        public PdfDocument ToPdfDocument(ContentForPdf content)
+        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             Console.WriteLine("Handling Word .doc file type case ...");
 
@@ -32,7 +32,7 @@ namespace EmailConcatenationPOC.Converters
                     document.SaveToStream(pdfStream, FileFormat.PDF);
                     pdfStream.Position = 0;
                     var newPdfFile = new PdfDocument(pdfStream);
-                    return newPdfFile;
+                    return new List<PdfDocument> { newPdfFile };
                 }
             }
         }

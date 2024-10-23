@@ -27,7 +27,7 @@ namespace EmailConcatenationPOC.Converters
             return false;
         }
 
-        public PdfDocument ToPdfDocument(ContentForPdf content)
+        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             Console.WriteLine("Handling explicitly unsupported file type case ...");
 
@@ -50,7 +50,7 @@ namespace EmailConcatenationPOC.Converters
 
                     var bytes = memoryStream.ToArray();
                     var pdfDocFromStream = new PdfDocument(bytes);
-                    return pdfDocFromStream;
+                    return new List<PdfDocument> { pdfDocFromStream };
                 }
             }
         }

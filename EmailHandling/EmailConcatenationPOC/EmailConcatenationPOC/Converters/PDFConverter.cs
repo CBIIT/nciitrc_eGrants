@@ -18,12 +18,12 @@ namespace EmailConcatenationPOC.Converters
             return false;
         }
 
-        public PdfDocument ToPdfDocument(ContentForPdf content)
+        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             using (var memoryStream = new MemoryStream(content.Attachment.Data))
             {
                 var newPdfFile = new PdfDocument(memoryStream);
-                return newPdfFile;
+                return new List<PdfDocument> { newPdfFile };
             }
         }
     }

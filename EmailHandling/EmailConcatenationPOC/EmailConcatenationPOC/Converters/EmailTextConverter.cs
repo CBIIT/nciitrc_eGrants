@@ -35,7 +35,7 @@ namespace EmailConcatenationPOC.Converters
             return output;
         }
 
-        public PdfDocument ToPdfDocument(ContentForPdf content)
+        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             Console.WriteLine("Handling email message case ...");
 
@@ -57,7 +57,7 @@ namespace EmailConcatenationPOC.Converters
 
                     var bytes = memoryStream.ToArray();
                     var pdfDocFromStream = new PdfDocument(bytes);
-                    return pdfDocFromStream;
+                    return new List<PdfDocument> { pdfDocFromStream };
                 }
             }
         }
