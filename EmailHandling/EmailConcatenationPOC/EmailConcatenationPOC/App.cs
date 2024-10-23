@@ -69,9 +69,6 @@ namespace EmailConcatenationPOC
             var watch = System.Diagnostics.Stopwatch.StartNew();
             // the code that you want to measure comes here
 
-
-
-
             IronPdf.License.LicenseKey = "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
 
             // Disable local disk access or cross-origin requests
@@ -79,7 +76,7 @@ namespace EmailConcatenationPOC
 
             var filesToMerge = new List<PdfDocument>();
 
-            using (var msg = new Storage.Message(Constants.ExamplePathLisa))
+            using (var msg = new Storage.Message(Constants.ExamplePath16))
             {
                 // make the first instance of FilesToMerge the original email message.
                 Console.WriteLine($"Main email message body text: {msg.BodyText}");
