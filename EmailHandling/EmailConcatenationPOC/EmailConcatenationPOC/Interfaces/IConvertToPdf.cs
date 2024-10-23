@@ -11,6 +11,6 @@ namespace EmailConcatenationPOC
     {
         bool SupportsThisFileType(string fileName);
 
-        PdfDocument ToPdfDocument(ContentForPdf content);
+        List<PdfDocument> ToPdfDocument(ContentForPdf content);
     }
 }

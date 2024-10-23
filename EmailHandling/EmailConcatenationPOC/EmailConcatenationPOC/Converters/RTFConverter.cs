@@ -18,7 +18,7 @@ namespace EmailConcatenationPOC.Converters
             return false;
         }
 
-        public PdfDocument ToPdfDocument(ContentForPdf content)
+        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             using (var memoryStream = new MemoryStream(content.Attachment.Data))
             {
@@ -33,7 +33,7 @@ namespace EmailConcatenationPOC.Converters
                     //      paperh15840\margl1440\margr1440\margt1440\margb1440\gutter0\ltrsect 
                     // a LOT of JUNK at the end that starts ... \par }{\*\themedata 504b03041400
                     
-                    return pdf;
+                    return new List<PdfDocument> { pdf };
                 }
             }
         }

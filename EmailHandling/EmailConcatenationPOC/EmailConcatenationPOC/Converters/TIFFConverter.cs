@@ -21,7 +21,7 @@ namespace EmailConcatenationPOC.Converters
             return false;
         }
 
-        public PdfDocument ToPdfDocument(ContentForPdf content)
+        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             Console.WriteLine("Handling general image case ...");
 
@@ -45,7 +45,7 @@ namespace EmailConcatenationPOC.Converters
                     // should end up looking like this : <img src='data:image/png;base64,... [long number of characters] />' />";
                     string htmlString = $"<img src='data:image/{fileNameExtension};base64,{base64Image}' />";
                     var pdfDoc = chromeRenderer.RenderHtmlAsPdf(htmlString);
-                    return pdfDoc;
+                    return new List<PdfDocument> { pdfDoc };
                 }
             }
         }

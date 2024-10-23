@@ -19,13 +19,13 @@ namespace EmailConcatenationPOC.Converters
             return false;
         }
 
-        public PdfDocument ToPdfDocument(ContentForPdf content)
+        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             Console.WriteLine("Handling Word docx file type case ...");
 
             DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
             PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(content.Attachment.Data);
-            return pdfDocument;
+            return new List<PdfDocument> { pdfDocument };
         }
     }
 }

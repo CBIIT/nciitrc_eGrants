@@ -19,7 +19,7 @@ namespace EmailConcatenationPOC.Converters
             return false;
         }
 
-        public PdfDocument ToPdfDocument(ContentForPdf content)
+        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             using (var memoryStream = new MemoryStream(content.Attachment.Data))
             {
@@ -32,7 +32,7 @@ namespace EmailConcatenationPOC.Converters
                     // Render the HTML content as a PDF
                     PdfDocument pdf = htmlRenderer.RenderHtmlAsPdf(htmlContent);
                     Console.WriteLine("adding rendered pdf");
-                    return pdf;
+                    return new List<PdfDocument> { pdf };
                 }
             }
         }
