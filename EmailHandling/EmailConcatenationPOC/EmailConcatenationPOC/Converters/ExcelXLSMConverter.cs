@@ -29,6 +29,10 @@ namespace EmailConcatenationPOC.Converters
         {
             Console.WriteLine("Handling Excel file type case ...");
 
+            int row_break_interval = 200;
+
+            var allSheetsAsSeparatePdfs = new List<PdfDocument>();
+
             if (content.Type != ContentForPdf.ContentType.DataAttachment)
                 throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the Attachment.");
 
@@ -48,7 +52,7 @@ namespace EmailConcatenationPOC.Converters
                 using (var memoryStream = new MemoryStream(content.Attachment.Data))
                 {
 
-                    sb.AppendLine(GetCSSClasses());
+                    
 
                     var workbook = new XLWorkbook(memoryStream);
 
@@ -57,19 +61,16 @@ namespace EmailConcatenationPOC.Converters
                     //XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
 
                     //for (int i = 0; i < workbook.Worksheets.Count .NumberOfSheets; i++)
-                    bool first = true;
                     foreach(var sheet in workbook.Worksheets)
                     {
-                        if (!first)
-                        {
-                            sb.Append("<div class=\"page-break\"></div>");
-                        }
-                        first = false;
+                        Console.WriteLine($"Handling sheet : {sheet.Name}");
+                        int rowBreakCountdown = row_break_interval;
+                        sb.AppendLine(GetCSSClasses());
 
                         var rowCount = sheet.LastRowUsed().RowNumber();
                         var columnCount = sheet.LastColumnUsed().ColumnNumber();
+                        Console.WriteLine($"Total rows this sheet : {rowCount}");
 
-                        
                         int row = 1;
 
                         //var sheet = workbook.GetSheetAt(i);
@@ -119,10 +120,39 @@ namespace EmailConcatenationPOC.Converters
                             }
                             sb.Append("</tr>");
                             row++;
+
+                            // write this to the PDF list if its getting too long (and reset everything)
+                            rowBreakCountdown--;
+                            if (rowBreakCountdown <= 0)
+                            {
+                                Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
+                                // make the PDF for this sheet ALONE (so we don't run out of memory)
+                                sb.AppendLine("</table>");
+                                sb.AppendLine("</body></html>");
+                                var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                                allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
+                                // reset everything
+                                sb.Clear();
+                                cssToClass.Clear();
+
+                                sb.AppendLine(GetCSSClasses());     // start a new HTML / body
+
+                                rowBreakCountdown = row_break_interval;
+                            }
+
                         }
                         sb.AppendLine("</table>");
-                    }
-                    sb.AppendLine("</body></html>");
+                        sb.AppendLine("</body></html>");
+
+                        // make the PDF for this sheet ALONE (so we don't run out of memory)
+                        var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                        allSheetsAsSeparatePdfs.Add(pdfThisSheet);
+                        // reset everything
+                        sb.Clear();
+                        cssToClass.Clear();
+
+                    } // end all sheets sheet 
+                    
                     
                 }
             }
@@ -137,9 +167,15 @@ namespace EmailConcatenationPOC.Converters
                 sb.AppendLine($"</body></html>");
             }
 
+
+            return allSheetsAsSeparatePdfs;
+        }
+
+        private PdfDocument WriteBufferToPdf(StringBuilder sb, Dictionary<string, EGStyle> cssToClass)
+        {
             // add in the dynamic classes
             var dynamicClasses = new StringBuilder();
-            foreach(var customStyle in cssToClass.Keys)
+            foreach (var customStyle in cssToClass.Keys)
             {
                 var styleElement = cssToClass[customStyle];
                 dynamicClasses.Append(styleElement.RenderFullCssWithName());
@@ -147,30 +183,37 @@ namespace EmailConcatenationPOC.Converters
             var finalML = sb.ToString().Replace(DYNAMIC_SECTION_TAG, dynamicClasses.ToString());
 
             // MLH : diagnostics, delete later :
-            File.WriteAllText(".\\giantNew.html", finalML);
+            //File.WriteAllText(".\\giantNew.html", finalML);
 
             var renderer = new ChromePdfRenderer();
+
+            renderer.RenderingOptions.Timeout = 5 * 60 * 1000;      // 5 minutes
+
+            // MLH : this might be necessary for PDF is blank or incomplete or 
+            //renderer.RenderingOptions.WaitFor.RenderDelay(5 * 60 * 1000);   // 5 minutes
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
             // the code that you want to measure comes here
 
             //using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
+            Console.WriteLine($"Total chars : {finalML.Length}");
             using (var pdfDocument = renderer.RenderHtmlAsPdf(finalML))
             {
                 watch.Stop();
                 var elapsedMs = watch.ElapsedMilliseconds;
                 Console.WriteLine($"Elapsed milliseconds: {elapsedMs}");
 
-                using (var memoryStream = new MemoryStream())
+                using (var memoryStream2 = new MemoryStream())
                 {
-                    pdfDocument.Stream.CopyTo(memoryStream);
+                    pdfDocument.Stream.CopyTo(memoryStream2);
 
-                    var bytes = memoryStream.ToArray();
+                    var bytes = memoryStream2.ToArray();
                     var pdfDocFromStream = new PdfDocument(bytes);
-                    return new List<PdfDocument> { pdfDocFromStream };
+                    return pdfDocFromStream;
+                    //allSheetsAsSeparatePdfs.Add(pdfDocFromStream);
+                    //return new List<PdfDocument> { pdfDocFromStream };
                 }
             }
-
         }
 
         private void AddOrReuseAStyleClass(EGStyle newStyle, List<string> classesThisTd)
