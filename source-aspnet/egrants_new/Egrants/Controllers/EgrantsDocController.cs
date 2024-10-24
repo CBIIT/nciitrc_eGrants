@@ -48,6 +48,8 @@ using egrants_new.Functions;
 using MsgReader.Outlook;
 using static System.Net.WebRequestMethods;
 using egrants_new.Integration.WebServices;
+using static egrants_new.Egrants_Admin.Models.Supplement;
+using IronPdf;
 
 #endregion
 
@@ -592,6 +594,29 @@ namespace egrants_new.Controllers
                     var fileName = Path.GetFileName(dropedfile.FileName);
                     var fileExtension = Path.GetExtension(fileName);
 
+                    bool concatenatedPdf = false;
+                    PdfDocument pdfResult = null;
+                    if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        concatenatedPdf = true;
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(dropedfile.InputStream))
+                        {
+                            fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
+                        }
+                        //string base64string = Convert.ToBase64String(fileData);
+                        //Storage.Message emailFile = new Storage.Message(base64string);     // usually people pass a stream, not a string
+
+                        using (var memoryStream = new MemoryStream(fileData))
+                        {
+                            Storage.Message emailFile = new Storage.Message(memoryStream);
+                            var converter = new EmailConcatenation.PdfConverter();
+                            pdfResult = converter.Convert(emailFile);
+
+                        }
+                        fileExtension = ".pdf";
+                    }
+
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(
                         appl_id,
@@ -607,7 +632,13 @@ namespace egrants_new.Controllers
 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
                     var filePath = Path.Combine(fileFolder, docName);
-                    dropedfile.SaveAs(filePath);
+                    if (!concatenatedPdf)
+                    {
+                        dropedfile.SaveAs(filePath);
+                    } else
+                    {
+                        pdfResult.SaveAs(filePath);
+                    }
 
 
                     // create review url
