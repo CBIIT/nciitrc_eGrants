@@ -455,7 +455,28 @@ namespace egrants_new.Controllers
                     var fileName = Path.GetFileName(file.FileName);
                     var fileExtension = Path.GetExtension(fileName);
 
+                    bool concatenatedPdf = false;
+                    PdfDocument pdfResult = null;
+                    if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        concatenatedPdf = true;
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(file.InputStream))
+                        {
+                            fileData = binaryReader.ReadBytes(file.ContentLength);
+                        }
+                        //string base64string = Convert.ToBase64String(fileData);
+                        //Storage.Message emailFile = new Storage.Message(base64string);     // usually people pass a stream, not a string
 
+                        using (var memoryStream = new MemoryStream(fileData))
+                        {
+                            Storage.Message emailFile = new Storage.Message(memoryStream);
+                            var converter = new EmailConcatenation.PdfConverter();
+                            pdfResult = converter.Convert(emailFile);
+
+                        }
+                        fileExtension = ".pdf";
+                    }
 
 
 
@@ -520,7 +541,14 @@ namespace egrants_new.Controllers
                     // upload to image sever 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
                     var filePath = Path.Combine(fileFolder, docName);
-                    file.SaveAs(filePath);
+
+                    if (!concatenatedPdf)
+                    {
+                        file.SaveAs(filePath);
+                    } else
+                    {
+                        pdfResult.SaveAs(filePath);
+                    }
 
 
                     // create review url
