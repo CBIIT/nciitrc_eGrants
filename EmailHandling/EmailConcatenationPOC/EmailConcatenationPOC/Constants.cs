@@ -71,5 +71,8 @@ namespace EmailConcatenationPOC
 
         // mega example xlsx version
         public const string ExamplePathMegaXls = ".\\mega_xls_example2.msg";
+
+        // giant second example ... formatting check
+        public const string GiantSecondExample = ".\\giant_second_example.msg";
     }
 }
