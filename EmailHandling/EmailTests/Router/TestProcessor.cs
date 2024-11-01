@@ -13,16 +13,27 @@ namespace EmailTests
 
     internal class TestProcessor : Processor
     {
+        private string _testSender = null;
+
         /// <summary>
         /// Overload using COM object (has registry problems)
         /// </summary>
         /// <param name="testEmail"></param>
         /// <returns></returns>
-        internal Dictionary<string, string> TestSingleEmail(MailItem testEmail)
+        internal Dictionary<string, string> TestSingleEmail(MailItem testEmail, string sender = null)
         {
             var dirPath = CommonUtilities.GetConfigVal("logDir");
             var conStr = CommonUtilities.GetConfigVal("conStr");
             var verbose = CommonUtilities.GetConfigVal("Verbose");
+
+            if (!string.IsNullOrWhiteSpace(sender))
+            {
+                _testSender = sender;
+            } else
+            {
+                _testSender = "anyNynn@anyNynn.com";    // hello every nynn !
+            }
+
             var debug = "y";    // NEVER send out emails from these tests
             SqlConnection connection = new SqlConnection(conStr);
             connection.Open();
@@ -30,6 +41,11 @@ namespace EmailTests
             HandleSingleEmail(testEmail, testEmail.Subject, testEmail.Body, verbose, connection, debug);
             var result = emailsSentThisSession;
             return result;
+        }
+
+        public override string GetSenderId(MailItem testEmail)
+        {
+            return _testSender;
         }
 
         internal Dictionary<string, string> TestSingleEmail(string From, string Subject, string Body)
