@@ -1,5 +1,5 @@
 ﻿
-logDir,,,,,C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-csxscripts\EmailHandling\EmailHandling\Out
+logDir,,,,,C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\EmailHandling\Out
 --llogDirDEV,,,,,C:\eGrants\apps\log\
 --logDirTEST,,,,,C:\eGrants\apps\log\
 --logDirPROD,,,,,C:\eGrants\apps\log\
