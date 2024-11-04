@@ -497,11 +497,12 @@ namespace Router
                     // get the appl id from the grant number in the subject line
                     // example: PASC: 5U24CA213274 - 08 - RUDIN, CHARLES M
                     // example2: Compliant PASC: 5R01CA258784 - 04 - SEN, TRIPARNA
+                    // new example as of 7/2024 !!  : Compliant: PASC: 5U01CA253915-06 - ETZIONI, RUTH D
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"FOUND subject ->{v_SubLine}", verbose);
                         string[] tokens = v_SubLine.Split(new[] { ": " }, StringSplitOptions.None);
-                        var secondPart = tokens[1].Trim();
+                        var secondPart = tokens[tokens.Length - 1].Trim();
                         CommonUtilities.ShowDiagnosticIfVerbose($"Second part : {secondPart}", verbose);
 
                         var subCat = string.Empty;
@@ -1165,7 +1166,7 @@ namespace Router
             return result;
         }
 
-        private static string GetSenderId(Outlook.MailItem currentItem)
+        public virtual string GetSenderId(Outlook.MailItem currentItem)
         {
             string id = string.Empty;
 
