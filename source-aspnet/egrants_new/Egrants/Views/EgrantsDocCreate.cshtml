@@ -107,6 +107,7 @@
             document.getElementById("by_file").style.display = "none";
             document.getElementById("by_email").style.display = "none";
             document.getElementById("btnDragdrop").style.display = "inline";
+            document.getElementById("btnPdfDragdrop").style.display = "inline";
             Init();
         }
 
@@ -114,7 +115,8 @@
             document.getElementById("by_file").style.display = "inline";
             document.getElementById("by_ddrop").style.display = "none";
             document.getElementById("by_email").style.display = "none";
-           document.getElementById("btnFileUpload").style.display = "inline";
+            document.getElementById("btnFileUpload").style.display = "inline";
+            document.getElementById("btnFilePdfUpload").style.display = "inline";
             Init();
         }
 
@@ -196,6 +198,59 @@
         clear_all("by_file");
     }
 
+    function create_pdf_by_file() {
+        clear_message("by_file");
+
+        //check admin_code
+        get_admin_code();
+
+        ////check serial number
+        if (get_serial_num() == false) {
+            return false;
+        }
+
+        //check appl_id
+        if (get_appl() == false) {
+            return false;
+        }
+
+        //check category_id and get sub_category input index
+        if (get_category_id() == false) {
+            return false;
+        } //else get_sub_category_input();
+
+        //get category_id and get sub_category input index
+        if (get_category_id() == false) {
+            return false;
+        } else get_sub_category_input();
+
+        //get sub_category
+        if (get_sub_category(input_type, input_constraint, Categoryid, CategoryName) == false) {
+            return false;
+        }
+
+        //check document_date
+        if (get_document_date() == false) {
+            return false;
+        }
+
+        //check loacte file, file type and file size
+        if (!check_file()) {
+            return false;
+        } else var file = document.getElementById('customFile').files[0];
+
+        var frmdata = new FormData();
+        frmdata.append('file', file);
+        frmdata.append('admin_code', AdminCode);
+        frmdata.append('serial_num', SerialNum);
+        frmdata.append('appl_id', Applid);
+        frmdata.append('category_id', Categoryid);
+        frmdata.append('sub_category', SubCategory);
+        frmdata.append('doc_date', DocDate);
+        docupload(frmdata, "/EgrantsDoc/doc_create_pdf_by_file");
+        clear_all("by_file");
+    }
+
     function create_by_ddrop() {
         clear_message("by_dd");
 
@@ -239,6 +294,49 @@
         clear_all("by_dd");
     }
 
+    function convert_to_pdf_by_ddrop() {
+        clear_message("by_dd");
+
+        //check admin_code
+        get_admin_code();
+
+        //check serial number
+        if (get_serial_num() == false) {
+            return false;
+        }
+
+        //check appl_id
+        if (get_appl() == false) {
+            return false;
+        }
+
+        //get category_id and get sub_category input index
+        if (get_category_id() == false) {
+            return false;
+        } else get_sub_category_input();
+
+        //get sub_category
+        if (get_sub_category(input_type, input_constraint, Categoryid, CategoryName) == false) {
+            return false;
+        }
+
+        //check document_date
+        if (get_document_date() == false) {
+            return false;
+        }
+
+        var frmdata = new FormData();
+        frmdata.append('dropedfile', dropedfile);
+        frmdata.append('appl_id', Applid);
+        frmdata.append('category_id', Categoryid);
+        frmdata.append('sub_category', SubCategory);
+        frmdata.append('doc_date', DocDate);
+        frmdata.append('admin_code', AdminCode);
+        frmdata.append('serial_num', SerialNum);
+        docupload(frmdata, "/EgrantsDoc/convert_to_pdf_by_ddrop");
+        clear_all("by_dd");
+    }
+
     function clear_all(act) {
         //reset current date
         var now = new Date();
@@ -248,9 +346,11 @@
         document.getElementById("txtDocumentdate").value = today;
 
        if (act == "by_file") {
-            document.getElementById("btnFileUpload").disabled = "disabled";
+           document.getElementById("btnFileUpload").disabled = "disabled";
+           document.getElementById("btnFilePdfUpload").disabled = "disabled";
         } else if (act == "by_dd") {
-            document.getElementById("btnDragdrop").disabled = "disabled";
+           document.getElementById("btnDragdrop").disabled = "disabled";
+           document.getElementById("btnPdfDragdrop").disabled = "disabled";
         }
 
         document.getElementById("ddlCategories").selectedIndex = 0;
@@ -335,8 +435,9 @@
     }
 
     function active_btnFileUpload() {
-       if (document.getElementById("btnFileUpload").disabled == true) {
-          document.getElementById("btnFileUpload").disabled = false;
+        if (document.getElementById("btnFileUpload").disabled == true || document.getElementById("btnFilePdfUpload").disabled == true) {
+           document.getElementById("btnFileUpload").disabled = false;
+           document.getElementById("btnFilePdfUpload").disabled = false;
        }
     }
 </script>
@@ -368,8 +469,8 @@
                   <div class="loading" style="display: none"><img src="~/Content/images/Loading.gif" width="50"/></div></td>
               <td width="700" valign="top">
                 <div class="tab" style="width: 498px">
-                   <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
-                   <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
+                   <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop'); Docreate(event, 'btnPdfDragdrop'); Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
+                   <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Docreate(event, 'btnFilePdfUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
                    <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
                 </div>
                 <div id="myTabContent" style="width: 700px;">
@@ -379,8 +480,10 @@
                       <div id="dropArea">Drag-drop only one file here to upload</div>
                       <br/>
                       <span>
-                         <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
-                         By clicking Add, I confirm that no sensitive PII or PHI is included in this file.
+                          <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" class="btn btn-primary eGrantsDocBtn" accesskey="A" title="Click here to upload document [shift + alt + A]"><u>A</u>dd</button>&#0160;&#0160;
+                          <button type="button" style="display: inline" name="CreatByDdrop" id="btnPdfDragdrop" disabled="disabled" onclick="return convert_to_pdf_by_ddrop();" class="btn btn-primary eGrantsDocBtn space-big-left" accesskey="A" title="Click here to convert a document to PDF and add it">Convert & Add</button>&#0160;&#0160;
+                          <br/>
+                          <div class="space-down">By clicking Add or Convert & Add, I confirm that no sensitive PII or PHI is included in this file.</div>
                       </span>
                    </div>
                    <!--end upload by drag drop-->
@@ -394,8 +497,11 @@
                         </div>
                      </form>
                       @* <input type="file" name="file" id="UploadFile" style="width:650px; height:30px;" /><br /> *@
-                      <div style="display: inline"><button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to Add document [shift + alt + D]">A<u>d</u>d</button></div>
-                      <div style="display: inline">By clicking Add, I confirm that no sensitive PII or PHI is included in this file.</div>
+                   <div style="display: inline">
+                       <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" disabled="disabled" onclick="return create_by_file();" class="btn btn-primary eGrantsDocBtn" accesskey="D" title="Click here to Add document [shift + alt + D]">A<u>d</u>d</button>
+                       <button style="display: inline" type="button" name="CreatByPdfFile" id="btnFilePdfUpload" disabled="disabled" onclick="return create_pdf_by_file();" class="btn btn-primary eGrantsDocBtn space-big-left" accesskey="A" title="Click here to convert a document to PDF and add it">Convert & Add</button>&#0160;&#0160;
+                   </div>
+                   <div class="space-down">By clicking Add or Convert & Add, I confirm that no sensitive PII or PHI is included in this file.</div>
                    </div>
                    <!--end upload by file-->
                    <!--start upload by email-->

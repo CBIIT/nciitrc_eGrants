@@ -455,77 +455,6 @@ namespace egrants_new.Controllers
                     var fileName = Path.GetFileName(file.FileName);
                     var fileExtension = Path.GetExtension(fileName);
 
-                    bool concatenatedPdf = false;
-                    PdfDocument pdfResult = null;
-                    if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        concatenatedPdf = true;
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(file.InputStream))
-                        {
-                            fileData = binaryReader.ReadBytes(file.ContentLength);
-                        }
-                        //string base64string = Convert.ToBase64String(fileData);
-                        //Storage.Message emailFile = new Storage.Message(base64string);     // usually people pass a stream, not a string
-
-                        using (var memoryStream = new MemoryStream(fileData))
-                        {
-                            Storage.Message emailFile = new Storage.Message(memoryStream);
-                            var converter = new EmailConcatenation.PdfConverter();
-                            pdfResult = converter.Convert(emailFile);
-
-                        }
-                        fileExtension = ".pdf";
-                    }
-
-
-
-                    //if (fileExtension == ".msg")
-                    //{
-                    //    // Load the msg file
-                    //    using (var message = new Storage.Message(fileName))
-                    //    {
-                    //        message.Save();
-                    //        Console.WriteLine("Found '" + message.Attachments.Count + "' attachments");
-
-                    //        // Loop through all the attachments
-                    //        foreach (var attachment in message.Attachments)
-                    //        {
-                    //            // Try to cast the attachment to a Message file
-                    //            var msg = attachment as Storage.Message;
-
-                    //            // If the file not is null then we have an msg file
-                    //            if (msg != null)
-                    //            {
-                    //                using (msg)
-                    //                {
-                    //                    Console.WriteLine("Found msg file '" + msg.Subject + "'");
-
-                    //                    if (!string.IsNullOrWhiteSpace(msg.MailingListSubscribe))
-                    //                        Console.WriteLine("Mailing list subscribe page: '" + msg.MailingListSubscribe + "'");
-
-                    //                    foreach (var recipient in msg.Recipients)
-                    //                    {
-                    //                        if (!string.IsNullOrWhiteSpace(recipient.Email))
-                    //                        {
-                    //                            Console.WriteLine("Recipient E-mail: '" + recipient.Email + "'");
-                    //                            System.IO.File.AppendAllText(toFile, recipient.Email + Environment.NewLine);
-                    //                        }
-                    //                        else if (!string.IsNullOrWhiteSpace(recipient.DisplayName))
-                    //                        {
-                    //                            Console.WriteLine("Recipient display name: '" + recipient.DisplayName + "'");
-                    //                            System.IO.File.AppendAllText(toFile, recipient.DisplayName + Environment.NewLine);
-                    //                        }
-                    //                    }
-                    //                }
-                    //            }
-                    //        }
-                    //    }
-                    //}
-
-
-
-
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(
                         appl_id,
@@ -542,14 +471,7 @@ namespace egrants_new.Controllers
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
                     var filePath = Path.Combine(fileFolder, docName);
 
-                    if (!concatenatedPdf)
-                    {
-                        file.SaveAs(filePath);
-                    } else
-                    {
-                        pdfResult.SaveAs(filePath);
-                    }
-
+                    file.SaveAs(filePath);
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
@@ -570,6 +492,113 @@ namespace egrants_new.Controllers
             return this.Json(new { url, message = mssg });
         }
 
+
+        // to create doc by file input
+        /// <summary>
+        /// The doc_create_pdf_by_file.
+        /// </summary>
+        /// <param name="file">
+        /// The file.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="doc_date">
+        /// The doc_date.
+        /// </param>
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpPost]
+        public ActionResult doc_create_pdf_by_file(
+            HttpPostedFileBase file,
+            int appl_id,
+            int category_id,
+            string sub_category,
+            DateTime doc_date,
+            string admin_code,
+            int serial_num)
+        {
+            var docName = string.Empty;
+            string url = null;
+            string mssg = null;
+
+            if (file != null && file.ContentLength > 0)
+                try
+                {
+                    // get file name and file Extension
+                    var fileName = Path.GetFileName(file.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
+
+                    PdfDocument pdfResult = null;
+                    if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(file.InputStream))
+                        {
+                            fileData = binaryReader.ReadBytes(file.ContentLength);
+                        }
+                        //string base64string = Convert.ToBase64String(fileData);
+                        //Storage.Message emailFile = new Storage.Message(base64string);     // usually people pass a stream, not a string
+
+                        using (var memoryStream = new MemoryStream(fileData))
+                        {
+                            Storage.Message emailFile = new Storage.Message(memoryStream);
+                            var converter = new EmailConcatenation.PdfConverter();
+                            pdfResult = converter.Convert(emailFile);
+
+                        }
+                        fileExtension = ".pdf";
+                    }
+
+                    // get document_id and creat a new docName
+                    var document_id = EgrantsDoc.GetDocID(
+                        appl_id,
+                        category_id,
+                        sub_category,
+                        doc_date,
+                        fileExtension,
+                        Convert.ToString(this.Session["ic"]),
+                        Convert.ToString(this.Session["userid"]));
+
+                    docName = Convert.ToString(document_id) + fileExtension;
+
+                    // upload to image sever 
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+
+                    pdfResult.SaveAs(filePath);
+
+                    // create review url
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
+                                         + Convert.ToString(docName);
+
+                    this.ViewBag.Message = "Done! New document has been created";
+
+                    url = this.ViewBag.FileUrl;
+                    mssg = this.ViewBag.Message;
+                }
+                catch (Exception ex)
+                {
+                    this.ViewBag.Message = "ERROR:" + ex.Message;
+                }
+            else
+                this.ViewBag.Message = "You have not specified a file.";
+
+            return this.Json(new { url, message = mssg });
+        }
 
 
         // to create doc by dragdrop
@@ -622,11 +651,96 @@ namespace egrants_new.Controllers
                     var fileName = Path.GetFileName(dropedfile.FileName);
                     var fileExtension = Path.GetExtension(fileName);
 
-                    bool concatenatedPdf = false;
+                    // get document_id and creat a new docName
+                    var document_id = EgrantsDoc.GetDocID(
+                        appl_id,
+                        category_id,
+                        sub_category,
+                        doc_date,
+                        fileExtension,
+                        Convert.ToString(this.Session["ic"]),
+                        Convert.ToString(this.Session["userid"]));
+
+                    docName = Convert.ToString(document_id) + fileExtension;
+
+
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+
+                    dropedfile.SaveAs(filePath);
+
+                    // create review url
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
+                                                                                            + Convert.ToString(docName);
+
+                    this.ViewBag.Message = "Done! New document has been created";
+
+                    url = this.ViewBag.FileUrl;
+                    mssg = this.ViewBag.Message;
+                }
+                catch (Exception ex)
+                {
+                    this.ViewBag.Message = "ERROR:" + ex.Message;
+                }
+            else
+                this.ViewBag.Message = "You have not specified a file.";
+
+            return this.Json(new { url, message = mssg });
+        }
+
+        // to create doc by dragdrop
+        /// <summary>
+        /// The doc_create_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="doc_date">
+        /// The doc_date.
+        /// </param>
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpPost]
+        public ActionResult convert_to_pdf_by_ddrop(
+            HttpPostedFileBase dropedfile,
+            int appl_id,
+            int category_id,
+            string sub_category,
+            DateTime doc_date,
+            string admin_code,
+            int serial_num)
+        {
+
+            var docName = string.Empty;
+            string url = null;
+            string mssg = null;
+
+            if (dropedfile != null && dropedfile.ContentLength > 0)
+                try
+                {
+                    // get file name and file Extension
+                    var fileName = Path.GetFileName(dropedfile.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
+
                     PdfDocument pdfResult = null;
                     if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        concatenatedPdf = true;
                         byte[] fileData;
                         using (var binaryReader = new BinaryReader(dropedfile.InputStream))
                         {
@@ -660,14 +774,8 @@ namespace egrants_new.Controllers
 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
                     var filePath = Path.Combine(fileFolder, docName);
-                    if (!concatenatedPdf)
-                    {
-                        dropedfile.SaveAs(filePath);
-                    } else
-                    {
-                        pdfResult.SaveAs(filePath);
-                    }
 
+                    pdfResult.SaveAs(filePath);
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
