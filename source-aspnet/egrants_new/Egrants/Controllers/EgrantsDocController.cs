@@ -550,8 +550,6 @@ namespace egrants_new.Controllers
                         {
                             fileData = binaryReader.ReadBytes(file.ContentLength);
                         }
-                        //string base64string = Convert.ToBase64String(fileData);
-                        //Storage.Message emailFile = new Storage.Message(base64string);     // usually people pass a stream, not a string
 
                         using (var memoryStream = new MemoryStream(fileData))
                         {
@@ -746,8 +744,6 @@ namespace egrants_new.Controllers
                         {
                             fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
                         }
-                        //string base64string = Convert.ToBase64String(fileData);
-                        //Storage.Message emailFile = new Storage.Message(base64string);     // usually people pass a stream, not a string
 
                         using (var memoryStream = new MemoryStream(fileData))
                         {
