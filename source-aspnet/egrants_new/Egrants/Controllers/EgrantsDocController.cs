@@ -520,6 +520,9 @@ namespace egrants_new.Controllers
                     var filePath = Path.Combine(fileFolder, docName);
                     file.SaveAs(filePath);
 
+                    // MLH : this is a blind way of seeing whether the problem is being caused by Linux not understanding this file sytem path format
+                    // make abundantly sure this NEVER sees its way to master (without lots of adjustments)
+                    filePath = "/egrants-file-dev.nci.gov/egrants/funded2/nci/main/delete_this_file_explorer_test.pdf";
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
