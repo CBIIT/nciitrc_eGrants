@@ -67,9 +67,24 @@
             if (data.message == 'please waiting window refresh...' && percent == 100) {
                 refresh();
             }
+        },
+        //error: function (data) {
+        //error: function (xhr, status, error) {
+        error: function (xhr) {
+            console.log(xhr.status + " :" + xhr.responseText);
+            //console.log('Hit an error :', data.message);
+            $('#mssg').text(xhr.responseText);
+        //        error: function (xhr, status, error) {
+            // Handle error
+            //console.error("Error:", error);
+            //alert("An error occurred: " + error);
         }
         
-    });
+    })
+        //.error(function (xhr) {
+        //    alert(xhr.status + " :" + xhr.responseText);
+        //})
+        ;
 }
 
 
