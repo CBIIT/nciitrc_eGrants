@@ -48,6 +48,7 @@ using egrants_new.Functions;
 using MsgReader.Outlook;
 using static System.Net.WebRequestMethods;
 using egrants_new.Integration.WebServices;
+using System.Text;
 
 #endregion
 
@@ -520,7 +521,25 @@ namespace egrants_new.Controllers
                     var fileFolder = "/egrants/funded2/nci/main/";
                     var filePath = Path.Combine(fileFolder, docName);
                     file.SaveAs(filePath);
-                    throw new Exception("MLH : delete this ... this message shows (1) the file was saved and (2) you can see exception messages after creating from file");
+                    //throw new Exception("MLH : delete this ... this message shows (1) the file was saved and (2) you can see exception messages after creating from file");
+
+                    Response.StatusCode = 500; //Write your own error code
+                    Response.Write("here is a little error blop.");
+                    return null;
+
+                    //return this.Json(new
+                    //{
+                    //    Data = new
+                    //    {
+                    //        success = false,
+                    //        error = "here is some error info",
+                    //        ExceptionStackTrack = "here is some stack trace info",
+                    //        ControllerName = "EgrantsDocController",
+                    //        ActionName = "doc_create_by_file",
+                    //        ExceptionLogTime = DateTime.Now
+                    //    },
+                    //    JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                    //});
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
@@ -534,6 +553,17 @@ namespace egrants_new.Controllers
                 catch (Exception ex)
                 {
                     this.ViewBag.Message = "ERROR:" + ex.Message;
+                    Response.StatusCode = 500; //Write your own error code
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine($"exception type: {ex.GetType().Name}");
+                    sb.AppendLine($"exception message: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        sb.AppendLine($"inner exception type: {ex.InnerException.GetType().Name}");
+                        sb.AppendLine($"inner exception message: {ex.Message}");
+                    }
+                    Response.Write(sb.ToString());
+                    return null;
                 }
             else
                 this.ViewBag.Message = "You have not specified a file.";
