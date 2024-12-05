@@ -520,6 +520,7 @@ namespace egrants_new.Controllers
                     var fileFolder = "/egrants/funded2/nci/main/";
                     var filePath = Path.Combine(fileFolder, docName);
                     file.SaveAs(filePath);
+                    throw new Exception("MLH : delete this ... this message shows (1) the file was saved and (2) you can see exception messages after creating from file");
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
