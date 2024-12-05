@@ -446,6 +446,7 @@ namespace egrants_new.Controllers
             var docName = string.Empty;
             string url = null;
             string mssg = null;
+            string filePathDiangostic = string.Empty;
 
             if (file != null && file.ContentLength > 0)
                 try
@@ -520,6 +521,7 @@ namespace egrants_new.Controllers
                     //var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
                     var fileFolder = "/egrants/funded2/nci/main/";
                     var filePath = Path.Combine(fileFolder, docName);
+                    filePathDiangostic = filePath;
                     file.SaveAs(filePath);
                     //throw new Exception("MLH : delete this ... this message shows (1) the file was saved and (2) you can see exception messages after creating from file");
 
@@ -557,6 +559,7 @@ namespace egrants_new.Controllers
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"exception type: {ex.GetType().Name}");
                     sb.AppendLine($"exception message: {ex.Message}");
+                    sb.AppendLine($"captured file path diagnostic after Path.Combine: {filePathDiangostic}");
                     if (ex.InnerException != null)
                     {
                         sb.AppendLine($"inner exception type: {ex.InnerException.GetType().Name}");
