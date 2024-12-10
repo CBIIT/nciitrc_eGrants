@@ -519,7 +519,8 @@ namespace egrants_new.Controllers
 
                     // upload to image sever 
                     //var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
-                    var fileFolder = "/egrants/funded2/nci/main/";
+                    //var fileFolder = "/egrants/funded2/nci/main/";
+                    var fileFolder = @"\\" + "nciws-d284-v.nci.nih.gov\\egrants\\funded2\\nci\\main\\";
                     var filePath = Path.Combine(fileFolder, docName);
                     filePathDiangostic = filePath;
                     file.SaveAs(filePath);
