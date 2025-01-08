@@ -74,5 +74,8 @@ namespace EmailConcatenationPOC
 
         // giant second example ... formatting check
         public const string GiantSecondExample = ".\\giant_second_example.msg";
+
+        // giant second example ... formatting check
+        public const string LisasEmailThatBreaksEverything = ".\\Outlook\\_EXTERNAL_ FW_ FP00010802-Con1 Jones RPPR Unobligated Balance_ Additional Information Needed for 5U01CA288421-02.msg";
     }
 }
