@@ -107,6 +107,12 @@ namespace EmailConcatenation
 
                     Console.WriteLine($"Storage Attachment filename : {storageAttachment.FileName}");
 
+                    if (mainEmailContent.EmailAttachmentFilenameSkipList.Contains( storageAttachment.FileName))
+                    {
+                        Console.WriteLine($"Not adding attachment {storageAttachment.FileName} here because it was embedded in the HTML formatted email.");
+                        continue;
+                    }
+
                     bool fileHandled = false;
                     foreach (var converter in orderedListOfPdfConverters)
                     {                            

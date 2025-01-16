@@ -40,5 +40,17 @@ namespace EmailConcatenation
         }
 
         public ContentType Type;
+
+        private List<string> emailAttachmentFilenameSkipList;
+        public List<string> EmailAttachmentFilenameSkipList
+        {
+            get { return emailAttachmentFilenameSkipList; }
+            set { emailAttachmentFilenameSkipList = value; }
+        }
+
+        public ContentForPdf()
+        {
+            emailAttachmentFilenameSkipList = new List<string>();
+        }
     }
 }
