@@ -2,8 +2,12 @@
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+
 using EmailConcatenation.Interfaces;
 using IronPdf;
+using MathNet.Numerics;
+
 using MsgReader.Outlook;
 using NPOI.HSSF;
 using NPOI.HSSF.UserModel;
@@ -135,6 +139,7 @@ namespace EmailConcatenation.Converters
                                         Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
                                         // make the PDF for this sheet ALONE (so we don't run out of memory)
                                         sb.AppendLine("</table>");
+                                        sb.AppendLine(GetJavaScript());
                                         sb.AppendLine("</body></html>");
                                         var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
                                         allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
@@ -149,7 +154,7 @@ namespace EmailConcatenation.Converters
                                 }
                             }
                             sb.AppendLine("</table>");
-
+                            sb.AppendLine(GetJavaScript());
                             sb.AppendLine("</body></html>");
 
                             // make the PDF for anything remaining 
@@ -176,7 +181,9 @@ namespace EmailConcatenation.Converters
                             Console.WriteLine($"Handling sheet : {i + 1}");
                             int rowBreakCountdown = row_break_interval;
                             sb.AppendLine(GetCSSClasses());
-
+                            //sb.AppendLine("<div style=\"width: fit-content(100%); height: fit-content(100%)\">");
+                            sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\"/>");
+                            sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
                             sb.AppendLine("<table style=\"border-collapse: collapse;\">");
                             for (int row = 0; row <= sheet.LastRowNum; row++)
                             {
@@ -222,7 +229,8 @@ namespace EmailConcatenation.Converters
                                     {
                                         Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
                                         // make the PDF for this sheet ALONE (so we don't run out of memory)
-                                        sb.AppendLine("</table>");
+                                        sb.AppendLine("</table></div>");
+                                        sb.AppendLine(GetJavaScript());
                                         sb.AppendLine("</body></html>");
                                         var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
                                         allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
@@ -236,9 +244,12 @@ namespace EmailConcatenation.Converters
                                     }
                                 }
                             }
-                            sb.AppendLine("</table>");
-
+                            sb.AppendLine("</table></div></div>");
+                            sb.AppendLine(GetJavaScript());
                             sb.AppendLine("</body></html>");
+
+                            var diagnosticContent = sb.ToString();
+                            bool containsKey = diagnosticContent.Contains("Patric");
 
                             // make the PDF for anything remaining 
                             var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
@@ -262,6 +273,7 @@ namespace EmailConcatenation.Converters
             }
             
             var renderer = new ChromePdfRenderer();
+            renderer.RenderingOptions.ForcePaperSize = true;
             if (sb != null && sb.Length > 0)
             {
                 using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
@@ -280,6 +292,28 @@ namespace EmailConcatenation.Converters
             return allSheetsAsSeparatePdfs;
         }
 
+        private string GetJavaScript()
+        {
+            // this is to dynamically fit the content so IronPdf doesn't clear the overflow
+            var sb = new StringBuilder();
+            sb.Append("<script>");
+            sb.Append("function scaleContent() {");
+            sb.Append("const parentDiv = document.getElementById('parentDiv');");
+            sb.Append("const childDiv = document.getElementById('childDiv');");
+            sb.Append("const parentWidth = parentDiv.offsetWidth;");
+            sb.Append("const childWidth = childDiv.scrollWidth;");
+            sb.Append("const scaleFactor = parentWidth / childWidth;");
+            sb.Append("const expansionFactor = 0.6;");
+            sb.Append("const scaleString = `scale(${scaleFactor * expansionFactor})`;");
+            sb.Append("childDiv.style.transform = scaleString;");
+            sb.Append("childDiv.style.transformOrigin = 'top left';");
+            sb.Append("}");
+            sb.Append("window.onload = scaleContent;");
+            sb.Append("window.onresize = scaleContent;");
+            sb.Append("</script>");
+            return sb.ToString();
+        }
+
         private PdfDocument WriteBufferToPdf(StringBuilder sb, Dictionary<string, EGStyle> cssToClass)
         {
             // add in the dynamic classes
@@ -295,7 +329,7 @@ namespace EmailConcatenation.Converters
             //File.WriteAllText(".\\giantNew.html", finalML);
 
             var renderer = new ChromePdfRenderer();
-
+            renderer.RenderingOptions.ForcePaperSize = true;
             renderer.RenderingOptions.Timeout = 5 * 60 * 1000;      // 5 minutes
 
             // MLH : this might be necessary for PDF is blank or incomplete or 
