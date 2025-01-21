@@ -84,6 +84,8 @@ namespace EmailConcatenation.Converters
                             Console.WriteLine($"Handling sheet : {i + 1}");
                             int rowBreakCountdown = row_break_interval;
                             sb.AppendLine(GetCSSClasses());
+                            sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\">");
+                            sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
 
                             sb.AppendLine("<table style=\"border-collapse: collapse;\">");
                             for (int row = 0; row <= sheet.LastRowNum; row++)
@@ -138,7 +140,7 @@ namespace EmailConcatenation.Converters
                                     {
                                         Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
                                         // make the PDF for this sheet ALONE (so we don't run out of memory)
-                                        sb.AppendLine("</table>");
+                                        sb.AppendLine("</table></div></div>");
                                         sb.AppendLine(GetJavaScript());
                                         sb.AppendLine("</body></html>");
                                         var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
@@ -153,7 +155,7 @@ namespace EmailConcatenation.Converters
                                     }
                                 }
                             }
-                            sb.AppendLine("</table>");
+                            sb.AppendLine("</table></div></div>");
                             sb.AppendLine(GetJavaScript());
                             sb.AppendLine("</body></html>");
 
@@ -181,8 +183,7 @@ namespace EmailConcatenation.Converters
                             Console.WriteLine($"Handling sheet : {i + 1}");
                             int rowBreakCountdown = row_break_interval;
                             sb.AppendLine(GetCSSClasses());
-                            //sb.AppendLine("<div style=\"width: fit-content(100%); height: fit-content(100%)\">");
-                            sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\"/>");
+                            sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\">");
                             sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
                             sb.AppendLine("<table style=\"border-collapse: collapse;\">");
                             for (int row = 0; row <= sheet.LastRowNum; row++)
@@ -229,7 +230,7 @@ namespace EmailConcatenation.Converters
                                     {
                                         Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
                                         // make the PDF for this sheet ALONE (so we don't run out of memory)
-                                        sb.AppendLine("</table></div>");
+                                        sb.AppendLine("</table></div></div>");
                                         sb.AppendLine(GetJavaScript());
                                         sb.AppendLine("</body></html>");
                                         var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
@@ -247,9 +248,6 @@ namespace EmailConcatenation.Converters
                             sb.AppendLine("</table></div></div>");
                             sb.AppendLine(GetJavaScript());
                             sb.AppendLine("</body></html>");
-
-                            var diagnosticContent = sb.ToString();
-                            bool containsKey = diagnosticContent.Contains("Patric");
 
                             // make the PDF for anything remaining 
                             var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
