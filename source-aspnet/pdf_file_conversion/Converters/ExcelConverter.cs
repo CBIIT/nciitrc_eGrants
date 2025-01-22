@@ -301,7 +301,7 @@ namespace EmailConcatenation.Converters
             sb.Append("const parentWidth = parentDiv.offsetWidth;");
             sb.Append("const childWidth = childDiv.scrollWidth;");
             sb.Append("const scaleFactor = parentWidth / childWidth;");
-            sb.Append("const expansionFactor = 0.6;");
+            sb.Append("const expansionFactor = 0.5;");
             sb.Append("const scaleString = `scale(${scaleFactor * expansionFactor})`;");
             sb.Append("childDiv.style.transform = scaleString;");
             sb.Append("childDiv.style.transformOrigin = 'top left';");
