@@ -27,7 +27,7 @@ namespace Router
         public static string v_SenderID { get; private set; }
 
         // Used by tests
-        public Dictionary<string,string> emailsSentThisSession { get; private set; }
+        public Dictionary<string, string> emailsSentThisSession { get; private set; }
 
         public Processor()
         {
@@ -81,7 +81,7 @@ namespace Router
 
                 var itemCount = currentFolder.Items.Count;      // itmscncnt
                 List<MailItem> eachEmailToProcess = new List<MailItem>();
-                foreach(object item in currentFolder.Items)     // fails here
+                foreach (object item in currentFolder.Items)     // fails here
                 {
                     Outlook.MailItem mailItem = item as Outlook.MailItem;
                     if (mailItem != null)
@@ -114,7 +114,8 @@ namespace Router
                     try
                     {
                         HandleSingleEmail(currentItem, v_SubLine, v_Body, verbose, con, debug);
-                    } catch(Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         failedToProcess = true;
                         var _logMessage = $"Error Occured! => EmailSender:{v_SenderID}; Subjectline : {v_SubLine}; Recieved Date: {currentItem.ReceivedTime}";
@@ -136,7 +137,8 @@ namespace Router
                     try
                     {
                         var result = currentItem.Move(oldFolder);
-                    } catch(Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         string message = $"Failed to move an item at {DateTime.UtcNow} UTC. Most likely solution is to restart Outlook (or re-request public file permissions in Outlook). This behavior does not indicate a defect in this software. Written authorization is not required to restart Microsoft Outlook. Here is some info : {ex.Message} \r\n {ex.ToString()}";
                         CommonUtilities.ShowDiagnosticIfVerbose(message, "y");
@@ -176,7 +178,7 @@ namespace Router
         /// </summary>
         /// <param name="mailItem"></param>
         /// <returns></returns>
-        protected virtual Dictionary<string,string> Send(MailItem mailItem)
+        protected virtual Dictionary<string, string> Send(MailItem mailItem)
         {
             mailItem.Send();
 
@@ -230,7 +232,7 @@ namespace Router
             var outmail = currentItem.Forward();
             outmail.Recipients.Add("leul.ayana@nih.gov");
             outmail.Recipients.Add("leul.ayana@nih.gov");   // NB : original system had this duplicated [sic]
-            outmail.Subject = $"{errorMessage1}  >>(Subj: {currentItem.Subject} )" ;
+            outmail.Subject = $"{errorMessage1}  >>(Subj: {currentItem.Subject} )";
             Send(outmail);
             return "done";
         }
@@ -369,16 +371,16 @@ namespace Router
                             command.Parameters.Add(new SqlParameter("@OffCode", "SPEC"));
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
-                            while (reader.Read())
-                            {
-                                // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
-                                p_SpecEmail = $"{reader["Email_address_p"]}";
-                                b_SpecEmail = $"{reader["Email_address_b"]}";
-                                CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
-                                CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
+                                while (reader.Read())
+                                {
+                                    // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
+                                    p_SpecEmail = $"{reader["Email_address_p"]}";
+                                    b_SpecEmail = $"{reader["Email_address_b"]}";
+                                    CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
+                                    CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (BACKUP_SPEC EMAIL)=>{b_SpecEmail}", verbose);
+                                }
                             }
                         }
-                    }
                     }
                     var outmail2 = currentItem.Forward();
 
@@ -495,11 +497,12 @@ namespace Router
                     // get the appl id from the grant number in the subject line
                     // example: PASC: 5U24CA213274 - 08 - RUDIN, CHARLES M
                     // example2: Compliant PASC: 5R01CA258784 - 04 - SEN, TRIPARNA
+                    // new example as of 7/2024 !!  : Compliant: PASC: 5U01CA253915-06 - ETZIONI, RUTH D
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"FOUND subject ->{v_SubLine}", verbose);
                         string[] tokens = v_SubLine.Split(new[] { ": " }, StringSplitOptions.None);
-                        var secondPart = tokens[1].Trim();
+                        var secondPart = tokens[tokens.Length - 1].Trim();
                         CommonUtilities.ShowDiagnosticIfVerbose($"Second part : {secondPart}", verbose);
 
                         var subCat = string.Empty;
@@ -1133,7 +1136,7 @@ namespace Router
                 }
                 return string.Empty;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine("Query failed.");
                 Console.WriteLine($"The string parameter for Imm_fn_applid_match was '{str}'");
@@ -1163,7 +1166,7 @@ namespace Router
             return result;
         }
 
-        private static string GetSenderId(Outlook.MailItem currentItem)
+        public virtual string GetSenderId(Outlook.MailItem currentItem)
         {
             string id = string.Empty;
 
