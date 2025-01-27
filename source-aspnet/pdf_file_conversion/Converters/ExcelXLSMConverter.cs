@@ -38,8 +38,6 @@ namespace EmailConcatenation.Converters
 
             var sb = new StringBuilder();
 
-            //            using (FileStream fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
-
             // top formatting features :
             // 1    cell borders, shading (is that like highlighting?) (supported!)
             // 2    Conditional formatting (don't support this)
@@ -212,9 +210,6 @@ namespace EmailConcatenation.Converters
             var renderer = new ChromePdfRenderer();
             renderer.RenderingOptions.ForcePaperSize = true;
             renderer.RenderingOptions.Timeout = 5 * 60 * 1000;      // 5 minutes
-
-            // MLH : this might be necessary for PDF is blank or incomplete or 
-            //renderer.RenderingOptions.WaitFor.RenderDelay(5 * 60 * 1000);   // 5 minutes
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
             // the code that you want to measure comes here

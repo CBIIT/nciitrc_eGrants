@@ -53,19 +53,12 @@ namespace EmailConcatenation.Converters
 
             var sb = new StringBuilder();
 
-            //            using (FileStream fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
-
             // top formatting features :
             // 1    cell borders, shading (is that like highlighting?) (supported!)
             // 2    Conditional formatting (don't support this)
             // 3    Number formatting (does this just happen for free already?)
             // 4    Font styles and sizes (forget the styles !! not portable!)
             // 5    Alignment and text wrapping
-
-            //if (content.Attachment.FileName == "workbook_calcs.xlsx")
-            //{
-            //    Console.WriteLine("ahoy !");
-            //}
 
             try
             {
@@ -104,7 +97,6 @@ namespace EmailConcatenation.Converters
                         var bytes = memoryStream.ToArray();
                         var pdfDocFromStream = new PdfDocument(bytes);
                         allSheetsAsSeparatePdfs.Add(pdfDocFromStream);
-                        //return new List<PdfDocument> { pdfDocFromStream };
                     }
                 }
             }
@@ -116,7 +108,6 @@ namespace EmailConcatenation.Converters
             var sb = new StringBuilder();
             if (fileName.ToLower().EndsWith(".xlsx"))
             {
-                //sb.AppendLine(GetCSSClasses());
                 XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
                 XSSFFormulaEvaluator formula = new XSSFFormulaEvaluator(workbook);
 
@@ -149,14 +140,6 @@ namespace EmailConcatenation.Converters
                                     // MLH : is there a way to handle cellStyle.WrapText == false ?
                                     // floating divs maybe ? sounds risky
 
-                                    var contentText = cell.ToString();
-                                    if (contentText.Contains("3.14"))
-                                    {
-                                        //                  Console.WriteLine("ahoy !");
-                                    }
-
-                                    //new : var egStyle = GetFormat(cellStyle, true, workbook);
-                                    //StringBuilder formatBuilder = GetFormat(cellStyle, true, null);
                                     var egStyle = GetFormat(cellStyle, true, null);
                                     AddOrReuseAStyleClass(egStyle, classes);
 
@@ -250,8 +233,6 @@ namespace EmailConcatenation.Converters
                                         Console.WriteLine("ahoy !");
                                     }
 
-                                    //var formatBuilder = GetFormat(cellStyle, false, workbook);
-
                                     var egStyle = GetFormat(cellStyle, false, workbook);
                                     AddOrReuseAStyleClass(egStyle, classes);
 
@@ -336,20 +317,13 @@ namespace EmailConcatenation.Converters
             }
             var finalML = sb.ToString().Replace(DYNAMIC_SECTION_TAG, dynamicClasses.ToString());
 
-            // MLH : diagnostics, delete later :
-            //File.WriteAllText(".\\giantNew.html", finalML);
-
             var renderer = new ChromePdfRenderer();
             renderer.RenderingOptions.ForcePaperSize = true;
             renderer.RenderingOptions.Timeout = 5 * 60 * 1000;      // 5 minutes
 
-            // MLH : this might be necessary for PDF is blank or incomplete or 
-            //renderer.RenderingOptions.WaitFor.RenderDelay(5 * 60 * 1000);   // 5 minutes
-
             var watch = System.Diagnostics.Stopwatch.StartNew();
             // the code that you want to measure comes here
 
-            //using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
             Console.WriteLine($"Total chars : {finalML.Length}");
             using (var pdfDocument = renderer.RenderHtmlAsPdf(finalML))
             {
@@ -364,8 +338,6 @@ namespace EmailConcatenation.Converters
                     var bytes = memoryStream2.ToArray();
                     var pdfDocFromStream = new PdfDocument(bytes);
                     return pdfDocFromStream;
-                    //allSheetsAsSeparatePdfs.Add(pdfDocFromStream);
-                    //return new List<PdfDocument> { pdfDocFromStream };
                 }
             }
         }
@@ -438,26 +410,21 @@ namespace EmailConcatenation.Converters
         private EGStyle GetFormat(ICellStyle cellStyle, bool isXlsx, HSSFWorkbook workbook)
         {
             var egStyle = new EGStyle();
-//            var formatBuilder = new StringBuilder();
             if (cellStyle.BorderTop != 0)
             {
                 egStyle.borderTop = true;
-//                formatBuilder.Append("border-top: 1px solid black;");
             }
             if (cellStyle.BorderLeft != 0)
             {
                 egStyle.borderLeft = true;
-//                formatBuilder.Append("border-left: 1px solid black;");
             }
             if (cellStyle.BorderRight != 0)
             {
                 egStyle.borderRight = true;
-//                formatBuilder.Append("border-right: 1px solid black;");
             }
             if (cellStyle.BorderBottom != 0)
             {
                 egStyle.borderBottom = true;
-   //             formatBuilder.Append("border-bottom: 1px solid black;");
             }
             if (cellStyle.FillForegroundColorColor != null)
             {
@@ -470,18 +437,11 @@ namespace EmailConcatenation.Converters
                     convertedHexColor = "FFFFFF";
 
                 egStyle.backgroundColor = convertedHexColor;        // this is a "fill foreground" color = background (???)
-                //formatBuilder.Append($"background-color: #{convertedHexColor};");
             }
             if (cellStyle.WrapText)
             {
                 egStyle.wrapText = true;
-                //formatBuilder.Append($"text-wrap: wrap;");
             }
-            //else
-            //{
-            // MLH : this might be slowing things down to much and already true by default
-            //    formatBuilder.Append($"text-wrap: nowrap;");
-            //}
 
             bool isStrikeout = false;
             bool isItalic = false;
@@ -529,9 +489,6 @@ namespace EmailConcatenation.Converters
 
             egStyle.fontColor = fontColor;
             egStyle.fontSize = fontSize;
-            //egStyle.fontColor = ConvertColorToHexString(font.FontColor);
-            //egStyle.backgroundColor = fontColor;
-            //formatBuilder.Append($"font-size: {fontSize}px;");
 
             return egStyle;
         }

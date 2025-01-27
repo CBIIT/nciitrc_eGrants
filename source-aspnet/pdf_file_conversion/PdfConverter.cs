@@ -17,15 +17,12 @@ using EmailConcatenation.Interfaces;
 using Ninject;
 using Grpc.Core.Logging;
 
-//using Iron
-
 namespace EmailConcatenation
 {
     public class PdfConverter
     {
         private App _app;
 
-        //static void Main(string[] args)
         public PdfConverter()
         {
             IKernel kernel = new StandardKernel();
