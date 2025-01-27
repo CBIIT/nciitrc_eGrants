@@ -32,7 +32,7 @@ namespace EmailConcatenation.Converters
             Console.WriteLine($"Filename extension : '{fileNameExtension}'");
 
             Console.WriteLine("Handling special case .tif file ...");
-            using (var tiffStream = new MemoryStream(content.Attachment.Data))
+            using (var tiffStream = new MemoryStream(content.GetBytes()))
             {
                 Bitmap tiffBitmap = new Bitmap(tiffStream);
                 using (var pngStream = new MemoryStream())

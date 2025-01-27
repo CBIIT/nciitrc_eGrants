@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.UI.WebControls;
 using System.Windows.Interop;
 using static System.Net.WebRequestMethods;
 using CellType = NPOI.SS.UserModel.CellType;
@@ -30,6 +31,7 @@ namespace EmailConcatenation.Converters
     {
         private readonly string DYNAMIC_SECTION_TAG = "|| Here is where the generated styles go ||";
         private Dictionary<string, EGStyle> cssToClass = new Dictionary<string, EGStyle>();
+        int ROW_BREAK_INTERVAL = 200;
 
         public bool SupportsThisFileType(string fileName)
         {
@@ -43,8 +45,6 @@ namespace EmailConcatenation.Converters
         public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             Console.WriteLine("Handling Excel file type case ...");
-
-            int row_break_interval = 200;
 
             var allSheetsAsSeparatePdfs = new List<PdfDocument>();
 
@@ -69,194 +69,15 @@ namespace EmailConcatenation.Converters
 
             try
             {
-                using (var memoryStream = new MemoryStream(content.Attachment.Data))
+                if (!content.IsMemoryStream)
                 {
-                    if (content.Attachment.FileName.ToLower().EndsWith(".xlsx"))
+                    using (var memoryStream = new MemoryStream(content.Attachment.Data))
                     {
-                        //sb.AppendLine(GetCSSClasses());
-                        XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
-                        XSSFFormulaEvaluator formula = new XSSFFormulaEvaluator(workbook);
-
-                        for (int i = 0; i < workbook.NumberOfSheets; i++)
-                        {
-                            var sheet = workbook.GetSheetAt(i);
-
-                            Console.WriteLine($"Handling sheet : {i + 1}");
-                            int rowBreakCountdown = row_break_interval;
-                            sb.AppendLine(GetCSSClasses());
-                            sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\">");
-                            sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
-
-                            sb.AppendLine("<table style=\"border-collapse: collapse;\">");
-                            for (int row = 0; row <= sheet.LastRowNum; row++)
-                            {
-                                var currentRow = sheet.GetRow(row);
-                                if (currentRow != null)
-                                {
-                                    sb.Append("<tr>");
-                                    for (int col = 0; col < currentRow.LastCellNum; col++)
-                                    {
-                                        var cell = currentRow.GetCell(col);
-                                        if (cell != null)
-                                        {
-                                            ICellStyle cellStyle = cell.CellStyle;
-                                            
-                                            var classes = GetAlignmentClasses(cellStyle);
-
-                                            // MLH : is there a way to handle cellStyle.WrapText == false ?
-                                            // floating divs maybe ? sounds risky
-
-                                            var contentText = cell.ToString();
-                                            if (contentText.Contains("3.14"))
-                                            {
-                              //                  Console.WriteLine("ahoy !");
-                                            }
-
-                                            //new : var egStyle = GetFormat(cellStyle, true, workbook);
-                                            //StringBuilder formatBuilder = GetFormat(cellStyle, true, null);
-                                            var egStyle = GetFormat(cellStyle, true, null);
-                                            AddOrReuseAStyleClass(egStyle, classes);
-
-                                            IDataFormat dataFormat = workbook.CreateDataFormat();
-                                            string formatString = dataFormat.GetFormat(cellStyle.DataFormat);
-
-                                            formula.EvaluateInCell(cell);
-
-                                            
-                                            string cellVal = GetFormattedCellValue(cell, workbook);
-                                            sb.Append($"<td class=\"{string.Join(" ", classes)}\" >{cellVal}</td>");
-                                        }
-                                        else
-                                        {
-                                            // it's null, but add placeholder table data
-                                            sb.Append("<td></td>");
-                                        }
-                                    }
-                                    sb.Append("</tr>");
-
-                                    // write this to the PDF list if its getting too long (and reset everything)
-                                    rowBreakCountdown--;
-                                    if (rowBreakCountdown <= 0)
-                                    {
-                                        Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
-                                        // make the PDF for this sheet ALONE (so we don't run out of memory)
-                                        sb.AppendLine("</table></div></div>");
-                                        sb.AppendLine(GetJavaScript());
-                                        sb.AppendLine("</body></html>");
-                                        var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
-                                        allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
-                                        // reset everything
-                                        sb.Clear();
-                                        cssToClass.Clear();
-
-                                        sb.AppendLine(GetCSSClasses());     // start a new HTML / body
-
-                                        rowBreakCountdown = row_break_interval;
-                                    }
-                                }
-                            }
-                            sb.AppendLine("</table></div></div>");
-                            sb.AppendLine(GetJavaScript());
-                            sb.AppendLine("</body></html>");
-
-                            // make the PDF for anything remaining 
-                            var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
-                            allSheetsAsSeparatePdfs.Add(pdfThisSheet);
-                            // reset everything
-                            sb.Clear();
-                            cssToClass.Clear();
-                        } // cycle through all sheets
+                        ConvertStream(content.Attachment.FileName, allSheetsAsSeparatePdfs, memoryStream);
                     }
-                    else  //    .xls
-                    {
-                        HSSFWorkbook workbook = new HSSFWorkbook(memoryStream);
-                        HSSFFormulaEvaluator formula = new HSSFFormulaEvaluator(workbook);
-
-                        // MLH : note that if for whatever this should happen on a cell by cell basis,
-                        // use formula.EvaluateInCell(cell); and render by cell.CellType
-                        formula.EvaluateAll();
-
-                        for (int i = 0; i < workbook.NumberOfSheets; i++)
-                        {
-                            var sheet = workbook.GetSheetAt(i);             // TODO : support multiple sheets
-
-                            Console.WriteLine($"Handling sheet : {i + 1}");
-                            int rowBreakCountdown = row_break_interval;
-                            sb.AppendLine(GetCSSClasses());
-                            sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\">");
-                            sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
-                            sb.AppendLine("<table style=\"border-collapse: collapse;\">");
-                            for (int row = 0; row <= sheet.LastRowNum; row++)
-                            {
-                                var currentRow = sheet.GetRow(row);
-                                if (currentRow != null)
-                                {
-                                    sb.Append("<tr>");
-                                    for (int col = 0; col < currentRow.LastCellNum; col++)
-                                    {
-                                        var cell = currentRow.GetCell(col);
-                                        if (cell != null)
-                                        {
-                                            string formatString = String.Empty;
-                                            ICellStyle cellStyle = cell.CellStyle;
-                                            var classes = GetAlignmentClasses(cellStyle);
-
-                                            var contentText = cell.ToString();
-                                            if (contentText.Contains("Red text"))
-                                            {
-                                                Console.WriteLine("ahoy !");
-                                            }
-
-                                            //var formatBuilder = GetFormat(cellStyle, false, workbook);
-
-                                            var egStyle = GetFormat(cellStyle, false, workbook);
-                                            AddOrReuseAStyleClass(egStyle, classes);
-
-                                            IDataFormat dataFormat = workbook.CreateDataFormat();
-                                            formatString = dataFormat.GetFormat(cellStyle.DataFormat);
-                                            formula.EvaluateInCell(cell);
-                                            sb.Append($"<td class=\"{string.Join(" ", classes)}\" >{cell.ToString()}</td>");
-                                        } else
-                                        {
-                                            // it's null, but add placeholder table data
-                                            sb.Append("<td></td>");
-                                        }
-                                    }
-                                    sb.Append("</tr>");
-
-                                    // write this to the PDF list if its getting too long (and reset everything)
-                                    rowBreakCountdown--;
-                                    if (rowBreakCountdown <= 0)
-                                    {
-                                        Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
-                                        // make the PDF for this sheet ALONE (so we don't run out of memory)
-                                        sb.AppendLine("</table></div></div>");
-                                        sb.AppendLine(GetJavaScript());
-                                        sb.AppendLine("</body></html>");
-                                        var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
-                                        allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
-                                        // reset everything
-                                        sb.Clear();
-                                        cssToClass.Clear();
-
-                                        sb.AppendLine(GetCSSClasses());     // start a new HTML / body
-
-                                        rowBreakCountdown = row_break_interval;
-                                    }
-                                }
-                            }
-                            sb.AppendLine("</table></div></div>");
-                            sb.AppendLine(GetJavaScript());
-                            sb.AppendLine("</body></html>");
-
-                            // make the PDF for anything remaining 
-                            var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
-                            allSheetsAsSeparatePdfs.Add(pdfThisSheet);
-                            // reset everything
-                            sb.Clear();
-                            cssToClass.Clear();
-                        }
-                    }
+                } else
+                {
+                    ConvertStream(content.SingleFileFileName, allSheetsAsSeparatePdfs, content.MemoryStream);
                 }
             }
             catch (OldExcelFormatException)
@@ -288,6 +109,198 @@ namespace EmailConcatenation.Converters
                 }
             }
             return allSheetsAsSeparatePdfs;
+        }
+
+        private void ConvertStream(string fileName, List<PdfDocument> allSheetsAsSeparatePdfs, MemoryStream memoryStream)
+        {
+            var sb = new StringBuilder();
+            if (fileName.ToLower().EndsWith(".xlsx"))
+            {
+                //sb.AppendLine(GetCSSClasses());
+                XSSFWorkbook workbook = new XSSFWorkbook(memoryStream);
+                XSSFFormulaEvaluator formula = new XSSFFormulaEvaluator(workbook);
+
+                for (int i = 0; i < workbook.NumberOfSheets; i++)
+                {
+                    var sheet = workbook.GetSheetAt(i);
+
+                    Console.WriteLine($"Handling sheet : {i + 1}");
+                    int rowBreakCountdown = ROW_BREAK_INTERVAL;
+                    sb.AppendLine(GetCSSClasses());
+                    sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\">");
+                    sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
+
+                    sb.AppendLine("<table style=\"border-collapse: collapse;\">");
+                    for (int row = 0; row <= sheet.LastRowNum; row++)
+                    {
+                        var currentRow = sheet.GetRow(row);
+                        if (currentRow != null)
+                        {
+                            sb.Append("<tr>");
+                            for (int col = 0; col < currentRow.LastCellNum; col++)
+                            {
+                                var cell = currentRow.GetCell(col);
+                                if (cell != null)
+                                {
+                                    ICellStyle cellStyle = cell.CellStyle;
+
+                                    var classes = GetAlignmentClasses(cellStyle);
+
+                                    // MLH : is there a way to handle cellStyle.WrapText == false ?
+                                    // floating divs maybe ? sounds risky
+
+                                    var contentText = cell.ToString();
+                                    if (contentText.Contains("3.14"))
+                                    {
+                                        //                  Console.WriteLine("ahoy !");
+                                    }
+
+                                    //new : var egStyle = GetFormat(cellStyle, true, workbook);
+                                    //StringBuilder formatBuilder = GetFormat(cellStyle, true, null);
+                                    var egStyle = GetFormat(cellStyle, true, null);
+                                    AddOrReuseAStyleClass(egStyle, classes);
+
+                                    IDataFormat dataFormat = workbook.CreateDataFormat();
+                                    string formatString = dataFormat.GetFormat(cellStyle.DataFormat);
+
+                                    formula.EvaluateInCell(cell);
+
+
+                                    string cellVal = GetFormattedCellValue(cell, workbook);
+                                    sb.Append($"<td class=\"{string.Join(" ", classes)}\" >{cellVal}</td>");
+                                }
+                                else
+                                {
+                                    // it's null, but add placeholder table data
+                                    sb.Append("<td></td>");
+                                }
+                            }
+                            sb.Append("</tr>");
+
+                            // write this to the PDF list if its getting too long (and reset everything)
+                            rowBreakCountdown--;
+                            if (rowBreakCountdown <= 0)
+                            {
+                                Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
+                                // make the PDF for this sheet ALONE (so we don't run out of memory)
+                                sb.AppendLine("</table></div></div>");
+                                sb.AppendLine(GetJavaScript());
+                                sb.AppendLine("</body></html>");
+                                var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                                allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
+                                // reset everything
+                                sb.Clear();
+                                cssToClass.Clear();
+
+                                sb.AppendLine(GetCSSClasses());     // start a new HTML / body
+
+                                rowBreakCountdown = ROW_BREAK_INTERVAL;
+                            }
+                        }
+                    }
+                    sb.AppendLine("</table></div></div>");
+                    sb.AppendLine(GetJavaScript());
+                    sb.AppendLine("</body></html>");
+
+                    // make the PDF for anything remaining 
+                    var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                    allSheetsAsSeparatePdfs.Add(pdfThisSheet);
+                    // reset everything
+                    sb.Clear();
+                    cssToClass.Clear();
+                } // cycle through all sheets
+            }
+            else  //    .xls
+            {
+                HSSFWorkbook workbook = new HSSFWorkbook(memoryStream);
+                HSSFFormulaEvaluator formula = new HSSFFormulaEvaluator(workbook);
+
+                // MLH : note that if for whatever this should happen on a cell by cell basis,
+                // use formula.EvaluateInCell(cell); and render by cell.CellType
+                formula.EvaluateAll();
+
+                for (int i = 0; i < workbook.NumberOfSheets; i++)
+                {
+                    var sheet = workbook.GetSheetAt(i);             // TODO : support multiple sheets
+
+                    Console.WriteLine($"Handling sheet : {i + 1}");
+                    int rowBreakCountdown = ROW_BREAK_INTERVAL;
+                    sb.AppendLine(GetCSSClasses());
+                    sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\">");
+                    sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
+                    sb.AppendLine("<table style=\"border-collapse: collapse;\">");
+                    for (int row = 0; row <= sheet.LastRowNum; row++)
+                    {
+                        var currentRow = sheet.GetRow(row);
+                        if (currentRow != null)
+                        {
+                            sb.Append("<tr>");
+                            for (int col = 0; col < currentRow.LastCellNum; col++)
+                            {
+                                var cell = currentRow.GetCell(col);
+                                if (cell != null)
+                                {
+                                    string formatString = String.Empty;
+                                    ICellStyle cellStyle = cell.CellStyle;
+                                    var classes = GetAlignmentClasses(cellStyle);
+
+                                    var contentText = cell.ToString();
+                                    if (contentText.Contains("Red text"))
+                                    {
+                                        Console.WriteLine("ahoy !");
+                                    }
+
+                                    //var formatBuilder = GetFormat(cellStyle, false, workbook);
+
+                                    var egStyle = GetFormat(cellStyle, false, workbook);
+                                    AddOrReuseAStyleClass(egStyle, classes);
+
+                                    IDataFormat dataFormat = workbook.CreateDataFormat();
+                                    formatString = dataFormat.GetFormat(cellStyle.DataFormat);
+                                    formula.EvaluateInCell(cell);
+                                    sb.Append($"<td class=\"{string.Join(" ", classes)}\" >{cell.ToString()}</td>");
+                                }
+                                else
+                                {
+                                    // it's null, but add placeholder table data
+                                    sb.Append("<td></td>");
+                                }
+                            }
+                            sb.Append("</tr>");
+
+                            // write this to the PDF list if its getting too long (and reset everything)
+                            rowBreakCountdown--;
+                            if (rowBreakCountdown <= 0)
+                            {
+                                Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
+                                // make the PDF for this sheet ALONE (so we don't run out of memory)
+                                sb.AppendLine("</table></div></div>");
+                                sb.AppendLine(GetJavaScript());
+                                sb.AppendLine("</body></html>");
+                                var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                                allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
+                                // reset everything
+                                sb.Clear();
+                                cssToClass.Clear();
+
+                                sb.AppendLine(GetCSSClasses());     // start a new HTML / body
+
+                                rowBreakCountdown = ROW_BREAK_INTERVAL;
+                            }
+                        }
+                    }
+                    sb.AppendLine("</table></div></div>");
+                    sb.AppendLine(GetJavaScript());
+                    sb.AppendLine("</body></html>");
+
+                    // make the PDF for anything remaining 
+                    var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                    allSheetsAsSeparatePdfs.Add(pdfThisSheet);
+                    // reset everything
+                    sb.Clear();
+                    cssToClass.Clear();
+                }
+            }
         }
 
         private string GetJavaScript()

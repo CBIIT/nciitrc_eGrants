@@ -40,7 +40,10 @@ namespace EmailConcatenation.Converters
             sb.AppendLine("<html><body><p><h1>Explicitly Unsupported Filetype</h1></p>");
             sb.AppendLine("<p>A file was discovered with an extension that does not render to PDF.</p>");
             sb.AppendLine("<p>FYI : files with this type have been found to exist in the eGrants database.</p>");
-            sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p></body></html>");
+            if (!content.IsMemoryStream)
+                sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p></body></html>");
+            else
+                sb.AppendLine($"<p>The offending file's name is : {content.SingleFileFileName}</p></body></html>");
 
             using (PdfDocument pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
             {

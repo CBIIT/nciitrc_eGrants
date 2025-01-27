@@ -167,5 +167,36 @@ namespace EmailConcatenation
             //Console.WriteLine($"Elapsed seconds: {elapsedMs / 1000}");
 
         }
+
+        internal PdfDocument Convert(MemoryStream memoryStream, string fileName)
+        {
+            bool fileHandled = false;
+
+            Console.WriteLine("Handling single file conversion case ...");
+
+            IronPdf.License.LicenseKey = "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
+
+            // Disable local disk access or cross-origin requests
+            Installation.EnableWebSecurity = true;
+
+            var content = new ContentForPdf
+            {
+                MemoryStream = memoryStream,
+                Type = ContentForPdf.ContentType.DataAttachment,
+                SingleFileFileName = fileName
+            };
+
+            foreach (var converter in orderedListOfPdfConverters)
+            {
+                if (converter.SupportsThisFileType(fileName))
+                {
+                    var pdfDoc = converter.ToPdfDocument(content);
+                    return pdfDoc.First();
+                }
+            }
+
+            throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{fileName}'. Worst case is the unrecognized converter should at least do something and mark it handled.");
+
+        }
     }
 }

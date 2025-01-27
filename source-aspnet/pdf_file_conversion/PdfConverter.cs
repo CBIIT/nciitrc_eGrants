@@ -54,5 +54,10 @@ namespace EmailConcatenation
         {
             return _app.Convert(incomingMessage);
         }
+
+        public PdfDocument Convert(MemoryStream memoryStream, string fileName)
+        {
+            return _app.Convert(memoryStream, fileName);
+        }
     }
 }
