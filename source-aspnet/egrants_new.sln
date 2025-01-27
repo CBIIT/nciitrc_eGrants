@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.33502.453
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "egrants_new", "egrants_new\egrants_new.csproj", "{532BF3A4-3226-459D-890C-83C16CA51A2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pdf_file_conversion", "pdf_file_conversion\pdf_file_conversion.csproj", "{617CCFFE-E8EC-487E-A977-B36E3ED9FD62}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Local Dev|Any CPU = Debug Local Dev|Any CPU

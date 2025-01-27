@@ -404,6 +404,14 @@ p.small
 	padding-left: 10px;
 }
 
+.space-big-left {
+	margin-left: 30px;
+}
+
+.space-down {
+	padding-top: 15px;
+}
+
 .webgrid-header {
     background-color:   lightgray; 
     color:              white;

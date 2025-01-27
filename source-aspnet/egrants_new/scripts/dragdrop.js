@@ -59,6 +59,7 @@ function FileSelectHandler(e) {
         $('#dropArea').removeClass('active-drop');
         $('#dropArea').html('Drag-drop only one file here to upload');
         $('#btnDragdrop').attr('disabled', true);
+        $('#btnPdfDragdrop').attr('disabled', true);
         return false;
     }
 
@@ -78,6 +79,7 @@ function FileSelectHandler(e) {
             $('#dropArea').removeClass('active-drop');
             $('#dropArea').html('Drag-drop only one file here to upload');
             $('#btnDragdrop').attr('disabled', true);
+            $('#btnPdfDragdrop').attr('disabled', true);
             return false;
         } else var filesize = (dropedfile.size / 1000);
      
@@ -87,6 +89,7 @@ function FileSelectHandler(e) {
             $('#dropArea').removeClass('active-drop');           
             $('#dropArea').html('Drag-drop only one file here to upload');
             $('#btnDragdrop').attr('disabled', true);
+            $('#btnPdfDragdrop').attr('disabled', true);
             return false;	          
           }
     }
@@ -96,6 +99,7 @@ function FileSelectHandler(e) {
     console.log('Bytes Loaded: ' + dropedfile);
 
     $('#btnDragdrop').attr('disabled', false);
+    $('#btnPdfDragdrop').attr('disabled', false);
 }
 
 // output file information

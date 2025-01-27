@@ -1,0 +1,87 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40"><head><meta name=Generator content="Microsoft Word 15 (filtered medium)"><!--[if !mso]><style>v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+w\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style><![endif]--><style><!--
+/* Font Definitions */
+@font-face
+        {font-family:"Cambria Math";
+        panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+        {font-family:Calibri;
+        panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+        {font-family:Aptos;}
+@font-face
+        {font-family:Corbel;
+        panose-1:2 11 5 3 2 2 4 2 2 4;}
+@font-face
+        {font-family:"Avenir Next LT Pro";}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+        {margin:0in;
+        font-size:11.0pt;
+        font-family:"Aptos",sans-serif;}
+span.EmailStyle17
+        {mso-style-type:personal-compose;
+        font-family:"Aptos",sans-serif;
+        color:windowtext;}
+.MsoChpDefault
+        {mso-style-type:export-only;
+        font-size:11.0pt;
+        mso-ligatures:none;}
+@page WordSection1
+        {size:8.5in 11.0in;
+        margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+        {page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext="edit" spidmax="1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext="edit">
+<o:idmap v:ext="edit" data="1" />
+</o:shapelayout></xml><![endif]--></head><body lang=EN-US link="#467886" vlink="#96607D" style='word-wrap:break-word'><div class=WordSection1><p class=MsoNormal>The attachments in this email include PDF, Word, and Msg (email) types.<o:p></o:p></p><p class=MsoNormal><o:p>&nbsp;</o:p></p><p class=MsoNormal><span style='color:#1F3864'>Micah Hoover<o:p></o:p></span></p><p class=MsoNormal><span style='color:#1F3864'>Federal - Full Stack Developer<o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#666666;border:none windowtext 1.0pt;padding:0in'><img width=293 height=66 style='width:3.0486in;height:.6875in' id="Picture_x0020_3" src="cid:image001.png@01DB0DA7.27AFBE10" alt="signature_1198883118"></span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#666666'><br></span><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'>Infrastructure and Information Technology Operations Branch (IITOB)<o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'>Software Engineering, Business Applications<br><span style='border:none windowtext 1.0pt;padding:0in'>9609 Medical Center Drive, Rockville, MD 20850</span><br><span style='border:none windowtext 1.0pt;padding:0in'>Cell: 919-327-0558&nbsp;</span><o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171;border:none windowtext 1.0pt;padding:0in'>Email</span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#767171;border:none windowtext 1.0pt;padding:0in'>:</span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:black;border:none windowtext 1.0pt;padding:0in'> <a href="mailto:micah.hoover@nih.gov"><span style='color:#0563C1'>micah.hoover@nih.gov</span></a><o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:black;border:none windowtext 1.0pt;padding:0in'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><span style='font-size:8.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><span style='font-family:"Calibri",sans-serif'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><o:p>&nbsp;</o:p></p></div></body></html>
+Here's the message text: <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40"><head><meta name=Generator content="Microsoft Word 15 (filtered medium)"><!--[if !mso]><style>v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+w\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style><![endif]--><style><!--
+/* Font Definitions */
+@font-face
+        {font-family:"Cambria Math";
+        panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+        {font-family:Calibri;
+        panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+        {font-family:Aptos;}
+@font-face
+        {font-family:Corbel;
+        panose-1:2 11 5 3 2 2 4 2 2 4;}
+@font-face
+        {font-family:"Avenir Next LT Pro";}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+        {margin:0in;
+        font-size:11.0pt;
+        font-family:"Aptos",sans-serif;}
+span.EmailStyle17
+        {mso-style-type:personal-compose;
+        font-family:"Aptos",sans-serif;
+        color:windowtext;}
+.MsoChpDefault
+        {mso-style-type:export-only;
+        font-size:11.0pt;
+        mso-ligatures:none;}
+@page WordSection1
+        {size:8.5in 11.0in;
+        margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+        {page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext="edit" spidmax="1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext="edit">
+<o:idmap v:ext="edit" data="1" />
+</o:shapelayout></xml><![endif]--></head><body lang=EN-US link="#467886" vlink="#96607D" style='word-wrap:break-word'><div class=WordSection1><p class=MsoNormal>The attachments in this email include PDF, Word, and Msg (email) types.<o:p></o:p></p><p class=MsoNormal><o:p>&nbsp;</o:p></p><p class=MsoNormal><span style='color:#1F3864'>Micah Hoover<o:p></o:p></span></p><p class=MsoNormal><span style='color:#1F3864'>Federal - Full Stack Developer<o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#666666;border:none windowtext 1.0pt;padding:0in'><img width=293 height=66 style='width:3.0486in;height:.6875in' id="Picture_x0020_3" src="cid:image001.png@01DB0DA7.27AFBE10" alt="signature_1198883118"></span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#666666'><br></span><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'>Infrastructure and Information Technology Operations Branch (IITOB)<o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'>Software Engineering, Business Applications<br><span style='border:none windowtext 1.0pt;padding:0in'>9609 Medical Center Drive, Rockville, MD 20850</span><br><span style='border:none windowtext 1.0pt;padding:0in'>Cell: 919-327-0558&nbsp;</span><o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171;border:none windowtext 1.0pt;padding:0in'>Email</span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#767171;border:none windowtext 1.0pt;padding:0in'>:</span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:black;border:none windowtext 1.0pt;padding:0in'> <a href="mailto:micah.hoover@nih.gov"><span style='color:#0563C1'>micah.hoover@nih.gov</span></a><o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:black;border:none windowtext 1.0pt;padding:0in'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><span style='font-size:8.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><span style='font-family:"Calibri",sans-serif'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><o:p>&nbsp;</o:p></p></div></body></html>
+</o:shapelayout></xml><![endif]--></head><body lang=EN-US link="#467886" vlink="#96607D" style='word-wrap:break-word'><div class=WordSection1><p class=MsoNormal>The attachments in this email include PDF, Word, and Msg (email) types.<o:p></o:p></p><p class=MsoNormal><o:p>&nbsp;</o:p></p><p class=MsoNormal><span style='color:#1F3864'>Micah Hoover<o:p></o:p></span></p><p class=MsoNormal><span style='color:#1F3864'>Federal - Full Stack Developer<o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#666666;border:none windowtext 1.0pt;padding:0in'><img width=293 height=66 style='width:3.0486in;height:.6875in' id="Picture_x0020_3" src="cid:image001.png@01DB0DA7.27AFBE10" alt="signature_1198883118"></span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#666666'><br></span><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'>Infrastructure and Information Technology Operations Branch (IITOB)<o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'>Software Engineering, Business Applications<br><span style='border:none windowtext 1.0pt;padding:0in'>9609 Medical Center Drive, Rockville, MD 20850</span><br><span style='border:none windowtext 1.0pt;padding:0in'>Cell: 919-327-0558&nbsp;</span><o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171;border:none windowtext 1.0pt;padding:0in'>Email</span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:#767171;border:none windowtext 1.0pt;padding:0in'>:</span><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:black;border:none windowtext 1.0pt;padding:0in'> <a href="mailto:micah.hoover@nih.gov"><span style='color:#0563C1'>micah.hoover@nih.gov</span></a><o:p></o:p></span></p><p class=MsoNormal><span style='font-size:10.0pt;font-family:"Corbel",sans-serif;color:black;border:none windowtext 1.0pt;padding:0in'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><span style='font-size:8.0pt;font-family:"Avenir Next LT Pro",sans-serif;color:#767171'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><span style='font-family:"Calibri",sans-serif'><o:p>&nbsp;</o:p></span></p><p class=MsoNormal><o:p>&nbsp;</o:p></p></div></body></html>
