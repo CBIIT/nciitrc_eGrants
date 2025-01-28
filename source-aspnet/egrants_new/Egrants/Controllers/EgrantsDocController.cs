@@ -772,8 +772,7 @@ namespace egrants_new.Controllers
                         {
                             var emailFile = new Storage.Message(memoryStream);
                             pdfResult = converter.Convert(emailFile);
-                        }
-                        fileExtension = ".pdf";
+                        }                        
                     } else
                     {
                         using (var memoryStream = new MemoryStream(fileData))
@@ -781,6 +780,7 @@ namespace egrants_new.Controllers
                             pdfResult = converter.Convert(memoryStream, fileName);
                         }
                     }
+                    fileExtension = ".pdf";
 
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(
