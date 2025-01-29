@@ -166,6 +166,8 @@ namespace EmailConcatenation
             // Disable local disk access or cross-origin requests
             Installation.EnableWebSecurity = true;
 
+            var filesToMerge = new List<PdfDocument>();
+
             var content = new ContentForPdf
             {
                 MemoryStream = memoryStream,
@@ -178,9 +180,13 @@ namespace EmailConcatenation
                 if (converter.SupportsThisFileType(fileName))
                 {
                     var pdfDoc = converter.ToPdfDocument(content);
-                    return pdfDoc.First();
+                    filesToMerge.AddRange(pdfDoc);
+                    break;
                 }
             }
+
+            var merged = PdfDocument.Merge(filesToMerge);
+            return merged;
 
             throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{fileName}'. Worst case is the unrecognized converter should at least do something and mark it handled.");
 
