@@ -16,7 +16,7 @@ namespace EmailConcatenation.Converters
 {
     internal class ExcelXLSMConverter : IExcelXLSMConverter, IConvertToPdf
     {
-        private readonly string DYNAMIC_SECTION_TAG= "|| Here is where the generated styles go ||";
+        private readonly string DYNAMIC_SECTION_TAG = "|| Here is where the generated styles go ||";
         private Dictionary<string, EGStyle> cssToClass = new Dictionary<string, EGStyle>();
         private int ROW_BREAK_INTERVAL = 200;
 
@@ -31,16 +31,12 @@ namespace EmailConcatenation.Converters
         {
             Console.WriteLine("Handling Excel file type case ...");
 
-            int row_break_interval = 200;
-
             var allSheetsAsSeparatePdfs = new List<PdfDocument>();
 
             if (content.Type != ContentForPdf.ContentType.DataAttachment)
                 throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the Attachment.");
 
             var sb = new StringBuilder();
-
-            //            using (FileStream fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
 
             // top formatting features :
             // 1    cell borders, shading (is that like highlighting?) (supported!)
@@ -53,8 +49,8 @@ namespace EmailConcatenation.Converters
             {
                 if (!content.IsMemoryStream)
                 {
-                using (var memoryStream = new MemoryStream(content.Attachment.Data))
-                {
+                    using (var memoryStream = new MemoryStream(content.Attachment.Data))
+                    {
                         ConvertStream(content.Attachment.FileName, allSheetsAsSeparatePdfs, memoryStream);
                     }
                 }
@@ -97,118 +93,85 @@ namespace EmailConcatenation.Converters
         private void ConvertStream(string singleFileFileName, List<PdfDocument> allSheetsAsSeparatePdfs, MemoryStream memoryStream)
         {
             var sb = new StringBuilder();
-                    var workbook = new XLWorkbook(memoryStream);
+            var workbook = new XLWorkbook(memoryStream);
 
             foreach (var sheet in workbook.Worksheets)
-                    {
-                        Console.WriteLine($"Handling sheet : {sheet.Name}");
+            {
+                Console.WriteLine($"Handling sheet : {sheet.Name}");
                 int rowBreakCountdown = ROW_BREAK_INTERVAL;
-                        sb.AppendLine(GetCSSClasses());
+                sb.AppendLine(GetCSSClasses());
 
-                        var rowCount = sheet.LastRowUsed().RowNumber();
-                        var columnCount = sheet.LastColumnUsed().ColumnNumber();
-                        Console.WriteLine($"Total rows this sheet : {rowCount}");
+                var rowCount = sheet.LastRowUsed().RowNumber();
+                var columnCount = sheet.LastColumnUsed().ColumnNumber();
+                Console.WriteLine($"Total rows this sheet : {rowCount}");
 
-                        int row = 1;
+                int row = 1;
 
-                        sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\">");
-                        sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
-                        sb.AppendLine("<table style=\"border-collapse: collapse;\">");
+                sb.AppendLine("<div id=\"parentDiv\" style=\"max-width: 1300px;overflow: hidden;transform-origin: top left;\">");
+                sb.AppendLine("<div id=\"childDiv\" style=\"width: 100%\">");
+                sb.AppendLine("<table style=\"border-collapse: collapse;\">");
 
-                        while (row <= rowCount)
+                while (row <= rowCount)
+                {
+                    sb.Append("<tr>");
+
+                    int column = 1;
+                    while (column <= columnCount)
+                    {
+                        var cell = sheet.Cell(row, column);
+                        if (cell != null)
                         {
-                            sb.Append("<tr>");
+                            var cellStyle = cell.Style;
+                            var classes = GetAlignmentClasses(cellStyle);
 
-                            int column = 1;
-                            while (column <= columnCount)
-                            {
-                                var cell = sheet.Cell(row, column);
-                                if (cell != null)
-                                {
-                                    var cellStyle = cell.Style;    
-                                    var classes = GetAlignmentClasses(cellStyle);
-
-                                    var egStyle = GetFormat(cellStyle, true, workbook);
-                                    AddOrReuseAStyleClass(egStyle, classes);
+                            var egStyle = GetFormat(cellStyle, true, workbook);
+                            AddOrReuseAStyleClass(egStyle, classes);
 
                             sb.Append($"<td class=\"{string.Join(" ", classes)}\" >{cell.GetFormattedString()}</td>");
-                                }
-                                else
-                                {
-                                    // it's null, but add placeholder table data
-                                    sb.Append("<td></td>");
-                                }
-                                column++;
-                            }
-                            sb.Append("</tr>");
-                            row++;
-
-                            // write this to the PDF list if its getting too long (and reset everything)
-                            rowBreakCountdown--;
-                            if (rowBreakCountdown <= 0)
-                            {
-                                Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
-                                // make the PDF for this sheet ALONE (so we don't run out of memory)
-                                sb.AppendLine("</table></div></div>");
-                                sb.AppendLine(GetJavaScript());
-                                sb.AppendLine("</body></html>");
-                                var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
-                                allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
-                                // reset everything
-                                sb.Clear();
-                                cssToClass.Clear();
-
-                                sb.AppendLine(GetCSSClasses());     // start a new HTML / body
-
-                        rowBreakCountdown = ROW_BREAK_INTERVAL;
-                            }
-
                         }
+                        else
+                        {
+                            // it's null, but add placeholder table data
+                            sb.Append("<td></td>");
+                        }
+                        column++;
+                    }
+                    sb.Append("</tr>");
+                    row++;
+
+                    // write this to the PDF list if its getting too long (and reset everything)
+                    rowBreakCountdown--;
+                    if (rowBreakCountdown <= 0)
+                    {
+                        Console.WriteLine($"At row {row} this sheet is getting pretty full ... so writing to a new PDF");
+                        // make the PDF for this sheet ALONE (so we don't run out of memory)
                         sb.AppendLine("</table></div></div>");
                         sb.AppendLine(GetJavaScript());
                         sb.AppendLine("</body></html>");
-
-                        // make the PDF for anything remaining 
-                        var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
-                        allSheetsAsSeparatePdfs.Add(pdfThisSheet);
+                        var subPdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                        allSheetsAsSeparatePdfs.Add(subPdfThisSheet);
                         // reset everything
                         sb.Clear();
                         cssToClass.Clear();
 
-                    } // end all sheets sheet 
-                    
-                    
-                }
-            }
-            catch (Exception)
-            {
-                sb.Clear();
-                sb.AppendLine("<html><body><p><h1>General Xlsm Render Exception</h1></p>");
+                        sb.AppendLine(GetCSSClasses());     // start a new HTML / body
 
-                sb.AppendLine("<p>Hit a general exception while attempting to render a .xlsm file to PDF.</p>");
-                sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p>");
-
-                sb.AppendLine($"</body></html>");
-            }
-
-            var renderer = new ChromePdfRenderer();
-            renderer.RenderingOptions.ForcePaperSize = true;
-            if (sb != null && sb.Length > 0)
-            {
-                using (var pdfDocument = renderer.RenderHtmlAsPdf(sb.ToString()))
-                {
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        pdfDocument.Stream.CopyTo(memoryStream);
-
-                        var bytes = memoryStream.ToArray();
-                        var pdfDocFromStream = new PdfDocument(bytes);
-                        allSheetsAsSeparatePdfs.Add(pdfDocFromStream);
+                        rowBreakCountdown = ROW_BREAK_INTERVAL;
                     }
-                }
-            }
 
-            return allSheetsAsSeparatePdfs;
+                }
+                sb.AppendLine("</table></div></div>");
+                sb.AppendLine(GetJavaScript());
+                sb.AppendLine("</body></html>");
+
+                // make the PDF for anything remaining 
+                var pdfThisSheet = WriteBufferToPdf(sb, cssToClass);
+                allSheetsAsSeparatePdfs.Add(pdfThisSheet);
+                // reset everything
+                sb.Clear();
+                cssToClass.Clear();
+
+            } // end all sheets sheet 
         }
 
         private string GetJavaScript()
@@ -248,9 +211,6 @@ namespace EmailConcatenation.Converters
             renderer.RenderingOptions.ForcePaperSize = true;
             renderer.RenderingOptions.Timeout = 5 * 60 * 1000;      // 5 minutes
 
-            // MLH : this might be necessary for PDF is blank or incomplete or 
-            //renderer.RenderingOptions.WaitFor.RenderDelay(5 * 60 * 1000);   // 5 minutes
-
             var watch = System.Diagnostics.Stopwatch.StartNew();
             // the code that you want to measure comes here
 
@@ -280,7 +240,8 @@ namespace EmailConcatenation.Converters
                 // already there ... lets use that one
                 var preExistingClass = cssToClass[candidateCss];
                 classesThisTd.Add(preExistingClass.GetName());
-            } else
+            }
+            else
             {
                 cssToClass.Add(candidateCss, newStyle);
                 classesThisTd.Add(newStyle.GetName());
@@ -327,7 +288,8 @@ namespace EmailConcatenation.Converters
                     {
                         egStyle.backgroundColor = ConvertColorToHexString(color);
                     }
-                } else
+                }
+                else
                 {
                     var themeColor = color.ThemeColor;
                     XLColor rgb;
@@ -389,7 +351,8 @@ namespace EmailConcatenation.Converters
             if (font.FontColor.ColorType == XLColorType.Color)
             {
                 egStyle.fontColor = ConvertColorToHexString(font.FontColor);
-            } else if (font.FontColor.ColorType == XLColorType.Theme)
+            }
+            else if (font.FontColor.ColorType == XLColorType.Theme)
             {
                 var themeColor = font.FontColor.ThemeColor;
                 switch (themeColor)
