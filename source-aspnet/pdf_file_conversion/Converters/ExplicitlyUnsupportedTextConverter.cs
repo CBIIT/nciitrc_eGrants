@@ -18,6 +18,8 @@ namespace EmailConcatenation.Converters
             if (fileName.ToLower().Contains(".") &&
                 Constants.ExplicitlyUnsupportedFileTypes
                     .Any(ftt => fileName.ToLower().Contains(ftt) && !fileName.ToLower().Contains(".docx")) ||
+                //Constants.ExcelTypes
+                //    .Any(ftt => fileName.ToLower().Contains(ftt) && !fileName.ToLower().Contains(".docx"))
                 Constants.UnsupportedExcelTypes
                         .Any(ftt => fileName.ToLower().Contains(ftt))
                     )
@@ -39,7 +41,7 @@ namespace EmailConcatenation.Converters
             sb.AppendLine("<p>A file was discovered with an extension that does not render to PDF.</p>");
             sb.AppendLine("<p>FYI : files with this type have been found to exist in the eGrants database.</p>");
             if (!content.IsMemoryStream)
-                sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p></body></html>");
+            sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p></body></html>");
             else
                 sb.AppendLine($"<p>The offending file's name is : {content.SingleFileFileName}</p></body></html>");
 

@@ -17,11 +17,14 @@ using EmailConcatenation.Interfaces;
 using Ninject;
 using Grpc.Core.Logging;
 
+
+
 namespace EmailConcatenation
 {
     public class PdfConverter
     {
         private App _app;
+
 
         public PdfConverter()
         {

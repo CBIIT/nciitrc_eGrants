@@ -60,5 +60,6 @@ namespace EmailConcatenation
                 return "000000";
             }
         }
+
     }
 }

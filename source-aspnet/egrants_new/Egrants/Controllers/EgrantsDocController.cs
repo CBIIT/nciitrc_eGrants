@@ -568,6 +568,24 @@ namespace egrants_new.Controllers
                         }
                     }
                     fileExtension = ".pdf";
+                    PdfDocument pdfResult = null;
+                    if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(file.InputStream))
+                        {
+                            fileData = binaryReader.ReadBytes(file.ContentLength);
+                        }
+
+                        using (var memoryStream = new MemoryStream(fileData))
+                        {
+                            Storage.Message emailFile = new Storage.Message(memoryStream);
+                            var converter = new EmailConcatenation.PdfConverter();
+                            pdfResult = converter.Convert(emailFile);
+
+                        }
+                        fileExtension = ".pdf";
+                    }
 
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(
