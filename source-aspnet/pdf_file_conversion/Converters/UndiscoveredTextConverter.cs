@@ -34,7 +34,10 @@ namespace EmailConcatenation.Converters
             sb.AppendLine("<p>This file might just belong in a museum ! :)</p>");
             sb.AppendLine("<p>Please notify the eGrants development team at egrantsdev@mail.nih.gov</p>");
             sb.AppendLine("<p>And include as an attachment the file (or email) that this came from.</p>");
-            sb.AppendLine($"<p>And include the offending file's name is : {content.Attachment.FileName}</p></body></html>");
+            if (!content.IsMemoryStream)
+                sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p></body></html>");
+            else
+                sb.AppendLine($"<p>The offending file's name is : {content.SingleFileFileName}</p></body></html>");
 
             var renderer = new ChromePdfRenderer();
 

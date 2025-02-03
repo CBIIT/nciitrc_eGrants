@@ -63,7 +63,14 @@ namespace EmailConcatenation.Converters
                 }
             } else
             {
-                var textContent = System.Text.Encoding.Default.GetString(content.Attachment.Data);
+                string textContent = string.Empty;
+                if (!content.IsMemoryStream)
+                {
+                    textContent = System.Text.Encoding.Default.GetString(content.Attachment.Data);
+                } else
+                {
+                    textContent = System.Text.Encoding.Default.GetString(content.MemoryStream.ToArray());
+                }
 
                 // MLH : there is likely going to be some "markdown" here (e.g. \n to mean new line)
                 // and this won't be natively rendered by the IronPDF chrome HTML converter

@@ -24,7 +24,7 @@ namespace EmailConcatenation.Converters
         {
             Console.WriteLine("Handling Word .doc file type case ...");
 
-            using (var memoryStream = new MemoryStream(content.Attachment.Data))
+            using (var memoryStream = new MemoryStream(content.GetBytes()))
             {
                 Document document = new Document(memoryStream);
                 using (var pdfStream = new MemoryStream())

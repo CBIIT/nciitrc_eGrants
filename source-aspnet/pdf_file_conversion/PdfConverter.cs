@@ -17,7 +17,7 @@ using EmailConcatenation.Interfaces;
 using Ninject;
 using Grpc.Core.Logging;
 
-//using Iron
+
 
 namespace EmailConcatenation
 {
@@ -25,7 +25,7 @@ namespace EmailConcatenation
     {
         private App _app;
 
-        //static void Main(string[] args)
+
         public PdfConverter()
         {
             IKernel kernel = new StandardKernel();
@@ -53,6 +53,11 @@ namespace EmailConcatenation
         public PdfDocument Convert(Storage.Message incomingMessage)
         {
             return _app.Convert(incomingMessage);
+        }
+
+        public PdfDocument Convert(MemoryStream memoryStream, string fileName)
+        {
+            return _app.Convert(memoryStream, fileName);
         }
     }
 }

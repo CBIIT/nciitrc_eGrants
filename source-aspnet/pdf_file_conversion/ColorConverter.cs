@@ -61,8 +61,5 @@ namespace EmailConcatenation
             }
         }
 
-        // example :
-        // short colorIndex = font.Color
-        // string hexColor = ColorConverter.GetHexColor(colorIndex);
     }
 }

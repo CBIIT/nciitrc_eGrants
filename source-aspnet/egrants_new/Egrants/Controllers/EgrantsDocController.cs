@@ -51,6 +51,7 @@ using egrants_new.Integration.WebServices;
 using static egrants_new.Egrants_Admin.Models.Supplement;
 using IronPdf;
 using System.Text;
+using EmailConcatenation;
 
 #endregion
 
@@ -543,24 +544,32 @@ namespace egrants_new.Controllers
                     var fileName = Path.GetFileName(file.FileName);
                     var fileExtension = Path.GetExtension(fileName);
 
+                    byte[] fileData;
+                    using (var binaryReader = new BinaryReader(file.InputStream))
+                    {
+                        fileData = binaryReader.ReadBytes(file.ContentLength);
+                    }
+
+                    var converter = new EmailConcatenation.PdfConverter();
+
                     PdfDocument pdfResult = null;
+
                     if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(file.InputStream))
-                        {
-                            fileData = binaryReader.ReadBytes(file.ContentLength);
-                        }
-
                         using (var memoryStream = new MemoryStream(fileData))
                         {
-                            Storage.Message emailFile = new Storage.Message(memoryStream);
-                            var converter = new EmailConcatenation.PdfConverter();
+                            var emailFile = new Storage.Message(memoryStream);
                             pdfResult = converter.Convert(emailFile);
-
                         }
-                        fileExtension = ".pdf";
                     }
+                    else
+                    {
+                        using (var memoryStream = new MemoryStream(fileData))
+                        {
+                            pdfResult = converter.Convert(memoryStream, file.FileName);
+                        }
+                    }
+                    fileExtension = ".pdf";
 
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(
@@ -750,24 +759,31 @@ namespace egrants_new.Controllers
                     var fileName = Path.GetFileName(dropedfile.FileName);
                     var fileExtension = Path.GetExtension(fileName);
 
+                    byte[] fileData;
+                    using (var binaryReader = new BinaryReader(dropedfile.InputStream))
+                    {
+                        fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
+                    }
+
+                    var converter = new EmailConcatenation.PdfConverter();
+
                     PdfDocument pdfResult = null;
                     if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(dropedfile.InputStream))
-                        {
-                            fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
-                        }
-
                         using (var memoryStream = new MemoryStream(fileData))
                         {
-                            Storage.Message emailFile = new Storage.Message(memoryStream);
-                            var converter = new EmailConcatenation.PdfConverter();
+                            var emailFile = new Storage.Message(memoryStream);
                             pdfResult = converter.Convert(emailFile);
-
                         }
-                        fileExtension = ".pdf";
                     }
+                    else
+                    {
+                        using (var memoryStream = new MemoryStream(fileData))
+                        {
+                            pdfResult = converter.Convert(memoryStream, fileName);
+                        }
+                    }
+                    fileExtension = ".pdf";
 
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(
@@ -790,7 +806,6 @@ namespace egrants_new.Controllers
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
                                                                                             + Convert.ToString(docName);
-
 
                     this.ViewBag.Message = "Done! New document has been created";
 

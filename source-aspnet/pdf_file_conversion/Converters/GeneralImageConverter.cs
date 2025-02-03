@@ -31,7 +31,7 @@ namespace EmailConcatenation.Converters
             var fileNameExtension = fileNameTokens[fileNameTokens.Length - 1].ToLower();  // the file extension is the last one
             Console.WriteLine($"Filename extension : '{fileNameExtension}'");
 
-            using (var imageStream = new MemoryStream(content.Attachment.Data))
+            using (var imageStream = new MemoryStream(content.GetBytes()))
             {
                 Bitmap bitmap = new Bitmap(imageStream);
                 var chromeRenderer = new ChromePdfRenderer();
