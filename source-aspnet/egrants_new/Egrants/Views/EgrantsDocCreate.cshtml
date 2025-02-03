@@ -462,6 +462,11 @@
             document.getElementById("btnFileUpload").disabled = false;
             document.getElementById("btnFilePdfUpload").disabled = false;
         }
+        // eGrants-616 : disable regular add button if multiple files (make them PDF convert)
+        if (document.getElementById("customFile").files?.length > 1) {
+            document.getElementById("btnFileUpload").disabled = true;
+            document.getElementById("btnDragdrop").disabled = true;
+        }
     }
 </script>
 

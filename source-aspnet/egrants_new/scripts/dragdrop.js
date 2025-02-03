@@ -88,6 +88,10 @@ function FileSelectHandler(e) {
         ParseFile(dropedfile);
         //$('#dropArea').removeClass('active-drop');
         console.log('Bytes Loaded: ' + dropedfile);
+
+        // since there's just one file, okay to do a regular, non-PDF add here
+        $('#btnFileUpload').attr('disabled', false);
+        $('#btnDragdrop').attr('disabled', false);
     } else if (dropedfiles.length > 1) {
         for (var i = 0; i < dropedfiles.length; i++) {
             dropedfile = dropedfiles[i];
@@ -125,11 +129,15 @@ function FileSelectHandler(e) {
             //console.log('Bytes Loaded: ' + dropedfile);
         }
         ParseFiles(dropedfiles);     // has to be all at once so it the previous is not overwritten
+
+        // since there's more than one file, not okay to do a regular, non-PDF add here
+        $('#btnFileUpload').attr('disabled', true);
+        $('#btnDragdrop').attr('disabled', true);
     }
 
 
 
-    $('#btnDragdrop').attr('disabled', false);
+    //$('#btnDragdrop').attr('disabled', false);
     $('#btnPdfDragdrop').attr('disabled', false);
 }
 
