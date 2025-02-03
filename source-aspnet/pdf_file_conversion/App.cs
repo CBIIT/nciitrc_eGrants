@@ -193,10 +193,16 @@ namespace EmailConcatenation
                 }
             }
 
-            var merged = PdfDocument.Merge(filesToMerge);
-            return merged;
-
-            throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{fileName}'. Worst case is the unrecognized converter should at least do something and mark it handled.");
+            if (filesToMerge.Count > 0)
+            {
+                Console.WriteLine("Attachments processed.");
+                var merged = PdfDocument.Merge(filesToMerge);
+                return merged;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{fileName}'. Worst case is the unrecognized converter should at least do something and mark it handled.");
+            }
 
         }
     }

@@ -52,6 +52,8 @@ using static egrants_new.Egrants_Admin.Models.Supplement;
 using IronPdf;
 using System.Text;
 using EmailConcatenation;
+using System.Collections.Generic;
+using System.Linq;
 
 #endregion
 
@@ -525,7 +527,7 @@ namespace egrants_new.Controllers
         /// </returns>
         [HttpPost]
         public ActionResult doc_create_pdf_by_file(
-            HttpPostedFileBase file,
+            IEnumerable<HttpPostedFileBase> files,
             int appl_id,
             int category_id,
             string sub_category,
@@ -536,38 +538,46 @@ namespace egrants_new.Controllers
             var docName = string.Empty;
             string url = null;
             string mssg = null;
+            string fileExtension = string.Empty;
+            var pdfDocs = new List<PdfDocument>();
 
-            if (file != null && file.ContentLength > 0)
+            if (files != null && files.Any())
+            {
                 try
                 {
-                    // get file name and file Extension
-                    var fileName = Path.GetFileName(file.FileName);
-                    var fileExtension = Path.GetExtension(fileName);
-
-                    byte[] fileData;
-                    using (var binaryReader = new BinaryReader(file.InputStream))
+                    foreach (var file in files)
                     {
-                        fileData = binaryReader.ReadBytes(file.ContentLength);
-                    }
+                        // get file name and file Extension
+                        var fileName = Path.GetFileName(file.FileName);
+                        fileExtension = Path.GetExtension(fileName);
 
-                    var converter = new EmailConcatenation.PdfConverter();
-
-                    PdfDocument pdfResult = null;
-
-                    if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        using (var memoryStream = new MemoryStream(fileData))
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(file.InputStream))
                         {
-                            var emailFile = new Storage.Message(memoryStream);
-                            pdfResult = converter.Convert(emailFile);
+                            fileData = binaryReader.ReadBytes(file.ContentLength);
                         }
-                    }
-                    else
-                    {
-                        using (var memoryStream = new MemoryStream(fileData))
+
+                        var converter = new EmailConcatenation.PdfConverter();
+
+                        PdfDocument pdfResult = null;
+
+                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            pdfResult = converter.Convert(memoryStream, file.FileName);
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                var emailFile = new Storage.Message(memoryStream);
+                                pdfResult = converter.Convert(emailFile);
+                            }
                         }
+                        else
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                pdfResult = converter.Convert(memoryStream, file.FileName);
+                            }
+                        }
+
+                        pdfDocs.Add(pdfResult);
                     }
                     fileExtension = ".pdf";
 
@@ -585,13 +595,18 @@ namespace egrants_new.Controllers
 
                     // upload to image sever 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+
+                    // MLH : do NOT check this in !!
+                    fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
+
                     var filePath = Path.Combine(fileFolder, docName);
 
-                    pdfResult.SaveAs(filePath);
+                    var pdfDoc = PdfDocument.Merge(pdfDocs);
+                    pdfDoc.SaveAs(filePath);
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
-                                         + Convert.ToString(docName);
+                                            + Convert.ToString(docName);
 
                     this.ViewBag.Message = "Done! New document has been created";
 
@@ -615,6 +630,7 @@ namespace egrants_new.Controllers
                     //Response.Write(sb.ToString());
                     //return null;
                 }
+            }
             else
                 this.ViewBag.Message = "You have not specified a file.";
 
