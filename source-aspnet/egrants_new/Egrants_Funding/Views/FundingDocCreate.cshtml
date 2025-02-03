@@ -348,14 +348,21 @@
         // check file, file type and file size
         if (!check_file()) {
             return false;
-        } else var file = document.getElementById('customFile').files[0];
+        }
+
+        var fileInput = document.getElementById('customFile');
+        var file = document.getElementById('customFile').files[0];
 
         var frmdata = new FormData();
-        frmdata.append('file', file);
+        //frmdata.append('file', file);
         frmdata.append('appl_id', Applid);
         frmdata.append('category_id', Categoryid);
         frmdata.append('document_date', DocDate);
         frmdata.append('sub_category', SubCategory);
+
+        for (var i = 0; i < fileInput.files.length; i++) {
+            frmdata.append('files', fileInput.files[i]);
+        }
 
         docupload(frmdata, "/EgrantsFunding/doc_create_pdf_by_file");
         $('#btnFileUpload').attr("disabled", "disabled");
@@ -418,11 +425,15 @@
         }
 
         var frmdata = new FormData();
-        frmdata.append('dropedfile', dropedfile);
+        //frmdata.append('dropedfile', dropedfile);
         frmdata.append('appl_id', Applid);
         frmdata.append('category_id', Categoryid);
         frmdata.append('document_date', DocDate);
         frmdata.append('sub_category', SubCategory);
+
+        for (var i = 0; i < dropedfiles.length; i++) {
+            frmdata.append('dropedfiles', dropedfiles[i]);
+        }
 
         docupload(frmdata, "/EgrantsFunding/doc_create_pdf_by_ddrop");
         $('#btnDragdrop').attr("disabled", "disabled");
@@ -652,7 +663,7 @@
                      <!--start upload by drag drop -->
                      <div class="tabcontent " id="by_ddrop" style="display: none">
                         <br />
-                        <div id="dropArea">Drag-drop only one file here to upload</div>
+                        <div id="dropArea">Drag-drop only one file here to upload with the Add button.</div>
                         <br />
                         <span>
                             <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" accesskey="N" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
@@ -666,7 +677,7 @@
                      <div class="tabcontent" id="by_file" style="display: none">
                        <form>
                         <div class="custom-file my-2">
-                           <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
+                           <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()" multiple>
                            <label class="custom-file-label" for="customFile">Choose file...</label>
                         </div>
                        </form>
