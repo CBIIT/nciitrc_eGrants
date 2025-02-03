@@ -98,7 +98,6 @@ namespace EmailConcatenation
 
             sb.Append($"font-size: {fontSize}px;");
 
-            //return $".{GetName()} {{ {sb.ToString()} }} ";
             _renderedClassBody = $"{{ {sb.ToString()} }}";
             return _renderedClassBody;
         }

@@ -21,7 +21,7 @@ namespace EmailConcatenation.Converters
 
         public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
-            using (var memoryStream = new MemoryStream(content.Attachment.Data))
+            using (var memoryStream = new MemoryStream(content.GetBytes()))
             {
                 var htmlRenderer = new ChromePdfRenderer();
 

@@ -39,7 +39,10 @@ namespace EmailConcatenation.Converters
                     sb.AppendLine("<p>A file was discovered with an extension that was completely unanticipated.</p>");
                     sb.AppendLine("<p>Please notify the eGrants development team at egrantsdev@mail.nih.gov</p>");
                     sb.AppendLine("<p>And include as an attachment the file (or email) that this came from.</p>");
-                    sb.AppendLine($"<p>And include the offending file's name is : {content.Attachment.FileName}</p></body></html>");
+                    if (!content.IsMemoryStream)
+                        sb.AppendLine($"<p>The offending file's name is : {content.Attachment.FileName}</p></body></html>");
+                    else
+                        sb.AppendLine($"<p>The offending file's name is : {content.SingleFileFileName}</p></body></html>");
                     break;
                 case ContentForPdf.ContentType.SimpleGeneratedMessage:
                     sb.AppendLine("<html><body><p><h1>Completely Unrecognized Filetype (top level failure)</h1></p>");
