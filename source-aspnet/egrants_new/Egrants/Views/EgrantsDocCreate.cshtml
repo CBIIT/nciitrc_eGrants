@@ -184,10 +184,10 @@
         //check loacte file, file type and file size
         if (!check_file()) {
             return false;
-        } else var files = document.getElementById('customFile').files;
+        } else var file = document.getElementById('customFile').files[0];
 
         var frmdata = new FormData();
-        frmdata.append('files', files);
+        frmdata.append('files', file);
         frmdata.append('admin_code', AdminCode);
         frmdata.append('serial_num', SerialNum);
         frmdata.append('appl_id', Applid);
@@ -333,14 +333,29 @@
             return false;
         }
 
+//        var fileInput = document.getElementById('customFile');
+
         var frmdata = new FormData();
-        frmdata.append('dropedfile', dropedfile);
+        //frmdata.append('dropedfile', dropedfile);
         frmdata.append('appl_id', Applid);
         frmdata.append('category_id', Categoryid);
         frmdata.append('sub_category', SubCategory);
         frmdata.append('doc_date', DocDate);
         frmdata.append('admin_code', AdminCode);
         frmdata.append('serial_num', SerialNum);
+
+        for (var i = 0; i < dropedfiles.length; i++) {
+            frmdata.append('dropedfiles', dropedfiles[i]);
+        }
+
+        //check loacte file, file type and file size
+        //if (!check_file()) {
+        //    return false;
+        //} else {
+        //    //var files = document.getElementById('customFile').files;
+
+        //}
+
         docupload(frmdata, "/EgrantsDoc/convert_to_pdf_by_ddrop");
         clear_all("by_dd");
     }

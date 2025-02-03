@@ -755,7 +755,7 @@ namespace egrants_new.Controllers
         /// </returns>
         [HttpPost]
         public ActionResult convert_to_pdf_by_ddrop(
-            HttpPostedFileBase dropedfile,
+            IEnumerable<HttpPostedFileBase> dropedfiles,
             int appl_id,
             int category_id,
             string sub_category,
@@ -767,37 +767,43 @@ namespace egrants_new.Controllers
             var docName = string.Empty;
             string url = null;
             string mssg = null;
+            string fileExtension = string.Empty;
+            var pdfDocs = new List<PdfDocument>();
 
-            if (dropedfile != null && dropedfile.ContentLength > 0)
+            if (dropedfiles != null && dropedfiles.Any())
                 try
                 {
-                    // get file name and file Extension
-                    var fileName = Path.GetFileName(dropedfile.FileName);
-                    var fileExtension = Path.GetExtension(fileName);
-
-                    byte[] fileData;
-                    using (var binaryReader = new BinaryReader(dropedfile.InputStream))
+                    foreach (var dropedfile in dropedfiles)
                     {
-                        fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
-                    }
+                        // get file name and file Extension
+                        var fileName = Path.GetFileName(dropedfile.FileName);
+                        fileExtension = Path.GetExtension(fileName);
 
-                    var converter = new EmailConcatenation.PdfConverter();
-
-                    PdfDocument pdfResult = null;
-                    if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        using (var memoryStream = new MemoryStream(fileData))
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(dropedfile.InputStream))
                         {
-                            var emailFile = new Storage.Message(memoryStream);
-                            pdfResult = converter.Convert(emailFile);
+                            fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
                         }
-                    }
-                    else
-                    {
-                        using (var memoryStream = new MemoryStream(fileData))
+
+                        var converter = new EmailConcatenation.PdfConverter();
+
+                        PdfDocument pdfResult = null;
+                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            pdfResult = converter.Convert(memoryStream, fileName);
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                var emailFile = new Storage.Message(memoryStream);
+                                pdfResult = converter.Convert(emailFile);
+                            }
                         }
+                        else
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                pdfResult = converter.Convert(memoryStream, fileName);
+                            }
+                        }
+                        pdfDocs.Add(pdfResult);
                     }
                     fileExtension = ".pdf";
 
@@ -815,9 +821,14 @@ namespace egrants_new.Controllers
 
 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+
+                    // MLH : do NOT check this in !!
+                    fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
+
                     var filePath = Path.Combine(fileFolder, docName);
 
-                    pdfResult.SaveAs(filePath);
+                    var pdfDoc = PdfDocument.Merge(pdfDocs);
+                    pdfDoc.SaveAs(filePath);
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
@@ -827,6 +838,7 @@ namespace egrants_new.Controllers
 
                     url = this.ViewBag.FileUrl;
                     mssg = this.ViewBag.Message;
+                    
                 }
                 catch (Exception ex)
                 {
