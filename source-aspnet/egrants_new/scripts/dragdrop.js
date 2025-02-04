@@ -63,7 +63,6 @@ function FileSelectHandler(e) {
         var fileExtLowerCase = filext.toLowerCase();
 
         $('#dropArea').addClass('active-drop');
-        // alert(filext);
         var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
 
         if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
@@ -74,8 +73,7 @@ function FileSelectHandler(e) {
             $('#btnPdfDragdrop').attr('disabled', true);
             return false;
         } else var filesize = (dropedfile.size / 1000);
-
-        //alert(filesize);      
+  
         if (filesize > 1500000) {
             alert("File size too large, please send to BOB Team");
             $('#dropArea').removeClass('active-drop');
@@ -100,7 +98,6 @@ function FileSelectHandler(e) {
             var fileExtLowerCase = filext.toLowerCase();
 
             $('#dropArea').addClass('active-drop');
-            // alert(filext);
             var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
 
             if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
@@ -123,10 +120,6 @@ function FileSelectHandler(e) {
             }
 
             dropedfile = null;
-
-            
-            //$('#dropArea').removeClass('active-drop');
-            //console.log('Bytes Loaded: ' + dropedfile);
         }
         ParseFiles(dropedfiles);     // has to be all at once so it the previous is not overwritten
 
@@ -135,9 +128,6 @@ function FileSelectHandler(e) {
         $('#btnDragdrop').attr('disabled', true);
     }
 
-
-
-    //$('#btnDragdrop').attr('disabled', false);
     $('#btnPdfDragdrop').attr('disabled', false);
 }
 

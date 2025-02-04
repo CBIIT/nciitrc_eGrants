@@ -470,9 +470,6 @@ namespace egrants_new.Controllers
 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
 
-                    // MLH : do NOT check this in !!
-                    fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
-
                     var filePath = Path.Combine(fileFolder, docName);
 
                     var pdfDoc = PdfDocument.Merge(pdfDocs);
@@ -657,9 +654,6 @@ namespace egrants_new.Controllers
 
                     // upload to image server
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
-
-                    // MLH : do NOT check this in !!
-                    fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
 
                     var filePath = Path.Combine(fileFolder, docName);
 
