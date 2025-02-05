@@ -45,7 +45,7 @@
             //$(".custom-file-input").prop("disabled", true);
         //    function resetFile() {
 
-                $(".custom-file-label").text('Choose file...');
+                $(".custom-file-label").text('Choose files...');
                 var es = document.forms[1].elements;
                 clearInputFile(es[0]);
           //  }
