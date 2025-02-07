@@ -442,6 +442,12 @@
         }
         document.getElementById(tabs).style.display = "block";
         evt.currentTarget.className += " active";
+
+        // disable Add if multiple or zero files
+        if (document.getElementById("customFile").files.length === 0 || 
+            document.getElementById("customFile").files.length >= 2) {
+            document.getElementById("btnFileUpload").disabled = "disabled";
+        }
     }
 
     function active_btnFileUpload() {
@@ -452,7 +458,6 @@
         // eGrants-616 : disable regular add button if multiple files (make them PDF convert)
         if (document.getElementById("customFile").files?.length > 1) {
             document.getElementById("btnFileUpload").disabled = true;
-            document.getElementById("btnDragdrop").disabled = true;
         }
     }
 </script>
