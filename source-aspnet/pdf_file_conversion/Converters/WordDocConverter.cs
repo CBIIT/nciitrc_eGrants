@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Spire.Doc;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace EmailConcatenation.Converters
 {
@@ -24,17 +27,48 @@ namespace EmailConcatenation.Converters
         {
             Console.WriteLine("Handling Word .doc file type case ...");
 
-            using (var memoryStream = new MemoryStream(content.GetBytes()))
+            string tempFilePath = Path.GetTempFileName();
+            File.WriteAllBytes(tempFilePath, content.GetBytes());
+
+            string sofficePath = @"""C:\Program Files\LibreOffice\program\soffice.com""";
+            string args = $"--headless --convert-to docx \"{tempFilePath}\" --outdir \"{Path.GetDirectoryName(tempFilePath)}\"";
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                Document document = new Document(memoryStream);
-                using (var pdfStream = new MemoryStream())
+                FileName = sofficePath,
+                Arguments = args,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            using (Process process = new Process { StartInfo = startInfo })
+            {
+                process.Start();
+
+                // make sure it doesn't have any output like this :
+                // Entity: line 1: parser error : Document is empty
+
+                string errorIndicatorString = "parser error :";
+
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+
+                process.WaitForExit();
+
+                if (output.Contains(errorIndicatorString) || error.Contains(errorIndicatorString))
                 {
-                    document.SaveToStream(pdfStream, FileFormat.PDF);
-                    pdfStream.Position = 0;
-                    var newPdfFile = new PdfDocument(pdfStream);
-                    return new List<PdfDocument> { newPdfFile };
+                    throw new ExternalException($"Creating the Word .docx file from the .doc failed after attempting to use this command : {sofficePath} {args}");
                 }
             }
+
+            string convertedFilePath = Path.Combine(Path.GetDirectoryName(tempFilePath), Path.GetFileNameWithoutExtension(tempFilePath) + ".docx");
+
+            DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
+            PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(convertedFilePath);
+
+            return new List<PdfDocument> { pdfDocument };
         }
     }
 }
