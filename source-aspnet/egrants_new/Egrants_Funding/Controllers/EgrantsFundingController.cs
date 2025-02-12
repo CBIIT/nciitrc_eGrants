@@ -416,6 +416,7 @@ namespace egrants_new.Controllers
             string mssg = null;
             string fileExtension = string.Empty;
             var pdfDocs = new List<PdfDocument>();
+            var converter = new EmailConcatenation.PdfConverter();
 
             if (dropedfiles != null && dropedfiles.Any())
                 try
@@ -431,8 +432,6 @@ namespace egrants_new.Controllers
                         {
                             fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
                         }
-
-                        var converter = new EmailConcatenation.PdfConverter();
 
                         PdfDocument pdfResult = null;
                         if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
@@ -450,7 +449,10 @@ namespace egrants_new.Controllers
                                 pdfResult = converter.Convert(memoryStream, fileName);
                             }
                         }
-                        pdfDocs.Add(pdfResult);
+                        if (pdfResult != null)
+                        {
+                            pdfDocs.Add(pdfResult);
+                        }
                     }
                     fileExtension = ".pdf";
 
@@ -471,6 +473,11 @@ namespace egrants_new.Controllers
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
 
                     var filePath = Path.Combine(fileFolder, docName);
+
+                    if (!pdfDocs.Any())
+                    {
+                        pdfDocs.Add(converter.CreateEmptyDocument());
+                    }
 
                     var pdfDoc = PdfDocument.Merge(pdfDocs);
                     pdfDoc.SaveAs(filePath);
@@ -598,6 +605,7 @@ namespace egrants_new.Controllers
             string mssg = null;
             string fileExtension = string.Empty;
             var pdfDocs = new List<PdfDocument>();
+            var converter = new EmailConcatenation.PdfConverter();
 
             if (files != null && files.Any())
             {
@@ -616,8 +624,6 @@ namespace egrants_new.Controllers
                             fileData = binaryReader.ReadBytes(file.ContentLength);
                         }
 
-                        var converter = new EmailConcatenation.PdfConverter();
-
                         PdfDocument pdfResult = null;
                         if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                         {
@@ -634,7 +640,8 @@ namespace egrants_new.Controllers
                                 pdfResult = converter.Convert(memoryStream, file.FileName);
                             }
                         }
-                        pdfDocs.Add(pdfResult);
+                        if (pdfResult != null)
+                            pdfDocs.Add(pdfResult);
                     }
                     fileExtension = ".pdf";
 
@@ -656,6 +663,11 @@ namespace egrants_new.Controllers
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
 
                     var filePath = Path.Combine(fileFolder, docName);
+
+                    if (!pdfDocs.Any())
+                    {
+                        pdfDocs.Add(converter.CreateEmptyDocument());
+                    }
 
                     var pdfDoc = PdfDocument.Merge(pdfDocs);
                     pdfDoc.SaveAs(filePath);

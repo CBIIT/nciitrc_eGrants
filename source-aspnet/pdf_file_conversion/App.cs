@@ -119,7 +119,8 @@ namespace EmailConcatenation
                         if (converter.SupportsThisFileType(storageAttachment.FileName))
                         {
                             var pdfDoc = converter.ToPdfDocument(content);
-                            filesToMerge.AddRange(pdfDoc);
+                            if (pdfDoc != null)
+                                filesToMerge.AddRange(pdfDoc);
                             fileHandled = true;
                             break;
                         }
@@ -135,7 +136,8 @@ namespace EmailConcatenation
                         Message = messageAttachment
                     };
                     var messagePdf = EmailTextConverter.ToPdfDocument(plainTextContent);
-                    filesToMerge.AddRange(messagePdf);
+                    if (messagePdf != null)
+                        filesToMerge.AddRange(messagePdf);
                 }
                 else
                 {
@@ -144,12 +146,17 @@ namespace EmailConcatenation
                         SimpleMessage = "This file was not recognized as either an email message nor as an attachment file."
                     };
                     var unrecogniedPDF = unrecognizedTextConverter.ToPdfDocument(content);
-                    filesToMerge.AddRange(unrecogniedPDF);
+                    if (unrecogniedPDF != null)
+                        filesToMerge.AddRange(unrecogniedPDF);
                 }
             }
             //}
 
-            if (filesToMerge.Count > 0)
+            if (!filesToMerge.Any())
+            {
+                return null;
+            }
+            else if (filesToMerge.Count > 0)
             {
                 Console.WriteLine("Attachments processed.");
                 var merged = PdfDocument.Merge(filesToMerge);
@@ -188,12 +195,18 @@ namespace EmailConcatenation
                 if (converter.SupportsThisFileType(fileName))
                 {
                     var pdfDoc = converter.ToPdfDocument(content);
-                    filesToMerge.AddRange(pdfDoc);
+                    if (pdfDoc != null)
+                        filesToMerge.AddRange(pdfDoc);
                     break;
                 }
             }
 
-            if (filesToMerge.Count > 0)
+
+            if (!filesToMerge.Any())
+            {
+                return null;
+            }
+            else if (filesToMerge.Count > 0)
             {
                 Console.WriteLine("Attachments processed.");
                 var merged = PdfDocument.Merge(filesToMerge);
@@ -204,6 +217,17 @@ namespace EmailConcatenation
                 throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{fileName}'. Worst case is the unrecognized converter should at least do something and mark it handled.");
             }
 
+        }
+
+        internal PdfDocument CreateEmptyDocument()
+        {
+            var content = "<html><body><h1>File or files contained no data.</h1></body></html>";
+
+            // using an unusual overload, so manually instantiate the converter
+            var tempHtmlConverter = new HtmlConverter();
+            var result = tempHtmlConverter.ToPdfDocument(content).ElementAt(0);
+
+            return result;
         }
     }
 }

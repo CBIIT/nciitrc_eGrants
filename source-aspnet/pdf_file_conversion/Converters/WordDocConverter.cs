@@ -29,6 +29,9 @@ namespace EmailConcatenation.Converters
                 Document document = new Document(memoryStream);
                 using (var pdfStream = new MemoryStream())
                 {
+                    if (pdfStream.Length == 0)
+                        return null;
+
                     document.SaveToStream(pdfStream, FileFormat.PDF);
                     pdfStream.Position = 0;
                     var newPdfFile = new PdfDocument(pdfStream);
