@@ -599,6 +599,8 @@ namespace egrants_new.Controllers
                     // upload to image sever 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
 
+                    //fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
+
                     var filePath = Path.Combine(fileFolder, docName);
 
                     if (!pdfDocs.Any())
@@ -622,18 +624,18 @@ namespace egrants_new.Controllers
                 {
                     this.ViewBag.Message = "ERROR:" + ex.Message;
 
-                    //Response.StatusCode = 500; //Write your own error code
-                    //StringBuilder sb = new StringBuilder();
-                    //sb.AppendLine($"exception type: {ex.GetType().Name}");
-                    //sb.AppendLine($"exception message: {ex.Message}");
-                    ////sb.AppendLine($"captured file path diagnostic after Path.Combine: {filePathDiangostic}");
-                    //if (ex.InnerException != null)
-                    //{
-                    //    sb.AppendLine($"inner exception type: {ex.InnerException.GetType().Name}");
-                    //    sb.AppendLine($"inner exception message: {ex.Message}");
-                    //}
-                    //Response.Write(sb.ToString());
-                    //return null;
+                    Response.StatusCode = 500; //Write your own error code
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine($"exception type: {ex.GetType().Name}");
+                    sb.AppendLine($"exception message: {ex.Message}");
+                    //sb.AppendLine($"captured file path diagnostic after Path.Combine: {filePathDiangostic}");
+                    if (ex.InnerException != null)
+                    {
+                        sb.AppendLine($"inner exception type: {ex.InnerException.GetType().Name}");
+                        sb.AppendLine($"inner exception message: {ex.Message}");
+                    }
+                    Response.Write(sb.ToString());
+                    return null;
                 }
             }
             else
