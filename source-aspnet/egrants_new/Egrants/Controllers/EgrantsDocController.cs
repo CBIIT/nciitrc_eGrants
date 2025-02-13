@@ -54,6 +54,7 @@ using System.Text;
 using EmailConcatenation;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 #endregion
 
@@ -561,6 +562,12 @@ namespace egrants_new.Controllers
 
                         PdfDocument pdfResult = null;
 
+                    using (EventLog eventLog = new EventLog("Application"))
+                    {
+                        eventLog.Source = "Application";
+                        eventLog.WriteEntry("Conversion request received", EventLogEntryType.Information, 101, 1);
+                    }
+
                         if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                         {
                             using (var memoryStream = new MemoryStream(fileData))
@@ -576,6 +583,12 @@ namespace egrants_new.Controllers
                                 pdfResult = converter.Convert(memoryStream, file.FileName);
                             }
                         }
+
+                    using (EventLog eventLog = new EventLog("Application"))
+                    {
+                        eventLog.Source = "Application";
+                        eventLog.WriteEntry("Conversion processed", EventLogEntryType.Information, 101, 1);
+                    }
 
                         if (pdfResult != null)
                         {
@@ -640,6 +653,12 @@ namespace egrants_new.Controllers
             }
             else
                 this.ViewBag.Message = "You have not specified a file.";
+
+        using (EventLog eventLog = new EventLog("Application"))
+        {
+            eventLog.Source = "Application";
+            eventLog.WriteEntry("Conversion request COMPLETE", EventLogEntryType.Information, 101, 1);
+        }
 
             return this.Json(new { url, message = mssg });
         }

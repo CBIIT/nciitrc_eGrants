@@ -61,7 +61,19 @@ namespace EmailConcatenation.Converters
                 string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
 
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry("Waiting for exit ...", EventLogEntryType.Information, 101, 1);
+            }
+
                 process.WaitForExit();
+
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry("Exit reached", EventLogEntryType.Information, 101, 1);
+            }
 
                 if (output.Contains(errorIndicatorString) || error.Contains(errorIndicatorString))
                 {
@@ -70,6 +82,12 @@ namespace EmailConcatenation.Converters
             }
 
             string convertedFilePath = Path.Combine(Path.GetDirectoryName(tempFilePath), Path.GetFileNameWithoutExtension(tempFilePath) + ".docx");
+
+        using (EventLog eventLog = new EventLog("Application"))
+        {
+            eventLog.Source = "Application";
+            eventLog.WriteEntry($"convertedFilePath : {convertedFilePath}", EventLogEntryType.Information, 101, 1);
+        }
 
             DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
             PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(convertedFilePath);
