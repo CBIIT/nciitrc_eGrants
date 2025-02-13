@@ -22,6 +22,9 @@ namespace EmailConcatenation.Converters
         {
             using (var memoryStream = new MemoryStream(content.GetBytes()))
             {
+                if (memoryStream.Length == 0)
+                    return null;
+
                 var newPdfFile = new PdfDocument(memoryStream);
                 return new List<PdfDocument> { newPdfFile };
             }
