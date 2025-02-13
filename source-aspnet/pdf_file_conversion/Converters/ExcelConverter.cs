@@ -113,6 +113,9 @@ namespace EmailConcatenation.Converters
 
         private void ConvertStream(string fileName, List<PdfDocument> allSheetsAsSeparatePdfs, MemoryStream memoryStream)
         {
+            if (memoryStream == null || memoryStream.Length == 0)
+                return;
+
             var sb = new StringBuilder();
             if (fileName.ToLower().EndsWith(".xlsx"))
             {

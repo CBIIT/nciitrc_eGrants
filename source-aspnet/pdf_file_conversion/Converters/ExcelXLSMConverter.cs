@@ -92,6 +92,9 @@ namespace EmailConcatenation.Converters
 
         private void ConvertStream(string singleFileFileName, List<PdfDocument> allSheetsAsSeparatePdfs, MemoryStream memoryStream)
         {
+            if (memoryStream == null || memoryStream.Length == 0)
+                return;
+
             var sb = new StringBuilder();
             var workbook = new XLWorkbook(memoryStream);
 

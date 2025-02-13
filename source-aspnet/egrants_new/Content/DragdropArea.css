@@ -2,7 +2,8 @@
             background: #b5b5b5;
             border: black dashed 1px;
             width: 650px;
-            height: 100px;
+            min-height: 100px;
+            height: 100%;
             text-align: center;
             color: #fff;
             padding-top: 12px;

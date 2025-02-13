@@ -73,8 +73,10 @@
 
    function show_sub_category() {
       //enable btnFileUpload button and file
-      if (document.getElementById("btnFileUpload") != null && document.getElementById("btnFileUpload").disabled == true) {
-         document.getElementById("btnFileUpload").disabled = false;
+       if (document.getElementById("btnFileUpload") != null && document.getElementById("btnFileUpload").disabled == true) {
+           if (document.getElementById("customFile").files.length === 1) {
+               document.getElementById("btnFileUpload").disabled = false;
+           }
          //document.getElementById("UploadFile").value = "";
       }
 

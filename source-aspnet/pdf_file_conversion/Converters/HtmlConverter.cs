@@ -36,5 +36,14 @@ namespace EmailConcatenation.Converters
                 }
             }
         }
+
+        public List<PdfDocument> ToPdfDocument(string content)
+        {
+            // Render the HTML content as a PDF
+            var htmlRenderer = new ChromePdfRenderer();
+            PdfDocument pdf = htmlRenderer.RenderHtmlAsPdf(content);
+            Console.WriteLine("adding rendered pdf");
+            return new List<PdfDocument> { pdf };
+        }
     }
 }
