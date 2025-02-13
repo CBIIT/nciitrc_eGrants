@@ -1,5 +1,7 @@
 ﻿using EmailConcatenation.Interfaces;
 using IronPdf;
+using SkiaSharp;
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -37,6 +39,9 @@ namespace EmailConcatenation.Converters
                 Bitmap tiffBitmap = new Bitmap(tiffStream);
                 using (var pngStream = new MemoryStream())
                 {
+                    if (pngStream.Length == 0)
+                        return null;
+
                     tiffBitmap.Save(pngStream, ImageFormat.Png);
                     pngStream.Position = 0;
 

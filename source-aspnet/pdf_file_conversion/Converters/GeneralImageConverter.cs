@@ -31,8 +31,14 @@ namespace EmailConcatenation.Converters
             var fileNameExtension = fileNameTokens[fileNameTokens.Length - 1].ToLower();  // the file extension is the last one
             Console.WriteLine($"Filename extension : '{fileNameExtension}'");
 
+            if (content == null)
+                return null;
+
             using (var imageStream = new MemoryStream(content.GetBytes()))
             {
+                if (imageStream.Length == 0)
+                    return null;
+
                 Bitmap bitmap = new Bitmap(imageStream);
                 var chromeRenderer = new ChromePdfRenderer();
                 string base64Image = Convert.ToBase64String((byte[])new ImageConverter().ConvertTo(bitmap, typeof(byte[])));

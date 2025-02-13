@@ -24,6 +24,10 @@ namespace EmailConcatenation.Converters
             Console.WriteLine("Handling Word docx file type case ...");
 
             DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
+
+            if (content.GetBytes().Length == 0)
+                return null;
+
             PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(content.GetBytes());
             return new List<PdfDocument> { pdfDocument };
         }

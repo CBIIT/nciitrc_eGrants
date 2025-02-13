@@ -3,6 +3,7 @@ filedrag.js - HTML5 File Drag & Drop
 */
 // getElementById
 var dropedfile = null;
+var droppedFiles = null;
 //var frmdata = new FormData();
 
 function $id(id) {
@@ -49,21 +50,12 @@ function FileSelectHandler(e) {
     // cancel event and hover styling
     FileDragHover(e);
     dropedfile = null;
-    var dropedfiles = null;
+    dropedfiles = null;
     // fetch file object
    
     dropedfiles = e.target.files || e.dataTransfer.files;  
-    
-    if (dropedfiles.length > 1) {
-        alert("Please drag and drop only one file!");
-        $('#dropArea').removeClass('active-drop');
-        $('#dropArea').html('Drag-drop only one file here to upload');
-        $('#btnDragdrop').attr('disabled', true);
-        $('#btnPdfDragdrop').attr('disabled', true);
-        return false;
-    }
 
-    if (dropedfiles.length = 1) {
+    if (dropedfiles.length == 1) {
 
         dropedfile = dropedfiles[0];
 
@@ -71,7 +63,6 @@ function FileSelectHandler(e) {
         var fileExtLowerCase = filext.toLowerCase();
 
         $('#dropArea').addClass('active-drop');
-        // alert(filext);
         var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
 
         if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
@@ -82,23 +73,61 @@ function FileSelectHandler(e) {
             $('#btnPdfDragdrop').attr('disabled', true);
             return false;
         } else var filesize = (dropedfile.size / 1000);
-     
-        //alert(filesize);      
+  
         if (filesize > 1500000) {
             alert("File size too large, please send to BOB Team");
-            $('#dropArea').removeClass('active-drop');           
+            $('#dropArea').removeClass('active-drop');
             $('#dropArea').html('Drag-drop only one file here to upload');
             $('#btnDragdrop').attr('disabled', true);
             $('#btnPdfDragdrop').attr('disabled', true);
-            return false;	          
-          }
+            return false;
+        }
+
+        ParseFile(dropedfile);
+        //$('#dropArea').removeClass('active-drop');
+        console.log('Bytes Loaded: ' + dropedfile);
+
+        // since there's just one file, okay to do a regular, non-PDF add here
+        $('#btnFileUpload').attr('disabled', false);
+        $('#btnDragdrop').attr('disabled', false);
+    } else if (dropedfiles.length > 1) {
+        for (var i = 0; i < dropedfiles.length; i++) {
+            dropedfile = dropedfiles[i];
+
+            var filext = dropedfile.name.split('.').pop();
+            var fileExtLowerCase = filext.toLowerCase();
+
+            $('#dropArea').addClass('active-drop');
+            var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
+
+            if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
+                alert("The file type is not acceptable. Please upload files only with extension of 'pdf','xls','xlsx','xlsm','txt','doc','docx' or 'msg'");
+                $('#dropArea').removeClass('active-drop');
+                $('#dropArea').html('Drag-drop only one file here to upload');
+                $('#btnDragdrop').attr('disabled', true);
+                $('#btnPdfDragdrop').attr('disabled', true);
+                return false;
+            } else var filesize = (dropedfile.size / 1000);
+
+            //alert(filesize);      
+            if (filesize > 1500000) {
+                alert("File size too large, please send to BOB Team");
+                $('#dropArea').removeClass('active-drop');
+                $('#dropArea').html('Drag-drop only one file here to upload');
+                $('#btnDragdrop').attr('disabled', true);
+                $('#btnPdfDragdrop').attr('disabled', true);
+                return false;
+            }
+
+            dropedfile = null;
+        }
+        ParseFiles(dropedfiles);     // has to be all at once so it the previous is not overwritten
+
+        // since there's more than one file, not okay to do a regular, non-PDF add here
+        $('#btnFileUpload').attr('disabled', true);
+        $('#btnDragdrop').attr('disabled', true);
     }
 
-    ParseFile(dropedfile);
-    //$('#dropArea').removeClass('active-drop');
-    console.log('Bytes Loaded: ' + dropedfile);
-
-    $('#btnDragdrop').attr('disabled', false);
     $('#btnPdfDragdrop').attr('disabled', false);
 }
 
@@ -111,6 +140,20 @@ function ParseFile(file) {
         " kb </strong> </i></p>"
     );
 }
+
+// output files information
+function ParseFiles(files) {
+    var outputText = '';
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        outputText += "<p style='color:blue'> <i> File Name:<strong>" + file.name +
+            "</strong>" +
+            ", File Size: <strong>" + (file.size / 1000).toFixed(2) +
+            " kb </strong> </i></p>"
+    }
+    Output(outputText);
+}
+
 // initialize
 function Init() {
     var dropAreaEl = $id("dropArea");

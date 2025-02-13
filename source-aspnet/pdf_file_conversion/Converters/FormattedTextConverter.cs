@@ -54,6 +54,8 @@ namespace EmailConcatenation.Converters
                 {
                     using (var memoryStream = new MemoryStream())
                     {
+                        if (memoryStream == null || memoryStream.Length == 0)
+                            return null;
                         pdfDocument.Stream.CopyTo(memoryStream);
 
                         var bytes = memoryStream.ToArray();
@@ -70,6 +72,10 @@ namespace EmailConcatenation.Converters
                 } else
                 {
                     textContent = System.Text.Encoding.Default.GetString(content.MemoryStream.ToArray());
+                }
+
+                if (textContent == null || textContent.Length == 0) {
+                    return null;
                 }
 
                 // MLH : there is likely going to be some "markdown" here (e.g. \n to mean new line)

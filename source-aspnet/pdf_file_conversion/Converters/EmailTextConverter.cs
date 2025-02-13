@@ -6,6 +6,8 @@ using MsgReader.Outlook;
 
 using NPOI.SS.Formula.Functions;
 
+using SkiaSharp;
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -35,6 +37,9 @@ namespace EmailConcatenation.Converters
 
             if (content.Type != ContentForPdf.ContentType.MailMessage)
                 throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the MailMessage.");
+
+            if (content == null || content.Message == null || string.IsNullOrWhiteSpace(content.Message.BodyHtml))
+                return null;
 
             var renderer = new ChromePdfRenderer();
 
