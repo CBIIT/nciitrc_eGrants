@@ -30,7 +30,13 @@ namespace EmailConcatenation.Converters
             string tempFilePath = Path.GetTempFileName();
             File.WriteAllBytes(tempFilePath, content.GetBytes());
 
-            string sofficePath = @"""C:\Program Files\LibreOffice\program\soffice.com""";
+            string folderPathToLibre = "C:\\Program Files\\LibreOffice\\program";               // works
+            Console.WriteLine($"Checking existence of directory at {folderPathToLibre}");
+            var checkFolderExists = Directory.Exists(folderPathToLibre);
+            if (!checkFolderExists)
+                throw new Exception($"Didn't find libre office folder. Is this installed ?? Location : {folderPathToLibre}");
+
+            string sofficePath = "C:\\Program Files\\LibreOffice\\program\\soffice.com";
             string args = $"--headless --convert-to docx \"{tempFilePath}\" --outdir \"{Path.GetDirectoryName(tempFilePath)}\"";
 
             ProcessStartInfo startInfo = new ProcessStartInfo
@@ -67,6 +73,10 @@ namespace EmailConcatenation.Converters
 
             DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
             PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(convertedFilePath);
+
+            // Clean up
+            File.Delete(tempFilePath);
+            File.Delete(convertedFilePath);
 
             return new List<PdfDocument> { pdfDocument };
         }
