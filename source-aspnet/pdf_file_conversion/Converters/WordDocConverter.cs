@@ -30,9 +30,23 @@ namespace EmailConcatenation.Converters
             string tempFilePath = Path.GetTempFileName();
             File.WriteAllBytes(tempFilePath, content.GetBytes());
 
+        using (EventLog eventLog = new EventLog("Application"))
+        {
+            eventLog.Source = "Application";
+            eventLog.WriteEntry($"Bytes written to {tempFilePath}", EventLogEntryType.Information, 101, 1);
+        }
+
             string folderPathToLibre = "C:\\Program Files\\LibreOffice\\program";               // works
             Console.WriteLine($"Checking existence of directory at {folderPathToLibre}");
             var checkFolderExists = Directory.Exists(folderPathToLibre);
+            var checkFolderExistsText = checkFolderExists ? "True" : "False";
+
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry($"Does libre folder exist ? {checkFolderExistsText}", EventLogEntryType.Information, 101, 1);
+            }
+
             if (!checkFolderExists)
                 throw new Exception($"Didn't find libre office folder. Is this installed ?? Location : {folderPathToLibre}");
 
@@ -49,17 +63,43 @@ namespace EmailConcatenation.Converters
                 CreateNoWindow = true,
             };
 
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry("Process INFO object created", EventLogEntryType.Information, 101, 1);
+            }
+
             using (Process process = new Process { StartInfo = startInfo })
             {
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry("Process object created", EventLogEntryType.Information, 101, 1);
+                }
+
                 process.Start();
+
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry("Process object created", EventLogEntryType.Information, 101, 1);
+                }
 
                 // make sure it doesn't have any output like this :
                 // Entity: line 1: parser error : Document is empty
 
                 string errorIndicatorString = "parser error :";
 
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry("Reading stdout and stderr", EventLogEntryType.Information, 101, 1);
+                }
+
                 string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
+
+            // doesn't make it this far !
 
             using (EventLog eventLog = new EventLog("Application"))
             {
