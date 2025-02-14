@@ -97,12 +97,18 @@ namespace EmailConcatenation.Converters
                     eventLog.WriteEntry("Reading stdout and stderr", EventLogEntryType.Information, 101, 1);        // made it to here on dev !!
                 }
 
-            //    string output = process.StandardOutput.ReadToEnd();
-            //    string error = process.StandardError.ReadToEnd();
+            string output = process.StandardOutput.ReadToEnd();
+                //    string error = process.StandardError.ReadToEnd();
 
-            // doesn't make it this far !
+                // doesn't make it this far !
 
-            using (EventLog eventLog = new EventLog("Application"))
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry($"Output : {output}", EventLogEntryType.Information, 101, 1);
+                }
+
+                using (EventLog eventLog = new EventLog("Application"))
             {
                 eventLog.Source = "Application";
                 eventLog.WriteEntry("Waiting for exit ...", EventLogEntryType.Information, 101, 1);
