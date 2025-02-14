@@ -93,11 +93,11 @@ namespace EmailConcatenation.Converters
                 using (EventLog eventLog = new EventLog("Application"))
                 {
                     eventLog.Source = "Application";
-                    eventLog.WriteEntry("Reading stdout and stderr", EventLogEntryType.Information, 101, 1);
+                    eventLog.WriteEntry("Reading stdout and stderr", EventLogEntryType.Information, 101, 1);        // made it to here on dev !!
                 }
 
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
+            //    string output = process.StandardOutput.ReadToEnd();
+            //    string error = process.StandardError.ReadToEnd();
 
             // doesn't make it this far !
 
@@ -115,10 +115,10 @@ namespace EmailConcatenation.Converters
                 eventLog.WriteEntry("Exit reached", EventLogEntryType.Information, 101, 1);
             }
 
-                if (output.Contains(errorIndicatorString) || error.Contains(errorIndicatorString))
-                {
-                    throw new ExternalException($"Creating the Word .docx file from the .doc failed after attempting to use this command : {sofficePath} {args}");
-                }
+                //if (output.Contains(errorIndicatorString) || error.Contains(errorIndicatorString))
+                //{
+                //    throw new ExternalException($"Creating the Word .docx file from the .doc failed after attempting to use this command : {sofficePath} {args}");
+                //}
             }
 
             string convertedFilePath = Path.Combine(Path.GetDirectoryName(tempFilePath), Path.GetFileNameWithoutExtension(tempFilePath) + ".docx");
