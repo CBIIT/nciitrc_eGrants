@@ -55,7 +55,8 @@ namespace EmailConcatenation.Converters
 
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                FileName = sofficePath,
+                //FileName = sofficePath,
+                FileName = "whoami",
                 Arguments = args,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
