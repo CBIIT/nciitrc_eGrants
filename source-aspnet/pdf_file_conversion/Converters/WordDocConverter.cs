@@ -10,6 +10,7 @@ using Spire.Doc;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Org.BouncyCastle.Tls;
 
 namespace EmailConcatenation.Converters
 {
@@ -55,14 +56,19 @@ namespace EmailConcatenation.Converters
 
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                //FileName = sofficePath,
-                FileName = "whoami",
+                FileName = sofficePath,
+                //FileName = "whoami",
                 Arguments = args,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
             };
+
+            //startInfo. += (DatagramSender, Exception) =>
+            //{
+
+            //}
 
             using (EventLog eventLog = new EventLog("Application"))
             {
@@ -72,6 +78,30 @@ namespace EmailConcatenation.Converters
 
             using (Process process = new Process { StartInfo = startInfo })
             {
+                process.OutputDataReceived += (sender, e) =>
+                {
+                    if (e.Data != null)
+                    {
+                        using (EventLog eventLog = new EventLog("Application"))
+                        {
+                            eventLog.Source = "Application";
+                            eventLog.WriteEntry($"Got some kinda output : {e.Data}", EventLogEntryType.Information, 101, 1);
+                        }
+                    }
+                };
+
+                process.ErrorDataReceived += (sender, e) =>
+                {
+                    if (e.Data != null)
+                    {
+                        using (EventLog eventLog = new EventLog("Application"))
+                        {
+                            eventLog.Source = "Application";
+                            eventLog.WriteEntry($"Got some kinda error : {e.Data}", EventLogEntryType.Information, 101, 1);
+                        }
+                    }
+                };
+
                 using (EventLog eventLog = new EventLog("Application"))
                 {
                     eventLog.Source = "Application";
@@ -97,10 +127,10 @@ namespace EmailConcatenation.Converters
                     eventLog.WriteEntry("Reading stdout and stderr", EventLogEntryType.Information, 101, 1);        // made it to here on dev !!
                 }
 
-            string output = process.StandardOutput.ReadToEnd();
-                //    string error = process.StandardError.ReadToEnd();
+            //string output = process.StandardOutput.ReadToEnd();
+             //       string error = process.StandardError.ReadToEnd();
 
-                // doesn't make it this far !
+                // doesn't make it this far if ReadToEnd() lines above are uncommmented !
 
 
 
@@ -118,11 +148,11 @@ namespace EmailConcatenation.Converters
                 eventLog.WriteEntry("Exit reached", EventLogEntryType.Information, 101, 1);
             }
 
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "Application";
-                    eventLog.WriteEntry($"Output : {output}", EventLogEntryType.Information, 101, 1);
-                }
+                //using (EventLog eventLog = new EventLog("Application"))
+                //{
+                //    eventLog.Source = "Application";
+                //    eventLog.WriteEntry($"Output : {output}", EventLogEntryType.Information, 101, 1);
+                //}
 
                 //if (output.Contains(errorIndicatorString) || error.Contains(errorIndicatorString))
                 //{
