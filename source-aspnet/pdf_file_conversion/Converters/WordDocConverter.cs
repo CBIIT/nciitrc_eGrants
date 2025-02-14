@@ -102,11 +102,7 @@ namespace EmailConcatenation.Converters
 
                 // doesn't make it this far !
 
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "Application";
-                    eventLog.WriteEntry($"Output : {output}", EventLogEntryType.Information, 101, 1);
-                }
+
 
                 using (EventLog eventLog = new EventLog("Application"))
             {
@@ -121,6 +117,12 @@ namespace EmailConcatenation.Converters
                 eventLog.Source = "Application";
                 eventLog.WriteEntry("Exit reached", EventLogEntryType.Information, 101, 1);
             }
+
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry($"Output : {output}", EventLogEntryType.Information, 101, 1);
+                }
 
                 //if (output.Contains(errorIndicatorString) || error.Contains(errorIndicatorString))
                 //{
