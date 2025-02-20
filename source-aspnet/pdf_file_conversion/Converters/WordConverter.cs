@@ -96,7 +96,7 @@ namespace EmailConcatenation.Converters
                 }
             }
 
-            // MLH : return true if any are portrait ... circle back later and find a better approach
+            // MLH : return true if any are portrait since we can only set it in the IronPdf DocX converter in one place
 
             return false;
         }
