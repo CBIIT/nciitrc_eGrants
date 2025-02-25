@@ -73,18 +73,18 @@ namespace EmailConcatenation.Converters
 
             if (marginInfo.bottom != _defaultBottom)
                 _bottom = marginInfo.bottom;
-            if (marginInfo.bottom != _defaultBottom)
-                _bottom = marginInfo.footer;
-            if (marginInfo.bottom != _defaultBottom)
-                _bottom = marginInfo.gutter;
-            if (marginInfo.bottom != _defaultBottom)
-                _bottom = marginInfo.header;
-            if (marginInfo.bottom != _defaultBottom)
-                _bottom = marginInfo.left;
-            if (marginInfo.bottom != _defaultBottom)
-                _bottom = marginInfo.right;
-            if (marginInfo.bottom != _defaultBottom)
-                _bottom = marginInfo.top;
+            if (marginInfo.footer != _defaultFooter)
+                _footer = marginInfo.footer;
+            if (marginInfo.gutter != _defaultGutter)
+                _gutter = marginInfo.gutter;
+            if (marginInfo.header != _defaultHeader)
+                _header = marginInfo.header;
+            if (marginInfo.left != _defaultLeft)
+                _left = marginInfo.left;
+            if (marginInfo.right != _defaultRight)
+                _right = marginInfo.right;
+            if (marginInfo.top != _defaultTop)
+                _top = marginInfo.top;
         }
 
         private void ScanDimensions(ContentForPdf content)
