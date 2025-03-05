@@ -28,7 +28,19 @@ namespace EmailConcatenation.Converters
         {
             Console.WriteLine("Handling Word .doc file type case ...");
 
-            string tempFilePath = Path.GetTempFileName();
+            //string tempFilePath = Path.GetTempFileName();
+
+            //string tempFilePath = $"D:\\temp\\{content.Attachment.FileName}";
+
+            string originalFileName = content?.SingleFileFileName ?? string.Empty;
+            if (string.IsNullOrWhiteSpace (originalFileName) )
+            {
+                // currently this isn't being passed in so just put something distinct for now
+                originalFileName = $"{Guid.NewGuid()}.doc";
+            }
+            //string tempFilePath = $"D:\\temp\\test_stock.doc";
+            string tempFilePath = $"D:\\temp\\{originalFileName}.doc";
+
             File.WriteAllBytes(tempFilePath, content.GetBytes());
 
         using (EventLog eventLog = new EventLog("Application"))
@@ -54,15 +66,26 @@ namespace EmailConcatenation.Converters
             string sofficePath = "C:\\Program Files\\LibreOffice\\program\\soffice.com";
             string args = $"--headless --convert-to docx \"{tempFilePath}\" --outdir \"{Path.GetDirectoryName(tempFilePath)}\"";
 
-            ProcessStartInfo startInfo = new ProcessStartInfo
+            //ProcessStartInfo startInfo = new ProcessStartInfo
+            //{
+            //    FileName = sofficePath,
+            //    //FileName = "whoami",
+            //    Arguments = args,
+            //    RedirectStandardOutput = true,
+            //    RedirectStandardError = true,
+            //    UseShellExecute = false,
+            //    CreateNoWindow = true,
+            //};
+
+            // from Leul with minor adjustments
+            ProcessStartInfo processInfo = new ProcessStartInfo
             {
-                FileName = sofficePath,
-                //FileName = "whoami",
-                Arguments = args,
+                FileName = "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
+                Arguments = $"--headless --convert-to pdf \"D:\\temp\\{originalFileName}\" --outdir \"D:\\temp\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true,
+                CreateNoWindow = true
             };
 
             //startInfo. += (DatagramSender, Exception) =>
@@ -76,7 +99,7 @@ namespace EmailConcatenation.Converters
                 eventLog.WriteEntry("Process INFO object created", EventLogEntryType.Information, 101, 1);
             }
 
-            using (Process process = new Process { StartInfo = startInfo })
+            using (Process process = new Process { StartInfo = processInfo })
             {
                 process.OutputDataReceived += (sender, e) =>
                 {
