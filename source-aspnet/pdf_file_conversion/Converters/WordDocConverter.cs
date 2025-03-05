@@ -32,14 +32,14 @@ namespace EmailConcatenation.Converters
 
             //string tempFilePath = $"D:\\temp\\{content.Attachment.FileName}";
 
-            string originalFileName = content?.SingleFileFileName ?? string.Empty;
-            if (string.IsNullOrWhiteSpace (originalFileName) )
+            string distinctFileName = content?.SingleFileFileName ?? string.Empty;
+            if (string.IsNullOrWhiteSpace (distinctFileName) )
             {
                 // currently this isn't being passed in so just put something distinct for now
-                originalFileName = $"{Guid.NewGuid()}.doc";
+                distinctFileName = $"{Guid.NewGuid()}.doc";
             }
             //string tempFilePath = $"D:\\temp\\test_stock.doc";
-            string tempFilePath = $"D:\\temp\\{originalFileName}.doc";
+            string tempFilePath = $"D:\\temp\\{distinctFileName}";
 
             File.WriteAllBytes(tempFilePath, content.GetBytes());
 
@@ -81,7 +81,7 @@ namespace EmailConcatenation.Converters
             ProcessStartInfo processInfo = new ProcessStartInfo
             {
                 FileName = "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
-                Arguments = $"--headless --convert-to pdf \"D:\\temp\\{originalFileName}\" --outdir \"D:\\temp\"",
+                Arguments = $"--headless --convert-to pdf \"D:\\temp\\{distinctFileName}\" --outdir \"D:\\temp\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
