@@ -176,7 +176,21 @@
       //$('#btnDragdrop').attr("disabled", "disabled");
       //document.getElementById("btnDragdrop").disabled = "disabled";
       clear_all("by_dd");
-   }
+    }
+
+    function upload_pdf_by_ddrop() {
+        var frmdata = new FormData();
+
+        frmdata.append('doc_id', document_id);
+
+        for (var i = 0; i < dropedfiles.length; i++) {
+            frmdata.append('dropedfiles', dropedfiles[i]);
+        }
+
+        docupload(frmdata, "/EgrantsDoc/doc_upload_pdf_by_ddrop");
+
+        clear_all("by_dd");
+    }
 
    function upload_by_file() {
       if (check_file() == false) {
@@ -190,7 +204,26 @@
       docupload(frmdata, "/EgrantsDoc/doc_upload_by_file");
       //$('#btnFileUpload').attr("disabled", "disabled");
       clear_all("by_file");
-   }
+    }
+
+    function upload_pdf_by_file() {
+        var frmdata = new FormData();
+
+        if (!check_file()) {
+            return false;
+        } else {
+            for (var i = 0; i < document.getElementById('customFile').files.length; i++) {
+                frmdata.append('files', document.getElementById('customFile').files[i]);
+            }
+        }
+
+        var document_id = document.getElementById('hidDocID').value;
+
+        frmdata.append('doc_id', document_id);
+        docupload(frmdata, "/EgrantsDoc/doc_upload_pdf_by_file");
+        
+        clear_all("by_file");
+    }
 
    function upload_by_email() {
       var email_address = document.getElementById("hidEgrantsEmail").value;
@@ -205,9 +238,11 @@
 
    function clear_all(act) {
       if (act == "by_file") {
-         document.getElementById("btnFileUpload").disabled = "disabled";
+          document.getElementById("btnFileUpload").disabled = "disabled";
+          document.getElementById("btnFilePdfUpload").disabled = "disabled";
       } else if (act == "by_dd") {
-         document.getElementById("btnDragdrop").disabled = "disabled";
+          document.getElementById("btnDragdrop").disabled = "disabled";
+          document.getElementById("btnPdfDragdrop").disabled = "disabled";
       }
    }
 
@@ -223,9 +258,14 @@
    }
 
    function active_btnFileUpload() {
-      if (document.getElementById("btnFileUpload").disabled == true) {
-         document.getElementById("btnFileUpload").disabled = false;
-      }
+       if (document.getElementById("btnFileUpload").disabled == true || document.getElementById("btnFilePdfUpload").disabled == true) {
+           document.getElementById("btnFileUpload").disabled = false;
+           document.getElementById("btnFilePdfUpload").disabled = false;
+       }
+       // eGrants-616 : disable regular add button if multiple files (make them PDF convert)
+       if (document.getElementById("customFile").files?.length > 1) {
+           document.getElementById("btnFileUpload").disabled = true;
+       }
    }
 
    //to highlight selected tab
@@ -243,6 +283,11 @@
       document.getElementById(tabs).style.display = "block";
       evt.currentTarget.className += " active";
 
+       // disable Add if multiple or zero files
+       if (document.getElementById("customFile").files.length === 0 ||
+           document.getElementById("customFile").files.length >= 2) {
+           document.getElementById("btnFileUpload").disabled = "disabled";
+       }
    }
 
    //$(window).unload(function () {
@@ -308,24 +353,30 @@
                   </div>
                   <div id="myTabContent" style="width: 700px;">
                      <!--start upload by drag drop -->
-                     <div class="tabcontent" id="by_ddrop" style="display: none">
-                        <br />
-                        <div id="dropArea">Drag-drop only one file here to upload</div><br />
-                        <div style="display:inline"><button type="button" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button> </div>
-                        <div style="display:inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                     </div>
+                      <div class="tabcontent" id="by_ddrop" style="display: none">
+                          <br />
+                          <div id="dropArea">Drag-drop only one file here to upload</div><br />
+                          <div style="display:inline">
+                              <button type="button" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>
+                              <button type="button" name="ReplaceByDdrop" id="btnPdfDragdrop" class="btn btn-primary eGrantsDocBtn space-big-left" disabled="disabled" onclick="return upload_pdf_by_ddrop();" accesskey="U" title="Click here to convert a document to PDF and upload it [shift + alt + C]"><u>C</u>onvert to PDF & Upload</button> &#0160;&#0160;
+                          </div>
+                          <br style="clear:both" />
+                          <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                      </div>
                      <!--end upload by drag drop-->
                      <!--start upload by file-->
                      <div class="tabcontent" id="by_file" style="display: none">
-                        <form>
-                           <div class="custom-file my-2">
-                              <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()">
-                              <label class="custom-file-label" for="customFile">Choose file...</label>
-                           </div>
-                        </form>
-                           @* <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
-                           <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
-                           <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                         <form>
+                             <div class="custom-file my-2">
+                                 <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()" multiple>
+                                 <label class="custom-file-label" for="customFile">Choose files...</label>
+                             </div>
+                         </form>
+                         @* <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
+                         <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
+                         <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByPdfFile" id="btnFilePdfUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_pdf_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>C</u>onvert to PDF & Upload</button>&#0160;</div>&#0160;&#0160;
+                         <br style="clear:both"/>
+                         <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                      </div>
                      <!--end upload by file-->
                      <!--start upload by email-->
@@ -334,7 +385,7 @@
                         1. Click the button "Upload Via Email" to open an email window.<br /><br />
                         2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
                         <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return upload_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
-                        <div style="display: inline">By clicking Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                        <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
                      </div>
                      <!--end upload by email-->
                      <br /><br />

@@ -979,6 +979,119 @@ namespace egrants_new.Controllers
             return this.Json(new { url, message = mssg });
         }
 
+        // to upload doc by pdf file --added at 4/15/2019 FOR REFRESH AFTER UPLOAD
+        /// <summary>
+        /// The doc_upload_pdf_by_file.
+        /// </summary>
+        /// <param name="file">
+        /// The file.
+        /// </param>
+        /// <param name="doc_id">
+        /// The doc_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
+        [HttpPost]
+        public ActionResult doc_upload_pdf_by_file(IEnumerable<HttpPostedFileBase> files, int doc_id)
+        {
+            var docName = string.Empty;
+            string url = null;
+            string mssg = null;
+            string fileExtension = string.Empty;
+            var pdfDocs = new List<PdfDocument>();
+            var converter = new EmailConcatenation.PdfConverter();
+
+            if (files != null && files.Any())
+                try
+                {
+                    foreach (var file in files)
+                    {
+                        // get file name and file Extension
+                        var fileName = Path.GetFileName(file.FileName);
+                        fileExtension = Path.GetExtension(fileName);
+
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(file.InputStream))
+                        {
+                            fileData = binaryReader.ReadBytes(file.ContentLength);
+                        }
+
+                        PdfDocument pdfResult = null;
+
+                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                var emailFile = new Storage.Message(memoryStream);
+                                pdfResult = converter.Convert(emailFile);
+                            }
+                        }
+                        else
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                pdfResult = converter.Convert(memoryStream, file.FileName);
+                            }
+                        }
+
+                        if (pdfResult != null)
+                        {
+                            pdfDocs.Add(pdfResult);
+                        }
+                    }
+
+                    fileExtension = ".pdf";
+
+                    // update url for document
+                    EgrantsDoc.doc_modify(
+                        "to_upload",
+                        0,
+                        0,
+                        string.Empty,
+                        string.Empty,
+                        Convert.ToString(doc_id),
+                        fileExtension,
+                        Convert.ToString(this.Session["ic"]),
+                        Convert.ToString(this.Session["userid"]));
+
+                    // get document id and create new document name       
+                    docName = Convert.ToString(doc_id) + fileExtension;
+
+
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+
+                    var filePath = Path.Combine(fileFolder, docName);
+
+                    if (!pdfDocs.Any())
+                    {
+                        pdfDocs.Add(converter.CreateEmptyDocument());
+                    }
+
+                    var pdfDoc = PdfDocument.Merge(pdfDocs);
+                    pdfDoc.SaveAs(filePath);
+
+                    // create review url
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                                                                                         + Convert.ToString(docName);
+
+                    this.ViewBag.Message = "Done! New document has been created";
+
+                    // ViewBag.Message = "please waiting window refresh...";
+                    url = this.ViewBag.FileUrl;
+                    mssg = this.ViewBag.Message;
+                }
+                catch (Exception ex)
+                {
+                    this.ViewBag.Message = "ERROR:" + ex.Message;
+                }
+            else
+                this.ViewBag.Message = "Error while uploading the files.";
+
+            return this.Json(new { url, message = mssg });
+        }
+
         // to upload doc by dragdrop---added at 4/15/2019 FOR REFRESH AFTER UPLOAD
         /// <summary>
         /// The doc_upload_by_ddrop.
@@ -1028,6 +1141,120 @@ namespace egrants_new.Controllers
                     var filePath = Path.Combine(fileFolder, docName);
                     dropedfile.SaveAs(filePath);
 
+
+                    // create review url
+                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                                                                                            + Convert.ToString(docName);
+
+                    this.ViewBag.Message = "Done! New document has been created";
+
+                    // ViewBag.Message = "please waiting window refresh...";
+                    url = this.ViewBag.FileUrl;
+                    mssg = this.ViewBag.Message;
+                }
+                catch (Exception ex)
+                {
+                    this.ViewBag.Message = "ERROR:" + ex.Message;
+                }
+            else
+                this.ViewBag.Message = "Error while uploading the files.";
+
+            return this.Json(new { url, message = mssg });
+        }
+
+        // to upload pdf docs by dragdrop
+        /// <summary>
+        /// The doc_upload_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="doc_id">
+        /// The doc_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
+        [HttpPost]
+        public ActionResult doc_upload_pdf_by_ddrop(IEnumerable<HttpPostedFileBase> dropedfiles, int doc_id)
+        {
+            var docName = string.Empty;
+            string url = null;
+            string mssg = null;
+            string fileExtension = string.Empty;
+            var pdfDocs = new List<PdfDocument>();
+            var converter = new EmailConcatenation.PdfConverter();
+
+            if (dropedfiles != null && dropedfiles.Any())
+                try
+                {
+                    foreach (var dropedfile in dropedfiles)
+                    {
+
+                        // get file name and file Extension
+                        var fileName = Path.GetFileName(dropedfile.FileName);
+                        fileExtension = Path.GetExtension(fileName);
+
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(dropedfile.InputStream))
+                        {
+                            fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
+                        }
+
+                        PdfDocument pdfResult = null;
+
+                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                var emailFile = new Storage.Message(memoryStream);
+                                pdfResult = converter.Convert(emailFile);
+                            }
+                        }
+                        else
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                pdfResult = converter.Convert(memoryStream, dropedfile.FileName);
+                            }
+                        }
+
+                        if (pdfResult != null)
+                        {
+                            pdfDocs.Add(pdfResult);
+                        }
+                    }
+
+                    fileExtension = ".pdf";
+
+                    // get document id and create new document name       
+                    docName = Convert.ToString(doc_id) + fileExtension;
+
+                    // update url for document
+                    EgrantsDoc.doc_modify(
+                        "to_upload",
+                        0,
+                        0,
+                        string.Empty,
+                        string.Empty,
+                        Convert.ToString(doc_id),
+                        fileExtension,
+                        Convert.ToString(this.Session["ic"]),
+                        Convert.ToString(this.Session["userid"]));
+
+
+                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+
+                    var filePath = Path.Combine(fileFolder, docName);
+
+                    if (!pdfDocs.Any())
+                    {
+                        pdfDocs.Add(converter.CreateEmptyDocument());
+                    }
+
+                    var pdfDoc = PdfDocument.Merge(pdfDocs);
+                    pdfDoc.SaveAs(filePath);
 
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
