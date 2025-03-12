@@ -38,11 +38,37 @@ namespace EmailConcatenation.Converters
                 Console.WriteLine("Acquired stream object.");
                 var result = Upload(action, string.Empty, stream, null);
 
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry($"Upload complete", EventLogEntryType.Information, 101, 1);
+                }
+
+
                 // Read the response content as a byte array
                 fileBytes = result.ReadAsByteArrayAsync().Result;
+
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry($"Bytes read", EventLogEntryType.Information, 101, 1);
+                }
             }
 
             var pdfDocument = new PdfDocument(fileBytes);
+
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry($"Created PdfDocument", EventLogEntryType.Information, 101, 1);
+            }
+
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                var fileBytesNullOrEmpty = fileBytes == null || fileBytes.Length == 0;
+                eventLog.WriteEntry($"Is fileBytes null or empty ? {fileBytesNullOrEmpty}", EventLogEntryType.Information, 101, 1);
+            }
 
             return new List<PdfDocument> { pdfDocument };
         }
@@ -58,7 +84,19 @@ namespace EmailConcatenation.Converters
 
                 fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
 
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry($"About to POST async to the PDF conversion task server", EventLogEntryType.Information, 101, 1);
+                }
+
                 var response = client.PostAsync(actionUrl, fileStreamContent).Result;
+
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry($"PDF conversion HTTP response status code : {response.StatusCode}", EventLogEntryType.Information, 101, 1);
+                }
 
                 response.EnsureSuccessStatusCode();
 
