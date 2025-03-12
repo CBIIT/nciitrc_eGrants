@@ -55,6 +55,7 @@ using EmailConcatenation;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using WebGrease.Activities;
 
 #endregion
 
@@ -836,6 +837,12 @@ namespace egrants_new.Controllers
                     }
                     fileExtension = ".pdf";
 
+                    using (EventLog eventLog = new EventLog("Application"))
+                    {
+                        eventLog.Source = "Application";
+                        eventLog.WriteEntry($"Number of pdfDocs : {pdfDocs.Count}", EventLogEntryType.Information, 101, 1);
+                    }
+
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(
                         appl_id,
@@ -851,7 +858,16 @@ namespace egrants_new.Controllers
 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
 
+                    // MLH : do NOT check in !!
+                    //fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
+
                     var filePath = Path.Combine(fileFolder, docName);
+
+                    using (EventLog eventLog = new EventLog("Application"))
+                    {
+                        eventLog.Source = "Application";
+                        eventLog.WriteEntry($"Saving to : {filePath}", EventLogEntryType.Information, 101, 1);
+                    }
 
                     if (!pdfDocs.Any())
                     {
@@ -864,6 +880,17 @@ namespace egrants_new.Controllers
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
                                                                                             + Convert.ToString(docName);
+
+                    using (EventLog eventLog = new EventLog("Application"))
+                    {
+                        eventLog.Source = "Application";
+                        eventLog.WriteEntry($"FileUrl : {this.ViewBag.FileUrl}", EventLogEntryType.Information, 101, 1);
+                    }
+                    using (EventLog eventLog = new EventLog("Application"))
+                    {
+                        eventLog.Source = "Application";
+                        eventLog.WriteEntry($"Message : {this.ViewBag.Message}", EventLogEntryType.Information, 101, 1);
+                    }
 
                     this.ViewBag.Message = "Done! New document has been created";
 
