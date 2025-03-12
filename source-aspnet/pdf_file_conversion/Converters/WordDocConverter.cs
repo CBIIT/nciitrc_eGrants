@@ -11,6 +11,8 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Org.BouncyCastle.Tls;
+using System.Net.Http;
+using Org.BouncyCastle.Utilities;
 
 namespace EmailConcatenation.Converters
 {
@@ -28,177 +30,44 @@ namespace EmailConcatenation.Converters
         {
             Console.WriteLine("Handling Word .doc file type case ...");
 
-            //string tempFilePath = Path.GetTempFileName();
+            var action = "http://localhost:8081/convert";
+            byte[] fileBytes = null;
 
-            //string tempFilePath = $"D:\\temp\\{content.Attachment.FileName}";
-
-            string distinctFileName = content?.SingleFileFileName ?? string.Empty;
-            if (string.IsNullOrWhiteSpace (distinctFileName) )
+            using (var stream = new MemoryStream(content.GetBytes()))
             {
-                // currently this isn't being passed in so just put something distinct for now
-                distinctFileName = $"{Guid.NewGuid()}.doc";
-            }
-            //string tempFilePath = $"D:\\temp\\test_stock.doc";
-            string tempFilePath = $"D:\\temp\\{distinctFileName}";
+                Console.WriteLine("Acquired stream object.");
+                var result = Upload(action, string.Empty, stream, null);
 
-            File.WriteAllBytes(tempFilePath, content.GetBytes());
-
-        using (EventLog eventLog = new EventLog("Application"))
-        {
-            eventLog.Source = "Application";
-            eventLog.WriteEntry($"Bytes written to {tempFilePath}", EventLogEntryType.Information, 101, 1);
-        }
-
-            string folderPathToLibre = "C:\\Program Files\\LibreOffice\\program";               // works
-            Console.WriteLine($"Checking existence of directory at {folderPathToLibre}");
-            var checkFolderExists = Directory.Exists(folderPathToLibre);
-            var checkFolderExistsText = checkFolderExists ? "True" : "False";
-
-            using (EventLog eventLog = new EventLog("Application"))
-            {
-                eventLog.Source = "Application";
-                eventLog.WriteEntry($"Does libre folder exist ? {checkFolderExistsText}", EventLogEntryType.Information, 101, 1);
+                // Read the response content as a byte array
+                fileBytes = result.ReadAsByteArrayAsync().Result;
             }
 
-            if (!checkFolderExists)
-                throw new Exception($"Didn't find libre office folder. Is this installed ?? Location : {folderPathToLibre}");
-
-            string sofficePath = "C:\\Program Files\\LibreOffice\\program\\soffice.com";
-            string args = $"--headless --convert-to docx \"{tempFilePath}\" --outdir \"{Path.GetDirectoryName(tempFilePath)}\"";
-
-            //ProcessStartInfo startInfo = new ProcessStartInfo
-            //{
-            //    FileName = sofficePath,
-            //    //FileName = "whoami",
-            //    Arguments = args,
-            //    RedirectStandardOutput = true,
-            //    RedirectStandardError = true,
-            //    UseShellExecute = false,
-            //    CreateNoWindow = true,
-            //};
-
-            // from Leul with minor adjustments
-            ProcessStartInfo processInfo = new ProcessStartInfo
-            {
-                FileName = "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
-                Arguments = $"--headless --convert-to pdf \"D:\\temp\\{distinctFileName}\" --outdir \"D:\\temp\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            //startInfo. += (DatagramSender, Exception) =>
-            //{
-
-            //}
-
-            using (EventLog eventLog = new EventLog("Application"))
-            {
-                eventLog.Source = "Application";
-                eventLog.WriteEntry("Process INFO object created", EventLogEntryType.Information, 101, 1);
-            }
-
-            using (Process process = new Process { StartInfo = processInfo })
-            {
-                process.OutputDataReceived += (sender, e) =>
-                {
-                    if (e.Data != null)
-                    {
-                        using (EventLog eventLog = new EventLog("Application"))
-                        {
-                            eventLog.Source = "Application";
-                            eventLog.WriteEntry($"Got some kinda output : {e.Data}", EventLogEntryType.Information, 101, 1);
-                        }
-                    }
-                };
-
-                process.ErrorDataReceived += (sender, e) =>
-                {
-                    if (e.Data != null)
-                    {
-                        using (EventLog eventLog = new EventLog("Application"))
-                        {
-                            eventLog.Source = "Application";
-                            eventLog.WriteEntry($"Got some kinda error : {e.Data}", EventLogEntryType.Information, 101, 1);
-                        }
-                    }
-                };
-
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "Application";
-                    eventLog.WriteEntry("Process object created", EventLogEntryType.Information, 101, 1);
-                }
-
-                process.Start();
-
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "Application";
-                    eventLog.WriteEntry("Process object created", EventLogEntryType.Information, 101, 1);
-                }
-
-                // make sure it doesn't have any output like this :
-                // Entity: line 1: parser error : Document is empty
-
-                string errorIndicatorString = "parser error :";
-
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "Application";
-                    eventLog.WriteEntry("Reading stdout and stderr", EventLogEntryType.Information, 101, 1);        // made it to here on dev !!
-                }
-
-            //string output = process.StandardOutput.ReadToEnd();
-             //       string error = process.StandardError.ReadToEnd();
-
-                // doesn't make it this far if ReadToEnd() lines above are uncommmented !
-
-
-
-                using (EventLog eventLog = new EventLog("Application"))
-            {
-                eventLog.Source = "Application";
-                eventLog.WriteEntry("Waiting for exit ...", EventLogEntryType.Information, 101, 1);
-            }
-
-                process.WaitForExit();
-
-            using (EventLog eventLog = new EventLog("Application"))
-            {
-                eventLog.Source = "Application";
-                eventLog.WriteEntry("Exit reached", EventLogEntryType.Information, 101, 1);
-            }
-
-                //using (EventLog eventLog = new EventLog("Application"))
-                //{
-                //    eventLog.Source = "Application";
-                //    eventLog.WriteEntry($"Output : {output}", EventLogEntryType.Information, 101, 1);
-                //}
-
-                //if (output.Contains(errorIndicatorString) || error.Contains(errorIndicatorString))
-                //{
-                //    throw new ExternalException($"Creating the Word .docx file from the .doc failed after attempting to use this command : {sofficePath} {args}");
-                //}
-            }
-
-            string convertedFilePath = Path.Combine(Path.GetDirectoryName(tempFilePath), Path.GetFileNameWithoutExtension(tempFilePath) + ".docx");
-
-        using (EventLog eventLog = new EventLog("Application"))
-        {
-            eventLog.Source = "Application";
-            eventLog.WriteEntry($"convertedFilePath : {convertedFilePath}", EventLogEntryType.Information, 101, 1);
-        }
-
-            DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
-            PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(convertedFilePath);
-
-            // Clean up
-            File.Delete(tempFilePath);
-            File.Delete(convertedFilePath);
+            var pdfDocument = new PdfDocument(fileBytes);
 
             return new List<PdfDocument> { pdfDocument };
+        }
+
+        private static HttpContent Upload(string actionUrl, string paramString, Stream paramFileStream, byte[] paramFileBytes)
+        {
+            using (var client = new HttpClient())
+            using (var formData = new MultipartFormDataContent())
+            {
+                paramFileStream.Position = 0;
+                HttpContent fileStreamContent = new StreamContent(paramFileStream);
+                Console.WriteLine("Acquired client and formData.");
+
+                fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+                var response = client.PostAsync(actionUrl, fileStreamContent).Result;
+
+                response.EnsureSuccessStatusCode();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+                return response.Content;
+            }
         }
     }
 }
