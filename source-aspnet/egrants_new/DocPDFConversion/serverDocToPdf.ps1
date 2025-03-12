@@ -4,8 +4,8 @@ $port = 8081
 
 # local dev : "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new\DocPDFConversion"
 # server : "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
-$baseDir = "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new\DocPDFConversion"
-#$baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
+#$baseDir = "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new\DocPDFConversion"
+$baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
 
 # $outputDir = "D:\Content\egrants-web-dev.nci.nih.gov\output"
 $outputDir = Join-Path -Path $baseDir -ChildPath "output"
