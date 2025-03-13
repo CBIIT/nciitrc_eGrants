@@ -1,23 +1,17 @@
 # Configuration
 $port = 8081
-#$inputFile = "D:\Content\egrants-web-dev.nci.nih.gov\test.doc"
 
 # local dev : "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new\DocPDFConversion"
 # server : "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
-#$baseDir = "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new\DocPDFConversion"
 $baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
 
-# $outputDir = "D:\Content\egrants-web-dev.nci.nih.gov\output"
 $outputDir = Join-Path -Path $baseDir -ChildPath "output"
 $inputDir = Join-Path -Path $baseDir -ChildPath "input"
 
-#$outputFile = "$outputDir\test.pdf"
 $libreOfficePath = "C:\Program Files\LibreOffice\program\soffice.exe"
 
-#$logFile = "D:\Content\egrants-web-dev.nci.nih.gov\conversion.log"
 $logDir = Join-Path -Path $baseDir -ChildPath "logs"
 $logFile = Join-Path -Path $logDir -ChildPath "conversion.log"
-#$inputDir = "D:\Content\egrants-web-dev.nci.nih.gov\input"
 
 # create directories if they don't exist (mlh : this is mostly for seamless deployment)
 
@@ -55,28 +49,20 @@ while ($true) {
     if ($request.Url.AbsolutePath -eq "/convert") {
         Add-Content $logFile "$(Get-Date) - Received conversion request"
 
+		# example : "05d84643-39e7-480c-8085-6dcbdec97514.doc"
+		$filenameBase = "$(New-Guid)"
+		$filename = "$filenameBase.doc"
+		Add-Content $logFile "filename : $filename"
+			
+		# example : "D:\Content\egrants-web-dev.nci.nih.gov\input" + "05d84643-39e7-480c-8085-6dcbdec97514.doc"
+		$inputFile = Join-Path -Path $inputDir -ChildPath $filename
+			
+		$stream = $request.InputStream
+		$fileStream = [System.IO.File]::Create($inputFile)	
+		$stream.CopyTo($fileStream)
 
-		# from web
-			#$filename = "received_file.dat"
-			
-			# example : "05d84643-39e7-480c-8085-6dcbdec97514.doc"
-			$filenameBase = "$(New-Guid)"
-			$filename = "$filenameBase.doc"
-			Add-Content $logFile "filename : $filename"
-			#$filepath = Join-Path -Path $PSScriptRoot -ChildPath $filename
-			
-			# example : "D:\Content\egrants-web-dev.nci.nih.gov\input" + "05d84643-39e7-480c-8085-6dcbdec97514.doc"
-			$inputFile = Join-Path -Path $inputDir -ChildPath $filename
-			
-			$stream = $request.InputStream
-			#$reader = New-Object System.IO.StreamReader($inputStream)
-			#$fileContent = $reader.ReadToEnd()
-			$fileStream = [System.IO.File]::Create($inputFile)	
-			$stream.CopyTo($fileStream)
-
-			$fileStream.Close()
-			$stream.Close()
-		# end from web
+		$fileStream.Close()
+		$stream.Close()
 
         # Verify input file exists
         if (Test-Path $inputFile) {

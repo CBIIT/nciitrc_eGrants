@@ -2996,6 +2996,7 @@
     <Content Include="DocPDFConversion\serverDocToPdf.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="DocPDFConversion\createServerSchedTaskDev.ps1" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
