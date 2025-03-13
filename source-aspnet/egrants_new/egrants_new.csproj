@@ -2993,6 +2993,9 @@
     <Content Include="App_Browsers\qt.browser" />
     <Content Include="Egrants\Views\_egrants_showModalRenameDialog.cshtml" />
     <Content Include="Egrants\Views\Download\_egrants_showDocsDownloadSupportFunctions.cshtml" />
+    <Content Include="DocPDFConversion\serverDocToPdf.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
