@@ -2996,7 +2996,18 @@
     <Content Include="DocPDFConversion\serverDocToPdf.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DocPDFConversion\createServerSchedTaskDev.ps1" />
+    <Content Include="DocPDFConversion\createServerSchedTaskDev.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\createServerSchedTaskQA.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\createServerSchedTaskStage.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\createServerSchedTaskProd.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />

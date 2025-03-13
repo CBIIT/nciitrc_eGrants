@@ -1,9 +1,30 @@
 # Configuration
 $port = 8081
 
+$baseDir = ""
+# add prod check, unknown at this point
+if (Test-Path "D:\" -and "D:\Content"  ) {
+    if (Test-Path "D:\Content\egrants.nci.nih.gov\") {
+        Write-Host "We seem to be running this on QA or Stage ..."
+        $baseDir = "D:\Content\egrants.nci.nih.gov\DocPDFConversion"
+    } else if (Test-Path "C:\Content\egrants.nci.nih.gov\DocPDFConversion") {
+        Write-Host "We seem to be running this on dev ..."
+        $baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
+    }
+} else if (Test-Path "C:\" -and "C:\Content" -and "C:\Content\egrants.nci.nih.gov") {
+    Write-Host "Found an equivalent location on C:/ to run from ..."
+    $baseDir = "C:\Content\egrants.nci.nih.gov\DocPDFConversion"
+} else {
+    Write-Host "Didn't find any of the shared environment locales, so checking local dev location ..."
+    if (Test-Path "C:\" -and "C:\Users" -and "C:\Users\hooverrl\" -and "C:\Users\hooverrl\Desktop" -and "C:\Users\hooverrl\Desktop\NCI" -and "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants") {
+        # rather than affirm every point on the way to my personal dev space, just try it ...
+         $baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
+    }
+}
+
 # local dev : "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new\DocPDFConversion"
 # server : "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
-$baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
+# $baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
 
 $outputDir = Join-Path -Path $baseDir -ChildPath "output"
 $inputDir = Join-Path -Path $baseDir -ChildPath "input"
