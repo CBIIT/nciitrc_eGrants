@@ -4,7 +4,7 @@
 Write-Host "Setting up scheduled task for Prod ..."
 Write-Host "(was this location on Prod confirmed? Mike and Micah had not located as of 3/13)"
 
-$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File C:\Content\egrants.nci.nih.gov\DocPDFConversion\serverDocToPdf.ps1"
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File D:\NCI Websites\egrants.nci.nih.gov\DocPDFConversion\serverDocToPdf.ps1"
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount
 Register-ScheduledTask -TaskName "PowerShell HTTP Conversion Server" -Action $action -Trigger $trigger -Principal $principal -Description "This task starts a powershell listener to facilitate converting .doc files to .pdf via Libre Office, which must be installed locally"
