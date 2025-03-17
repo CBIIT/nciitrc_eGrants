@@ -563,12 +563,6 @@ namespace egrants_new.Controllers
 
                         PdfDocument pdfResult = null;
 
-                    using (EventLog eventLog = new EventLog("Application"))
-                    {
-                        eventLog.Source = "Application";
-                        eventLog.WriteEntry("Conversion request received", EventLogEntryType.Information, 101, 1);
-                    }
-
                         if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                         {
                             using (var memoryStream = new MemoryStream(fileData))
@@ -584,12 +578,6 @@ namespace egrants_new.Controllers
                                 pdfResult = converter.Convert(memoryStream, file.FileName);
                             }
                         }
-
-                    using (EventLog eventLog = new EventLog("Application"))
-                    {
-                        eventLog.Source = "Application";
-                        eventLog.WriteEntry("Conversion processed", EventLogEntryType.Information, 101, 1);
-                    }
 
                         if (pdfResult != null)
                         {
@@ -638,28 +626,22 @@ namespace egrants_new.Controllers
                 {
                     this.ViewBag.Message = "ERROR:" + ex.Message;
 
-                    Response.StatusCode = 500; //Write your own error code
-                    StringBuilder sb = new StringBuilder();
-                    sb.AppendLine($"exception type: {ex.GetType().Name}");
-                    sb.AppendLine($"exception message: {ex.Message}");
-                    //sb.AppendLine($"captured file path diagnostic after Path.Combine: {filePathDiangostic}");
-                    if (ex.InnerException != null)
-                    {
-                        sb.AppendLine($"inner exception type: {ex.InnerException.GetType().Name}");
-                        sb.AppendLine($"inner exception message: {ex.Message}");
-                    }
-                    Response.Write(sb.ToString());
-                    return null;
+                    //Response.StatusCode = 500; //Write your own error code
+                    //StringBuilder sb = new StringBuilder();
+                    //sb.AppendLine($"exception type: {ex.GetType().Name}");
+                    //sb.AppendLine($"exception message: {ex.Message}");
+                    ////sb.AppendLine($"captured file path diagnostic after Path.Combine: {filePathDiangostic}");
+                    //if (ex.InnerException != null)
+                    //{
+                    //    sb.AppendLine($"inner exception type: {ex.InnerException.GetType().Name}");
+                    //    sb.AppendLine($"inner exception message: {ex.Message}");
+                    //}
+                    //Response.Write(sb.ToString());
+                    //return null;
                 }
             }
             else
                 this.ViewBag.Message = "You have not specified a file.";
-
-        using (EventLog eventLog = new EventLog("Application"))
-        {
-            eventLog.Source = "Application";
-            eventLog.WriteEntry("Conversion request COMPLETE", EventLogEntryType.Information, 101, 1);
-        }
 
             return this.Json(new { url, message = mssg });
         }
@@ -837,12 +819,6 @@ namespace egrants_new.Controllers
                     }
                     fileExtension = ".pdf";
 
-                    using (EventLog eventLog = new EventLog("Application"))
-                    {
-                        eventLog.Source = "Application";
-                        eventLog.WriteEntry($"Number of pdfDocs : {pdfDocs.Count}", EventLogEntryType.Information, 101, 1);
-                    }
-
                     // get document_id and creat a new docName
                     var document_id = EgrantsDoc.GetDocID(
                         appl_id,
@@ -858,16 +834,7 @@ namespace egrants_new.Controllers
 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
 
-                    // MLH : do NOT check in !!
-                    //fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
-
                     var filePath = Path.Combine(fileFolder, docName);
-
-                    using (EventLog eventLog = new EventLog("Application"))
-                    {
-                        eventLog.Source = "Application";
-                        eventLog.WriteEntry($"Saving to : {filePath}", EventLogEntryType.Information, 101, 1);
-                    }
 
                     if (!pdfDocs.Any())
                     {
@@ -880,18 +847,6 @@ namespace egrants_new.Controllers
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
                                                                                             + Convert.ToString(docName);
-
-                    using (EventLog eventLog = new EventLog("Application"))
-                    {
-                        eventLog.Source = "Application";
-                        eventLog.WriteEntry($"FileUrl : {this.ViewBag.FileUrl}", EventLogEntryType.Information, 101, 1);
-                    }
-                    using (EventLog eventLog = new EventLog("Application"))
-                    {
-                        eventLog.Source = "Application";
-                        eventLog.WriteEntry($"Message : {this.ViewBag.Message}", EventLogEntryType.Information, 101, 1);
-                    }
-
                     this.ViewBag.Message = "Done! New document has been created";
 
                     url = this.ViewBag.FileUrl;

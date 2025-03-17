@@ -3,7 +3,12 @@ $port = 8081
 
 $baseDir = ""
 # add prod check, unknown at this point
-if (Test-Path "D:\" -and "D:\Content"  ) {
+# D:\NCI Websites\egrants.nci.nih.gov\
+if (Test-Path "D:\" -and "D:\NCI Websites\" -and "C:\Content\egrants.nci.nih.gov" ) {
+    Write-Host "Running from PROD ..."
+    $baseDir = "D:\NCI Websites\egrants.nci.nih.gov\DocPDFConversion"
+} else if (Test-Path "D:\" -and "D:\Content"  ) {
+    Write-Host "Running from non - PROD ..."
     if (Test-Path "D:\Content\egrants.nci.nih.gov\") {
         Write-Host "We seem to be running this on QA or Stage ..."
         $baseDir = "D:\Content\egrants.nci.nih.gov\DocPDFConversion"
