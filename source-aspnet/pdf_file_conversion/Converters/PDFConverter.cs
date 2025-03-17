@@ -26,6 +26,8 @@ namespace EmailConcatenation.Converters
                     return null;
 
                 var newPdfFile = new PdfDocument(memoryStream);
+                newPdfFile.SecuritySettings.AllowUserFormData = false;    // Disable form editing
+                newPdfFile.SecuritySettings.AllowUserAnnotations = true;   // Allow commends and highlights
                 return new List<PdfDocument> { newPdfFile };
             }
         }
