@@ -40,8 +40,14 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
+using System.Web;
+
+using DocumentFormat.OpenXml.Wordprocessing;
 
 using Hangfire.Annotations;
+
+using MsgReader.Outlook;
 
 #endregion
 
@@ -52,6 +58,8 @@ namespace egrants_new.Models
     /// </summary>
     public class EgrantsCommon
     {
+        public static readonly string[] UNSUPPORTED_FILE_TYPES = { ".xlsx", ".xls", ".xlst", ".xlsm" };
+
         /// <summary>
         /// Update the logged in users last_login_date to the value of Sql Sever GETDATE().
         /// </summary>
@@ -582,6 +590,70 @@ namespace egrants_new.Models
             }
 
             return permission;
+        }
+
+        internal static bool ContainsUnsupportedFileTypes(IEnumerable<HttpPostedFileBase> inboundFiles)
+        {
+            foreach (var inboundFile in inboundFiles)
+            {
+                var fileName = Path.GetFileName(inboundFile.FileName);
+                var fileExtension = Path.GetExtension(fileName);
+
+                foreach (var unsupportedType in UNSUPPORTED_FILE_TYPES)
+                {
+                    if (inboundFile.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
+                        return true;
+                }
+
+                if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    byte[] fileData;
+                    //using (var binaryReader = new BinaryReader(inboundFile.InputStream))
+                    //{
+                    //    // BinaryReader has a leaveOpen setting
+                    //    fileData = binaryReader.ReadBytes(inboundFile.ContentLength);
+                    //}
+
+                    fileData = new Byte[inboundFile.ContentLength];
+                    inboundFile.InputStream.Position = 0;
+                    inboundFile.InputStream.Read(fileData, 0, inboundFile.ContentLength);
+                    //return array;
+
+                    using (var memoryStream = new MemoryStream(fileData))
+                    {
+                        var emailFile = new Storage.Message(memoryStream);
+                        if (MessageContainsUnsupported(emailFile))
+                        {
+                            inboundFile.InputStream.Position = 0;
+                            return true;
+                        }
+                    }
+
+                    inboundFile.InputStream.Position = 0;
+                }
+            }
+            return false;
+        }
+
+        private static bool MessageContainsUnsupported(Storage.Message emailFile)
+        {
+            foreach (var attachment in emailFile.Attachments)
+            {
+                if (attachment is Storage.Attachment storageAttachment)
+                {
+                    foreach (var unsupportedType in UNSUPPORTED_FILE_TYPES)
+                    {
+                        if (storageAttachment.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
+                            return true;
+                    }
+                }
+                else if (attachment is Storage.Message messageAttachment)                                               // email message
+                {
+                    if (MessageContainsUnsupported((Storage.Message)attachment))
+                        return true;
+                }
+            }
+            return false;
         }
     }
 }
