@@ -1,0 +1,13 @@
+﻿
+
+Why is this file here ? And its parent directory ?
+
+MLH :
+
+The serverDocToPdf.ps1 script currently requires folders to keep its operations organized.
+While the serverDocToPdf.ps1 script DOES have the intelligence to create these folders if they appear to be missing, security protocols appear to be hampering that activity.
+Rather than pinning down what security protocols to adjust (and thereby incurring whatever scrutiny and wait cycles associated with it), adding these files to the VS solution
+And setting them to "Content" and "Copy Always", will ensure that these files will remain available.
+Thanks for stepping around this kludge and feel free to simplify this very complex process that exists only for converting the obsolete .doc files to .pdf in our
+conversion process.
+
