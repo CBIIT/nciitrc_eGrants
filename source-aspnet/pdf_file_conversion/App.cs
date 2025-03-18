@@ -26,8 +26,6 @@ namespace EmailConcatenation
         public IExplicitlyUnsupportedTextConverter explicitlyUnsupportedTextConverter;
         public IUnrecognizedTextConverter unrecognizedTextConverter;
         public IWordConverter wordConverter;
-        public IExcelConverter excelConverter;
-        public IExcelXLSMConverter excelXLSMConverter;
         public IHtmlConverter htmlConverter;
         public IPDFConverter PDFConverter;
         public IRTFConverter RTFConverter;
@@ -38,9 +36,8 @@ namespace EmailConcatenation
 
         public App(IGeneralImageConverter _generalImageConverter, ITIFFConverter _tiffConverter, IFormattedTextConverter _formattedTextConverter,
             IUndiscoveredTextConverter _undiscoveredTextConverter, IExplicitlyUnsupportedTextConverter _explicitlyUnsupportedTextConverter,
-            IUnrecognizedTextConverter _unrecognizedTextConverter, IExcelConverter _excelConverter, IWordConverter _wordConverter,
-            IHtmlConverter _htmlConverter, IPDFConverter _pDFConverter, IRTFConverter _rtfConverter, IEmailTextConverter _emailTextConverter,
-            IExcelXLSMConverter _excelXLSMConverter, IWordDocConverter _wordDocConverter)
+            IUnrecognizedTextConverter _unrecognizedTextConverter, IWordConverter _wordConverter, IHtmlConverter _htmlConverter, IPDFConverter _pDFConverter,
+            IRTFConverter _rtfConverter, IEmailTextConverter _emailTextConverter, IWordDocConverter _wordDocConverter)
         {
             generalImageConverter = _generalImageConverter;
             TIFFConverter = _tiffConverter;
@@ -48,18 +45,16 @@ namespace EmailConcatenation
             undiscoveredTextConverter = _undiscoveredTextConverter;
             explicitlyUnsupportedTextConverter = _explicitlyUnsupportedTextConverter;
             unrecognizedTextConverter = _unrecognizedTextConverter;
-            excelConverter = _excelConverter;
             wordConverter = _wordConverter;
             wordDocConverter = _wordDocConverter;
             htmlConverter = _htmlConverter;
             PDFConverter = _pDFConverter;
             RTFConverter = _rtfConverter;
             EmailTextConverter = _emailTextConverter;
-            excelXLSMConverter = _excelXLSMConverter;
 
             orderedListOfPdfConverters = new List<IConvertToPdf> { EmailTextConverter, PDFConverter, wordConverter, wordDocConverter,
-                excelConverter, excelXLSMConverter,htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter,
-                TIFFConverter, undiscoveredTextConverter, explicitlyUnsupportedTextConverter, unrecognizedTextConverter};
+                htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter, TIFFConverter, undiscoveredTextConverter,
+                explicitlyUnsupportedTextConverter, unrecognizedTextConverter};
 
         }
 

@@ -36,12 +36,10 @@ namespace EmailConcatenation
             kernel.Bind<IExplicitlyUnsupportedTextConverter>().To<ExplicitlyUnsupportedTextConverter>();
             kernel.Bind<IUnrecognizedTextConverter>().To<UnrecognizedTextConverter>();
             kernel.Bind<IWordConverter>().To<WordConverter>();
-            kernel.Bind<IExcelConverter>().To<ExcelConverter>();
             kernel.Bind<IHtmlConverter>().To<HtmlConverter>();
             kernel.Bind<IPDFConverter>().To<PDFConverter>();
             kernel.Bind<IRTFConverter>().To<RTFConverter>();
             kernel.Bind<IEmailTextConverter>().To<EmailTextConverter>();
-            kernel.Bind<IExcelXLSMConverter>().To<ExcelXLSMConverter>();
             kernel.Bind<IWordDocConverter>().To<WordDocConverter>();
 
             kernel.Bind<App>().ToSelf();
