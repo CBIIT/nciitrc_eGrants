@@ -844,9 +844,6 @@ namespace egrants_new.Controllers
 
                         var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
 
-                        // MLH : do not check in !
-                        fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
-
                         var filePath = Path.Combine(fileFolder, docName);
 
                         if (!pdfDocs.Any())
