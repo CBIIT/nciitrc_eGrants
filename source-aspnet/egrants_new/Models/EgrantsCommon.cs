@@ -45,6 +45,8 @@ using System.Web;
 
 using DocumentFormat.OpenXml.Wordprocessing;
 
+using egrants_new.Egrants.Functions;
+
 using Hangfire.Annotations;
 
 using MsgReader.Outlook;
@@ -607,17 +609,7 @@ namespace egrants_new.Models
 
                 if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    byte[] fileData;
-                    //using (var binaryReader = new BinaryReader(inboundFile.InputStream))
-                    //{
-                    //    // BinaryReader has a leaveOpen setting
-                    //    fileData = binaryReader.ReadBytes(inboundFile.ContentLength);
-                    //}
-
-                    fileData = new Byte[inboundFile.ContentLength];
-                    inboundFile.InputStream.Position = 0;
-                    inboundFile.InputStream.Read(fileData, 0, inboundFile.ContentLength);
-                    //return array;
+                    byte[] fileData = inboundFile.ToByteArray();
 
                     using (var memoryStream = new MemoryStream(fileData))
                     {
