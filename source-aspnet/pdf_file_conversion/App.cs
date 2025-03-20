@@ -22,9 +22,6 @@ namespace EmailConcatenation
         public IGeneralImageConverter generalImageConverter;
         public ITIFFConverter TIFFConverter;
         public IFormattedTextConverter formattedTextConverter;
-        public IUndiscoveredTextConverter undiscoveredTextConverter;
-        public IExplicitlyUnsupportedTextConverter explicitlyUnsupportedTextConverter;
-        public IUnrecognizedTextConverter unrecognizedTextConverter;
         public IWordConverter wordConverter;
         public IHtmlConverter htmlConverter;
         public IPDFConverter PDFConverter;
@@ -34,17 +31,12 @@ namespace EmailConcatenation
 
         public List<IConvertToPdf> orderedListOfPdfConverters;
 
-        public App(IGeneralImageConverter _generalImageConverter, ITIFFConverter _tiffConverter, IFormattedTextConverter _formattedTextConverter,
-            IUndiscoveredTextConverter _undiscoveredTextConverter, IExplicitlyUnsupportedTextConverter _explicitlyUnsupportedTextConverter,
-            IUnrecognizedTextConverter _unrecognizedTextConverter, IWordConverter _wordConverter, IHtmlConverter _htmlConverter, IPDFConverter _pDFConverter,
-            IRTFConverter _rtfConverter, IEmailTextConverter _emailTextConverter, IWordDocConverter _wordDocConverter)
+        public App(IGeneralImageConverter _generalImageConverter, ITIFFConverter _tiffConverter, IFormattedTextConverter _formattedTextConverter, IWordConverter _wordConverter,
+            IHtmlConverter _htmlConverter, IPDFConverter _pDFConverter, IRTFConverter _rtfConverter, IEmailTextConverter _emailTextConverter, IWordDocConverter _wordDocConverter)
         {
             generalImageConverter = _generalImageConverter;
             TIFFConverter = _tiffConverter;
             formattedTextConverter = _formattedTextConverter;
-            undiscoveredTextConverter = _undiscoveredTextConverter;
-            explicitlyUnsupportedTextConverter = _explicitlyUnsupportedTextConverter;
-            unrecognizedTextConverter = _unrecognizedTextConverter;
             wordConverter = _wordConverter;
             wordDocConverter = _wordDocConverter;
             htmlConverter = _htmlConverter;
@@ -53,8 +45,7 @@ namespace EmailConcatenation
             EmailTextConverter = _emailTextConverter;
 
             orderedListOfPdfConverters = new List<IConvertToPdf> { EmailTextConverter, PDFConverter, wordConverter, wordDocConverter,
-                htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter, TIFFConverter, undiscoveredTextConverter,
-                explicitlyUnsupportedTextConverter, unrecognizedTextConverter};
+                htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter, TIFFConverter};
 
         }
 
@@ -121,7 +112,7 @@ namespace EmailConcatenation
                         }
                     }
                     if (!fileHandled)
-                        throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{storageAttachment.FileName}'. Worst case is the unrecognized converter should at least do something and mark it handled.");
+                        throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{storageAttachment.FileName}'. Validation should prevent the file from getting to here.");
 
                 }
                 else if (attachment is Storage.Message messageAttachment)                                               // email message
@@ -136,13 +127,7 @@ namespace EmailConcatenation
                 }
                 else
                 {
-                    var content = new ContentForPdf                                                                     // unprocessable
-                    {
-                        SimpleMessage = "This file was not recognized as either an email message nor as an attachment file."
-                    };
-                    var unrecogniedPDF = unrecognizedTextConverter.ToPdfDocument(content);
-                    if (unrecogniedPDF != null)
-                        filesToMerge.AddRange(unrecogniedPDF);
+                    throw new Exception("This file was not recognized as either an email message nor as an attachment file.");
                 }
             }
             //}
@@ -192,9 +177,12 @@ namespace EmailConcatenation
                     var pdfDoc = converter.ToPdfDocument(content);
                     if (pdfDoc != null)
                         filesToMerge.AddRange(pdfDoc);
+                    fileHandled = true;
                     break;
                 }
             }
+            if (!fileHandled)
+                throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{fileName}'. Validation should prevent the file from getting to here.");
 
 
             if (!filesToMerge.Any())
