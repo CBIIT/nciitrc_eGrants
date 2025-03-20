@@ -400,32 +400,25 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.cs" />
-    <Compile Include="ColorConverter.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ContentForPdf.cs" />
     <Compile Include="Converters\EmailTextConverter.cs" />
-    <Compile Include="Converters\ExplicitlyUnsupportedTextConverter.cs" />
     <Compile Include="Converters\FormattedTextConverter.cs" />
     <Compile Include="Converters\GeneralImageConverter.cs" />
     <Compile Include="Converters\HtmlConverter.cs" />
     <Compile Include="Converters\PDFConverter.cs" />
     <Compile Include="Converters\RTFConverter.cs" />
     <Compile Include="Converters\TIFFConverter.cs" />
-    <Compile Include="Converters\UndiscoveredTextConverter.cs" />
-    <Compile Include="Converters\UnrecognizedTextConverter.cs" />
     <Compile Include="Converters\WordConverter.cs" />
     <Compile Include="Converters\WordDocConverter.cs" />
     <Compile Include="Interfaces\IConvertToPdf.cs" />
     <Compile Include="Interfaces\IEmailTextConverter.cs" />
-    <Compile Include="Interfaces\IExplicitlyUnsupportedTextConverter.cs" />
     <Compile Include="Interfaces\IFormattedTextConverter.cs" />
     <Compile Include="Interfaces\IGeneralImageConverter.cs" />
     <Compile Include="Interfaces\IHtmlConverter.cs" />
     <Compile Include="Interfaces\IPDFConverter.cs" />
     <Compile Include="Interfaces\IRTFConverter.cs" />
     <Compile Include="Interfaces\ITIFFConverter.cs" />
-    <Compile Include="Interfaces\IUndiscoveredTextConverter.cs" />
-    <Compile Include="Interfaces\IUnrecognizedTextConverter.cs" />
     <Compile Include="Interfaces\IWordConverter.cs" />
     <Compile Include="Interfaces\IWordDocConverter.cs" />
     <Compile Include="PdfConverter.cs" />

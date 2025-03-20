@@ -32,9 +32,6 @@ namespace EmailConcatenation
             kernel.Bind<IGeneralImageConverter>().To<GeneralImageConverter>();
             kernel.Bind<ITIFFConverter>().To<TIFFConverter>();
             kernel.Bind<IFormattedTextConverter>().To<FormattedTextConverter>();
-            kernel.Bind<IUndiscoveredTextConverter>().To<UndiscoveredTextConverter>();
-            kernel.Bind<IExplicitlyUnsupportedTextConverter>().To<ExplicitlyUnsupportedTextConverter>();
-            kernel.Bind<IUnrecognizedTextConverter>().To<UnrecognizedTextConverter>();
             kernel.Bind<IWordConverter>().To<WordConverter>();
             kernel.Bind<IHtmlConverter>().To<HtmlConverter>();
             kernel.Bind<IPDFConverter>().To<PDFConverter>();

@@ -25,3 +25,15 @@ source-aspnet/packages/
 /EmailHandling/CommonUtilties/bin/*
 /EmailHandling/OGARequestAccountDisable/bin/*
 /EmailHandling/OGARequestAccountDisable/obj/*
+/EmailHandling/EmailConcatenationPOC/.vs/EmailConcatenationPOC/FileContentIndex/*
+/EmailHandling/EmailConcatenationPOC/.vs/*
+/EmailHandling/EmailConcatenationPOC/EmailConcatenationPOC/.vs/*
+/EmailHandling/EmailConcatenationPOC/EmailConcatenationPOC/bin/*
+/EmailHandling/EmailConcatenationPOC/EmailConcatenationPOC/obj/*
+/EmailHandling/EmailConcatenationPOC/packages/*
+/source-aspnet/pdf_file_conversion/bin/Debug/*
+/source-aspnet/pdf_file_conversion/obj/*
+/source-aspnet/temp/*
+/source-aspnet/egrants_new/DocPDFConversion/input/old/*
+/source-aspnet/egrants_new/DocPDFConversion/output/old/*
+/source-aspnet/pdf_file_conversion/.vs/*
