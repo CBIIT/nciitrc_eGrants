@@ -60,7 +60,7 @@ namespace egrants_new.Models
     /// </summary>
     public class EgrantsCommon
     {
-        public static readonly string[] UNSUPPORTED_FILE_TYPES = { ".xlsx", ".xls", ".xlst", ".xlsm" };
+        public static readonly string[] SUPPORTED_FILE_TYPES = { ".pdf", ".txt", ".doc", ".docx", ".msg", ".rtf", ".jpg", ".jpeg", ".png", ".gif", ".tif", ".html", ".htm", ".log", ".dat" };
 
         /// <summary>
         /// Update the logged in users last_login_date to the value of Sql Sever GETDATE().
@@ -603,13 +603,17 @@ namespace egrants_new.Models
                 var fileName = Path.GetFileName(inboundFile.FileName);
                 var fileExtension = Path.GetExtension(fileName);
 
-                foreach (var unsupportedType in UNSUPPORTED_FILE_TYPES)
+                bool found = false;
+                foreach (var unsupportedType in SUPPORTED_FILE_TYPES)
                 {
                     if (inboundFile.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
                     {
-                        unsupportedFileNames.Add(fileName);
-                        break;
+                        found = true;
                     }
+                }
+                if (!found)
+                {
+                    unsupportedFileNames.Add(fileName);
                 }
 
                 if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
@@ -639,13 +643,17 @@ namespace egrants_new.Models
             {
                 if (attachment is Storage.Attachment storageAttachment)
                 {
-                    foreach (var unsupportedType in UNSUPPORTED_FILE_TYPES)
+                    bool found = false;
+                    foreach (var unsupportedType in SUPPORTED_FILE_TYPES)
                     {
                         if (storageAttachment.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
                         {
-                            unsupportedFileNames.Add($"{storageAttachment.FileName}");
-                            break;
+                            found = true;
                         }
+                    }
+                    if (!found)
+                    {
+                        unsupportedFileNames.Add(storageAttachment.FileName);
                     }
                 }
                 else if (attachment is Storage.Message messageAttachment)                                               // email message

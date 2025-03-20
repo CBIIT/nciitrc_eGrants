@@ -288,6 +288,10 @@
             return false;
         }
 
+        if (!check_file_dnd()) {
+            return false;
+        }
+
         var frmdata = new FormData();
         frmdata.append('dropedfile', dropedfile);
         frmdata.append('appl_id', Applid);
@@ -328,6 +332,10 @@
 
         //check document_date
         if (get_document_date() == false) {
+            return false;
+        }
+
+        if (!check_file_pdf_dnd()) {
             return false;
         }
 
