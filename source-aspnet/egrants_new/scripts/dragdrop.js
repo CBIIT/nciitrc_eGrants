@@ -66,7 +66,7 @@ function FileSelectHandler(e) {
         var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
 
         if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
-            alert("The file type is not acceptable. Please upload files only with extension of 'pdf','xls','xlsx','xlsm','txt','doc','docx' or 'msg'");
+            alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
             $('#dropArea').removeClass('active-drop');
             $('#dropArea').html('Drag-drop only one file here to upload');
             $('#btnDragdrop').attr('disabled', true);
@@ -101,7 +101,7 @@ function FileSelectHandler(e) {
             var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
 
             if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
-                alert("The file type is not acceptable. Please upload files only with extension of 'pdf','xls','xlsx','xlsm','txt','doc','docx' or 'msg'");
+                alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
                 $('#dropArea').removeClass('active-drop');
                 $('#dropArea').html('Drag-drop only one file here to upload');
                 $('#btnDragdrop').attr('disabled', true);

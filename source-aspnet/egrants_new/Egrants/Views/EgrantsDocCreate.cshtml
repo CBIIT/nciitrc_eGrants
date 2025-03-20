@@ -245,7 +245,7 @@
         frmdata.append('doc_date', DocDate);
 
         //check loacte file, file type and file size
-        if (!check_file()) {
+        if (!check_file_pdf()) {
             return false;
         } else {
             for (var i = 0; i < fileInput.files.length; i++) {
@@ -545,7 +545,10 @@
                         </div><!--end myTabContent-->
                         <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
                         <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
-                        <strong id="done"><span id="mssg"></span></strong>
+                        <br style="clear:both"/>
+                        <div style="line-height: 30px; margin: 10px;">
+                            <strong id="done"><span id="mssg"></span></strong>
+                        </div>
 
                         @*<div id="virusReport" id ="vReport"></div>*@
                     </td>

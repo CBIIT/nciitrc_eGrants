@@ -55,6 +55,7 @@ using EmailConcatenation;
 using System.Collections.Generic;
 using System.Linq;
 using DocumentFormat.OpenXml.Wordprocessing;
+using egrants_new.Egrants.Functions;
 
 #endregion
 
@@ -548,9 +549,9 @@ namespace egrants_new.Controllers
             {
                 try
                 {
-                    bool foundUnsupportedFileType = EgrantsCommon.ContainsUnsupportedFileTypes(files);
+                    var unsupportedFilesList = EgrantsCommon.GetUnsupportedFileList(files);
 
-                    if (!foundUnsupportedFileType)
+                    if (unsupportedFilesList.Count() == 0)
                     {
 
                         foreach (var file in files)
@@ -623,9 +624,16 @@ namespace egrants_new.Controllers
 
                         url = this.ViewBag.FileUrl;
                         mssg = this.ViewBag.Message;
-                    } else
+                    }
+                    else
                     {
-                        mssg = "Found unsupported file types";
+                        var sb = new StringBuilder();
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:");
+                        foreach(var unsupportedFile in unsupportedFilesList)
+                        {
+                            sb.AppendLine(unsupportedFile.Truncate(50)); 
+                        }
+                        mssg = sb.ToString();
                     }
                 }
                 catch (Exception ex)
@@ -790,9 +798,9 @@ namespace egrants_new.Controllers
             if (dropedfiles != null && dropedfiles.Any())
                 try
                 {
-                    bool foundUnsupportedFileType = EgrantsCommon.ContainsUnsupportedFileTypes(dropedfiles);
+                    var unsupportedFilesList = EgrantsCommon.GetUnsupportedFileList(dropedfiles);
 
-                    if (!foundUnsupportedFileType)
+                    if (unsupportedFilesList.Count() == 0)
                     {
                         foreach (var dropedfile in dropedfiles)
                         {
@@ -864,7 +872,13 @@ namespace egrants_new.Controllers
                         mssg = this.ViewBag.Message;
                     } else
                     {
-                        mssg = "Unsupported type found.";
+                        var sb = new StringBuilder();
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:");
+                        foreach (var unsupportedFile in unsupportedFilesList)
+                        {
+                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
+                        }
+                        mssg = sb.ToString();
                     }
                 }
                 catch (Exception ex)
@@ -1023,81 +1037,99 @@ namespace egrants_new.Controllers
             if (files != null && files.Any())
                 try
                 {
-                    foreach (var file in files)
+                    var unsupportedFilesList = EgrantsCommon.GetUnsupportedFileList(files);
+
+                    if (unsupportedFilesList.Count() == 0)
                     {
-                        // get file name and file Extension
-                        var fileName = Path.GetFileName(file.FileName);
-                        fileExtension = Path.GetExtension(fileName);
 
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(file.InputStream))
+                        foreach (var file in files)
                         {
-                            fileData = binaryReader.ReadBytes(file.ContentLength);
-                        }
+                            // get file name and file Extension
+                            var fileName = Path.GetFileName(file.FileName);
+                            fileExtension = Path.GetExtension(fileName);
 
-                        PdfDocument pdfResult = null;
-
-                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
+                            byte[] fileData;
+                            using (var binaryReader = new BinaryReader(file.InputStream))
                             {
-                                var emailFile = new Storage.Message(memoryStream);
-                                pdfResult = converter.Convert(emailFile);
+                                fileData = binaryReader.ReadBytes(file.ContentLength);
+                            }
+
+                            PdfDocument pdfResult = null;
+
+                            if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                using (var memoryStream = new MemoryStream(fileData))
+                                {
+                                    var emailFile = new Storage.Message(memoryStream);
+                                    pdfResult = converter.Convert(emailFile);
+                                }
+                            }
+                            else
+                            {
+                                using (var memoryStream = new MemoryStream(fileData))
+                                {
+                                    pdfResult = converter.Convert(memoryStream, file.FileName);
+                                }
+                            }
+
+                            if (pdfResult != null)
+                            {
+                                pdfDocs.Add(pdfResult);
                             }
                         }
-                        else
+
+                        fileExtension = ".pdf";
+
+                        // update url for document
+                        EgrantsDoc.doc_modify(
+                            "to_upload",
+                            0,
+                            0,
+                            string.Empty,
+                            string.Empty,
+                            Convert.ToString(doc_id),
+                            fileExtension,
+                            Convert.ToString(this.Session["ic"]),
+                            Convert.ToString(this.Session["userid"]));
+
+                        // get document id and create new document name       
+                        docName = Convert.ToString(doc_id) + fileExtension;
+
+
+                        var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+
+                        var filePath = Path.Combine(fileFolder, docName);
+
+                        if (!pdfDocs.Any())
                         {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                pdfResult = converter.Convert(memoryStream, file.FileName);
-                            }
+                            pdfDocs.Add(converter.CreateEmptyDocument());
                         }
 
-                        if (pdfResult != null)
-                        {
-                            pdfDocs.Add(pdfResult);
-                        }
+                        var pdfDoc = PdfDocument.Merge(pdfDocs);
+                        pdfDoc.SaveAs(filePath);
+
+                        // create review url
+                        this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                                                                                             + Convert.ToString(docName);
+
+                        this.ViewBag.Message = "Done! New document has been created";
+
+                        // ViewBag.Message = "please waiting window refresh...";
+                        url = this.ViewBag.FileUrl;
+                        mssg = this.ViewBag.Message;
                     }
-
-                    fileExtension = ".pdf";
-
-                    // update url for document
-                    EgrantsDoc.doc_modify(
-                        "to_upload",
-                        0,
-                        0,
-                        string.Empty,
-                        string.Empty,
-                        Convert.ToString(doc_id),
-                        fileExtension,
-                        Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"]));
-
-                    // get document id and create new document name       
-                    docName = Convert.ToString(doc_id) + fileExtension;
-
-
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
-
-                    var filePath = Path.Combine(fileFolder, docName);
-
-                    if (!pdfDocs.Any())
+                    else
                     {
-                        pdfDocs.Add(converter.CreateEmptyDocument());
+                        var sb = new StringBuilder();
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:");
+                        foreach (var unsupportedFile in unsupportedFilesList)
+                        {
+                            sb.AppendLine(unsupportedFile.Truncate(50));
+                        }
+                        mssg = sb.ToString();
                     }
 
-                    var pdfDoc = PdfDocument.Merge(pdfDocs);
-                    pdfDoc.SaveAs(filePath);
 
-                    // create review url
-                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
-                                                                                         + Convert.ToString(docName);
-
-                    this.ViewBag.Message = "Done! New document has been created";
-
-                    // ViewBag.Message = "please waiting window refresh...";
-                    url = this.ViewBag.FileUrl;
-                    mssg = this.ViewBag.Message;
                 }
                 catch (Exception ex)
                 {
@@ -1206,82 +1238,98 @@ namespace egrants_new.Controllers
             if (dropedfiles != null && dropedfiles.Any())
                 try
                 {
-                    foreach (var dropedfile in dropedfiles)
+                    var unsupportedFilesList = EgrantsCommon.GetUnsupportedFileList(dropedfiles);
+
+                    if (unsupportedFilesList.Count() == 0)
                     {
 
-                        // get file name and file Extension
-                        var fileName = Path.GetFileName(dropedfile.FileName);
-                        fileExtension = Path.GetExtension(fileName);
-
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(dropedfile.InputStream))
+                        foreach (var dropedfile in dropedfiles)
                         {
-                            fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
-                        }
 
-                        PdfDocument pdfResult = null;
+                            // get file name and file Extension
+                            var fileName = Path.GetFileName(dropedfile.FileName);
+                            fileExtension = Path.GetExtension(fileName);
 
-                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
+                            byte[] fileData;
+                            using (var binaryReader = new BinaryReader(dropedfile.InputStream))
                             {
-                                var emailFile = new Storage.Message(memoryStream);
-                                pdfResult = converter.Convert(emailFile);
+                                fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
+                            }
+
+                            PdfDocument pdfResult = null;
+
+                            if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                using (var memoryStream = new MemoryStream(fileData))
+                                {
+                                    var emailFile = new Storage.Message(memoryStream);
+                                    pdfResult = converter.Convert(emailFile);
+                                }
+                            }
+                            else
+                            {
+                                using (var memoryStream = new MemoryStream(fileData))
+                                {
+                                    pdfResult = converter.Convert(memoryStream, dropedfile.FileName);
+                                }
+                            }
+
+                            if (pdfResult != null)
+                            {
+                                pdfDocs.Add(pdfResult);
                             }
                         }
-                        else
+
+                        fileExtension = ".pdf";
+
+                        // get document id and create new document name       
+                        docName = Convert.ToString(doc_id) + fileExtension;
+
+                        // update url for document
+                        EgrantsDoc.doc_modify(
+                            "to_upload",
+                            0,
+                            0,
+                            string.Empty,
+                            string.Empty,
+                            Convert.ToString(doc_id),
+                            fileExtension,
+                            Convert.ToString(this.Session["ic"]),
+                            Convert.ToString(this.Session["userid"]));
+
+
+                        var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+
+                        var filePath = Path.Combine(fileFolder, docName);
+
+                        if (!pdfDocs.Any())
                         {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                pdfResult = converter.Convert(memoryStream, dropedfile.FileName);
-                            }
+                            pdfDocs.Add(converter.CreateEmptyDocument());
                         }
 
-                        if (pdfResult != null)
-                        {
-                            pdfDocs.Add(pdfResult);
-                        }
+                        var pdfDoc = PdfDocument.Merge(pdfDocs);
+                        pdfDoc.SaveAs(filePath);
+
+                        // create review url
+                        this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                                                                                                + Convert.ToString(docName);
+
+                        this.ViewBag.Message = "Done! New document has been created";
+
+                        // ViewBag.Message = "please waiting window refresh...";
+                        url = this.ViewBag.FileUrl;
+                        mssg = this.ViewBag.Message;
                     }
-
-                    fileExtension = ".pdf";
-
-                    // get document id and create new document name       
-                    docName = Convert.ToString(doc_id) + fileExtension;
-
-                    // update url for document
-                    EgrantsDoc.doc_modify(
-                        "to_upload",
-                        0,
-                        0,
-                        string.Empty,
-                        string.Empty,
-                        Convert.ToString(doc_id),
-                        fileExtension,
-                        Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"]));
-
-
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
-
-                    var filePath = Path.Combine(fileFolder, docName);
-
-                    if (!pdfDocs.Any())
+                    else
                     {
-                        pdfDocs.Add(converter.CreateEmptyDocument());
+                        var sb = new StringBuilder();
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:");
+                        foreach (var unsupportedFile in unsupportedFilesList)
+                        {
+                            sb.AppendLine(unsupportedFile.Truncate(50));
+                        }
+                        mssg = sb.ToString();
                     }
-
-                    var pdfDoc = PdfDocument.Merge(pdfDocs);
-                    pdfDoc.SaveAs(filePath);
-
-                    // create review url
-                    this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
-                                                                                            + Convert.ToString(docName);
-
-                    this.ViewBag.Message = "Done! New document has been created";
-
-                    // ViewBag.Message = "please waiting window refresh...";
-                    url = this.ViewBag.FileUrl;
-                    mssg = this.ViewBag.Message;
                 }
                 catch (Exception ex)
                 {

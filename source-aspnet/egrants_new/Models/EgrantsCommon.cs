@@ -594,8 +594,10 @@ namespace egrants_new.Models
             return permission;
         }
 
-        internal static bool ContainsUnsupportedFileTypes(IEnumerable<HttpPostedFileBase> inboundFiles)
+        internal static HashSet<string> GetUnsupportedFileList(IEnumerable<HttpPostedFileBase> inboundFiles)
         {
+            HashSet<string> unsupportedFileNames = new HashSet<string>();
+
             foreach (var inboundFile in inboundFiles)
             {
                 var fileName = Path.GetFileName(inboundFile.FileName);
@@ -604,7 +606,10 @@ namespace egrants_new.Models
                 foreach (var unsupportedType in UNSUPPORTED_FILE_TYPES)
                 {
                     if (inboundFile.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
-                        return true;
+                    {
+                        unsupportedFileNames.Add(fileName);
+                        break;
+                    }
                 }
 
                 if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
@@ -614,21 +619,22 @@ namespace egrants_new.Models
                     using (var memoryStream = new MemoryStream(fileData))
                     {
                         var emailFile = new Storage.Message(memoryStream);
-                        if (MessageContainsUnsupported(emailFile))
+                        foreach(var unsupportedFile in GetUnsupportedFileListFromMessage(emailFile))
                         {
-                            inboundFile.InputStream.Position = 0;
-                            return true;
+                            unsupportedFileNames.Add(unsupportedFile);
                         }
                     }
 
                     inboundFile.InputStream.Position = 0;
                 }
             }
-            return false;
+            return unsupportedFileNames;
         }
 
-        private static bool MessageContainsUnsupported(Storage.Message emailFile)
+        private static HashSet<string> GetUnsupportedFileListFromMessage(Storage.Message emailFile)
         {
+            HashSet<string> unsupportedFileNames = new HashSet<string>();
+
             foreach (var attachment in emailFile.Attachments)
             {
                 if (attachment is Storage.Attachment storageAttachment)
@@ -636,16 +642,21 @@ namespace egrants_new.Models
                     foreach (var unsupportedType in UNSUPPORTED_FILE_TYPES)
                     {
                         if (storageAttachment.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
-                            return true;
+                        {
+                            unsupportedFileNames.Add($"{storageAttachment.FileName}");
+                            break;
+                        }
                     }
                 }
                 else if (attachment is Storage.Message messageAttachment)                                               // email message
                 {
-                    if (MessageContainsUnsupported((Storage.Message)attachment))
-                        return true;
+                    foreach (var unsupportedName in GetUnsupportedFileListFromMessage((Storage.Message)attachment))
+                    {
+                        unsupportedFileNames.Add(unsupportedName);
+                    }
                 }
             }
-            return false;
+            return unsupportedFileNames;
         }
     }
 }

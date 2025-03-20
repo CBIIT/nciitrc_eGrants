@@ -1,19 +1,20 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.IO.Compression;
+using System.Web;
 
 namespace egrants_new.Egrants.Functions
 {
-    public static class StreamExtensions
+    public static class HttpPostedFileBaseExtensions
     {
-        public static byte[] ReadAllBytes(this Stream inStream)
+        public static Byte[] ToByteArray(this HttpPostedFileBase value)
         {
-            if (inStream is MemoryStream)
-                return ((MemoryStream)inStream).ToArray();
-
-            using (var memoryStream = new MemoryStream())
-            {
-                inStream.CopyTo(memoryStream);
-                return memoryStream.ToArray();
-            }
+            if (value == null)
+                return null;
+            var array = new Byte[value.ContentLength];
+            value.InputStream.Position = 0;
+            value.InputStream.Read(array, 0, value.ContentLength);
+            return array;
         }
     }
 }
