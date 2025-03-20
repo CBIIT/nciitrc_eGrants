@@ -167,18 +167,25 @@
       $('#notice').css('visibility', 'hidden');
    }
 
-   function upload_by_ddrop() {
-      var frmdata = new FormData();
+    function upload_by_ddrop() {
+        if (!check_file_dnd()) {
+            return false;
+        }
 
-      frmdata.append('dropedfile', dropedfile);
-      frmdata.append('doc_id', document_id);
-      docupload(frmdata, "/EgrantsDoc/doc_upload_by_ddrop");
-      //$('#btnDragdrop').attr("disabled", "disabled");
-      //document.getElementById("btnDragdrop").disabled = "disabled";
-      clear_all("by_dd");
+        var frmdata = new FormData();
+
+        frmdata.append('dropedfile', dropedfile);
+        frmdata.append('doc_id', document_id);
+        docupload(frmdata, "/EgrantsDoc/doc_upload_by_ddrop");
+
+        clear_all("by_dd");
     }
 
     function upload_pdf_by_ddrop() {
+        if (!check_file_pdf_dnd()) {
+            return false;
+        }
+
         var frmdata = new FormData();
 
         frmdata.append('doc_id', document_id);

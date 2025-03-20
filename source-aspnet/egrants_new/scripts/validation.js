@@ -285,3 +285,52 @@ function check_file_pdf() {
         return false;
     } else return true;
 }
+
+// validate file extensions for drag and drop, no PDF conversion
+function check_file_dnd() {
+    var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
+
+    if (dropedfiles.length !== 1) {
+        alert("Please add only one file at a time unless converting to PDF");
+        return false;
+    }
+
+    var filext = dropedfiles[0].name.split('.').pop();
+    var fileExtLowerCase = filext.toLowerCase();
+
+    if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
+        alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
+        $('#dropArea').removeClass('active-drop');
+        $('#dropArea').html('Drag-drop only one file here to upload');
+        $('#btnDragdrop').attr('disabled', true);
+        $('#btnPdfDragdrop').attr('disabled', true);
+        return false;
+    }
+
+    return true;
+}
+
+// validate file extensions for drag and drop, WITH PDF conversion
+function check_file_pdf_dnd() {
+    var extArr = ['pdf', 'txt', 'doc', 'docx', 'msg'];
+
+    for (var i = 0; i < dropedfiles.length; i++) {
+
+        var filext = dropedfiles[i].name.split('.').pop();
+        var fileExtLowerCase = filext.toLowerCase();
+
+        if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
+            if (dropedfiles.length === 1)
+                alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
+            else
+                alert("At least one file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc.'")
+            $('#dropArea').removeClass('active-drop');
+            $('#dropArea').html('Drag-drop only one file here to upload');
+            $('#btnDragdrop').attr('disabled', true);
+            $('#btnPdfDragdrop').attr('disabled', true);
+            return false;
+        }
+    }
+    return true;
+}
+
