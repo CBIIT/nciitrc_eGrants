@@ -631,7 +631,7 @@ namespace egrants_new.Controllers
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:");
                         foreach(var unsupportedFile in unsupportedFilesList)
                         {
-                            sb.AppendLine(unsupportedFile.Truncate(50)); 
+                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
                         }
                         mssg = sb.ToString();
                     }
@@ -1124,7 +1124,7 @@ namespace egrants_new.Controllers
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
-                            sb.AppendLine(unsupportedFile.Truncate(50));
+                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
                         }
                         mssg = sb.ToString();
                     }
@@ -1326,7 +1326,7 @@ namespace egrants_new.Controllers
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
-                            sb.AppendLine(unsupportedFile.Truncate(50));
+                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
                         }
                         mssg = sb.ToString();
                     }
