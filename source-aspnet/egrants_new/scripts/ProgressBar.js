@@ -33,10 +33,10 @@
         success: function (data) {
             $(".progress").css('display', 'none');
             $('#notice').css('visibility', 'visible').attr('href', data.url);
-            var processedMssg = data.message.replaceAll("**#7|n3br3@k#**", "<br/>");
+            var processedMssg = data?.message?.replaceAll("**#7|n3br3@k#**", "<br/>");
             $('#mssg').html(processedMssg);
             $("#mssg").css('display', 'inline');
-            if (processedMssg.includes("IMPORTANT!")) {
+            if (processedMssg?.includes("IMPORTANT!")) {
                 $("#mssg").css('color', 'rgb(100, 29, 29)');
             }
             endtime = new Date().getTime();
