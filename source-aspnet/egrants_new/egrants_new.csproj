@@ -2909,6 +2909,15 @@
     <Content Include="Content\themes\base\tabs.css" />
     <Content Include="Content\themes\base\theme.css" />
     <Content Include="Content\themes\base\tooltip.css" />
+    <Content Include="DocPDFConversion\input\keep_this_file_here.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\Installation Instructions.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\output\keep_this_file_here.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="EmailBodyTemplate.html" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\fontawesome-webfont.svg" />
@@ -2993,6 +3002,24 @@
     <Content Include="App_Browsers\qt.browser" />
     <Content Include="Egrants\Views\_egrants_showModalRenameDialog.cshtml" />
     <Content Include="Egrants\Views\Download\_egrants_showDocsDownloadSupportFunctions.cshtml" />
+    <Content Include="DocPDFConversion\serverDocToPdf.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\createServerSchedTaskDev.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\createServerSchedTaskQA.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\createServerSchedTaskStage.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\createServerSchedTaskProd.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DocPDFConversion\logs\conversion.log">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\Dev.pubxml" />
     <None Include="Properties\PublishProfiles\Prod.pubxml" />
