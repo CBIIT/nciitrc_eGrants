@@ -25,3 +25,8 @@ source-aspnet/packages/
 /EmailHandling/CommonUtilties/bin/*
 /EmailHandling/OGARequestAccountDisable/bin/*
 /EmailHandling/OGARequestAccountDisable/obj/*
+/EmailHandling/EmailConcatenationPOC/.vs/*
+/EmailHandling/EmailConcatenationPOC/EmailConcatenationPOC/bin/*
+/EmailHandling/EmailConcatenationPOC/packages/*
+/source-aspnet/pdf_file_conversion/bin/*
+/source-aspnet/temp/*
