@@ -7,6 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Spire.Doc;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Org.BouncyCastle.Tls;
+using System.Net.Http;
+using Org.BouncyCastle.Utilities;
 
 namespace EmailConcatenation.Converters
 {
@@ -24,19 +30,43 @@ namespace EmailConcatenation.Converters
         {
             Console.WriteLine("Handling Word .doc file type case ...");
 
-            using (var memoryStream = new MemoryStream(content.GetBytes()))
-            {
-                Document document = new Document(memoryStream);
-                using (var pdfStream = new MemoryStream())
-                {
-                    if (pdfStream.Length == 0)
-                        return null;
+            var action = "http://localhost:8081/convert";
+            byte[] fileBytes = null;
 
-                    document.SaveToStream(pdfStream, FileFormat.PDF);
-                    pdfStream.Position = 0;
-                    var newPdfFile = new PdfDocument(pdfStream);
-                    return new List<PdfDocument> { newPdfFile };
+            using (var stream = new MemoryStream(content.GetBytes()))
+            {
+                Console.WriteLine("Acquired stream object.");
+                var result = Upload(action, string.Empty, stream, null);
+
+                // Read the response content as a byte array
+                fileBytes = result.ReadAsByteArrayAsync().Result;
+            }
+
+            var pdfDocument = new PdfDocument(fileBytes);
+
+            return new List<PdfDocument> { pdfDocument };
+        }
+
+        private static HttpContent Upload(string actionUrl, string paramString, Stream paramFileStream, byte[] paramFileBytes)
+        {
+            using (var client = new HttpClient())
+            using (var formData = new MultipartFormDataContent())
+            {
+                paramFileStream.Position = 0;
+                HttpContent fileStreamContent = new StreamContent(paramFileStream);
+                Console.WriteLine("Acquired client and formData.");
+
+                fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+                var response = client.PostAsync(actionUrl, fileStreamContent).Result;
+
+                response.EnsureSuccessStatusCode();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
                 }
+                return response.Content;
             }
         }
     }
