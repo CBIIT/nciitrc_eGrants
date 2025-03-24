@@ -1,0 +1,66 @@
+﻿Installation Instructions
+Micah Hoover, 3/14/2025
+
+This is a complex piece of software that needs to work with our existing eGrants web app.
+In addition to some of the security protocol surprises, anyone facilitating the deployment of this functionality
+must note that it is installed in very different locations in each environment (with slightly different, false
+locations in each environment).
+
+Here are the true destinations as of this writing :
+
+	Dev (nciws-d2411-v):
+		D:\Content\egrants-web-dev.nci.nih.gov\
+
+	QA / test (nciws-Q2409-v):
+		D:\Content\egrants.nci.nih.gov\
+
+	Stage (nciws-s2408-v):
+		D:\Content\egrants.nci.nih.gov\
+
+	Prod (nciws-p974-v):
+		D:\NCI Websites\egrants.nci.nih.gov\
+
+Currently, I (Micah Hoover) am unable to access the path : D:\Content\egrants.nci.nih.gov\ On the eGrants QA web server (nciws-Q2409-v) 
+
+If this has been deployed before, make sure to open the Windows Scheduled Tasks and delete "PowerShell HTTP Conversion Server", unless you are just making surgical tweak.
+
+Here are the steps to get an environment set up for this :
+
+1) Download Libre Office
+
+2) Confirm Libre Office installation
+
+	It must exist in the file system here :
+
+		C:\Program Files\LibreOffice\program\soffice.exe
+
+3) Deploy a branch of the eGrants app on Jenkins to the desired environment (if you're deploying to an upper tier environment, this should be in main or a build number branch to be provided)
+
+4) Run one of the set up scripts in this directory with the corresponding environment name appended to the script name (e.g. createServerSchedTaskStage.ps1).
+
+	You can do this by opening up a powershell prompt as an administrator (can hit the Windows key and type "powershell"), and then navigating to the directory with the set up script.
+
+	Look at the specific environment pdf conversion environment above (e.g. D:\NCI Websites\egrants.nci.nih.gov\), then navigate to the DocPDFConversion directory.
+
+	Then run the Powershell script with the correspondin environment name at the end of the script file.
+
+	Example :
+
+		.\createServerSchedTaskProd.ps1
+
+	Let this finish to completion and discuss any errors you find with a developer.
+
+	This will set up the new Libre Office conversion server as a Windows Scheduled Task.
+
+5) Confirm that the new Windows Scheduled Task name appears in the Scheduled Tasks control panel and get it running.
+
+	Hit the Windows key and type "Task Scheduler" Make sure that "PowerShell HTTP Conversion Server" appears as one of the entries.
+
+	Now make sure that the status is "Running" and not "Ready". If it IS "Ready", then right click on it and choose "Run".
+
+6) Confirm .doc files are converting to .pdf through the eGrants web app.
+
+	This should succeed as nicely as it has in the dev environment.
+
+
+

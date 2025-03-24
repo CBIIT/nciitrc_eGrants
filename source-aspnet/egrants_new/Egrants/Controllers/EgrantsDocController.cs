@@ -54,6 +54,8 @@ using System.Text;
 using EmailConcatenation;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
+using WebGrease.Activities;
 
 #endregion
 
@@ -599,6 +601,8 @@ namespace egrants_new.Controllers
                     // upload to image sever 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
 
+                    //fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
+
                     var filePath = Path.Combine(fileFolder, docName);
 
                     if (!pdfDocs.Any())
@@ -843,7 +847,6 @@ namespace egrants_new.Controllers
                     // create review url
                     this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
                                                                                             + Convert.ToString(docName);
-
                     this.ViewBag.Message = "Done! New document has been created";
 
                     url = this.ViewBag.FileUrl;
