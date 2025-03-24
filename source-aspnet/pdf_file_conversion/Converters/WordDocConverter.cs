@@ -28,7 +28,11 @@ namespace EmailConcatenation.Converters
 
         public List<PdfDocument> ToPdfDocument(ContentForPdf content)
         {
-            Console.WriteLine("Handling Word .doc file type case ...");
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry("Preparing to send .doc file ...", EventLogEntryType.Information, 101, 1);
+            }
 
             var action = "http://localhost:8081/convert";
             byte[] fileBytes = null;
@@ -36,10 +40,25 @@ namespace EmailConcatenation.Converters
             using (var stream = new MemoryStream(content.GetBytes()))
             {
                 Console.WriteLine("Acquired stream object.");
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry("Uploading ...", EventLogEntryType.Information, 101, 1);
+                }
                 var result = Upload(action, string.Empty, stream, null);
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry("Uploaded.", EventLogEntryType.Information, 101, 1);
+                }
 
                 // Read the response content as a byte array
                 fileBytes = result.ReadAsByteArrayAsync().Result;
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry("Got result.", EventLogEntryType.Information, 101, 1);
+                }
             }
 
             var pdfDocument = new PdfDocument(fileBytes);
