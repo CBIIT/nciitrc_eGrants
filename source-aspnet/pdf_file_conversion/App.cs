@@ -111,8 +111,6 @@ namespace EmailConcatenation
                             break;
                         }
                     }
-                    if (!fileHandled)
-                        throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{storageAttachment.FileName}'. Validation should prevent the file from getting to here.");
 
                 }
                 else if (attachment is Storage.Message messageAttachment)                                               // email message
@@ -124,10 +122,6 @@ namespace EmailConcatenation
                     var messagePdf = EmailTextConverter.ToPdfDocument(plainTextContent);
                     if (messagePdf != null)
                         filesToMerge.AddRange(messagePdf);
-                }
-                else
-                {
-                    throw new Exception("This file was not recognized as either an email message nor as an attachment file.");
                 }
             }
             //}
@@ -181,9 +175,6 @@ namespace EmailConcatenation
                     break;
                 }
             }
-            if (!fileHandled)
-                throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{fileName}'. Validation should prevent the file from getting to here.");
-
 
             if (!filesToMerge.Any())
             {
@@ -194,12 +185,10 @@ namespace EmailConcatenation
                 Console.WriteLine("Attachments processed.");
                 var merged = PdfDocument.Merge(filesToMerge);
                 return merged;
-            }
-            else
+            } else
             {
-                throw new ArgumentOutOfRangeException($"Failed to find an event handler for attached file '{fileName}'. Worst case is the unrecognized converter should at least do something and mark it handled.");
+                return null;
             }
-
         }
 
         internal PdfDocument CreateEmptyDocument()
