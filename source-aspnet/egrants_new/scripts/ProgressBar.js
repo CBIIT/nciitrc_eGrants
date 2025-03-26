@@ -36,8 +36,8 @@
             var processedMssg = data?.message?.replaceAll("**#7|n3br3@k#**", "<br/>");
             $('#mssg').html(processedMssg);
             $("#mssg").css('display', 'inline');
-            if (processedMssg?.includes("IMPORTANT!")) {
-                $("#mssg").css('color', 'rgb(100, 29, 29)');
+            if (processedMssg?.includes("IMPORTANT!") || processedMssg?.includes("ERROR:")) {
+                $("#mssg").css('color', 'rgb(255, 0, 0)');
             }
             endtime = new Date().getTime();
             $('#dropArea').html('');
