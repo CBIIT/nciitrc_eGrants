@@ -9,10 +9,8 @@ using System.Threading.Tasks;
 using Spire.Doc;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Org.BouncyCastle.Tls;
 using System.Net.Http;
-using Org.BouncyCastle.Utilities;
+
 
 namespace EmailConcatenation.Converters
 {
