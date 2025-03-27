@@ -474,11 +474,6 @@ namespace egrants_new.Controllers
 
                     var filePath = Path.Combine(fileFolder, docName);
 
-                    if (!pdfDocs.Any())
-                    {
-                        pdfDocs.Add(converter.CreateEmptyDocument());
-                    }
-
                     var pdfDoc = PdfDocument.Merge(pdfDocs);
                     pdfDoc.SaveAs(filePath);
 
@@ -663,11 +658,6 @@ namespace egrants_new.Controllers
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\funding\\upload\\";
 
                     var filePath = Path.Combine(fileFolder, docName);
-
-                    if (!pdfDocs.Any())
-                    {
-                        pdfDocs.Add(converter.CreateEmptyDocument());
-                    }
 
                     var pdfDoc = PdfDocument.Merge(pdfDocs);
                     pdfDoc.SaveAs(filePath);
