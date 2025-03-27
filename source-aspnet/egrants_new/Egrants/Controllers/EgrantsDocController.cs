@@ -605,9 +605,6 @@ namespace egrants_new.Controllers
                     // upload to image sever 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
 
-                    // MLH : do NOT check in !!!
-                    fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
-
                     var filePath = Path.Combine(fileFolder, docName);
 
                     var sb = new StringBuilder();
