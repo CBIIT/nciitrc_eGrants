@@ -163,7 +163,8 @@
 
    function clear_message(type) {
       //clear all message
-      $("#mssg").css('display', 'none');
+       $("#mssg").css('display', 'none');
+       $("#mssgGood").css('display', 'none');
       $('#notice').css('visibility', 'hidden');
    }
 
@@ -404,10 +405,11 @@
                    </div><!--end myTabContent-->
                    <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
                    <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
+                   <b id="done"><span id="mssgGood"></span></b>
                    <br style="clear:both" />
                    <div style="line-height: 30px; margin: 10px;">
                        <b id="done"><span id="mssg"></span></b>
-                   </div>                   
+                   </div>
                </td>
                <td style="width: 400px; padding-left: 50px;">
                   <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
