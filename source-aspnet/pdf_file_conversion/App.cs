@@ -190,16 +190,5 @@ namespace EmailConcatenation
                 return null;
             }
         }
-
-        internal PdfDocument CreateEmptyDocument()
-        {
-            var content = "<html><body><h1>File or files contained no data.</h1></body></html>";
-
-            // using an unusual overload, so manually instantiate the converter
-            var tempHtmlConverter = new HtmlConverter();
-            var result = tempHtmlConverter.ToPdfDocument(content).ElementAt(0);
-
-            return result;
-        }
     }
 }

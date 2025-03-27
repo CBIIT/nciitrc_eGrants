@@ -33,7 +33,21 @@
         success: function (data) {
             $(".progress").css('display', 'none');
             $('#notice').css('visibility', 'visible').attr('href', data.url);
-            var processedMssg = data?.message?.replaceAll("**#7|n3br3@k#**", "<br/>");
+            //var processedMssg = data?.message?.replaceAll("**#7|n3br3@k#**", "<br/>");
+            var processedMssg = '';
+            if (data && data.message) {
+                var sections = data.message.split("**#7|n3br3@k#**");
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    var color = '';
+                    if (!section?.includes("Done!")) {
+                        color = 'rgb(255, 0, 0)';
+                    } else {
+                        color = 'rgb(0, 100, 0)';
+                    }
+                    processedMssg += '<div style="color:' + color + '">' + section + '</div><br/>';
+                }
+            }
             $('#mssg').html(processedMssg);
             $("#mssg").css('display', 'inline');
             if (processedMssg?.includes("IMPORTANT!") || processedMssg?.includes("ERROR:")) {
