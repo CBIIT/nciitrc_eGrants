@@ -590,26 +590,26 @@ namespace egrants_new.Controllers
                     }
                     fileExtension = ".pdf";
 
-                    // get document_id and creat a new docName
-                    var document_id = EgrantsDoc.GetDocID(
-                        appl_id,
-                        category_id,
-                        sub_category,
-                        doc_date,
-                        fileExtension,
-                        Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"]));
-
-                    docName = Convert.ToString(document_id) + fileExtension;
-
-                    // upload to image sever 
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
-
-                    var filePath = Path.Combine(fileFolder, docName);
-
                     var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
+                        // get document_id and creat a new docName
+                        var document_id = EgrantsDoc.GetDocID(
+                            appl_id,
+                            category_id,
+                            sub_category,
+                            doc_date,
+                            fileExtension,
+                            Convert.ToString(this.Session["ic"]),
+                            Convert.ToString(this.Session["userid"]));
+
+                        docName = Convert.ToString(document_id) + fileExtension;
+
+                        // upload to image sever 
+                        var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+
+                        var filePath = Path.Combine(fileFolder, docName);
+
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
@@ -833,26 +833,26 @@ namespace egrants_new.Controllers
                     }
                     fileExtension = ".pdf";
 
-                    // get document_id and creat a new docName
-                    var document_id = EgrantsDoc.GetDocID(
-                        appl_id,
-                        category_id,
-                        sub_category,
-                        doc_date,
-                        fileExtension,
-                        Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"]));
-
-                    docName = Convert.ToString(document_id) + fileExtension;
-
-
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
-
-                    var filePath = Path.Combine(fileFolder, docName);
-
                     var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
+                        // get document_id and creat a new docName
+                        var document_id = EgrantsDoc.GetDocID(
+                            appl_id,
+                            category_id,
+                            sub_category,
+                            doc_date,
+                            fileExtension,
+                            Convert.ToString(this.Session["ic"]),
+                            Convert.ToString(this.Session["userid"]));
+
+                        docName = Convert.ToString(document_id) + fileExtension;
+
+
+                        var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+
+                        var filePath = Path.Combine(fileFolder, docName);
+
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
@@ -1074,29 +1074,29 @@ namespace egrants_new.Controllers
 
                     fileExtension = ".pdf";
 
-                    // update url for document
-                    EgrantsDoc.doc_modify(
-                        "to_upload",
-                        0,
-                        0,
-                        string.Empty,
-                        string.Empty,
-                        Convert.ToString(doc_id),
-                        fileExtension,
-                        Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"]));
-
-                    // get document id and create new document name       
-                    docName = Convert.ToString(doc_id) + fileExtension;
-
-
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
-
-                    var filePath = Path.Combine(fileFolder, docName);
-
                     var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
+                        // update url for document
+                        EgrantsDoc.doc_modify(
+                            "to_upload",
+                            0,
+                            0,
+                            string.Empty,
+                            string.Empty,
+                            Convert.ToString(doc_id),
+                            fileExtension,
+                            Convert.ToString(this.Session["ic"]),
+                            Convert.ToString(this.Session["userid"]));
+
+                        // get document id and create new document name       
+                        docName = Convert.ToString(doc_id) + fileExtension;
+
+
+                        var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+
+                        var filePath = Path.Combine(fileFolder, docName);
+
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
@@ -1271,29 +1271,29 @@ namespace egrants_new.Controllers
 
                     fileExtension = ".pdf";
 
-                    // get document id and create new document name       
-                    docName = Convert.ToString(doc_id) + fileExtension;
-
-                    // update url for document
-                    EgrantsDoc.doc_modify(
-                        "to_upload",
-                        0,
-                        0,
-                        string.Empty,
-                        string.Empty,
-                        Convert.ToString(doc_id),
-                        fileExtension,
-                        Convert.ToString(this.Session["ic"]),
-                        Convert.ToString(this.Session["userid"]));
-
-
-                    var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
-                    
-                    var filePath = Path.Combine(fileFolder, docName);
-
                     var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
+
+                        // get document id and create new document name       
+                        docName = Convert.ToString(doc_id) + fileExtension;
+
+                        // update url for document
+                        EgrantsDoc.doc_modify(
+                            "to_upload",
+                            0,
+                            0,
+                            string.Empty,
+                            string.Empty,
+                            Convert.ToString(doc_id),
+                            fileExtension,
+                            Convert.ToString(this.Session["ic"]),
+                            Convert.ToString(this.Session["userid"]));
+
+                        var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+
+                        var filePath = Path.Combine(fileFolder, docName);
+
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
