@@ -33,7 +33,6 @@
         success: function (data) {
             $(".progress").css('display', 'none');
             $('#notice').css('visibility', 'visible').attr('href', data.url);
-            //var processedMssg = data?.message?.replaceAll("**#7|n3br3@k#**", "<br/>");
             var processedMssg = '';
             if (data && data.message) {
                 var sections = data.message.split("**#7|n3br3@k#**");
@@ -41,18 +40,17 @@
                     var section = sections[i];
                     var color = '';
                     if (!section?.includes("Done!")) {
-                        color = 'rgb(255, 0, 0)';
+                        // MLH : I know this should be in the styles somewhere, but business reqs
+                        // changing so fast here ...
+                        processedMssg += '<div style="color:rgb(255, 0, 0)">' + section + '</div><br style="display:block; margin-top:10px;visibility:hidden;content:\'\';"/>';
                     } else {
-                        color = 'rgb(0, 100, 0)';
-                    }
-                    processedMssg += '<div style="color:' + color + '">' + section + '</div><br/>';
+                        $('#mssgGood').html(section);
+                        $("#mssgGood").css('display', 'inline');
+                    }                    
                 }
             }
             $('#mssg').html(processedMssg);
             $("#mssg").css('display', 'inline');
-            if (processedMssg?.includes("IMPORTANT!") || processedMssg?.includes("ERROR:")) {
-                $("#mssg").css('color', 'rgb(255, 0, 0)');
-            }
             endtime = new Date().getTime();
             $('#dropArea').html('');
             $('#dropArea').removeClass('active-drop');
