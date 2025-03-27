@@ -605,37 +605,37 @@ namespace egrants_new.Controllers
                     // upload to image sever 
                     var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
 
+                    // MLH : do NOT check in !!!
+                    fileFolder = "C:\\Users\\hooverrl\\Desktop\\NCI\\nciitrc_eGrants\\source-aspnet\\temp";
+
                     var filePath = Path.Combine(fileFolder, docName);
 
+                    var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
-                        pdfDocs.Add(converter.CreateEmptyDocument());
-
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
                         // create review url
-                        this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                        this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
                                                                                                 + Convert.ToString(docName);
-                        if (unsupportedFilesList.Count == 0)
-                        {
-                            this.ViewBag.Message = "Done! New document has been created";
-                        }
+                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
+                    } else
+                    {
+                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
                     }
 
                     if (unsupportedFilesList.Count > 0)
-                    {
-                        var sb = new StringBuilder();
+                    {                        
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
                         }
-                        this.ViewBag.Message = sb.ToString();
                     }
 
                     url = this.ViewBag.FileUrl;
-                    mssg = this.ViewBag.Message;
+                    mssg = sb.ToString();
                 }
                 catch (Exception ex)
                 {
@@ -853,36 +853,33 @@ namespace egrants_new.Controllers
 
                     var filePath = Path.Combine(fileFolder, docName);
 
+                    var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
-                        pdfDocs.Add(converter.CreateEmptyDocument());
-
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
                         // create review url
-                        this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
+                        this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
                                                                                                 + Convert.ToString(docName);
-                        if (unsupportedFilesList.Count == 0)
-                        {
-                            this.ViewBag.Message = "Done! New document has been created";
-                        }
+                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
+                    }
+                    else
+                    {
+                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
                     }
 
                     if (unsupportedFilesList.Count > 0)
                     {
-                        var sb = new StringBuilder();
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
                         }
-                        this.ViewBag.Message = sb.ToString();
                     }
 
                     url = this.ViewBag.FileUrl;
-                    mssg = this.ViewBag.Message;
-
+                    mssg = sb.ToString();
                 }
                 catch (Exception ex)
                 {
@@ -1100,36 +1097,33 @@ namespace egrants_new.Controllers
 
                     var filePath = Path.Combine(fileFolder, docName);
 
+                    var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
-                        pdfDocs.Add(converter.CreateEmptyDocument());
-
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
                         // create review url
                         this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
                                                                                                 + Convert.ToString(docName);
-                        if (unsupportedFilesList.Count == 0)
-                        {
-                            this.ViewBag.Message = "Done! New document has been created";
-                        }
+                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
+                    }
+                    else
+                    {
+                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
                     }
 
                     if (unsupportedFilesList.Count > 0)
                     {
-                        var sb = new StringBuilder();
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
                         }
-                        this.ViewBag.Message = sb.ToString();
                     }
 
-                    // ViewBag.Message = "please waiting window refresh...";
                     url = this.ViewBag.FileUrl;
-                        mssg = this.ViewBag.Message;
+                    mssg = sb.ToString();
 
                 }
                 catch (Exception ex)
@@ -1300,35 +1294,33 @@ namespace egrants_new.Controllers
                     
                     var filePath = Path.Combine(fileFolder, docName);
 
+                    var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
-                        pdfDocs.Add(converter.CreateEmptyDocument());
-
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
                         // create review url
                         this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
                                                                                                 + Convert.ToString(docName);
-                        if (unsupportedFilesList.Count == 0)
-                        {
-                            this.ViewBag.Message = "Done! New document has been created";
-                        }
+                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
+                    }
+                    else
+                    {
+                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
                     }
 
                     if (unsupportedFilesList.Count > 0)
                     {
-                        var sb = new StringBuilder();
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
                         }
-                        this.ViewBag.Message = sb.ToString();
                     }
 
                     url = this.ViewBag.FileUrl;
-                    mssg = this.ViewBag.Message;
+                    mssg = sb.ToString();
                 }
                 catch (Exception ex)
                 {
