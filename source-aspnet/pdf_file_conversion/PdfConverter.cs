@@ -32,16 +32,11 @@ namespace EmailConcatenation
             kernel.Bind<IGeneralImageConverter>().To<GeneralImageConverter>();
             kernel.Bind<ITIFFConverter>().To<TIFFConverter>();
             kernel.Bind<IFormattedTextConverter>().To<FormattedTextConverter>();
-            kernel.Bind<IUndiscoveredTextConverter>().To<UndiscoveredTextConverter>();
-            kernel.Bind<IExplicitlyUnsupportedTextConverter>().To<ExplicitlyUnsupportedTextConverter>();
-            kernel.Bind<IUnrecognizedTextConverter>().To<UnrecognizedTextConverter>();
             kernel.Bind<IWordConverter>().To<WordConverter>();
-            kernel.Bind<IExcelConverter>().To<ExcelConverter>();
             kernel.Bind<IHtmlConverter>().To<HtmlConverter>();
             kernel.Bind<IPDFConverter>().To<PDFConverter>();
             kernel.Bind<IRTFConverter>().To<RTFConverter>();
             kernel.Bind<IEmailTextConverter>().To<EmailTextConverter>();
-            kernel.Bind<IExcelXLSMConverter>().To<ExcelXLSMConverter>();
             kernel.Bind<IWordDocConverter>().To<WordDocConverter>();
 
             kernel.Bind<App>().ToSelf();
@@ -58,11 +53,6 @@ namespace EmailConcatenation
         public PdfDocument Convert(MemoryStream memoryStream, string fileName)
         {
             return _app.Convert(memoryStream, fileName);
-        }
-
-        public PdfDocument CreateEmptyDocument()
-        {
-            return _app.CreateEmptyDocument();
         }
     }
 }

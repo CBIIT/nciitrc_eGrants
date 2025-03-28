@@ -656,58 +656,62 @@
 
                <td width="700" valign="top">
 
-                  <div class="tab" style="width: 402px">
-                     <button class="tablinks active" style="width:150px" onclick="Docreate(event, 'btnDragdrop');Docreate(event, 'btnPdfDragdrop');switch_upload_mode('by_ddrop')" id="li_ddrop">Drag & Drop</button>
-                     <button class="tablinks" style="width:250px" onclick="Docreate(event, 'btnFileUpload');Docreate(event, 'btnFilePdfUpload');switch_upload_mode('by_file')">Locate File and Upload</button>
-                  </div>
+                   <div class="tab" style="width: 402px">
+                       <button class="tablinks active" style="width:150px" onclick="Docreate(event, 'btnDragdrop');Docreate(event, 'btnPdfDragdrop');switch_upload_mode('by_ddrop')" id="li_ddrop">Drag & Drop</button>
+                       <button class="tablinks" style="width:250px" onclick="Docreate(event, 'btnFileUpload');Docreate(event, 'btnFilePdfUpload');switch_upload_mode('by_file')">Locate File and Upload</button>
+                   </div>
 
-                  <div id="myTabContent" style="width: 700px;">
-                     <!--start upload by drag drop -->
-                     <div class="tabcontent " id="by_ddrop" style="display: none">
-                        <br />
-                        <div id="dropArea">Drag-drop only one file here to upload with the Add button.</div>
-                        <br />
-                        <span>
-                            <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" accesskey="N" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
-                            <button type="button" style="display: inline" name="CreatByDdrop" id="btnPdfDragdrop" disabled="disabled" onclick="return create_pdf_by_ddrop();" class="btn btn-primary eGrantsDocBtn space-big-left" accesskey="C" title="Click here to convert a document to PDF and add it [shift + alt + C]"><u>C</u>onvert to PDF & Add</button>&#0160;&#0160;
-                            <br />
-                            <div class="space-down">By clicking Add or Convert to PDF & Add, I confirm that no sensitive PII or PHI is included in this file.</div>
-                        </span>
-                     </div>
-                     <!--end upload by drag drop-->
-                     <!--start upload by file-->
-                     <div class="tabcontent" id="by_file" style="display: none">
-                       <form>
-                        <div class="custom-file my-2">
-                           <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()" multiple>
-                           <label class="custom-file-label" for="customFile">Choose file...</label>
-                        </div>
-                       </form>
-                       <div style="display: inline">
-                           <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" accesskey="N" disabled="disabled" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
-                           <button style="display: inline" type="button" name="CreatByPdfFile" id="btnFilePdfUpload" disabled="disabled" onclick="return create_pdf_by_file();" class="btn btn-primary eGrantsDocBtn space-big-left" accesskey="C" title="Click here to convert a document to PDF and add it [shift + alt + c]"><u>C</u>onvert to PDF & Add</button>&#0160;&#0160;
+                   <div id="myTabContent" style="width: 700px;">
+                       <!--start upload by drag drop -->
+                       <div class="tabcontent " id="by_ddrop" style="display: none">
+                           <br />
+                           <div id="dropArea">Drag-drop only one file here to upload with the Add button.</div>
+                           <br />
+                           <span>
+                               <button type="button" style="display: inline" name="CreatByDdrop" id="btnDragdrop" disabled="disabled" onclick="return create_by_ddrop();" accesskey="N" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
+                               <button type="button" style="display: inline" name="CreatByDdrop" id="btnPdfDragdrop" disabled="disabled" onclick="return create_pdf_by_ddrop();" class="btn btn-primary eGrantsDocBtn space-big-left" accesskey="C" title="Click here to convert a document to PDF and add it [shift + alt + C]"><u>C</u>onvert to PDF & Add</button>&#0160;&#0160;
+                               <br />
+                               <div class="space-down">By clicking Add or Convert to PDF & Add, I confirm that no sensitive PII or PHI is included in this file.</div>
+                           </span>
                        </div>
-                        <br/>
-                        <div class="space-down">By clicking Add or Convert to PDF & Add, I confirm that no sensitive PII or PHI is included in this file.</div>
-                     </div>
-                     <!--end upload by file-->
+                       <!--end upload by drag drop-->
+                       <!--start upload by file-->
+                       <div class="tabcontent" id="by_file" style="display: none">
+                           <form>
+                               <div class="custom-file my-2">
+                                   <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()" multiple>
+                                   <label class="custom-file-label" for="customFile">Choose file...</label>
+                               </div>
+                           </form>
+                           <div style="display: inline">
+                               <button style="display: inline" type="button" name="CreatByFile" id="btnFileUpload" onclick="return create_by_file();" accesskey="N" disabled="disabled" class="btn btn-primary eGrantsDocBtn" title="Click here to upload document [shift + alt + N]">Create <u>N</u>ew</button>
+                               <button style="display: inline" type="button" name="CreatByPdfFile" id="btnFilePdfUpload" disabled="disabled" onclick="return create_pdf_by_file();" class="btn btn-primary eGrantsDocBtn space-big-left" accesskey="C" title="Click here to convert a document to PDF and add it [shift + alt + c]"><u>C</u>onvert to PDF & Add</button>&#0160;&#0160;
+                           </div>
+                           <br />
+                           <div class="space-down">By clicking Add or Convert to PDF & Add, I confirm that no sensitive PII or PHI is included in this file.</div>
+                       </div>
+                       <!--end upload by file-->
 
-                     <br /><br />
+                       <br /><br />
 
-                     <!--show progress bar-->
-                     <div class="progress" style="display: none">
-                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                     </div>
-                     <!--end progress bar-->
+                       <!--show progress bar-->
+                       <div class="progress" style="display: none">
+                           <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%; height: 18px; text-align: center; line-height: 18px; margin: 0; padding: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                       </div>
+                       <!--end progress bar-->
 
-                  </div><!--end myTabContent-->
-                  <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
-                  <a target="_new" href="#" id="notice" style="visibility: hidden">
-                     <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
-                  </a>
-                  <b id="done">
-                     <span id="mssg"></span>
-                  </b>
+                   </div><!--end myTabContent-->
+                   <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+                   <a target="_new" href="#" id="notice" style="visibility: hidden">
+                       <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
+                   </a>
+                   <b id="done">
+                       <span id="mssgGood"></span>
+                   </b>
+                   <br style="clear:both" />
+                   <div style="line-height: 30px; margin: 10px;">
+                       <strong id="done"><span id="mssg"></span></strong>
+                   </div>
                </td>
                <td style="width: 400px; padding-left: 50px;">
                   <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">

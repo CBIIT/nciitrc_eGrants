@@ -220,20 +220,25 @@ function file_type(filelocation) {
 
         return 'false';
     }
+}
 
-//    if (filetype == 'pdf' ||
-//        filetype == 'xls' ||
-//        filetype == 'xlsx' ||
-//        filetype == 'xlsm' ||
-//        filetype == 'txt' ||
-//        filetype == 'doc' ||
-//        filetype == 'docx' ||
-//        filetype == 'msg') {
-//        return filetype;
-//    } else {
-//         return 'false';
-//    }
+function file_type_pdf(filelocation) {
 
+    var dot = filelocation.lastIndexOf(".");
+
+    var filetype = filelocation.substr(dot + 1, filelocation.length);
+
+    var fileTypeLowerCase = filetype.toLowerCase();
+    if (fileTypeLowerCase == 'msg' ||
+        fileTypeLowerCase == 'txt' ||
+        fileTypeLowerCase == 'pdf' ||
+        fileTypeLowerCase == 'doc' ||
+        fileTypeLowerCase == 'docx') {
+        return filetype;
+    } else {
+
+        return 'false';
+    }
 }
 
 /*check selected file for upload */
@@ -247,7 +252,7 @@ function check_file() {
     //check file type
     if (filetype == 'false') {
         document.getElementById("customFile").value = null;
-        alert("Please only upload file with file type as 'pdf','xls','xlsx','xlsm','txt','doc','docx' or 'msg'");
+        alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
         return false;
     } else var filesize = document.getElementById("customFile").files[0].size;
 
@@ -258,3 +263,74 @@ function check_file() {
         return false;
     } else return true;
 }
+
+function check_file_pdf() {
+    //check fiel
+    if (!document.getElementById("customFile").value) {
+        alert("Please select a file to upload!");
+        return false;
+    } else var filetype = file_type_pdf(document.getElementById("customFile").value);
+
+    //check file type
+    if (filetype == 'false') {
+        document.getElementById("customFile").value = null;
+        alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc'");
+        return false;
+    } else var filesize = document.getElementById("customFile").files[0].size;
+
+    //check file size
+    if (filesize > 1500000000) {
+        document.getElementById("customFile").value = null;
+        alert("File size too large, please send to BOB Team");
+        return false;
+    } else return true;
+}
+
+// validate file extensions for drag and drop, no PDF conversion
+function check_file_dnd() {
+    var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
+
+    if (dropedfiles.length !== 1) {
+        alert("Please add only one file at a time unless converting to PDF");
+        return false;
+    }
+
+    var filext = dropedfiles[0].name.split('.').pop();
+    var fileExtLowerCase = filext.toLowerCase();
+
+    if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
+        alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
+        $('#dropArea').removeClass('active-drop');
+        $('#dropArea').html('Drag-drop only one file here to upload');
+        $('#btnDragdrop').attr('disabled', true);
+        $('#btnPdfDragdrop').attr('disabled', true);
+        return false;
+    }
+
+    return true;
+}
+
+// validate file extensions for drag and drop, WITH PDF conversion
+function check_file_pdf_dnd() {
+    var extArr = ['pdf', 'txt', 'doc', 'docx', 'msg'];
+
+    for (var i = 0; i < dropedfiles.length; i++) {
+
+        var filext = dropedfiles[i].name.split('.').pop();
+        var fileExtLowerCase = filext.toLowerCase();
+
+        if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
+            if (dropedfiles.length === 1)
+                alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
+            else
+                alert("At least one file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc.'")
+            $('#dropArea').removeClass('active-drop');
+            $('#dropArea').html('Drag-drop only one file here to upload');
+            $('#btnDragdrop').attr('disabled', true);
+            $('#btnPdfDragdrop').attr('disabled', true);
+            return false;
+        }
+    }
+    return true;
+}
+

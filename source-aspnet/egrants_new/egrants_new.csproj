@@ -3211,6 +3211,7 @@
     <Compile Include="Dashboard\Models\WidgetAssigments.cs" />
     <Compile Include="Dashboard\Models\WidgetData.cs" />
     <Compile Include="Egrants\Functions\CountProperty.cs" />
+    <Compile Include="Egrants\Functions\HttpBaseExtensions.cs" />
     <Compile Include="Egrants\Functions\SaveState.cs" />
     <Compile Include="Egrants\Functions\StringTrimExtension.cs" />
     <Compile Include="Egrants\Functions\StreamExtensions.cs" />

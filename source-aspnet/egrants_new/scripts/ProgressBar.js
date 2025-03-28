@@ -33,7 +33,23 @@
         success: function (data) {
             $(".progress").css('display', 'none');
             $('#notice').css('visibility', 'visible').attr('href', data.url);
-            $('#mssg').text(data.message);
+            var processedMssg = '';
+            if (data && data.message) {
+                var sections = data.message.split("**#7|n3br3@k#**");
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    var color = '';
+                    if (!section?.includes("Done!")) {
+                        // MLH : I know this should be in the styles somewhere, but business reqs
+                        // changing so fast here ...
+                        processedMssg += '<div style="color:rgb(255, 0, 0)">' + section + '</div><br style="display:block; margin-top:10px;visibility:hidden;content:\'\';"/>';
+                    } else {
+                        $('#mssgGood').html(section);
+                        $("#mssgGood").css('display', 'inline');
+                    }                    
+                }
+            }
+            $('#mssg').html(processedMssg);
             $("#mssg").css('display', 'inline');
             endtime = new Date().getTime();
             $('#dropArea').html('');

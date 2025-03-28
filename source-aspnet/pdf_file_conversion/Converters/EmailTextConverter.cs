@@ -4,8 +4,6 @@ using IronPdf;
 using MsgReader.Mime;
 using MsgReader.Outlook;
 
-using NPOI.SS.Formula.Functions;
-
 using SkiaSharp;
 
 using System;
