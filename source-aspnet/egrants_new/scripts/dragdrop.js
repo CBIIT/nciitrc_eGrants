@@ -63,16 +63,8 @@ function FileSelectHandler(e) {
         var fileExtLowerCase = filext.toLowerCase();
 
         $('#dropArea').addClass('active-drop');
-        var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
 
-        if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
-            alert("The file type is not acceptable. Please upload files only with extension of 'pdf','xls','xlsx','xlsm','txt','doc','docx' or 'msg'");
-            $('#dropArea').removeClass('active-drop');
-            $('#dropArea').html('Drag-drop only one file here to upload');
-            $('#btnDragdrop').attr('disabled', true);
-            $('#btnPdfDragdrop').attr('disabled', true);
-            return false;
-        } else var filesize = (dropedfile.size / 1000);
+        var filesize = (dropedfile.size / 1000);
   
         if (filesize > 1500000) {
             alert("File size too large, please send to BOB Team");
@@ -84,7 +76,6 @@ function FileSelectHandler(e) {
         }
 
         ParseFile(dropedfile);
-        //$('#dropArea').removeClass('active-drop');
         console.log('Bytes Loaded: ' + dropedfile);
 
         // since there's just one file, okay to do a regular, non-PDF add here
@@ -98,18 +89,9 @@ function FileSelectHandler(e) {
             var fileExtLowerCase = filext.toLowerCase();
 
             $('#dropArea').addClass('active-drop');
-            var extArr = ['pdf', 'xls', 'xlsm', 'xlsx', 'txt', 'doc', 'docx', 'msg'];
 
-            if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
-                alert("The file type is not acceptable. Please upload files only with extension of 'pdf','xls','xlsx','xlsm','txt','doc','docx' or 'msg'");
-                $('#dropArea').removeClass('active-drop');
-                $('#dropArea').html('Drag-drop only one file here to upload');
-                $('#btnDragdrop').attr('disabled', true);
-                $('#btnPdfDragdrop').attr('disabled', true);
-                return false;
-            } else var filesize = (dropedfile.size / 1000);
+            var filesize = (dropedfile.size / 1000);
 
-            //alert(filesize);      
             if (filesize > 1500000) {
                 alert("File size too large, please send to BOB Team");
                 $('#dropArea').removeClass('active-drop');

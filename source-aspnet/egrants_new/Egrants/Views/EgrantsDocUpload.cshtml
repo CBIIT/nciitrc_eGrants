@@ -163,22 +163,30 @@
 
    function clear_message(type) {
       //clear all message
-      $("#mssg").css('display', 'none');
+       $("#mssg").css('display', 'none');
+       $("#mssgGood").css('display', 'none');
       $('#notice').css('visibility', 'hidden');
    }
 
-   function upload_by_ddrop() {
-      var frmdata = new FormData();
+    function upload_by_ddrop() {
+        if (!check_file_dnd()) {
+            return false;
+        }
 
-      frmdata.append('dropedfile', dropedfile);
-      frmdata.append('doc_id', document_id);
-      docupload(frmdata, "/EgrantsDoc/doc_upload_by_ddrop");
-      //$('#btnDragdrop').attr("disabled", "disabled");
-      //document.getElementById("btnDragdrop").disabled = "disabled";
-      clear_all("by_dd");
+        var frmdata = new FormData();
+
+        frmdata.append('dropedfile', dropedfile);
+        frmdata.append('doc_id', document_id);
+        docupload(frmdata, "/EgrantsDoc/doc_upload_by_ddrop");
+
+        clear_all("by_dd");
     }
 
     function upload_pdf_by_ddrop() {
+        if (!check_file_pdf_dnd()) {
+            return false;
+        }
+
         var frmdata = new FormData();
 
         frmdata.append('doc_id', document_id);
@@ -344,60 +352,64 @@
                <td width="80"><div class="loading" style="display:none"><img src="~/Content/images/Loading.gif" width="50" /></div></td>
                <td width="700" valign="top">
 
-                  <div class="tab" style="width: 498px">
-                     <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
+                   <div class="tab" style="width: 498px">
+                       <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
 
-                     <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
+                       <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
 
-                     <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
-                  </div>
-                  <div id="myTabContent" style="width: 700px;">
-                     <!--start upload by drag drop -->
-                      <div class="tabcontent" id="by_ddrop" style="display: none">
-                          <br />
-                          <div id="dropArea">Drag-drop only one file here to upload</div><br />
-                          <div style="display:inline">
-                              <button type="button" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>
-                              <button type="button" name="ReplaceByDdrop" id="btnPdfDragdrop" class="btn btn-primary eGrantsDocBtn space-big-left" disabled="disabled" onclick="return upload_pdf_by_ddrop();" accesskey="U" title="Click here to convert a document to PDF and upload it [shift + alt + C]"><u>C</u>onvert to PDF & Upload</button> &#0160;&#0160;
-                          </div>
-                          <br style="clear:both" />
-                          <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                      </div>
-                     <!--end upload by drag drop-->
-                     <!--start upload by file-->
-                     <div class="tabcontent" id="by_file" style="display: none">
-                         <form>
-                             <div class="custom-file my-2">
-                                 <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()" multiple>
-                                 <label class="custom-file-label" for="customFile">Choose files...</label>
-                             </div>
-                         </form>
-                         @* <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
-                         <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
-                         <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByPdfFile" id="btnFilePdfUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_pdf_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>C</u>onvert to PDF & Upload</button>&#0160;</div>&#0160;&#0160;
-                         <br style="clear:both"/>
-                         <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                     </div>
-                     <!--end upload by file-->
-                     <!--start upload by email-->
-                     <div class="tabcontent" id="by_email" style="display:none">
-                        <br /><br />
-                        1. Click the button "Upload Via Email" to open an email window.<br /><br />
-                        2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
-                        <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return upload_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
-                        <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                     </div>
-                     <!--end upload by email-->
-                     <br /><br />
-                     <!--show progress bar-->
-                     <div class="progress" style="display:none">
-                        <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; margin:0; padding:0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                     </div>
-                     <!--end progress bar-->
-                  </div><!--end myTabContent-->
-                  <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
-                  <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
-                  <b id="done"><span id="mssg"></span></b>
+                       <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
+                   </div>
+                   <div id="myTabContent" style="width: 700px;">
+                       <!--start upload by drag drop -->
+                       <div class="tabcontent" id="by_ddrop" style="display: none">
+                           <br />
+                           <div id="dropArea">Drag-drop only one file here to upload</div><br />
+                           <div style="display:inline">
+                               <button type="button" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>
+                               <button type="button" name="ReplaceByDdrop" id="btnPdfDragdrop" class="btn btn-primary eGrantsDocBtn space-big-left" disabled="disabled" onclick="return upload_pdf_by_ddrop();" accesskey="U" title="Click here to convert a document to PDF and upload it [shift + alt + C]"><u>C</u>onvert to PDF & Upload</button> &#0160;&#0160;
+                           </div>
+                           <br style="clear:both" />
+                           <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                       </div>
+                       <!--end upload by drag drop-->
+                       <!--start upload by file-->
+                       <div class="tabcontent" id="by_file" style="display: none">
+                           <form>
+                               <div class="custom-file my-2">
+                                   <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()" multiple>
+                                   <label class="custom-file-label" for="customFile">Choose files...</label>
+                               </div>
+                           </form>
+                           @* <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
+                           <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
+                           <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByPdfFile" id="btnFilePdfUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_pdf_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>C</u>onvert to PDF & Upload</button>&#0160;</div>&#0160;&#0160;
+                           <br style="clear:both" />
+                           <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                       </div>
+                       <!--end upload by file-->
+                       <!--start upload by email-->
+                       <div class="tabcontent" id="by_email" style="display:none">
+                           <br /><br />
+                           1. Click the button "Upload Via Email" to open an email window.<br /><br />
+                           2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
+                           <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return upload_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
+                           <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                       </div>
+                       <!--end upload by email-->
+                       <br /><br />
+                       <!--show progress bar-->
+                       <div class="progress" style="display:none">
+                           <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; margin:0; padding:0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                       </div>
+                       <!--end progress bar-->
+                   </div><!--end myTabContent-->
+                   <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+                   <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
+                   <b id="done"><span id="mssgGood"></span></b>
+                   <br style="clear:both" />
+                   <div style="line-height: 30px; margin: 10px;">
+                       <b id="done"><span id="mssg"></span></b>
+                   </div>
                </td>
                <td style="width: 400px; padding-left: 50px;">
                   <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">

@@ -30,14 +30,19 @@ namespace EmailConcatenation.Converters
         {
             Console.WriteLine("Handling Word docx file type case ...");
 
-            bool IsPortrait = DocXIsPortrait(content);
-
-            DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
-
             if (content.GetBytes().Length == 0)
                 return null;
 
-            docXRenderer.RenderingOptions.PaperOrientation = IsPortrait ? IronPdf.Rendering.PdfPaperOrientation.Portrait : IronPdf.Rendering.PdfPaperOrientation.Landscape;
+            DocxToPdfRenderer docXRenderer = new DocxToPdfRenderer();
+
+            try
+            {
+                bool IsPortrait = DocXIsPortrait(content);
+                docXRenderer.RenderingOptions.PaperOrientation = IsPortrait ? IronPdf.Rendering.PdfPaperOrientation.Portrait : IronPdf.Rendering.PdfPaperOrientation.Landscape;
+            } catch(ArgumentException) { 
+                // MLH : this is an edge case where we read "the end was not found" (?)
+                // Best way to handle is probably to just swallow the exception and take default IronPdf inferred margin
+            }
 
             PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(content.GetBytes());
             return new List<PdfDocument> { pdfDocument };

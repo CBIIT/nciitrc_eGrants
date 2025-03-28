@@ -40,8 +40,16 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
+using System.Web;
+
+using DocumentFormat.OpenXml.Wordprocessing;
+
+using egrants_new.Egrants.Functions;
 
 using Hangfire.Annotations;
+
+using MsgReader.Outlook;
 
 #endregion
 
@@ -52,6 +60,8 @@ namespace egrants_new.Models
     /// </summary>
     public class EgrantsCommon
     {
+        public static readonly string[] SUPPORTED_FILE_TYPES = { ".pdf", ".txt", ".doc", ".docx", ".msg", ".rtf", ".jpg", ".jpeg", ".png", ".gif", ".tif", ".html", ".htm", ".log", ".dat" };
+
         /// <summary>
         /// Update the logged in users last_login_date to the value of Sql Sever GETDATE().
         /// </summary>
@@ -582,6 +592,79 @@ namespace egrants_new.Models
             }
 
             return permission;
+        }
+
+        internal static HashSet<string> GetUnsupportedFileList(IEnumerable<HttpPostedFileBase> inboundFiles)
+        {
+            HashSet<string> unsupportedFileNames = new HashSet<string>();
+
+            foreach (var inboundFile in inboundFiles)
+            {
+                var fileName = Path.GetFileName(inboundFile.FileName);
+                var fileExtension = Path.GetExtension(fileName);
+
+                bool found = false;
+                foreach (var unsupportedType in SUPPORTED_FILE_TYPES)
+                {
+                    if (inboundFile.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    unsupportedFileNames.Add(fileName);
+                }
+
+                if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    byte[] fileData = inboundFile.ToByteArray();
+
+                    using (var memoryStream = new MemoryStream(fileData))
+                    {
+                        var emailFile = new Storage.Message(memoryStream);
+                        foreach(var unsupportedFile in GetUnsupportedFileListFromMessage(emailFile))
+                        {
+                            unsupportedFileNames.Add(unsupportedFile);
+                        }
+                    }
+
+                    inboundFile.InputStream.Position = 0;
+                }
+            }
+            return unsupportedFileNames;
+        }
+
+        private static HashSet<string> GetUnsupportedFileListFromMessage(Storage.Message emailFile)
+        {
+            HashSet<string> unsupportedFileNames = new HashSet<string>();
+
+            foreach (var attachment in emailFile.Attachments)
+            {
+                if (attachment is Storage.Attachment storageAttachment)
+                {
+                    bool found = false;
+                    foreach (var unsupportedType in SUPPORTED_FILE_TYPES)
+                    {
+                        if (storageAttachment.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
+                        {
+                            found = true;
+                        }
+                    }
+                    if (!found)
+                    {
+                        unsupportedFileNames.Add(storageAttachment.FileName);
+                    }
+                }
+                else if (attachment is Storage.Message messageAttachment)                                               // email message
+                {
+                    foreach (var unsupportedName in GetUnsupportedFileListFromMessage((Storage.Message)attachment))
+                    {
+                        unsupportedFileNames.Add(unsupportedName);
+                    }
+                }
+            }
+            return unsupportedFileNames;
         }
     }
 }
