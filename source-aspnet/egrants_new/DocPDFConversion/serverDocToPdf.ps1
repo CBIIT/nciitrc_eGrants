@@ -2,30 +2,30 @@
 $port = 8081
 
 $baseDir = ""
-# add prod check, unknown at this point
-# D:\NCI Websites\egrants.nci.nih.gov\
-if (Test-Path "D:\" -and "D:\NCI Websites\" -and "C:\Content\egrants.nci.nih.gov" ) {
+Write-Host "Inferring current environment path ..."
+if ((Test-Path -Path "D:\") -and (Test-Path -Path "D:\NCI Websites\") -and (Test-Path -Path "D:\Content\egrants.nci.nih.gov") ) {
     Write-Host "Running from PROD ..."
     $baseDir = "D:\NCI Websites\egrants.nci.nih.gov\DocPDFConversion"
-} else if (Test-Path "D:\" -and "D:\Content"  ) {
+} elseif ((Test-Path -Path "D:\") -and (Test-Path -Path "D:\Content")  ) {
     Write-Host "Running from non - PROD ..."
-    if (Test-Path "D:\Content\egrants.nci.nih.gov\") {
+    if (Test-Path -Path "D:\Content\egrants.nci.nih.gov\") {
         Write-Host "We seem to be running this on QA or Stage ..."
         $baseDir = "D:\Content\egrants.nci.nih.gov\DocPDFConversion"
-    } else if (Test-Path "C:\Content\egrants.nci.nih.gov\DocPDFConversion") {
+    } elseif (Test-Path -Path "C:\Content\egrants.nci.nih.gov\DocPDFConversion") {
         Write-Host "We seem to be running this on dev ..."
         $baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
     }
-} else if (Test-Path "C:\" -and "C:\Content" -and "C:\Content\egrants.nci.nih.gov") {
+} elseif ((Test-Path -Path "C:\") -and (Test-Path -Path "C:\Content") -and (Test-Path -Path "C:\Content\egrants.nci.nih.gov")) {
     Write-Host "Found an equivalent location on C:/ to run from ..."
     $baseDir = "C:\Content\egrants.nci.nih.gov\DocPDFConversion"
 } else {
     Write-Host "Didn't find any of the shared environment locales, so checking local dev location ..."
-    if (Test-Path "C:\" -and "C:\Users" -and "C:\Users\hooverrl\" -and "C:\Users\hooverrl\Desktop" -and "C:\Users\hooverrl\Desktop\NCI" -and "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants") {
+    if ((Test-Path -Path "C:\") -and ("C:\Users") -and (Test-Path -Path "C:\Users\hooverrl\") -and (Test-Path -Path "C:\Users\hooverrl\Desktop") -and (Test-Path -Path "C:\Users\hooverrl\Desktop\NCI") -and (Test-Path -Path "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants")) {
         # rather than affirm every point on the way to my personal dev space, just try it ...
          $baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
     }
 }
+Write-Host "baseDir : $baseDir"
 
 # local dev : "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new\DocPDFConversion"
 # server : "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
