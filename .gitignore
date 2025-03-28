@@ -37,3 +37,4 @@ source-aspnet/packages/
 /source-aspnet/egrants_new/DocPDFConversion/input/old/*
 /source-aspnet/egrants_new/DocPDFConversion/output/old/*
 /source-aspnet/pdf_file_conversion/.vs/*
+/source-aspnet/pdf_file_conversion/bin/*

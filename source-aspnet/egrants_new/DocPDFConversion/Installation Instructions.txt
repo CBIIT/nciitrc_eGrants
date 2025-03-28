@@ -1,5 +1,5 @@
 ﻿Installation Instructions
-Micah Hoover, 3/14/2025
+Micah Hoover, 3/14/2025		(updated 3/25/2025 to indicate build server overwrite pitfall, clarification, etc)
 
 This is a complex piece of software that needs to work with our existing eGrants web app.
 In addition to some of the security protocol surprises, anyone facilitating the deployment of this functionality
@@ -28,13 +28,24 @@ Here are the steps to get an environment set up for this :
 
 1) Download Libre Office
 
+	This is what I put in my ticket request :
+
+	Some quick background : we're having trouble converting the old MS Word format .doc to PDF without using an external application, libre office which our web
+	app calls to convert to docx (and later PDF). Please go to : https://www.libreoffice.org/download/download-libreoffice/ To get a latest-ish version of libre
+	office. If you want to pick a different one that should probably work, but we need the .com executable to be in the default location of :
+	C:\Program Files\LibreOffice\program\soffice.com on [environment name] 
+
 2) Confirm Libre Office installation
 
 	It must exist in the file system here :
 
-		C:\Program Files\LibreOffice\program\soffice.exe
+		C:\Program Files\LibreOffice\program\soffice.com
 
 3) Deploy a branch of the eGrants app on Jenkins to the desired environment (if you're deploying to an upper tier environment, this should be in main or a build number branch to be provided)
+
+	Note : if a subsequent build on the build server does not have these changes (anything output in DocPDFConversion, this directory), they will be overwritten.
+
+	So make sure the build you want is the most recent build before deploying.
 
 4) Run one of the set up scripts in this directory with the corresponding environment name appended to the script name (e.g. createServerSchedTaskStage.ps1).
 
