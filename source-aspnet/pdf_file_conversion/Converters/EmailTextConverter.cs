@@ -20,6 +20,13 @@ namespace EmailConcatenation.Converters
 {
     internal class EmailTextConverter : IEmailTextConverter, IConvertToPdf
     {
+        private enum FileReferenceFormatType
+        {
+            Amperstand,
+            GUID,
+            Other
+        }
+
         public bool SupportsThisFileType(string fileName)
         {
             // MLH : we shouldn't need this check much because these kinds of files are picked up outside of the regular attachment process
@@ -72,16 +79,17 @@ namespace EmailConcatenation.Converters
             }
 
             Regex reg = new Regex(@"<img[^>]*src=""cid:[^>]*>", RegexOptions.Singleline);      // only grab the un base64 converted images
+            Regex reg2 = new Regex(@"<img[^>]*src=""cid:[^>]*>", RegexOptions.Singleline);      // only grab the un base64 converted images
             Regex fileFormatExtensionReg = new Regex(@"(?<=[0-9][0-9][0-9]\.).*?(?=@)", RegexOptions.Singleline);
             Regex fileNameReg = new Regex(@"(?<=cid:).*?(?=@)", RegexOptions.Singleline);
+            Regex fileNameReg2 = new Regex(@"(?<=cid:).*?(?="")", RegexOptions.Singleline);
             Regex imgSrcQuotesReg = new Regex(@"(?<= src="").*?(?="")", RegexOptions.Singleline);
 
+            FileReferenceFormatType referenceFormat = FileReferenceFormatType.Amperstand;       // make the common the default
 
-            while (reg.Match(content).Success) {
-                var matches = reg.Matches(content);
+            while (reg.Match(content).Success || reg2.Match(content).Success) {
 
                 var match = reg.Match(content);
-
                 var capturingText = match.Value;
 
                 // should look like :
@@ -94,18 +102,25 @@ namespace EmailConcatenation.Converters
                 var fileNameResult = fileNameReg.Match(capturingText);
                 if (!fileNameResult.Success)
                 {
-                    throw new Exception("found an image in the email, but the format didn't enable extracting the file name so it could be matched with the attachment");
+                    referenceFormat = FileReferenceFormatType.GUID;
+
+                    // normal attachment / embedded file pattern did not work in this case ... try this kind of pattern :
+                    // src = "cid:3bf8c7a1-1a3f-46ed-8173-5b49c5121c7d"
+                    match = reg2.Match(content);
+                    capturingText = match.Value;
+                    fileNameResult = fileNameReg2.Match(capturingText);
+
+                    if (!fileNameResult.Success)
+                    {
+                        //ERROR!  Could not convert to PDF!
+                        //Found an image in the email, but the format didn't enable extracting the file name so it could be matched with the attachment
+                        // found an image in the email, but the format didn't enable extracting the file name so it could be matched with the attachment
+                        throw new Exception("found an image in the email, but the format didn't enable extracting the file name so it could be matched with the attachment");
+                    }
+
                 }
                 fileName = fileNameResult.Value;
 
-                // need to extract image format (here it's "png")
-                var fileFormatExtension = string.Empty;
-                var formatResult = fileFormatExtensionReg.Match(capturingText);
-                if (!formatResult.Success)
-                {
-                    throw new Exception("found an image in the email, but the format didn't enable extracting the file type / extension");
-                }
-                fileFormatExtension = formatResult.Value;
 
                 // get the attachment
                 Storage.Attachment theAttachmentForThisPic = null;
@@ -118,6 +133,14 @@ namespace EmailConcatenation.Converters
                         if (storageAttachment.FileName.Equals(fileName, StringComparison.InvariantCultureIgnoreCase))
                         {
                             theAttachmentForThisPic = storageAttachment;
+                        } else if (referenceFormat == FileReferenceFormatType.GUID)
+                        {
+                            // "filename" here is probably a GUID at this point e.g. :
+                            // 3bf8c7a1-1a3f-46ed-8173-5b49c5121c7d
+                            if (storageAttachment.ContentId == fileName)
+                            {
+                                theAttachmentForThisPic = storageAttachment;
+                            }
                         }
                     }
                 }
@@ -130,7 +153,31 @@ namespace EmailConcatenation.Converters
                 // convert attachment to base64 encoded string
                 byte[] imageBytes = theAttachmentForThisPic.Data;
                 string base64Image = Convert.ToBase64String(imageBytes);
-                string fullSrcContent = $"data:image/{formatResult};base64,{base64Image}";
+                string fullSrcContent = "";
+                if (referenceFormat == FileReferenceFormatType.Amperstand)
+                {
+                    // need to extract image format (here it's "png")
+                    Match formatResult = fileFormatExtensionReg.Match(capturingText);
+                    if (!formatResult.Success)
+                    {
+                        throw new Exception("found an image in the email, but the format didn't enable extracting the file type / extension");
+                    }
+                    fullSrcContent = $"data:image/{formatResult};base64,{base64Image}";
+                } else if (referenceFormat == FileReferenceFormatType.GUID)
+                {
+                    // we need to embedd the format here ... how do we get that ?
+                    string fileFormatExtension = String.Empty;
+                    var sections = theAttachmentForThisPic.FileName.Split('.');
+                    if (sections.Length > 0)
+                    {
+                        fileFormatExtension = sections[sections.Length - 1];
+                    } else
+                    {
+                        throw new Exception($"failed to determine what file format an embedded attachment was {theAttachmentForThisPic.FileName} {fileName} {theAttachmentForThisPic.ContentId}");
+                    }
+                    fullSrcContent = $"data:image/{fileFormatExtension};base64,{base64Image}";
+                }
+                
                 var newImgContent = imgSrcQuotesReg.Replace(capturingText, fullSrcContent);
 
                 content = content.Replace(capturingText, newImgContent);
