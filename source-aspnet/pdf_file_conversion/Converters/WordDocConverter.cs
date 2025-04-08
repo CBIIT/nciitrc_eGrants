@@ -58,6 +58,11 @@ namespace EmailConcatenation.Converters
 
                 // Read the response content as a byte array
                 fileBytes = result.ReadAsByteArrayAsync().Result;
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry($"size of file : {fileBytes.Length}", EventLogEntryType.Information, 101, 1);
+                }
             }
 
             var pdfDocument = new PdfDocument(fileBytes);
