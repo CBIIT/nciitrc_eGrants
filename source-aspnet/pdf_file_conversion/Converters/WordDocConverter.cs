@@ -28,13 +28,33 @@ namespace EmailConcatenation.Converters
         {
             Console.WriteLine("Handling Word .doc file type case ...");
 
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry("Handling .doc Word conversion ...", EventLogEntryType.Information, 101, 1);
+            }
+
             var action = "http://localhost:8081/convert";
             byte[] fileBytes = null;
 
             using (var stream = new MemoryStream(content.GetBytes()))
             {
                 Console.WriteLine("Acquired stream object.");
+
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry("Stream object acquired", EventLogEntryType.Information, 101, 1);
+                }
+
                 var result = Upload(action, string.Empty, stream, null);
+
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    var isNull = result == null;
+                    eventLog.WriteEntry($"Is result null ? {isNull}", EventLogEntryType.Information, 101, 1);
+                }
 
                 // Read the response content as a byte array
                 fileBytes = result.ReadAsByteArrayAsync().Result;
@@ -56,7 +76,31 @@ namespace EmailConcatenation.Converters
 
                 fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
 
-                var response = client.PostAsync(actionUrl, fileStreamContent).Result;
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry("Posting .doc document ...", EventLogEntryType.Information, 101, 1);
+                }
+
+                HttpResponseMessage response = null;
+                try
+                {
+                    response = client.PostAsync(actionUrl, fileStreamContent).Result;
+                } catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    using (EventLog eventLog = new EventLog("Application"))
+                    {
+                        eventLog.Source = "Application";
+                        eventLog.WriteEntry($"Got error : {ex.ToString()}", EventLogEntryType.Information, 101, 1);
+                    }
+                }
+                
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry($"Got response with status code : {response.StatusCode}", EventLogEntryType.Information, 101, 1);
+                }
 
                 response.EnsureSuccessStatusCode();
 
