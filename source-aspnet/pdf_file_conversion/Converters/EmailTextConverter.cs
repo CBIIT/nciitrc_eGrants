@@ -20,13 +20,6 @@ namespace EmailConcatenation.Converters
 {
     internal class EmailTextConverter : IEmailTextConverter, IConvertToPdf
     {
-        private enum FileReferenceFormatType
-        {
-            Amperstand,
-            GUID,
-            Other
-        }
-
         public bool SupportsThisFileType(string fileName)
         {
             // MLH : we shouldn't need this check much because these kinds of files are picked up outside of the regular attachment process
@@ -70,135 +63,122 @@ namespace EmailConcatenation.Converters
 
         private string ImagesBase64Encoded(string content, ContentForPdf contentForPdf)
         {
-            var attachments = contentForPdf.Message.Attachments;
-
-            if (string.IsNullOrWhiteSpace(content) ||
-                !content.Contains("<html"))
+            if (string.IsNullOrWhiteSpace(content) || !content.Contains("<html"))
             {
                 return content;
             }
+            var attachments = contentForPdf.Message.Attachments;
 
-            Regex reg = new Regex(@"<img[^>]*src=""cid:[^>]*>", RegexOptions.Singleline);      // only grab the un base64 converted images
-            Regex reg2 = new Regex(@"<img[^>]*src=""cid:[^>]*>", RegexOptions.Singleline);      // only grab the un base64 converted images
+            // pair the attachment filename with the file in a dictionary
+            var fileNameToAttachment = new Dictionary<string, Storage.Attachment>();
+
+            // Capture the src="" string and pair it with the attachment filename in a dictionary
+            var contentIdToAttachment = new Dictionary<string, Storage.Attachment>();
+
+            var attachmentFileNames = new List<string>();
+            var attachmentContentIds = new List<string>();
+            foreach (var attachment in attachments)
+            {
+                if (attachment is Storage.Attachment storageAttachment)
+                {
+                    attachmentContentIds.Add(storageAttachment.ContentId);
+                    contentIdToAttachment[storageAttachment.ContentId] = storageAttachment;     // least ambiguous
+
+                    attachmentFileNames.Add(storageAttachment.FileName);
+                    fileNameToAttachment[storageAttachment.FileName] = storageAttachment;
+                }
+            }
+
+            // should look like :
+            // <img width="878" height="138" style="width:9.1458in;height:1.4375in" id="Picture_x0020_1" src="cid:image001.png@01DA6A57.71B669D0">
+            Regex imgBlockReg = new Regex(@"<img[^>]*src=""cid:[^>]*>", RegexOptions.Singleline);
+
+            Regex srcBlockReg = new Regex(@"<img[^>]*src=""cid:[^>]*>", RegexOptions.Singleline);      // only grab the un base64 converted images
             Regex fileFormatExtensionReg = new Regex(@"(?<=[0-9][0-9][0-9]\.).*?(?=@)", RegexOptions.Singleline);
-            Regex fileNameReg = new Regex(@"(?<=cid:).*?(?=@)", RegexOptions.Singleline);
-            Regex fileNameReg2 = new Regex(@"(?<=cid:).*?(?="")", RegexOptions.Singleline);
             Regex imgSrcQuotesReg = new Regex(@"(?<= src="").*?(?="")", RegexOptions.Singleline);
 
-            FileReferenceFormatType referenceFormat = FileReferenceFormatType.Amperstand;       // make the common the default
+            while (imgBlockReg.Match(content).Success) {
 
-            while (reg.Match(content).Success || reg2.Match(content).Success) {
-
-                var match = reg.Match(content);
+                var match = imgBlockReg.Match(content);
                 var capturingText = match.Value;
-
-                // should look like :
-                // <img width="878" height="138" style="width:9.1458in;height:1.4375in" id="Picture_x0020_1" src="cid:image001.png@01DA6A57.71B669D0">
 
                 // attachment will be named something like "image001.png"
 
                 // extract file name
                 var fileName = string.Empty;
-                var fileNameResult = fileNameReg.Match(capturingText);
-                if (!fileNameResult.Success)
+                var srcLabel = imgSrcQuotesReg.Match(capturingText);
+
+                if (!srcLabel.Success)
                 {
-                    referenceFormat = FileReferenceFormatType.GUID;
-
-                    // normal attachment / embedded file pattern did not work in this case ... try this kind of pattern :
-                    // src = "cid:3bf8c7a1-1a3f-46ed-8173-5b49c5121c7d"
-                    match = reg2.Match(content);
-                    capturingText = match.Value;
-                    fileNameResult = fileNameReg2.Match(capturingText);
-
-                    if (!fileNameResult.Success)
-                    {
-                        //ERROR!  Could not convert to PDF!
-                        //Found an image in the email, but the format didn't enable extracting the file name so it could be matched with the attachment
-                        // found an image in the email, but the format didn't enable extracting the file name so it could be matched with the attachment
-                        throw new Exception("found an image in the email, but the format didn't enable extracting the file name so it could be matched with the attachment");
-                    }
-
+                    throw new Exception("email html had <img> but with no src ... unexpected format");
                 }
-                fileName = fileNameResult.Value;
 
+                // normal attachment / embedded file pattern did not work in this case ... try this kind of pattern :
+                // in the case of this :
+                //      src = "cid:3bf8c7a1-1a3f-46ed-8173-5b49c5121c7d"
+                //      srcLabel should be :
+                //      cid:3bf8c7a1-1a3f-46ed-8173-5b49c5121c7d
 
-                // get the attachment
+                // examples :
+                // cid:image001.png@01DA6A57.71B669D0
+                // cid:172321013866b6199a49fe6936890044@manzanitapharmaceuticals.com
+                // cid:3bf8c7a1-1a3f-46ed-8173-5b49c5121c7d
+                var srcLabelText = srcLabel.Value;
+                if (srcLabelText.StartsWith("cid:") && srcLabel.Length > 4)
+                {
+                    srcLabelText = srcLabelText.Substring(4);
+                }
+
+                // Now match the fileName to the storageAttachment
                 Storage.Attachment theAttachmentForThisPic = null;
-                var attachmentFileNames = new List<string>();
 
-                // pass 1 : look for exact match (and build diagnostic info) using FileName or ContentId
-                foreach (var attachment in attachments)
+                if (contentIdToAttachment.ContainsKey(srcLabelText))
                 {
-                    if (attachment is Storage.Attachment storageAttachment)
-                    {
-                        attachmentFileNames.Add(storageAttachment.FileName);
-                        if (storageAttachment.FileName.Equals(fileName, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            theAttachmentForThisPic = storageAttachment;
-                        } else if (referenceFormat == FileReferenceFormatType.GUID)
-                        {
-                            // "filename" here is probably a GUID at this point e.g. :
-                            // 3bf8c7a1-1a3f-46ed-8173-5b49c5121c7d
-                            if (storageAttachment.ContentId == fileName)
-                            {
-                                theAttachmentForThisPic = storageAttachment;
-                            }
-                        }
-                    }
+                    // step 1 : try exact match on ContentId
+                    // cid:172321013866b6199a49fe6936890044@manzanitapharmaceuticals.com
+                    // cid:3bf8c7a1-1a3f-46ed-8173-5b49c5121c7d
+                    theAttachmentForThisPic = contentIdToAttachment[srcLabelText];
                 }
-
-                // pass 2 : look for indirect match by comparing FileName with attached filenames with brackets removed
-                //          e.g. : image001[37].png compared with image001.png
-                if (theAttachmentForThisPic == null)
+                else if (fileNameToAttachment.ContainsKey(srcLabelText))
                 {
-                    foreach (var attachment in attachments)
+                    // step 2 : try exact match on ContentId
+                    // cid:image001.png@01DA6A57.71B669D0                        
+                    theAttachmentForThisPic = fileNameToAttachment[srcLabelText];
+                }
+                else
+                {
+                    // step 3 : try removing the brackets and getting a match
+                    // cid:image001[37].png@01DA6A57.71B669D0
+                    var sanitizedName = Regex.Replace(srcLabelText, "\\[.*\\]", "");
+                    if (fileNameToAttachment.ContainsKey(sanitizedName))
                     {
-                        if (attachment is Storage.Attachment storageAttachment)
-                        {
-                            var originalAttachmentName = storageAttachment.FileName;
-                            var sanitizedName = Regex.Replace(originalAttachmentName, "\\[.*\\]", "");
-                            if (storageAttachment.FileName.Equals(sanitizedName, StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                theAttachmentForThisPic = storageAttachment;
-                            }
-                        }
+                        theAttachmentForThisPic = fileNameToAttachment[srcLabelText];
                     }
                 }
 
                 // surface errors
                 if (theAttachmentForThisPic == null)
                 {
-                    throw new Exception($"didn't find a match for embedded img with filename {fileName} among attachments {string.Join(" ", attachmentFileNames.ToArray())}");
+                    // failed to associate the src label in the html with the file attachments
+                    throw new Exception($"found an image in the email with src value in the html of {srcLabel}, but the format didn't match any of these filenames {string.Join(" ", attachmentFileNames.ToArray())} or content Ids {string.Join(" ", attachmentContentIds.ToArray())}");
                 }
+
                 contentForPdf.EmailAttachmentFilenameSkipList.Add(fileName);
 
                 // convert attachment to base64 encoded string
                 byte[] imageBytes = theAttachmentForThisPic.Data;
                 string base64Image = Convert.ToBase64String(imageBytes);
-                string fullSrcContent = "";
-                if (referenceFormat == FileReferenceFormatType.Amperstand)
+
+                string fileFormatExtension;
+                var sections = theAttachmentForThisPic.FileName.Split('.');     // MLH : can we always use this ?
+                if (sections.Length > 0)
                 {
-                    // need to extract image format (here it's "png")
-                    Match formatResult = fileFormatExtensionReg.Match(capturingText);
-                    if (!formatResult.Success)
-                    {
-                        throw new Exception("found an image in the email, but the format didn't enable extracting the file type / extension");
-                    }
-                    fullSrcContent = $"data:image/{formatResult};base64,{base64Image}";
-                } else if (referenceFormat == FileReferenceFormatType.GUID)
+                    fileFormatExtension = sections[sections.Length - 1];
+                } else
                 {
-                    // we need to embedd the format here ... how do we get that ?
-                    string fileFormatExtension = String.Empty;
-                    var sections = theAttachmentForThisPic.FileName.Split('.');
-                    if (sections.Length > 0)
-                    {
-                        fileFormatExtension = sections[sections.Length - 1];
-                    } else
-                    {
-                        throw new Exception($"failed to determine what file format an embedded attachment was {theAttachmentForThisPic.FileName} {fileName} {theAttachmentForThisPic.ContentId}");
-                    }
-                    fullSrcContent = $"data:image/{fileFormatExtension};base64,{base64Image}";
+                    throw new Exception($"failed to determine what file format an embedded attachment was {theAttachmentForThisPic.FileName} {fileName} {theAttachmentForThisPic.ContentId}");
                 }
+                string fullSrcContent = $"data:image/{fileFormatExtension};base64,{base64Image}";
                 
                 var newImgContent = imgSrcQuotesReg.Replace(capturingText, fullSrcContent);
 
