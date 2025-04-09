@@ -3,7 +3,7 @@ $port = 8081
 
 $baseDir = ""
 Write-Host "Inferring current environment path ..."
-if ((Test-Path -Path "D:\") -and (Test-Path -Path "D:\NCI Websites\") -and (Test-Path -Path "D:\Content\egrants.nci.nih.gov") ) {
+if ((Test-Path -Path "D:\") -and (Test-Path -Path "D:\NCI Websites\") -and (Test-Path -Path "D:\NCI Websites\egrants.nci.nih.gov\") ) {
     Write-Host "Running from PROD ..."
     $baseDir = "D:\NCI Websites\egrants.nci.nih.gov\DocPDFConversion"
 } elseif ((Test-Path -Path "D:\") -and (Test-Path -Path "D:\Content")  ) {
@@ -11,7 +11,7 @@ if ((Test-Path -Path "D:\") -and (Test-Path -Path "D:\NCI Websites\") -and (Test
     if (Test-Path -Path "D:\Content\egrants.nci.nih.gov\") {
         Write-Host "We seem to be running this on QA or Stage ..."
         $baseDir = "D:\Content\egrants.nci.nih.gov\DocPDFConversion"
-    } elseif (Test-Path -Path "C:\Content\egrants.nci.nih.gov\DocPDFConversion") {
+    } elseif (Test-Path -Path "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion") {
         Write-Host "We seem to be running this on dev ..."
         $baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
     }
