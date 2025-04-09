@@ -125,6 +125,8 @@ namespace EmailConcatenation.Converters
                 // get the attachment
                 Storage.Attachment theAttachmentForThisPic = null;
                 var attachmentFileNames = new List<string>();
+
+                // pass 1 : look for exact match (and build diagnostic info) using FileName or ContentId
                 foreach (var attachment in attachments)
                 {
                     if (attachment is Storage.Attachment storageAttachment)
@@ -144,6 +146,26 @@ namespace EmailConcatenation.Converters
                         }
                     }
                 }
+
+                // pass 2 : look for indirect match by comparing FileName with attached filenames with brackets removed
+                //          e.g. : image001[37].png compared with image001.png
+                if (theAttachmentForThisPic == null)
+                {
+                    foreach (var attachment in attachments)
+                    {
+                        if (attachment is Storage.Attachment storageAttachment)
+                        {
+                            var originalAttachmentName = storageAttachment.FileName;
+                            var sanitizedName = Regex.Replace(originalAttachmentName, "\\[.*\\]", "");
+                            if (storageAttachment.FileName.Equals(sanitizedName, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                theAttachmentForThisPic = storageAttachment;
+                            }
+                        }
+                    }
+                }
+
+                // surface errors
                 if (theAttachmentForThisPic == null)
                 {
                     throw new Exception($"didn't find a match for embedded img with filename {fileName} among attachments {string.Join(" ", attachmentFileNames.ToArray())}");
