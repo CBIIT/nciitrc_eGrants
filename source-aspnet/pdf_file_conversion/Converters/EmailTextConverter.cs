@@ -81,8 +81,11 @@ namespace EmailConcatenation.Converters
             {
                 if (attachment is Storage.Attachment storageAttachment)
                 {
-                    attachmentContentIds.Add(storageAttachment.ContentId);
-                    contentIdToAttachment[storageAttachment.ContentId] = storageAttachment;     // least ambiguous
+                    if (storageAttachment.ContentId != null)
+                    {
+                        attachmentContentIds.Add(storageAttachment.ContentId);
+                        contentIdToAttachment[storageAttachment.ContentId] = storageAttachment;     // least ambiguous
+                    }
 
                     attachmentFileNames.Add(storageAttachment.FileName);
                     fileNameToAttachment[storageAttachment.FileName] = storageAttachment;
