@@ -163,14 +163,14 @@ namespace EmailConcatenation.Converters
                     throw new Exception($"found an image in the email with src value in the html of {srcLabel}, but the format didn't match any of these filenames {string.Join(" ", attachmentFileNames.ToArray())} or content Ids {string.Join(" ", attachmentContentIds.ToArray())}");
                 }
 
-                contentForPdf.EmailAttachmentFilenameSkipList.Add(fileName);
+                contentForPdf.EmailAttachmentFilenameSkipList.Add(theAttachmentForThisPic.FileName);
 
                 // convert attachment to base64 encoded string
                 byte[] imageBytes = theAttachmentForThisPic.Data;
                 string base64Image = Convert.ToBase64String(imageBytes);
 
                 string fileFormatExtension;
-                var sections = theAttachmentForThisPic.FileName.Split('.');     // MLH : can we always use this ?
+                var sections = theAttachmentForThisPic.FileName.Split('.');
                 if (sections.Length > 0)
                 {
                     fileFormatExtension = sections[sections.Length - 1];
