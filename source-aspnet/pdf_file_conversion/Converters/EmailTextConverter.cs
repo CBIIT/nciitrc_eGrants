@@ -113,7 +113,7 @@ namespace EmailConcatenation.Converters
 
                 if (!srcLabel.Success)
                 {
-                    throw new Exception("email html had <img> but with no src ... unexpected format");
+                    throw new Exception("The file could not be converted!");
                 }
 
                 // normal attachment / embedded file pattern did not work in this case ... try this kind of pattern :
@@ -163,7 +163,7 @@ namespace EmailConcatenation.Converters
                 if (theAttachmentForThisPic == null)
                 {
                     // failed to associate the src label in the html with the file attachments
-                    throw new Exception($"found an image in the email with src value in the html of {srcLabel}, but the format didn't match any of these filenames {string.Join(" ", attachmentFileNames.ToArray())} or content Ids {string.Join(" ", attachmentContentIds.ToArray())}");
+                    throw new Exception("The file could not be converted!");
                 }
 
                 contentForPdf.EmailAttachmentFilenameSkipList.Add(theAttachmentForThisPic.FileName);
@@ -179,7 +179,7 @@ namespace EmailConcatenation.Converters
                     fileFormatExtension = sections[sections.Length - 1];
                 } else
                 {
-                    throw new Exception($"failed to determine what file format an embedded attachment was {theAttachmentForThisPic.FileName} {fileName} {theAttachmentForThisPic.ContentId}");
+                    throw new Exception("The file could not be converted!");
                 }
                 string fullSrcContent = $"data:image/{fileFormatExtension};base64,{base64Image}";
                 
