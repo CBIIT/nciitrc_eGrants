@@ -36,7 +36,9 @@ namespace EmailConcatenation.Converters
             if (content.Type != ContentForPdf.ContentType.MailMessage)
                 throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the MailMessage.");
 
-            if (content == null || content.Message == null )
+            // MLH : once 721 is verified switch the commented out line with the one below it
+            //  if (content == null || content.Message == null )
+            if (content == null || content.Message == null || string.IsNullOrWhiteSpace(content.Message.BodyHtml))
                 return null;
 
             var renderer = new ChromePdfRenderer();
@@ -195,7 +197,7 @@ namespace EmailConcatenation.Converters
             return content;
         }
 
-        private string InsertEmailMeta(string messageHtmlAsHtml, MsgReader.Outlook.Storage.Message message)
+        public static string InsertEmailMeta(string messageHtmlAsHtml, MsgReader.Outlook.Storage.Message message)
         {
             string pattern1 = "<div class=\"WordSection1\">";
             string pattern2 = "<body(.)*?>";
@@ -270,7 +272,7 @@ namespace EmailConcatenation.Converters
             }
         }
 
-        private string GetFormattedReceiptientsText(List<Storage.Recipient> recipients)
+        private static string GetFormattedReceiptientsText(List<Storage.Recipient> recipients)
         {
             var recipientsList = new List<String>();
 

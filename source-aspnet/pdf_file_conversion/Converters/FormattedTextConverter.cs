@@ -56,6 +56,8 @@ namespace EmailConcatenation.Converters
 
                 var renderer = new ChromePdfRenderer();
 
+                simpleMessage = EmailTextConverter.InsertEmailMeta(simpleMessage, content.Message);
+
                 // this is safe even for text with zero embedded formatting, e.g. :
                 // "hello world" becomes "<p>hello world</p>"
                 simpleMessage = Markdown.ToHtml(simpleMessage);
