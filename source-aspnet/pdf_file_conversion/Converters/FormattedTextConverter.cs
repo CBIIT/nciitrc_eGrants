@@ -43,20 +43,32 @@ namespace EmailConcatenation.Converters
             {
                 Console.WriteLine($"Here's the message text: {content.SimpleMessage}");
 
-                if (content.Type != ContentForPdf.ContentType.SimpleGeneratedMessage)
-                    throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the SimpleGeneratedMessage.");
+                var simpleMessage = content.SimpleMessage;
+
+                if (content.Type != ContentForPdf.ContentType.SimpleGeneratedMessage || 
+                    string.IsNullOrWhiteSpace(content.SimpleMessage))
+                {
+                    if (content.Message != null && !string.IsNullOrWhiteSpace(content.Message.BodyText))
+                        simpleMessage = content.Message.BodyText;
+                    else
+                        simpleMessage = string.Empty;
+                }
 
                 var renderer = new ChromePdfRenderer();
 
-                var imagesRemovedContent = RemoveImagesFromHtmlText(content.SimpleMessage);
+                // this is safe even for text with zero embedded formatting, e.g. :
+                // "hello world" becomes "<p>hello world</p>"
+                simpleMessage = Markdown.ToHtml(simpleMessage);
+
+                var imagesRemovedContent = RemoveImagesFromHtmlText(simpleMessage);
 
                 using (var pdfDocument = renderer.RenderHtmlAsPdf(imagesRemovedContent))
                 {
                     using (var memoryStream = new MemoryStream())
                     {
+                        pdfDocument.Stream.CopyTo(memoryStream);
                         if (memoryStream == null || memoryStream.Length == 0)
                             return null;
-                        pdfDocument.Stream.CopyTo(memoryStream);
 
                         var bytes = memoryStream.ToArray();
                         var pdfDocFromStream = new PdfDocument(bytes);

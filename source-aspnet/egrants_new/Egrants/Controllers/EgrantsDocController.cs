@@ -493,7 +493,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR: " + ex.Message;
+                    this.ViewBag.Message = "ERROR:" + ex.Message;
                 }
             else
                 this.ViewBag.Message = "You have not specified a file.";
@@ -636,7 +636,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    mssg = "ERROR: " + ex.Message;
+                    mssg = "ERROR: The file could not be converted!";
 
                     //Response.StatusCode = 500; //Write your own error code
                     //StringBuilder sb = new StringBuilder();
@@ -739,7 +739,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR: " + ex.Message;
+                    this.ViewBag.Message = "ERROR:" + ex.Message;
                 }
             else
                 this.ViewBag.Message = "You have not specified a file.";
@@ -880,7 +880,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    mssg = "ERROR: " + ex.Message;
+                    mssg = "ERROR: The file could not be converted!";
                 }
             else
                 mssg = "You have not specified a file.";
@@ -999,7 +999,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR: " + ex.Message;
+                    this.ViewBag.Message = "ERROR:" + ex.Message;
                 }
             else
                 this.ViewBag.Message = "Error while uploading the files.";
@@ -1125,7 +1125,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR: " + ex.Message;
+                    this.ViewBag.Message = "ERROR: The file could not be converted!";
                 }
             else
                 this.ViewBag.Message = "Error while uploading the files.";
@@ -1195,7 +1195,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR: " + ex.Message;
+                    this.ViewBag.Message = "ERROR:" + ex.Message;
                 }
             else
                 this.ViewBag.Message = "Error while uploading the files.";
@@ -1321,7 +1321,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR: " + ex.Message;
+                    this.ViewBag.Message = "ERROR: The file could not be converted!";
                 }
             else
                 this.ViewBag.Message = "Error while uploading the files.";

@@ -36,13 +36,17 @@ namespace EmailConcatenation.Converters
             if (content.Type != ContentForPdf.ContentType.MailMessage)
                 throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the MailMessage.");
 
-            if (content == null || content.Message == null || string.IsNullOrWhiteSpace(content.Message.BodyHtml))
+            if (content == null || content.Message == null )
                 return null;
 
             var renderer = new ChromePdfRenderer();
 
-            var messageTextAsHtml = content.Message.BodyText;
             var messageHtmlAsHtml = content.Message.BodyHtml;
+            if (string.IsNullOrWhiteSpace(messageHtmlAsHtml))
+            {
+                var simpleConverter = new FormattedTextConverter();
+                return simpleConverter.ToPdfDocument(content);
+            }
 
             var htmlWithMeta = InsertEmailMeta(messageHtmlAsHtml, content.Message);
 
