@@ -509,7 +509,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR: " + ex.Message;
+                    this.ViewBag.Message = "ERROR: The file could not be converted!";
                 }
             else
                 this.ViewBag.Message = "You have not specified a file.";
@@ -713,7 +713,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR: " + ex.Message;
+                    this.ViewBag.Message = "ERROR: The file could not be converted!";
                 }
             }
             else
