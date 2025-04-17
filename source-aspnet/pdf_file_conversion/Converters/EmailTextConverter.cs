@@ -36,9 +36,7 @@ namespace EmailConcatenation.Converters
             if (content.Type != ContentForPdf.ContentType.MailMessage)
                 throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the MailMessage.");
 
-            // MLH : once 721 is verified switch the commented out line with the one below it
-            //  if (content == null || content.Message == null )
-            if (content == null || content.Message == null || string.IsNullOrWhiteSpace(content.Message.BodyHtml))
+            if (content == null || content.Message == null )
                 return null;
 
             var renderer = new ChromePdfRenderer();
