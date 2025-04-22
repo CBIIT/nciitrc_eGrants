@@ -39,10 +39,13 @@
                 for (var i = 0; i < sections.length; i++) {
                     var section = sections[i];
                     var color = '';
+                    var header = section.includes("**#h3@d3r#**");
+                    section = section.replace("**#h3@d3r#**", "");
                     if (!section?.includes("Done!")) {
-                        // MLH : I know this should be in the styles somewhere, but business reqs
-                        // changing so fast here ...
-                        processedMssg += '<div style="color:rgb(255, 0, 0)">' + section + '</div><br style="display:block; margin-top:10px;visibility:hidden;content:\'\';"/>';
+                        var style = "color:rgb(255, 0, 0)";
+                        if (header)
+                            style += "; margin-left:-5px;margin-bottom:4px;";
+                        processedMssg += '<div style="' + style + '">' + section + '</div><br style="display:block; margin-top:-9px;visibility:hidden;content:\'\';"/>';
                     } else {
                         $('#mssgGood').html(section);
                         $("#mssgGood").css('display', 'inline');

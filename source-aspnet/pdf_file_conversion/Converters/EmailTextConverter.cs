@@ -36,13 +36,17 @@ namespace EmailConcatenation.Converters
             if (content.Type != ContentForPdf.ContentType.MailMessage)
                 throw new Exception("Converted didn't see the expected type for this conversion. Make sure you set the MailMessage.");
 
-            if (content == null || content.Message == null || string.IsNullOrWhiteSpace(content.Message.BodyHtml))
+            if (content == null || content.Message == null )
                 return null;
 
             var renderer = new ChromePdfRenderer();
 
-            var messageTextAsHtml = content.Message.BodyText;
             var messageHtmlAsHtml = content.Message.BodyHtml;
+            if (string.IsNullOrWhiteSpace(messageHtmlAsHtml))
+            {
+                var simpleConverter = new FormattedTextConverter();
+                return simpleConverter.ToPdfDocument(content);
+            }
 
             var htmlWithMeta = InsertEmailMeta(messageHtmlAsHtml, content.Message);
 
@@ -113,7 +117,7 @@ namespace EmailConcatenation.Converters
 
                 if (!srcLabel.Success)
                 {
-                    throw new Exception("email html had <img> but with no src ... unexpected format");
+                    throw new Exception("The file could not be converted!");
                 }
 
                 // normal attachment / embedded file pattern did not work in this case ... try this kind of pattern :
@@ -163,7 +167,7 @@ namespace EmailConcatenation.Converters
                 if (theAttachmentForThisPic == null)
                 {
                     // failed to associate the src label in the html with the file attachments
-                    throw new Exception($"found an image in the email with src value in the html of {srcLabel}, but the format didn't match any of these filenames {string.Join(" ", attachmentFileNames.ToArray())} or content Ids {string.Join(" ", attachmentContentIds.ToArray())}");
+                    throw new Exception("The file could not be converted!");
                 }
 
                 contentForPdf.EmailAttachmentFilenameSkipList.Add(theAttachmentForThisPic.FileName);
@@ -179,7 +183,7 @@ namespace EmailConcatenation.Converters
                     fileFormatExtension = sections[sections.Length - 1];
                 } else
                 {
-                    throw new Exception($"failed to determine what file format an embedded attachment was {theAttachmentForThisPic.FileName} {fileName} {theAttachmentForThisPic.ContentId}");
+                    throw new Exception("The file could not be converted!");
                 }
                 string fullSrcContent = $"data:image/{fileFormatExtension};base64,{base64Image}";
                 
@@ -191,7 +195,7 @@ namespace EmailConcatenation.Converters
             return content;
         }
 
-        private string InsertEmailMeta(string messageHtmlAsHtml, MsgReader.Outlook.Storage.Message message)
+        public static string InsertEmailMeta(string messageHtmlAsHtml, MsgReader.Outlook.Storage.Message message)
         {
             string pattern1 = "<div class=\"WordSection1\">";
             string pattern2 = "<body(.)*?>";
@@ -266,7 +270,7 @@ namespace EmailConcatenation.Converters
             }
         }
 
-        private string GetFormattedReceiptientsText(List<Storage.Recipient> recipients)
+        private static string GetFormattedReceiptientsText(List<Storage.Recipient> recipients)
         {
             var recipientsList = new List<String>();
 
