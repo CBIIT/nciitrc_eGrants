@@ -624,7 +624,7 @@ namespace egrants_new.Controllers
 
                     if (unsupportedFilesList.Count > 0)
                     {                        
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
@@ -636,7 +636,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    mssg = "ERROR:" + ex.Message;
+                    mssg = "ERROR: The file could not be converted!";
 
                     //Response.StatusCode = 500; //Write your own error code
                     //StringBuilder sb = new StringBuilder();
@@ -868,7 +868,7 @@ namespace egrants_new.Controllers
 
                     if (unsupportedFilesList.Count > 0)
                     {
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
@@ -880,7 +880,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    mssg = "ERROR:" + ex.Message;
+                    mssg = "ERROR: The file could not be converted!";
                 }
             else
                 mssg = "You have not specified a file.";
@@ -1112,7 +1112,7 @@ namespace egrants_new.Controllers
 
                     if (unsupportedFilesList.Count > 0)
                     {
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
@@ -1125,7 +1125,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR:" + ex.Message;
+                    this.ViewBag.Message = "ERROR: The file could not be converted!";
                 }
             else
                 this.ViewBag.Message = "Error while uploading the files.";
@@ -1309,7 +1309,7 @@ namespace egrants_new.Controllers
 
                     if (unsupportedFilesList.Count > 0)
                     {
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
@@ -1321,7 +1321,7 @@ namespace egrants_new.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.ViewBag.Message = "ERROR:" + ex.Message;
+                    this.ViewBag.Message = "ERROR: The file could not be converted!";
                 }
             else
                 this.ViewBag.Message = "Error while uploading the files.";
