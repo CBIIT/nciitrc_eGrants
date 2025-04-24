@@ -16,9 +16,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using iTextSharp.text.xml;
+using iTextSharp.tool.xml;
+
 namespace EmailConcatenation.Converters
 {
-    internal class EmailTextConverter : IEmailTextConverter, IConvertToPdf
+    internal class EmailTextConverter : IEmailTextConverter, EmailConcatenation.IConvertToPdf
     {
         public bool SupportsThisFileType(string fileName)
         {
@@ -29,7 +34,7 @@ namespace EmailConcatenation.Converters
             return false;
         }
 
-        public List<PdfDocument> ToPdfDocument(ContentForPdf content)
+        public List<IronPdf.PdfDocument> ToPdfDocument(ContentForPdf content)
         {
             Console.WriteLine("Handling email message case ...");
 
@@ -52,17 +57,118 @@ namespace EmailConcatenation.Converters
 
             var embeddedImagesAndContent = ImagesBase64Encoded(htmlWithMeta, content);
 
-            using (var pdfDocument = renderer.RenderHtmlAsPdf(embeddedImagesAndContent))
-            {
-                using (var memoryStream = new MemoryStream())
-                {
-                    pdfDocument.Stream.CopyTo(memoryStream);
+            // meta fix
+            // (?<=<)meta.+?(?>>)
+            //embeddedImagesAndContent = Regex.Replace(embeddedImagesAndContent, "\\[.*\\]", "");
 
-                    var bytes = memoryStream.ToArray();
-                    var pdfDocFromStream = new PdfDocument(bytes);
-                    return new List<PdfDocument> { pdfDocFromStream };
-                }
+            Regex metaReg = new Regex(@"(?<=<)meta.+?(?=>)", RegexOptions.Singleline);
+            // unclosed meta tag clean
+            if (metaReg.Match(embeddedImagesAndContent).Success)
+            {
+                var match = metaReg.Match(embeddedImagesAndContent);
+                var metaString = match.Value + "/";
+
+                embeddedImagesAndContent = Regex.Replace(embeddedImagesAndContent, @"(?<=<)meta.+?(?=>)", metaString);
             }
+
+            // unclosed hr tag clean
+            Regex hrReg = new Regex(@"(?<=<)hr[^\/]*(?=>)", RegexOptions.Singleline);
+            while (hrReg.Match(embeddedImagesAndContent).Success)
+            {
+                var match = hrReg.Match(embeddedImagesAndContent);
+                var hrString = match.Value + "/";
+
+                embeddedImagesAndContent = Regex.Replace(embeddedImagesAndContent, @"(?<=<)hr[^\/]*(?=>)", hrString);
+            }
+
+            // unclosed img tag clean 
+            Regex imgReg = new Regex(@"<img\b[^<]+?[^\/]>", RegexOptions.Singleline);
+            while (imgReg.Match(embeddedImagesAndContent).Success)
+            {
+                var match = imgReg.Match(embeddedImagesAndContent);
+                var imgString = match.Value;
+                //imgString[imgString.Length - 1] = '/';
+                imgString = new string(imgString.Take(imgString.Length - 1).ToArray());
+                imgString = imgString + "/>";
+
+                embeddedImagesAndContent = Regex.Replace(embeddedImagesAndContent, @"<img\b[^<]+?[^\/]>", imgString);
+            }
+
+            // unclosed br tag clean
+            //Regex brReg = new Regex(@"(?<=<)br[^\/]*(?=>)", RegexOptions.Singleline);
+            //while (brReg.Match(embeddedImagesAndContent).Success)
+            //{
+            //    var match = brReg.Match(embeddedImagesAndContent);
+            //    var brString = match.Value + "/";
+
+            //    embeddedImagesAndContent = Regex.Replace(embeddedImagesAndContent, @"(?<=<)br[^\/]*(?=>)", brString);
+            //}
+
+            // p namespace cleanup
+            // embeddedImagesAndContent = embeddedImagesAndContent.Replace("<o:p>", "<p>");
+            embeddedImagesAndContent = embeddedImagesAndContent.Replace("<o:p>", "");
+            // embeddedImagesAndContent = embeddedImagesAndContent.Replace("</o:p>", "</p>");
+            embeddedImagesAndContent = embeddedImagesAndContent.Replace("</o:p>", "");
+            embeddedImagesAndContent = embeddedImagesAndContent.Replace("< p>", " ");
+            embeddedImagesAndContent = embeddedImagesAndContent.Replace("<br>", "<br/>");
+
+            // expand <a href="mailto:søren.kierkegaard@nih.gov"/>
+            // to <a href="mailto:søren.kierkegaard@nih.gov"/>søren.kierkegaard@nih.gov</a>
+            // <a href=".+?"/>
+            Regex anchorReg = new Regex(@"<a href="".+?""/>", RegexOptions.Singleline);
+            Regex interiorReg = new Regex("(?<=\"mailto:)[^\"]*", RegexOptions.Singleline);
+            while (anchorReg.Match(embeddedImagesAndContent).Success)
+            {
+                var match = anchorReg.Match(embeddedImagesAndContent);
+                var anchorString = match.Value;
+                anchorString = anchorString.Replace("/", "");  // remove closing slash
+                var interior = string.Empty;
+
+                // get interior content without mailto
+                //(?<="mailto:)[^"]*
+                if (interiorReg.Match(anchorString).Success)
+                {
+                    var match2 = interiorReg.Match(anchorString);
+                    interior = match2.Value;
+                }
+                var newAnchorContent = anchorString + interior + "</a>";
+
+                embeddedImagesAndContent = Regex.Replace(embeddedImagesAndContent, @"<a href="".+?""/>", newAnchorContent);
+            }
+
+            // try a simple html
+            // embeddedImagesAndContent = "<html><body><p>here is a simple html.</p><br/>line2</body></html>";
+
+            Document pdfDoc = new Document(PageSize.A4, 10f, 10f, 10f, 0f);
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                PdfWriter writer = PdfWriter.GetInstance(pdfDoc, memoryStream);
+                pdfDoc.Open();
+
+                using (StringReader sr = new StringReader(embeddedImagesAndContent))
+                {
+                    XMLWorkerHelper.GetInstance().ParseXHtml(writer, pdfDoc, sr);
+                }
+                pdfDoc.Close();
+
+                byte[] bytes = memoryStream.ToArray();
+                var pdfDocFromStream = new IronPdf.PdfDocument(bytes);
+                return new List<IronPdf.PdfDocument> { pdfDocFromStream };
+            }
+
+
+
+            //using (var pdfDocument = renderer.RenderHtmlAsPdf(embeddedImagesAndContent))
+            //{
+            //    using (var memoryStream = new MemoryStream())
+            //    {
+            //        pdfDocument.Stream.CopyTo(memoryStream);
+
+            //        var bytes = memoryStream.ToArray();
+            //        var pdfDocFromStream = new IronPdf.PdfDocument(bytes);
+            //        return new List<IronPdf.PdfDocument> { pdfDocFromStream };
+            //    }
+            //}
         }
 
         private string ImagesBase64Encoded(string content, ContentForPdf contentForPdf)
