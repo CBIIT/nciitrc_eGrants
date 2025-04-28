@@ -32,28 +32,27 @@ namespace OGARequestAccountDisable
             CommonUtilities.ShowDiagnosticIfVerbose($"SQL connection opened.", verbose);
 
             var usersToSendWarning = GetAccountsForDisabledWarning(con);
-            CommonUtilities.ShowDiagnosticIfVerbose($"Found list of {usersToSendWarning.Count} candidates that need to get disabled warming email", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"Found list of {usersToSendWarning.Count} candidates that need to be sent disabled warning email", verbose);
 
             var usersWhoHaveEmailsToDisable = FilterOutUsersWithMissingInfo(usersToSendWarning);
-            CommonUtilities.ShowDiagnosticIfVerbose($"List contains {usersWhoHaveEmailsToDisable.Count} that we want to proceed with disabled.", verbose);
-
-            var message = CreateEmailBody(usersWhoHaveEmailsToDisable);
-            CommonUtilities.ShowDiagnosticIfVerbose($"Created the body for the email to OGA.", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"List contains {usersWhoHaveEmailsToDisable.Count} that we want to proceed with sending email.", verbose);
 
             if (usersToSendWarning.Count() > 0)
             {
-                SendEmailToUsers(message, oApp, debug, usersToSendWarning);
-                CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to Users.", verbose);
+                foreach (var user in usersWhoHaveEmailsToDisable) {
+                    var message = CreateEmailBody(user);
+                    SendEmailToUser(message, oApp, debug, user);
+                }
+                
+                CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to User.", verbose);
 
-                //UpdateStatusOfOGAEmailsToDisable(usersWhoHaveEmailsToDisable, con, verbose);
-                //CommonUtilities.ShowDiagnosticIfVerbose($"Updated the status of users in table people_for_oga_to_disable", verbose);
             }
 
             return usersWhoHaveEmailsToDisable.Count;
         }
 
 
-        private string CreateEmailBody(List<DisabledListItem> usersWhoHaveEmailsToBeDisabled)
+        private string CreateEmailBody(DisabledListItem user)
         {
 //            
 //            eGrants users are required to sign into the system every 120 days.< br >
@@ -63,14 +62,13 @@ namespace OGARequestAccountDisable
 //              Thank you
 
             var sb = new StringBuilder();
+            var priorToDate = DateTime.Parse(user.LastLoginDateFromDB).AddDays(120).Date;
             sb.AppendLine("eGrants users are required to sign into the system every 120 days.");
             sb.AppendLine("<br/>");
-            sb.AppendLine("In order to maintain access, you must sign into eGrants prior to ---- or your account will be deactivated.");
+            sb.AppendLine("In order to maintain access, you must sign into eGrants prior to ");
+            sb.AppendLine(priorToDate.Date.ToString("MM/dd/yyyy"));
+            sb.AppendLine(" or your account will be deactivated.");
             sb.AppendLine("<br/>");
-            //foreach (var disabledUser in usersWhoHaveEmailsToBeDisabled)
-            //{
-            //    sb.AppendLine($"<tr><td>{disabledUser.FinalNameForOGA}</td><td>{disabledUser.UserIdFromDB}</td><td>{disabledUser.LastLoginDateFromDB}</td></tr>");
-            //}
             sb.AppendLine("<p>eGrants system link: https://egrants.nci.nih.gov");
             sb.AppendLine("<br/>");
             sb.AppendLine("<br/>");
@@ -146,30 +144,26 @@ namespace OGARequestAccountDisable
             }
         }
 
-        private bool SendEmailToUsers(string bodyMessage, Application oApp, string debug, List<DisabledListItem> usersWhoHaveEmailsToDisable)
+        private bool SendEmailToUser(string bodyMessage, Application oApp, string debug, DisabledListItem user)
         {
-            foreach (var user in usersWhoHaveEmailsToDisable)
-            {
                 Outlook.MailItem mailItem =
                 (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-
-                mailItem.Subject = _userSubject;
-                //if (debug == "n")
-                //{
-                //    mailItem.To = _ogaProdEmail;
-                //}
-                //else
-                //{
-                //    mailItem.To = _eGrantsDevEmail;
-                //}
-                mailItem.To = "aalyaan.feroz@nih.gov";
-
+                if (debug == "n")
+                {
+                    mailItem.Subject = _userSubject;
+                    mailItem.To = user.EmailFromDB;
+                }
+                else
+                {
+                // Change this later
+                    mailItem.Subject = _userSubject + " TEST for " + user.PersonNameFromDB;
+                    mailItem.To = "aalyaan.feroz@nih.gov"; 
+                }
                 mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
                 mailItem.HTMLBody = bodyMessage;
 
                 mailItem.Send();
-            }
-            return true;
+                return true;
         }
     }
 }

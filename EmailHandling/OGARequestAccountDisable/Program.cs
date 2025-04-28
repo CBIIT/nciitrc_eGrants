@@ -29,24 +29,34 @@ namespace OGARequestAccountDisable
 
             CommonUtilities.ShowDiagnosticIfVerbose("Running the OGA Request Account Disable Program", _verbose);
 
-            //int _forAppending = 8;
-            //var _taskStartMssg = "...........Task Started!...........";
-            //CommonUtilities.WriteLog(_forAppending, _taskStartMssg, null, _startTimeStamp);
+            int _forAppending = 8;
+            var _taskStartMssg = "...........Disable Task Started!...........";
+            CommonUtilities.WriteLog(_forAppending, _taskStartMssg, null, _startTimeStamp);
 
             SqlConnection _con = new SqlConnection(_conStr);
 
-            //var processor = new Processor();
-            //var _emailsCountRequestedToBeDisabled = processor.Process(_dirPath, _con, _verbose, _debug);
+            var processor = new Processor();
+            var _emailsCountRequestedToBeDisabled = processor.Process(_dirPath, _con, _verbose, _debug);
 
-            //var _taskEndMssg = $"******* Task Completed! ******* {_emailsCountRequestedToBeDisabled} many email accounts have been requested to OGA for disabling";
-            //var _endTimeStamp = DateTime.Now;
-            //CommonUtilities.WriteLog(_forAppending, _taskEndMssg, null, _endTimeStamp);
+            var _taskEndMssg = $"******* Disable Task Completed! ******* {_emailsCountRequestedToBeDisabled} many email accounts have been requested to OGA for disabling";
+            var _endTimeStamp = DateTime.Now;
+            CommonUtilities.WriteLog(_forAppending, _taskEndMssg, null, _endTimeStamp);
 
-            //CommonUtilities.ShowDiagnosticIfVerbose("OGARequestAccountDisable.cs completed successfully.", _verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose("OGARequestAccountDisable.cs completed successfully.", _verbose);
+
+            int _forAppending2 = 8;
+            var _taskStartMssg2 = "...........Warning Task Started!...........";
+            var _startTimeStamp2 = DateTime.Now;
+            CommonUtilities.WriteLog(_forAppending2, _taskStartMssg2, null, _startTimeStamp2);
 
             var warningProcessor = new ProcessorWarning();
             var _emailsCountRequestedToSendWarning = warningProcessor.ProcessWarning(_dirPath, _con, _verbose, _debug);
-            Console.WriteLine("Done");
+
+            var _taskEndMssg2 = $"******* Warning Task Completed! ******* {_emailsCountRequestedToBeDisabled} many email accounts have been requested to OGA for disabling";
+            var _endTimeStamp2 = DateTime.Now;
+            CommonUtilities.WriteLog(_forAppending2, _taskEndMssg2, null, _endTimeStamp2);
+
+            CommonUtilities.ShowDiagnosticIfVerbose("OGARequestAccountDisable.cs completed successfully.", _verbose);
         }
     }
 }
