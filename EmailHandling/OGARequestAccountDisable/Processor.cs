@@ -51,6 +51,7 @@ namespace OGARequestAccountDisable
                 CommonUtilities.ShowDiagnosticIfVerbose($"Updated the status of users in table people_for_oga_to_disable", verbose);
             }
 
+            con.Close();
             return usersWhoHaveEmailsToDisable.Count;
         }
 
