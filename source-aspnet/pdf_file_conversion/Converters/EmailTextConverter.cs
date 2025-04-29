@@ -98,7 +98,14 @@ namespace EmailConcatenation.Converters
                 }
             }
 
-            // TODO : make this into a method that returns a list of PDFs so app.cs can use it
+            pdfDocs.AddRange( GetNestedAttachments(content, orderedListOfPdfConverters) );
+
+            return pdfDocs;
+        }
+
+        public static IEnumerable<PdfDocument> GetNestedAttachments(ContentForPdf content, List<IConvertToPdf> orderedListOfPdfConverters)
+        {
+            var pdfDocs = new List<PdfDocument>();
             if (content.Message.Attachments != null)
             {
                 var attachments = content.Message.Attachments;
@@ -139,13 +146,15 @@ namespace EmailConcatenation.Converters
                         {
                             Message = messageAttachment
                         };
-                        var messagePdf = this.ToPdfDocument(plainTextContent);
+                        // special case use (slow) reflection to get the email converter
+                        // alternative is to instantiate and leave the one in orderedList collecting dust
+                        var emailConverter = orderedListOfPdfConverters.First(c => c is IEmailTextConverter);
+                        var messagePdf = emailConverter.ToPdfDocument(plainTextContent);
                         if (messagePdf != null)
                             pdfDocs.AddRange(messagePdf);
                     }
                 }
             }
-
             return pdfDocs;
         }
 
