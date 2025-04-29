@@ -4,6 +4,8 @@ using IronPdf;
 using MsgReader.Mime;
 using MsgReader.Outlook;
 
+using NPOI.SS.Formula.Functions;
+
 using SkiaSharp;
 
 using System;
@@ -20,6 +22,36 @@ namespace EmailConcatenation.Converters
 {
     internal class EmailTextConverter : IEmailTextConverter, IConvertToPdf
     {
+        public IGeneralImageConverter generalImageConverter;
+        public ITIFFConverter TIFFConverter;
+        public IFormattedTextConverter formattedTextConverter;
+        public IWordConverter wordConverter;
+        public IHtmlConverter htmlConverter;
+        public IPDFConverter PDFConverter;
+        public IRTFConverter RTFConverter;
+        //public IEmailTextConverter EmailTextConverter;
+        public IWordDocConverter wordDocConverter;
+
+        public List<IConvertToPdf> orderedListOfPdfConverters;
+
+        public EmailTextConverter(IGeneralImageConverter _generalImageConverter, ITIFFConverter _tiffConverter, IFormattedTextConverter _formattedTextConverter, IWordConverter _wordConverter,
+    IHtmlConverter _htmlConverter, IPDFConverter _pDFConverter, IRTFConverter _rtfConverter, IWordDocConverter _wordDocConverter)
+        {
+            generalImageConverter = _generalImageConverter;
+            TIFFConverter = _tiffConverter;
+            formattedTextConverter = _formattedTextConverter;
+            wordConverter = _wordConverter;
+            wordDocConverter = _wordDocConverter;
+            htmlConverter = _htmlConverter;
+            PDFConverter = _pDFConverter;
+            RTFConverter = _rtfConverter;
+            //EmailTextConverter = _emailTextConverter;
+
+            orderedListOfPdfConverters = new List<IConvertToPdf> { PDFConverter, wordConverter, wordDocConverter,
+                htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter, TIFFConverter, this};
+
+        }
+
         public bool SupportsThisFileType(string fileName)
         {
             // MLH : we shouldn't need this check much because these kinds of files are picked up outside of the regular attachment process
@@ -52,6 +84,8 @@ namespace EmailConcatenation.Converters
 
             var embeddedImagesAndContent = ImagesBase64Encoded(htmlWithMeta, content);
 
+            var pdfDocs = new List<PdfDocument>();
+
             using (var pdfDocument = renderer.RenderHtmlAsPdf(embeddedImagesAndContent))
             {
                 using (var memoryStream = new MemoryStream())
@@ -60,9 +94,59 @@ namespace EmailConcatenation.Converters
 
                     var bytes = memoryStream.ToArray();
                     var pdfDocFromStream = new PdfDocument(bytes);
-                    return new List<PdfDocument> { pdfDocFromStream };
+                    pdfDocs.Add(pdfDocFromStream);
                 }
             }
+
+            // TODO : make this into a method that returns a list of PDFs so app.cs can use it
+            if (content.Message.Attachments != null)
+            {
+                var attachments = content.Message.Attachments;
+                foreach (var attachment in attachments)
+                {
+                    if (attachment is Storage.Attachment storageAttachment)
+                    {
+                        var content2 = new ContentForPdf
+                        {
+                            Attachment = storageAttachment
+                        };
+
+                        Console.WriteLine($"Storage Attachment filename : {storageAttachment.FileName}");
+
+                        if (content.EmailAttachmentFilenameSkipList.Contains(storageAttachment.FileName))
+                        {
+                            Console.WriteLine($"Not adding attachment {storageAttachment.FileName} here because it was embedded in the HTML formatted email.");
+                            continue;
+                        }
+
+                        bool fileHandled = false;
+                        foreach (var converter in orderedListOfPdfConverters)
+                        {
+                            if (converter.SupportsThisFileType(storageAttachment.FileName))
+                            {
+                                var pdfDoc = converter.ToPdfDocument(content2);
+                                if (pdfDoc != null)
+                                    pdfDocs.AddRange(pdfDoc);
+                                fileHandled = true;
+                                break;
+                            }
+                        }
+
+                    }
+                    else if (attachment is Storage.Message messageAttachment)                                               // email message
+                    {
+                        var plainTextContent = new ContentForPdf
+                        {
+                            Message = messageAttachment
+                        };
+                        var messagePdf = this.ToPdfDocument(plainTextContent);
+                        if (messagePdf != null)
+                            pdfDocs.AddRange(messagePdf);
+                    }
+                }
+            }
+
+            return pdfDocs;
         }
 
         private string ImagesBase64Encoded(string content, ContentForPdf contentForPdf)
