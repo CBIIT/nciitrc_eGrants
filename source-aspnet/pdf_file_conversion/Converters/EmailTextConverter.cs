@@ -1,22 +1,12 @@
 ﻿using EmailConcatenation.Interfaces;
 using IronPdf;
-
-using MsgReader.Mime;
 using MsgReader.Outlook;
-
-using NPOI.SS.Formula.Functions;
-
-using SkiaSharp;
-
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Web.UI.WebControls;
 
 namespace EmailConcatenation.Converters
 {
@@ -29,7 +19,6 @@ namespace EmailConcatenation.Converters
         public IHtmlConverter htmlConverter;
         public IPDFConverter PDFConverter;
         public IRTFConverter RTFConverter;
-        //public IEmailTextConverter EmailTextConverter;
         public IWordDocConverter wordDocConverter;
 
         public List<IConvertToPdf> orderedListOfPdfConverters;
@@ -45,7 +34,6 @@ namespace EmailConcatenation.Converters
             htmlConverter = _htmlConverter;
             PDFConverter = _pDFConverter;
             RTFConverter = _rtfConverter;
-            //EmailTextConverter = _emailTextConverter;
 
             orderedListOfPdfConverters = new List<IConvertToPdf> { PDFConverter, wordConverter, wordDocConverter,
                 htmlConverter, formattedTextConverter, RTFConverter, generalImageConverter, TIFFConverter, this};
