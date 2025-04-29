@@ -20,10 +20,14 @@ if ((Test-Path -Path "D:\") -and (Test-Path -Path "D:\NCI Websites\") -and (Test
     $baseDir = "C:\Content\egrants.nci.nih.gov\DocPDFConversion"
 } else {
     Write-Host "Didn't find any of the shared environment locales, so checking local dev location ..."
-    if ((Test-Path -Path "C:\") -and ("C:\Users") -and (Test-Path -Path "C:\Users\hooverrl\") -and (Test-Path -Path "C:\Users\hooverrl\Desktop") -and (Test-Path -Path "C:\Users\hooverrl\Desktop\NCI") -and (Test-Path -Path "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants")) {
+    if ((Test-Path -Path "C:\") -and ("C:\Users") -and (Test-Path -Path "C:\Users\hooverrl\") -and (Test-Path -Path "C:\Users\hooverrl\Desktop") -and (Test-Path -Path "C:\Users\hooverrl\Desktop\NCI") -and (Test-Path -Path "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants") -and (Test-Path -Path "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet") -and (Test-Path -Path "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new")) {
         # rather than affirm every point on the way to my personal dev space, just try it ...
-         $baseDir = "D:\Content\egrants-web-dev.nci.nih.gov\DocPDFConversion"
-    }
+         $baseDir = "C:\Users\hooverrl\Desktop\NCI\nciitrc_eGrants\source-aspnet\egrants_new\DocPDFConversion"
+    }	# other devs can add else ifs here like the last one but tailored to their environment
+	else {
+		Write-Host "No DocPDFConversion of ANY kind detected. Exiting ..."
+		exit 1		# 1 means fail
+	}
 }
 Write-Host "baseDir : $baseDir"
 
