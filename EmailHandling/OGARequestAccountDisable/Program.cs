@@ -52,7 +52,7 @@ namespace OGARequestAccountDisable
             var warningProcessor = new ProcessorWarning();
             var _emailsCountRequestedToSendWarning = warningProcessor.ProcessWarning(_dirPath, _con, _verbose, _debug);
 
-            var _taskEndMssg2 = $"******* Warning Task Completed! ******* {_emailsCountRequestedToBeDisabled} many email accounts have been requested to OGA for disabling";
+            var _taskEndMssg2 = $"******* Warning Task Completed! ******* {_emailsCountRequestedToSendWarning} many email accounts have been requested to OGA for disabling";
             var _endTimeStamp2 = DateTime.Now;
             CommonUtilities.WriteLog(_forAppending2, _taskEndMssg2, null, _endTimeStamp2);
 
