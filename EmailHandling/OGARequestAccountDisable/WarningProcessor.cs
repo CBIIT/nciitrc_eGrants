@@ -16,9 +16,16 @@ namespace OGARequestAccountDisable
 
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
         private string _userSubject = "Action Required: eGrants Account Deactivation";
+        private List<string> _lowerTierEmails = new List<string>();
 
         public int ProcessWarning(string dirPath, SqlConnection con, string verbose, string debug)
         {
+            // these emails are set to receive emails
+            // lower tiers for testing, was requested by the team
+            _lowerTierEmails.Add("aalyaan.feroz@nih.gov");
+            _lowerTierEmails.Add("luba.tsaturova@nih.gov");
+            //_lowerTierEmails.Add("alena.nekrashevich@nih.gov");
+
             // connect to everything
             CommonUtilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
             Outlook.Application oApp = new Outlook.Application();
@@ -39,11 +46,12 @@ namespace OGARequestAccountDisable
 
             if (usersToSendWarning.Count() > 0)
             {
-                foreach (var user in usersWhoHaveEmailsToDisable) {
+                foreach (var user in usersWhoHaveEmailsToDisable)
+                {
                     var message = CreateEmailBody(user);
                     SendEmailToUser(message, oApp, debug, user);
                 }
-                
+
                 CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to User.", verbose);
 
             }
@@ -54,12 +62,12 @@ namespace OGARequestAccountDisable
 
         private string CreateEmailBody(DisabledListItem user)
         {
-//            
-//            eGrants users are required to sign into the system every 120 days.< br >
-//            In order to maintain access, you must sign into eGrants prior to { deactivation date}
-//            or your account will be deactivated         
-//            eGrants system link: https://egrants.nci.nih.gov
-//              Thank you
+            //            
+            //            eGrants users are required to sign into the system every 120 days.< br >
+            //            In order to maintain access, you must sign into eGrants prior to { deactivation date}
+            //            or your account will be deactivated         
+            //            eGrants system link: https://egrants.nci.nih.gov
+            //              Thank you
 
             var sb = new StringBuilder();
             var priorToDate = DateTime.Parse(user.LastLoginDateFromDB).AddDays(120).Date;
@@ -146,24 +154,28 @@ namespace OGARequestAccountDisable
 
         private bool SendEmailToUser(string bodyMessage, Application oApp, string debug, DisabledListItem user)
         {
-                Outlook.MailItem mailItem =
-                (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-                if (debug == "n")
+            Outlook.MailItem mailItem =
+            (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
+            if (debug == "n")
+            {
+                mailItem.Subject = _userSubject;
+                mailItem.To = user.EmailFromDB;
+            }
+            else
+            {
+                // Change this later                
+                foreach (var email in _lowerTierEmails)
                 {
+                    mailItem =
+                    (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
                     mailItem.Subject = _userSubject;
-                    mailItem.To = user.EmailFromDB;
+                    mailItem.To = email;
+                    mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
+                    mailItem.HTMLBody = bodyMessage;
+                    mailItem.Send();
                 }
-                else
-                {
-                // Change this later
-                    mailItem.Subject = _userSubject + " TEST for " + user.PersonNameFromDB;
-                    mailItem.To = "aalyaan.feroz@nih.gov"; 
-                }
-                mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
-                mailItem.HTMLBody = bodyMessage;
-
-                mailItem.Send();
-                return true;
+            }
+            return true;
         }
     }
 }

@@ -59,23 +59,26 @@ namespace OGARequestAccountDisable
         {
             var personIds = usersWhoHaveEmailsToDisabled.Select(x => x.PersonIdFromDB).ToList();
             var personIdsTokenized = string.Join<int>(",", personIds);
-
-            var queryText = $"update [dbo].[people_for_oga_to_disable] set sent_to_oga_date=GetDate() where person_id in ({personIdsTokenized})";
-            var disabledUsers = new List<DisabledListItem>();
-            try
+            //adding this condition to avoid exception with empty string search
+            if (!string.IsNullOrEmpty(personIdsTokenized))
             {
-                using (SqlCommand command = new SqlCommand(queryText, con))
+                var queryText = $"update [dbo].[people_for_oga_to_disable] set sent_to_oga_date=GetDate() where person_id in ({personIdsTokenized})";
+                var disabledUsers = new List<DisabledListItem>();
+                try
                 {
-                    var rowsAffected = command.ExecuteNonQuery();
-                    CommonUtilities.ShowDiagnosticIfVerbose($"Updated [people_for_oga_to_disable] table with date email sent per user", verbose);
+                    using (SqlCommand command = new SqlCommand(queryText, con))
+                    {
+                        var rowsAffected = command.ExecuteNonQuery();
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Updated [people_for_oga_to_disable] table with date email sent per user", verbose);
+                    }
                 }
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine("Query failed.");
-                Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
-                throw new System.Exception($"Update status of OGA emails to disable failed in database call. Message: {ex.Message}");
-            }
+                catch (System.Exception ex)
+                {
+                    Console.WriteLine("Query failed.");
+                    Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
+                    throw new System.Exception($"Update status of OGA emails to disable failed in database call. Message: {ex.Message}");
+                }
+            }     
         }
 
         private string CreateEmailBody(List<DisabledListItem> usersWhoHaveEmailsToBeDisabled)
