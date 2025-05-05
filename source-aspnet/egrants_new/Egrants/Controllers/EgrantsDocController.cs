@@ -634,6 +634,11 @@ namespace egrants_new.Controllers
                     url = this.ViewBag.FileUrl;
                     mssg = sb.ToString();
                 }
+                catch (DotDocConversionException ex)
+                {
+                    mssg = "ERROR: The file could not be converted!";
+                    EgrantsCommon.PassErrorToDatabaseForEmail(ex, "Failed .doc conversion", appl_id);
+                }
                 catch (Exception ex)
                 {
                     mssg = "ERROR: The file could not be converted!";
@@ -877,6 +882,11 @@ namespace egrants_new.Controllers
 
                     url = this.ViewBag.FileUrl;
                     mssg = sb.ToString();
+                }
+                catch (DotDocConversionException ex)
+                {
+                    mssg = "ERROR: The file could not be converted!";
+                    EgrantsCommon.PassErrorToDatabaseForEmail(ex, "Failed .doc conversion", appl_id);
                 }
                 catch (Exception ex)
                 {
@@ -1123,6 +1133,11 @@ namespace egrants_new.Controllers
                     mssg = sb.ToString();
 
                 }
+                catch (DotDocConversionException ex)
+                {
+                    mssg = "ERROR: The file could not be converted!";
+                    EgrantsCommon.PassErrorToDatabaseForEmailByDocId(ex, "Failed .doc conversion", doc_id);
+                }
                 catch (Exception ex)
                 {
                     this.ViewBag.Message = "ERROR: The file could not be converted!";
@@ -1318,6 +1333,11 @@ namespace egrants_new.Controllers
 
                     url = this.ViewBag.FileUrl;
                     mssg = sb.ToString();
+                }
+                catch (DotDocConversionException ex)
+                {
+                    mssg = "ERROR: The file could not be converted!";
+                    EgrantsCommon.PassErrorToDatabaseForEmailByDocId(ex, "Failed .doc conversion", doc_id);
                 }
                 catch (Exception ex)
                 {
