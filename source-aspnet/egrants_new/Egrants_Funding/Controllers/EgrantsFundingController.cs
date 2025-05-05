@@ -52,6 +52,7 @@ using System.Linq;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
 using egrants_new.Egrants.Functions;
+using pdf_file_conversion;
 
 #endregion
 
@@ -507,6 +508,11 @@ namespace egrants_new.Controllers
                     url = this.ViewBag.FileUrl;
                     mssg = sb.ToString();
                 }
+                catch (DotDocConversionException ex)
+                {
+                    mssg = "ERROR: The file could not be converted!";
+                    EgrantsCommon.PassErrorToDatabaseForEmail(ex, "Failed .doc conversion", appl_id);
+                }
                 catch (Exception ex)
                 {
                     this.ViewBag.Message = "ERROR: The file could not be converted!";
@@ -710,6 +716,11 @@ namespace egrants_new.Controllers
 
                     url = this.ViewBag.FileUrl;
                     mssg = sb.ToString();
+                }
+                catch (DotDocConversionException ex)
+                {
+                    mssg = "ERROR: The file could not be converted!";
+                    EgrantsCommon.PassErrorToDatabaseForEmail(ex, "Failed .doc conversion", appl_id);
                 }
                 catch (Exception ex)
                 {
