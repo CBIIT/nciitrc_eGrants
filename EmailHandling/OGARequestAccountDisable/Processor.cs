@@ -51,7 +51,6 @@ namespace OGARequestAccountDisable
                 CommonUtilities.ShowDiagnosticIfVerbose($"Updated the status of users in table people_for_oga_to_disable", verbose);
             }
 
-            con.Close();
             return usersWhoHaveEmailsToDisable.Count;
         }
 
@@ -59,6 +58,7 @@ namespace OGARequestAccountDisable
         {
             var personIds = usersWhoHaveEmailsToDisabled.Select(x => x.PersonIdFromDB).ToList();
             var personIdsTokenized = string.Join<int>(",", personIds);
+
             //adding this condition to avoid exception with empty string search
             if (!string.IsNullOrEmpty(personIdsTokenized))
             {
@@ -78,7 +78,7 @@ namespace OGARequestAccountDisable
                     Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
                     throw new System.Exception($"Update status of OGA emails to disable failed in database call. Message: {ex.Message}");
                 }
-            }     
+            }
         }
 
         private string CreateEmailBody(List<DisabledListItem> usersWhoHaveEmailsToBeDisabled)
@@ -90,7 +90,7 @@ namespace OGARequestAccountDisable
             sb.AppendLine("The following eGrants accounts have been deactivated due to 120 days of inactivity in the system:");
             sb.AppendLine("<br/>&nbsp;&nbsp;<br/>");
             sb.AppendLine(@"<table style=""padding-top:10px""><tr><th style=""text-align:left"">User</th><th style=""text-align:left"">UserName</th><th style=""text-align:left"">Last Login Date</th></tr>");
-            foreach(var disabledUser in usersWhoHaveEmailsToBeDisabled)
+            foreach (var disabledUser in usersWhoHaveEmailsToBeDisabled)
             {
                 sb.AppendLine($"<tr><td>{disabledUser.FinalNameForOGA}</td><td>{disabledUser.UserIdFromDB}</td><td>{disabledUser.LastLoginDateFromDB}</td></tr>");
             }
@@ -109,7 +109,7 @@ namespace OGARequestAccountDisable
             var newFilteredList = new List<DisabledListItem>();
 
             // include users who have a first AND last name (and render their name)
-            foreach(var userToDisable in usersToDisable)
+            foreach (var userToDisable in usersToDisable)
             {
                 // if they have first AND last name, send them to OGA
                 if (!string.IsNullOrWhiteSpace(userToDisable.FirstNameFromDB) &&
@@ -125,7 +125,8 @@ namespace OGARequestAccountDisable
                 {
                     userToDisable.FinalNameForOGA = userToDisable.PersonNameFromDB;
                     newFilteredList.Add(userToDisable);
-                } else
+                }
+                else
                 {
                     userToDisable.FailedToRenderName = true;
                     // do NOT add this to the outgoing list to OGA
@@ -184,7 +185,8 @@ namespace OGARequestAccountDisable
             if (debug == "n")
             {
                 mailItem.To = _ogaProdEmail;
-            } else
+            }
+            else
             {
                 mailItem.To = _eGrantsDevEmail;
             }

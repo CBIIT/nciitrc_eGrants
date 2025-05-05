@@ -23,7 +23,7 @@ namespace OGARequestAccountDisable
             // these emails are set to receive emails
             // lower tiers for testing, was requested by the team
             _lowerTierEmails.Add("aalyaan.feroz@nih.gov");
-            _lowerTierEmails.Add("luba.tsaturova@nih.gov");
+            //_lowerTierEmails.Add("luba.tsaturova@nih.gov");
             //_lowerTierEmails.Add("alena.nekrashevich@nih.gov");
 
             // connect to everything
@@ -34,9 +34,9 @@ namespace OGARequestAccountDisable
             oNS.Logon("", "", false, true);
             CommonUtilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
 
-            CommonUtilities.ShowDiagnosticIfVerbose($"Opening SQL connection ...", verbose);
-            con.Open();
-            CommonUtilities.ShowDiagnosticIfVerbose($"SQL connection opened.", verbose);
+            //CommonUtilities.ShowDiagnosticIfVerbose($"Opening SQL connection ...", verbose);
+            
+            //CommonUtilities.ShowDiagnosticIfVerbose($"SQL connection opened.", verbose);
 
             var usersToSendWarning = GetAccountsForDisabledWarning(con);
             CommonUtilities.ShowDiagnosticIfVerbose($"Found list of {usersToSendWarning.Count} candidates that need to be sent disabled warning email", verbose);
@@ -48,15 +48,75 @@ namespace OGARequestAccountDisable
             {
                 foreach (var user in usersWhoHaveEmailsToDisable)
                 {
-                    var message = CreateEmailBody(user);
-                    SendEmailToUser(message, oApp, debug, user);
+                    if (!CheckIfEmailSent(user, con))
+                    {
+                        var message = CreateEmailBody(user);
+                        SendEmailToUser(message, oApp, debug, user, con);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to User.", verbose);
+                    } else
+                    {
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Email already sent to User. Email not sent", verbose);
+                    }
+                    
                 }
 
-                CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to User.", verbose);
+                
 
             }
 
             return usersWhoHaveEmailsToDisable.Count;
+        }
+
+        private Boolean CheckIfEmailSent(DisabledListItem user, SqlConnection con)
+        {
+            var queryText = "select email_sent,  " +
+                                    "FROM [dbo].[people_sent_warning]" +
+                                    $"where person_id = {user.PersonIdFromDB}";
+            var insertText = "insert into " +
+                             "[dbo].people_sent_warning (person_id, email_sent)" +
+                             "SELECT person_id, 0 AS email_sent from [dbo].people";
+
+            var sent_flag = 0;
+            DateTime lastLoginDate = DateTime.MinValue;
+            var count = 0;
+            try
+            {
+                using (SqlCommand command = new SqlCommand(queryText, con))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Console.WriteLine(reader[0].ToString());
+                            sent_flag = (reader[0] as int?) ?? 0;
+                            lastLoginDate = reader[1] as DateTime;
+                            count++;
+                        }
+                        if (count == 0)
+                        {
+                            // This is to insert a user into person_sent_warning table
+                            // in the case where a new user is added to eGrants
+                            using(SqlCommand command2 = new SqlCommand(insertText, con))
+                            {
+                                var rowsAffected = command2.ExecuteNonQuery();
+                                if (rowsAffected > 0)
+                                {
+                                    CheckIfEmailSent(user, con);
+                                }                             
+                            }
+                            return true;
+                        }
+                    }
+                }
+                return sent_flag != 0 ? true : false;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Query failed.");
+                Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
+                throw new System.Exception($"Check if email sent failed in database call. Message: {ex.Message}");
+            }
+            return false;
         }
 
 
@@ -128,7 +188,7 @@ namespace OGARequestAccountDisable
                     {
                         while (reader.Read())
                         {
-                            var disabledPerson = new DisabledListItem
+                            var warnPerson = new DisabledListItem
                             {
                                 PersonIdFromDB = (reader[0] as int?) ?? 0,
                                 FirstNameFromDB = reader[1] as string, // reader.GetString(1),
@@ -138,7 +198,7 @@ namespace OGARequestAccountDisable
                                 UserIdFromDB = reader[5] as string,
                                 LastLoginDateFromDB = reader[6] as string
                             };
-                            usersToDisable.Add(disabledPerson);
+                            usersToDisable.Add(warnPerson);
                         }
                     }
                 }
@@ -152,10 +212,26 @@ namespace OGARequestAccountDisable
             }
         }
 
-        private bool SendEmailToUser(string bodyMessage, Application oApp, string debug, DisabledListItem user)
+        private bool SendEmailToUser(string bodyMessage, Application oApp, 
+            string debug, DisabledListItem user, SqlConnection con)
         {
+            var queryText = "update [dbo].[people_sent_warning] " +
+             $"set email_sent=1 where person_id = {user.PersonIdFromDB}";
             Outlook.MailItem mailItem =
             (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
+            try
+            {
+                using (SqlCommand command = new SqlCommand(queryText, con))
+                {
+                    var rowsAffected = command.ExecuteNonQuery();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Query failed.");
+                Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
+                throw new System.Exception($"Update status of people_sent_waring failed in database call. Message: {ex.Message}");
+            }
             if (debug == "n")
             {
                 mailItem.Subject = _userSubject;
