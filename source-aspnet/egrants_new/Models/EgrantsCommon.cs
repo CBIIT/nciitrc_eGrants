@@ -7,7 +7,7 @@
 // Created: 2022-05-05
 // Contributors:
 //      - Briggs, Robin (NIH/NCI) [C] - briggsr2
-//      -
+//      - Hoover, Micah (NIH/NCI) [C] - hooverrl
 // Copyright (c) National Institute of Health
 // 
 // <Description of the file>
@@ -41,8 +41,11 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Text;
 using System.Web;
 
+using DocumentFormat.OpenXml.Drawing.Diagrams;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using DocumentFormat.OpenXml.Wordprocessing;
 
 using egrants_new.Egrants.Functions;
@@ -666,5 +669,59 @@ namespace egrants_new.Models
             }
             return unsupportedFileNames;
         }
+
+        public static void PassErrorToDatabaseForEmail(Exception ex, String type, int applId)
+        {
+            var fullExpandedMessage = new StringBuilder();
+            var exceptionWalker = ex;
+            while (exceptionWalker != null)
+            {
+                fullExpandedMessage.Append(exceptionWalker.Message);
+                exceptionWalker = exceptionWalker.InnerException;
+            }
+
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand("INSERT INTO [EIM].[dbo].[email_error] (error_type, appl_id, created_date, message) VALUES (@error_type, @appl_id, getDate(), @message)", conn);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@error_type", SqlDbType.VarChar).Value = type;
+                cmd.Parameters.AddWithValue("@appl_id", SqlDbType.Int).Value = applId.ToString();
+                cmd.Parameters.AddWithValue("@message", SqlDbType.VarChar).Value = fullExpandedMessage.ToString();
+
+                conn.Open();
+                var rdr = cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Only used for diagnostic edge cases to record the appl_id
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="type"></param>
+        /// <param name="docId"></param>
+        public static void PassErrorToDatabaseForEmailByDocId(Exception ex, String type, int docId)
+        {
+            var fullExpandedMessage = new StringBuilder();
+            var exceptionWalker = ex;
+            while (exceptionWalker != null)
+            {
+                fullExpandedMessage.Append(exceptionWalker.Message);
+                exceptionWalker = exceptionWalker.InnerException;
+            }
+
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand($"INSERT INTO [EIM].[dbo].[email_error] (error_type, appl_id, created_date, message)" +
+                    $"SELECT '@type', d.appl_id, getDate(), appl_id from documents d where document_id = @doc_id", conn);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@error_type", SqlDbType.VarChar).Value = type;
+                cmd.Parameters.AddWithValue("@doc_id", SqlDbType.Int).Value = docId.ToString();
+                cmd.Parameters.AddWithValue("@message", SqlDbType.VarChar).Value = fullExpandedMessage.ToString();
+
+                conn.Open();
+                var rdr = cmd.ExecuteNonQuery();
+            }
+        }
+
     }
 }

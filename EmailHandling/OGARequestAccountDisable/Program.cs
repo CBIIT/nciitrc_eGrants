@@ -26,6 +26,12 @@ namespace OGARequestAccountDisable
             CommonUtilities.ShowDiagnosticIfVerbose($"_conStr: '{_conStr}'", _verbose);
             var _dirPath = CommonUtilities.GetConfigVal("dirpathRouter");
             CommonUtilities.ShowDiagnosticIfVerbose($"_dirPath: '{_dirPath}'", _verbose);
+            var _emailNotificationAddress = CommonUtilities.GetConfigVal("errorEmail");
+            CommonUtilities.ShowDiagnosticIfVerbose($"_errorEmail: '{_emailNotificationAddress}'", _verbose);
+            if (string.IsNullOrWhiteSpace(_emailNotificationAddress))
+            {
+                _emailNotificationAddress = "egrantsdev@mail.nih.gov";      // default to all stakeholders
+            }
 
             CommonUtilities.ShowDiagnosticIfVerbose("Running the OGA Request Account Disable Program", _verbose);
 
@@ -42,7 +48,13 @@ namespace OGARequestAccountDisable
             var _endTimeStamp = DateTime.Now;
             CommonUtilities.WriteLog(_forAppending, _taskEndMssg, null, _endTimeStamp);
 
-            CommonUtilities.ShowDiagnosticIfVerbose("OGARequestAccountDisable.cs completed successfully.", _verbose);
+            var errorEmailProcessor = new ErrorEmailProcessor();
+            var _emailsCountError = errorEmailProcessor.Process(_dirPath, _con, _verbose, _emailNotificationAddress);
+            _taskEndMssg = $"******* Task Completed! ******* {_emailsCountRequestedToBeDisabled} many error emails have been sent to {_emailNotificationAddress}";
+            _endTimeStamp = DateTime.Now;
+            CommonUtilities.WriteLog(_forAppending, _taskEndMssg, null, _endTimeStamp);
+
+            CommonUtilities.ShowDiagnosticIfVerbose("OGARequestAccountDisable and error notification tasks completed successfully.", _verbose);
         }
     }
 }

@@ -38,6 +38,10 @@ dirpathRouter,,,,,Public Folders - micah.hoover@nih.gov\All Public Folders\NCI\G
 --dirpathRouterTEST,,,,,Public Folders - NCIOGAeGrantsTest@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\emailRouterTestRB\
 --dirpathRouterPROD,,,,,NCI CA eRA Notifications (NIH/NCI)\Inbox\
 
+errorEmail,,,,,egrantsdevelopers@mail.nih.gov
+--errorEmailLowerTier,,,,,egrantsdevelopers@mail.nih.gov
+--errorEmailUpperTier,,,,,egrantsdev@mail.nih.gov
+
 routingBreakDurationToken,,,,,0000
 
 dirpathFixed,,,,,Public Folders - NCIOGAeGrantsDev@mail.nih.gov\All Public Folders\NCI\GAB\eGrantsDev\test\
