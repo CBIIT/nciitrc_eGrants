@@ -59,25 +59,30 @@ namespace OGARequestAccountDisable
                     }
                     
                 }
-
-                
-
+            } else
+            {
+                CommonUtilities.ShowDiagnosticIfVerbose($"No users found to send email", verbose);
             }
-
             return usersWhoHaveEmailsToDisable.Count;
         }
 
         private Boolean CheckIfEmailSent(DisabledListItem user, SqlConnection con)
         {
-            var queryText = "select email_sent,  " +
-                                    "FROM [dbo].[people_sent_warning]" +
-                                    $"where person_id = {user.PersonIdFromDB}";
+            var queryText = "SELECT psw.email_sent, p.last_login_date " +
+                                    "FROM [dbo].[people_sent_warning] psw " +
+                                    "inner join dbo.people p on p.person_id = psw.person_id " +
+                                    $"where p.person_id = {user.PersonIdFromDB}";
             var insertText = "insert into " +
                              "[dbo].people_sent_warning (person_id, email_sent)" +
                              "SELECT person_id, 0 AS email_sent from [dbo].people";
+            var updateText = "update [dbo].[people_sent_warning] " +
+             $"set email_sent=0 where person_id = {user.PersonIdFromDB}";
 
-            var sent_flag = 0;
-            DateTime lastLoginDate = DateTime.MinValue;
+            var warningListItem = new WarningListItem
+            {
+                sentFlag = 0,
+                lastLoginDate = DateTime.Now
+            };
             var count = 0;
             try
             {
@@ -87,28 +92,62 @@ namespace OGARequestAccountDisable
                     {
                         while (reader.Read())
                         {
-                            Console.WriteLine(reader[0].ToString());
-                            sent_flag = (reader[0] as int?) ?? 0;
-                            lastLoginDate = reader[1] as DateTime;
+                            warningListItem = new WarningListItem
+                            {
+                                sentFlag = (reader[0] as int?) ?? 0,
+                                lastLoginDate = (DateTime)reader[1]
+                            };       
                             count++;
+                        }
+                        con.Close();
+
+                        // This is to check if a user who was already sent an email earlier,
+                        // make sure to send them an email again if they reach close to
+                        // the deactivation date
+                        if (warningListItem.sentFlag == 1
+                            && 
+                            warningListItem.lastLoginDate.AddDays(106)
+                            .ToString("yyyy-MM-dd")
+                            .Equals(DateTime.Now.ToString("yyyy-MM-dd")))
+                        {
+                            
+                            con.Open();
+                            using (SqlCommand command2 = new SqlCommand(updateText, con))
+                            {
+                                var rowsAffected = command2.ExecuteNonQuery();
+                                if (rowsAffected > 0)
+                                {
+                                    if (CheckIfEmailSent(user, con))
+                                    {
+                                        return true;
+                                    }
+                                    else { return false; }
+                                }
+                            }
+                            con.Close();
                         }
                         if (count == 0)
                         {
                             // This is to insert a user into person_sent_warning table
                             // in the case where a new user is added to eGrants
-                            using(SqlCommand command2 = new SqlCommand(insertText, con))
+                            con.Open();
+                            using (SqlCommand command3 = new SqlCommand(insertText, con))
                             {
-                                var rowsAffected = command2.ExecuteNonQuery();
+                                var rowsAffected = command3.ExecuteNonQuery();
                                 if (rowsAffected > 0)
                                 {
-                                    CheckIfEmailSent(user, con);
-                                }                             
+                                    if (CheckIfEmailSent(user, con))
+                                    {
+                                        return true;
+                                    }
+                                    else { return false; }
+                                }
                             }
-                            return true;
+                            con.Close();
                         }
                     }
                 }
-                return sent_flag != 0 ? true : false;
+                return warningListItem.sentFlag != 0 ? true : false;
             }
             catch (System.Exception ex)
             {
@@ -221,6 +260,7 @@ namespace OGARequestAccountDisable
             (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
             try
             {
+                con.Open();
                 using (SqlCommand command = new SqlCommand(queryText, con))
                 {
                     var rowsAffected = command.ExecuteNonQuery();
