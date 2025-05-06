@@ -44,6 +44,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DisabledListItem.cs" />
+    <Compile Include="DTOs\ErrorInfo.cs" />
+    <Compile Include="ErrorEmailProcessor.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
