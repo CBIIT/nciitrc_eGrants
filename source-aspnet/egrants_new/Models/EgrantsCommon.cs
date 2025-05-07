@@ -42,6 +42,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Web;
 
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -673,8 +674,17 @@ namespace egrants_new.Models
             using (EventLog eventLog = new EventLog("Application"))
             {
                 eventLog.Source = "Application";
-                eventLog.WriteEntry($"Exception type : {ex.GetType()} message : {ex.Message}", EventLogEntryType.Information, 101, 1);
+                eventLog.WriteEntry($"Exception type : {ex.GetType()} message : {FullMessage(ex)}", EventLogEntryType.Information, 101, 1);
             }
+        }
+
+        public static string FullMessage(Exception ex)
+        {
+            if (ex is AggregateException aex) return aex.InnerExceptions.Aggregate("[ ", (total, next) => $"{total}[{next?.Message}] ") + "]";
+            var msg = ex.Message.Replace(", see inner exception.", "").Trim();
+            var innerMsg = ex.InnerException?.Message;
+            if (innerMsg is object && innerMsg != msg) msg = $"{msg} [ {innerMsg} ]";
+            return msg;
         }
     }
 }
