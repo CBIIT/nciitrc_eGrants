@@ -10,6 +10,7 @@ using Spire.Doc;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Diagnostics;
 using System.Net.Http;
+using pdf_file_conversion;
 
 
 namespace EmailConcatenation.Converters
@@ -31,13 +32,19 @@ namespace EmailConcatenation.Converters
             var action = "http://localhost:8081/convert";
             byte[] fileBytes = null;
 
-            using (var stream = new MemoryStream(content.GetBytes()))
+            try
             {
-                Console.WriteLine("Acquired stream object.");
-                var result = Upload(action, string.Empty, stream, null);
+                using (var stream = new MemoryStream(content.GetBytes()))
+                {
+                    Console.WriteLine("Acquired stream object.");
+                    var result = Upload(action, string.Empty, stream, null);
 
-                // Read the response content as a byte array
-                fileBytes = result.ReadAsByteArrayAsync().Result;
+                    // Read the response content as a byte array
+                    fileBytes = result.ReadAsByteArrayAsync().Result;
+                }
+            } catch (Exception ex)
+            {
+                throw new DotDocConversionException($"Failed dot doc conversion. Exception type : {ex.GetType()}, Message: {ex.Message}");
             }
 
             var pdfDocument = new PdfDocument(fileBytes);
