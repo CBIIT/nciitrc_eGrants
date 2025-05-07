@@ -637,6 +637,7 @@ namespace egrants_new.Controllers
                 catch (Exception ex)
                 {
                     mssg = "ERROR: The file could not be converted!";
+                    EgrantsCommon.RecordError(ex);
 
                     //Response.StatusCode = 500; //Write your own error code
                     //StringBuilder sb = new StringBuilder();
@@ -881,6 +882,7 @@ namespace egrants_new.Controllers
                 catch (Exception ex)
                 {
                     mssg = "ERROR: The file could not be converted!";
+                    EgrantsCommon.RecordError(ex);
                 }
             else
                 mssg = "You have not specified a file.";
@@ -1126,6 +1128,7 @@ namespace egrants_new.Controllers
                 catch (Exception ex)
                 {
                     this.ViewBag.Message = "ERROR: The file could not be converted!";
+                    EgrantsCommon.RecordError(ex);
                 }
             else
                 this.ViewBag.Message = "Error while uploading the files.";
@@ -1322,6 +1325,7 @@ namespace egrants_new.Controllers
                 catch (Exception ex)
                 {
                     this.ViewBag.Message = "ERROR: The file could not be converted!";
+                    EgrantsCommon.RecordError(ex);
                 }
             else
                 this.ViewBag.Message = "Error while uploading the files.";

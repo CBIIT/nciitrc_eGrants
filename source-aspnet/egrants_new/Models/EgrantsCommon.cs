@@ -40,6 +40,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Web;
 
@@ -665,6 +666,15 @@ namespace egrants_new.Models
                 }
             }
             return unsupportedFileNames;
+        }
+
+        internal static void RecordError(Exception ex)
+        {
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry($"Exception type : {ex.GetType()} message : {ex.Message}", EventLogEntryType.Information, 101, 1);
+            }
         }
     }
 }
