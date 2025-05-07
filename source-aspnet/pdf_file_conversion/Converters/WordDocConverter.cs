@@ -44,7 +44,7 @@ namespace EmailConcatenation.Converters
                 }
             } catch (Exception ex)
             {
-                throw new DotDocConversionException($"Failed dot doc conversion. Exception type : {ex.GetType()}, Message: {ex.Message}");
+                throw new DotDocConversionException($"Failed dot doc conversion. Exception type : {ex.GetType()}, Message: {FullMessage(ex)}");
             }
 
             using (EventLog eventLog = new EventLog("Application"))
@@ -56,6 +56,15 @@ namespace EmailConcatenation.Converters
             var pdfDocument = new PdfDocument(fileBytes);
 
             return new List<PdfDocument> { pdfDocument };
+        }
+
+        public static string FullMessage(Exception ex)
+        {
+            if (ex is AggregateException aex) return aex.InnerExceptions.Aggregate("[ ", (total, next) => $"{total}[{next?.Message}] ") + "]";
+            var msg = ex.Message.Replace(", see inner exception.", "").Trim();
+            var innerMsg = ex.InnerException?.Message;
+            if (innerMsg is object && innerMsg != msg) msg = $"{msg} [ {innerMsg} ]";
+            return msg;
         }
 
         private static HttpContent Upload(string actionUrl, string paramString, Stream paramFileStream, byte[] paramFileBytes)
