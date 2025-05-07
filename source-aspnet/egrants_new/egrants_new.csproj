@@ -68,6 +68,10 @@
     <Reference Include="BitMiracle.LibTiff.NET, Version=2.4.649.0, Culture=neutral, PublicKeyToken=53879b3e20e7a7d6, processorArchitecture=MSIL">
       <HintPath>..\packages\BitMiracle.LibTiff.NET.2.4.649\lib\net40\BitMiracle.LibTiff.NET.dll</HintPath>
     </Reference>
+    <Reference Include="Datadog.Trace.Manual, Version=3.15.0.0, Culture=neutral, PublicKeyToken=def86d061d0d2eeb, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Datadog.Trace.Manual.dll</HintPath>
+    </Reference>
     <Reference Include="DocumentFormat.OpenXml, Version=3.0.1.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
       <HintPath>..\packages\DocumentFormat.OpenXml.3.0.1\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
@@ -3303,6 +3307,7 @@
     <Compile Include="Models\AdminCodes.cs" />
     <Compile Include="Models\AdminMenus.cs" />
     <Compile Include="Models\CharacterIndex.cs" />
+    <Compile Include="Models\DatadogCommon.cs" />
     <Compile Include="Models\DocmanCommon.cs" />
     <Compile Include="DAL\DocumentsObject.cs" />
     <Compile Include="Models\EgrantsCommon.cs" />
