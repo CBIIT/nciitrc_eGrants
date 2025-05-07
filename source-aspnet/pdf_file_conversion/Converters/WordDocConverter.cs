@@ -47,6 +47,12 @@ namespace EmailConcatenation.Converters
                 throw new DotDocConversionException($"Failed dot doc conversion. Exception type : {ex.GetType()}, Message: {ex.Message}");
             }
 
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "Application";
+                eventLog.WriteEntry("received PDF file from libre office server", EventLogEntryType.Information, 101, 1);
+            }
+
             var pdfDocument = new PdfDocument(fileBytes);
 
             return new List<PdfDocument> { pdfDocument };
