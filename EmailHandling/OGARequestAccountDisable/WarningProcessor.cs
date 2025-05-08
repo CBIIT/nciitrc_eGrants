@@ -284,7 +284,7 @@ namespace OGARequestAccountDisable
                 {
                     mailItem =
                     (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-                    mailItem.Subject = _userSubject;
+                    mailItem.Subject = "[TEST] " + _userSubject + " for " + user.PersonNameFromDB;
                     mailItem.To = email;
                     mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
                     mailItem.HTMLBody = bodyMessage;
