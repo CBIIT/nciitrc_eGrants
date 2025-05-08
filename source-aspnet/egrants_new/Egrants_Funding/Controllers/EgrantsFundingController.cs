@@ -510,7 +510,7 @@ namespace egrants_new.Controllers
                 catch (Exception ex)
                 {
                     this.ViewBag.Message = "ERROR: The file could not be converted!";
-                    EgrantsCommon.RecordError(ex);
+                    EgrantsCommon.RecordErrorByApplId(ex, appl_id);
                 }
             else
                 this.ViewBag.Message = "You have not specified a file.";
@@ -715,7 +715,7 @@ namespace egrants_new.Controllers
                 catch (Exception ex)
                 {
                     this.ViewBag.Message = "ERROR: The file could not be converted!";
-                    EgrantsCommon.RecordError(ex);
+                    EgrantsCommon.RecordErrorByApplId(ex, appl_id);
                 }
             }
             else
