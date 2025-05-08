@@ -63,68 +63,12 @@ namespace EmailConcatenation
 
             var filesToMerge = new List<PdfDocument>();
 
-            //using (var msg = new Storage.Message(Constants.ExamplePath16))
-            //{
-            // make the first instance of FilesToMerge the original email message.
-            Console.WriteLine($"Main email message body text: {incomingEmail.BodyText}");
-            Console.WriteLine($"Main email message body html: {incomingEmail.BodyHtml}");
-            var mainTextAsHtml = incomingEmail.BodyHtml;
             var mainEmailContent = new ContentForPdf
             {
                 Message = incomingEmail
             };
             var mainEmailPdf = EmailTextConverter.ToPdfDocument(mainEmailContent);              // Top level email content
             filesToMerge.AddRange(mainEmailPdf);
-
-            var attachments = incomingEmail.Attachments;
-            int count = 0;
-
-            foreach (var attachment in attachments)
-            {
-                count++;
-                Console.WriteLine($"Handling attachment # {count}");
-
-                if (attachment is Storage.Attachment storageAttachment)
-                {
-                    var content = new ContentForPdf
-                    {
-                        Attachment = storageAttachment
-                    };
-
-                    Console.WriteLine($"Storage Attachment filename : {storageAttachment.FileName}");
-
-                    if (mainEmailContent.EmailAttachmentFilenameSkipList.Contains( storageAttachment.FileName))
-                    {
-                        Console.WriteLine($"Not adding attachment {storageAttachment.FileName} here because it was embedded in the HTML formatted email.");
-                        continue;
-                    }
-
-                    bool fileHandled = false;
-                    foreach (var converter in orderedListOfPdfConverters)
-                    {                            
-                        if (converter.SupportsThisFileType(storageAttachment.FileName))
-                        {
-                            var pdfDoc = converter.ToPdfDocument(content);
-                            if (pdfDoc != null)
-                                filesToMerge.AddRange(pdfDoc);
-                            fileHandled = true;
-                            break;
-                        }
-                    }
-
-                }
-                else if (attachment is Storage.Message messageAttachment)                                               // email message
-                {
-                    var plainTextContent = new ContentForPdf
-                    {
-                        Message = messageAttachment
-                    };
-                    var messagePdf = EmailTextConverter.ToPdfDocument(plainTextContent);
-                    if (messagePdf != null)
-                        filesToMerge.AddRange(messagePdf);
-                }
-            }
-            //}
 
             if (!filesToMerge.Any())
             {
@@ -134,7 +78,6 @@ namespace EmailConcatenation
             {
                 Console.WriteLine("Attachments processed.");
                 var merged = PdfDocument.Merge(filesToMerge);
-                //merged.SaveAs("result.pdf");
                 return merged;
             }
             else
