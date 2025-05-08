@@ -45,6 +45,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 
+using DocumentFormat.OpenXml.Office.Word;
 using DocumentFormat.OpenXml.Wordprocessing;
 
 using egrants_new.Egrants.Functions;
@@ -52,6 +53,8 @@ using egrants_new.Egrants.Functions;
 using Hangfire.Annotations;
 
 using MsgReader.Outlook;
+
+using pdf_file_conversion;
 
 #endregion
 
@@ -669,12 +672,90 @@ namespace egrants_new.Models
             return unsupportedFileNames;
         }
 
-        internal static void RecordError(Exception ex)
+        internal static void RecordErrorByApplId(Exception ex, int applId)
         {
-            using (EventLog eventLog = new EventLog("Application"))
+            if (ex.GetType() == typeof(DotDocConversionException))
             {
-                eventLog.Source = "Application";
-                eventLog.WriteEntry($"Exception type : {ex.GetType()} message : {FullMessage(ex)}", EventLogEntryType.Information, 101, 1);
+                // get grant year, per requirements
+                // don't use try{} because we're already in an outer try{}
+
+                var queryText = "select ISNULL(a.support_year, '') + ISNULL(a.suffix_code, '') as GrantYear " +
+                    "from [EIM].[dbo].appls a where a.appl_id = @appl_id";
+
+                string grantYear = string.Empty;
+
+                using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+                {
+                    using (SqlCommand command = new SqlCommand(queryText, conn))
+                    {
+                        command.CommandType = CommandType.Text;
+                        command.Parameters.Add("@appl_id", SqlDbType.Int).Value = applId;
+                        
+                        conn.Open();
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                grantYear = reader["GrantYear"].ToString();
+                            }
+                        }
+                    }
+                }
+
+                string message = $"{DateTime.Now}: {grantYear}, Message : Exception type {ex.GetType()}, {FullMessage(ex)}";
+
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry(message, EventLogEntryType.Information, 101, 1);
+                }
+
+                DatadogCommon.CaptureEvent("Pdf Failed Conversion", "Error", message);
+            }
+        }
+
+        internal static void RecordErrorByDocId(Exception ex, int docId)
+        {
+            if (ex.GetType() == typeof(DotDocConversionException))
+            {
+                // get grant year, per requirements
+                // don't use try{} because we're already in an outer try{}
+
+                var queryText = "select ISNULL(a.support_year, '') + ISNULL(a.suffix_code, '')  as GrantYear " +
+                    "from [EIM].[dbo].appls a" +
+                    "inner join [EIM].[dbo].documents d on a.appl_id = d.appl_id" +
+                    "where d.doc_id = @doc_id";
+
+                string grantYear = string.Empty;
+
+                using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+                {
+                    using (SqlCommand command = new SqlCommand(queryText, conn))
+                    {
+                        command.Parameters.AddWithValue("@doc_id", SqlDbType.VarChar).Value = docId.ToString();
+                        command.CommandType = CommandType.Text;
+                        conn.Open();
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                grantYear = reader["GrantYear"].ToString();
+                            }
+                        }
+                    }
+                }
+
+                string message = $"{DateTime.Now}: {grantYear}, Message : Exception type {ex.GetType()}, {FullMessage(ex)}";
+
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "Application";
+                    eventLog.WriteEntry(message, EventLogEntryType.Information, 101, 1);
+                }
+
+                DatadogCommon.CaptureEvent("Pdf Failed Conversion", "Error", message);
             }
         }
 
