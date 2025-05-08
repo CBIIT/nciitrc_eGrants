@@ -24,7 +24,7 @@ namespace OGARequestAccountDisable
             // lower tiers for testing, was requested by the team
             _lowerTierEmails.Add("aalyaan.feroz@nih.gov");
             _lowerTierEmails.Add("luba.tsaturova@nih.gov");
-            //_lowerTierEmails.Add("alena.nekrashevich@nih.gov");
+            _lowerTierEmails.Add("alena.nekrashevich@nih.gov");
 
             // connect to everything
             CommonUtilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
