@@ -10,7 +10,7 @@ function check_file() {
     //check file type
     if (filetype == 'false') {
         document.getElementById("customFile").value = null;
-        alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
+        alert("At least one file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc.'");
         return false;
     } else var filesize = document.getElementById("UploadFile").files[0].size;
 
