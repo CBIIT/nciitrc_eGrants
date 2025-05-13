@@ -252,7 +252,7 @@ function check_file() {
     //check file type
     if (filetype == 'false') {
         document.getElementById("customFile").value = null;
-        alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
+        alert("At least one file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc.'");
         return false;
     } else var filesize = document.getElementById("customFile").files[0].size;
 
@@ -274,7 +274,7 @@ function check_file_pdf() {
     //check file type
     if (filetype == 'false') {
         document.getElementById("customFile").value = null;
-        alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc'");
+        alert("At least one file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc.'");
         return false;
     } else var filesize = document.getElementById("customFile").files[0].size;
 
@@ -299,7 +299,7 @@ function check_file_dnd() {
     var fileExtLowerCase = filext.toLowerCase();
 
     if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
-        alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
+        alert("At least one file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc.'");
         $('#dropArea').removeClass('active-drop');
         $('#dropArea').html('Drag-drop only one file here to upload');
         $('#btnDragdrop').attr('disabled', true);
@@ -320,10 +320,7 @@ function check_file_pdf_dnd() {
         var fileExtLowerCase = filext.toLowerCase();
 
         if ((extArr.indexOf(fileExtLowerCase) > -1) == false) {
-            if (dropedfiles.length === 1)
-                alert("This file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc', '.xls', '.xlsx','.xlsm'");
-            else
-                alert("At least one file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc.'")
+            alert("At least one file type is not allowed. Please only upload the following file types: '.msg', '.txt', '.pdf', '.docx', '.doc.'");
             $('#dropArea').removeClass('active-drop');
             $('#dropArea').html('Drag-drop only one file here to upload');
             $('#btnDragdrop').attr('disabled', true);
