@@ -49,6 +49,8 @@ using egrants_new.Egrants.Functions;
 
 using Hangfire.Annotations;
 
+using Microsoft.Ajax.Utilities;
+
 using MsgReader.Outlook;
 
 #endregion
@@ -82,6 +84,32 @@ namespace egrants_new.Models
                 conn.Open();
 
 
+                int i = cmd.ExecuteNonQuery();
+            }
+
+            UpdateUsersEmailSentFlag(userId);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Update the logged in users email_sent flag from the 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public static bool UpdateUsersEmailSentFlag(string userId)
+        {
+            bool count = false;
+
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
+            {
+                var cmd = new SqlCommand(
+                    "UPDATE people_sent_warning SET email_sent = 0 where userid = @userId",
+                    conn);
+
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userId", SqlDbType.VarChar).Value = userId;
+                conn.Open();
                 int i = cmd.ExecuteNonQuery();
             }
 
