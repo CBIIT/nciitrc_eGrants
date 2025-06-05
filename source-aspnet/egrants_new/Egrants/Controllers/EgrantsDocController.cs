@@ -627,7 +627,7 @@ namespace egrants_new.Controllers
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately:**#7|n3br3@k#**");
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
-                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
+                            sb.AppendLine($"{unsupportedFile.Truncate(50)}");
                         }
                     }
 
