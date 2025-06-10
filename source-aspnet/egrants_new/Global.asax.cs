@@ -48,6 +48,7 @@ using System.Web.Routing;
 using egrants_new.Integration.WebServices;
 using egrants_new.Models;
 
+using Octokit;
 using Hangfire;
 using Hangfire.SqlServer;
 
@@ -238,6 +239,9 @@ namespace egrants_new
             //this.Session.Timeout = 5;
             // Code that runs when a new session is started---added 11_21_2018
             var sessionId = this.Session.SessionID;
+            var latestReleaseFull = GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants");
+            var latestRelease = latestReleaseFull.Split(' ')[0];
+            this.Session.Add("Release", latestRelease);
 
             this.Session["userid"] = this.UserID;
             this.Session["ic"] = this.IC;
@@ -313,6 +317,23 @@ namespace egrants_new
 
             // session is started so update the last login date
             EgrantsCommon.UpdateUsersLastLoginDate(this.userid);
+        }
+
+        public string GetLatestReleaseTagAsync(string owner, string repoName)
+        {
+            try
+            {
+                var client = new GitHubClient(new ProductHeaderValue("eGrants"));
+                var tokenAuth = new Credentials("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");
+                client.Credentials = tokenAuth;
+                var latestRelease = client.Repository.Release.GetLatest(owner, repoName).Result;
+                return latestRelease.Name;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving release information: {ex.Message}");
+                return "Unknown Release"; // Or handle as appropriate    }
+            }
         }
 
         /// <summary>
