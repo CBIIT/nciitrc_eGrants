@@ -236,11 +236,12 @@ namespace egrants_new
         /// </param>
         protected void Session_Start(object sender, EventArgs e)
         {
-    //this.Session.Timeout = 5;
-    // Code that runs when a new session is started---added 11_21_2018
+            //this.Session.Timeout = 5;
+            // Code that runs when a new session is started---added 11_21_2018
             var sessionId = this.Session.SessionID;
-            this.Session["GitHubTok"] = ConfigurationManager.ConnectionStrings["GitHubTok"].ConnectionString;
-            var latestReleaseFull = GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants");
+            //this.Session["GitHubTok"] = ConfigurationManager.ConnectionStrings["GitHubTok"].ConnectionString;
+            string token = Environment.GetEnvironmentVariable("GitHubToken");
+            var latestReleaseFull = GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
             var latestRelease = latestReleaseFull.Split(' ')[0];
             this.Session.Add("Release", latestRelease);
         
@@ -319,13 +320,13 @@ namespace egrants_new
             // session is started so update the last login date
             EgrantsCommon.UpdateUsersLastLoginDate(this.userid);
         }
-
-        public string GetLatestReleaseTagAsync(string owner, string repoName)
+        
+        public string GetLatestReleaseTagAsync(string owner, string repoName, string token)
         {
             try
             {
                 var client = new GitHubClient(new ProductHeaderValue("eGrants"));
-                var tokenAuth = new Credentials(this.Session["GitHubTok"].ToString());
+                var tokenAuth = new Credentials(token);
                 client.Credentials = tokenAuth;
                 var latestRelease = client.Repository.Release.GetLatest(owner, repoName).Result;
                 return latestRelease.Name;
