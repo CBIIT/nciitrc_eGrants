@@ -239,8 +239,8 @@ namespace egrants_new
             //this.Session.Timeout = 5;
             // Code that runs when a new session is started---added 11_21_2018
             var sessionId = this.Session.SessionID;
-            //this.Session["GitHubTok"] = ConfigurationManager.ConnectionStrings["GitHubTok"].ConnectionString;
-            string token = Environment.GetEnvironmentVariable("GitHubToken");
+            this.Session["GitHubTok"] = ConfigurationManager.ConnectionStrings["GitHubTok"].ConnectionString;
+            string token = this.Session["GitHubTok"].ToString();
             var latestReleaseFull = GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
             var latestRelease = latestReleaseFull.Split(' ')[0];
             this.Session.Add("Release", latestRelease);
