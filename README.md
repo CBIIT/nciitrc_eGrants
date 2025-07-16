@@ -18,3 +18,5 @@ Purpose:
    
   or "Release" configurations, the file is not modified and will used as the web.config. 
 1. Web.Config - This file contains the web.config file after the trasformations have been applied and is then used in the execution of the application.
+
+   test
