@@ -22,7 +22,7 @@ namespace AddSupp_VoteCollection
             CommonUtilities.ShowDiagnosticIfVerbose($"_logDir: '{_logDir}'", _verbose);
             var _conStr = CommonUtilities.GetConfigVal("conStr");
             CommonUtilities.ShowDiagnosticIfVerbose($"_conStr: '{_conStr}'", _verbose);
-            var _dirPath = CommonUtilities.GetConfigVal("dirpathRouterDEV"); //"NCIOGAeGrantsProd@mail.nih.gov\Inbox\"	
+            var _dirPath = CommonUtilities.GetConfigVal("dirpathFixedDEV2"); //"NCIOGAeGrantsProd@mail.nih.gov\Inbox\"	
             CommonUtilities.ShowDiagnosticIfVerbose($"_dirPath: '{_dirPath}'", _verbose);
 
             CommonUtilities.ShowDiagnosticIfVerbose("Running the Add Supp Vote Collection Program", _verbose);
