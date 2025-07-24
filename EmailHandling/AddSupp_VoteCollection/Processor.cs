@@ -19,15 +19,24 @@ namespace AddSupp_VoteCollection
             int itemsProcessed = 0;
             try
             {
-                Outlook.Application outlookApp = new Outlook.Application();
-                NameSpace objNS = outlookApp.GetNamespace("MAPI");
+                CommonUtilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
+                Outlook.Application oApp = new Outlook.Application();
+                CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", verbose);
+                Outlook.NameSpace oNS = oApp.GetNamespace("MAPI");
+                oNS.Logon("", "", false, true);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
                 Folder cFolder = null;
+
+                foreach (MAPIFolder folder in oNS.Folders)
+                {
+                    Console.WriteLine(folder.Name);
+                }
 
                 // Parse _dirPath and navigate to the folder
                 if (!string.IsNullOrEmpty(dirPath))
                 {
                     string[] xArray = dirPath.Split('\\');
-                    cFolder = objNS.Folders[xArray[0]] as Folder;
+                    cFolder = oNS.Folders["Public Folders - aalyaan.feroz@nih.gov"] as Folder;
 
                     for (int i = 1; i < xArray.Length; i++)
                     {
@@ -75,8 +84,8 @@ namespace AddSupp_VoteCollection
                     currItem--;
                 }
 
-                Marshal.ReleaseComObject(objNS);
-                Marshal.ReleaseComObject(outlookApp);
+                Marshal.ReleaseComObject(oNS);
+                Marshal.ReleaseComObject(oApp);
             }
             catch (System.Exception ex)
             {
