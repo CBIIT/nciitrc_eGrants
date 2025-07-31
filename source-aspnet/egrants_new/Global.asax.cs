@@ -48,6 +48,7 @@ using System.Web.Routing;
 using egrants_new.Integration.WebServices;
 using egrants_new.Models;
 
+using Octokit;
 using Hangfire;
 using Hangfire.SqlServer;
 
@@ -238,25 +239,30 @@ namespace egrants_new
             //this.Session.Timeout = 5;
             // Code that runs when a new session is started---added 11_21_2018
             var sessionId = this.Session.SessionID;
-
+            this.Session["GitHubToken"] = ConfigurationManager.ConnectionStrings["GitHubToken"].ConnectionString;
+            string token = this.Session["GitHubToken"].ToString();
+            var latestReleaseFull = GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
+            var latestRelease = latestReleaseFull.Split(' ')[0];
+            this.Session.Add("Release", latestRelease);
+        
             this.Session["userid"] = this.UserID;
             this.Session["ic"] = this.IC;
             this.Session["browser"] = this.BrowserType;
             this.Session["CurrentView"] = "standardForm";
-
+        
             var usertype = EgrantsCommon.UserType(Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
-
-
+        
+        
             if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
             {
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-
+        
                 return;
             }
-
+        
             // set all profiles for user
             var users = EgrantsCommon.uservar(Convert.ToString(this.Session["userid"]), Convert.ToString(this.Session["ic"]), usertype);
-
+        
             foreach (var usr in users)
             {
                 this.Session.Add("Validation", usr.Validation);
@@ -268,51 +274,68 @@ namespace egrants_new
                 this.Session.Add("UserEmail", usr.PersonEmail);
                 this.Session.Add("Menus", usr.menulist);
             }
-
+        
             // check user validation
             if (this.Session["Validation"].ToString() != "OK")
             {
                 this.Response.Redirect("~/Shared/Views/egrants_default.htm");
-
+        
                 return;
             }
-            
+        
             // egrants-file-dev.nci.nih.gov
             this.Session["WebGrantUrl"] = ConfigurationManager.ConnectionStrings["WebGrantUrl"].ConnectionString;
-
+        
             // egrants/funded2/nci/main/
             this.Session["WebGrantRelativePath"] = ConfigurationManager.ConnectionStrings["WebGrantRelativePath"].ConnectionString;
-
+        
             // https://egrants-web-dev.nci.nih.gov/
-           // this.Session["EgrantsUrl"] = ConfigurationManager.ConnectionStrings["EgrantsUrl"].ConnectionString;
-
+            // this.Session["EgrantsUrl"] = ConfigurationManager.ConnectionStrings["EgrantsUrl"].ConnectionString;
+        
             // https://egrants-web-dev.nci.nih.gov/
             this.Session["ImageServerUrl"] = ConfigurationManager.ConnectionStrings["ImageServerUrl"].ConnectionString;
-
+        
             // for egrants
             this.Session["dashboard"] = 0;
-
+        
             // data/funded2/nci/main/
             this.Session["EgrantsDocNewRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsDocNewRelativePath"].ConnectionString;
-
+        
             // data/funded/nci/modify/
             this.Session["EgrantsDocModifyRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsDocModifyRelativePath"].ConnectionString;
-
+        
             // funded/nci/funding/upload/
             this.Session["EgrantsFundingRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsFundingRelativePath"].ConnectionString;
-
+        
             // funded/nci/institutional/
             this.Session["EgrantsInstRelativePath"] = ConfigurationManager.ConnectionStrings["EgrantsInstRelativePath"].ConnectionString;
-
+        
             // NCIeGrantsDev@mail.nih.gov
             this.Session["EgrantsDocEmail"] = ConfigurationManager.ConnectionStrings["EgrantsDocEmail"].ConnectionString;
-
+        
             this.Session["closeoutAcceptance"] = ConfigurationManager.ConnectionStrings["closeoutAcceptance"].ConnectionString;
             this.Session["frpprAcceptance"] = ConfigurationManager.ConnectionStrings["frpprAcceptance"].ConnectionString;
             this.Session["irpprAcceptance"] = ConfigurationManager.ConnectionStrings["irpprAcceptance"].ConnectionString;
-
+        
             // session is started so update the last login date
             EgrantsCommon.UpdateUsersLastLoginDate(this.userid);
+        }
+        
+        public string GetLatestReleaseTagAsync(string owner, string repoName, string token)
+        {
+            try
+            {
+                var client = new GitHubClient(new ProductHeaderValue("eGrants"));
+                var tokenAuth = new Credentials(token);
+                client.Credentials = tokenAuth;
+                var latestRelease = client.Repository.Release.GetLatest(owner, repoName).Result;
+                return latestRelease.Name;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving release information: {ex.Message}");
+                return "Unknown Release"; // Or handle as appropriate    }
+            }
         }
 
         /// <summary>
