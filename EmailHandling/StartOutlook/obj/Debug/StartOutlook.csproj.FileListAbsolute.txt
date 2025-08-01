@@ -1,0 +1,7 @@
+C:\Projects\EGrants\EmailHandling\StartOutlook\bin\Debug\StartOutlook.exe.config
+C:\Projects\EGrants\EmailHandling\StartOutlook\bin\Debug\StartOutlook.exe
+C:\Projects\EGrants\EmailHandling\StartOutlook\bin\Debug\StartOutlook.pdb
+C:\Projects\EGrants\EmailHandling\StartOutlook\obj\Debug\StartOutlook.csproj.AssemblyReference.cache
+C:\Projects\EGrants\EmailHandling\StartOutlook\obj\Debug\StartOutlook.csproj.CoreCompileInputs.cache
+C:\Projects\EGrants\EmailHandling\StartOutlook\obj\Debug\StartOutlook.exe
+C:\Projects\EGrants\EmailHandling\StartOutlook\obj\Debug\StartOutlook.pdb
