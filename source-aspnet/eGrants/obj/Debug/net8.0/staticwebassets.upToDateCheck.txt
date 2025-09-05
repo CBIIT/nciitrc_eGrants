@@ -9,15 +9,17 @@ wwwroot\images\eglogo.PNG
 wwwroot\images\filter.png
 wwwroot\images\flag_DS.jpg
 wwwroot\images\flag_fda.jpg
+wwwroot\images\flag_mpi.jpg
 wwwroot\images\flag_MS.jpg
 wwwroot\images\Folder-icon.png
 wwwroot\images\inst_icon.png
+wwwroot\images\minus.png
+wwwroot\images\plus.png
 wwwroot\images\searchicon.png
 wwwroot\images\Site_Visit.png
 wwwroot\js\bluebird.js
 wwwroot\js\bootstrap.min.js
 wwwroot\js\EgrantsCatsZone.js
-wwwroot\js\EgrantsIndex.js
 wwwroot\js\EgrantsQC.js
 wwwroot\js\jquery-3.6.4.min.js
 wwwroot\js\jquery-ui-1.13.2.js
@@ -81,3 +83,4 @@ wwwroot\lib\jquery\dist\jquery.min.js
 wwwroot\lib\jquery\dist\jquery.min.map
 wwwroot\lib\jquery\LICENSE.txt
 wwwroot\lib\modernizr\modernizr-2.8.3.js
+wwwroot\js\EgrantsIndex.js
