@@ -26,9 +26,9 @@
 <script src="~/js/egrantsqc.js"></script>
 <script src="~/js/bluebird.js"></script>
 <script src="~/js/jquery-ui-1.13.2.js"></script>
-@* <script src="~/js/egrantsindex.js"></script> *@
+<script src="~/js/egrantsindex.js"></script>
 
-<script language="JavaScript" type="text/javascript">
+@* <script language="JavaScript" type="text/javascript">
     var currenturl = window.document.location.href;
     var mode;
 
@@ -431,7 +431,7 @@
         document.getElementById('newGrantYearName' + applId).value = document.getElementById('yearName' + applId).innerHTML;
     }
 </script>
-
+ *@
 <!--start save all data from server-->
 <form name="frmGetInfo">
 
@@ -887,12 +887,12 @@
                                 {
                                     // grant search and grant MPI info is populated
                                     displayMpiFlag = false;
-                                        var appls = Model.appllayer_All as List<ApplLayerObject>;
-                                    // var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
-                                    // if (theAppls.Any(apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
-                                    // {
-                                    //     displayMpiFlag = true;
-                                    // }
+                                    var appls = Model.appllayer_All as List<ApplLayerObject>;
+                                    var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
+                                    if (theAppls.Any(apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
+                                    {
+                                        displayMpiFlag = true;
+                                    }
                                 }
 
                             }
@@ -903,7 +903,7 @@
                                 string imgLinkId = "imgLink" + grant.grant_id;
                                 <span class="pl-2">
                                     <a id="@grantLinkId" href="JavaScript:show_grant_with_flag('MPI', @Convert.ToInt32(grant.grant_id))">
-                                        <img id="@imgLinkId" src="~/Content/images/flag_mpi.jpg" style="height: 16px;" title="Has Multi-PI Grant Year(s)" />
+                                        <img id="@imgLinkId" src="/images/flag_mpi.jpg" style="height: 16px;" title="Has Multi-PI Grant Year(s)" />
                                     </a>
                                 </span>
                             }

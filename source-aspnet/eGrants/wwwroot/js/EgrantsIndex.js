@@ -15,7 +15,6 @@ var appls_list = [];
 var SelectAllApplsCheckBox = 0;
 
 $(document).ready(function () {
-    alert("here");
     set_default();
 });
 
@@ -127,8 +126,7 @@ function set_default() {
 }
 
 function by_str(str) {
-    // alert(str);
-    var url = "@Url.Action("by_str", "Egrants")?str=" + str;
+    var url = '@Url.Action("by_str", "Egrants")?str=' + str;
     window.document.location.href = url;
 }
 
@@ -138,7 +136,7 @@ function by_grant(grant_id, package_name, appls_list, categories, years) {
         mode = "";
     }
 
-    var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + package_name + "&mode=" + mode + "&appls_list=" + appls_list + "&categories=" + categories + "&years=" + years;
+    var url = '@Url.Action("by_grant", "Egrants")?grant_id=' + grant_id + '&package=' + package_name + '&mode=' + mode + '&appls_list=' + appls_list + '&categories=' + categories + '&years=' + years;
     // alert(url);
     window.document.location.href = url;
 }
@@ -149,19 +147,19 @@ function by_appl(appl_id) {
         mode = "";
     }
 
-    var url = "@Url.Action("by_appl", "Egrants")?appl_id=" + appl_id + "&mode=" + mode;
+    var url = '@Url.Action("by_appl", "Egrants")?appl_id=' + appl_id + '&mode=' + mode;
     window.document.location.href = url;
 }
 
 function show_supplement(grant_id, act) {
-    var url = "@Url.Action("LoadSupplement", "EgrantsDoc")?act=" + act + "&grant_id=" + grant_id;
+    var url = '@Url.Action("LoadSupplement", "EgrantsDoc")?act=' + act + '&grant_id=' + grant_id;
     // alert(url);
     MeddleWindow = window.open(url, act, "toolbar=0,menubar=0,location=0,status=0,width=1000,height=500,scrollbars=yes,left=80,top=100");
     MeddleWindow.focus();
 }
 
 function view_supplement(grant_id, act) {
-    var url = "@Url.Action("LoadSupplement", "EgrantsDoc")?act=" + act + "&grant_id=" + grant_id;
+    var url = '@Url.Action("LoadSupplement", "EgrantsDoc")?act=' + act + '&grant_id=' + grant_id;
     alert(url);
 }
 
@@ -174,7 +172,7 @@ function refresh_after_modify() {
 // to create new document without selected grant year
 function create_new() {
     var previous_url = encodeURIComponent(currenturl);
-    var url = "@Url.Action("doc_create_without_applid", "EgrantsDoc")?previous_url=" + previous_url;
+    var url = '@Url.Action("doc_create_without_applid", "EgrantsDoc")?previous_url=' + previous_url;
     window.document.location.href = url;
 }
 
@@ -182,8 +180,8 @@ function create_new() {
 function create_new_doc(type, admincode, serialnum, appl_id) {
     var previous_url = encodeURIComponent(currenturl);
     if (type == 'doc') {
-        var url = "@Url.Action("doc_create_with_applid", "EgrantsDoc")?admin_code=" + admincode + "&serial_num=" + serialnum + "&appl_id=" + appl_id + "&previous_url=" + previous_url;
-    } else var url = "@Url.Action("funding_doc_default", "EgrantsFunding")?admin_code=" + admincode + "&serial_num=" + serialnum + "&appl_id=" + appl_id + "&previous_url=" + previous_url;
+        var url = '@Url.Action("doc_create_with_applid", "EgrantsDoc")?admin_code=' + admincode + '&serial_num=' + serialnum + '&appl_id=' + appl_id + '&previous_url=' + previous_url;
+    } else var url = '@Url.Action("funding_doc_default", "EgrantsFunding")?admin_code=' + admincode + '&serial_num=' + serialnum + '&appl_id=' + appl_id + '&previous_url=' + previous_url;
     window.document.location.href = url;
 }
 
@@ -228,7 +226,7 @@ function getBySelected(grant_id) {
     check_selected_cats(grant_id);
     // check inserted years
     var el = "txtYears_" + grant_id;
-    alert(el);
+
     if (document.getElementById(el).value != '') {
         var years = (document.getElementById(el).value).trim();
         if (isInteger(years) == false || years == 0) {
@@ -289,7 +287,7 @@ function show_grant_with_flag(flag_type, grant_id) {
         // show appls with flag for this grant
         var categories = "All";
         var appls_list = "All";
-        var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=" + flag_type + "&categories=" + categories + "&appls_list=" + appls_list + "&years=";
+        var url = '@Url.Action("by_grant", "Egrants")?grant_id=' + grant_id + '&package=' + flag_type + '&categories=' + categories + '&appls_list=' + appls_list + '&years=';
     } else if (flag_type == "MPI") {
         var thisApplId = document.getElementById("hidApplID").value;
         console.log(thisApplId);
@@ -309,7 +307,7 @@ function show_grant_with_flag(flag_type, grant_id) {
         return;
     } else if (flag_type == "ARRA") {
         flag_type = "All";
-        var url = "@Url.Action("by_grant", "Egrants")?grant_id=" + grant_id + "&package=&categories=&appls_list=&years=";
+        var url = '@Url.Action("by_grant", "Egrants")?grant_id=' + grant_id + '&package=&categories=&appls_list=&years=';
     }
     // alert(url);
     // window.open(url, top);
