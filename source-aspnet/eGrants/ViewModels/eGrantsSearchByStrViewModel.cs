@@ -4,6 +4,17 @@ namespace eGrants.ViewModels
 {
     public class eGrantsSearchByStrViewModel
     {
+        public eGrantsSearchByStrViewModel()
+        {
+            //just for testing purposes
+            UnidentifiedDocs = new List<string>
+            {
+                "UserGuide.pdf",
+                "TermsOfService.docx",
+                "PrivacyPolicy.txt",
+                "FAQ.html"
+            };
+        }
         public int tag { get; set; }
         //public int parent { get; set; }
 
@@ -42,7 +53,7 @@ namespace eGrants.ViewModels
         //public string? inst_flag1_url { get; set; }
         //public int? appl_id { get; set; }
         //ublic string? full_grant_num { get; set; }
-        //public byte support_year { get; set; }
+        //public string support_year { get; set; }
         //public string? project_title_2 { get; set; }
         //public string? appl_type_code { get; set; }
         //public string? deleted_by_impac { get; set; }
@@ -81,5 +92,43 @@ namespace eGrants.ViewModels
         public int? OrgId { get; set; }
 
         public bool? AnyOrgDoc { get; set; }
+
+        public List<eGrantsSearchResults> SearchResults { get; set; }
+
+        public string Message { get; set; }
+        public List<GrantLayer> grantLayer { get; set; }
+        public string Str { get; set; }
+        public string Mode { get; set; }
+        public int CurrentTab { get; set; }
+        public int CurrentPage { get; set; }
+        public string SearchStyle { get; set; }
+
+        public List<ApplLayerObject> appllayer { get; set; }
+
+        public List<GrantLayer> grantList { get; set; }
+
+        public int? GrantID { get; set; }
+
+        public string Package { get; set; }
+        public int ApplID { get; set; }
+        public string ApplCount { get; set; }
+        public string DocCount { get; set; }
+        public string SelectedYears { get; set; }
+        public string SelectedCats { get; set; }
+        public string SelectedCategories { get; set; }
+        public string SelectedAppls { get; set; }
+        public string FilterFY { get; set; }
+        public string FilterMechanism { get; set; }
+        public string FilterAdminCode { get; set; }
+        public string FilterSerialNumber { get; set; }
+
+        public List<ApplLayerObject> appllayer_All { get; set; }
+
+        public string Pagination { get; set; }
+
+        public List<string> UnidentifiedDocs { get; set; }
+
+        public List<GrantLayer> grantlayerproperty { get; set; }
+
     }
 }

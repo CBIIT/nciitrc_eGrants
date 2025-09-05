@@ -31,7 +31,7 @@
     <script src="~/js/bootstrap.min.js"></script>
     <script src="~/js/validation.js"></script>
     <script>
-        var user_position_id = @Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetString("position_id"));
+        var user_position_id = @Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id"));
         var QuickLinkType = [];
 
         var currentView = "StandardForm";
@@ -356,7 +356,7 @@
                             Resources
                         </a>
                         <div class="dropdown-menu shadow p-3 mb-5 bg-white rounded" aria-labelledby="navLink1">
-                                @if (@Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetString("position_id")) >= 2)
+                                @if (@Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id")) >= 2)
                             {
                                 <a class="hard_link dropdown-item" target="_self" onclick="auditFileDownloadMenuClicked();" title="Audit File Download (Chrome Only)">Audit File Download (Chrome Only)</a>
                             }
@@ -382,7 +382,7 @@
 </div>
 <div class="row">
     <div class="col-lg-2" id="leftpanel" style="margin-left: 20px">
-        @if (Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetString("position_id")) >= 2)
+            @if (Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id")) >= 2)
         {
             <ul class="nav nav-pills nav-stacked" id="leftpanelS">
                 <li class="nav-item">
@@ -404,7 +404,7 @@
             </ul>
         }
 
-            @if (Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetString("position_id")) == 1)
+            @if (Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id")) == 1)
         {
             <ul class="nav nav-pills nav-stacked" id="leftpanelP">
                 <li class="nav-item">
@@ -433,7 +433,7 @@
         @Html.Partial("~Views/_egrants_showModalTimeoutDialog.cshtml")
     </div> *@
     <div>
-        @Html.Partial("~/Views/Shared/_egrants_showModalTimedoutDialog.cshtml")
+        @Html.Partial("~/Views/eGrants/_egrants_showModalTimedoutDialog.cshtml")
     </div>
 
 </div>

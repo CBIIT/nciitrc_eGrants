@@ -45,9 +45,19 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mime;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
+using Azure;
+using Azure.Identity;
+
+using eGrants.DAL;
+using eGrants.Functions;
+using eGrants.Models;
+using eGrants.Services;
+using eGrants.Services.Interfaces;
+using eGrants.ViewModels;
 //using egrants_new.Egrants.Models;
 //using egrants_new.Functions;
 //using egrants_new.Models;
@@ -56,11 +66,6 @@ using System.Text;
 //using Rotativa;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using eGrants.DAL;
-using eGrants.ViewModels;
-using eGrants.Models;
-using eGrants.Services.Interfaces;
 
 #endregion
 
@@ -76,11 +81,13 @@ namespace eGrants.Controllers.Egrants
 
         private readonly AppDbContext _context;
         private readonly IeGrantsService _eGrantsService;
+        private readonly ICommonService _commonService;
 
-        public EgrantsController(AppDbContext context, IeGrantsService eGrantsService)
+        public EgrantsController(AppDbContext context, IeGrantsService eGrantsService, ICommonService commonService)
         {
             _context = context;
             _eGrantsService = eGrantsService;
+            _commonService = commonService;
         }
 
         // go to default 
@@ -102,28 +109,19 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // return IC list
-            //List<string> ts = new(new { profile = "CA", admin_phs_org_code = "NCI" });
-            ViewBag.ICList = new List<string> { "CA", "BWC" }; // EgrantsCommon.LoadAdminCodes();
-            ViewBag.CurrentView = "StandardForm";
+            // May want to move this to a base controller, an action filter, or use a shared service in the long term.
+            ViewBag.ICList = await _commonService.LoadAdminCodes();
+            // This doesn't look like it is being used anywhere so commented
+            //ViewBag.CurrentView = "StandardForm";
 
-            HttpContext.Session.SetString("Validation", "OK");
-            HttpContext.Session.SetString("userid", "dehuffdc");
-            HttpContext.Session.SetString("ic", "NCI");
-            HttpContext.Session.SetString("Personid", "3941");
-            HttpContext.Session.SetString("position_id", "8");
-            HttpContext.Session.SetString("UserName", "Daryl Dehuff");
-            HttpContext.Session.SetString("UserEmail", "daryl.dehuff@nih.gov");
-            HttpContext.Session.SetString("Menus", ",Management|M,Admin|A,Dashboard|D");
-
-            Response.Cookies.Append("auditMode", "true", new CookieOptions
-            {
-                Expires = DateTimeOffset.UtcNow.AddDays(7), // Optional: set expiration
-                HttpOnly = true,                            // Optional: restrict access from client-side scripts
-                Secure = true                               // Optional: send only over HTTPS
-            });
+            //Response.Cookies.Append("auditMode", "true", new CookieOptions
+            //{
+            //    Expires = DateTimeOffset.UtcNow.AddDays(7), // Optional: set expiration
+            //    HttpOnly = true,                            // Optional: restrict access from client-side scripts
+            //    Secure = true                               // Optional: send only over HTTPS
+            //});
 
             /*
             This code was added to hardcode IC for non-nci user to access file uploading/viewing page
@@ -137,8 +135,7 @@ namespace eGrants.Controllers.Egrants
             }
             */
 
-            //Response.Write("Version: " + System.Environment.Version.ToString());
-            return View("~/Views/Index.cshtml");
+            return View("~/Views/Index.cshtml", new eGrantsSearchByStrViewModel());
         }
 
         //    public string SetCurrentViewSessionVariable(string currentView)
@@ -682,107 +679,15 @@ namespace eGrants.Controllers.Egrants
             // CountProperty = new CountProperty<int>();
             // CountProperty.Value = 0;
 
-            //ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-            ViewBag.ICList = new List<string> { "CA", "BWC" };
+            eGrantsSearchByStrViewModel eGrantsSearchByStrViewModelList = new eGrantsSearchByStrViewModel();
 
-            if (string.IsNullOrEmpty(str))
-            {
-                ViewBag.Message = "No data found for the search";
-                ViewBag.grantlayer = null;
-            }
-            else
-            {
-                ViewBag.Str = str;
-                ViewBag.Mode = mode;
-                ViewBag.CurrentTab = 1;
-                ViewBag.CurrentPage = 1;
-                ViewBag.SearchStyle = "by_str";
+            string ic = HttpContext.Session.GetString("ic");
+            string browser = HttpContext.Session.GetString("browser");
+            string userid = HttpContext.Session.GetString("userid");
+            eGrantsSearchByStrViewModelList = await _eGrantsService.GetEgrantsByStrAsync(str, 0, string.Empty, 0, 0, browser, ic, userid, mode);
+            // TODO: Switch out use of ViewBag here
 
-
-                Exception exceptionKeeper = null;
-                bool completed = false;
-                for (int i = 0; i < MAX_RETRIES; ++i)
-                {
-                    try
-                    {
-                        completed = true;
-                        var result = await _eGrantsService.GetEgrantsByStrAsync(str, 0, string.Empty, 0, 0, "Chrome", "NCI", "hooverrl");
-                        //var result = await _context.Call_sp_web_egrants_Async(str, 0, string.Empty, 0, 0, "Chrome", "NCI", "hooverrl");
-                        if (result != null)
-                        {
-                            var eGrantsSearchByStrViewModelList = result.Select(p => new eGrantsSearchByStrViewModel
-                            {
-                                tag = p.tag,
-                                grant_id = p.grant_id,
-                                FullGrantNumber = null,  //added because not pulled from database
-                                former_grant_num = p.former_grant_num,
-                                grant_num = null,
-                                SelectedProjectName = null, //added because not pulled from database
-                                project_title = p.project_title,
-                                latest_full_grant_num = p.latest_full_grant_num,
-                                current_pi_name = p.current_pi_name,
-                                SelectedGrantPiName = null, //added because not pulled from database
-                                SelectedOrganizationName = null, //added because not pulled from database
-                                org_name = p.org_name,
-                                current_pd_email_address = p.current_pd_email_address,
-                                current_pd_name = p.current_pd_name,
-                                prog_class_code = p.prog_class_code,
-                                current_spec_email_address = p.current_spec_email_address,
-                                current_spec_name = p.current_spec_name,
-                                SelectedGrantPiEmail = null, //added because not pulled from database
-                                MPIContacts = new List<PersonContact>(), //added because not pulled from database
-                                institutional_flag1 = Convert.ToBoolean(p.institutional_flag1)
-                            }).ToList();
-                            return View("~/Views/Index.cshtml", eGrantsSearchByStrViewModelList);
-                        }
-
-                        //var result = _context.Call_sp_web_egrants_Async(str, 0, string.Empty, 0, 0, "Chrome", "NCI", "hooverrl");
-                        //return Ok(result);
-                        // load data           
-                        //Search.egrants_search(
-                        //    str,
-                        //    0,
-                        //    string.Empty,
-                        //    0,
-                        //    0,
-                        //    Convert.ToString(this.Session["browser"]),
-                        //    Convert.ToString(this.Session["ic"]),
-                        //    Convert.ToString(this.Session["userid"]));
-
-                        //if (Search.grantlayerproperty != null)
-                        //{
-                        //    ViewBag.grantlayer = Search.grantlayerproperty;
-                        //    ViewBag.appllayer = Search.appllayerproperty;
-                        //    ViewBag.ApplCount = ViewBag.appllayer.Count;
-                        //    ViewBag.appllayer_All = Search.appllayerproperty;
-                        //    ViewBag.doclayer = Search.doclayerproperty;
-                        //    ViewBag.DocCount = ViewBag.doclayer.Count;
-
-                        //    // show pagination
-                        //    ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
-                        //        str,
-                        //        Convert.ToString(this.Session["ic"]),
-                        //        Convert.ToString(this.Session["userid"]),
-                        //        string.Empty);
-                        //}
-                        //else
-                        //{
-                        //    ViewBag.Message = "No data found for the search";
-                        //    ViewBag.grantlayer = null;
-                        //}
-                        completed = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        exceptionKeeper = ex;
-                        // 5 retries, ok now log and deal with the error.
-                    }
-                }
-                if (!completed)
-                    throw exceptionKeeper;
-            }
-
-            return View("~/Views/Index.cshtml");
+            return View("~/Views/Index.cshtml", eGrantsSearchByStrViewModelList);
         }
 
         //    /// <summary>

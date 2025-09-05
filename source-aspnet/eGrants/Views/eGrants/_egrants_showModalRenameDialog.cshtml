@@ -32,9 +32,9 @@
 
 
 
-@if (ViewBag.grantLayer != null)
+@if (Model.grantLayer != null)
     {
-        foreach (ApplLayerObject appl in ViewBag.appllayer)
+    foreach (ApplLayerObject appl in Model.appllayer)
         {
             string renameModalId = "renameModalId" + appl.appl_id;
             string renameDialogNameId = "renameDialogName" + appl.appl_id;

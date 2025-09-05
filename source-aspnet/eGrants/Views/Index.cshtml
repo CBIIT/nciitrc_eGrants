@@ -1,12 +1,12 @@
 @using eGrants.Models
 @* @using egrants_new.Egrants.Models *@
 @using Microsoft.AspNetCore.Http
-@model List<eGrants.ViewModels.eGrantsSearchByStrViewModel>
+@using eGrants.ViewModels
+@model eGrants.ViewModels.eGrantsSearchByStrViewModel
 @inject IHttpContextAccessor HttpContextAccessor
 @{
     ViewBag.Title = "egrants [NCI OGA]";
     Layout = "~/Views/Shared/_egrants_header.cshtml";
-
 }
 
 @* <!-- Bootstrap Font Icon CSS -->
@@ -26,6 +26,7 @@
 <script src="~/js/egrantsqc.js"></script>
 <script src="~/js/bluebird.js"></script>
 <script src="~/js/jquery-ui-1.13.2.js"></script>
+@* <script src="~/js/egrantsindex.js"></script> *@
 
 <script language="JavaScript" type="text/javascript">
     var currenturl = window.document.location.href;
@@ -322,7 +323,7 @@
             var thisApplId = document.getElementById("hidApplID").value;
             console.log(thisApplId);
             if (!thisApplId) {
-                thisApplId = "@ViewBag.SelectedAppls";
+                    thisApplId = "@Model.SelectedAppls";
                 if (thisApplId.indexOf(",") != -1) {
                     // just show multi if there's a , in there
                     thisApplId = ''; // displays as Has Multi-PI Grant Year(s) below
@@ -434,29 +435,29 @@
 <!--start save all data from server-->
 <form name="frmGetInfo">
 
-    <input type="text" hidden id="hidCurrentTab" name="CurrentTab" value="@ViewBag.CurrentTab" />
-    <input type="text" hidden id="hidPageNum" name="CurrentPage" value="@ViewBag.CurrentPage" />
-    <input type="text" hidden id="hidSearchStr" name="SearchStr" value="@ViewBag.Str" />
-    <input type="text" hidden id="hidSearchType" name="SearchType" value="@ViewBag.SearchStyle" />
-    <input type="text" hidden id="hidMode" name="Mode" value="@ViewBag.Mode" />
+    <input type="text" hidden id="hidCurrentTab" name="CurrentTab" value="@Model.CurrentTab" />
+    <input type="text" hidden id="hidPageNum" name="CurrentPage" value="@Model.CurrentPage" />
+    <input type="text" hidden id="hidSearchStr" name="SearchStr" value="@Model.Str" />
+    <input type="text" hidden id="hidSearchType" name="SearchType" value="@Model.SearchStyle" />
+    <input type="text" hidden id="hidMode" name="Mode" value="@Model.Mode" />
 
-    <input type="text" hidden id="hidGrantID" name="GrantID" value="@ViewBag.GrantID" />
-    <input type="text" hidden id="hidPackage" name="Package" value="@ViewBag.Package" />
-    <input type="text" hidden id="hidApplID" name="ApplID" value="@ViewBag.ApplID" />
-    <input type="text" hidden id="hidApplCount" name="ApplCount" value="@ViewBag.ApplCount" />
-    <input type="text" hidden id="hidDocCount" name="DocCount" value="@ViewBag.DocCount" />
+    <input type="text" hidden id="hidGrantID" name="GrantID" value="@Model.GrantID" />
+    <input type="text" hidden id="hidPackage" name="Package" value="@Model.Package" />
+    <input type="text" hidden id="hidApplID" name="ApplID" value="@Model.ApplID" />
+    <input type="text" hidden id="hidApplCount" name="ApplCount" value="@Model.ApplCount" />
+    <input type="text" hidden id="hidDocCount" name="DocCount" value="@Model.DocCount" />
 
-    <input type="text" hidden id="hidSelectedYears" name="FY" value="@ViewBag.SelectedYears" />
-    <input type="text" hidden id="hidSelectedCats" name="SelectedCats" value="@ViewBag.SelectedCats" />
-    <input type="text" hidden id="hidSelectedCategories" name="SelectedCategories" value="@ViewBag.SelectedCategories" />
-    <input type="text" hidden id="hidSelectedAppls" name="SelectedAppls" value="@ViewBag.SelectedAppls" />
+    <input type="text" hidden id="hidSelectedYears" name="FY" value="@Model.SelectedYears" />
+    <input type="text" hidden id="hidSelectedCats" name="SelectedCats" value="@Model.SelectedCats" />
+    <input type="text" hidden id="hidSelectedCategories" name="SelectedCategories" value="@Model.SelectedCategories" />
+    <input type="text" hidden id="hidSelectedAppls" name="SelectedAppls" value="@Model.SelectedAppls" />
 
-    <input type="text" hidden id="hidFilterFY" name="FilterFY" value="@ViewBag.FilterFY" />
-    <input type="text" hidden id="hidFilterMechanism" name="FilterMechanism" value="@ViewBag.FilterMechanism" />
-    <input type="text" hidden id="hidFilterAdminCode" name="FilterAdminCode" value="@ViewBag.FilterAdminCode" />
-    <input type="text" hidden id="hidFilterSerialNumber" name="FilterSerialNumber" value="@ViewBag.FilterSerialNumber" />
+    <input type="text" hidden id="hidFilterFY" name="FilterFY" value="@Model.FilterFY" />
+    <input type="text" hidden id="hidFilterMechanism" name="FilterMechanism" value="@Model.FilterMechanism" />
+    <input type="text" hidden id="hidFilterAdminCode" name="FilterAdminCode" value="@Model.FilterAdminCode" />
+    <input type="text" hidden id="hidFilterSerialNumber" name="FilterSerialNumber" value="@Model.FilterSerialNumber" />
 
-    <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetString("position_id")) />
+    <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id")) />
     <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(HttpContextAccessor.HttpContext.Session.GetString("ImageServerUrl")) />
     <input type="text" hidden id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(HttpContextAccessor.HttpContext.Session.GetString("egrantsDocEmail")) />
 
@@ -465,7 +466,7 @@
 <!--start main-->
 <div id="main">
 
-    @if (ViewBag.GrantID != null)
+@if (Model.GrantID != null)
     {
         <div id="toggle_bar" style="display: inline; width: 950px;">
             <div id="show_search_form" style="display: none;">
@@ -506,37 +507,37 @@
     <!--show search form-->
     @Html.Partial("~/Views/Shared/_egrants_showSearchForm.cshtml")<br />
 
-    @if (ViewBag.Message != null && ViewBag.Message != string.Empty)
+@if (Model.Message != null && Model.Message != string.Empty)
     {
         <div style="float: left;">
-            <b>@ViewBag.Message</b>
+            <b>@Model.Message</b>
         </div>
         <br />
     }
 
     <!--start Pagination-->
-    @if (ViewBag.Pagination != null)
+@if (Model.Pagination != null)
     {
         @Html.Partial("~/Egrants/Views/_egrants_showPagination.cshtml")
     }
     <!--end Pagination-->
     <!--start grant layer-->
-    @if (Model != null && Model.Count > 0)
+    @if (Model != null && Model?.SearchResults?.Count > 0)
     {
         var grant_id = 0;
         var pi_email = string.Empty;
 
         <form name="frmDocs">
-            @foreach (var grant in Model.Where(x => x.tag == 1))
+            @foreach (var grant in Model.grantList)
             {
                 grant_id = Convert.ToInt32(grant.grant_id);
                 var applscount = 0;
 
                 // if (ViewBag.bygrant != null && ViewBag.bygrant == 1)
-                if (ViewBag.GrantID != null)
+                if (grant.grant_id != null)
                 {
                     <!--load all appls-->
-                    foreach (var appl in ViewBag.appllayer_All)
+                    foreach (var appl in Model.appllayer)
                     {
                         if (Convert.ToInt32(appl.grant_id) == grant_id)
                         {
@@ -560,7 +561,7 @@
                 <div class="row">
                     <div class="col-md-6" class="float-left" style="vertical-align: center; width: auto">
 
-                        <img class="pl-1" style="height: 24px;" src="~/Content/images/Folder-icon.png" title="Grant Folder" />
+                        <img class="pl-1" style="height: 24px;" src="/images/Folder-icon.png" title="Grant Folder" />
                         <b class="ml-2" style="font-size: medium;">
                             <!--Robin - Comment out this line and uncomment the section directly below this if they want to show the select grant year on appl views -->
                             @*@Convert.ToString(grant.all_activity_code)@Convert.ToString(grant.grant_num)*@
@@ -575,7 +576,7 @@
                                 @grant.FullGrantNumber
                             }
                         </b>
-                        @if (Convert.ToString(grant.former_grant_num) != string.Empty)
+                        @if (!string.IsNullOrEmpty(grant.former_grant_num))
                         {
                             <b>Formerly: @grant.former_grant_num</b>
                         }
@@ -590,7 +591,7 @@
                         </label>
                         <input type="text" id="txtYears_@grant.grant_id" name="years_@grant.grant_id" class="form-control" style="display: inline; height: 35px; width: 50px;" placeholder="Yrs" onkeyup="return checkYears(event, @Convert.ToInt32(grant.grant_id))" /> @*onkeyup="if (event.keyCode == 13) return checkYears(@Convert.ToInt32(grant.grant_id))"*@
 
-                        @if (ViewBag.SelectedCats != string.Empty && ViewBag.SelectedCats != null)
+                            @if (Model.SelectedCats != string.Empty && Model.SelectedCats != null)
                         {
                             <a href="Javascript:show_cats_zone(@grant.grant_id)">
                                 <img height="34" src="~/Content/images/filter_selected.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
@@ -599,12 +600,12 @@
                         else
                         {
                             <a href="Javascript:show_cats_zone(@grant.grant_id)">
-                                <img height="40" src="~/Content/images/filter.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
+                                    <img height="40" src="/images/filter.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
                             </a>
                         }
 
                         <button type="button" class="btn btn-default" onclick="return getBySelected(@Convert.ToInt32(grant.grant_id))" title="View Selected Years and Categories for @grant.grant_num">
-                            <img src="~/Content/images/searchicon.png" width="22" height="22" />
+                            <img src="/images/searchicon.png" width="22" height="22" />
                         </button>
                     </div>
                 </div>
@@ -785,7 +786,7 @@
                             </div>
                             <br />
                         }
-                        @if (ViewBag.GrantID == null && ViewBag.appllayer_All != null)
+                        @if (Model.GrantID == null && Model.appllayer != null)
                         {
                             <div id="Year info" style="display: inline">
                                 <div id="grantbar1" class="float-left">
@@ -794,7 +795,7 @@
                                     </span>
                                 </div>
                                 <div id="grantbar2" style="width: 500px;">
-                                    <span class="pl-0"> @Html.Partial("~/Egrants/Views/_egrants_showApplsList.cshtml", grant_id)</span>
+                                        <span class="pl-0"> @Html.Partial("~/Views/eGrants/_egrants_showApplsList.cshtml", new { grant_id = grant.grant_id, appllayer = Model.appllayer})</span>
                                 </div>
                             </div>
                         }
@@ -818,7 +819,7 @@
                             {
                                 <span class="pl-2">
                                     <a href="JavaScript:show_grant_with_flag('DS', @Convert.ToInt32(grant.grant_id))">
-                                        <img src="~/Content/images/flag_ds.jpg" style="height: 16px; margin-left: 5px" title="View Diversity Supplement Funded Grant for @grant.grant_num" />
+                                        <img src="/images/flag_ds.jpg" style="height: 16px; margin-left: 5px" title="View Diversity Supplement Funded Grant for @grant.grant_num" />
                                     </a>
                                 </span>
                             }
@@ -827,7 +828,7 @@
                             {
                                 <span class="pl-2">
                                     <a href="JavaScript:show_grant_with_flag('MS', @Convert.ToInt32(grant.grant_id))">
-                                        <img src="~/Content/images/flag_ms.jpg" style="height: 16px; margin-left: 5px" title="View Moonshot Funded Grant for @grant.grant_num" />
+                                        <img src="/images/flag_ms.jpg" style="height: 16px; margin-left: 5px" title="View Moonshot Funded Grant for @grant.grant_num" />
                                     </a>
                                 </span>
                             }
@@ -847,14 +848,14 @@
                                 {
                                     displayMpiFlag = false;
                                 }
-                                else if (ViewBag.ApplID != null)
+                                    else if (Model.ApplID != null)
                                 {
                                     // this is appl specific, so hide MPI flag if this appl is not MPI
                                     displayMpiFlag = false;
-                                    if (ViewBag.appllayer_All != null || ViewBag.appllayer_All.Count() == 0)
+                                        if (Model.appllayer_All != null || Model.appllayer_All.Count() == 0)
                                     {
-                                        var thisPagesApplID = (int)ViewBag.ApplID;
-                                        var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                            var thisPagesApplID = (int)Model.ApplID;
+                                            var appls = Model.appllayer_All as List<ApplLayerObject>;
                                         var theAppl = appls.Where(a => a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
                                         if (theAppl != null && theAppl.Count > 0 && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
                                         {
@@ -862,13 +863,13 @@
                                         }
                                     }
                                 }
-                                else if (ViewBag.SelectedAppls != null)
+                                    else if (Model.SelectedAppls != null)
                                 {
                                     // it's in ViewBag.SelectedAppls
                                     displayMpiFlag = false;
 
-                                    var appls_from_vb = (string)ViewBag.SelectedAppls;
-                                    var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                        var appls_from_vb = (string)Model.SelectedAppls;
+                                        var appls = Model.appllayer_All as List<ApplLayerObject>;
                                     var appl_ids = appls_from_vb.Split(',');
                                     var theAppls = appls;
                                     if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
@@ -886,7 +887,7 @@
                                 {
                                     // grant search and grant MPI info is populated
                                     displayMpiFlag = false;
-                                    var appls = ViewBag.appllayer_All as List<ApplLayerObject>;
+                                        var appls = Model.appllayer_All as List<ApplLayerObject>;
                                     // var theAppls = appls.Where(a => a.grant_id == grant.grant_id).ToList();
                                     // if (theAppls.Any(apps => apps.MPIContacts != null && apps.MPIContacts.Count() > 1))
                                     // {
@@ -911,7 +912,7 @@
                             {
                                 <span class="pl-2">
                                     <a href="JavaScript:show_grant_with_flag('FDA', @Convert.ToInt32(grant.grant_id))">
-                                        <img src="~/Content/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num" />
+                                        <img src="/images/flag_fda.jpg" style="height: 16px;" title="View FDA Funded Grant for @grant.grant_num" />
                                     </a>
                                 </span>
                             }
@@ -925,11 +926,11 @@
                                 </span>
                             }
 
-                                @if (grant.sv_url != string.Empty)
+                                @if (!string.IsNullOrEmpty(grant.sv_url))
                                 {
                                     <span class="pl-2">
                                         <a target="_new" href="@Convert.ToString(HttpContextAccessor.HttpContext.Session.GetString("ImageServerUrl"))@grant.sv_url">
-                                            <img class="img_18_18" src="~/Content/images/Site_Visit.png" title="View SV Document for @grant.org_name" />
+                                            <img class="img_18_18" src="/images/Site_Visit.png" title="View SV Document for @grant.org_name" />
                                         </a>
                                     </span>
                                 }
@@ -945,7 +946,7 @@
                                 {
                                     <span class="pl-2">
                                         <a href="~/InstitutionalFiles/Show_Docs?org_id=@grant.OrgId">
-                                            <img class="img_18_18" src="~/Content/images/inst_icon.png" title="View Institutional File(s) for @grant.SelectedOrganizationName" />
+                                            <img class="img_18_18" src="/images/inst_icon.png" title="View Institutional File(s) for @grant.SelectedOrganizationName" />
                                         </a>
                                     </span>
                                 }
@@ -957,16 +958,16 @@
                 <!--end grant zone-->
                 @*<div style="float:left; padding-bottom:15px; padding-top:15px;"></div>*@
                 <!--show appls with documents-->
-                @*@if (ViewBag.GrantID != null || ViewBag.ApplID != null || ViewBag.SearchStyle == "by_qc" || (ViewBag.SearchStyle == "by_page" && ViewBag.Str == "qc")){*@
+                    @*@if (Model.GrantID != null || Model.ApplID != null || Model.SearchStyle == "by_qc" || (Model.SearchStyle == "by_page" && Model.Str == "qc")){*@
                 @*<div id="standardForm">*@
                 @*// if(CurrentDownloadValue == "Standard")*@
                 @*<b>@grant_id</b>*@
 
-@*                 @if (Context.Request.Cookies["auditMode"] != null) // && Context.Request.Cookies["auditMode"].Value == "DownloadForm")
+                @if (Context.Request.Cookies["auditMode"] == null) // && Context.Request.Cookies["auditMode"].Value == "DownloadForm")
                 {
                     <div id="downloadForm">
                         <div style="float: left; padding-top: 15px;">
-                            @Html.Partial("~/eGgrants/Views/Download/_egrants_showApplDownload.cshtml", grant_id)
+                                @Html.Partial("~/Views/eGrants/_egrants_showApplDownload.cshtml", grant_id)
                         </div>
                     </div>
                 }
@@ -974,10 +975,10 @@
                 {
                     <div id="standardForm">
                         <div style="float: left; padding-top: 15px;">
-                            @Html.Partial("~/eGrants/Views/_egrants_showAppl.cshtml", grant_id)
+                                @Html.Partial("~/Views/eGrants/_egrants_showAppl.cshtml")
                         </div>
                     </div>
-                } *@
+                }
 
             </div>
                 <!--end grant zone-->
@@ -989,27 +990,27 @@
     }
     <!--end ViewBag.grantlayer-->
     <!--start Unidentified documents when user run qc-->
-@*     @if (ViewBag.UnidentifiedDocs != null && ViewBag.UnidentifiedDocs.Count >= 1)
+    @if (ViewBag.UnidentifiedDocs != null && ViewBag.UnidentifiedDocs.Count >= 1)
     {
-        <div>
-            <!--id="UnidentifiedDoc" style="border-top:groove;width:900px; padding:10px 5px 10px 0;"-->
-            @Html.Partial("~/Egrants/Views/_egrants_showUnidentifiedDocs.cshtml")
-        </div>
+            <div>
+                <!--id="UnidentifiedDoc" style="border-top:groove;width:900px; padding:10px 5px 10px 0;"-->
+                @Html.Partial("~/Views/eGrants/_egrants_showUnidentifiedDocs.cshtml")
+            </div>
     }
     <!--end show Unidentified documents-->
     <!--start show popup modal  style="align-content:center; align-items:center;align-self:center;"-->
     <div>
-        @Html.Partial("~/Views/Shared/_egrants_showModal.cshtml")
+        @Html.Partial("~/Views/eGrants/_egrants_showModal.cshtml")
     </div>
     <!--end show popup modal-->
     <!--start show popup modal -->
     <div>
-        @Html.Partial("~/Views/Shared/_egrants_showModalMPIDialog.cshtml")
+        @Html.Partial("~/Views/eGrants/_egrants_showModalMPIDialog.cshtml")
     </div>
     <!--end show popup modal-->
     <!--start show popup modal -->
     <div>
-        @Html.Partial("~/Views/Shared/_egrants_showModalRenameDialog.cshtml")
-    </div> *@
+        @Html.Partial("~/Views/eGrants/_egrants_showModalRenameDialog.cshtml")
+    </div>
     <!--end show popup modal-->
 </div><!--end main-->

@@ -1,11 +1,19 @@
 is_global = true
 build_property.TargetFramework = net8.0
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
 build_property.ProjectTypeGuids = 
 build_property.InvariantGlobalization = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
 build_property.PlatformNeutralAssembly = 
 build_property.EnforceExtendedAnalyzerRules = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = eGrants
 build_property.RootNamespace = eGrants
@@ -20,6 +28,42 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showAppl.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93QXBwbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showApplDownload.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93QXBwbERvd25sb2FkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showApplsList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93QXBwbHNMaXN0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93TW9kYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showModalMPIDialog.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93TW9kYWxNUElEaWFsb2cuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showModalRenameDialog.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93TW9kYWxSZW5hbWVEaWFsb2cuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showModalTimedoutDialog.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93TW9kYWxUaW1lZG91dERpYWxvZy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showModalTimeoutDialog.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93TW9kYWxUaW1lb3V0RGlhbG9nLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showUnidentifiedDocs.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93VW5pZGVudGlmaWVkRG9jcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Development/eGrants/source-aspnet/eGrants/Views/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -30,26 +74,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Development/eGrants/source-aspnet/eGrants/Views/Shared/_egrants_header.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9lZ3JhbnRzX2hlYWRlci5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Development/eGrants/source-aspnet/eGrants/Views/Shared/_egrants_showModal.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9lZ3JhbnRzX3Nob3dNb2RhbC5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Development/eGrants/source-aspnet/eGrants/Views/Shared/_egrants_showModalMPIDialog.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9lZ3JhbnRzX3Nob3dNb2RhbE1QSURpYWxvZy5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Development/eGrants/source-aspnet/eGrants/Views/Shared/_egrants_showModalRenameDialog.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9lZ3JhbnRzX3Nob3dNb2RhbFJlbmFtZURpYWxvZy5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Development/eGrants/source-aspnet/eGrants/Views/Shared/_egrants_showModalTimedoutDialog.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9lZ3JhbnRzX3Nob3dNb2RhbFRpbWVkb3V0RGlhbG9nLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Development/eGrants/source-aspnet/eGrants/Views/Shared/_egrants_showModalTimeoutDialog.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9lZ3JhbnRzX3Nob3dNb2RhbFRpbWVvdXREaWFsb2cuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Development/eGrants/source-aspnet/eGrants/Views/Shared/_egrants_showSearchForm.cshtml]

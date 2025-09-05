@@ -153,7 +153,7 @@ namespace eGrants.Models
         /// <summary>
         ///     Gets or sets the project_title.
         /// </summary>
-        //public string project_title { get; set; }
+        public string project_title { get; set; }
 
         /// <summary>
         ///     Gets or sets the pi_name.

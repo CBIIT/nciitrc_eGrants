@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("eGrants")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5bc35359e1594c02b043d09a22ca4c15faf30ecb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a750e0e14afc786181b3008c7a83fca370b6de2f")]
 [assembly: System.Reflection.AssemblyProductAttribute("eGrants")]
 [assembly: System.Reflection.AssemblyTitleAttribute("eGrants")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
