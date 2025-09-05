@@ -1,18 +1,23 @@
 
-using Microsoft.EntityFrameworkCore;
 using eGrants.DAL;
-using eGrants.Services.Interfaces;
-using eGrants.Services;
 using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
+using eGrants.Services;
+using eGrants.Services.Interfaces;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSystemWebAdapters();
 builder.Services.AddHttpForwarder();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IeGrantsService, eGrantsService>();
 builder.Services.AddScoped<IeGrantsRepository, eGrantsRepository>();
+builder.Services.AddScoped<ICommonService, CommonService>();
+builder.Services.AddScoped<ICommonRepository, CommonRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -36,11 +41,58 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Is this cookie really needed?    
+//app.Run(async context =>
+//{
+//    context.Response.Cookies.Append("auditMode", "true", new CookieOptions
+//    {
+//        Expires = DateTimeOffset.UtcNow.AddDays(7), // Optional: set expiration
+//        HttpOnly = true,                            // Optional: restrict access from client-side scripts
+//        Secure = true                               // Optional: send only over HTTPS
+//    });
+
+//    await context.Response.WriteAsync("Cookie 'auditTest' has been set.");
+//});
+
+app.UseSession(); // Enable session middleware
+
+// TODO: Determine better way to handle getting user id information if possible
+app.Use(async (context, next) =>
+{
+    string userid = context.GetServerVariable("HEADER_SM_USER");
+
+    if (userid == null)
+    {
+        userid = "";
+#if DEBUG
+
+        userid = "dehuffdc"; // should correspond to person table, column: active
+#endif
+    }
+
+    context.Session.SetString("userid", userid);
+    context.Session.SetString("Validation", "OK");
+    context.Session.SetString("ic", "NCI");
+    context.Session.SetString("Personid", "3941");
+    context.Session.SetInt32("position_id", 8);
+    context.Session.SetString("UserName", "Daryl Dehuff");
+    context.Session.SetString("UserEmail", "daryl.dehuff@nih.gov");
+    context.Session.SetString("Menus", ",Management|M,Admin|A,Dashboard|D");
+    context.Session.SetString("browser", "Chrome");
+
+    var frpprAcceptance = builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty;
+    var irpprAcceptance = builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty;
+    context.Session.SetString("frpprAcceptance", frpprAcceptance);
+    context.Session.SetString("irpprAcceptance", irpprAcceptance);
+
+    // You can log or use the URL here
+    await next.Invoke();
+});
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseSession(); // Enable session middleware
 app.UseAuthorization();
 app.UseSystemWebAdapters();
 

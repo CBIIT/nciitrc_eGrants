@@ -56,7 +56,7 @@ namespace eGrants.Models
         public string? appl_od_flag { get; set; }
         public string? appl_ds_flag { get; set; }
         public string? closeout_flag { get; set; }
-        public string? irppr_id { get; set; }
+        public int? irppr_id { get; set; }
         public string? can_add_doc { get; set; }
         public string? can_add_funding { get; set; }
 
@@ -70,6 +70,8 @@ namespace eGrants.Models
         public string? specific_year_full_grant_num { get; set; }
         public int? specific_year_institution1 { get; set; }
         public int? specific_year_institution2 { get; set; }
+
+        public string? support_year { get; set; }
 
     }
 }

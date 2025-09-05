@@ -387,7 +387,7 @@
          </select>
          @Html.TextBox("SerialNumber", "", new { @class = "form-control", style = "width:120px;height=10px;margin-right:10px;margin-bottom:5px", placeholder = "Serial No" })
          @Html.DropDownList("Year", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:200px; height=10px; margin-bottom:5px", onchange = "show_appl()" })
-            @if (Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetString("position_id")) > 1)
+            @if (Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id")) > 1)
          {
       <button type="button" style="font-size: medium; width: 150px; margin-left: 80px; margin-bottom: 5px; background-color:#008b8b;" accesskey="O" class="btn btn-sm btn-success rounded float-right" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button> @*Ayu*@
          }

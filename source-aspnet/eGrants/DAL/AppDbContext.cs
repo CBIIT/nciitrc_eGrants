@@ -14,19 +14,13 @@ namespace eGrants.DAL
         {
         }
 
-        public DbSet<eGrantsSearchResults> eGrantResultsByStr { get; set; }
-        //public DbSet<ProjectDto> ProjectDtos { get; set; }
-
-        //public async Task<List<eGrantsSearchResults>> Call_sp_web_egrants_Async(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator)
-        //{
-        //    return await Results
-        //        .FromSqlRaw("EXEC dbo.sp_web_egrants @str = {0}, @grant_id = {1}, @package = {2}, @appl_id = {3}, @current_page = {4}, @browser = {5}, @ic = {6}, @operator = {7}", aSearchString, aGrantId, aPackage, aApplId, aCurrentPage, aBrowser, aIC, aOperator)
-        //        .ToListAsync();
-        //}
+        public DbSet<eGrantsSearchResults> eGrantsSearchResults { get; set; }
+        public DbSet<Grants> Grants { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<eGrantsSearchResults>().HasNoKey();
+            modelBuilder.Entity<Grants>().HasNoKey();
             //modelBuilder.Entity<ProjectDto>().HasNoKey(); // Important for stored procedure results
         }
 
