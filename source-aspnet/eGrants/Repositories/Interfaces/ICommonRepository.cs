@@ -4,6 +4,6 @@ namespace eGrants.Repositories.Interfaces
 {
     public interface ICommonRepository
     {
-        Task<List<AdminCodes>> LoadAdminCodes();
+        public Task<List<AdminCodes>> LoadAdminCodes();
     }
 }

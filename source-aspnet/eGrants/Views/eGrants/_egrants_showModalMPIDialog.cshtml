@@ -32,13 +32,13 @@
 
 
 
-@if (Model.grantLayer != null)
+@if (Model.grantlayer != null)
 {
     foreach (ApplLayerObject appl in Model.appllayer)
     {
         string mpiModalId = "mpiModal" + appl.appl_id;
         string grantId = appl.grant_id;
-        List<GrantLayer> grants = Model.grantLayer;
+        List<GrantLayer> grants = Model.grantlayer;
         var grant = grants.First(gl => gl.grant_id == grantId);
         <div class="modal fade" id="@mpiModalId" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog">

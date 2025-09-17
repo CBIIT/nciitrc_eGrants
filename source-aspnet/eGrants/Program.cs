@@ -18,6 +18,7 @@ builder.Services.AddScoped<IeGrantsService, eGrantsService>();
 builder.Services.AddScoped<IeGrantsRepository, eGrantsRepository>();
 builder.Services.AddScoped<ICommonService, CommonService>();
 builder.Services.AddScoped<ICommonRepository, CommonRepository>();
+builder.Services.AddScoped<ISessionInfoService, SessionInfoService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
