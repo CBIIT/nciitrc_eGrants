@@ -126,7 +126,8 @@ function set_default() {
 }
 
 function by_str(str) {
-    var url = '@Url.Action("by_str", "Egrants")?str=' + str;
+    alert(str);
+    var url = '@Url.Action("by_str", "Egrants")?aStr=' + str;
     window.document.location.href = url;
 }
 

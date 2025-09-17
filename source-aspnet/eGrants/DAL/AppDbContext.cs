@@ -17,10 +17,19 @@ namespace eGrants.DAL
         public DbSet<eGrantsSearchResults> eGrantsSearchResults { get; set; }
         public DbSet<Grants> Grants { get; set; }
 
+        public DbSet<Pagination> LoadPaginationResults { get; set; }
+
+        public DbSet<FilterSearchResult> FilterSearchResults { get; set; }
+
+        public DbSet<GrantDataYears> GrantDataYears { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<eGrantsSearchResults>().HasNoKey();
             modelBuilder.Entity<Grants>().HasNoKey();
+            modelBuilder.Entity<Pagination>().HasNoKey();
+            modelBuilder.Entity<FilterSearchResult>().HasNoKey();
+            modelBuilder.Entity<GrantDataYears>().HasNoKey();
             //modelBuilder.Entity<ProjectDto>().HasNoKey(); // Important for stored procedure results
         }
 

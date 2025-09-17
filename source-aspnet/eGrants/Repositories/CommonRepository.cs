@@ -19,14 +19,6 @@ namespace eGrants.Repositories
         // Retrieves amdin codes grants from the database asynchronously
         public async Task<List<AdminCodes>> LoadAdminCodes()
         {
-            //List<AdminCodes> test = await _context.Grants.Select(p => new AdminCodes
-            //{
-            //    admin_phs_org_code = p.admin_phs_org_code,
-            //    profile = p.admin_phs_org_code == "ca" ? "NCI" : null
-            //}).Distinct().OrderBy(p => p.admin_phs_org_code).ToListAsync();
-
-            //return test;
-
             return await _context.Grants.Select(p => new AdminCodes
             {
                 admin_phs_org_code = p.admin_phs_org_code,

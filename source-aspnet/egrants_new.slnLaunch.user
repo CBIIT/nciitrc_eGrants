@@ -3,11 +3,11 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "eGrants\\eGrants.csproj",
+        "Path": "egrants_new\\egrants_new.csproj",
         "Action": "Start"
       },
       {
-        "Path": "egrants_new\\egrants_new.csproj",
+        "Path": "eGrants\\eGrants.csproj",
         "Action": "Start"
       }
     ]

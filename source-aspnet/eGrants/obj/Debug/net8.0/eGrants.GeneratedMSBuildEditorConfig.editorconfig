@@ -60,6 +60,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93TW9kYWxUaW1lb3V0RGlhbG9nLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showPagination.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93UGFnaW5hdGlvbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showUnidentifiedDocs.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93VW5pZGVudGlmaWVkRG9jcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
