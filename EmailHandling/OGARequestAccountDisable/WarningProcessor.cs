@@ -23,8 +23,7 @@ namespace OGARequestAccountDisable
             // these emails are set to receive emails
             // lower tiers for testing, was requested by the team
             _lowerTierEmails.Add("aalyaan.feroz@nih.gov");
-            _lowerTierEmails.Add("luba.tsaturova@nih.gov");
-            _lowerTierEmails.Add("alena.nekrashevich@nih.gov");
+            //_lowerTierEmails.Add("alena.nekrashevich@nih.gov");
 
             // connect to everything
             CommonUtilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
@@ -68,6 +67,8 @@ namespace OGARequestAccountDisable
 
         private Boolean CheckIfEmailSent(DisabledListItem user, SqlConnection con)
         {
+            con.Close();
+            con.Open();
             var queryText = "SELECT psw.email_sent, p.last_login_date " +
                                     "FROM [dbo].[people_sent_warning] psw " +
                                     "inner join dbo.people p on p.person_id = psw.person_id " +
@@ -106,7 +107,7 @@ namespace OGARequestAccountDisable
                         // the deactivation date
                         if (warningListItem.sentFlag == 1
                             && 
-                            warningListItem.lastLoginDate.AddDays(106)
+                            warningListItem.lastLoginDate.AddDays(46)
                             .ToString("yyyy-MM-dd")
                             .Equals(DateTime.Now.ToString("yyyy-MM-dd")))
                         {
@@ -162,15 +163,15 @@ namespace OGARequestAccountDisable
         private string CreateEmailBody(DisabledListItem user)
         {
             //            
-            //            eGrants users are required to sign into the system every 120 days.< br >
+            //            eGrants users are required to sign into the system every 60 days.< br >
             //            In order to maintain access, you must sign into eGrants prior to { deactivation date}
             //            or your account will be deactivated         
             //            eGrants system link: https://egrants.nci.nih.gov
             //              Thank you
 
             var sb = new StringBuilder();
-            var priorToDate = DateTime.Parse(user.LastLoginDateFromDB).AddDays(120).Date;
-            sb.AppendLine("eGrants users are required to sign into the system every 120 days.");
+            var priorToDate = DateTime.Parse(user.LastLoginDateFromDB).AddDays(60).Date;
+            sb.AppendLine("eGrants users are required to sign into the system every 60 days.");
             sb.AppendLine("<br/>");
             sb.AppendLine("In order to maintain access, you must sign into eGrants prior to ");
             sb.AppendLine(priorToDate.Date.ToString("MM/dd/yyyy"));
@@ -216,7 +217,7 @@ namespace OGARequestAccountDisable
             var queryText = "select person_id, first_name, last_name, person_name, email, userid, " +
                 "CONVERT(varchar, last_login_date, 101) as last_login_date_tx " +
                 "FROM [dbo].[people]" +
-                "where active = 1 and last_login_date < (DATEADD(day, -106, GETDATE()))";
+                "where active = 1 and last_login_date < (DATEADD(day, -46, GETDATE()))";
 
             var usersToDisable = new List<DisabledListItem>();
             try
