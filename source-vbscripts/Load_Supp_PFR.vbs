@@ -12,9 +12,7 @@
 	Dim objFSO ,  objFolder ,  objFile ,  i, objLogF
 	Const ForReading = 1, ForWriting = 2, ForAppending = 8, TristateFalse = 0
 	
-	'''conStr = "Provider=SQLOLEDB.1;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=eim;Data Source=ncidb-d131-v\egrants_dev,52300;Application Name=eGrants"
-	''''conStr = "Provider=SQLOLEDB.1;Password=DayofSpr!ng;Persist Security Info=True;User ID=AllWebUSER;Initial Catalog=EIM;Data Source=ncidb-p133-v\egrants_prod,52300;Application Name=docman"
-	conStr = "Provider=SQLNCLI11;Password=Jo0ne62017!;Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
+	conStr = "Provider=SQLNCLI11;Password='';Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 	
 	DOCSRCFLPATH="C:\egrants\SUPP_PFR\"	
 	BAKDSTFLPATH="C:\egrants\SUPP_PFR\BAK\"
