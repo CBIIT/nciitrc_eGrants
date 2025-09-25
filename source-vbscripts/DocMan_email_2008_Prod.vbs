@@ -16,8 +16,7 @@
 	Dim dirpath
 	Dim oConn, oRS, cmd
 	''DOCMAN
-	''conStr = "Provider=SQLNCLI11;Password={PROD_DB_PASSWORD};Persist Security Info=True;User ID=AllWebUSER;Initial Catalog=DOCMAN;Data Source=ncidb-p133-v\egrants_prod,52300;Application Name=docman"
-	conStr = "Provider=SQLNCLI11;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=DOCMAN;Data Source=NCIDB-P232-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
+	conStr = "Provider=SQLNCLI11;Password='';Persist Security Info=True;User ID=egrantsuser;Initial Catalog=DOCMAN;Data Source=NCIDB-P232-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 	
 	
 	Set OtlkApps = GetObject("","Outlook.application")
