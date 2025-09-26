@@ -13,7 +13,7 @@
     <section name="entityFramework" type="System.Data.Entity.Internal.ConfigFile.EntityFrameworkSection, EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false" />
   </configSections>
   <connectionStrings>
-    <add name="EgrantsDB" providerName="System.Data.SqlClient" connectionString="Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Persist Security Info=True;Initial Catalog=EIM;User Id=egrantsuser;Password=Jo0ne62017!;Connect Timeout=45" />
+    <add name="EgrantsDB" providerName="System.Data.SqlClient" connectionString="Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Persist Security Info=True;Initial Catalog=EIM;User Id=egrantsuser;Password='';Connect Timeout=45" />
     <add name="ImageServerUrl" connectionString="https://egrants-web-test.nci.nih.gov/" />
     <add name="WebGrantUrl" connectionString="egrants-file-test.nci.nih.gov" />
     <add name="WebGrantRelativePath" connectionString="egrants/funded2/nci/main/" />
