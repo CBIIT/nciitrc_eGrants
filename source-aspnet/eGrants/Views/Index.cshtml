@@ -26,7 +26,34 @@
 <script src="~/js/egrantsqc.js"></script>
 <script src="~/js/bluebird.js"></script>
 <script src="~/js/jquery-ui-1.13.2.js"></script>
-<script src="~/js/egrantsindex.js"></script>
+
+<script language="JavaScript" type="text/javascript">
+    function getBySelected(grant_id) {
+
+        check_selected_cats(grant_id);
+        // check inserted years
+        var el = "txtYears_" + grant_id;
+
+        if (document.getElementById(el).value != '') {
+            var years = (document.getElementById(el).value).trim();
+            if (isInteger(years) == false || years == 0) {
+                alert("Please insert correct number of the years to search");
+                document.getElementById(el).value = "";
+                document.getElementById(el).focus();
+                return false;
+            } else by_grant(grant_id, 'All', 'All', cats_list, years);
+        }
+
+        if (document.getElementById(el).value == '') {
+            if (document.getElementById("hidApplID").value == "") {
+                by_grant(grant_id, 'All', 'All', cats_list, 'All');
+            } else {
+                var appl_id = document.getElementById("hidApplID").value;
+                by_grant(grant_id, 'All', appl_id, cats_list, appl_id);
+            }
+        }
+    }
+</script>
 
 <!--start save all data from server-->
 <form name="frmGetInfo">
@@ -61,23 +88,23 @@
 <!--end save all data from server-->
 <!--start main-->
 <div id="main">
-
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
 @if (Model.GrantID != null)
     {
         <div id="toggle_bar" style="display: inline; width: 950px;">
             <div id="show_search_form" style="display: none;">
                 <a href="Javascript:show_search_form();" title="View Search Filters">
-                    <img style="height: 32px; vertical-align: middle;" src="~/Content/images/search.png" />
+                    <img style="height: 32px; vertical-align: middle;" src="/images/search.png" />
                 </a>
             </div>
             <div id="show_appls_toggle" style="display: none;">
                 <a href="JavaScript:show_toggle_appls();" title="View Grant Years">
-                    <img style="width: 40px;" src="~/Content/images/appls_toggle.png" />
+                    <img style="width: 40px;" src="/images/appls_toggle.png" />
                 </a>
             </div>
             <div id="show_cats_toggle" style="display: none;">
                 <a href="#" onclick="Javascript:return before_show_toggle_cats();">
-                    <img style="vertical-align: middle; width: 40px;" src="~/Content/images/filter.png" title="View Category Filter" />
+                    <img style="vertical-align: middle; width: 40px;" src="/images/filter.png" title="View Category Filter" />
                 </a>
             </div>
 
@@ -88,12 +115,12 @@
 
         // show appls toggle
         <div>
-            @Html.Partial("~/Egrants/Views/_egrants_showApplsToggle.cshtml")
+            @Html.Partial("~/Views/Egrants/test.cshtml")
         </div>
 
         // show categories toggle
         <div>
-            @Html.Partial("~/Egrants/Views/_egrants_showCatsToggle.cshtml")
+            @Html.Partial("~/Views/Egrants/_egrants_showCatsToggle.cshtml")
         </div>
     }
 
@@ -200,7 +227,7 @@
                         </a>
                     }
 
-                    <button type="button" class="btn btn-default" onclick="return getBySelected(@Convert.ToInt32(grant.grant_id))" title="View Selected Years and Categories for @grant.grant_num">
+                            <button type="button" class="btn btn-default" onclick="return getBySelected(@Convert.ToInt32(grant.grant_id));" title="View Selected Years and Categories for @grant.grant_num">
                         <img src="/images/searchicon.png" width="22" height="22" />
                     </button>
                 </div>
@@ -444,14 +471,14 @@
                             {
                                 displayMpiFlag = false;
                             }
-                                else if (Model.ApplID != null)
+                            else if (Model.ApplID != null)
                             {
                                 // this is appl specific, so hide MPI flag if this appl is not MPI
                                 displayMpiFlag = false;
-                                    if (Model.appllayer_All != null || Model.appllayer_All.Count() == 0)
+                                if (Model.appllayer_All != null || Model.appllayer_All.Count() == 0)
                                 {
-                                        var thisPagesApplID = (int)Model.ApplID;
-                                        var appls = Model.appllayer_All as List<ApplLayerObject>;
+                                    var thisPagesApplID = (int)Model.ApplID;
+                                    var appls = Model.appllayer_All as List<ApplLayerObject>;
                                     var theAppl = appls.Where(a => a.appl_id.ToString() == thisPagesApplID.ToString()).ToList();
                                     if (theAppl != null && theAppl.Count > 0 && theAppl[0] != null && theAppl[0].MPIContacts != null && theAppl[0].MPIContacts.Count() > 1)
                                     {
@@ -459,13 +486,13 @@
                                     }
                                 }
                             }
-                                else if (Model.SelectedAppls != null)
+                            else if (Model.SelectedAppls != null)
                             {
                                 // it's in ViewBag.SelectedAppls
                                 displayMpiFlag = false;
 
-                                    var appls_from_vb = (string)Model.SelectedAppls;
-                                    var appls = Model.appllayer_All as List<ApplLayerObject>;
+                                var appls_from_vb = (string)Model.SelectedAppls;
+                                var appls = Model.appllayer_All as List<ApplLayerObject>;
                                 var appl_ids = appls_from_vb.Split(',');
                                 var theAppls = appls;
                                 if (!appls_from_vb.ToLower().Contains("all") && appl_ids.Count() < 2)
@@ -586,7 +613,7 @@
 }
     <!--end ViewBag.grantlayer-->
     <!--start Unidentified documents when user run qc-->
-    @if (ViewBag.UnidentifiedDocs != null && ViewBag.UnidentifiedDocs.Count >= 1)
+    @if (Model.UnidentifiedDocs != null && Model.UnidentifiedDocs.Count >= 1)
     {
             <div>
                 <!--id="UnidentifiedDoc" style="border-top:groove;width:900px; padding:10px 5px 10px 0;"-->
@@ -610,3 +637,4 @@
     </div>
     <!--end show popup modal-->
 </div><!--end main-->
+<script src="~/js/egrantsindex.js"></script>

@@ -60,9 +60,19 @@ namespace eGrants.Common
     /// <summary>
     ///     The egrants common.
     /// </summary>
-    public class EgrantsCommon
+    public static class EgrantsCommon
     {
         public static readonly string[] SUPPORTED_FILE_TYPES = { ".pdf", ".txt", ".doc", ".docx", ".msg", ".rtf", ".jpg", ".jpeg", ".png", ".gif", ".tif", ".html", ".htm", ".log", ".dat" };
+
+        public static class ErrorMessages
+        {
+            public const string NotFound = "The requested resource was not found.";
+            public const string ServerError = "An unexpected error occurred. Please try again later.";
+            public const string Unauthorized = "You do not have permission to access this resource.";
+            public const string BadRequest = "The request was invalid or cannot be served.";
+            public const string UNEXPECTED_ERROR_OCCURRED = "An unexpected error occurred.";
+            public const string CONTROLLER_TEST_EXCEPTION = "This is a test exception from the controller.";
+        }
 
         ///// <summary>
         ///// Update the logged in users last_login_date to the value of Sql Sever GETDATE().

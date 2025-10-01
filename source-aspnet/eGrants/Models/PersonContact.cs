@@ -40,9 +40,9 @@ namespace eGrants.Models
     /// </summary>
     public class PersonContact
     {
-        public string appl_id { get; set; }
-        public string first_name { get; set; }
-        public string last_name { get; set; }
+        public string? appl_id { get; set; }
+        public string? first_name { get; set; }
+        public string? last_name { get; set; }
         public bool was_PI_that_year { get; set; }
     }
 }

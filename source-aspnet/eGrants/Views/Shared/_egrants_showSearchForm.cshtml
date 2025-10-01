@@ -16,6 +16,7 @@
         }
         else if ($('#txtKW').val() != "" && $('#FiscalYear').val() == "" && ($('#AdminCode').val() != "" || $('#AdminCode').val() == "") && $('#Mechanism').val() == "" && $('#SerialNumber').val() == "") {
             //search by str
+
             var str = $('#txtKW').val().trim();
             if (str.length < 3) {
                 alert("The key word searching should be at least three characters.");

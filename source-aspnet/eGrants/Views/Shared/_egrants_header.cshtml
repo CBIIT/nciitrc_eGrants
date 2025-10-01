@@ -23,6 +23,9 @@
     <link href="~/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/css/egrants.css" rel="stylesheet" />
 
+    <link href="~/lib/toastr/toastr.min.css" rel="stylesheet" />
+
+    
 @*     <script src="~/scripts/jquery-3.6.4.min.js"></script>
     <script src="~/scripts/bootstrap.min.js"></script>
     <script src="~/scripts/validation.js"></script> *@
@@ -30,6 +33,7 @@
     <script src="~/js/jquery-3.6.4.min.js"></script>
     <script src="~/js/bootstrap.min.js"></script>
     <script src="~/js/validation.js"></script>
+    <script src="~/lib/toastr/toastr.min.js"></script>
     <script>
         var user_position_id = @Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id"));
         var QuickLinkType = [];
@@ -38,9 +42,29 @@
         var remainingAutoLogoutMS = @browserTimeout;
         var displayDialogAtRemainingTime = @whenToDisplayTimoutDialog;       // 15000 * 60
 
+
+
         //console.log = function () { };     // MLH disable console log as requested by QA
 
         $(document).ready(function() {
+
+            const params = new URLSearchParams(window.location.search);
+
+            // Get specific parameters
+            const errorMessage = params.get('error'); // "Alex"
+
+            //var errorMessage = '@TempData["ErrorMessage"]';
+            if (errorMessage) {
+                 toastr.options = {
+                    "closeButton": true,           // Adds a close (X) button
+                    "timeOut": 0,                  // Prevents auto-dismiss
+                    "extendedTimeOut": 0,         // Prevents auto-dismiss on hover
+                    "tapToDismiss": false,        // Prevents dismiss on click
+                    "positionClass": "toast-top-right"
+                };
+                toastr.error(errorMessage);
+            }
+
             //check Session["position_id"]
             if (user_position_id >= 2) {
             QuickLink = document.getElementById("leftpanelS");
@@ -65,7 +89,7 @@
 
             updateAuditOrGrantYearModeFromCookie();
 
-            setInterval(updateTimeout, 1000);
+            // setInterval(updateTimeout, 1000);
         });
 
         var keyAndMouseListener = function () {

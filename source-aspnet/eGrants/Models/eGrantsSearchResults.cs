@@ -1,13 +1,14 @@
-﻿using System.Reflection.Emit;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection.Emit;
 
 namespace eGrants.Models
 {
     public class eGrantsSearchResults
     {
-        public int tag { get; set; }
-        public int parent { get; set; }
+        public int? tag { get; set; }
+        public int? parent { get; set; }
 
-        public int grant_id { get; set; }
+        public int? grant_id { get; set; }
         public string? label { get; set; }
         public string? serial_num { get; set; }
         public string? admin_phs_org_code { get; set; }

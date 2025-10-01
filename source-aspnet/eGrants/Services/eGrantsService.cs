@@ -1,8 +1,16 @@
-﻿using eGrants.Functions;
+﻿using System;
+using System.Data;
+
+using eGrants.DAL;
+using eGrants.DTOs;
+using eGrants.Functions;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
+
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace eGrants.Services
 {
@@ -43,7 +51,7 @@ namespace eGrants.Services
                 {
                     try
                     {
-                        searchByStrViewModel = await eGrantsSearchResults( aSearchString,  aGrantId,  "",  aApplId,  aCurrentPage,  aBrowser,  aIC,  aOperator, searchByStrViewModel);
+                        searchByStrViewModel = await eGrantsSearchResults(aSearchString, aGrantId, "", aApplId, aCurrentPage, aBrowser, aIC, aOperator, searchByStrViewModel, true);
                         completed = true;
                     }
                     catch (Exception ex)
@@ -60,7 +68,7 @@ namespace eGrants.Services
 
         public async Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int aFiscalYear, string aMechanism, int aSerialNum, string aAdminCode, int aGrantId, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator)
         {
-             eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
+            eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
 
             if (aFiscalYear == 0 && string.IsNullOrEmpty(aMechanism) && aSerialNum == 0) /*string.IsNullOrEmpty(admincode) &&*/
             {
@@ -103,7 +111,7 @@ namespace eGrants.Services
                 searchByStrViewModel.FilterMechanism = aMechanism;
                 searchByStrViewModel.FilterAdminCode = aAdminCode;
 
-                searchByStrViewModel = await eGrantsSearchResults(filteredQuery, aGrantId, package, aApplId, aCurrentPage, aBrowser, aIC, aOperator, searchByStrViewModel);
+                searchByStrViewModel = await eGrantsSearchResults(filteredQuery, aGrantId, package, aApplId, aCurrentPage, aBrowser, aIC, aOperator, searchByStrViewModel, true);
 
                 if (searchByStrViewModel.grantlayerproperty != null)
                 {
@@ -128,6 +136,12 @@ namespace eGrants.Services
             return searchByStrViewModel;
         }
 
+        public async Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator)
+        {
+            eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
+            searchByStrViewModel = await eGrantsSearchResults(aSearchString, aGrantId, aPackage, aApplId, aCurrentPage, aBrowser, aIC, aOperator, searchByStrViewModel, false);
+            return searchByStrViewModel;
+        }
 
         public async Task<List<Pagination>> LoadPagination(string aSearchString, string aIC, string aUserId, string aPackage = null)
         {
@@ -144,8 +158,42 @@ namespace eGrants.Services
             return await _eGrantRepository.GetYearList(aFiscalYear, aMechanism, aAdminCode, aSerialNumber);
         }
 
-        private async Task<eGrantsSearchViewModel> eGrantsSearchResults(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator, eGrantsSearchViewModel searchByStrViewModel)
+        public async Task<int> CheckGrantID(int aGrantId)
         {
+            return await _eGrantRepository.CheckGrantID(aGrantId);
+        }
+
+        public async Task<string> GetCategoryNameById(string aCategories)
+        {
+            return await _eGrantRepository.GetCategoryNameById(aCategories);
+        }
+
+        public async Task<List<FilterSearchResult>> GetApplsList(int aGrantId, string aFlagType = null, string aYears = null)
+        {
+            return await _eGrantRepository.GetApplsList(aGrantId, aFlagType, aYears);
+        }
+        private async Task<eGrantsSearchViewModel> eGrantsSearchResults(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator, eGrantsSearchViewModel searchByStrViewModel, Boolean loadPagination)
+        {
+            bool isGrant = false;
+            bool isStr = false;
+            bool isAppl = false;
+            bool searchApplIdIsSoftDeleted = false;     // bail if true
+
+            if (aGrantId != 0)
+            {
+                isGrant = true;
+            }
+
+            if (!string.IsNullOrEmpty(aSearchString))
+            {
+                isStr = true;
+            }
+
+            if (aApplId != 0)
+            {
+                isAppl = true;
+            }
+
             //aCompleted = true;
             string ic = "NCI";
             var result = await _eGrantRepository.GetSearchResultsAsync(aSearchString, aGrantId, aPackage, aApplId, aCurrentPage, aBrowser, aIC, aOperator);
@@ -157,7 +205,6 @@ namespace eGrants.Services
             int appl_id = 0;
             var grantList = new List<GrantLayer>();
             var applList = new List<ApplLayerObject>();
-            bool searchApplIdIsSoftDeleted = false;
             var docList = new List<doclayer>();
             List<ApplLayerObject> appllayerproperty = null;
 
@@ -199,7 +246,7 @@ namespace eGrants.Services
                     grant.ms_flag = value.ms_flag.ToString();
                     grant.od_flag = value.od_flag.ToString();
                     grant.ds_flag = value.ds_flag.ToString();
-                    grant.adm_supp = value.adm_supp.ToString();
+                    //grant.adm_supp = value.adm_supp.ToString();
 
                     if (appl_id <= 0)
                     {
@@ -333,16 +380,19 @@ namespace eGrants.Services
                 searchByStrViewModel.grantlayer = searchByStrViewModel.grantlayerproperty;
                 searchByStrViewModel.appllayer = applList;
                 searchByStrViewModel.ApplCount = searchByStrViewModel.appllayer.Count;
-                searchByStrViewModel.appllayer_All = appllayerproperty;
+                searchByStrViewModel.appllayer_All = searchByStrViewModel.appllayerproperty;
                 searchByStrViewModel.doclayer = searchByStrViewModel.doclayerproperty;
                 searchByStrViewModel.DocCount = searchByStrViewModel.doclayer.Count;
 
-                // show pagination
-                searchByStrViewModel.Pagination = await _eGrantRepository.LoadPaginationAsync(
-                    aSearchString,
-                    aIC,
-                    aOperator,
-                    string.Empty);
+                if (loadPagination)
+                {
+                    // show pagination
+                    searchByStrViewModel.Pagination = await _eGrantRepository.LoadPaginationAsync(
+                        aSearchString,
+                        aIC,
+                        aOperator,
+                        string.Empty);
+                }
             }
             else
             {
@@ -350,12 +400,223 @@ namespace eGrants.Services
                 searchByStrViewModel.grantlayer = null;
             }
 
+            if (isGrant || isStr)
+            {
+                PopulateGrantAndStringViews(true, grantList, applList);
+            }
+
+            // every appl with > 1 person from IRDB will be in the response
+            var mpi_info = await GetAllMPIInfo(applList.Select(al => al.appl_id).ToList());
+            PopulateMPIIntoGrants(grantList, applList, mpi_info);
+
             appllayerproperty = applList;
             searchByStrViewModel.appllayer = appllayerproperty;
             searchByStrViewModel.grantList = grantList;
 
             return searchByStrViewModel;
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="isGrant"></param>
+        /// <param name="grantList"></param>
+        /// <param name="applList"></param>
+        private async Task<List<GrantLayer>> PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> aGrantList, List<ApplLayerObject> aApplList)
+        {
+            if (isGrant)
+            {
+                foreach (var grant in aGrantList)
+                {
+                    foreach (var appl in aApplList)
+                    {
+                        if (grant.grant_id == appl.grant_id)
+                        {
+
+
+                            if (string.Equals(appl.appl_type_code, "4") || string.Equals(appl.appl_type_code, "3")
+                                                                        || string.Equals(appl.appl_type_code, "6")
+                                                                        || string.Equals(appl.appl_type_code, "8")
+                                                                        || appl.deleted_by_impac.ToUpper() == "Y"
+                                                                        || Convert.ToInt32(appl.appl_id) < 0)
+                            {
+                                continue;
+                            }
+
+                            if (string.Equals(appl.appl_type_code, "1") || string.Equals(appl.appl_type_code, "2")
+                                                                        || string.Equals(appl.appl_type_code, "5")
+                                                                        || string.Equals(appl.appl_type_code, "7")
+                                                                        || string.Equals(appl.appl_type_code, "9"))
+                            {
+                                List<GrantAndStringViewsDto> grantAndStringViews = await _eGrantRepository.GetGrantAndStringViews(Convert.ToInt32(appl.appl_id));
+
+                                foreach (var item in grantAndStringViews)
+                                {
+                                    grant.SelectedProjectName = item.project_title;
+                                    grant.SelectedOrganizationName = item.org_name?.ToString();
+                                    grant.SelectedGrantPiEmail = item.current_pi_email_address?.ToString();
+                                    grant.SelectedGrantPiName = item.first_name?.ToString() + " " + item.last_name?.ToString();
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+            return aGrantList;
+        }
+
+        /// <summary>
+        /// Gets the MPI info for the icon
+        /// </summary>
+        /// <param name="appl_ids"></param>
+        /// <returns></returns>
+        private async Task<Dictionary<string, List<PersonContact>>> GetAllMPIInfo(List<string> appl_ids)
+        {
+            var results = new Dictionary<string, List<PersonContact>>();
+
+            if (appl_ids == null || appl_ids.Count == 0)
+                return results;
+
+            //using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
+            //{
+            // note that Ingrid learned retrieving email interferes with the ability of the query to return all the MPIs
+            //var sql = "DECLARE @TSQL varchar(8000);" +
+            //    "SELECT @TSQL = 'SELECT APPL_ID, First_Name, Last_name, Role_Type_Code  FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr , e.role_type_code, c.addr_type_code from person_involvements_mv e join persons_secure d on d.person_id = e.person_id left outer join person_addresses_mv c on d.person_id = c.person_id and c.addr_type_code in (''''HOM'''') and c.preferred_addr_code = ''''Y'''' where e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE) and d.person_id = e.person_id '')';" +
+            //    "EXEC (@TSQL)";
+            //var applsParam = string.Join(",", appl_ids);
+            //sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
+
+            //Dictionary<string, List<ApplicantDto>> applicants = await _eGrantRepository.GetAllMPIInfo(appl_ids);
+
+            List<PersonInvolvement> personInvolvements = await _eGrantRepository.GetAllMPIInfo(appl_ids);
+
+            foreach(PersonInvolvement personInvolvement in personInvolvements)
+            {
+                PersonContact person = new PersonContact
+                {
+                    appl_id = (personInvolvement.Appl_Id == null) ? string.Empty : personInvolvement.Appl_Id.ToString(),
+                    first_name = (personInvolvement.First_Name == null) ? string.Empty : (string)personInvolvement.First_Name,
+                    last_name = (personInvolvement.Last_Name == null) ? string.Empty : (string)personInvolvement.Last_Name,
+                    was_PI_that_year = (personInvolvement.Role_Type_Code != null && (string)personInvolvement.Role_Type_Code.ToLower() == "pi")
+                };
+                results.TryAdd(person.appl_id, new List<PersonContact>());
+                results[person.appl_id].Add(person);
+            }
+
+            //foreach (var kvp in applicants)
+            //{
+            //    string applId = kvp.Key;
+            //    List<ApplicantDto> contacts = kvp.Value;
+            //    foreach (PersonContact contact in contacts)
+            //    {
+            //        var person = new PersonContact
+            //        {
+            //            appl_id = contact.appl_id,
+            //            first_name = contact.first_name,
+            //            last_name = contact.last_name,
+            //            was_PI_that_year = contact.was_PI_that_year != null && ((string)contact.was_PI_that_year).ToLower() == "pi"
+            //        };
+            //    }
+            //    if (!results.ContainsKey(person.appl_id))
+            //    {
+            //        results.Add(person.appl_id, new List<PersonContact> { person });
+            //    }
+            //    else
+            //    {
+            //        results[person.appl_id].Add(person);
+            //    }
+            //}
+
+            //using (var cmd = new SqlCommand(sql, conn))
+            //{
+            //    cmd.CommandType = CommandType.Text;
+
+            //    conn.Open();
+            //    var rdr = cmd.ExecuteReader();
+
+            //    while (rdr.Read())
+            //    {
+            //        var person = new PersonContact
+            //        {
+            //            appl_id = (rdr[0] == DBNull.Value) ? string.Empty : rdr[0].ToString(),
+            //            first_name = (rdr[1] == DBNull.Value) ? string.Empty : (string)rdr[1],
+            //            last_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
+            //            was_PI_that_year = (rdr[3] == DBNull.Value || ((string)rdr[3]).ToLower() != "pi") ? false : true
+            //        };
+            //        if (!results.ContainsKey(person.appl_id))
+            //        {
+            //            results.Add(person.appl_id, new List<PersonContact> { person });
+            //        }
+            //        else
+            //        {
+            //            results[person.appl_id].Add(person);
+            //        }
+            //    }
+            //}
+            //}
+
+            // prune out the ones that have duplicates
+            //var deleteTheseKeys = new List<string>();
+            //foreach (var key in results.Keys)
+            //{
+            //    if (results[key].Count <= 1)
+            //    {
+            //        deleteTheseKeys.Add(key);
+            //    }
+            //}
+            //foreach (var keyToDelete in deleteTheseKeys)
+            //{
+            //    results.Remove(keyToDelete);
+            //}
+
+            foreach (var key in results.Where(kvp => kvp.Value.Count <= 1).Select(kvp => kvp.Key).ToList())
+            {
+                results.Remove(key);
+            }
+
+            return results;
+        }
+
+        private static void PopulateMPIIntoGrants(List<GrantLayer> grantList, List<ApplLayerObject> applList, Dictionary<string, List<PersonContact>> mpiInfo)
+        {
+            var applLookup = applList.GroupBy(a => a.grant_id)
+                                     .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var grant in grantList)
+            {
+                var piListThisGrant = new List<PersonContact>();
+                var alreadyAddedGrantNames = new HashSet<string>();
+
+                if (!applLookup.TryGetValue(grant.grant_id, out var applsThisGrant))
+                    continue;
+
+                foreach (var appl in applsThisGrant)
+                {
+                    var piListThisAppl = new List<PersonContact>();
+                    var alreadyAddedApplNames = new HashSet<string>();
+
+                    if (!mpiInfo.TryGetValue(appl.appl_id, out var contacts))
+                        continue;
+
+                    foreach (var contact in contacts)
+                    {
+                        var nameKey = $"{contact.first_name},{contact.last_name}";
+
+                        if (alreadyAddedGrantNames.Add(nameKey))
+                            piListThisGrant.Add(contact);
+
+                        if (alreadyAddedApplNames.Add(nameKey))
+                            piListThisAppl.Add(contact);
+                    }
+
+                    appl.MPIContacts = piListThisAppl;
+                }
+
+                grant.MPIContacts = piListThisGrant;
+            }
         }
     }
 }

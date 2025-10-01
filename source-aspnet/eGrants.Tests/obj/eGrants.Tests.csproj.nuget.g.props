@@ -23,5 +23,6 @@
   </ImportGroup>
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <Pkgxunit_analyzers Condition=" '$(Pkgxunit_analyzers)' == '' ">C:\Users\dehuffdc\.nuget\packages\xunit.analyzers\1.4.0</Pkgxunit_analyzers>
+    <PkgjQuery Condition=" '$(PkgjQuery)' == '' ">C:\Users\dehuffdc\.nuget\packages\jquery\1.6.3</PkgjQuery>
   </PropertyGroup>
 </Project>

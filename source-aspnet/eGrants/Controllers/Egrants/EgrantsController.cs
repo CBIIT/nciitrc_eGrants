@@ -655,161 +655,201 @@ namespace eGrants.Controllers.Egrants
 
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext);
 
-            try
-            {
+            //try
+            //{
                 if (!HttpContext.Session.TryGetValue("ic", out var icbytes)) sessionInfo.Ic = "";
                 if (!HttpContext.Session.TryGetValue("browser", out var browserbytes)) sessionInfo.Browser = "";
                 if (!HttpContext.Session.TryGetValue("userid", out var useridbytes)) sessionInfo.UserId = "";
 
                 eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByStrAsync(aStr, 0, 0, 0, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId);
+
+                if (eGrantsSearchViewModelList.grantlayerproperty != null)
+                {
+                    // show pagination
+                    eGrantsSearchViewModelList.Pagination = await _eGrantsService.LoadPagination(
+                            aStr,
+                            sessionInfo.Ic, 
+                            sessionInfo.UserId,
+                            string.Empty);
+                }
+                else
+                {
+                    eGrantsSearchViewModelList.Message = "No data found for the search";
+                    eGrantsSearchViewModelList.grantlayer = null;
+                }
+
                 eGrantsSearchViewModelList.Mode = aMode;
                 eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
                 return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
-            }
-            catch (Exception ex)
-            {
-                return View("Error");
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    ////return View("Error");
+            //    //// Option 1: Use ViewData
+            //    ////ViewData["ErrorMessage"] = "Something went wrong while processing your request.";
+            //    eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
+
+            //    //// Option 2: Use ModelState
+            //    //ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+
+            //    //// Return the same view with the existing model (if partially populated)
+            //    //return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
+
+            //    TempData["ErrorMessage"] = "Oops! Something went wrong while processing your request.";
+            //    return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
+            //}
         }
 
-        //    /// <summary>
-        //    /// The by_grant.
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <param name="package">
-        //    /// The package.
-        //    /// </param>
-        //    /// <param name="categories">
-        //    /// The categories.
-        //    /// </param>
-        //    /// <param name="appls_list">
-        //    /// The appls_list.
-        //    /// </param>
-        //    /// <param name="years">
-        //    /// The years.
-        //    /// </param>
-        //    /// <param name="mode">
-        //    /// The mode.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult by_grant(
-        //        int grant_id = 0,
-        //        string package = null,
-        //        string categories = null,
-        //        string appls_list = null,
-        //        string years = null,
-        //        string mode = null)
-        //    {
-        //        ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-        //        var isexisting = Dashboard.Functions.Egrants.CheckGrantID(grant_id);
+        /// <summary>
+        /// The by_grant.
+        /// </summary>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <param name="package">
+        /// The package.
+        /// </param>
+        /// <param name="categories">
+        /// The categories.
+        /// </param>
+        /// <param name="appls_list">
+        /// The appls_list.
+        /// </param>
+        /// <param name="years">
+        /// The years.
+        /// </param>
+        /// <param name="mode">
+        /// The mode.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<IActionResult> by_grant(
+            int aGrantId = 0,
+            string aPackage = null,
+            string aCategories = null,
+            string aApplsList = null,
+            string aYears = null,
+            string aMode = null)
+        {
+            eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
 
-        //        if (grant_id == 0 || isexisting == 0)
-        //        {
-        //            ViewBag.Message = "No data found for the search";
-        //            ViewBag.grantlayer = null;
-        //        }
-        //        else
-        //        {
-        //            ViewBag.bygrant = 1;
-        //            ViewBag.GrantID = grant_id;
-        //            ViewBag.Package = package;
-        //            ViewBag.Mode = mode;
-        //            ViewBag.SearchStyle = "by_grant";
-        //            ViewBag.SelectedYears = years;
-        //            ViewBag.SelectedCats = categories;
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext);
 
-        //            if (categories == string.Empty || categories == "All" || categories == "all")
-        //                ViewBag.SelectedCategories = "All";
-        //            else if (categories != string.Empty && categories != "All" && categories != "all")
-        //                ViewBag.SelectedCategories = Dashboard.Functions.Egrants.Get_CategoryName_by_id(categories);
+            //ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+            var isExisting = await _eGrantsService.CheckGrantID(aGrantId);
 
-        //            // load data from DB
-        //            Search.egrants_search(
-        //                string.Empty,
-        //                grant_id,
-        //                package,
-        //                0,
-        //                0,
-        //                Convert.ToString(this.Session["browser"]),
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
+            if (!HttpContext.Session.TryGetValue("ic", out var icbytes)) sessionInfo.Ic = "";
+            if (!HttpContext.Session.TryGetValue("browser", out var browserbytes)) sessionInfo.Browser = "";
+            if (!HttpContext.Session.TryGetValue("userid", out var useridbytes)) sessionInfo.UserId = "";
 
-        //            ViewBag.grantlayer = Search.grantlayerproperty;
-        //            ViewBag.appllayer_All = Search.appllayerproperty;
-        //            ViewBag.appllayer = Search.appllayerproperty;
-        //            ViewBag.ApplCount = ViewBag.appllayer.Count;
-        //            ViewBag.doclayer = Search.doclayerproperty;
-        //            ViewBag.DocCount = ViewBag.doclayer.Count;
+            //return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
 
-        //            // set appls_lis for searching by flag_type
-        //            if (package != string.Empty && package != "All" && package != "all")
-        //                appls_list = EgrantsAppl.GetApplsList(grant_id, package);
+            if (aGrantId == 0 || isExisting == 0)
+            {
+                eGrantsSearchViewModelList.Message = "No data found for the search";
+                eGrantsSearchViewModelList.grantlayer = null;
+            }
+            else
+            {
+                // load data from DB
+                eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByGrantAsync(string.Empty, aGrantId, aPackage, 0, 0, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId);
 
-        //            // set appls_lis for searching by years
-        //            if (years != string.Empty)
-        //            {
-        //                if (years == "all" || years == "All")
-        //                    appls_list = "All";
-        //                else
-        //                    appls_list = EgrantsAppl.GetApplsList(grant_id, null, years);
-        //            }
+                eGrantsSearchViewModelList.bygrant = 1;
+                eGrantsSearchViewModelList.GrantID = aGrantId;
+                eGrantsSearchViewModelList.Package = aPackage;
+                eGrantsSearchViewModelList.Mode = aMode;
+                eGrantsSearchViewModelList.SearchStyle = "by_grant";
+                eGrantsSearchViewModelList.SelectedYears = aYears;
+                eGrantsSearchViewModelList.SelectedCats = aCategories;
 
-        //            ViewBag.SelectedAppls = appls_list;
+                if (aCategories == string.Empty || aCategories == "All" || aCategories == "all")
+                    eGrantsSearchViewModelList.SelectedCategories = "All";
+                else if (aCategories != string.Empty && aCategories != "All" && aCategories != "all")
+                    eGrantsSearchViewModelList.SelectedCategories = await _eGrantsService.GetCategoryNameById(aCategories);
 
-        //            // reset appllayer and limit show appls if appls_list with search parameters
-        //            if (appls_list != null && !appls_list.Equals("All", StringComparison.InvariantCultureIgnoreCase))
-        //            {
-        //                var appllist = new List<ApplLayerObject>();
+                eGrantsSearchViewModelList.grantlayer = eGrantsSearchViewModelList.grantlayerproperty;
+                eGrantsSearchViewModelList.appllayer_All = eGrantsSearchViewModelList.appllayerproperty;
+                eGrantsSearchViewModelList.appllayer = eGrantsSearchViewModelList.appllayerproperty;
+                eGrantsSearchViewModelList.ApplCount = eGrantsSearchViewModelList.appllayer.Count;
+                eGrantsSearchViewModelList.doclayer = eGrantsSearchViewModelList.doclayerproperty;
+                eGrantsSearchViewModelList.DocCount = eGrantsSearchViewModelList.doclayer.Count;
 
-        //                // for more than one appl
-        //                if (appls_list.IndexOf(',') > 1)
-        //                {
-        //                    var app = appls_list.Split(',').ToList();
+                // set appls_lis for searching by flag_type
+                if (aPackage != string.Empty && aPackage != "All" && aPackage != "all")
+                {
+                    var filterSearchResult = await _eGrantsService.GetApplsList(aGrantId, aPackage);
+                    aApplsList = filterSearchResult.Select(x => x.Value).FirstOrDefault();
+                }
 
-        //                    // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
-        //                    foreach (var appl in ViewBag.appllayer)
-        //                    {
-        //                        if (app.Any(n => n == appl.appl_id))
-        //                        {
-        //                            appl.display_docs = "y";
-        //                            appllist.Add(appl);
-        //                        }
-        //                    }
+                // set appls_lis for searching by years
+                if (aYears != string.Empty)
+                {
+                    if (aYears == "all" || aYears == "All")
+                        aApplsList = "All";
+                    else
+                    {
+                        var filterSearchResult = await _eGrantsService.GetApplsList(aGrantId, null, aYears);
+                        aApplsList = filterSearchResult.Select(x => x.Value).FirstOrDefault();
+                    }
+                    //  aApplsList = EgrantsAppl.GetApplsList(grant_id, null, aYears);
+                }
 
-        //                    ViewBag.appllayer = appllist;
-        //                }
+                eGrantsSearchViewModelList.SelectedAppls = aApplsList;
 
-        //                // for only one appl
-        //                else
-        //                {
-        //                    // ViewBag.ApplID = appls_list;
-        //                    var app = appls_list.Split().ToList();
+                // reset appllayer and limit show appls if appls_list with search parameters
+                if (aApplsList != null && !aApplsList.Equals("All", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var appllist = new List<ApplLayerObject>();
 
-        //                    // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
-        //                    foreach (var appl in ViewBag.appllayer)
-        //                    if (app.Any(n => n == appl.appl_id))
-        //                    {
-        //                        appl.display_docs = "y";
-        //                        appllist.Add(appl);
-        //                    }
-        //                    ViewBag.appllayer = appllist;
-        //                }
-        //            }
-        //            else if (appls_list != null && appls_list.Equals("All", StringComparison.InvariantCultureIgnoreCase))
-        //            {
-        //                foreach (var appl in ViewBag.appllayer)
-        //                {
-        //                    appl.display_docs = "y";
-        //                }
-        //            }
-        //        }
+                    // for more than one appl
+                    if (aApplsList.IndexOf(',') > 1)
+                    {
+                        var app = aApplsList.Split(',').ToList();
 
-        //        return View("~/Egrants/Views/Index.cshtml");
-        //    }
+                        // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
+                        foreach (var appl in eGrantsSearchViewModelList.appllayer)
+                        {
+                            if (app.Any(n => n == appl.appl_id))
+                            {
+                                appl.display_docs = "y";
+                                appllist.Add(appl);
+                            }
+                        }
+
+                        eGrantsSearchViewModelList.appllayer = appllist;
+                    }
+
+                    // for only one appl
+                    else
+                    {
+                        // ViewBag.ApplID = appls_list;
+                        var app = aApplsList.Split().ToList();
+
+                        // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
+                        foreach (var appl in eGrantsSearchViewModelList.appllayer)
+                            if (app.Any(n => n == appl.appl_id))
+                            {
+                                appl.display_docs = "y";
+                                appllist.Add(appl);
+                            }
+                        eGrantsSearchViewModelList.appllayer = appllist;
+                    }
+                }
+                else if (aApplsList != null && aApplsList.Equals("All", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    foreach (var appl in eGrantsSearchViewModelList.appllayer)
+                    {
+                        appl.display_docs = "y";
+                    }
+                }
+            }
+
+            eGrantsSearchViewModelList.Mode = aMode;
+            eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
+
+            return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
+        }
 
         //    /// <summary>
         //    /// The by_appl.
@@ -1242,75 +1282,77 @@ namespace eGrants.Controllers.Egrants
         //        return this.Json(data_list, JsonRequestBehavior.AllowGet);
         //    }
 
-        //    // load documents by appl_id
-        //    /// <summary>
-        //    /// The load docs grid.
-        //    /// </summary>
-        //    /// <param name="appl_id">
-        //    /// The appl_id.
-        //    /// </param>
-        //    /// <param name="search_type">
-        //    /// The search_type.
-        //    /// </param>
-        //    /// <param name="category_list">
-        //    /// The category_list.
-        //    /// </param>
-        //    /// <param name="mode">
-        //    /// The mode.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="JsonResult"/>.
-        //    /// </returns>
-        //    public JsonResult LoadDocsGrid(int appl_id, string search_type = null, string category_list = null, string mode = null)
-        //    {
-        //        Exception exceptionKeeper = null;
-        //        bool completed = false;
-        //        for (int i = 0; i < MAX_RETRIES; ++i)
-        //        {
-        //            try
-        //            {
-        //                Search_by_appl_id.LoadDocs(
-        //                appl_id,
-        //                search_type,
-        //                category_list,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-        //                completed = true;
-        //                break;
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                exceptionKeeper = ex;
-        //                // 5 retries, ok now log and deal with the error.
-        //            }
-        //        }
-        //        if (!completed)
-        //            throw exceptionKeeper;
+        // load documents by appl_id
+        /// <summary>
+        /// The load docs grid.
+        /// </summary>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="search_type">
+        /// The search_type.
+        /// </param>
+        /// <param name="category_list">
+        /// The category_list.
+        /// </param>
+        /// <param name="mode">
+        /// The mode.
+        /// </param>
+        /// <returns>
+        /// The <see cref="JsonResult"/>.
+        /// </returns>
+        public JsonResult LoadDocsGrid(int appl_id, string search_type = null, string category_list = null, string mode = null)
+        {
+            Exception exceptionKeeper = null;
+            bool completed = false;
+            //for (int i = 0; i < MAX_RETRIES; ++i)
+            //{
+            //    try
+            //    {
+            //        Search_by_appl_id.LoadDocs(
+            //        appl_id,
+            //        search_type,
+            //        category_list,
+            //        Convert.ToString(this.Session["ic"]),
+            //        Convert.ToString(this.Session["userid"]));
+            //        completed = true;
+            //        break;
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        exceptionKeeper = ex;
+            //        // 5 retries, ok now log and deal with the error.
+            //    }
+            //}
+            //if (!completed)
+            //    throw exceptionKeeper;
 
-        //        ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
+            //ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
 
-        //        // ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
-        //        dynamic res = new { data = ViewBag.doclayer };
+            //// ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
+            //dynamic res = new { data = ViewBag.doclayer };
 
-        //        return Json(res, JsonRequestBehavior.AllowGet);
-        //    }
+            //return Json(res, JsonRequestBehavior.AllowGet);
+            return Json(null);
+        }
 
-        //    public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)
-        //    {
-        //        Search_by_appl_id.LoadDocs(
-        //            appl_id,
-        //            search_type,
-        //            category_list,
-        //            Convert.ToString(this.Session["ic"]),
-        //            Convert.ToString(this.Session["userid"]));
+        public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)
+        {
+            //Search_by_appl_id.LoadDocs(
+            //    appl_id,
+            //    search_type,
+            //    category_list,
+            //    Convert.ToString(this.Session["ic"]),
+            //    Convert.ToString(this.Session["userid"]));
 
-        //        ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
+            //ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
 
-        //        // ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
-        //        dynamic res = new { data = ViewBag.doclayer };
+            //// ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
+            //dynamic res = new { data = ViewBag.doclayer };
 
-        //        return Json(res, JsonRequestBehavior.AllowGet);
-        //    }
+            //return Json(res, JsonRequestBehavior.AllowGet);
+            return Json(null);
+        }
 
         //    /// <summary>
         //    /// The stop_notice.
