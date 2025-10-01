@@ -72,9 +72,17 @@
               "target": "Package",
               "version": "[13.0.3, )"
             },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
             "Yarp.ReverseProxy": {
               "target": "Package",
               "version": "[2.0.1, )"
+            },
+            "toastr": {
+              "target": "Package",
+              "version": "[2.1.1, )"
             }
           },
           "imports": [

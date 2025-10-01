@@ -6,14 +6,14 @@ namespace eGrants.ViewModels
     {
         public eGrantsSearchViewModel()
         {
-            //just for testing purposes
-            UnidentifiedDocs = new List<string>
-            {
-                "UserGuide.pdf",
-                "TermsOfService.docx",
-                "PrivacyPolicy.txt",
-                "FAQ.html"
-            };
+            ////just for testing purposes
+            //UnidentifiedDocs = new List<string>
+            //{
+            //    "UserGuide.pdf",
+            //    "TermsOfService.docx",
+            //    "PrivacyPolicy.txt",
+            //    "FAQ.html"
+            //};
         }
         public int tag { get; set; }
         //public int parent { get; set; }
@@ -109,6 +109,8 @@ namespace eGrants.ViewModels
         public List<GrantLayer> grantList { get; set; }
 
         public int? GrantID { get; set; }
+
+        public int bygrant { get; set; }
 
         public string Package { get; set; }
         public int? ApplID { get; set; }
