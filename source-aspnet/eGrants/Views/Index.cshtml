@@ -115,7 +115,7 @@
 
         // show appls toggle
         <div>
-            @Html.Partial("~/Views/Egrants/test.cshtml")
+            @Html.Partial("~/Views/Egrants/_egrants_showApplsToggle.cshtml")
         </div>
 
         // show categories toggle
@@ -217,7 +217,7 @@
                         @if (Model.SelectedCats != string.Empty && Model.SelectedCats != null)
                     {
                         <a href="Javascript:show_cats_zone(@grant.grant_id)">
-                            <img height="34" src="~/Content/images/filter_selected.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
+                            <img height="34" src="/images/filter_selected.png" title="View Category Filter for @grant.grant_num" style="margin-left: 20px;" />
                         </a>
                     }
                     else

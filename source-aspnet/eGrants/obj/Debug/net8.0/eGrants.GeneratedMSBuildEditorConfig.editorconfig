@@ -28,10 +28,6 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/test.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1x0ZXN0LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Development/eGrants/source-aspnet/eGrants/Views/eGrants/_egrants_showAppl.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZUdyYW50c1xfZWdyYW50c19zaG93QXBwbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

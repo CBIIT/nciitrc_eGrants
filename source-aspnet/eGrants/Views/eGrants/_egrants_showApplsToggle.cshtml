@@ -1,6 +1,5 @@
-﻿
-
-@using eGrants.Models;
+﻿@using eGrants.Models;
+@using Newtonsoft.Json
 @{
     //declare for all appls toggle
     int all_appls_per_column = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(Model.ApplCount) / 3));
@@ -45,42 +44,42 @@
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
+                                        <img src="/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_fda_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
+                                        <img src="/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_ms_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
+                                        <img src="/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_od_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
+                                        <img src="/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
                                     }
 
                                     @if (appl.deleted_by_impac == "y")
                                     {
-                                        <img src="~/Content/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
+                                        <img src="/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
                                     }
 
                                     @if (appl.competing == "yes")
                                     {
-                                        <img src="~/Content/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
+                                        <img src="/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 4)
                                     {
-                                        <img src="~/Content/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
+                                        <img src="/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 7)
                                     {
-                                        <img src="~/Content/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
+                                        <img src="/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
                                     }
                                 </div>
                             }
@@ -97,42 +96,42 @@
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
+                                        <img src="/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_fda_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
+                                        <img src="/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_ms_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
+                                        <img src="/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_od_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
+                                        <img src="/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
                                     }
 
                                     @if (appl.deleted_by_impac == "y")
                                     {
-                                        <img src="~/Content/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
+                                        <img src="/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
                                     }
 
                                     @if (appl.competing == "yes")
                                     {
-                                        <img src="~/Content/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
+                                        <img src="/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 4)
                                     {
-                                        <img src="~/Content/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
+                                        <img src="/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 7)
                                     {
-                                        <img src="~/Content/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
+                                        <img src="/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
                                     }
                                 </div>
                             }
@@ -149,42 +148,42 @@
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
+                                        <img src="/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_fda_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
+                                        <img src="/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_ms_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
+                                        <img src="/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_od_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
+                                        <img src="/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
                                     }
 
                                     @if (appl.deleted_by_impac == "y")
                                     {
-                                        <img src="~/Content/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
+                                        <img src="/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
                                     }
 
                                     @if (appl.competing == "yes")
                                     {
-                                        <img src="~/Content/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
+                                        <img src="/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 4)
                                     {
-                                        <img src="~/Content/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
+                                        <img src="/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 7)
                                     {
-                                        <img src="~/Content/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
+                                        <img src="/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
                                     }
                                 </div>
                             }
@@ -195,17 +194,15 @@
             </div>
             <div style="display:inline; float:left;">
                 @*position:absolute; bottom:0;*@
-                <!--to search-->
-                <a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style='width:30px; margin-left:20px' src="~/Content/images/searchicon.png" /></a>
+                <a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style='width:30px; margin-left:20px' src="/images/searchicon.png" /></a>
                 @* <span>&#0160;&#0160;</span>*@
                 @if (Model.ApplCount > 12)
                 {
-                    <a href="Javascript:toggle_appls_mode_switch('defualt_appls')"><img src="~/Content/images/minus.png" title="Only View 12 Grant Years" style="height:40px" /></a>
+                    <a href="Javascript:toggle_appls_mode_switch('defualt_appls')"><img src="/images/minus.png" title="Only View 12 Grant Years" style="height:40px" /></a>
                 }
             </div>
         </div>
 
-        <!--show default 12 appls toggle -->
         <div id="defualt_appls" style="display:inline; position:relative;">
             <div style="float: left; display: inline; width: 900px;">
                 <div class="row">
@@ -219,42 +216,42 @@
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
+                                        <img src="/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_fda_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
+                                        <img src="/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_ms_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
+                                        <img src="/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_od_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
+                                        <img src="/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
                                     }
 
                                     @if (appl.deleted_by_impac == "y")
                                     {
-                                        <img src="~/Content/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
+                                        <img src="/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
                                     }
 
                                     @if (appl.competing == "yes")
                                     {
-                                        <img src="~/Content/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
+                                        <img src="/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 4)
                                     {
-                                        <img src="~/Content/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
+                                        <img src="/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 7)
                                     {
-                                        <img src="~/Content/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
+                                        <img src="/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
                                     }
                                 </div>
                             }
@@ -272,42 +269,42 @@
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
+                                        <img src="/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_fda_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
+                                        <img src="/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_ms_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
+                                        <img src="/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_od_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
+                                        <img src="/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
                                     }
 
                                     @if (appl.deleted_by_impac == "y")
                                     {
-                                        <img src="~/Content/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
+                                        <img src="/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
                                     }
 
                                     @if (appl.competing == "yes")
                                     {
-                                        <img src="~/Content/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
+                                        <img src="/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 4)
                                     {
-                                        <img src="~/Content/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
+                                        <img src="/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 7)
                                     {
-                                        <img src="~/Content/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
+                                        <img src="/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
                                     }
                                 </div>
                             }
@@ -325,42 +322,42 @@
                                     <a href="Javascript:by_appl(@appl.appl_id )" title="View All Documents for @appl.full_grant_num">@appl.full_grant_num</a>
                                     @if (Convert.ToString(appl.appl_ds_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
+                                        <img src="/images/flag_ds.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Diversity Supplement Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_fda_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
+                                        <img src="/images/flag_fda.jpg" style="margin-left: 5px; height: 16px; display: inline" title="FDA Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_ms_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
+                                        <img src="/images/flag_ms.jpg" style="margin-left: 5px; height: 16px; display: inline" title="Moonshot Funded Grant" />
                                     }
 
                                     @if (Convert.ToString(appl.appl_od_flag) == "y")
                                     {
-                                        <img src="~/Content/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
+                                        <img src="/images/flag_od.jpg" style="margin-left: 5px; height: 16px; display: inline" title="OD Funded Grant" />
                                     }
 
                                     @if (appl.deleted_by_impac == "y")
                                     {
-                                        <img src="~/Content/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
+                                        <img src="/images/deleted_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Grant Year Deleted by IMPAC ||" />
                                     }
 
                                     @if (appl.competing == "yes")
                                     {
-                                        <img src="~/Content/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
+                                        <img src="/images/compet_yr.png" style="margin-left: 5px; height: 16px; display: inline" title="Competing Years" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 4)
                                     {
-                                        <img src="~/Content/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
+                                        <img src="/images/Type4.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 4 Grant Extension" />
                                     }
 
                                     @if (Convert.ToInt16(appl.appl_type_code) == 7)
                                     {
-                                        <img src="~/Content/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
+                                        <img src="/images/Type7.bmp" style="margin-left: 5px; height: 16px; display: inline;" title="Type 7 Grant Transfer" />
                                     }
                                 </div>
                             }
@@ -370,13 +367,13 @@
                 </div>
             </div>
             <div style="display:inline; float:left;">
-                <!--to search-->
-                <a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style="width:30px; margin-left:20px" src="~/Content/images/searchicon.png" /></a>
+
+                <a href="JavaScript:search_by_toggle()" title="Search for selected Grant Years and Categories"><img style="width:30px; margin-left:20px" src="/images/searchicon.png" /></a>
                 <span>&#0160;&#0160;</span>
-                <!--to show all appls-->
+
                 @if (Model.ApplCount > 12)
                 {
-                    <a href="Javascript:toggle_appls_mode_switch('all_appls')"><img src='~/Content/images/plus.png' title='View All Grant Years' style="height:40px;" /></a>
+                    <a href="Javascript:toggle_appls_mode_switch('all_appls')"><img src='/images/plus.png' title='View All Grant Years' style="height:40px;" /></a>
                 }
             </div>
         </div>
@@ -386,267 +383,253 @@
     </div>
 }
 @*<script src="~/scripts/jquery-3.6.4.min.js"></script>*@
-<script>
+<script type="text/javascript">
+    //click toggle appls icon  grant_id, show_mode
+    function show_toggle_appls() {
+        //show search form icon but not show search form
+        document.getElementById("show_search_form").style.display = "inline";
+        document.getElementById("searchform").style.display = "none";
 
-//click toggle appls icon  grant_id, show_mode
-function show_toggle_appls() {
-    //show search form icon but not show search form
-    document.getElementById("show_search_form").style.display = "inline";
-    document.getElementById("searchform").style.display = "none";
+        //document.getElementById("show_download_toggle").style.display = "inline";
+        //show cate_toggle icon but not show toggle_cats
+        document.getElementById("show_cats_toggle").style.display = "inline";
+        //$('#toggle_cats').empty();
+        $('#cats_column_1').empty();
+        $('#cats_column_2').empty();
+        $('#cats_column_3').empty();
+        document.getElementById("all_toggle_cats").checked = false;
+        document.getElementById("toggle_cats").style.display = "none";
 
-    //document.getElementById("show_download_toggle").style.display = "inline";
-    //show cate_toggle icon but not show toggle_cats
-    document.getElementById("show_cats_toggle").style.display = "inline";
-    //$('#toggle_cats').empty();
-    $('#cats_column_1').empty();
-    $('#cats_column_2').empty();
-    $('#cats_column_3').empty();
-    document.getElementById("all_toggle_cats").checked = false;
-    document.getElementById("toggle_cats").style.display = "none";
+        //show toogle_appls but not show appls_toggle icon
+        document.getElementById("show_appls_toggle").style.display = "none";
+        document.getElementById("toggle_appls").style.display = "inline";
+        document.getElementById("toggle_title").innerHTML = "Grant Years";
 
-    //show toogle_appls but not show appls_toggle icon
-    document.getElementById("show_appls_toggle").style.display = "none";
-    document.getElementById("toggle_appls").style.display = "inline";
-    document.getElementById("toggle_title").innerHTML = "Grant Years";
-
-    document.getElementById("defualt_appls").style.display = "inline";
-    document.getElementById("all_appls").style.display = "none";
-    check_toggle_appls_checkbox("defualt_appls");
-
-    alert("here3");
-
-
-}
-
-//switch toggle appls mode
-function toggle_appls_mode_switch(show_mode) {
-    //alert(show_mode);
-    if (show_mode == "all_appls") {
-        //show all_appls, clean and hide defualt_appls
-        document.getElementById("all_appls").style.display = "inline";
-        document.getElementById("defualt_appls").style.display = "none";
-        var checkboxes = $('div#defualt_appls input[type="checkbox"]');
-        // checkboxes.each(function (index) {
-        //     $(this).prop("checked", false);
-        // })
-    }
-
-    if (show_mode == "defualt_appls") {
-        //show defualt_appls, clean and hide all_appls
         document.getElementById("defualt_appls").style.display = "inline";
         document.getElementById("all_appls").style.display = "none";
-        var checkboxes = $('div#all_appls input[type="checkbox"]');
-        checkboxes.each(function(selected_appls_checkbox) {
-            $(this).prop("checked", false);
-        });
-    }
+        check_toggle_appls_checkbox("defualt_appls");
 
-    check_toggle_appls_checkbox(show_mode);
-}
-
-//check checkbox if appl_id in selectedappl list
-function check_toggle_appls_checkbox(show_mode) {
-    //check show appls mode
-    if (show_mode == "defualt_appls") {
-        var checkboxes = $('div#defualt_appls input[type="checkbox"]');
-    } else {
-        var checkboxes = $('div#all_appls input[type="checkbox"]');
-    }
-
-    if (ShowToggleAppls == 0) {
-        if (document.getElementById("hidApplID").value != "") {
-            appls_list = document.getElementById("hidApplID").value;
-            set_single_appl_checkbox(appls_list, show_mode);
-        }
-
-        if (document.getElementById("hidSelectedAppls").value != "") {
-            appls_list = document.getElementById("hidSelectedAppls").value;
-
-            if (appls_list == "All" || appls_list == "all") {
-                document.getElementById("toggle_appls_checkall").checked = true;
-                // checkboxes.each(function(index) {
-                //     $(this).prop("checked", true);
-                // });
-            }
-            else {
-                if (appls_list.indexOf(",") >= 1) {
-                    var selectedappls = appls_list;
-                    var i = selectedappls.split(",").length - 1;
-                    if (i > 0) {
-                        while (i > 0) {
-                            var comma = selectedappls.lastIndexOf(",");
-                            var appl_id = selectedappls.substring(comma + 1, selectedappls.length);
-                            set_single_appl_checkbox(appl_id, show_mode);
-                            i = i - 1;
-                            selectedappls = selectedappls.substring(0, comma);
-                        }
-                    }
-
-                    if (i == 0) {
-                        var appl_id = selectedappls;
-                        set_single_appl_checkbox(appl_id, show_mode);
-                    }
-                } else set_single_appl_checkbox(appls_list, show_mode);
-            }
-        }
-    }
-    //selected checkbox by user selected and created appls_list
-    else {
-        if (appls_list == "All") {
-            // checkboxes.each(function (index) {
-            //     $(this).prop("checked", true);
-            // })
-        }else if (appls_list.indexOf(",") >= 1) {
-            var selected_appls = appls_list;
-            var i = selected_appls.split(",").length - 1;
-            if (i > 0) {
-                while (i > 0) {
-                    var comma = selected_appls.lastIndexOf(",");
-                    var appl_id = selected_appls.substring(comma + 1, selected_appls.length);
-                    set_single_appl_checkbox(appl_id, show_mode);
-                    i = i - 1;
-                    selected_appls = selected_appls.substring(0, comma);
-                }
-            }
-            //for last appl_id
-            if (i == 0) {
-                var appl_id = selected_appls;
-                set_single_appl_checkbox(appl_id, show_mode);
-            }
-        } else set_single_appl_checkbox(appls_list, show_mode);
-    }
-}
-
-//select checkbox by appl_id
-function set_single_appl_checkbox(appl_id, show_mode) {
-    //check show appls mode
-    if (show_mode == "defualt_appls") {
-        var checkboxes = $('div#defualt_appls input[type="checkbox"]');
-    } else var checkboxes = $('div#all_appls input[type="checkbox"]');
-    var inputCount = checkboxes.length;
-
-    for (var i = 0; i < inputCount; i++) {
-        if (checkboxes[i].id == appl_id) {
-            checkboxes[i].checked = true;
-        } else continue
-    }
-}
-
-//create appls list after user selected checkbox and update MPI tooltip
-function create_selected_appls_list(show_mode) {
-    ShowToggleAppls = 1;
-    appls_list = "";
-    if (show_mode == "defualt_appls") {
-        var checkboxes = $('div#defualt_appls input[type="checkbox"]');
-    } else if (show_mode == "all_appls") {
-        var checkboxes = $('div#all_appls input[type="checkbox"]');
-    }
-
-    for (var i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].checked == true && checkboxes[i].id != "toggle_appls_checkall") {
-            appls_list = appls_list + checkboxes[i].id + ',';
-        }
-    }
-
-    if (appls_list != "" && appls_list.indexOf(",") > 0) {
-        appls_list = appls_list.substring(0, appls_list.length - 1);
-    }
-}
-
-function updateMPIToolTip(grantId) {
-    var thisApplId = $('#hidApplID').val(); //document.getElementById("hidApplID").value;
-    if (!thisApplId) {
-        thisApplId = "@Model.SelectedAppls";
-        if (thisApplId.indexOf(",") != -1) {
-            // just show multi if there's a , in there
-            thisApplId = '';  // displays as Has Multi-PI Grant Year(s) below
-        }
-    }
-
-    var messages = {};
-
-    @{
-        var newLine = "conspicuousNewLine";
-    }
-
-    // pre populate all the MPIs in each appl and pick the one selected after rendering
-    @if (Model.appllayer != null) {
-        foreach (eGrants.Models.ApplLayerObject appl in Model.appllayer)
+        if ($('#hidGrantID').val() != null)
         {
-            var sb = new System.Text.StringBuilder();
-
-            sb.Append($"Multiple Principal Investigators:{newLine}");
-            if (appl.MPIContacts != null)
-            {
-                string grantId = appl.grant_id;
-                List<GrantLayer> grants = Model.grantLayer;
-                var grant = grants.First(gl => gl.grant_id == grantId);
-                string grantPIName = (string)grant.current_pi_name;
-                // first display the PI
-                for (int i = 0; i < appl.MPIContacts.Count(); i++)
-                {
-                    eGrants.Models.PersonContact person = appl.MPIContacts[i];
-
-                    if (person.was_PI_that_year)
-                    {
-                        sb.Append($"{person.last_name.ToUpper()}, {person.first_name.ToUpper()} (contact)");
-                        // if it's the primary and there are others will need that newline
-                        if (appl.MPIContacts.Count() > 1)
-                        {
-                            sb.Append(newLine);
-                        }
-                    }
-                }
-                // then display any non PIs
-                for (int i = 0; i < appl.MPIContacts.Count(); i++)
-                {
-                    eGrants.Models.PersonContact person = appl.MPIContacts[i];
-                    if (!person.was_PI_that_year)
-                    {
-                        sb.Append($"{person.last_name.ToUpper()}, {person.first_name.ToUpper()}");
-                        if (i != appl.MPIContacts.Count() - 1)
-                        {
-                            sb.Append(newLine);
-                        }
-                    }
-                }
-            }
-            @Html.Raw($"messages[\"{appl.appl_id}\"] = \"{sb.ToString()}\";");
+            updateMPIToolTip($('#hidGrantID').val());
         }
     }
-    var toolTip = "Has Multi-PI Grant Year(s)";
-    if (thisApplId && messages[thisApplId]) {
-        toolTip = messages[thisApplId]?.replace(/conspicuousNewLine/g, '\r\n');
+
+    //switch toggle appls mode
+    function toggle_appls_mode_switch(show_mode) {
+        if (show_mode == "all_appls") {
+            //show all_appls, clean and hide defualt_appls
+            document.getElementById("all_appls").style.display = "inline";
+            document.getElementById("defualt_appls").style.display = "none";
+            var checkboxes = $('div#defualt_appls input[type="checkbox"]');
+            checkboxes.each(function (index) {
+                $(this).prop("checked", false);
+            })
+        }
+
+        if (show_mode == "defualt_appls") {
+            //show defualt_appls, clean and hide all_appls
+            document.getElementById("defualt_appls").style.display = "inline";
+            document.getElementById("all_appls").style.display = "none";
+            var checkboxes = $('div#all_appls input[type="checkbox"]');
+            checkboxes.each(function(selected_appls_checkbox) {
+                $(this).prop("checked", false);
+            });
+        }
+
+        check_toggle_appls_checkbox(show_mode);
     }
 
-    //document.getElementById("imgLink" + grantId).setAttribute('title', toolTip);
-    $("#imgLink" + grantId).prop('title', toolTip);
-    
-    
-}
+    //check checkbox if appl_id in selectedappl list
+    function check_toggle_appls_checkbox(show_mode) {
+        //check show appls mode
+        if (show_mode == "defualt_appls") {
+            var checkboxes = $('div#defualt_appls input[type="checkbox"]');
+        } else {
+            var checkboxes = $('div#all_appls input[type="checkbox"]');
+        }
 
-//check all checkbox after user check select all
-function select_all_toggle_appls() {
-    ShowToggleAppls = 1;
-    //alert(document.getElementById("toggle_appls_checkall").checked);
-    if (document.getElementById("defualt_appls").style.display == "inline") {
-        var checkboxes = $('div#defualt_appls input[type="checkbox"]');
-    } else var checkboxes = $('div#all_appls input[type="checkbox"]');
+        if (ShowToggleAppls == 0) {
+            if (document.getElementById("hidApplID").value != "") {
+                appls_list = document.getElementById("hidApplID").value;
+                set_single_appl_checkbox(appls_list, show_mode);
+            }
 
-    if (document.getElementById("toggle_appls_checkall").checked == false) {
-        checkboxes.each(function (index) {
-            $(this).prop("checked", false);
-        })
-        //clean appls_list
+            if (document.getElementById("hidSelectedAppls").value != "") {
+                appls_list = document.getElementById("hidSelectedAppls").value;
+
+                if (appls_list == "All" || appls_list == "all") {
+                    document.getElementById("toggle_appls_checkall").checked = true;
+                    checkboxes.each(function(index) {
+                        $(this).prop("checked", true);
+                    });
+                }
+                else {
+                    if (appls_list.indexOf(",") >= 1) {
+                        var selectedappls = appls_list;
+                        var i = selectedappls.split(",").length - 1;
+                        if (i > 0) {
+                            while (i > 0) {
+                                var comma = selectedappls.lastIndexOf(",");
+                                var appl_id = selectedappls.substring(comma + 1, selectedappls.length);
+                                set_single_appl_checkbox(appl_id, show_mode);
+                                i = i - 1;
+                                selectedappls = selectedappls.substring(0, comma);
+                            }
+                        }
+
+                        if (i == 0) {
+                            var appl_id = selectedappls;
+                            set_single_appl_checkbox(appl_id, show_mode);
+                        }
+                    } else set_single_appl_checkbox(appls_list, show_mode);
+                }
+            }
+        }
+        //selected checkbox by user selected and created appls_list
+        else {
+            if (appls_list == "All") {
+                checkboxes.each(function (index) {
+                    $(this).prop("checked", true);
+                })
+            }else if (appls_list.indexOf(",") >= 1) {
+                var selected_appls = appls_list;
+                var i = selected_appls.split(",").length - 1;
+                if (i > 0) {
+                    while (i > 0) {
+                        var comma = selected_appls.lastIndexOf(",");
+                        var appl_id = selected_appls.substring(comma + 1, selected_appls.length);
+                        set_single_appl_checkbox(appl_id, show_mode);
+                        i = i - 1;
+                        selected_appls = selected_appls.substring(0, comma);
+                    }
+                }
+                //for last appl_id
+                if (i == 0) {
+                    var appl_id = selected_appls;
+                    set_single_appl_checkbox(appl_id, show_mode);
+                }
+            } else set_single_appl_checkbox(appls_list, show_mode);
+        }
+    }
+
+    //select checkbox by appl_id
+    function set_single_appl_checkbox(appl_id, show_mode) {
+        //check show appls mode
+        if (show_mode == "defualt_appls") {
+            var checkboxes = $('div#defualt_appls input[type="checkbox"]');
+        } else var checkboxes = $('div#all_appls input[type="checkbox"]');
+        var inputCount = checkboxes.length;
+
+        for (var i = 0; i < inputCount; i++) {
+            if (checkboxes[i].id == appl_id) {
+                checkboxes[i].checked = true;
+            } else continue
+        }
+    }
+
+    //create appls list after user selected checkbox and update MPI tooltip
+    function create_selected_appls_list(show_mode) {
+        ShowToggleAppls = 1;
         appls_list = "";
+        if (show_mode == "defualt_appls") {
+            var checkboxes = $('div#defualt_appls input[type="checkbox"]');
+        } else if (show_mode == "all_appls") {
+            var checkboxes = $('div#all_appls input[type="checkbox"]');
+        }
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked == true && checkboxes[i].id != "toggle_appls_checkall") {
+                appls_list = appls_list + checkboxes[i].id + ',';
+            }
+        }
+
+        if (appls_list != "" && appls_list.indexOf(",") > 0) {
+            appls_list = appls_list.substring(0, appls_list.length - 1);
+        }
     }
-    else {
-        checkboxes.each(function (index) {
-            $(this).prop("checked", true);
-        })
-        //create appls_list
-        appls_list = "All";
+
+    function updateMPIToolTip(grantId) {
+        var thisApplId = $('#hidApplID').val(); //document.getElementById("hidApplID").value;
+        if (!thisApplId) {
+            thisApplId = "@Model.SelectedAppls";
+            if (thisApplId.indexOf(",") != -1) {
+                // just show multi if there's a , in there
+                thisApplId = '';  // displays as Has Multi-PI Grant Year(s) below
+            }
+        }
+
+        var messages = {};
+
+        // pre populate all the MPIs in each appl and pick the one selected after rendering
+        const modelApplLayer = @Html.Raw(JsonConvert.SerializeObject(Model.appllayer));
+
+        if (modelApplLayer != null) {
+            modelApplLayer.forEach(appl => {
+                let sb = [];
+                sb.push(`Multiple Principal Investigators:\n`);
+                if (appl.MPIContacts != null) {
+                    const grantId = appl.grant_id;
+                    const grants = @Html.Raw(JsonConvert.SerializeObject(Model.grantlayer));
+                    const grant = grants.find(gl => gl.grant_id === grantId);
+                    const grantPIName = grant.current_pi_name;
+
+                    // First display the PI
+                    appl.MPIContacts.forEach((person, index) => {
+                        if (person.was_PI_that_year) {
+                            sb.push(`${person.last_name.toUpperCase()}, ${person.first_name.toUpperCase()} (contact)`);
+                            if (appl.MPIContacts.length > 1) {
+                                sb.push('\n');
+                            }
+                        }
+                    });
+
+                    // Then display any non-PIs
+                    appl.MPIContacts.forEach((person, index) => {
+                        if (!person.was_PI_that_year) {
+                            sb.push(`${person.last_name.toUpperCase()}, ${person.first_name.toUpperCase()}`);
+                            if (index !== appl.MPIContacts.length - 1) {
+                                sb.push('\n');
+                            }
+                        }
+                    });
+                }
+
+                messages[appl.appl_id] = sb.join('');
+            });
+        }
+
+        var toolTip = "Has Multi-PI Grant Year(s)";
+        if (thisApplId && messages[thisApplId]) {
+            toolTip = messages[thisApplId]?.replace(/conspicuousNewLine/g, '\r\n');
+        }
+
+        //document.getElementById("imgLink" + grantId).setAttribute('title', toolTip);
+        $("#imgLink" + grantId).prop('title', toolTip);
+
     }
-}
+
+    //check all checkbox after user check select all
+    function select_all_toggle_appls() {
+        ShowToggleAppls = 1;
+        if (document.getElementById("defualt_appls").style.display == "inline") {
+            var checkboxes = $('div#defualt_appls input[type="checkbox"]');
+        } else var checkboxes = $('div#all_appls input[type="checkbox"]');
+
+        if (document.getElementById("toggle_appls_checkall").checked == false) {
+            checkboxes.each(function (index) {
+                $(this).prop("checked", false);
+            })
+            //clean appls_list
+            appls_list = "";
+        }
+        else {
+            checkboxes.each(function (index) {
+                $(this).prop("checked", true);
+            })
+            //create appls_list
+            appls_list = "All";
+        }
+    }
 
 </script>
