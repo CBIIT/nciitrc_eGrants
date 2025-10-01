@@ -10,6 +10,7 @@ wwwroot\images\compet_yr.png
 wwwroot\images\deleted_yr.png
 wwwroot\images\eglogo.PNG
 wwwroot\images\filter.png
+wwwroot\images\filter_selected.png
 wwwroot\images\flag_DS.jpg
 wwwroot\images\flag_fda.jpg
 wwwroot\images\flag_mpi.jpg
