@@ -10,6 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Unit - Copy\**" />
+    <Compile Remove="Unit\**" />
+    <EmbeddedResource Remove="Unit - Copy\**" />
+    <EmbeddedResource Remove="Unit\**" />
+    <None Remove="Unit - Copy\**" />
+    <None Remove="Unit\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

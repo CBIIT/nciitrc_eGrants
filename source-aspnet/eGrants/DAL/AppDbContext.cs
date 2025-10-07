@@ -28,6 +28,8 @@ namespace eGrants.DAL
         public DbSet<VwAppl> VwAppls { get; set; }
         public DbSet<VwGrant> VwGrants { get; set; }
 
+        public DbSet<doclayer> DocLayers { get; set; }
+
         //public DbSet<person_involvements_mv> PersonInvolvements { get; set; }
         //public DbSet<Person> Persons { get; set; }
         //public DbSet<PersonAddress> PersonAddresses { get; set; }
@@ -45,6 +47,7 @@ namespace eGrants.DAL
             modelBuilder.Entity<VwAppl>().HasNoKey().ToView("vw_appls");
             modelBuilder.Entity<VwGrant>().HasNoKey().ToView("vw_grants");
             modelBuilder.Entity<PersonInvolvement>().HasNoKey();
+            modelBuilder.Entity<doclayer>().HasNoKey();
 
             //modelBuilder.Entity<person_involvements_mv>()
             //    .HasKey(pi => new { pi.ApplId, pi.PersonId });

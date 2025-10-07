@@ -1,17 +1,11 @@
 ﻿using System.Data;
-using System.Security.Principal;
 
 using eGrants.DAL;
 using eGrants.DTOs;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer;
-using Microsoft.Extensions.DependencyInjection;
-
-using static System.Formats.Asn1.AsnWriter;
 
 namespace eGrants.Repositories
 {
@@ -30,7 +24,7 @@ namespace eGrants.Repositories
         }
 
         // Retrieves specific grants from the database asynchronously
-        public async Task<List<eGrantsSearchResults>> GetSearchResultsAsync(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator)
+        public async Task<List<eGrantsSearchResults>> GetSearchResultsAsync(string searchString, int grantId, string package, int applId, int currentPage, SessionInfo sessionInfo)
         {
             var sql = @"
                 EXEC dbo.sp_web_egrants 
@@ -51,7 +45,7 @@ namespace eGrants.Repositories
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 return await context.Set<eGrantsSearchResults>()
-                    .FromSqlRaw(sql, aSearchString, aGrantId, aPackage, aApplId, aCurrentPage, aBrowser, aIC, aOperator)
+                    .FromSqlRaw(sql, searchString, grantId, package, applId, currentPage, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId)
                     .ToListAsync();
             }
             //catch (Exception ex)
@@ -63,46 +57,46 @@ namespace eGrants.Repositories
     //.ToListAsync();
 }
 
-        public async Task<List<Pagination>> LoadPaginationAsync(string aSearchString, string aIC, string aOperator, string aPackage = null)
+        public async Task<List<Pagination>> LoadPaginationAsync(string searchString, string ic, string userId, string package = null)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 return await context.LoadPaginationResults
-                .FromSqlRaw("EXEC dbo.sp_web_egrants_pagination @str = {0}, @package = {1}, @ic = {2}, @operator = {3}", aSearchString, aPackage, aIC, aOperator)
+                .FromSqlRaw("EXEC dbo.sp_web_egrants_pagination @str = {0}, @package = {1}, @ic = {2}, @operator = {3}", searchString, package, ic, userId)
                 .ToListAsync();
             }
         }
 
-        public async Task<List<FilterSearchResult>> FilterSearchQuery(int aFiscalYear, string aMechanism, string aAdminCode, int aSerialnum, int aPageNum, string aBrowser, string aIc, string aOperator)
+        public async Task<List<FilterSearchResult>> FilterSearchQuery(int fiscalYear, string mechanism, string adminCode, int serialnum, int pageNum, SessionInfo sessionInfo)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 return await context.FilterSearchResults
-                .FromSqlRaw("EXEC dbo.sp_web_egrants_search_by_filters @fy = {0}, @mechanism = {1}, @adminCode = {2}, @serialnum = {3}, @page_num = {4}, @browser = {5}, @ic = {6}, @operator = {7}", aFiscalYear, aMechanism, aAdminCode, aSerialnum, aPageNum, aBrowser, aIc, aOperator)
+                .FromSqlRaw("EXEC dbo.sp_web_egrants_search_by_filters @fy = {0}, @mechanism = {1}, @adminCode = {2}, @serialnum = {3}, @page_num = {4}, @browser = {5}, @ic = {6}, @operator = {7}", fiscalYear, mechanism, adminCode, serialnum, pageNum, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId)
                 .ToListAsync();
             }
         }
 
-        public async Task<List<GrantDataYears>> GetYearList(string aFiscalYear = null, string aMechanism = null, string aAdminCode = null, string aSerialNumber = null)
+        public async Task<List<GrantDataYears>> GetYearList(string fiscalYear = null, string mechanism = null, string adminCode = null, string serialNumber = null)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 return await context.GrantDataYears
-                .FromSqlRaw("EXEC dbo.sp_web_egrants_load_data_years @fy = {0}, @mechanism = {1}, @adminCode = {2}, @serialnum = {3}", aFiscalYear, aMechanism, aAdminCode, aSerialNumber)
+                .FromSqlRaw("EXEC dbo.sp_web_egrants_load_data_years @fy = {0}, @mechanism = {1}, @adminCode = {2}, @serialnum = {3}", fiscalYear, mechanism, adminCode, serialNumber)
                 .ToListAsync();
             }
         }
 
-        public async Task<string> GetCategoryNameById(string aCategories)
+        public async Task<string> GetCategoryNameById(string categories)
         {
             var CategoryNameList = string.Empty;
 
             List<int> categoryList = new List<int>();
 
-            foreach (string item in aCategories.Split(','))
+            foreach (string item in categories.Split(','))
             {
                 if (int.TryParse(item, out int value))
                 {
@@ -132,29 +126,6 @@ namespace eGrants.Repositories
                 }
             }
 
-            //using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
-            //{
-            //    var cmd = new SqlCommand(
-            //        "select category_name from categories where category_id in (" + categories + ") order by category_name",
-            //        conn);
-
-            //    cmd.CommandType = CommandType.Text;
-            //    cmd.Parameters.AddWithValue("@categories", categories);
-
-            //    // cmd.Parameters.AddWithValue("@years", years);
-            //    conn.Open();
-            //    var rdr = cmd.ExecuteReader();
-
-            //    while (rdr.Read())
-            //    {
-            //        var category = rdr[0] + ", ";
-            //        CategoryNameList = CategoryNameList + category;
-            //    }
-
-            //    // added by Leon 5/11/2019
-            //    // conn.Close();
-            //}
-
             if (CategoryNameList != string.Empty && CategoryNameList.IndexOf(",") > 0)
             {
                 CategoryNameList = CategoryNameList.Substring(0, CategoryNameList.Length - 2);
@@ -163,37 +134,16 @@ namespace eGrants.Repositories
             return CategoryNameList;
         }
 
-        public async Task<int> CheckGrantID(int aGrantId)
+        public async Task<int> CheckGrantID(int grantId)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                return await context.Grants.Where(x => x.grant_id == aGrantId).CountAsync();
+                return await context.Grants.Where(x => x.grant_id == grantId).CountAsync();
             }
-            //return result;
-
-            //using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
-            //{
-            //    var cmd = new SqlCommand("select count(*) as count_id from grants where grant_id = @grant_id", conn);
-            //    cmd.CommandType = CommandType.Text;
-            //    cmd.Parameters.Add("@grant_id", SqlDbType.Int).Value = grant_id;
-
-            //    conn.Open();
-            //    var exists = 0;
-            //    var rdr = cmd.ExecuteReader();
-
-            //    while (rdr.Read())
-            //    {
-            //        exists = Convert.ToInt32(rdr["count_id"]);
-            //    }
-
-            //    //conn.Close();
-
-            //    return exists;
-            //}
         }
 
-        public async Task<List<GrantAndStringViewsDto>> GetGrantAndStringViews(int aApplId)
+        public async Task<List<GrantAndStringViewsDto>> GetGrantAndStringViews(int applId)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
@@ -203,7 +153,7 @@ namespace eGrants.Repositories
                           a => a.grant_id,
                           g => g.grant_id,
                           (a, g) => new { a, g })
-                    .Where(x => x.a.appl_id == aApplId)
+                    .Where(x => x.a.appl_id == applId)
                     .Select(x => new GrantAndStringViewsDto
                     {
                         project_title = x.a.project_title,
@@ -215,34 +165,14 @@ namespace eGrants.Repositories
             }
         }
 
-        //public async Task<Dictionary<string, List<ApplicantDto>>> GetAllMPIInfo(List<string> appl_ids)
-        public async Task<List<PersonInvolvement>> GetAllMPIInfo(List<string> appl_ids)
+        //public async Task<Dictionary<string, List<ApplicantDto>>> GetAllMPIInfo(List<string> applIds)
+        public async Task<List<PersonInvolvement>> GetAllMPIInfo(List<string> applIds)
         {
             //var roleTypes = new[] { "PI", "MPI", "CPI" };
 
             try
             {
-                //var applicantList = await _context.PersonInvolvements
-                //    .Where(e => roleTypes.Contains(e.RoleTypeCode) && appl_ids.Contains(e.ApplId))
-                //    .Join(_context.Persons,
-                //        e => e.PersonId,
-                //        d => d.PersonId,
-                //        (e, d) => new { e, d })
-                //    .SelectMany(joined => _context.PersonAddresses
-                //        .Where(c => c.PersonId == joined.d.PersonId &&
-                //                    c.AddrTypeCode == "HOM" &&
-                //                    c.PreferredAddrCode == "Y")
-                //        .DefaultIfEmpty(),
-                //        (joined, c) => new ApplicantDto
-                //        {
-                //            ApplId = joined.e.ApplId,
-                //            FirstName = joined.d.FirstName,
-                //            LastName = joined.d.LastName,
-                //            RoleTypeCode = joined.e.RoleTypeCode,
-                //            EmailAddr = c != null ? c.EmailAddr : null
-                //        })
-                //    .ToListAsync();
-                var applsParam = string.Join(",", appl_ids.Select(id => $"''{id}''")); // Ensure each ID is quoted
+                var applsParam = string.Join(",", applIds.Select(id => $"''{id}''")); // Ensure each ID is quoted
                 var openQuery = $@"
                     SELECT APPL_ID, First_Name, Last_name, Role_Type_Code
                     FROM OPENQUERY(IRDB, '
@@ -273,13 +203,13 @@ namespace eGrants.Repositories
             return null; // applicantDict;
         }
 
-        public async Task<List<FilterSearchResult>> GetApplsList(int aGrantId, string aFlagType, string aYears)
+        public async Task<List<FilterSearchResult>> GetApplsList(int grantId, string flagType, string years)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 return await context.FilterSearchResults
-                .FromSqlRaw("EXEC dbo.sp_web_egrants_load_applid_string @grant_id = {0}, @flag_type = {1}, @years = {2}", aGrantId, aFlagType, aYears)
+                .FromSqlRaw("EXEC dbo.sp_web_egrants_load_applid_string @grant_id = {0}, @flag_type = {1}, @years = {2}", grantId, flagType, years)
                 .ToListAsync();
             }
         }

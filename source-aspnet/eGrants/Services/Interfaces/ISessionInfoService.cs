@@ -4,6 +4,6 @@ namespace eGrants.Services.Interfaces
 {
     public interface ISessionInfoService
     {
-        SessionInfo GetSessionInfo(HttpContext httpContext);
+        SessionInfo GetSessionInfo(ISession sessionInfo);
     }
 }

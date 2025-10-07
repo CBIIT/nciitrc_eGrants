@@ -10,24 +10,24 @@ namespace eGrants.Repositories.Interfaces
 {
     public interface IeGrantsRepository
     {
-        Task<List<eGrantsSearchResults>> GetSearchResultsAsync(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator);
+        Task<List<eGrantsSearchResults>> GetSearchResultsAsync(string searchString, int grantId, string package, int applId, int currentPage, SessionInfo sessionInfo);
 
-        Task<List<Pagination>> LoadPaginationAsync(string aSearchString, string aIC, string aOperator, string aPackage);
+        Task<List<Pagination>> LoadPaginationAsync(string searchString, string ic, string userId, string package);
 
-        Task<List<FilterSearchResult>> FilterSearchQuery(int aFiscalYear, string aMechanism, string aAdminCode, int aSerialnum, int aPageNum, string aBrowser, string aIc, string aUserId);
+        Task<List<FilterSearchResult>> FilterSearchQuery(int fiscalYear, string mechanism, string adminCode, int serialnum, int pageNum, SessionInfo sessionInfo);
 
-        Task<List<GrantDataYears>> GetYearList(string aFiscalYear, string aMechanism, string aAdminCode, string aSerialNumber);
+        Task<List<GrantDataYears>> GetYearList(string fiscalYear, string mechanism, string adminCode, string serialNumber);
 
-        Task<int> CheckGrantID(int aGrantId);
+        Task<int> CheckGrantID(int grantId);
 
-        Task<string> GetCategoryNameById(string aCategories);
+        Task<string> GetCategoryNameById(string categories);
 
-        Task<List<GrantAndStringViewsDto>> GetGrantAndStringViews(int aApplId);
+        Task<List<GrantAndStringViewsDto>> GetGrantAndStringViews(int applId);
 
-        //Task<Dictionary<string, List<ApplicantDto>>> GetAllMPIInfo(List<string> appl_ids);
+        //Task<Dictionary<string, List<ApplicantDto>>> GetAllMPIInfo(List<string> applIds);
 
-        Task<List<PersonInvolvement>> GetAllMPIInfo(List<string> appl_ids);
+        Task<List<PersonInvolvement>> GetAllMPIInfo(List<string> applIds);
 
-        Task<List<FilterSearchResult>> GetApplsList(int aGrantId, string aFlagType, string aYears);
+        Task<List<FilterSearchResult>> GetApplsList(int grantId, string flagType, string years);
     }
 }

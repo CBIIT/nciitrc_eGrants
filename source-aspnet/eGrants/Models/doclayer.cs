@@ -36,6 +36,7 @@
 #region
 
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 #endregion
 
@@ -49,166 +50,175 @@ namespace eGrants.Models
         /// <summary>
         ///     Gets or sets the appl_id.
         /// </summary>
-        public string appl_id { get; set; }
+        public int? appl_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the docs_count.
         /// </summary>
+        [NotMapped]
         public string docs_count { get; set; }
 
         /// <summary>
         ///     Gets or sets the grant_id.
         /// </summary>
-        public string grant_id { get; set; }
+        public int? grant_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the full_grant_num.
         /// </summary>
+        [NotMapped]
         public string full_grant_num { get; set; }
 
         /// <summary>
         ///     Gets or sets the document_id.
         /// </summary>
-        public string document_id { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the document_date.
-        /// </summary>
-        public string document_date { get; set; }
+        public int? document_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the document_name.
         /// </summary>
-        public string document_name { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the doc_date.
-        /// </summary>
-        public DateTime doc_date { get; set; }
+        public string? document_name { get; set; }
 
         /// <summary>
         ///     Gets or sets the category_id.
         /// </summary>
-        public string category_id { get; set; }
+        public int? category_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the category_name.
         /// </summary>
-        public string category_name { get; set; }
+        public string? category_name { get; set; }
 
         /// <summary>
         ///     Gets or sets the sub_category_name.
         /// </summary>
-        public string sub_category_name { get; set; }
+        public string? sub_category_name { get; set; }
 
         /// <summary>
         ///     Gets or sets the created_by.
         /// </summary>
-        public string created_by { get; set; }
+        public string? created_by { get; set; }
 
-        /// <summary>
-        ///     Gets or sets the created_date.
-        /// </summary>
-        public string created_date { get; set; }
 
         /// <summary>
         ///     Gets or sets the modified_by.
         /// </summary>
-        public string modified_by { get; set; }
+        public string? modified_by { get; set; }
 
-        /// <summary>
-        ///     Gets or sets the modified_date.
-        /// </summary>
-        public string modified_date { get; set; }
+
 
         /// <summary>
         ///     Gets or sets the file_modified_by.
         /// </summary>
-        public string file_modified_by { get; set; }
+        public string? file_modified_by { get; set; }
 
-        /// <summary>
-        ///     Gets or sets the file_modified_date.
-        /// </summary>
-        public string file_modified_date { get; set; }
+
 
         /// <summary>
         ///     Gets or sets the problem_msg.
         /// </summary>
-        public string problem_msg { get; set; }
+        public string? problem_msg { get; set; }
 
         /// <summary>
         ///     Gets or sets the problem_reported_by.
         /// </summary>
-        public string problem_reported_by { get; set; }
+        public string? problem_reported_by { get; set; }
 
         /// <summary>
         ///     Gets or sets the page_count.
         /// </summary>
-        public string page_count { get; set; }
+        public int? page_count { get; set; }
 
         /// <summary>
         ///     Gets or sets the fsr_count.
         /// </summary>
-        public string fsr_count { get; set; }
+        public int? fsr_count { get; set; }
 
         /// <summary>
         ///     Gets or sets the attachment_count.
         /// </summary>
-        public string attachment_count { get; set; }
+        public int? attachment_count { get; set; }
 
         /// <summary>
         ///     Gets or sets the closeout_notcount.
         /// </summary>
-        public string closeout_notcount { get; set; }
+        public int? closeout_notcount { get; set; }
 
         /// <summary>
         ///     Gets or sets the frc_destroyed.
         /// </summary>
-        public string frc_destroyed { get; set; }
+        public int? frc_destroyed { get; set; }
 
         /// <summary>
         ///     Gets or sets the url.
         /// </summary>
-        public string url { get; set; }
+        public string? url { get; set; }
 
-        /// <summary>
-        ///     Gets or sets the qc_date.
-        /// </summary>
-        public string qc_date { get; set; }
+
 
         /// <summary>
         ///     Gets or sets the can_qc.
         /// </summary>
-        public string can_qc { get; set; }
+        public string? can_qc { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_upload.
         /// </summary>
-        public string can_upload { get; set; }
+        public string? can_upload { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_modify_index.
         /// </summary>
-        public string can_modify_index { get; set; }
+        public string? can_modify_index { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_delete.
         /// </summary>
-        public string can_delete { get; set; }
+        public string? can_delete { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_restore.
         /// </summary>
-        public string can_restore { get; set; }
+        public string? can_restore { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_store.
         /// </summary>
-        public string can_store { get; set; }
+        public string? can_store { get; set; }
 
         /// <summary>
         ///     Gets or sets the ic.
         /// </summary>
-        public string ic { get; set; }
+        public string? ic { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the created_date.
+        /// </summary>
+        public string? created_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the document_date.
+        /// </summary>
+        public string? document_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the doc_date.
+        /// </summary>
+        public DateTime? doc_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the modified_date.
+        /// </summary>
+        public string? modified_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the file_modified_date.
+        /// </summary>
+        public string? file_modified_date { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the qc_date.
+        /// </summary>
+        public string? qc_date { get; set; }
     }
 }
