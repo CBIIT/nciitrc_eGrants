@@ -126,7 +126,7 @@ function set_default() {
 }
 
 function by_str(str) {
-    var url = '@Url.Action("by_str", "Egrants")?aStr=' + str;
+    var url = '@Url.Action("by_str", "Egrants")?str=' + str;
     window.document.location.href = url;
 }
 
@@ -136,7 +136,7 @@ function by_grant(grant_id, package_name, appls_list, categories, years) {
         mode = "";
     }
 
-    var url = 'by_grant?aGrantId=' + grant_id + '&aPackage=' + package_name + '&aMode=' + mode + '&aApplsList=' + appls_list + '&aCategories=' + categories + '&aYears=' + years;
+    var url = 'by_grant?grantId=' + grant_id + '&package=' + package_name + '&mode=' + mode + '&applsList=' + appls_list + '&categories=' + categories + '&years=' + years;
     window.document.location.href = url;
 }
 

@@ -9,22 +9,24 @@ namespace eGrants.Services.Interfaces
 {
     public interface IeGrantsService
     {
-        public Task<eGrantsSearchViewModel> GetEgrantsByStrAsync(string aSearchString, int aGrantId, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator);
+        public Task<eGrantsSearchViewModel> GetEgrantsByStrAsync(string searchString, int grantId, int applId, int currentPage, SessionInfo sessionInfo);
 
-        public Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int aFiscalYear, string aMechanism, int aSerialNum, string aAdminCode, int aGrantId, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator);
+        public Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo);
 
-        public Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator);
+        public Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string searchString, int grantId, string package, int applId, int currentPage, string categories, string applsList, string years, string mode, SessionInfo sessionInfo);
 
-        public Task<List<Pagination>> LoadPagination(string aSearchString, string aIC, string aUserId, string aPackage);
+        public Task<List<Pagination>> LoadPagination(string searchString, string ic, string userId, string package);
 
-        public Task<List<FilterSearchResult>> FilterSearchQuery(int aFiscalYear, string aMechanism, string aAdminCode, int aSerialnum, int aPageNum, string aBrowser, string aIc, string aUserId);
+        public Task<List<FilterSearchResult>> FilterSearchQuery(int fiscalYear, string mechanism, string adminCode, int serialnum, int pageNum, SessionInfo sessionInfo);
 
-        public Task<List<GrantDataYears>> GetYearList(string aFiscalYear, string aMechanism, string aAdminCode, string aSerialNumber);
+        public Task<List<GrantDataYears>> GetYearList(string fiscalYear, string mechanism, string adminCode, string serialNumber);
 
-        public Task<int> CheckGrantID(int aGrantId);
+        public Task<int> CheckGrantID(int grantId);
 
-        public Task<string> GetCategoryNameById(string aCategories);
+        public Task<string> GetCategoryNameById(string categories);
 
-        public Task<List<FilterSearchResult>> GetApplsList(int aGrantId, string aFlagType = null, string aYears = null);
+        public Task<List<FilterSearchResult>> GetApplsList(int grantId, string flagType = null, string years = null);
+
+        public Task<eGrantsSearchViewModel> eGrantsSearchResults(string searchString, int grantId, string package, int applId, int currentPage, SessionInfo sessionInfo, eGrantsSearchViewModel searchByStrViewModel, Boolean loadPagination);
     }
 }

@@ -43,7 +43,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 #endregion
-
+using Microsoft.AspNetCore.Http;
 namespace eGrants.Controllers.Egrants
 {
     /// <summary>
@@ -56,14 +56,16 @@ namespace eGrants.Controllers.Egrants
 
         //private readonly AppDbContext _context;
         private readonly IeGrantsService _eGrantsService;
+        private readonly IDocumentService _documentService;
         private readonly ICommonService _commonService;
         private readonly ISessionInfoService _sessionInfoService;
 
-        public EgrantsController(IeGrantsService eGrantsService, ICommonService commonService, ISessionInfoService sessionInfoService)
+        public EgrantsController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService)
         {
             _eGrantsService = eGrantsService;
             _commonService = commonService;
             _sessionInfoService = sessionInfoService;
+            _documentService = documentService;
         }
 
         //public EgrantsController(AppDbContext context, IeGrantsService eGrantsService, ICommonService commonService)
@@ -635,75 +637,34 @@ namespace eGrants.Controllers.Egrants
         /// <summary>
         /// The by_str.
         /// </summary>
-        /// <param name="aStr">
+        /// <param name="str">
         /// The str.
         /// </param>
-        /// <param name="aMode">
+        /// <param name="mode">
         /// The mode.
         /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
         [HttpGet]
-        public async Task<IActionResult> by_str(string aStr, string aMode = null)
+        public async Task<IActionResult> by_str(string str, string mode = null)
         {
             //TODO: Determine if the following code is ever being used
             // CountProperty = new CountProperty<int>();
             // CountProperty.Value = 0;
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByStrAsync(str, 0, 0, 0, sessionInfo);
 
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext);
-
-            //try
-            //{
-                if (!HttpContext.Session.TryGetValue("ic", out var icbytes)) sessionInfo.Ic = "";
-                if (!HttpContext.Session.TryGetValue("browser", out var browserbytes)) sessionInfo.Browser = "";
-                if (!HttpContext.Session.TryGetValue("userid", out var useridbytes)) sessionInfo.UserId = "";
-
-                eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByStrAsync(aStr, 0, 0, 0, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId);
-
-                if (eGrantsSearchViewModelList.grantlayerproperty != null)
-                {
-                    // show pagination
-                    eGrantsSearchViewModelList.Pagination = await _eGrantsService.LoadPagination(
-                            aStr,
-                            sessionInfo.Ic, 
-                            sessionInfo.UserId,
-                            string.Empty);
-                }
-                else
-                {
-                    eGrantsSearchViewModelList.Message = "No data found for the search";
-                    eGrantsSearchViewModelList.grantlayer = null;
-                }
-
-                eGrantsSearchViewModelList.Mode = aMode;
-                eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
-                return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
-            //}
-            //catch (Exception ex)
-            //{
-            //    ////return View("Error");
-            //    //// Option 1: Use ViewData
-            //    ////ViewData["ErrorMessage"] = "Something went wrong while processing your request.";
-            //    eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
-
-            //    //// Option 2: Use ModelState
-            //    //ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
-
-            //    //// Return the same view with the existing model (if partially populated)
-            //    //return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
-
-            //    TempData["ErrorMessage"] = "Oops! Something went wrong while processing your request.";
-            //    return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
-            //}
+            eGrantsSearchViewModelList.Mode = mode;
+            eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
+            return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
         }
 
         /// <summary>
         /// The by_grant.
         /// </summary>
-        /// <param name="grant_id">
+        /// <param name="grantId">
         /// The grant_id.
         /// </param>
         /// <param name="package">
@@ -712,7 +673,7 @@ namespace eGrants.Controllers.Egrants
         /// <param name="categories">
         /// The categories.
         /// </param>
-        /// <param name="appls_list">
+        /// <param name="applsList">
         /// The appls_list.
         /// </param>
         /// <param name="years">
@@ -725,129 +686,19 @@ namespace eGrants.Controllers.Egrants
         /// The <see cref="ActionResult"/>.
         /// </returns>
         public async Task<IActionResult> by_grant(
-            int aGrantId = 0,
-            string aPackage = null,
-            string aCategories = null,
-            string aApplsList = null,
-            string aYears = null,
-            string aMode = null)
+            int grantId = 0,
+            string package = null,
+            string categories = null,
+            string applsList = null,
+            string years = null,
+            string mode = null)
         {
-            eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext);
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByGrantAsync(string.Empty,
+                grantId, package, 0, 0, categories, applsList, years, mode, sessionInfo);
 
-            //ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-            var isExisting = await _eGrantsService.CheckGrantID(aGrantId);
-
-            if (!HttpContext.Session.TryGetValue("ic", out var icbytes)) sessionInfo.Ic = "";
-            if (!HttpContext.Session.TryGetValue("browser", out var browserbytes)) sessionInfo.Browser = "";
-            if (!HttpContext.Session.TryGetValue("userid", out var useridbytes)) sessionInfo.UserId = "";
-
-            //return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
-
-            if (aGrantId == 0 || isExisting == 0)
-            {
-                eGrantsSearchViewModelList.Message = "No data found for the search";
-                eGrantsSearchViewModelList.grantlayer = null;
-            }
-            else
-            {
-                // load data from DB
-                eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByGrantAsync(string.Empty, aGrantId, aPackage, 0, 0, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId);
-
-                eGrantsSearchViewModelList.bygrant = 1;
-                eGrantsSearchViewModelList.GrantID = aGrantId;
-                eGrantsSearchViewModelList.Package = aPackage;
-                eGrantsSearchViewModelList.Mode = aMode;
-                eGrantsSearchViewModelList.SearchStyle = "by_grant";
-                eGrantsSearchViewModelList.SelectedYears = aYears;
-                eGrantsSearchViewModelList.SelectedCats = aCategories;
-
-                if (aCategories == string.Empty || aCategories == "All" || aCategories == "all")
-                    eGrantsSearchViewModelList.SelectedCategories = "All";
-                else if (aCategories != string.Empty && aCategories != "All" && aCategories != "all")
-                    eGrantsSearchViewModelList.SelectedCategories = await _eGrantsService.GetCategoryNameById(aCategories);
-
-                eGrantsSearchViewModelList.grantlayer = eGrantsSearchViewModelList.grantlayerproperty;
-                eGrantsSearchViewModelList.appllayer_All = eGrantsSearchViewModelList.appllayerproperty;
-                eGrantsSearchViewModelList.appllayer = eGrantsSearchViewModelList.appllayerproperty;
-                eGrantsSearchViewModelList.ApplCount = eGrantsSearchViewModelList.appllayer.Count;
-                eGrantsSearchViewModelList.doclayer = eGrantsSearchViewModelList.doclayerproperty;
-                eGrantsSearchViewModelList.DocCount = eGrantsSearchViewModelList.doclayer.Count;
-
-                // set appls_lis for searching by flag_type
-                if (aPackage != string.Empty && aPackage != "All" && aPackage != "all")
-                {
-                    var filterSearchResult = await _eGrantsService.GetApplsList(aGrantId, aPackage);
-                    aApplsList = filterSearchResult.Select(x => x.Value).FirstOrDefault();
-                }
-
-                // set appls_lis for searching by years
-                if (aYears != string.Empty)
-                {
-                    if (aYears == "all" || aYears == "All")
-                        aApplsList = "All";
-                    else
-                    {
-                        var filterSearchResult = await _eGrantsService.GetApplsList(aGrantId, null, aYears);
-                        aApplsList = filterSearchResult.Select(x => x.Value).FirstOrDefault();
-                    }
-                    //  aApplsList = EgrantsAppl.GetApplsList(grant_id, null, aYears);
-                }
-
-                eGrantsSearchViewModelList.SelectedAppls = aApplsList;
-
-                // reset appllayer and limit show appls if appls_list with search parameters
-                if (aApplsList != null && !aApplsList.Equals("All", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var appllist = new List<ApplLayerObject>();
-
-                    // for more than one appl
-                    if (aApplsList.IndexOf(',') > 1)
-                    {
-                        var app = aApplsList.Split(',').ToList();
-
-                        // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
-                        foreach (var appl in eGrantsSearchViewModelList.appllayer)
-                        {
-                            if (app.Any(n => n == appl.appl_id))
-                            {
-                                appl.display_docs = "y";
-                                appllist.Add(appl);
-                            }
-                        }
-
-                        eGrantsSearchViewModelList.appllayer = appllist;
-                    }
-
-                    // for only one appl
-                    else
-                    {
-                        // ViewBag.ApplID = appls_list;
-                        var app = aApplsList.Split().ToList();
-
-                        // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
-                        foreach (var appl in eGrantsSearchViewModelList.appllayer)
-                            if (app.Any(n => n == appl.appl_id))
-                            {
-                                appl.display_docs = "y";
-                                appllist.Add(appl);
-                            }
-                        eGrantsSearchViewModelList.appllayer = appllist;
-                    }
-                }
-                else if (aApplsList != null && aApplsList.Equals("All", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    foreach (var appl in eGrantsSearchViewModelList.appllayer)
-                    {
-                        appl.display_docs = "y";
-                    }
-                }
-            }
-
-            eGrantsSearchViewModelList.Mode = aMode;
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
-
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
         }
 
@@ -983,28 +834,28 @@ namespace eGrants.Controllers.Egrants
         /// <summary>
         /// The by_filters.
         /// </summary>
-        /// <param name="aFiscalYear">
+        /// <param name="fiscalYear">
         /// The fiscalYear.
         /// </param>
-        /// <param name="aMechanism">
+        /// <param name="mechanism">
         /// The mechanism.
         /// </param>
-        /// <param name="aAdminCode">
+        /// <param name="adminCode">
         /// The adminCode.
         /// </param>
-        /// <param name="aSerialNum">
+        /// <param name="serialNum">
         /// The serialNumber.
         /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public async Task<IActionResult> by_filters(int aFiscalYear = 0, string aMechanism = null, string aAdminCode = null, int aSerialNum = 0)
+        public async Task<IActionResult> by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialNum = 0)
         {
             eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
 
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext);
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByFilterAsync(aFiscalYear, aMechanism, aSerialNum, aAdminCode, 0, 0, 0, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId);
+            eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByFilterAsync(fiscalYear, mechanism, serialNum, adminCode, 0, 0, 0, sessionInfo);
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
 
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
@@ -1286,13 +1137,13 @@ namespace eGrants.Controllers.Egrants
         /// <summary>
         /// The load docs grid.
         /// </summary>
-        /// <param name="appl_id">
+        /// <param name="applId">
         /// The appl_id.
         /// </param>
-        /// <param name="search_type">
+        /// <param name="searchType">
         /// The search_type.
         /// </param>
-        /// <param name="category_list">
+        /// <param name="categoryList">
         /// The category_list.
         /// </param>
         /// <param name="mode">
@@ -1301,39 +1152,11 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="JsonResult"/>.
         /// </returns>
-        public JsonResult LoadDocsGrid(int appl_id, string search_type = null, string category_list = null, string mode = null)
+        /// 
+        public JsonResult LoadDocsGrid(int applId, string searchType = null, string categoryList = null, string mode = null)
         {
-            Exception exceptionKeeper = null;
-            bool completed = false;
-            //for (int i = 0; i < MAX_RETRIES; ++i)
-            //{
-            //    try
-            //    {
-            //        Search_by_appl_id.LoadDocs(
-            //        appl_id,
-            //        search_type,
-            //        category_list,
-            //        Convert.ToString(this.Session["ic"]),
-            //        Convert.ToString(this.Session["userid"]));
-            //        completed = true;
-            //        break;
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        exceptionKeeper = ex;
-            //        // 5 retries, ok now log and deal with the error.
-            //    }
-            //}
-            //if (!completed)
-            //    throw exceptionKeeper;
-
-            //ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
-
-            //// ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
-            //dynamic res = new { data = ViewBag.doclayer };
-
-            //return Json(res, JsonRequestBehavior.AllowGet);
-            return Json(null);
+            var docs = _documentService.LoadDocs(applId, searchType, categoryList, mode, HttpContext.Session);
+            return Json(new { data = docs });
         }
 
         public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)

@@ -1,5 +1,7 @@
 wwwroot\css\bootstrap-icons.css
+wwwroot\css\bootstrap-icons.min.css
 wwwroot\css\bootstrap.min.css
+wwwroot\css\dataTables.bootstrap4.min.css
 wwwroot\css\egrants.css
 wwwroot\css\egrantsModal.css
 wwwroot\css\jquery-ui.min.css
@@ -18,6 +20,7 @@ wwwroot\images\flag_MS.jpg
 wwwroot\images\flag_od.jpg
 wwwroot\images\Folder-icon.png
 wwwroot\images\inst_icon.png
+wwwroot\images\Loading.gif
 wwwroot\images\minus.png
 wwwroot\images\plus.png
 wwwroot\images\search.png
@@ -25,13 +28,19 @@ wwwroot\images\searchicon.png
 wwwroot\images\Site_Visit.png
 wwwroot\images\Type4.bmp
 wwwroot\images\Type7.bmp
+wwwroot\images\Update File.png
+wwwroot\images\upl.png
 wwwroot\js\bluebird.js
 wwwroot\js\bootstrap.min.js
+wwwroot\js\dataTables.bootstrap4.min.js
+wwwroot\js\datetime-moment.js
 wwwroot\js\EgrantsCatsZone.js
 wwwroot\js\EgrantsIndex.js
 wwwroot\js\EgrantsQC.js
 wwwroot\js\jquery-3.6.4.min.js
 wwwroot\js\jquery-ui-1.13.2.js
+wwwroot\js\jquery.dataTables.js
+wwwroot\js\moment.js
 wwwroot\js\site.js
 wwwroot\js\validation.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css

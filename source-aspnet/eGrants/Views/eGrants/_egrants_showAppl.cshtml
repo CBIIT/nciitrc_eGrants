@@ -41,27 +41,27 @@ foreach (var appl in Model.appllayer)
 
                     @if (Convert.ToString(appl.appl_od_flag) == "y")
                     {
-                        <img src="~/Content/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
+                        <img src="/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
                     }
 
                     @if (appl.deleted_by_impac == "y")
                     {
-                        <img src="~/Content/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
+                        <img src="/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
                     }
 
                     @if (appl.competing == "yes")
                     {
-                        <img src="~/Content/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
+                        <img src="/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
                     }
 
                     @if (Convert.ToInt16(appl.appl_type_code) == 4)
                     {
-                        <img src="~/Content/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
+                        <img src="/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
                     }
 
                     @if (Convert.ToInt16(appl.appl_type_code) == 7)
                     {
-                        <img src="~/Content/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
+                        <img src="/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
                     }
 
                 </div>
@@ -134,7 +134,7 @@ foreach (var appl in Model.appllayer)
             <div id="@yearNameId" style="margin-left: 15px; margin-top: -3px; font-weight: bold; margin-bottom: -19px;">@appl.label</div>
             <!--end appl header-->
             <!--start show dos-->
-            // @Html.Partial("~/Egrants/Views/_egrants_showDocs.cshtml", appl_id)
+                    @Html.Partial("~/Views/Egrants/_egrants_showDocs.cshtml", appl_id)
             <div id="doc" style="height:20px"></div><!--add space for each appls-->
             <!--end show dos-->
             <!--end show single appl data-->

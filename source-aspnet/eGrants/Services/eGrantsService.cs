@@ -28,18 +28,18 @@ namespace eGrants.Services
         }
 
         // Asynchronously retrieves a list of eGrants from the repository
-        public async Task<eGrantsSearchViewModel> GetEgrantsByStrAsync(string aSearchString, int aGrantId, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator)
+        public async Task<eGrantsSearchViewModel> GetEgrantsByStrAsync(string searchString, int grantId, int applId, int currentPage, SessionInfo sessionInfo)
         {
             eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
 
-            if (string.IsNullOrEmpty(aSearchString))
+            if (string.IsNullOrEmpty(searchString))
             {
                 searchByStrViewModel.Message = "No data found for the search";
                 searchByStrViewModel.grantlayer = null;
             }
             else
             {
-                searchByStrViewModel.Str = aSearchString;
+                searchByStrViewModel.Str = searchString;
                 //searchByStrViewModel.Mode = aMode;
                 searchByStrViewModel.CurrentTab = 1;
                 searchByStrViewModel.CurrentPage = 1;
@@ -47,11 +47,12 @@ namespace eGrants.Services
 
                 Exception exceptionKeeper = null;
                 bool completed = false;
+                // TODO: determine if retries are necessary anymore
                 for (int i = 0; i < MAX_RETRIES; ++i)
                 {
                     try
                     {
-                        searchByStrViewModel = await eGrantsSearchResults(aSearchString, aGrantId, "", aApplId, aCurrentPage, aBrowser, aIC, aOperator, searchByStrViewModel, true);
+                        searchByStrViewModel = await eGrantsSearchResults(searchString, grantId, "", applId, currentPage, sessionInfo, searchByStrViewModel, true);
                         completed = true;
                     }
                     catch (Exception ex)
@@ -63,14 +64,30 @@ namespace eGrants.Services
                 if (!completed)
                     throw exceptionKeeper;
             }
+
+            if (searchByStrViewModel.grantlayerproperty != null)
+            {
+                // show pagination
+                searchByStrViewModel.Pagination = await LoadPagination(
+                        searchString,
+                        sessionInfo.Ic,
+                        sessionInfo.UserId,
+                        string.Empty);
+            }
+            else
+            {
+                searchByStrViewModel.Message = "No data found for the search";
+                searchByStrViewModel.grantlayer = null;
+            }
+
             return searchByStrViewModel;
         }
 
-        public async Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int aFiscalYear, string aMechanism, int aSerialNum, string aAdminCode, int aGrantId, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator)
+        public async Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo)
         {
             eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
 
-            if (aFiscalYear == 0 && string.IsNullOrEmpty(aMechanism) && aSerialNum == 0) /*string.IsNullOrEmpty(admincode) &&*/
+            if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNum == 0) /*string.IsNullOrEmpty(admincode) &&*/
             {
                 searchByStrViewModel.Message = "No data found for the search";
                 searchByStrViewModel.grantlayer = null;
@@ -80,14 +97,12 @@ namespace eGrants.Services
                 var package = "by_filters";
                 // create filters search sql query
                 var FilterSearchQuery = await _eGrantRepository.FilterSearchQuery(
-                    aFiscalYear,
-                    aMechanism,
-                    aAdminCode,
-                    aSerialNum,
+                    fiscalYear,
+                    mechanism,
+                    adminCode,
+                    serialNum,
                     1,
-                    aBrowser,
-                    aIC,
-                    aOperator);
+                    sessionInfo);
 
                 string filteredQuery = FilterSearchQuery.Select(x => x.Value).FirstOrDefault();
 
@@ -96,22 +111,22 @@ namespace eGrants.Services
                 searchByStrViewModel.CurrentPage = 1;
 
                 // create return value
-                if (aFiscalYear != 0)
+                if (fiscalYear != 0)
                 {
-                    searchByStrViewModel.FilterFY = aFiscalYear;
+                    searchByStrViewModel.FilterFY = fiscalYear;
                 }
                 else
                 {
                     searchByStrViewModel.FilterFY = null; // string.Empty;
                 }
 
-                if (aSerialNum != 0)
-                    searchByStrViewModel.FilterSerialNumber = aSerialNum;
+                if (serialNum != 0)
+                    searchByStrViewModel.FilterSerialNumber = serialNum;
 
-                searchByStrViewModel.FilterMechanism = aMechanism;
-                searchByStrViewModel.FilterAdminCode = aAdminCode;
+                searchByStrViewModel.FilterMechanism = mechanism;
+                searchByStrViewModel.FilterAdminCode = adminCode;
 
-                searchByStrViewModel = await eGrantsSearchResults(filteredQuery, aGrantId, package, aApplId, aCurrentPage, aBrowser, aIC, aOperator, searchByStrViewModel, true);
+                searchByStrViewModel = await eGrantsSearchResults(filteredQuery, grantId, package, applId, currentPage, sessionInfo, searchByStrViewModel, true);
 
                 if (searchByStrViewModel.grantlayerproperty != null)
                 {
@@ -123,8 +138,8 @@ namespace eGrants.Services
                     // show pagination
                     searchByStrViewModel.Pagination = await _eGrantRepository.LoadPaginationAsync(
                         filteredQuery,
-                        aIC,
-                        aBrowser,
+                        sessionInfo.Ic,
+                        sessionInfo.Browser,
                         package);
                 }
                 else
@@ -136,67 +151,179 @@ namespace eGrants.Services
             return searchByStrViewModel;
         }
 
-        public async Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator)
+        //public async Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string searchString, int grantId, string package, int applId, int currentPage, string browser, string ic, string userId)
+        //{
+        //    eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
+        //    searchByStrViewModel = await eGrantsSearchResults(searchString, grantId, package, applId, currentPage, browser, ic, userId, searchByStrViewModel, false);
+        //    return searchByStrViewModel;
+        //}
+
+        public async Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string searchString, int grantId, string package, int applId, int currentPage, string categories, string applsList, string years, string mode, SessionInfo sessionInfo)
         {
-            eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
-            searchByStrViewModel = await eGrantsSearchResults(aSearchString, aGrantId, aPackage, aApplId, aCurrentPage, aBrowser, aIC, aOperator, searchByStrViewModel, false);
-            return searchByStrViewModel;
+            eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
+
+            var isExisting = await CheckGrantID(grantId);
+
+            if (grantId == 0 || isExisting == 0)
+            {
+                eGrantsSearchViewModelList.Message = "No data found for the search";
+                eGrantsSearchViewModelList.grantlayer = null;
+            }
+            else
+            {
+                // load data from DB
+                eGrantsSearchViewModelList = await eGrantsSearchResults(searchString, grantId, package, applId, currentPage, sessionInfo, eGrantsSearchViewModelList, false);
+
+                eGrantsSearchViewModelList.bygrant = 1;
+                eGrantsSearchViewModelList.GrantID = grantId;
+                eGrantsSearchViewModelList.Package = package;
+                eGrantsSearchViewModelList.Mode = mode;
+                eGrantsSearchViewModelList.SearchStyle = "by_grant";
+                eGrantsSearchViewModelList.SelectedYears = years;
+                eGrantsSearchViewModelList.SelectedCats = categories;
+
+                if (categories == string.Empty || categories == "All" || categories == "all")
+                    eGrantsSearchViewModelList.SelectedCategories = "All";
+                else if (categories != string.Empty && categories != "All" && categories != "all")
+                    eGrantsSearchViewModelList.SelectedCategories = await GetCategoryNameById(categories);
+
+                eGrantsSearchViewModelList.grantlayer = eGrantsSearchViewModelList.grantlayerproperty;
+                eGrantsSearchViewModelList.appllayer_All = eGrantsSearchViewModelList.appllayerproperty;
+                eGrantsSearchViewModelList.appllayer = eGrantsSearchViewModelList.appllayerproperty;
+                eGrantsSearchViewModelList.ApplCount = eGrantsSearchViewModelList.appllayer.Count;
+                eGrantsSearchViewModelList.doclayer = eGrantsSearchViewModelList.doclayerproperty;
+                eGrantsSearchViewModelList.DocCount = eGrantsSearchViewModelList.doclayer.Count;
+
+                // set appls_lis for searching by flag_type
+                if (package != string.Empty && package != "All" && package != "all")
+                {
+                    var filterSearchResult = await GetApplsList(grantId, package);
+                    applsList = filterSearchResult.Select(x => x.Value).FirstOrDefault();
+                }
+
+                // set appls_lis for searching by years
+                if (years != string.Empty)
+                {
+                    if (years == "all" || years == "All")
+                        applsList = "All";
+                    else
+                    {
+                        var filterSearchResult = await GetApplsList(grantId, null, years);
+                        applsList = filterSearchResult.Select(x => x.Value).FirstOrDefault();
+                    }
+                    //  aApplsList = EgrantsAppl.GetApplsList(grant_id, null, aYears);
+                }
+
+                eGrantsSearchViewModelList.SelectedAppls = applsList;
+
+                // reset appllayer and limit show appls if appls_list with search parameters
+                if (applsList != null && !applsList.Equals("All", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var appllist = new List<ApplLayerObject>();
+
+                    // for more than one appl
+                    if (applsList.IndexOf(',') > 1)
+                    {
+                        var app = applsList.Split(',').ToList();
+
+                        // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
+                        foreach (var appl in eGrantsSearchViewModelList.appllayer)
+                        {
+                            if (app.Any(n => n == appl.appl_id))
+                            {
+                                appl.display_docs = "y";
+                                appllist.Add(appl);
+                            }
+                        }
+
+                        eGrantsSearchViewModelList.appllayer = appllist;
+                    }
+
+                    // for only one appl
+                    else
+                    {
+                        // ViewBag.ApplID = appls_list;
+                        var app = applsList.Split().ToList();
+
+                        // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
+                        foreach (var appl in eGrantsSearchViewModelList.appllayer)
+                            if (app.Any(n => n == appl.appl_id))
+                            {
+                                appl.display_docs = "y";
+                                appllist.Add(appl);
+                            }
+                        eGrantsSearchViewModelList.appllayer = appllist;
+                    }
+                }
+                else if (applsList != null && applsList.Equals("All", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    foreach (var appl in eGrantsSearchViewModelList.appllayer)
+                    {
+                        appl.display_docs = "y";
+                    }
+                }
+            }
+
+            eGrantsSearchViewModelList.Mode = mode;
+
+            return eGrantsSearchViewModelList;
         }
 
-        public async Task<List<Pagination>> LoadPagination(string aSearchString, string aIC, string aUserId, string aPackage = null)
+        public async Task<List<Pagination>> LoadPagination(string searchString, string ic, string userId, string package = null)
         {
-            return await _eGrantRepository.LoadPaginationAsync(aSearchString, aIC, aUserId, aPackage);
+            return await _eGrantRepository.LoadPaginationAsync(searchString, ic, userId, package);
         }
 
-        public async Task<List<FilterSearchResult>> FilterSearchQuery(int aFiscalYear, string aMechanism, string aAdminCode, int aSerialnum, int aPageNum, string aBrowser, string aIc, string aUserId)
+        public async Task<List<FilterSearchResult>> FilterSearchQuery(int fiscalYear, string mechanism, string adminCode, int serialnum, int pageNum, SessionInfo sessionInfo)
         {
-            return await _eGrantRepository.FilterSearchQuery(aFiscalYear, aMechanism, aAdminCode, aSerialnum, aPageNum, aBrowser, aIc, aUserId);
+            return await _eGrantRepository.FilterSearchQuery(fiscalYear, mechanism, adminCode, serialnum, pageNum, sessionInfo);
         }
 
-        public async Task<List<GrantDataYears>> GetYearList(string aFiscalYear, string aMechanism, string aAdminCode, string aSerialNumber)
+        public async Task<List<GrantDataYears>> GetYearList(string fiscalYear, string mechanism, string adminCode, string serialNumber)
         {
-            return await _eGrantRepository.GetYearList(aFiscalYear, aMechanism, aAdminCode, aSerialNumber);
+            return await _eGrantRepository.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
         }
 
-        public async Task<int> CheckGrantID(int aGrantId)
+        public async Task<int> CheckGrantID(int grantId)
         {
-            return await _eGrantRepository.CheckGrantID(aGrantId);
+            return await _eGrantRepository.CheckGrantID(grantId);
         }
 
-        public async Task<string> GetCategoryNameById(string aCategories)
+        public async Task<string> GetCategoryNameById(string categories)
         {
-            return await _eGrantRepository.GetCategoryNameById(aCategories);
+            return await _eGrantRepository.GetCategoryNameById(categories);
         }
 
-        public async Task<List<FilterSearchResult>> GetApplsList(int aGrantId, string aFlagType = null, string aYears = null)
+        public async Task<List<FilterSearchResult>> GetApplsList(int grantId, string flagType = null, string years = null)
         {
-            return await _eGrantRepository.GetApplsList(aGrantId, aFlagType, aYears);
+            return await _eGrantRepository.GetApplsList(grantId, flagType, years);
         }
-        private async Task<eGrantsSearchViewModel> eGrantsSearchResults(string aSearchString, int aGrantId, string aPackage, int aApplId, int aCurrentPage, string aBrowser, string aIC, string aOperator, eGrantsSearchViewModel searchByStrViewModel, Boolean loadPagination)
+
+        public async Task<eGrantsSearchViewModel> eGrantsSearchResults(string searchString, int grantId, string package, int applId, int currentPage, SessionInfo sessionInfo, eGrantsSearchViewModel searchByStrViewModel, Boolean loadPagination)
         {
             bool isGrant = false;
             bool isStr = false;
             bool isAppl = false;
             bool searchApplIdIsSoftDeleted = false;     // bail if true
 
-            if (aGrantId != 0)
+            if (grantId != 0)
             {
                 isGrant = true;
             }
 
-            if (!string.IsNullOrEmpty(aSearchString))
+            if (!string.IsNullOrEmpty(searchString))
             {
                 isStr = true;
             }
 
-            if (aApplId != 0)
+            if (applId != 0)
             {
                 isAppl = true;
             }
 
             //aCompleted = true;
-            string ic = "NCI";
-            var result = await _eGrantRepository.GetSearchResultsAsync(aSearchString, aGrantId, aPackage, aApplId, aCurrentPage, aBrowser, aIC, aOperator);
+            //string ic = "NCI";
+            var result = await _eGrantRepository.GetSearchResultsAsync(searchString, grantId, package, applId, currentPage, sessionInfo);
             if (result != null)
             {
                 searchByStrViewModel.SearchResults = result;
@@ -336,7 +463,7 @@ namespace eGrants.Services
                     if (appl_id != 0 && appl_id.ToString().Equals(appl.appl_id))
                         appl.display_docs = "y";
 
-                    if ((ic.Equals("ca", StringComparison.InvariantCultureIgnoreCase) || ic.Equals("nci", StringComparison.InvariantCultureIgnoreCase)) &&
+                    if ((sessionInfo.Ic.Equals("ca", StringComparison.InvariantCultureIgnoreCase) || sessionInfo.Ic.Equals("nci", StringComparison.InvariantCultureIgnoreCase)) &&
                         appl.appl_type_code.Equals("3") &&
                         (appl.support_year.ToLower().Contains("s") || appl.support_year.ToLower().Contains("w"))
                     )
@@ -388,9 +515,9 @@ namespace eGrants.Services
                 {
                     // show pagination
                     searchByStrViewModel.Pagination = await _eGrantRepository.LoadPaginationAsync(
-                        aSearchString,
-                        aIC,
-                        aOperator,
+                        searchString,
+                        sessionInfo.Ic,
+                        sessionInfo.UserId,
                         string.Empty);
                 }
             }
@@ -423,13 +550,13 @@ namespace eGrants.Services
         /// <param name="isGrant"></param>
         /// <param name="grantList"></param>
         /// <param name="applList"></param>
-        private async Task<List<GrantLayer>> PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> aGrantList, List<ApplLayerObject> aApplList)
+        private async Task<List<GrantLayer>> PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> grantList, List<ApplLayerObject> applList)
         {
             if (isGrant)
             {
-                foreach (var grant in aGrantList)
+                foreach (var grant in grantList)
                 {
-                    foreach (var appl in aApplList)
+                    foreach (var appl in applList)
                     {
                         if (grant.grant_id == appl.grant_id)
                         {
@@ -465,7 +592,7 @@ namespace eGrants.Services
                     }
                 }
             }
-            return aGrantList;
+            return grantList;
         }
 
         /// <summary>
@@ -473,25 +600,14 @@ namespace eGrants.Services
         /// </summary>
         /// <param name="appl_ids"></param>
         /// <returns></returns>
-        private async Task<Dictionary<string, List<PersonContact>>> GetAllMPIInfo(List<string> appl_ids)
+        private async Task<Dictionary<string, List<PersonContact>>> GetAllMPIInfo(List<string> applIds)
         {
             var results = new Dictionary<string, List<PersonContact>>();
 
-            if (appl_ids == null || appl_ids.Count == 0)
+            if (applIds == null || applIds.Count == 0)
                 return results;
 
-            //using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
-            //{
-            // note that Ingrid learned retrieving email interferes with the ability of the query to return all the MPIs
-            //var sql = "DECLARE @TSQL varchar(8000);" +
-            //    "SELECT @TSQL = 'SELECT APPL_ID, First_Name, Last_name, Role_Type_Code  FROM OPENQUERY(IRDB,''select e.appl_id, d.person_id, d.first_name, d.last_name, d.mi_name src_mi_name, c.email_addr , e.role_type_code, c.addr_type_code from person_involvements_mv e join persons_secure d on d.person_id = e.person_id left outer join person_addresses_mv c on d.person_id = c.person_id and c.addr_type_code in (''''HOM'''') and c.preferred_addr_code = ''''Y'''' where e.role_type_code in (''''PI'''', ''''MPI'''',''''CPI'''') and appl_id in ( INSERT_APPL_IDs_HERE) and d.person_id = e.person_id '')';" +
-            //    "EXEC (@TSQL)";
-            //var applsParam = string.Join(",", appl_ids);
-            //sql = sql.Replace("INSERT_APPL_IDs_HERE", applsParam);
-
-            //Dictionary<string, List<ApplicantDto>> applicants = await _eGrantRepository.GetAllMPIInfo(appl_ids);
-
-            List<PersonInvolvement> personInvolvements = await _eGrantRepository.GetAllMPIInfo(appl_ids);
+            List<PersonInvolvement> personInvolvements = await _eGrantRepository.GetAllMPIInfo(applIds);
 
             foreach(PersonInvolvement personInvolvement in personInvolvements)
             {
@@ -505,72 +621,6 @@ namespace eGrants.Services
                 results.TryAdd(person.appl_id, new List<PersonContact>());
                 results[person.appl_id].Add(person);
             }
-
-            //foreach (var kvp in applicants)
-            //{
-            //    string applId = kvp.Key;
-            //    List<ApplicantDto> contacts = kvp.Value;
-            //    foreach (PersonContact contact in contacts)
-            //    {
-            //        var person = new PersonContact
-            //        {
-            //            appl_id = contact.appl_id,
-            //            first_name = contact.first_name,
-            //            last_name = contact.last_name,
-            //            was_PI_that_year = contact.was_PI_that_year != null && ((string)contact.was_PI_that_year).ToLower() == "pi"
-            //        };
-            //    }
-            //    if (!results.ContainsKey(person.appl_id))
-            //    {
-            //        results.Add(person.appl_id, new List<PersonContact> { person });
-            //    }
-            //    else
-            //    {
-            //        results[person.appl_id].Add(person);
-            //    }
-            //}
-
-            //using (var cmd = new SqlCommand(sql, conn))
-            //{
-            //    cmd.CommandType = CommandType.Text;
-
-            //    conn.Open();
-            //    var rdr = cmd.ExecuteReader();
-
-            //    while (rdr.Read())
-            //    {
-            //        var person = new PersonContact
-            //        {
-            //            appl_id = (rdr[0] == DBNull.Value) ? string.Empty : rdr[0].ToString(),
-            //            first_name = (rdr[1] == DBNull.Value) ? string.Empty : (string)rdr[1],
-            //            last_name = (rdr[2] == DBNull.Value) ? string.Empty : (string)rdr[2],
-            //            was_PI_that_year = (rdr[3] == DBNull.Value || ((string)rdr[3]).ToLower() != "pi") ? false : true
-            //        };
-            //        if (!results.ContainsKey(person.appl_id))
-            //        {
-            //            results.Add(person.appl_id, new List<PersonContact> { person });
-            //        }
-            //        else
-            //        {
-            //            results[person.appl_id].Add(person);
-            //        }
-            //    }
-            //}
-            //}
-
-            // prune out the ones that have duplicates
-            //var deleteTheseKeys = new List<string>();
-            //foreach (var key in results.Keys)
-            //{
-            //    if (results[key].Count <= 1)
-            //    {
-            //        deleteTheseKeys.Add(key);
-            //    }
-            //}
-            //foreach (var keyToDelete in deleteTheseKeys)
-            //{
-            //    results.Remove(keyToDelete);
-            //}
 
             foreach (var key in results.Where(kvp => kvp.Value.Count <= 1).Select(kvp => kvp.Key).ToList())
             {
