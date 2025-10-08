@@ -18,6 +18,10 @@ namespace eGrants.Repositories
             _context = context;
             _serviceScopeFactory = serviceScopeFactory;
         }
+
+        // Execute the stored procedure 'sp_web_egrants_search_by_appl_id' with the provided parameters.
+        // This retrieves document layer records filtered by application ID, search type, category list, IC, and user ID.
+        // The results are materialized into a list of 'doclayer' objects.
         public List<doclayer> LoadDocs(int aApplId, string aSearchType, string aCategoryList, string aIc, string aUserId)
         {
             using (var scope = _serviceScopeFactory.CreateScope())

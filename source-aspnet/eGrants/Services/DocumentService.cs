@@ -18,23 +18,7 @@ namespace eGrants.Services
         }
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo)
         {
-            //return _documentRepository.LoadDocs(aApplId, aSearchType, aCategoryList, aIc, aUserId);
-
             var session = _sessionInfoService.GetSessionInfo(sessionInfo);
-            //var ic = _sessionInfoService.GetSessionInfo("ic");
-            //var userid = _sessionInfoService.GetSessionInfo("userid");
-
-            //// Extract session values safely
-            //if (!httpContext.Session.TryGetValue("ic", out var icBytes))
-            //    sessionInfo.Ic = "";
-            //if (!httpContext.Session.TryGetValue("userid", out var userIdBytes))
-            //    sessionInfo.UserId = "";
-
-            //if (session.TryGetValue("ic", out var icBytes))
-            //    sessionInfo.Ic = "";
-            //if (!httpContext.Session.TryGetValue("userid", out var userIdBytes))
-            //    sessionInfo.UserId = "";
-
 
             // Attempt document loading with retry logic
             const int maxRetries = 5;
