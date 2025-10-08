@@ -19,12 +19,16 @@ namespace eGrants.Repositories
             _serviceScopeFactory = serviceScopeFactory;
         }
 
-        // Retrieves amdin codes grants from the database asynchronously
+        // Retrieves admin codes grants from the database asynchronously
         public async Task<List<AdminCodes>> LoadAdminCodes()
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                // Query the Test table and project each record into an AdminCodes object.
+                // If the admin code is "ca", assign "NCI" to the profile; otherwise, leave it null.
+                // Use Distinct to remove duplicates and OrderBy to sort by admin code.
                 return await context.Grants.Select(p => new AdminCodes
                 {
                     admin_phs_org_code = p.admin_phs_org_code,

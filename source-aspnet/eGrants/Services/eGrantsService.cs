@@ -151,13 +151,6 @@ namespace eGrants.Services
             return searchByStrViewModel;
         }
 
-        //public async Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string searchString, int grantId, string package, int applId, int currentPage, string browser, string ic, string userId)
-        //{
-        //    eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
-        //    searchByStrViewModel = await eGrantsSearchResults(searchString, grantId, package, applId, currentPage, browser, ic, userId, searchByStrViewModel, false);
-        //    return searchByStrViewModel;
-        //}
-
         public async Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string searchString, int grantId, string package, int applId, int currentPage, string categories, string applsList, string years, string mode, SessionInfo sessionInfo)
         {
             eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
@@ -211,7 +204,6 @@ namespace eGrants.Services
                         var filterSearchResult = await GetApplsList(grantId, null, years);
                         applsList = filterSearchResult.Select(x => x.Value).FirstOrDefault();
                     }
-                    //  aApplsList = EgrantsAppl.GetApplsList(grant_id, null, aYears);
                 }
 
                 eGrantsSearchViewModelList.SelectedAppls = applsList;
@@ -226,7 +218,6 @@ namespace eGrants.Services
                     {
                         var app = applsList.Split(',').ToList();
 
-                        // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
                         foreach (var appl in eGrantsSearchViewModelList.appllayer)
                         {
                             if (app.Any(n => n == appl.appl_id))
@@ -242,10 +233,8 @@ namespace eGrants.Services
                     // for only one appl
                     else
                     {
-                        // ViewBag.ApplID = appls_list;
                         var app = applsList.Split().ToList();
 
-                        // List<Egrants.Models.Egrants.appllayer> appllist = new List<Egrants.Models.Egrants.appllayer>();
                         foreach (var appl in eGrantsSearchViewModelList.appllayer)
                             if (app.Any(n => n == appl.appl_id))
                             {
@@ -321,8 +310,6 @@ namespace eGrants.Services
                 isAppl = true;
             }
 
-            //aCompleted = true;
-            //string ic = "NCI";
             var result = await _eGrantRepository.GetSearchResultsAsync(searchString, grantId, package, applId, currentPage, sessionInfo);
             if (result != null)
             {
@@ -490,8 +477,6 @@ namespace eGrants.Services
                 else if (value.tag == 3)
                 {
                     var doc = new doclayer();
-                    //doc.appl_id = value.appl_id.ToString();
-                    //doc.docs_count = value.docs_count.ToString();
 
                     docList.Add(doc);
                 }
