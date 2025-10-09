@@ -1,7 +1,6 @@
 source-aspnet/.vs/egrants_new/v17/fileList.bin
 source-aspnet/.vs/
 source-aspnet/packages/
-
 /source-csxscripts/EmailHandling/EmailHandling/.vs/*
 /source-csxscripts/EmailHandling/EmailHandling/EmailTests/.vs/*
 /source-csxscripts/EmailHandling/EmailHandling/EmailTests/bin/*
@@ -38,3 +37,8 @@ source-aspnet/packages/
 /source-aspnet/egrants_new/DocPDFConversion/output/old/*
 /source-aspnet/pdf_file_conversion/.vs/*
 /source-aspnet/pdf_file_conversion/bin/*
+
+# Ignore build output folders
+bin/
+obj/
+
