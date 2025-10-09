@@ -1,6 +1,0 @@
-# Ignore build output folders
-bin/
-obj/
-
-# Specifically ignore Debug/net8.0
-bin/Debug/net8.0/
