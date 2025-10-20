@@ -46,5 +46,9 @@ namespace eGrants.Services
             // If all retries failed, throw the last exception
             throw lastException ?? new Exception("Unknown error occurred while loading documents.");
         }
+        public async Task<List<former_appls>> loadFormerAppls(int grantId)
+        {
+            return await _documentRepository.loadFormerAppls(grantId);
+        }
     }
 }

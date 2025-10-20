@@ -40,5 +40,12 @@ source-aspnet/packages/
 
 # Ignore build output folders
 bin/
-obj/
+**/obj/
+
+source-aspnet/egrants/properties/publishprofiles
+source-aspnet/egrants/*.user
+source-aspnet/egrants.tests/obj/*
+source-aspnet/egrants_new/App_Data/*
+
+
 

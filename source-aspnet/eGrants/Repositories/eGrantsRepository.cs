@@ -6,6 +6,7 @@ using eGrants.DTOs;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace eGrants.Repositories
@@ -224,6 +225,19 @@ namespace eGrants.Repositories
                 // Execute the stored procedure to load application IDs and return the results.
                 return await context.FilterSearchResults
                 .FromSqlRaw("EXEC dbo.sp_web_egrants_load_applid_string @grant_id = {0}, @flag_type = {1}, @years = {2}", grantId, flagType, years)
+                .ToListAsync();
+            }
+        }
+
+        public virtual async Task<List<supplement>> GetSupplements(string act, int grantId, int supportYear, string suffixCode, string docidStr, int formerApplId, string ic, string userId)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                // Execute the stored procedure to load application IDs and return the results.
+                return await context.supplements
+                .FromSqlRaw("EXEC dbo.sp_web_egrants_supplement @act = {0}, @grant_id = {1}, @support_year = {2}, @suffix_code = {3}, @docid_str = {4}, @former_applid = {5}, @ic = {6}, @Operator = {7}", act, grantId, (byte)supportYear, suffixCode, docidStr, formerApplId, ic, userId)
                 .ToListAsync();
             }
         }
