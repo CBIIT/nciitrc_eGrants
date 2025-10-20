@@ -151,14 +151,13 @@ function by_appl(appl_id) {
 }
 
 function show_supplement(grant_id, act) {
-    var url = '@Url.Action("LoadSupplement", "EgrantsDoc")?act=' + act + '&grant_id=' + grant_id;
-    // alert(url);
-    MeddleWindow = window.open(url, act, "toolbar=0,menubar=0,location=0,status=0,width=1000,height=500,scrollbars=yes,left=80,top=100");
+    var url = loadSupplementBaseUrl + "?act=" + encodeURIComponent(act) + "&grantId=" + encodeURIComponent(grant_id);
+    var MeddleWindow = window.open(url, act, "toolbar=0,menubar=0,location=0,status=0,width=1000,height=500,scrollbars=yes,left=80,top=100");
     MeddleWindow.focus();
 }
 
 function view_supplement(grant_id, act) {
-    var url = '@Url.Action("LoadSupplement", "EgrantsDoc")?act=' + act + '&grant_id=' + grant_id;
+    var url = '@Url.Action("LoadSupplement", "EgrantsDoc")?act=' + act + '&grantId=' + grant_id;
     alert(url);
 }
 

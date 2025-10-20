@@ -15,5 +15,7 @@ namespace eGrants.Services.Interfaces
         /// <returns>A list of <see cref="doclayer"/> objects matching the specified criteria.</returns>
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo);
 
+        public Task<List<former_appls>> loadFormerAppls(int grantId);
+
     }
 }
