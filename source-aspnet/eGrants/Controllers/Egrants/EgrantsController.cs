@@ -686,7 +686,7 @@ namespace eGrants.Controllers.Egrants
         /// The <see cref="ActionResult"/>.
         /// </returns>
         public async Task<IActionResult> by_grant(
-            int grantId = 0,
+            int grant_id = 0,
             string package = null,
             string categories = null,
             string applsList = null,
@@ -696,7 +696,7 @@ namespace eGrants.Controllers.Egrants
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
             eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByGrantAsync(string.Empty,
-                grantId, package, 0, 0, categories, applsList, years, mode, sessionInfo);
+                grant_id, package, 0, 0, categories, applsList, years, mode, sessionInfo);
 
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);

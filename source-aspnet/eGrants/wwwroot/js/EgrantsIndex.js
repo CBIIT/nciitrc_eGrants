@@ -286,7 +286,7 @@ function show_grant_with_flag(flag_type, grant_id) {
         // show appls with flag for this grant
         var categories = "All";
         var appls_list = "All";
-        var url = '@Url.Action("by_grant", "Egrants")?grant_id=' + grant_id + '&package=' + flag_type + '&categories=' + categories + '&appls_list=' + appls_list + '&years=';
+        var url = 'by_grant?grant_id=' + grant_id + '&package=' + flag_type + '&categories=' + categories + '&appls_list=' + appls_list + '&years=';
     } else if (flag_type == "MPI") {
         var thisApplId = document.getElementById("hidApplID").value;
         console.log(thisApplId);
