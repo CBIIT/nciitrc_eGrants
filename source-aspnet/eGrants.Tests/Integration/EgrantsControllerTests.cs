@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 
-using eGrants.Common;
 using eGrants.Controllers.Egrants;
 using eGrants.DAL;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
-using eGrants.Services;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
@@ -16,15 +11,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using Moq;
-using Moq.Language.Flow;
-
-using Xunit;
 
 namespace eGrants.Tests.Integration
 {
     public class EgrantsControllerTests
     {
-        private readonly EgrantsController _controller;
+        private readonly EgrantsController _eGrantsController;
+        //private readonly EgrantsDocController _eGrantsDocController;
         private readonly Mock<AppDbContext> _mockContext;
         private readonly Mock<IeGrantsService> _mockEGrantsService;
         private readonly Mock<ICommonRepository> _mockCommonRepository;
@@ -36,7 +29,6 @@ namespace eGrants.Tests.Integration
 
         public EgrantsControllerTests()
         {
-            //_mockContext = new Mock<AppDbContext>();
             _mockEGrantsService = new Mock<IeGrantsService>();
             _mockCommonService = new Mock<ICommonService>();
             _mockHttpContext = new Mock<HttpContext>();
@@ -44,10 +36,11 @@ namespace eGrants.Tests.Integration
             _mockDocumentService = new Mock<IDocumentService>();
             _mockSessionInfoService = new Mock<ISessionInfoService>();
 
-            _controller = new EgrantsController(_mockEGrantsService.Object, _mockCommonService.Object, _mockDocumentService.Object, _mockSessionInfoService.Object);
+            _eGrantsController = new EgrantsController(_mockEGrantsService.Object, _mockCommonService.Object, _mockDocumentService.Object, _mockSessionInfoService.Object);
+
             //_controller = new EgrantsController(_mockContext.Object, _mockEGrantsService.Object, _mockCommonService.Object);
             _mockHttpContext.Setup(x => x.Session).Returns(_mockSession.Object);
-            _controller.ControllerContext = new ControllerContext
+            _eGrantsController.ControllerContext = new ControllerContext
             {
                 HttpContext = _mockHttpContext.Object
             };
@@ -56,7 +49,7 @@ namespace eGrants.Tests.Integration
         [Fact]
         public void Go_to_default_ReturnsCorrectView()
         {
-            var result = _controller.Go_to_default() as ViewResult;
+            var result = _eGrantsController.Go_to_default() as ViewResult;
 
             Assert.NotNull(result);
             Assert.Equal("~/Views/Shared/Go_to_Default.cshtml", result.ViewName);
@@ -73,7 +66,7 @@ namespace eGrants.Tests.Integration
 
             _mockCommonService.Setup(s => s.LoadAdminCodes()).ReturnsAsync(codes);
 
-            var result = await _controller.Index() as ViewResult;
+            var result = await _eGrantsController.Index() as ViewResult;
 
             Assert.NotNull(result);
             Assert.Equal("~/Views/Index.cshtml", result.ViewName);
@@ -101,7 +94,7 @@ namespace eGrants.Tests.Integration
             _mockEGrantsService.Setup(s => s.GetEgrantsByStrAsync(testStr, 0, 0, 0, sessionInfo))
                               .ReturnsAsync(expectedModel);
 
-            var result = await _controller.by_str(testStr, testMode) as ViewResult;
+            var result = await _eGrantsController.by_str(testStr, testMode) as ViewResult;
 
             Assert.NotNull(result);
             Assert.Equal("~/Views/Index.cshtml", result.ViewName);
@@ -129,7 +122,7 @@ namespace eGrants.Tests.Integration
             _mockEGrantsService.Setup(s => s.GetEgrantsByStrAsync(testStr, 0, 0, 0, sessionInfo))
                                .ReturnsAsync(expectedModel);
 
-            var result = await _controller.by_str(testStr, testMode) as ViewResult;
+            var result = await _eGrantsController.by_str(testStr, testMode) as ViewResult;
 
             Assert.NotNull(result);
             Assert.Equal("~/Views/Index.cshtml", result.ViewName);
@@ -157,7 +150,7 @@ namespace eGrants.Tests.Integration
             _mockEGrantsService.Setup(s => s.GetEgrantsByStrAsync(null, 0, 0, 0, sessionInfo))
                                .ReturnsAsync(expectedModel);
 
-            var result = await _controller.by_str(testStr, testMode) as ViewResult;
+            var result = await _eGrantsController.by_str(testStr, testMode) as ViewResult;
 
             Assert.NotNull(result);
             Assert.Equal("~/Views/Index.cshtml", result.ViewName);
@@ -212,7 +205,7 @@ namespace eGrants.Tests.Integration
             _mockEGrantsService.Setup(s => s.GetEgrantsByStrAsync(testStr, 0, 0, 0, sessionInfo))
                                .ReturnsAsync(expectedModel);
 
-            var result = await _controller.by_str(testStr, testMode) as ViewResult;
+            var result = await _eGrantsController.by_str(testStr, testMode) as ViewResult;
 
             Assert.NotNull(result);
             Assert.Equal("~/Views/Index.cshtml", result.ViewName);

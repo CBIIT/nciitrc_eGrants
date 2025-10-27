@@ -360,7 +360,7 @@ namespace eGrants.Services
                     grant.ms_flag = value.ms_flag.ToString();
                     grant.od_flag = value.od_flag.ToString();
                     grant.ds_flag = value.ds_flag.ToString();
-                    //grant.adm_supp = value.adm_supp.ToString();
+                    grant.adm_supp = value.adm_supp.ToString();
 
                     if (appl_id <= 0)
                     {
@@ -527,6 +527,11 @@ namespace eGrants.Services
 
             return searchByStrViewModel;
 
+        }
+
+        public async Task<List<supplement>> GetSupplements(string act, int grantId, int supportYear, string suffixCode, string docidStr, int formerApplId, string ic, string userId)
+        {
+            return await _eGrantRepository.GetSupplements(act, grantId, supportYear, suffixCode, docidStr, formerApplId, ic, userId);
         }
 
         /// <summary>
