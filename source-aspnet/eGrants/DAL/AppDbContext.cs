@@ -1,4 +1,5 @@
-﻿using eGrants.Models;
+﻿using eGrants.DTOs;
+using eGrants.Models;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer;
@@ -30,11 +31,13 @@ namespace eGrants.DAL
 
         public DbSet<doclayer> DocLayers { get; set; }
 
-        //public DbSet<person_involvements_mv> PersonInvolvements { get; set; }
-        //public DbSet<Person> Persons { get; set; }
-        //public DbSet<PersonAddress> PersonAddresses { get; set; }
-
         public DbSet<PersonInvolvement> PersonInvolvements { get; set; }
+
+        public DbSet<InstFileFindOrgDTO> InstFileFindOrgDTO { get; set; }
+
+        public DbSet<InsitutionalOrgNameIndex> InstitutionalOrgNameIndices { get; set; }
+
+        public DbSet<InstFileLoadOrgDocListDTO> InstFileLoadOrgDocListDTO { get; set; }  
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,34 +51,9 @@ namespace eGrants.DAL
             modelBuilder.Entity<VwGrant>().HasNoKey().ToView("vw_grants");
             modelBuilder.Entity<PersonInvolvement>().HasNoKey();
             modelBuilder.Entity<doclayer>().HasNoKey();
-
-            //modelBuilder.Entity<person_involvements_mv>()
-            //    .HasKey(pi => new { pi.ApplId, pi.PersonId });
-
-            //modelBuilder.Entity<Person>()
-            //    .HasKey(p => p.PersonId);
-
-            //modelBuilder.Entity<PersonAddress>()
-            //    .HasKey(pa => new { pa.PersonId, pa.AddrTypeCode });
-
-            //// Relationships
-            //modelBuilder.Entity<person_involvements_mv>()
-            //    .HasOne(pi => pi.Person)
-            //    .WithMany(p => p.PersonInvolvements)
-            //    .HasForeignKey(pi => pi.PersonId);
-
-            //modelBuilder.Entity<Person>()
-            //    .HasMany(p => p.Addresses)
-            //    .WithOne()
-            //    .HasForeignKey(pa => pa.PersonId);
-
-            //modelBuilder.Entity<ProjectDto>().HasNoKey(); // Important for stored procedure results
+            modelBuilder.Entity<InstFileFindOrgDTO>().HasNoKey();
+            modelBuilder.Entity<InsitutionalOrgNameIndex>().HasNoKey();
+            modelBuilder.Entity<InstFileLoadOrgDocListDTO>().HasNoKey();
         }
-
-
-
-        // DbSet representing the Products table in the database
-        // Enables querying and saving instances of Product entities
-        //public DbSet<Product> Products { get; set; }
     }
 }
