@@ -1,3 +1,8 @@
+
+# Ignore build output folders
+bin/
+obj/
+
 source-aspnet/.vs/egrants_new/v17/fileList.bin
 source-aspnet/.vs/
 source-aspnet/packages/
@@ -38,7 +43,4 @@ source-aspnet/packages/
 /source-aspnet/pdf_file_conversion/.vs/*
 /source-aspnet/pdf_file_conversion/bin/*
 
-# Ignore build output folders
-bin/
-obj/
 
