@@ -2,6 +2,8 @@
 # Ignore build output folders
 bin/
 obj/
+*.csproj.user
+**/Properties/PublishProfiles/
 
 source-aspnet/.vs/egrants_new/v17/fileList.bin
 source-aspnet/.vs/
