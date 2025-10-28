@@ -69,7 +69,6 @@
     var selectedDocid = "";
 
     function delete_selected() {
-        alert("here1");
 
         var countDocs = get_selected();
 
@@ -83,7 +82,6 @@
     }
 
     function get_selected() {
-        alert("here2");
 
         for (var i = 0; i < window.document.frmUnidentifiedDocs.length; i++) {
             var control = window.document.frmUnidentifiedDocs.elements[i];
@@ -98,7 +96,6 @@
     }
 
     function get_idstring() {
-        alert("here3");
 
         for (var i = 0; i < window.document.frmUnidentifiedDocs.length; i++) {
             var control = window.document.frmUnidentifiedDocs.elements[i];
@@ -118,7 +115,6 @@
     //modify index for Unidentified documents
     function unidentified_doc_index_modify(document_id, document_date, category_id) {
         var current_url = encodeURIComponent(currenturl);
-        alert("here4");
         var url = "@Url.Action("unidentified_doc_modify", "EgrantsDoc")?document_id=" + document_id + "&category_id=" + category_id + "&document_date=" + document_date + "&previous_url=" + current_url;
         window.document.location.href = url;
     }
