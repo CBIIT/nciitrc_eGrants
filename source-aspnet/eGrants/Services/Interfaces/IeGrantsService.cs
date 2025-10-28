@@ -118,5 +118,22 @@ namespace eGrants.Services.Interfaces
         /// <param name="loadPagination">Flag indicating whether to load pagination data.</param>
         /// <returns>A view model containing eGrants search results.</returns>
         public Task<eGrantsSearchViewModel> eGrantsSearchResults(string searchString, int grantId, string package, int applId, int currentPage, SessionInfo sessionInfo, eGrantsSearchViewModel searchByStrViewModel, Boolean loadPagination);
+
+        /// <summary>
+        /// Retrieves a list of supplement records associated with a specific grant application and context.
+        /// </summary>
+        /// <param name="act">The activity code representing the type of grant or funding mechanism.</param>
+        /// <param name="grantId">The unique identifier for the grant.</param>
+        /// <param name="supportYear">The support year of the grant (e.g., year of funding).</param>
+        /// <param name="suffixCode">An optional suffix code used to distinguish grant components or segments.</param>
+        /// <param name="docidStr">A string representing the document ID related to the grant application.</param>
+        /// <param name="formerApplId">The identifier for a former application, used for historical reference or linkage.</param>
+        /// <param name="ic">The institute or center code associated with the grant.</param>
+        /// <param name="userId">The identifier of the user making the request, used for authorization or auditing.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains a list of <see cref="supplement"/> objects
+        /// matching the specified criteria.
+        /// </returns>
+        public Task<List<supplement>> GetSupplements(string act, int grantId, int supportYear, string suffixCode, string docidStr, int formerApplId, string ic, string userId);
     }
 }
