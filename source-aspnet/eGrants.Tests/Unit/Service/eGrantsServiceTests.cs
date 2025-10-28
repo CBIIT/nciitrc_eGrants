@@ -12,18 +12,22 @@ using Moq;
 
 using Xunit;
 
-namespace eGrants.Tests.Unit
+namespace eGrants.Tests.Unit.Service
 {
-    public class EGrantsServiceTests
+    public class eGrantsServiceTests
     {
         private readonly Mock<IeGrantsService> _mockService;
         private readonly Mock<IeGrantsRepository> _mockRepo;
+        private readonly eGrantsService _service;
 
-        public EGrantsServiceTests()
+        public eGrantsServiceTests()
         {
             _mockService = new Mock<IeGrantsService>(); // { CallBase = true };
             _mockRepo = new Mock<IeGrantsRepository>();
+            _service = new eGrantsService(_mockRepo.Object);
         }
+
+        #region GetEgrantsByStrAsync Tests
 
         [Fact]
         public async Task ReturnsMessage_WhenSearchStringIsEmpty()
@@ -70,6 +74,10 @@ namespace eGrants.Tests.Unit
             Assert.NotNull(result.Pagination);
             Assert.Equal("test", result.Str);
         }
+
+        #endregion
+
+        #region GetEgrantsByFilterAsync Tests
 
         [Fact]
         public async Task ReturnsMessage_WhenAllFiltersAreEmpty()
@@ -158,7 +166,9 @@ namespace eGrants.Tests.Unit
             _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo))
                 .ReturnsAsync(expectedResult);
 
+            //var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
             var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
+            
             Assert.Equal("No data found for the search", result.Message);
             Assert.Null(result.grantlayer);
         }
@@ -193,6 +203,7 @@ namespace eGrants.Tests.Unit
             _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo))
                 .ReturnsAsync(expectedResult);
 
+            //var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
             var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
 
             Assert.Equal(2024, result.FilterFY);
@@ -227,6 +238,75 @@ namespace eGrants.Tests.Unit
             Assert.Null(result);
             Assert.Equal("Database unreachable", errorMessage);
         }
+        #endregion
+        
+        #region GetSupplements Tests
+
+        [Fact]
+        public async Task GetSupplements_ValidInputs_ReturnsSupplements()
+        {
+            // Arrange
+            var expected = new List<supplement> { new supplement(), new supplement() };
+            _mockService.Setup(r => r.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1"))
+                        .ReturnsAsync(expected);
+
+            // Act
+            var result = await _mockService.Object.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1");
+
+            // Assert
+            Assert.Equal(expected.Count, result.Count);
+        }
+
+        [Fact]
+        public async Task GetSupplements_NoResults_ReturnsEmptyList()
+        {
+            _mockService.Setup(r => r.GetSupplements(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(),
+                                                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
+                                                    It.IsAny<string>(), It.IsAny<string>()))
+                        .ReturnsAsync(new List<supplement>());
+
+            var result = await _mockService.Object.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1");
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetSupplements_NullStrings_CallsRepository()
+        {
+            _mockService.Setup(r => r.GetSupplements(null, 0, 0, null, null, 0, null, null))
+                        .ReturnsAsync(new List<supplement>());
+
+            var result = await _mockService.Object.GetSupplements(null, 0, 0, null, null, 0, null, null);
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task GetSupplements_RepositoryThrows_ThrowsException()
+        {
+            _mockService.Setup(r => r.GetSupplements(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(),
+                                                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
+                                                    It.IsAny<string>(), It.IsAny<string>()))
+                        .ThrowsAsync(new Exception("Database error"));
+
+            await Assert.ThrowsAsync<Exception>(() =>
+                _mockService.Object.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1"));
+        }
+
+        [Fact]
+        public async Task GetSupplements_VerifyRepositoryCalledOnce()
+        {
+            _mockService.Setup(r => r.GetSupplements(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(),
+                                                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
+                                                    It.IsAny<string>(), It.IsAny<string>()))
+                        .ReturnsAsync(new List<supplement>());
+
+            await _mockService.Object.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1");
+
+            _mockService.Verify(r => r.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1"), Times.Once);
+        }
+
+        #endregion
     }
 }
 

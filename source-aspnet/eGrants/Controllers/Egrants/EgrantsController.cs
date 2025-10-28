@@ -53,7 +53,6 @@ namespace eGrants.Controllers.Egrants
         const int MAX_RETRIES = 3;
         // Injected dependencies: database context and product service
 
-        //private readonly AppDbContext _context;
         private readonly IeGrantsService _eGrantsService;
         private readonly IDocumentService _documentService;
         private readonly ICommonService _commonService;
@@ -66,13 +65,6 @@ namespace eGrants.Controllers.Egrants
             _sessionInfoService = sessionInfoService;
             _documentService = documentService;
         }
-
-        //public EgrantsController(AppDbContext context, IeGrantsService eGrantsService, ICommonService commonService)
-        //{
-        //    _context = context;
-        //    _eGrantsService = eGrantsService;
-        //    _commonService = commonService;
-        //}
 
         // go to default 
         /// <summary>
@@ -526,17 +518,17 @@ namespace eGrants.Controllers.Egrants
         /// <summary>
         /// The load years.
         /// </summary>
-        /// <param name="fy">
+        /// <param name="fiscalYear">
         /// The fy.
         /// </param>
         /// <param name="mechanism">
         /// The mechanism.
         /// </param>
-        /// <param name="admin_code">
-        /// The admin_code.
+        /// <param name="adminCode">
+        /// The adminCode.
         /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
+        /// <param name="serialNumber">
+        /// The serialNumber.
         /// </param>
         /// <returns>
         /// The <see cref="string"/>.
@@ -548,7 +540,6 @@ namespace eGrants.Controllers.Egrants
             string serialNumber = null)
         {
             var yearList = new List<string>();
-            // string fy, string mechan, s
             var list = await _eGrantsService.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
 
             foreach(GrantDataYears val in list) 
@@ -1192,31 +1183,38 @@ namespace eGrants.Controllers.Egrants
         //        return View("~/Egrants/Views/_Modal_Stop_Notice.cshtml");
         //    }
 
-        //    /// <summary>
-        //    /// The supplement.
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult supplement(int grant_id)
-        //    {
-        //        var act = "to_view";
+        /// <summary>
+        /// The supplement.
+        /// </summary>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> supplement(int grant_id)
+        {
+            var act = "to_view";
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //        ViewBag.StopNotice = Dashboard.Functions.Egrants.LoadSupplement(
-        //            act,
-        //            grant_id,
-        //            0,
-        //            string.Empty,
-        //            string.Empty,
-        //            0,
-        //            Convert.ToString(this.Session["ic"]),
-        //            Convert.ToString(this.Session["userid"]));
+            List<supplement> supplements = await _eGrantsService.GetSupplements(act,
+                grant_id,
+                0,
+                string.Empty,
+                string.Empty,
+                0,
+                sessionInfo.Ic,
+                sessionInfo.UserId);
 
-        //        return View("~/Egrants/Views/_Modal_Supplement.cshtml");
-        //    }
+            SupplementObjectViewModel supplementObjectViewModel = new SupplementObjectViewModel();
+
+            supplementObjectViewModel.GrantID = grant_id;   
+            supplementObjectViewModel.Act = act;
+            supplementObjectViewModel.Supplement = supplements;
+            supplementObjectViewModel.FormerAppls = new List<former_appls>();
+
+            return View("~/Views/eGrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
+        }
 
         //    public string impac_docs_data(string act, int appl_id)
         //    {
