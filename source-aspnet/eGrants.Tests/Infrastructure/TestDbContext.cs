@@ -18,9 +18,15 @@ namespace eGrants.Tests.Infrastructure
 
         public DbSet<former_appls> FormerAppls { get; set; }
 
+        public DbSet<eGrantsSearchResults> eGrantsSearchResults { get; set; }
+
+        public DbSet<AdminCodes> AdminCodes { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<former_appls>().HasKey(g => g.former_num);
+            modelBuilder.Entity<eGrantsSearchResults>().HasKey(g => g.grant_id);
+            modelBuilder.Entity<AdminCodes>().HasKey(g => g.admin_phs_org_code);
         }
     }
 

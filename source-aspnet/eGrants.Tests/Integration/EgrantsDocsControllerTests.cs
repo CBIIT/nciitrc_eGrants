@@ -1,15 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using eGrants.Controllers.Egrants;
-using eGrants.DAL;
-using eGrants.Models;
-using eGrants.Repositories.Interfaces;
+﻿using eGrants.Controllers.Egrants;
 using eGrants.Services;
-using eGrants.Services.Interfaces;
 using eGrants.Tests.Infrastructure;
 using eGrants.Tests.Utilities;
 using eGrants.ViewModels;
@@ -17,40 +7,25 @@ using eGrants.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using Moq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace eGrants.Tests.Integration
 {
     public class EgrantsDocsControllerTests
     {
-        private readonly EgrantsDocController _eGrantsDocController;
-        private readonly Mock<AppDbContext> _mockContext;
-        private readonly Mock<IeGrantsService> _eGrantsServiceMock;
-        private readonly Mock<ICommonRepository> _mockCommonRepository;
-        private readonly Mock<ICommonService> _mockCommonService;
-        private readonly Mock<HttpContext> _mockHttpContext;
-        private readonly Mock<ISession> _mockSession;
-        private readonly Mock<IDocumentService> _documentServiceMock;
-        private readonly Mock<ISessionInfoService> _sessionInfoServiceMock;
+        //private readonly EgrantsDocController _eGrantsDocController;
+        //private readonly Mock<AppDbContext> _mockContext;
+        //private readonly Mock<IeGrantsService> _eGrantsServiceMock;
+        //private readonly Mock<ICommonRepository> _mockCommonRepository;
+        //private readonly Mock<ICommonService> _mockCommonService;
+        //private readonly Mock<HttpContext> _mockHttpContext;
+        //private readonly Mock<ISession> _mockSession;
+        //private readonly Mock<IDocumentService> _documentServiceMock;
+        //private readonly Mock<ISessionInfoService> _sessionInfoServiceMock;
 
         public EgrantsDocsControllerTests()
         {
-            //_mockContext = new Mock<AppDbContext>();
-            _eGrantsServiceMock = new Mock<IeGrantsService>();
-            _mockCommonService = new Mock<ICommonService>();
-            _mockHttpContext = new Mock<HttpContext>();
-            _mockSession = new Mock<ISession>();
-            _documentServiceMock = new Mock<IDocumentService>();
-            _sessionInfoServiceMock = new Mock<ISessionInfoService>();
 
-            _mockHttpContext.Setup(x => x.Session).Returns(_mockSession.Object);
-
-            _eGrantsDocController = new EgrantsDocController(_eGrantsServiceMock.Object, _mockCommonService.Object, _documentServiceMock.Object, _sessionInfoServiceMock.Object);
-            _eGrantsDocController.ControllerContext = new ControllerContext
-            {
-                HttpContext = _mockHttpContext.Object
-            };
         }
 
         #region LoadSupplement Tests
@@ -72,6 +47,7 @@ namespace eGrants.Tests.Integration
             var eGrantsRepository = new TestEGrantsRepository(context);
             var documentRepository = new TestDocumentRepository(context);
             var commonRepository = new TestCommonRepository(context);
+
             var sessionInfoService = new SessionInfoService();
             var eGrantsService = new eGrantsService(eGrantsRepository);
             var documentService = new DocumentService(documentRepository, sessionInfoService);
