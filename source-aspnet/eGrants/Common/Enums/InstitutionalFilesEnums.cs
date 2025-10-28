@@ -2,12 +2,11 @@
 
 // /****************************** Module Header ******************************\
 // Module Name:  InstitutionalFilesEnums.cs
-// Solution: egrants_new
-// Project:  egrants_new
-// Created: 2022-05-17
+// Solution: eGrants
+// Project:  eGrants
+// Created: 2025-10-22
 // Contributors:
-//      - Briggs, Robin (NIH/NCI) [C] - briggsr2
-//      -
+//      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 // Copyright (c) National Institute of Health
 // 
 // <Description of the file>
@@ -34,7 +33,7 @@
 #endregion
 
 
-    namespace eGrants.Common.Enums
+namespace eGrants.Common.Enums
     {
         /// <summary>
         /// The institutional files page action.
