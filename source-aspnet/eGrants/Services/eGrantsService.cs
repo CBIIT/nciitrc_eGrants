@@ -157,6 +157,8 @@ namespace eGrants.Services
 
             var isExisting = await CheckGrantID(grantId);
 
+            years = years == null ? String.Empty : years;
+
             if (grantId == 0 || isExisting == 0)
             {
                 eGrantsSearchViewModelList.Message = "No data found for the search";
