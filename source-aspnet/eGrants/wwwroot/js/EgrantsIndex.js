@@ -281,12 +281,12 @@ function send_email(email_address, email_subject, pi_name) {
     window.open(maillink, "_self");
 }
 
-function show_grant_with_flag(package, grant_id) {
+function show_grant_with_flag(package, grantId) {
     if (package == "FDA" || package == "MS" || package == "OD" || package == "DS") {
         // show appls with flag for this grant
         var categories = "All";
         var applsList = "All";
-        var url = 'by_grant?grant_id=' + grant_id + '&package=' + package + '&categories=' + categories + '&appls_list=' + applsList + '&years=';
+        var url = 'by_grant?grantId=' + grantId + '&package=' + package + '&categories=' + categories + '&applsList=' + applsList + '&years=';
     } else if (package == "MPI") {
         var thisApplId = document.getElementById("hidApplID").value;
         console.log(thisApplId);
@@ -306,7 +306,7 @@ function show_grant_with_flag(package, grant_id) {
         return;
     } else if (package == "ARRA") {
         package = "All";
-        var url = '@Url.Action("by_grant", "Egrants")?grant_id=' + grant_id + '&package=&categories=&appls_list=&years=';
+        var url = '@Url.Action("by_grant", "Egrants")?grantId=' + grantId + '&package=&categories=&applsList=&years=';
     }
     // alert(url);
     // window.open(url, top);

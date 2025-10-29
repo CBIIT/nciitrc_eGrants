@@ -686,17 +686,17 @@ namespace eGrants.Controllers.Egrants
         /// The <see cref="ActionResult"/>.
         /// </returns>
         public async Task<IActionResult> by_grant(
-            int grant_id = 0,
+            int grantId = 0,
             string package = null,
             string categories = null,
-            string appls_List = null,
+            string applsList = null,
             string years = null,
             string mode = null)
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
             eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByGrantAsync(string.Empty,
-                grant_id, package, 0, 0, categories, appls_List, years, mode, sessionInfo);
+                grantId, package, 0, 0, categories, applsList, years, mode, sessionInfo);
 
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
