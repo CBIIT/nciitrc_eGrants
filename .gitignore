@@ -45,6 +45,7 @@ bin/
 source-aspnet/egrants/properties/publishprofiles
 source-aspnet/egrants/*.user
 source-aspnet/egrants_new/App_Data/*
-
+*.csproj.user
+**/Properties/PublishProfiles/
 
 
