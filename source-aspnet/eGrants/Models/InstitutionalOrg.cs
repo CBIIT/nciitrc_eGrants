@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  Pagination.cs
+// Module Name:  InstitutionalOrg.cs
 // Solution: eGrants
 // Project:  eGrants
-// Created: 2025-08-01
+// Created: 2025-10-22
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 // Copyright (c) National Institute of Health
@@ -34,44 +34,75 @@
 
 namespace eGrants.Models
 {
+
     /// <summary>
-    ///     The pagination.
+    /// The institutional org.
     /// </summary>
-    public class Pagination
+    public class InstitutionalOrg
     {
         /// <summary>
-        ///     Gets or sets the tag.
+        /// Gets or sets the tag.
         /// </summary>
-        public int? tag { get; set; }
+        public int Tag { get; set; }
 
         /// <summary>
-        ///     Gets or sets the parent.
+        /// Gets or sets the org id.
         /// </summary>
-        public int? parent { get; set; }
+        public int OrgId { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_grants.
+        /// Gets or sets the org name.
         /// </summary>
-        public int? total_grants { get; set; }
+        public string OrgName { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_tabs.
+        /// Gets or sets the sv created by.
         /// </summary>
-        public int? total_tabs { get; set; }
+        public string SVCreatedBy { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_pages.
+        /// Gets or sets the sv created date.
         /// </summary>
-        public int? total_pages { get; set; }
+        public string SVCreatedDate { get; set; }
 
         /// <summary>
-        ///     Gets or sets the tab_number.
+        /// Gets or sets the sv end date.
         /// </summary>
-        public int? tab_number { get; set; }
+        public string SVEndDate { get; set; }
 
         /// <summary>
-        ///     Gets or sets the page_number.
+        /// Gets or sets the sv url.
         /// </summary>
-        public int? page_number { get; set; }
+        public string SvUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the fu created date.
+        /// </summary>
+        public string FUCreatedDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the fu created by.
+        /// </summary>
+        public string FUCreatedBy { get; set; }
+
+        /// <summary>
+        /// Gets or sets the fu end date.
+        /// </summary>
+        public string FUEndDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the fu url.
+        /// </summary>
+        public string FUUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether any org doc.
+        /// </summary>
+        public bool AnyOrgDoc { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether active.
+        /// </summary>
+        public bool Active { get; set; }
     }
 }

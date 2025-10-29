@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  Pagination.cs
+// Module Name:  InstitutionalDocFiles.cs
 // Solution: eGrants
 // Project:  eGrants
-// Created: 2025-08-01
+// Created: 2025-10-22
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 // Copyright (c) National Institute of Health
@@ -35,43 +35,58 @@
 namespace eGrants.Models
 {
     /// <summary>
-    ///     The pagination.
+    /// The institutional doc files.
     /// </summary>
-    public class Pagination
+    public class InstitutionalDocFiles
     {
         /// <summary>
-        ///     Gets or sets the tag.
+        /// Gets or sets the tag.
         /// </summary>
-        public int? tag { get; set; }
+        public int Tag { get; set; }
 
         /// <summary>
-        ///     Gets or sets the parent.
+        /// Gets or sets the org_id.
         /// </summary>
-        public int? parent { get; set; }
+        public string org_id { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_grants.
+        /// Gets or sets the org_name.
         /// </summary>
-        public int? total_grants { get; set; }
+        public string org_name { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_tabs.
+        /// Gets or sets the document id.
         /// </summary>
-        public int? total_tabs { get; set; }
+        public int DocumentId { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_pages.
+        /// Gets or sets the category_name.
         /// </summary>
-        public int? total_pages { get; set; }
+        public string category_name { get; set; }
 
         /// <summary>
-        ///     Gets or sets the tab_number.
+        /// Gets or sets the url.
         /// </summary>
-        public int? tab_number { get; set; }
+        public string url { get; set; }
 
         /// <summary>
-        ///     Gets or sets the page_number.
+        /// Gets or sets the start_date.
         /// </summary>
-        public int? page_number { get; set; }
+        public string start_date { get; set; }
+
+        /// <summary>
+        /// Gets or sets the end_date.
+        /// </summary>
+        public string end_date { get; set; }
+
+        /// <summary>
+        /// Gets or sets the created_date.
+        /// </summary>
+        public string created_date { get; set; }
+
+        /// <summary>
+        /// Gets or sets the comments.
+        /// </summary>
+        public string comments { get; set; }
     }
 }

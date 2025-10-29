@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  Pagination.cs
+// Module Name:  InstitutionalOrgCategory.cs
 // Solution: eGrants
 // Project:  eGrants
-// Created: 2025-08-01
+// Created: 2025-10-22
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 // Copyright (c) National Institute of Health
@@ -35,43 +35,43 @@
 namespace eGrants.Models
 {
     /// <summary>
-    ///     The pagination.
+    /// The institutional org category.
     /// </summary>
-    public class Pagination
+    public class InstitutionalOrgCategory
     {
         /// <summary>
-        ///     Gets or sets the tag.
+        /// Gets or sets the category_id.
         /// </summary>
-        public int? tag { get; set; }
+        public string category_id { get; set; }
 
         /// <summary>
-        ///     Gets or sets the parent.
+        /// Gets or sets the category_name.
         /// </summary>
-        public int? parent { get; set; }
+        public string category_name { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_grants.
+        /// Gets or sets the tobe_flag.
         /// </summary>
-        public int? total_grants { get; set; }
+        public string tobe_flag { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_tabs.
+        /// Gets or sets the flag_period.
         /// </summary>
-        public int? total_tabs { get; set; }
+        public string flag_period { get; set; }
 
         /// <summary>
-        ///     Gets or sets the total_pages.
+        /// Gets or sets the flag_data.
         /// </summary>
-        public int? total_pages { get; set; }
+        public string flag_data { get; set; }
 
         /// <summary>
-        ///     Gets or sets the tab_number.
+        /// Gets or sets a value indicating whether require_comments.
         /// </summary>
-        public int? tab_number { get; set; }
+        public bool require_comments { get; set; }
 
         /// <summary>
-        ///     Gets or sets the page_number.
+        /// Gets or sets a value indicating whether active.
         /// </summary>
-        public int? page_number { get; set; }
+        public bool active { get; set; }
     }
 }
