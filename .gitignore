@@ -1,3 +1,4 @@
+source-aspnet/eGrants/obj/
 source-aspnet/.vs/egrants_new/v17/fileList.bin
 source-aspnet/.vs/
 source-aspnet/packages/
@@ -42,10 +43,9 @@ source-aspnet/packages/
 bin/
 **/obj/
 
-source-aspnet/egrants/properties/publishprofiles
-source-aspnet/egrants/*.user
-source-aspnet/egrants_new/App_Data/*
-*.csproj.user
-**/Properties/PublishProfiles/
+source-aspnet/eGrants/Properties/PublishProfiles
+source-aspnet/eGrants/*.user
+source-aspnet/eGrants_new/App_Data/*
+
 
 
