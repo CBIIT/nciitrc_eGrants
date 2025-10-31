@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  Pagination.cs
+// Module Name:  InstitutionalFilesEnums.cs
 // Solution: eGrants
 // Project:  eGrants
-// Created: 2025-08-01
+// Created: 2025-10-22
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 // Copyright (c) National Institute of Health
@@ -32,46 +32,37 @@
 
 #endregion
 
-namespace eGrants.Models
-{
-    /// <summary>
-    ///     The pagination.
-    /// </summary>
-    public class Pagination
+
+namespace eGrants.Common.Enums
     {
         /// <summary>
-        ///     Gets or sets the tag.
+        /// The institutional files page action.
         /// </summary>
-        public int? tag { get; set; }
+        public enum InstitutionalFilesPageAction
+        {
+            /// <summary>
+            /// The show orgs.
+            /// </summary>
+            ShowOrgs,
 
-        /// <summary>
-        ///     Gets or sets the parent.
-        /// </summary>
-        public int? parent { get; set; }
+            /// <summary>
+            /// The show docs.
+            /// </summary>
+            ShowDocs,
 
-        /// <summary>
-        ///     Gets or sets the total_grants.
-        /// </summary>
-        public int? total_grants { get; set; }
+            /// <summary>
+            /// The create new.
+            /// </summary>
+            CreateNew,
 
-        /// <summary>
-        ///     Gets or sets the total_tabs.
-        /// </summary>
-        public int? total_tabs { get; set; }
+            /// <summary>
+            /// The search orgs.
+            /// </summary>
+            SearchOrgs,
 
-        /// <summary>
-        ///     Gets or sets the total_pages.
-        /// </summary>
-        public int? total_pages { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the tab_number.
-        /// </summary>
-        public int? tab_number { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the page_number.
-        /// </summary>
-        public int? page_number { get; set; }
+            /// <summary>
+            /// The update doc.
+            /// </summary>
+            UpdateDoc
+        }
     }
-}

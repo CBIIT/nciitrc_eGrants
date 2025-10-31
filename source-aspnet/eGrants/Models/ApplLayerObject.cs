@@ -2,12 +2,11 @@
 
 // /****************************** Module Header ******************************\
 // Module Name:  ApplLayerObject.cs
-// Solution: egrants_new
-// Project:  egrants_new
-// Created: 2022-12-02
+// Solution: eGrants
+// Project:  eGrants
+// Created: 2025-08-01
 // Contributors:
-//      - Briggs, Robin (NIH/NCI) [C] - briggsr2
-//      -
+//      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 // Copyright (c) National Institute of Health
 // 
 // <Description of the file>
