@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data;
+using System.Text;
 
 using eGrants.DAL;
 using eGrants.DTOs;
@@ -44,9 +45,16 @@ namespace eGrants.Repositories
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
                 // Execute the stored procedure and return the results as a list of eGrantsSearchResults.
-                return await context.Set<eGrantsSearchResults>()
-                    .FromSqlRaw(sql, searchString, grantId, package, applId, currentPage, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId)
-                    .ToListAsync();
+                try
+                {
+                    return await context.Set<eGrantsSearchResults>()
+                        .FromSqlRaw(sql, searchString, grantId, package, applId, currentPage, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId)
+                        .ToListAsync();
+                }
+                catch (Exception ex)
+                {
+                    return new List<eGrantsSearchResults>();
+                }
             }
         }
 
@@ -180,10 +188,25 @@ namespace eGrants.Repositories
         {
             try
             {
-                // Format application IDs for use in the OPENQUERY SQL string.
-                var applsParam = string.Join(",", applIds.Select(id => $"''{id}''")); // Ensure each ID is quoted
+                // Format application IDs for use in the OPENQUERY SQL string so that not more than 8000 characters worth of Ids are used.
+                var sb = new StringBuilder();
+                int maxLength = 8000;
+                bool first = true;
 
-                // Construct the OPENQUERY SQL to retrieve MPI information from IRDB.
+                foreach (var id in applIds)
+                {
+                    var formatted = $"''{id}''";
+                    if (sb.Length + formatted.Length + (first ? 0 : 1) > maxLength)
+                        break;
+
+                    if (!first)
+                        sb.Append(",");
+                    sb.Append(formatted);
+                    first = false;
+                }
+
+                var applsParam = sb.ToString();
+
                 var openQuery = $@"
                     SELECT APPL_ID, First_Name, Last_name, Role_Type_Code
                     FROM OPENQUERY(IRDB, '
