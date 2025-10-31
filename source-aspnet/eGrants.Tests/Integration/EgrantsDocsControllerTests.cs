@@ -3,7 +3,6 @@ using eGrants.DAL;
 using eGrants.Repositories;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
-//using eGrants.Tests.Infrastructure;
 using eGrants.Tests.Utilities;
 using eGrants.ViewModels;
 
@@ -125,9 +124,6 @@ namespace eGrants.Tests.Integration
             // Use a GrantID or Act that triggers a known failure in DocumentService
             await Assert.ThrowsAsync<Exception>(() =>
                 controller.LoadSupplement("TriggerErrorAct", 999998));
-
-            //await Assert.ThrowsAsync<Exception>(() =>
-            //    controller.LoadSupplement("test", 444444444));
         }
 
         [Theory]
