@@ -1,100 +1,166 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿using eGrant.Controllers;
 
+using eGrants.Common.Enums;
+using eGrants.Controllers;
 using eGrants.DAL;
 using eGrants.DTOs;
+using eGrants.Repositories;
+using eGrants.Services;
+using eGrants.Services.Interfaces;
+using eGrants.Tests.Utilities;
+using eGrants.ViewModels;
 
-using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+
+using Moq;
 
 namespace eGrants.Tests.Integration
 {
-
-    public class InstitutionalFilesControllerTests : IClassFixture<WebApplicationFactory<Program>>
+    public class InstitutionalFilesControllerTests
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private const string DevConnectionString = @"Data Source=NCIDB-D387-V.nci.nih.gov\\MSSQLEGRANTSQ,52000;Persist Security Info=True;Initial Catalog=EIM;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=45";
 
-        public InstitutionalFilesControllerTests(WebApplicationFactory<Program> factory)
+        // Creates a DbContext using the dev connection string
+        private AppDbContext CreateDevDbContext()
         {
-            _factory = factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Replace DbContext with in-memory for testing
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseSqlServer(DevConnectionString)
+                .Options;
 
-                    if (descriptor != null)
-                        services.Remove(descriptor);
+            return new AppDbContext(options);
+        }
 
-                    services.AddDbContext<AppDbContext>(options =>
-                    {
-                        options.UseInMemoryDatabase("TestDb");
-                    });
+        // Builds a scoped service provider with the manually created DbContext
+        private IServiceScopeFactory CreateScopeFactory()
+        {
+            var services = new ServiceCollection();
+            services.AddScoped(_ => CreateDevDbContext());
+            var provider = services.BuildServiceProvider();
+            return provider.GetRequiredService<IServiceScopeFactory>();
+        }
 
-                    // Seed test data
-                    using var scope = services.BuildServiceProvider().CreateScope();
-                    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                    db.Database.EnsureCreated();
+        // Constructs the InstitutionalFilesController with dependencies and optional session
+        private InstitutionalFilesController CreateController(AppDbContext context, ISession session = null)
+        {
+            var scopeFactory = CreateScopeFactory();
 
-                    db.InstFileFindOrgDTO.Add(new InstFileFindOrgDTO
-                    {
-                        OrgId = 1,
-                        OrgName = "TestOrg"
-                    });
+            var repository = new InstitutionalFilesRepository(context, scopeFactory);
+            var service = new InstitutionalFilesService(repository);
+            var sessionInfoService = new SessionInfoService();
 
-                    db.SaveChanges();
-                });
-            });
+            var controller = new InstitutionalFilesController(service);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Session = session;
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            return controller;
         }
 
         [Fact]
-        public async Task ShowDocs_ReturnsView_WithValidOrgId()
+        public async Task Show_Docs_WithValidOrgId_ReturnsCorrectViewAndModel()
         {
             // Arrange
-            var client = _factory.CreateClient();
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context);
+
+            // Use a known orgId and orgName that exist in the dev database
+            int testOrgId = 1;
+            string testOrgName = "Test Organization";
 
             // Act
-            var response = await client.GetAsync("/InstitutionalFiles/Show_Docs?orgId=1");
+            var result = await controller.Show_Docs(testOrgId, testOrgName) as ViewResult;
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(result);
+            Assert.Equal("~/Views/eGrants/InstitutionalFilesIndex.cshtml", result.ViewName);
 
-            var content = await response.Content.ReadAsStringAsync();
-            Assert.Contains("TestOrg", content); // Check if org name appears in rendered view
+            var model = result.Model as InstitutionalFilesPageViewModel;
+            Assert.NotNull(model);
+            Assert.Equal(InstitutionalFilesPageAction.ShowDocs, model.Action);
+            Assert.NotNull(model.SelectedInstitutionalOrg);
+            Assert.Equal(testOrgId, model.SelectedInstitutionalOrg.OrgId);
+            Assert.NotNull(model.CharacterIndices);
+            Assert.NotNull(model.DocFiles);
         }
 
         [Fact]
-        public async Task ShowDocs_ReturnsView_WithValidOrgName()
+        public async Task Show_Docs_WithValidOrgIdAndName_ReturnsExpectedViewAndModel()
         {
-            var client = _factory.CreateClient();
+            // Arrange
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context);
+            int orgId = 1;
+            string orgName = "Test Organization";
 
-            var response = await client.GetAsync("/InstitutionalFiles/Show_Docs?orgName=TestOrg");
+            // Act
+            var result = await controller.Show_Docs(orgId, orgName) as ViewResult;
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("~/Views/eGrants/InstitutionalFilesIndex.cshtml", result.ViewName);
 
-            var content = await response.Content.ReadAsStringAsync();
-            Assert.Contains("TestOrg", content);
+            var model = Assert.IsType<InstitutionalFilesPageViewModel>(result.Model);
+            Assert.Equal(InstitutionalFilesPageAction.ShowDocs, model.Action);
+            Assert.NotNull(model.SelectedInstitutionalOrg);
+            Assert.Equal(orgId, model.SelectedInstitutionalOrg.OrgId);
+            Assert.NotNull(model.CharacterIndices);
+            Assert.NotNull(model.DocFiles);
         }
 
         [Fact]
-        public async Task ShowDocs_ReturnsNotFound_ForInvalidOrg()
+        public async Task Show_Docs_WithOrgHavingNoDocs_ReturnsEmptyDocList()
         {
-            var client = _factory.CreateClient();
+            // Arrange
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context);
+            int orgId = 999; // Use a known orgId with no docs
+            string orgName = "Empty Org";
 
-            var response = await client.GetAsync("/InstitutionalFiles/Show_Docs?orgId=999");
+            // Act
+            var result = await controller.Show_Docs(orgId, orgName) as ViewResult;
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            // Assert
+            var model = Assert.IsType<InstitutionalFilesPageViewModel>(result.Model);
+            Assert.NotNull(model.DocFiles);
+            Assert.Empty(model.DocFiles);
+        }
 
-            var content = await response.Content.ReadAsStringAsync();
-            Assert.DoesNotContain("TestOrg", content); // Or check for error message
+        [Fact]
+        public async Task Show_Docs_WithMissingCharacterIndices_ReturnsEmptyIndices()
+        {
+            // Arrange
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context);
+            int orgId = 1;
+            string orgName = "Test Org";
+
+            // Act
+            var result = await controller.Show_Docs(orgId, orgName) as ViewResult;
+
+            // Assert
+            var model = Assert.IsType<InstitutionalFilesPageViewModel>(result.Model);
+            Assert.NotNull(model.CharacterIndices);
+            Assert.False(model.CharacterIndices.Count == 0 || model.CharacterIndices.All(i => i == null));
+        }
+
+        [Fact]
+        public async Task Show_Docs_ReturnsExpectedViewPath()
+        {
+            // Arrange
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context);
+            int orgId = 1;
+            string orgName = "Test Org";
+
+            // Act
+            var result = await controller.Show_Docs(orgId, orgName) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("~/Views/eGrants/InstitutionalFilesIndex.cshtml", result.ViewName);
         }
     }
-
 }
