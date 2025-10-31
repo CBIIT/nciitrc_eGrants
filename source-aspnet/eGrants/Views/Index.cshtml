@@ -560,15 +560,15 @@
                             @if (grant.institutional_flag1 == true)
                             {
                                 <span class="pl-2">
-                                    <a href="~/InstitutionalFiles/Show_Docs?org_id=@grant.OrgId">
-                                        <img class="img_18_18" src="~/Content/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.SelectedOrganizationName" />
+                                    <a href="~/InstitutionalFiles/Show_Docs?orgId=@grant.OrgId">
+                                        <img class="img_18_18" src="/images/inst_icon_flag.png" title="Follow-Up File Present, View Institutional File(s) for @grant.SelectedOrganizationName" />
                                     </a>
                                 </span>
                             }
                             else if (grant.AnyOrgDoc == true)
                             {
                                 <span class="pl-2">
-                                    <a href="~/InstitutionalFiles/Show_Docs?org_id=@grant.OrgId">
+                                    <a href="~/InstitutionalFiles/Show_Docs?orgId=@grant.OrgId">
                                         <img class="img_18_18" src="/images/inst_icon.png" title="View Institutional File(s) for @grant.SelectedOrganizationName" />
                                     </a>
                                 </span>
