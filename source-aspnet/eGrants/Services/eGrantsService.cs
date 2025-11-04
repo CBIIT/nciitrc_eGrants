@@ -151,6 +151,57 @@ namespace eGrants.Services
             return searchByStrViewModel;
         }
 
+        public async Task<eGrantsSearchViewModel> GetEgrantsByApplAsync(int applId, string mode, string str, SessionInfo sessionInfo)
+        {
+            eGrantsSearchViewModel searchByApplViewModel = new eGrantsSearchViewModel();
+            var isexisting = await CheckApplID(applId); 
+
+            if (applId == 0 || isexisting == 0)
+            {
+                searchByApplViewModel.Message = "No data found for the search";
+                searchByApplViewModel.grantlayer = null;
+            }
+            else
+            {
+                if (str != null)
+                    searchByApplViewModel.Str = str;             
+
+                searchByApplViewModel.Mode = mode;
+                searchByApplViewModel.SearchStyle = "by_appl";
+                searchByApplViewModel.ApplID = applId;
+                searchByApplViewModel.GrantID = await GetGrantID(applId);//Dashboard.Functions.Egrants.GetGrantID(appl_id);
+                searchByApplViewModel.SelectedCats = "All";
+                searchByApplViewModel.SelectedCategories = "All";
+                searchByApplViewModel.SelectedAppls = applId.ToString();
+
+                searchByApplViewModel = await eGrantsSearchResults("",
+                    0, "", applId,
+                    0, sessionInfo, searchByApplViewModel, false);
+
+
+                searchByApplViewModel.grantlayer = searchByApplViewModel.grantlayerproperty;
+                searchByApplViewModel.appllayer = searchByApplViewModel.appllayerproperty;
+                searchByApplViewModel.appllayer_All = searchByApplViewModel.appllayerproperty;
+                searchByApplViewModel.ApplCount = searchByApplViewModel.appllayer.Count;
+                searchByApplViewModel.doclayer = searchByApplViewModel.doclayerproperty;
+                searchByApplViewModel.DocCount = searchByApplViewModel.doclayer.Count;
+                if (searchByApplViewModel.appllayerproperty != null && searchByApplViewModel.appllayerproperty.Count() > 0)
+                {
+                    var thisAppl = searchByApplViewModel.appllayerproperty
+                        .FirstOrDefault(a => a.appl_id == applId.ToString());
+                        
+                    //Additional code added to display the appl documents
+                    List<ApplLayerObject> applList = new List<ApplLayerObject>();
+                    if (thisAppl != null)
+                        searchByApplViewModel.yearName = thisAppl.label;
+                        thisAppl.display_docs = "y";
+                        applList.Add(thisAppl);
+                        searchByApplViewModel.appllayer = applList;
+                }
+            }
+
+            return searchByApplViewModel;
+        }
         public async Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string searchString, int grantId, string package, int applId, int currentPage, string categories, string applsList, string years, string mode, SessionInfo sessionInfo)
         {
             eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
@@ -278,6 +329,17 @@ namespace eGrants.Services
         public async Task<int> CheckGrantID(int grantId)
         {
             return await _eGrantRepository.CheckGrantID(grantId);
+        }
+
+        private async Task<int?> GetGrantID(int applId)
+        {
+            return await _eGrantRepository.GetGrantID(applId);
+        }
+
+
+        public async Task<int> CheckApplID(int grantId)
+        {
+            return await _eGrantRepository.CheckApplID(grantId);
         }
 
         public async Task<string> GetCategoryNameById(string categories)

@@ -692,6 +692,45 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
         }
 
+        /// <summary>
+        /// The by_grant.
+        /// </summary>
+        /// <param name="grantId">
+        /// The grant_id.
+        /// </param>
+        /// <param name="package">
+        /// The package.
+        /// </param>
+        /// <param name="categories">
+        /// The categories.
+        /// </param>
+        /// <param name="applsList">
+        /// The appls_list.
+        /// </param>
+        /// <param name="years">
+        /// The years.
+        /// </param>
+        /// <param name="mode">
+        /// The mode.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<IActionResult> by_appl(
+            int applId = 0,
+            string mode = null,
+            string str = null)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByApplAsync(applId, mode, str, sessionInfo);
+
+            eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
+
+            return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
+        }
+
+
         //    /// <summary>
         //    /// The by_appl.
         //    /// </summary>

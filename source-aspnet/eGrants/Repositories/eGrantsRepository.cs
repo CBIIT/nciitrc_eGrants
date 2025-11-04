@@ -241,5 +241,27 @@ namespace eGrants.Repositories
                 .ToListAsync();
             }
         }
+
+        public async Task<int> CheckApplID(int applId)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                return await context.VwAppls.Where(x => x.appl_id == applId).CountAsync();
+            }
+        }
+
+        public async Task<int?> GetGrantID(int applId)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                return await context.VwAppls
+                    .Where(x => x.appl_id == applId)
+                    .Select(x => x.grant_id)
+    .               FirstOrDefaultAsync();
+
+            }
+        }
     }
 }

@@ -135,5 +135,6 @@ namespace eGrants.Services.Interfaces
         /// matching the specified criteria.
         /// </returns>
         public Task<List<supplement>> GetSupplements(string act, int grantId, int supportYear, string suffixCode, string docidStr, int formerApplId, string ic, string userId);
+        public Task<eGrantsSearchViewModel> GetEgrantsByApplAsync(int applId, string mode, string str, SessionInfo sessionInfo);
     }
 }

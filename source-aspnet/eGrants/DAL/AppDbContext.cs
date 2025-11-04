@@ -41,7 +41,8 @@ namespace eGrants.DAL
 
         public DbSet<InsitutionalOrgNameIndex> InstitutionalOrgNameIndices { get; set; }
 
-        public DbSet<InstFileLoadOrgDocListDTO> InstFileLoadOrgDocListDTO { get; set; }  
+        public DbSet<InstFileLoadOrgDocListDTO> InstFileLoadOrgDocListDTO { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
