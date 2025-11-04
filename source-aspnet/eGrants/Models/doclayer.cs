@@ -55,7 +55,7 @@ namespace eGrants.Models
         ///     Gets or sets the docs_count.
         /// </summary>
         [NotMapped]
-        public string docs_count { get; set; }
+        public string? docs_count { get; set; }
 
         /// <summary>
         ///     Gets or sets the grant_id.
@@ -66,7 +66,7 @@ namespace eGrants.Models
         ///     Gets or sets the full_grant_num.
         /// </summary>
         [NotMapped]
-        public string full_grant_num { get; set; }
+        public string? full_grant_num { get; set; }
 
         /// <summary>
         ///     Gets or sets the document_id.
@@ -81,7 +81,7 @@ namespace eGrants.Models
         /// <summary>
         ///     Gets or sets the category_id.
         /// </summary>
-        public short? category_id { get; set; }
+        public int? category_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the category_name.
@@ -126,7 +126,7 @@ namespace eGrants.Models
         /// <summary>
         ///     Gets or sets the page_count.
         /// </summary>
-        public short? page_count { get; set; }
+        public int? page_count { get; set; }
 
         /// <summary>
         ///     Gets or sets the fsr_count.
