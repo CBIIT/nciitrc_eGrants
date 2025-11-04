@@ -37,6 +37,7 @@
         var QuickLinkType = [];
 
         var currentView = "StandardForm";
+        //document.cookie = "auditMode = StandardForm;path=/";
         var remainingAutoLogoutMS = @browserTimeout;
         var displayDialogAtRemainingTime = @whenToDisplayTimoutDialog;       // 15000 * 60
 
@@ -157,7 +158,7 @@
         }
 
         function auditFileDownloadMenuClicked() {
-            console.log("going to Grant Year");
+            console.log("going to Download");
             currentView = "DownloadForm";
             displayDownloadOrAuditForms();
             window.location.href = "/";
