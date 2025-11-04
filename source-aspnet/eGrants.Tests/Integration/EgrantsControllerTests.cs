@@ -322,6 +322,40 @@ namespace eGrants.Tests.Integration
             // Optional: check specific known values if seeded
             Assert.Contains(categoryStrings, s => s.Contains("Greensheet"));
         }
+
+        [Fact]
+        public async Task LoadCategories_WithInvalidGrantId_ReturnsEmptyOrError()
+        {
+            // Arrange: create test DB context and session
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.Set("ic", Encoding.UTF8.GetBytes("NIC"));
+            session.Set("browser", Encoding.UTF8.GetBytes("Chrome"));
+            session.Set("userid", Encoding.UTF8.GetBytes("dehuffdc"));
+
+            var controller = CreateController(context, session);
+
+            // Use invalid grant ID and malformed year string
+            int invalidGrantId = -999; // assuming negative IDs are invalid
+            string invalidYears = "All";
+
+            // Act: call LoadCategories
+            var resultJson = await controller.LoadCategories(invalidGrantId, invalidYears);
+
+            // Assert: validate response behavior
+            Assert.False(string.IsNullOrWhiteSpace(resultJson));
+
+            var categoryStrings = JsonConvert.DeserializeObject<List<string>>(resultJson);
+            Assert.NotNull(categoryStrings);
+
+            // Expecting empty list or entries that do not match expected format
+            Assert.Empty(categoryStrings); // or use Assert.True(categoryStrings.Count == 0);
+
+            // Optional: if your controller returns error messages in JSON, validate structure
+            // var errorResponse = JsonConvert.DeserializeObject<ErrorModel>(resultJson);
+            // Assert.Equal("Invalid grant ID or year format", errorResponse.Message);
+        }
+
         #endregion
     }
 }

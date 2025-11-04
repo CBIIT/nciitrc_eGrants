@@ -265,15 +265,45 @@ namespace eGrants.Repositories
             }
         }
 
+        //public async Task<List<string>> GetCategoryList(int grantId, string years)
+        //{
+        //    var results = await _context.CategoriesListDTO
+        //    .FromSqlRaw("EXEC dbo.sp_web_egrants_load_category_list @grant_id = {0}, @years = {1}", grantId, years)
+        //    .ToListAsync();
+
+        //    return results
+        //        .Select(r => $"{r.category_id}:{r.category_name}")
+        //        .ToList();
+        //}
         public async Task<List<string>> GetCategoryList(int grantId, string years)
         {
-            var results = await _context.CategoriesListDTO
-            .FromSqlRaw("EXEC dbo.sp_web_egrants_load_category_list @grant_id = {0}, @years = {1}", grantId, years)
-            .ToListAsync();
+            var categoryList = new List<string>();
 
-            return results
-                .Select(r => $"{r.category_id}:{r.category_name}")
-                .ToList();
+            using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                await connection.OpenAsync();
+
+                using (var command = new SqlCommand("dbo.sp_web_egrants_load_category_list", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@grant_id", grantId);
+                    command.Parameters.AddWithValue("@years", years);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            // Force cast to int regardless of underlying SQL type
+                            int categoryId = Convert.ToInt32(reader["category_id"]);
+                            string categoryName = reader["category_name"].ToString();
+
+                            categoryList.Add($"{categoryId}:{categoryName}");
+                        }
+                    }
+                }
+            }
+
+            return categoryList;
         }
     }
 }
