@@ -81,7 +81,7 @@ namespace eGrants.Models
         /// <summary>
         ///     Gets or sets the category_id.
         /// </summary>
-        public int? category_id { get; set; }
+        public short? category_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the category_name.
@@ -126,7 +126,7 @@ namespace eGrants.Models
         /// <summary>
         ///     Gets or sets the page_count.
         /// </summary>
-        public int? page_count { get; set; }
+        public short? page_count { get; set; }
 
         /// <summary>
         ///     Gets or sets the fsr_count.
