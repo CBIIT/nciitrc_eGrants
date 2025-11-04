@@ -135,5 +135,17 @@ namespace eGrants.Services.Interfaces
         /// matching the specified criteria.
         /// </returns>
         public Task<List<supplement>> GetSupplements(string act, int grantId, int supportYear, string suffixCode, string docidStr, int formerApplId, string ic, string userId);
+
+        /// <summary>
+        /// Retrieves a list of category names associated with a specific grant and year range.
+        /// </summary>
+        /// <param name="grantId">The unique identifier of the grant for which categories are requested.</param>
+        /// <param name="years">
+        /// A comma-separated string representing one or more years (e.g., "2022,2023") used to filter categories.
+        /// </param>
+        /// <returns>
+        /// A task that resolves to a list of category names matching the specified grant and year criteria.
+        /// </returns>
+        public Task<List<string>> GetCategoryList(int grantId, string years);
     }
 }
