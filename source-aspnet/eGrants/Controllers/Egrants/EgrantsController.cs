@@ -573,26 +573,25 @@ namespace eGrants.Controllers.Egrants
         //        return JsonConvert.SerializeObject(list);
         //    }
 
-        //    // get category list by grant_id and years
-        //    /// <summary>
-        //    /// The load categories.
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <param name="years">
-        //    /// The years.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="string"/>.
-        //    /// </returns>
-        //    public string LoadCategories(int grant_id, string years)
-        //    {
-        //        var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
+        // get category list by grant_id and years
+        /// <summary>
+        /// The load categories.
+        /// </summary>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <param name="years">
+        /// The years.
+        /// </param>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
+        public async Task<string> LoadCategories(int grantId, string years)
+        {
+            var list = await _eGrantsService.GetCategoryList(grantId, years);
 
-        //        // JavaScriptSerializer js = new JavaScriptSerializer();
-        //        return JsonConvert.SerializeObject(list);
-        //    }
+            return JsonConvert.SerializeObject(list);
+        }
 
         //    // get category list by grant_id and years
         //    /// <summary>

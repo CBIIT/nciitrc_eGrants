@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Security.Cryptography.Xml;
 
 using eGrants.DAL;
 using eGrants.DTOs;
@@ -19,12 +20,14 @@ namespace eGrants.Services
     {
         // Dependency injection of a product repository to access data
         private readonly IeGrantsRepository _eGrantRepository;
+        private readonly ILogger<IeGrantsService> _logger;
         const int MAX_RETRIES = 3;
 
         // Constructor that initializes the repository via dependency injection
-        public eGrantsService(IeGrantsRepository eGrantRepository)
+        public eGrantsService(IeGrantsRepository eGrantRepository, ILogger<IeGrantsService> logger = null)
         {
             _eGrantRepository = eGrantRepository;
+            _logger = logger;
         }
 
         // Asynchronously retrieves a list of eGrants from the repository
@@ -539,12 +542,20 @@ namespace eGrants.Services
             return await _eGrantRepository.GetSupplements(act, grantId, supportYear, suffixCode, docidStr, formerApplId, ic, userId);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="isGrant"></param>
-        /// <param name="grantList"></param>
-        /// <param name="applList"></param>
+        public async Task<List<string>> GetCategoryList(int grantId, string years)
+        {
+            try
+            {
+                return await _eGrantRepository.GetCategoryList(grantId, years);
+            }
+            catch (Exception ex)
+            {
+                // Optional: log the error here using your logging framework
+                _logger.LogError(ex, "Error retrieving category list for GrantId: {grantId}, Years: {years}", grantId, years);
+                throw;
+            }
+        }
+
         private async Task<List<GrantLayer>> PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> grantList, List<ApplLayerObject> applList)
         {
             if (isGrant)

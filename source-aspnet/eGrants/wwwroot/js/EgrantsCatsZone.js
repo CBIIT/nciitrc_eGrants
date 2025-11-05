@@ -6,7 +6,6 @@ var CatsSelectedCount = 0;
 var CatsCheckBoxCount = 0;
 
 function show_cats_zone(grant_id) {
-    //alert(grant_id);
     //show selected cats zone by grant_id
     var el = "cats_zone_" + grant_id;
 
@@ -81,7 +80,7 @@ function load_category_zone(grant_id) {
     {
         type: 'POST',
         url: "/Egrants/LoadCategories",
-        data: { grant_id: grant_id, years: yars },  //fy: fy, mechan: mechan,
+        data: { grantId: grant_id, years: yars },  //fy: fy, mechan: mechan,
         success: function (resp) {
             //load category zone by horizontal
             //var jsonobj = JSON.parse(resp);
