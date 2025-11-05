@@ -277,7 +277,7 @@
                },
 
                "ajax": {
-                  "url": "/Egrants/LoadDocsGrid?applId=" + @appl_id + "&searchType=@Convert.ToString(ViewBag.SearchStyle)" + "&categoryList=@Convert.ToString(ViewBag.SelectedCats)",
+                     "url": "/Egrants/LoadDocsGrid?applId=" + @appl_id + "&searchType=" + $("#hidSearchType").val() + "&categoryList=" + $("#hidSelectedCats").val(),
                   "type": "GET",
                    "datatype": "json",
                    "timeout": 600000,

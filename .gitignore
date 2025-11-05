@@ -43,6 +43,10 @@ source-aspnet/packages/
 bin/
 **/obj/
 
+# Ignore log files
+Logs/
+*.log
+
 source-aspnet/eGrants/Properties/PublishProfiles
 source-aspnet/eGrants/*.user
 source-aspnet/eGrants_new/App_Data/*

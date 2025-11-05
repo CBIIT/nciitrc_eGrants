@@ -8,6 +8,9 @@ using eGrants.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
+using Serilog;
+using Serilog.Formatting.Compact;
+
 using SimpleECommerceCore.Middleware;
 
 
@@ -40,6 +43,43 @@ builder.Services.AddSession(options =>
 // Register DbContext with connection string
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//Log.Logger = new LoggerConfiguration()
+//    .Enrich.FromLogContext()
+//    .WriteTo.File(
+//        new CompactJsonFormatter(), // Structured format for Datadog
+//        path: "/var/log/myapp/log.json", // Datadog agent will tail this
+//        rollingInterval: RollingInterval.Day,
+//        retainedFileCountLimit: 7,
+//        fileSizeLimitBytes: 10_000_000,
+//        rollOnFileSizeLimit: true,
+//        shared: true)
+//    .CreateLogger();
+
+//Log.Logger = new LoggerConfiguration()
+//    .Enrich.FromLogContext()
+//    .WriteTo.File(
+//        new CompactJsonFormatter(), // Structured format for Datadog
+//        path: "Logs/log.json", // Datadog agent will tail this
+//        rollingInterval: RollingInterval.Day,
+//        retainedFileCountLimit: 7,
+//        fileSizeLimitBytes: 10_000_000,
+//        rollOnFileSizeLimit: true,
+//        shared: true)
+//    .CreateLogger();
+
+//builder.Host.UseSerilog();
+
+// Configure Serilog
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File(@"C:\Logs\log-.txt", rollingInterval: RollingInterval.Day);
+});
 
 var app = builder.Build();
 

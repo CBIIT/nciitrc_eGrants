@@ -8,6 +8,8 @@ using eGrants.Services;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
+using Microsoft.Extensions.Logging;
+
 using Moq;
 
 using Xunit;
@@ -18,13 +20,15 @@ namespace eGrants.Tests.Unit.Service
     {
         private readonly Mock<IeGrantsService> _mockService;
         private readonly Mock<IeGrantsRepository> _mockRepo;
+        private readonly Mock<ILogger<IeGrantsService>> _mockLogger;
         private readonly eGrantsService _service;
 
         public eGrantsServiceTests()
         {
             _mockService = new Mock<IeGrantsService>(); // { CallBase = true };
             _mockRepo = new Mock<IeGrantsRepository>();
-            _service = new eGrantsService(_mockRepo.Object);
+            _mockLogger = new Mock<ILogger<IeGrantsService>>();
+            _service = new eGrantsService(_mockRepo.Object, _mockLogger.Object);
         }
 
         #region GetEgrantsByStrAsync Tests
@@ -304,6 +308,57 @@ namespace eGrants.Tests.Unit.Service
             await _mockService.Object.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1");
 
             _mockService.Verify(r => r.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1"), Times.Once);
+        }
+
+        #endregion
+
+        #region GetCategoryList Tests
+
+        [Fact]
+        public async Task GetCategoryList_ReturnsExpectedList_WhenRepositorySucceeds()
+        {
+            // Arrange
+            int grantId = 42;
+            string years = "All";
+            var expected = new List<string> { "Education", "Health" };
+
+            _mockRepo.Setup(r => r.GetCategoryList(grantId, years))
+                     .ReturnsAsync(expected);
+
+            // Act
+            var result = await _service.GetCategoryList(grantId, years);
+
+            // Assert
+            Assert.Equal(expected, result);
+            _mockRepo.Verify(r => r.GetCategoryList(grantId, years), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetCategoryList_LogsAndThrows_WhenRepositoryThrows()
+        {
+            // Arrange
+            int grantId = 99;
+            string years = "All";
+            var exception = new Exception("Database error");
+
+            _mockRepo.Setup(r => r.GetCategoryList(grantId, years))
+                     .ThrowsAsync(exception);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<Exception>(() => _service.GetCategoryList(grantId, years));
+
+            // Assert
+            Assert.Equal("Database error", ex.Message);
+
+            _mockLogger.Verify(
+                l => l.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) =>
+                        v.ToString().Contains("Error retrieving category list for GrantId")),
+                    It.Is<Exception>(ex => ex.Message == "Database error"),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                Times.Once);
         }
 
         #endregion
