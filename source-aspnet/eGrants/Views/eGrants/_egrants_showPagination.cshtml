@@ -24,7 +24,6 @@
     function view_page(page_num, tab_num) {
         var str = document.getElementById("hidSearchStr").value;
         var searchtype = document.getElementById("hidSearchType").value;
-
         //alert(searchtype);
         if (searchtype == "by_filters") {
             var packages = "by_filters";
@@ -32,7 +31,7 @@
             var Mechanism=document.getElementById("hidFilterMechanism").value;
             var AdminCode=document.getElementById("hidFilterAdminCode").value;
             var SerialNumber=document.getElementById("hidFilterSerialNumber").value;     
-            var url = "@Url.Action("by_filters_page", "Egrants")?tab_num=" + tab_num + "&page_num=" + page_num + "&package=" + packages + "&fy=" + FiscalYear + "&mechanism=" + Mechanism + "&admincode=" + AdminCode + "&serialnum=" + SerialNumber;    
+            var url = "@Url.Action("by_filters", "Egrants")?fiscalYear=" + FiscalYear + "&mechanism=" + Mechanism + "&adminCode=" + AdminCode + "&serialNum=" + SerialNumber + "tabNum=" + tab_num + "&pageNum=" + page_num + "&package=" + packages;
         }
         else if (searchtype == "by_qc")
         {
@@ -102,15 +101,16 @@
 
                         @foreach (var page in Model.Pagination)
                         {
-                            if (Convert.ToInt16(page.tag) == 3 && Convert.ToInt16(page.tab_number) == Convert.ToInt16(tabs.tab_number))
+                            var pageval = (eGrants.Models.Pagination)page;
+                            if (Convert.ToInt16(pageval.tag) == 3 && Convert.ToInt16(pageval.tab_number) == Convert.ToInt16(tabs.tab_number))
                             {
-                                if (Convert.ToInt16(page.page_number) == Convert.ToInt16(ViewBag.CurrentPage))
+                                if (Convert.ToInt16(pageval.page_number) == Convert.ToInt16(Model.CurrentPage))
                                 {
-                                    <b>&#91;<a href="JavaScript:view_page(page.page_number, @tabs.tab_number)" title="Click it to show page by page number">page.page_number</a>&#93;</b>
+                                    <b>&#91;<a href="JavaScript:view_page(@pageval.page_number, @tabs.tab_number)" title="Click it to show page by page number">@pageval.page_number</a>&#93;</b>
                                 }
                                 else
                                 {
-                                    <b><a href="JavaScript:view_page(page.page_number, @tabs.tab_number)" title="Click it to show page by page number">page.page_number</a></b>
+                                    <b><a href="JavaScript:view_page(@pageval.page_number, @tabs.tab_number)" title="Click it to show page by page number">@pageval.page_number</a></b>
                                 }
                             }
                         }
