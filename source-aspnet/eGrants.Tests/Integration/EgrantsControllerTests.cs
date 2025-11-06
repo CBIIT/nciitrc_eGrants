@@ -261,7 +261,10 @@ namespace eGrants.Tests.Integration
                 fiscalYear: 2022,
                 mechanism: "R01",
                 adminCode: "CA",
-                serialNum: 123456) as ViewResult;
+                serialNum: 123456,               
+                pageNum: 2,
+                tabNum: 1,
+                packages: "by_filters") as ViewResult;
 
             // Verifies the view and ensures model is correctly typed and populated
             Assert.NotNull(result);
@@ -269,6 +272,41 @@ namespace eGrants.Tests.Integration
             var model = Assert.IsType<eGrantsSearchViewModel>(result.Model);
             Assert.NotNull(model.ICList); // Ensures ICList is loaded
         }
+
+        //[Fact]
+        //public async Task by_filters_WithPackagesAndPaging_ReturnsExpectedModel()
+        //{
+        //    // Arrange: Create test DB context and session with expected keys
+        //    using var context = CreateDevDbContext();
+        //    var session = new TestSession();
+        //    session.Set("userid", Encoding.UTF8.GetBytes("user789"));
+        //    session.Set("ic", Encoding.UTF8.GetBytes("3"));
+
+        //    var controller = CreateController(context, session);
+
+        //    // Act: Call by_filters with additional parameters
+        //    var result = await controller.by_filters(
+        //        fiscalYear: 2022,
+        //        mechanism: "R01",
+        //        adminCode: "CA",
+        //        serialNum: 123456,
+        //        pageNum: 2,
+        //        tabNum: 1,
+        //        packages: "by_filters") as ViewResult;
+
+        //    // Assert: Validate view and model
+        //    Assert.NotNull(result);
+        //    Assert.Equal("~/Views/Index.cshtml", result.ViewName);
+
+        //    var model = Assert.IsType<eGrantsSearchViewModel>(result.Model);
+        //    Assert.NotNull(model);
+        //    Assert.NotNull(model.ICList); // Ensures ICList is populated
+
+        //    // Optional: Validate that filters were applied correctly
+        //    Assert.Equal(2, model.Pagination.Select(x => x.page_number).FirstOrDefault()); // Assuming PageNum is exposed in the model
+        //    Assert.Equal(3, model.Pagination.Select(x => x.tab_number).FirstOrDefault());  // Assuming TabNum is exposed in the model
+        //    Assert.Contains("by_filters", model.Package); // Hypothetical property
+        //}
 
         [Fact]
         public async Task by_filters_WithEmptySession_StillReturnsView()
