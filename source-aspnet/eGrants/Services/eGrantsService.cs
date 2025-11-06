@@ -113,7 +113,7 @@ namespace eGrants.Services
                 string filteredQuery = FilterSearchQuery.Select(x => x.Value).FirstOrDefault();
 
                 searchByStrViewModel.SearchStyle = "by_filters";
-                searchByStrViewModel.CurrentTab = tabNum; // > 1 ? tabNum : 1;
+                searchByStrViewModel.CurrentTab = tabNum;
                 searchByStrViewModel.CurrentPage = currentPage > 1 ? currentPage : 1;
 
                 // create return value
@@ -319,14 +319,6 @@ namespace eGrants.Services
             }
 
             var result = await _eGrantRepository.GetSearchResultsAsync(searchString, grantId, package, applId, currentPage, sessionInfo);
-            //if (result != null)
-            //{
-            //    searchByStrViewModel.SearchResults = result;
-            //}
-            //else
-            //{
-            //    return new eGrantsSearchViewModel();
-            //}
 
             searchByStrViewModel.SearchResults = result;
 
