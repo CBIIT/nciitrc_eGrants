@@ -319,10 +319,19 @@ namespace eGrants.Services
             }
 
             var result = await _eGrantRepository.GetSearchResultsAsync(searchString, grantId, package, applId, currentPage, sessionInfo);
-            if (result != null)
-            {
-                searchByStrViewModel.SearchResults = result;
-            }
+            //if (result != null)
+            //{
+            //    searchByStrViewModel.SearchResults = result;
+            //}
+            //else
+            //{
+            //    return new eGrantsSearchViewModel();
+            //}
+
+            searchByStrViewModel.SearchResults = result;
+
+            if (searchByStrViewModel.SearchResults == null)
+                return new eGrantsSearchViewModel();
 
             int appl_id = 0;
             var grantList = new List<GrantLayer>();

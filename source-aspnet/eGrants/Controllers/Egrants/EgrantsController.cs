@@ -835,6 +835,15 @@ namespace eGrants.Controllers.Egrants
         /// <param name="serialNum">
         /// The serialNumber.
         /// </param>
+        /// <param name="pageNum">
+        /// The page number
+        /// </param>
+        /// <param name="tabNum">
+        /// The tab number
+        /// </param>
+        /// <param name="packages">
+        /// The package name
+        /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
