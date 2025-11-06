@@ -169,7 +169,7 @@ namespace eGrants.Services
                 searchByApplViewModel.Mode = mode;
                 searchByApplViewModel.SearchStyle = "by_appl";
                 searchByApplViewModel.ApplID = applId;
-                searchByApplViewModel.GrantID = await GetGrantID(applId);//Dashboard.Functions.Egrants.GetGrantID(appl_id);
+                searchByApplViewModel.GrantID = await GetGrantID(applId);
                 searchByApplViewModel.SelectedCats = "All";
                 searchByApplViewModel.SelectedCategories = "All";
                 searchByApplViewModel.SelectedAppls = applId.ToString();
@@ -180,7 +180,7 @@ namespace eGrants.Services
 
 
                 searchByApplViewModel.grantlayer = searchByApplViewModel.grantlayerproperty;
-                searchByApplViewModel.appllayer = searchByApplViewModel.appllayerproperty;
+                //searchByApplViewModel.appllayer = searchByApplViewModel.appllayerproperty; // not needed(?)
                 searchByApplViewModel.appllayer_All = searchByApplViewModel.appllayerproperty;
                 searchByApplViewModel.ApplCount = searchByApplViewModel.appllayer.Count;
                 searchByApplViewModel.doclayer = searchByApplViewModel.doclayerproperty;

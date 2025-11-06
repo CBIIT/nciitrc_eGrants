@@ -1,0 +1,579 @@
+﻿<!--start display appls and documents-->
+<script src="~/js/"></script>
+<script src="~/js/moment.js"></script>
+<script src="~/js/datetime-moment.js"></script>
+<link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<script src="~/js/dataTables.bootstrap4.min.js"></script>
+<link rel="stylesheet" href="~/css/bootstrap-icons.min.css">
+@*<script src="~/scripts/fontawesome/fontawesome.min.js" data-auto-replace-svg="nest"></script>*@
+
+@*<script src="~/scripts/fontawesome/solid.min.js"></script>
+<link href="~/Content/fontawesome/solid.min.css" rel="stylesheet" />*@
+<script src="~/css/bootstrap-checkbox.js"></script>
+<link rel="stylesheet" href="~/css/bootstrap-checkbox.css">
+
+<style>
+    table.dataTable thead th {
+        background: transparent !important;
+        white-space: nowrap;
+    }
+
+    /* when a column is not activly sorted the */
+
+    table.dataTable thead .sorting .bi-sort-down {
+        color: black;
+        display: none;
+    }
+
+    table.dataTable thead .sorting .bi-sort-up {
+        color: black;
+        display: none;
+    }
+
+    table.dataTable thead .sorting .bi-arrow-down-up {
+        color: #a9a9a9;
+        display: inline;
+    }
+
+    table.dataTable thead .sorting_asc .bi-sort-down {
+        color: black;
+        display: inline;
+    }
+
+    table.dataTable thead .sorting_desc .bi-sort-up {
+        color: black;
+        display: none;
+    }
+
+    table.dataTable thead .sorting_desc .bi-sort-down {
+        color: black;
+        display: none;
+    }
+
+    table.dataTable thead .sorting_desc .bi-sort-up {
+        color: black;
+        display: inline;
+    }
+
+    /* when the datatable column is in asc or des sort mode, hide the updown arrow */
+
+    table.dataTable thead .sorting_asc .bi-arrow-down-up {
+        display: none;
+    }
+
+    table.dataTable thead .sorting_desc .bi-arrow-down-up {
+        display: none;
+    }
+
+    table.dataTable thead .sorting:before,
+    table.dataTable thead .sorting_asc:before,
+    table.dataTable thead .sorting_desc:before,
+    table.dataTable thead .sorting_asc_disabled:before,
+    table.dataTable thead .sorting_desc_disabled:before {
+        content: "" !important;
+    }
+
+    table.dataTable thead .sorting:after,
+    table.dataTable thead .sorting_asc:after,
+    table.dataTable thead .sorting_desc:after,
+    table.dataTable thead .sorting_asc_disabled:after,
+    table.dataTable thead .sorting_desc_disabled:after {
+        content: "" !important;
+    }
+
+    table.dataTable tbody tr.even-row {
+        background-color: #ffffff;
+        height: 30px;
+    }
+
+    table.dataTable tbody tr.odd-row {
+        background-color: #AED6F1;
+        height: 30px;
+    }
+
+    #overlay {
+        background-color: white;
+        display: none;
+        height: 100%;
+        left: 0px;
+        /* filter: alpha( opacity=75 ); */
+        opacity: 0.75;
+        position: absolute;
+        top: 0px;
+        width: 100%;
+        z-index: 99999;
+    }
+
+</style>
+
+<script language="JavaScript" type="text/javascript">
+
+    // This optional function html-encodes messages for display in the page.
+    function htmlEncode(value) {
+        var encodedValue = $('<div />').text(value).html();
+        return encodedValue;
+    }
+
+    function show_doc(docurl) {
+        var ImageServer = document.getElementById("hidImageServer").value;
+
+        if (docurl.startsWith("https://services.")) {
+            var url = "@Url.Action("show_era_doc", "EgrantsDoc")?docurl=" + docurl;
+        } else if (docurl.substring(0, 5) == "/data") {
+            var url = ImageServer + docurl.substring(1, docurl.length);
+        } else if (docurl.substring(0, 5) == "data/") {
+            var url = ImageServer + docurl;
+        } else url = docurl;
+        window.open(url);
+    }
+
+    function get_closeoutnotification_url(appl, notif_name) {
+        var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
+        return url_closeout;
+    }
+
+    function show_notification(appl, notif_name) {
+        var url_closeout = "@Url.Action("closeout_notif", "EgrantsDoc")?applid=" + appl + "&notifName=" + notif_name;
+        console.log(url_closeout);
+        window.open(url_closeout);
+    }
+
+
+    function show_qc_dl(document_id, type) {
+        document_id = document_id.split("_")[3];
+        if (type == 1) {
+            console.log(document_id);
+            document.getElementById("show_qc_dl_" + document_id).style.display = "none";
+            document.getElementById("hide_qc_dl_" + document_id).style.display = "inline";
+        }
+        if (type == 0) {
+            document.getElementById("show_qc_dl_" + document_id).style.display = "inline";
+            document.getElementById("hide_qc_dl_" + document_id).style.display = "none";
+        }
+    }
+
+    function show_file_child_rows(document_id, type) {
+        document_id = document_id.split("_")[3];
+
+        console.log(document_id);
+    }
+
+    function getFinancialReport(row, appl_id) {
+
+        var dataToSend = {};
+        dataToSend.act = "fsr";
+        dataToSend.appl_id = appl_id;
+
+        $.ajax(
+            {
+                cache: false,
+                async: true,
+                type: 'POST',
+                dataType: 'JSON',
+                contentType: 'application/json; charset=utf=8',
+                url: '/Egrants/impac_docs_data',
+                data: JSON.stringify(dataToSend),
+                success: function(data) {
+                    //console.log("Response Returned:" + JSON.stringify(data));
+                    console.log("going  in...");
+                    row.child(formatFinancialReportChildRow(row.data(), data, appl_id)).show();
+                },
+                error: function(reply) {
+                    console.log(reply);
+                }
+            });
+
+
+    }
+
+    function getCloseoutNotification(row, appl_id) {
+
+        var dataToSend = {};
+        dataToSend.act = "closeout";
+        dataToSend.appl_id = appl_id;
+
+        $.ajax(
+            {
+                cache: false,
+                async: true,
+                type: 'POST',
+                dataType: 'JSON',
+                contentType: 'application/json; charset=utf=8',
+                url: '/Egrants/impac_docs_data',
+                data: JSON.stringify(dataToSend),
+                success: function(data) {
+                    //console.log("Response Returned:" + JSON.stringify(data));
+                    console.log("closeout going in....");
+
+                    row.child(formatCloseoutNotificationChildRow(data, appl_id)).show();
+
+                },
+                error: function(resp) {
+                    console.log(resp);
+                }
+            });
+    }
+
+
+    function getAttachments(row) {
+
+        var dataToSend = {};
+        dataToSend.document_id = row.document_id;
+
+
+        $.ajax(
+            {
+                cache: false,
+                async: true,
+                type: 'POST',
+                dataType: 'JSON',
+                contentType: 'application/json; charset=utf=8',
+                url: '/Egrants/doc_attachments_data',
+                data: JSON.stringify(dataToSend),
+                success: function(data) {
+                    //console.log("Response Returned:" + JSON.stringify(data));
+                    console.log("attachments going in....");
+
+                    //  row.child(formatAttachmentsChildRow(data)).show();
+
+                },
+                error: function(resp) {
+                    console.log(resp);
+                }
+            });
+    }
+
+  /* Formatting function for row details   margin-left:65px;*/
+    function formatForDownloadView(d) {
+        var str = '<div cellpadding="0" style="border-style:none!important; word-wrap:break-all; border=none; border-collapse:collapse; white-space:normal; width:840px; float:right; display:inline;">';
+
+        str = str + 'Created On ' + d.created_date + ' by ' + d.created_by;
+
+        if (d.file_modified_by != "") {
+            str = str + '; Document uploaded On ' + d.file_modified_date;
+            str = str + ' by ' + d.file_modified_by;
+        }
+
+        if (d.modified_by != "") {
+            str = str + '; Updated On ' + d.modified_date;
+            str = str + ' by ' + d.modified_by;
+        }
+
+        if (d.problem_msg != "" && d.qc_date != "") {
+            str = str + '; Error Reported by ' + d.problem_reported_by;
+            str = str + ':<b id="error">' + d.problem_msg + '</b>';
+        }
+
+        str = str + '</div>';
+
+        // display all qc options
+        return str;
+    }
+
+
+
+    function formatAttachmentsChildRow(q, applId ) {
+
+        var str = "";
+        var str = "<table id=\"attachmentsChildTable_" + applId + "\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
+        for (var i = 0; i < q.length; i++) {
+            if (q[i].tag == 2) {
+
+                str = str +
+                    "<tr>" +
+                    "<td>" +
+                    "<input type=\"checkbox\" checked class=\"input.showDownload, .FinancialReport\"" +
+                    "id=\"ffrRowCheckbox_" + applId + "\"" +
+                    "class=\"qc pr-2\" name=\"qc\" value=\"" +
+                    q[i].category_name +
+                    "\"" +
+                    "/>" +
+                    "</td>" +
+                    "<td>" +
+                    "<a href = JavaScript:show_doc('" +
+                    q[i].url +
+                    "') title='show document' id=\"" +
+                    q[i].category_name +
+                    "\"" +
+                    "name=\"" +
+                    q[i].url +
+                    "\"" +
+                    ">" +
+                    "Financial Report" +
+                    "</a>" +
+                    "</td>" +
+                    "<td>" +
+                    "<span class=\"pl-2\">Date:</span>" +
+                    "<span name=\"accepted_date\" class=\"pl-2\">" +
+                    q[i].accepted_date +
+                    "</span>" +
+                    "</td>" +
+                    "<td class=\"float-right\">" +
+                    "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/>df<br/>" +
+                    "</td>" +
+                    "</tr>";
+
+            }
+
+        }
+        str = str + "</table>";
+        return str;
+
+
+    }
+
+    function formatFinancialReportChildRow(d, q, applId) {
+
+        var str = "";
+        var str = "<table id=\"ffrChildTable_" + applId + "\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
+        for (var i = 0; i < q.length; i++) {
+            if (q[i].tag == 2) {
+
+                str = str +
+                    "<tr>" +
+                    "<td>" +
+                    "<input type=\"checkbox\" checked class=\"input.showDownload, .FinancialReport\"" +
+                    "id=\"ffrRowCheckbox_" + applId + "\"" +
+                    "class=\"qc pr-2\" name=\"qc\" value=\"" +
+                    q[i].category_name +
+                    "\"" +
+                    "/>" +
+                    "</td>" +
+                    "<td>" +
+                    "<a href = JavaScript:show_doc('" +
+                    q[i].url +
+                    "') title='show document' id=\"" +
+                    q[i].tag +
+                    "\"" +
+                    "name=\"" +
+                    q[i].url +
+                    "\"" +
+                    ">" +
+                    "Financial Report" +
+                    "</a>" +
+                    "</td>" +
+                    "<td>" +
+                    "<span class=\"pl-2\">Date:</span>" +
+                    "<span name=\"accepted_date\" class=\"pl-2\">" +
+                    q[i].accepted_date +
+                    "</span>" +
+                    "</td>" +
+                    "<td class=\"float-right\">" +
+                    "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/><br/>" +
+                    "</td>" +
+                    "</tr>";
+
+            }
+            if (q[i].tag == 3) {
+
+                var url = get_closeoutnotification_url(applId, q[i].category_name);
+
+                str = str +
+                    "<tr>" +
+                    "<td>" +
+                    "<input type=\"checkbox\" checked class=\"input.showDownload, .FFR\"" +
+                    "id=\"ffrRowCheckbox_" + applId + "\"" +
+                    "class=\"qc pr-2\" name=\"qc\" value=\"" +
+                    q[i].category_name +
+                    "\"" +
+                    "/>" +
+                    "</td>" +
+                    "<td>" +
+                    "<a href = JavaScript:show_notification('" +
+                    applId +
+                    "'," +
+                    "'" +
+                    q[i].category_name +
+                    "') title='show document' id=\"" +
+                    q[i].tag +
+                    "\"" +
+                    "name=\"" +
+                    url +
+                    "\"" +
+                    ">" +
+                    q[i].category_name +
+                    "</a>" +
+                    "</td>" +
+                    "<td>" +
+                    "<span class=\"pl-2\">Date:</span>" +
+                    "<span name=\"created_date\" class=\"pl-2\">" +
+                    q[i].created_date +
+                    "</span>" +
+                    "</td>" +
+                    "<td class=\"float-right\">" +
+                    "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/><br/>" +
+                    "</td>" +
+                    "</tr>";
+            }
+
+        }
+        str = str + "</table>";
+        return str;
+
+
+    }
+
+    function formatCloseoutNotificationChildRow(d, applId) {
+
+        var str = "<table id=\"closeoutChildTable_" + applId + "\" class=\"table table-borderless table-sm\" border=\"0\" style=\"padding-left:5px; white-space:normal; width:840px; float:left; display:inline;\">";
+        for (var i = 0; i < d.length; i++) {
+            var full_grant_num;
+            var category_name;
+            var created_date;
+            // var url;
+
+            if (d[i].tag == 1) {
+                full_grant_num = d[i].full_grant_num;
+                console.log(full_grant_num);
+            }
+            if (d[i].tag == 2) {
+                category_name = d[i].category_name;
+                created_date = d[i].created_date;
+
+                console.log(category_name);
+                console.log(created_date);
+
+                var url = get_closeoutnotification_url(applId, category_name);
+
+                console.log(url);
+
+                str = str +
+                    "<tr>" +
+                    "<td>" +
+                    "<input type=\"checkbox\" checked class=\"input.showDownload, .CloseoutNotifications\"" +
+                    "id=\"closeoutRowCheckbox_" + applId + "\"" +
+                    "class=\"qc pr-2\" name=\"qc\" value=\"" +
+                    category_name +
+                    "\"" +
+                    "/>" +
+                    "</td>" +
+                    "<td>" +
+                    "<a href = JavaScript:show_notification('" +
+                    applId +
+                    "'," +
+                    "'" +
+                    category_name +
+                    "') title='show document' id=\"" +
+                    category_name +
+                    "\"" +
+                    "name=\"" +
+                    url +
+                    "\"" +
+                    ">" +
+                    category_name +
+                    "</a>" +
+                    "</td> " +
+                    "<td>" +
+                    "<span class=\"pl-2\">Date:</span>" +
+                    "<span name=\"created_date\" class=\"pl-2\">" +
+                    created_date +
+                    "</span>" +
+                    "</td>" +
+                    "<td class=\"float-right\">" +
+                    "<img style=\"visibility: hidden\" src=\"/Content/images/new-fa-file-lines.gif\"/><br/>" +
+                    "</td>" +
+                    "</tr>";
+
+            }
+
+        }
+        str = str + "</table>";
+        return str;
+    }
+
+    function renderDetailsControl(data, type, full, meta) {
+	    if (full.frc_destroyed == 0) {
+		    if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
+			    //console.log("must be one or the other FFR or Financial Report :" + JSON.stringify(full));
+
+			    return "<div id=\"dl_checkbox_" +
+				    full.document_id +
+				    "\"" +
+				    " name=\"dl_checkbox\" class=\"show_dl\"> " +
+				    " <input type=\"checkbox\" class=\"showDownload FinancialReport FFR\" id=\"" +
+				    full.document_id +
+				    "\"" +
+				    " class=\"qc\" name=\"qc\" value=\"" +
+				    full.document_id +
+				    "\"" +
+				    ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+				    "/></div>";
+
+			    if (full.document_name == "Financial Report") {
+				    console.log("must be Financial Report full.document_name :" + full.category_name);
+				    console.log("Rendering and Financial Report with class Financial Report");
+				    return "<div id=\"dl_checkbox_" +
+					    full.document_id +
+					    "\"" +
+					    " name=\"dl_checkbox\" class=\"show_dl\"> " +
+					    " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+					    full.document_id +
+					    "\"" +
+					    " class=\"qc\" name=\"qc\" value=\"" +
+					    full.document_id +
+					    "\"" +
+					    ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+					    "/></div>";
+			    }
+			    if (full.document_name == "FFR") {
+				    console.log("must be FFR full.document_name :" + full.category_name);
+				    console.log("Rendering and FFR with class FFR");
+				    return "<div id=\"dl_checkbox_" +
+					    full.document_id +
+					    "\"" +
+					    " name=\"dl_checkbox\" class=\"show_dl\"> " +
+					    " <input type=\"checkbox\" class=\"showDownload FFR\" id=\"" +
+					    full.document_id +
+					    "\"" +
+					    " class=\"qc\" name=\"qc\" value=\"" +
+					    full.document_id +
+					    "\"" +
+					    ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+					    "/></div>";
+			    }
+		    } else if (full.attachment_count > 0) {
+			    return "<div id=\"dl_checkbox_" +
+				    full.document_id +
+				    "\"" +
+				    " name=\"dl_checkbox\" class=\"show_dl\"> " +
+				    " <input type=\"checkbox\" class=\"showDownload Attachments\" id=\"" +
+				    full.document_id +
+				    "\"" +
+				    " class=\"qc\" name=\"qc\" value=\"" +
+				    full.document_id +
+				    "\"" +
+				    ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+				    "/></div>";
+		    } else if (full.document_name == "Closeout Notification") {
+			    return "<div id=\"dl_checkbox_" +
+				    full.appl_id +
+				    full.grant_id +
+				    "\"" +
+				    " name=\"dl_checkbox\" class=\"show_dl\"> " +
+				    " <input type=\"checkbox\" class=\"showDownload CloseoutNotifications\" id=\"" +
+				    full.appl_id +
+				    "\"" +
+				    " class=\"qc\" name=\"qc\" value=\"" +
+				    full.appl_id +
+				    full.grant_id +
+				    "\"" +
+				    ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+				    "/></div>";
+		    } else
+			    return "<div id=\"dl_checkbox_" +
+				    full.document_id +
+				    "\"" +
+				    " name=\"dl_checkbox\" class=\"show_dl\"> " +
+				    " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
+				    full.document_id +
+				    "\"" +
+				    " class=\"qc\" name=\"qc\" value=\"" +
+				    full.document_id +
+				    "\"" +
+				    ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+				    "/></div>";
+
+	    } else return "<strike>" + full.document_name + "</strike>";
+    }
+
+</script>

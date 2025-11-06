@@ -588,7 +588,7 @@
 
             @*if (Context.Request.Cookies["auditMode"] == null) // && Context.Request.Cookies["auditMode"].Value == "DownloadForm")*@
             @if (Context.Request.Cookies["auditMode"] != null && Context.Request.Cookies["auditMode"] == "DownloadForm" 
-            && Model.SearchStyle == "by_appl")
+            && (Model.SearchStyle == "by_grant" || Model.SearchStyle == "by_appl" ))
             {
                 <div id="downloadForm">
                     <div style="float: left; padding-top: 15px;">
