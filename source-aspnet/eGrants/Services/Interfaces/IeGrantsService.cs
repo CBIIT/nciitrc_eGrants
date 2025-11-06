@@ -31,8 +31,10 @@ namespace eGrants.Services.Interfaces
         /// <param name="applId">The application ID.</param>
         /// <param name="currentPage">The current page number for pagination.</param>
         /// <param name="sessionInfo">Session context information for the user.</param>
+        /// <param name="tabNum">The tab index indicating which section of the UI is active.</param>
+        /// <param name="packages">A package identifier to filter by.</param>
         /// <returns>A view model containing filtered eGrants search results.</returns>
-        public Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo);
+        public Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo, int tabNum, string packages);
 
         /// <summary>
         /// Retrieves eGrants search results using detailed grant-related parameters.
