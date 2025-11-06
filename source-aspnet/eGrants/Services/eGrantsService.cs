@@ -86,32 +86,35 @@ namespace eGrants.Services
             return searchByStrViewModel;
         }
 
-        public async Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo)
+        public async Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo, int tabNum, string package)
         {
             eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
+            package = !string.IsNullOrEmpty(package) ? package : "by_filters";
 
-            if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNum == 0) /*string.IsNullOrEmpty(admincode) &&*/
+            bool isEmptySearch = fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNum == 0;
+            bool isInvalidTabOrPackage = tabNum == 0 || currentPage == 0 || string.IsNullOrEmpty(package) || package != "by_filters";
+
+            if (isEmptySearch || isInvalidTabOrPackage)
             {
                 searchByStrViewModel.Message = "No data found for the search";
                 searchByStrViewModel.grantlayer = null;
             }
             else
             {
-                var package = "by_filters";
                 // create filters search sql query
                 var FilterSearchQuery = await _eGrantRepository.FilterSearchQuery(
                     fiscalYear,
                     mechanism,
                     adminCode,
                     serialNum,
-                    1,
+                    currentPage,
                     sessionInfo);
 
                 string filteredQuery = FilterSearchQuery.Select(x => x.Value).FirstOrDefault();
 
                 searchByStrViewModel.SearchStyle = "by_filters";
-                searchByStrViewModel.CurrentTab = 1;
-                searchByStrViewModel.CurrentPage = 1;
+                searchByStrViewModel.CurrentTab = tabNum;
+                searchByStrViewModel.CurrentPage = currentPage > 1 ? currentPage : 1;
 
                 // create return value
                 if (fiscalYear != 0)
@@ -316,10 +319,11 @@ namespace eGrants.Services
             }
 
             var result = await _eGrantRepository.GetSearchResultsAsync(searchString, grantId, package, applId, currentPage, sessionInfo);
-            if (result != null)
-            {
-                searchByStrViewModel.SearchResults = result;
-            }
+
+            searchByStrViewModel.SearchResults = result;
+
+            if (searchByStrViewModel.SearchResults == null)
+                return new eGrantsSearchViewModel();
 
             int appl_id = 0;
             var grantList = new List<GrantLayer>();

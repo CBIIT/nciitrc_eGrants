@@ -835,16 +835,25 @@ namespace eGrants.Controllers.Egrants
         /// <param name="serialNum">
         /// The serialNumber.
         /// </param>
+        /// <param name="pageNum">
+        /// The page number
+        /// </param>
+        /// <param name="tabNum">
+        /// The tab number
+        /// </param>
+        /// <param name="packages">
+        /// The package name
+        /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public async Task<IActionResult> by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialNum = 0)
+        public async Task<IActionResult> by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialNum = 0, int pageNum = 1, int tabNum = 1, string packages = "")
         {
             eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
 
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByFilterAsync(fiscalYear, mechanism, serialNum, adminCode, 0, 0, 0, sessionInfo);
+            eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByFilterAsync(fiscalYear, mechanism, serialNum, adminCode, 0, 0, pageNum, sessionInfo, tabNum, packages);
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
 
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);

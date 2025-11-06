@@ -261,7 +261,10 @@ namespace eGrants.Tests.Integration
                 fiscalYear: 2022,
                 mechanism: "R01",
                 adminCode: "CA",
-                serialNum: 123456) as ViewResult;
+                serialNum: 123456,               
+                pageNum: 2,
+                tabNum: 1,
+                packages: "by_filters") as ViewResult;
 
             // Verifies the view and ensures model is correctly typed and populated
             Assert.NotNull(result);
