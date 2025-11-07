@@ -34,6 +34,10 @@
 							return this.userid;
 						}
 					}
+					
+			web.config and web.base.config
+				Please update the GitHubToken in the connection strings in both files to run the application locally.
+				This token can be found in Jenkins or will be present with another developer
 	
 
 		
