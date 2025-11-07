@@ -14,8 +14,8 @@
 	Dim objNS
 	Dim oConn
 	Dim ItemsProcessed
-	''conStr = "Provider=SQLOLEDB.1;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-D201-V.NCI.NIH.GOV\MSSQLEGRANTSD,52000;Application Name=egrants"
-	conStr = "Provider=SQLOLEDB.1;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
+
+	conStr = "Provider=SQLOLEDB.1;Password='';Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 	
 	
 

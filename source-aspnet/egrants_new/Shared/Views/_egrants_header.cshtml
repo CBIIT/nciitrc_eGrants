@@ -298,8 +298,9 @@
             <img alt="alt tag" src="~/Content/images/eglogo.PNG" width="400" height="50" title="eGrant Links [shift + alt + E]" accesskey="E" />
         </a>
     </div>
-    <div class="col-lg-10" id="loginas">
-        <p>Logged in as:@Session["UserName"]</p>
+    <div class="col-lg-10" id="loginas" style="line-height: 1;">
+        <p style="margin-top: 4px; margin-bottom: 0">Logged in as:@Session["UserName"]</p>
+        <p style="margin-top: 4px; font-size: 16px;">Version:@Session["Release"]</p>
     </div>
     <!--- <p>Need help? Email to:<a href="mailto:egrantsissues@mail.nih.gov" title="Send email for asking help">egrantsissues@mail.nih.gov</a></p> -->
 
