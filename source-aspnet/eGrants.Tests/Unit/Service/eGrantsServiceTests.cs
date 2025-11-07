@@ -79,6 +79,7 @@ namespace eGrants.Tests.Unit.Service
             Assert.Equal("test", result.Str);
         }
 
+
         #endregion
 
         #region GetEgrantsByFilterAsync Tests
@@ -362,6 +363,139 @@ namespace eGrants.Tests.Unit.Service
                 Times.Once);
         }
 
+        #endregion
+
+        #region GetEgrantsByApplAsync Tests
+        [Fact]
+        public async Task ReturnsMessage_WhenApplIdIsZeroOrDoesNotExist()
+        {
+            int applId = 0;
+            string mode = "testMode";
+            string str = "testString";
+            var sessionInfo = new SessionInfo { Ic = "IC", UserId = "testUser", Browser = "Chrome" };
+            var expectedResult = new eGrantsSearchViewModel
+            {
+                Message = "No data found for the search",
+                grantlayer = null
+            };
+
+            _mockService.Setup(s => s.GetEgrantsByApplAsync(0, mode, str, sessionInfo))
+                        .ReturnsAsync(expectedResult);
+
+            var result = await _mockService.Object.GetEgrantsByApplAsync(applId, mode, str, sessionInfo);
+
+            Assert.Equal("No data found for the search", result.Message);
+            Assert.Null(result.grantlayer);
+        }
+
+        [Fact]
+        public async Task ReturnsViewModel_WithCorrectData_WhenApplIdExists()
+        {
+            // Arrange
+            int applId = 123;
+            string mode = "testMode";
+            string str = "testString";
+            var sessionInfo = new SessionInfo { Ic = "IC", UserId = "testUser", Browser = "Chrome" };
+            var expectedViewModel = new eGrantsSearchViewModel
+            {
+                ApplID = applId,
+                GrantID = 456,
+                Mode = mode,
+                Str = str,
+                SearchStyle = "by_appl",
+                appllayerproperty = new List<ApplLayerObject>
+                {
+                    new ApplLayerObject { appl_id = applId.ToString(), label = "TestLabel" }
+                },
+                doclayerproperty = new List<doclayer>()
+            };
+
+            _mockService.Setup(s => s.CheckApplID(applId))
+            .ReturnsAsync(1);
+            _mockService.Setup(s => s.GetGrantID(applId))
+            .ReturnsAsync(456);
+            _mockService.Setup(s => s.eGrantsSearchResults(
+                It.IsAny<string>(), 0, "", applId, 0, sessionInfo, It.IsAny<eGrantsSearchViewModel>(), false))
+                .ReturnsAsync(expectedViewModel);
+
+            var result = await _service.GetEgrantsByApplAsync(applId, mode, str, sessionInfo);
+
+            Assert.Equal(applId, result.ApplID);
+            Assert.Equal(456, result.GrantID);
+            Assert.Equal("by_appl", result.SearchStyle);
+            Assert.Equal("TestLabel", result.yearName);
+            Assert.NotNull(result.appllayer);
+            Assert.Single(result.appllayer);
+        }
+
+        #endregion
+
+        #region CheckApplID Tests
+        [Fact]
+        public async Task CheckApplID_ReturnsExpectedValue()
+        {
+            int grantId = 123;
+            int expectedResult = 1; 
+
+            _mockRepo
+                .Setup(repo => repo.CheckApplID(grantId))
+                .ReturnsAsync(expectedResult);
+
+            var result = await _mockService.Object.CheckApplID(grantId);
+
+            Assert.Equal(expectedResult, result);
+            _mockRepo.Verify(repo => repo.CheckApplID(grantId), Times.Once);
+        }
+
+        [Fact]
+        public async Task CheckApplID_ReturnsZero_WhenApplIDDoesNotExist()
+        {
+            int grantId = 456;
+            int expectedResult = 0;
+
+            _mockRepo
+                .Setup(repo => repo.CheckApplID(grantId))
+                .ReturnsAsync(expectedResult);
+
+            var result = await _mockService.Object.CheckApplID(grantId);
+
+            Assert.Equal(expectedResult, result);
+            _mockRepo.Verify(repo => repo.CheckApplID(grantId), Times.Once);
+        }
+        #endregion
+
+        #region GetGrantID Tests
+        [Fact]
+        public async Task GetGrantID_ReturnsExpectedValue()
+        {
+            int applId = 1234567;
+            int? expectedResult = 123;
+
+            _mockRepo
+                .Setup(repo => repo.GetGrantID(applId))
+                .ReturnsAsync(expectedResult);
+
+            var result = await _mockService.Object.GetGrantID(applId);
+
+            Assert.Equal(expectedResult, result);
+            _mockRepo.Verify(repo => repo.CheckApplID(applId), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetGrantID_ReturnsZero_WhenGrantIDDoesNotExist()
+        {
+            int applId = 7654321;
+            int? expectedResult = 321;
+
+            _mockRepo
+                .Setup(repo => repo.GetGrantID(applId))
+                .ReturnsAsync(expectedResult);
+
+            var result = await _mockService.Object.GetGrantID(applId);
+
+            Assert.Equal(expectedResult, result);
+            _mockRepo.Verify(repo => repo.CheckApplID(applId), Times.Once);
+        }
         #endregion
     }
 }

@@ -337,7 +337,7 @@ namespace eGrants.Services
             return await _eGrantRepository.CheckGrantID(grantId);
         }
 
-        private async Task<int?> GetGrantID(int applId)
+        public async Task<int?> GetGrantID(int applId)
         {
             return await _eGrantRepository.GetGrantID(applId);
         }

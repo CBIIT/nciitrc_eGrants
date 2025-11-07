@@ -163,5 +163,23 @@ namespace eGrants.Services.Interfaces
         /// A task that resolves to a list of category names matching the specified grant and year criteria.
         /// </returns>
         public Task<List<string>> GetCategoryList(int grantId, string years);
+        /// <summary>
+        /// Checks if an applicant ID exists for the specified grant ID.
+        /// </summary>
+        /// <param name="grantId">The grant identifier to check.</param>
+        /// <returns>
+        /// A Task representing the asynchronous operation, with the resulting applicant ID as an integer.
+        /// </returns>
+        public Task<int> CheckApplID(int grantId);
+
+        /// <summary>
+        /// Retrieves the grant ID associated with the specified applicant ID.
+        /// </summary>
+        /// <param name="applId">The applicant identifier.</param>
+        /// <returns>
+        /// A Task representing the asynchronous operation, with the resulting grant ID as a nullable integer.
+        /// If no grant is found for the specified applicant ID, the result is null.
+        /// </returns>
+        public Task<int?> GetGrantID(int applId);
     }
 }
