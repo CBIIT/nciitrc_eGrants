@@ -17,7 +17,7 @@ namespace eGrants.ViewModels
         }
         public int tag { get; set; }
         //public int parent { get; set; }
-        public List<AdminCodes> ICList {get; set;}
+        public List<AdminCodes> ICList { get; set; }
 
         public string grant_id { get; set; }
         //public string? label { get; set; }
@@ -124,6 +124,7 @@ namespace eGrants.ViewModels
         public string FilterMechanism { get; set; }
         public string FilterAdminCode { get; set; }
         public int? FilterSerialNumber { get; set; }
+        public string yearName { get; set; }
 
         public List<ApplLayerObject> appllayer_All { get; set; }
 
@@ -138,5 +139,7 @@ namespace eGrants.ViewModels
         public List<doclayer> doclayerproperty { get; set; }
 
         public List<ApplLayerObject> appllayerproperty { get; set; }
+
+
     }
 }

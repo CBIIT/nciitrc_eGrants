@@ -137,7 +137,21 @@ namespace eGrants.Services.Interfaces
         /// matching the specified criteria.
         /// </returns>
         public Task<List<supplement>> GetSupplements(string act, int grantId, int supportYear, string suffixCode, string docidStr, int formerApplId, string ic, string userId);
-
+        
+        /// <summary>
+        /// Retrieves eGrants search results based on the provided application ID (applId).
+        /// </summary>
+        /// <param name="applId">The application ID to search for.</param>
+        /// <param name="mode">The mode of the search (e.g., specific filtering criteria).</param>
+        /// <param name="str">An additional string parameter for search customization.</param>
+        /// <param name="sessionInfo">The session information for the current user, including permissions and context.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an 
+        /// <see cref="eGrantsSearchViewModel"/> object with the search results.
+        /// </returns>
+    
+        public Task<eGrantsSearchViewModel> GetEgrantsByApplAsync(int applId, string mode, string str, SessionInfo sessionInfo);
+        
         /// <summary>
         /// Retrieves a list of category names associated with a specific grant and year range.
         /// </summary>
