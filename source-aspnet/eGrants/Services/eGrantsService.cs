@@ -186,7 +186,6 @@ namespace eGrants.Services
 
 
                 searchByApplViewModel.grantlayer = searchByApplViewModel.grantlayerproperty;
-                //searchByApplViewModel.appllayer = searchByApplViewModel.appllayerproperty; // not needed(?)
                 searchByApplViewModel.appllayer_All = searchByApplViewModel.appllayerproperty;
                 searchByApplViewModel.ApplCount = searchByApplViewModel.appllayer.Count;
                 searchByApplViewModel.doclayer = searchByApplViewModel.doclayerproperty;
