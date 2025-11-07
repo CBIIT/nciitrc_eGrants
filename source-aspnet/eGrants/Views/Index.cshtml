@@ -585,7 +585,6 @@
             @*// if(CurrentDownloadValue == "Standard")*@
             @*<b>@grant_id</b>*@
 
-            @*if (Context.Request.Cookies["auditMode"] == null) // && Context.Request.Cookies["auditMode"].Value == "DownloadForm")*@
             @if (Context.Request.Cookies["auditMode"] != null && Context.Request.Cookies["auditMode"] == "DownloadForm" 
             && (Model.SearchStyle == "by_grant" || Model.SearchStyle == "by_appl" ))
             {
