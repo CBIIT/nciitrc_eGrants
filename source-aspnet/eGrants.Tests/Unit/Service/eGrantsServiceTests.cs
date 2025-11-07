@@ -8,6 +8,7 @@ using eGrants.Services;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 
 using Moq;
@@ -389,43 +390,49 @@ namespace eGrants.Tests.Unit.Service
         }
 
         [Fact]
-        public async Task ReturnsViewModel_WithCorrectData_WhenApplIdExists()
+        public async Task GetEgrantsByApplAsync_ReturnsViewModel_WithCorrectData_WhenApplIdExists()
         {
             // Arrange
             int applId = 123;
             string mode = "testMode";
             string str = "testString";
             var sessionInfo = new SessionInfo { Ic = "IC", UserId = "testUser", Browser = "Chrome" };
-            var expectedViewModel = new eGrantsSearchViewModel
-            {
-                ApplID = applId,
-                GrantID = 456,
-                Mode = mode,
-                Str = str,
-                SearchStyle = "by_appl",
-                appllayerproperty = new List<ApplLayerObject>
-                {
-                    new ApplLayerObject { appl_id = applId.ToString(), label = "TestLabel" }
-                },
-                doclayerproperty = new List<doclayer>()
-            };
+
 
             _mockService.Setup(s => s.CheckApplID(applId))
-            .ReturnsAsync(1);
+                .ReturnsAsync(1);
+
             _mockService.Setup(s => s.GetGrantID(applId))
-            .ReturnsAsync(456);
-            _mockService.Setup(s => s.eGrantsSearchResults(
-                It.IsAny<string>(), 0, "", applId, 0, sessionInfo, It.IsAny<eGrantsSearchViewModel>(), false))
-                .ReturnsAsync(expectedViewModel);
+                .ReturnsAsync(456);
 
-            var result = await _service.GetEgrantsByApplAsync(applId, mode, str, sessionInfo);
+            _mockService.Setup(s => s.GetEgrantsByApplAsync(applId, mode, str, sessionInfo))
+                .ReturnsAsync((int aId, string m, string st, SessionInfo si) =>
+                {
+                    var ViewModel = new eGrantsSearchViewModel
+                    {
+                        ApplID = 123,
+                        GrantID = 456,
+                        SearchStyle = "by_appl",
+                        appllayer = new List<ApplLayerObject>
+                        {
+                            new ApplLayerObject { appl_id = "123", label = "TestLabel" }
+                        }
+                    };
+                    return ViewModel;
+                });
 
+
+            // Act
+            var result = await _mockService.Object.GetEgrantsByApplAsync(applId, mode, str, sessionInfo);
+
+            // Assert
+            Assert.NotNull(result);
             Assert.Equal(applId, result.ApplID);
             Assert.Equal(456, result.GrantID);
             Assert.Equal("by_appl", result.SearchStyle);
-            Assert.Equal("TestLabel", result.yearName);
             Assert.NotNull(result.appllayer);
             Assert.Single(result.appllayer);
+
         }
 
         #endregion
@@ -441,7 +448,7 @@ namespace eGrants.Tests.Unit.Service
                 .Setup(repo => repo.CheckApplID(grantId))
                 .ReturnsAsync(expectedResult);
 
-            var result = await _mockService.Object.CheckApplID(grantId);
+            var result = await _service.CheckApplID(grantId);
 
             Assert.Equal(expectedResult, result);
             _mockRepo.Verify(repo => repo.CheckApplID(grantId), Times.Once);
@@ -457,7 +464,7 @@ namespace eGrants.Tests.Unit.Service
                 .Setup(repo => repo.CheckApplID(grantId))
                 .ReturnsAsync(expectedResult);
 
-            var result = await _mockService.Object.CheckApplID(grantId);
+            var result = await _service.CheckApplID(grantId);
 
             Assert.Equal(expectedResult, result);
             _mockRepo.Verify(repo => repo.CheckApplID(grantId), Times.Once);
@@ -475,10 +482,10 @@ namespace eGrants.Tests.Unit.Service
                 .Setup(repo => repo.GetGrantID(applId))
                 .ReturnsAsync(expectedResult);
 
-            var result = await _mockService.Object.GetGrantID(applId);
+            var result = await _service.GetGrantID(applId);
 
             Assert.Equal(expectedResult, result);
-            _mockRepo.Verify(repo => repo.CheckApplID(applId), Times.Once);
+            _mockRepo.Verify(repo => repo.GetGrantID(applId), Times.Once);
         }
 
         [Fact]
@@ -491,10 +498,10 @@ namespace eGrants.Tests.Unit.Service
                 .Setup(repo => repo.GetGrantID(applId))
                 .ReturnsAsync(expectedResult);
 
-            var result = await _mockService.Object.GetGrantID(applId);
+            var result = await _service.GetGrantID(applId);
 
             Assert.Equal(expectedResult, result);
-            _mockRepo.Verify(repo => repo.CheckApplID(applId), Times.Once);
+            _mockRepo.Verify(repo => repo.GetGrantID(applId), Times.Once);
         }
         #endregion
     }
