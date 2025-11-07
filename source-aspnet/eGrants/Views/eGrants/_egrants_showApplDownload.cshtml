@@ -80,22 +80,22 @@
                         {
                             if (Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id")) == 1)
                             {
-                                @*<span style="width:500px; float:right;">
+                                <span style="width:500px; float:right;">
                                 @if (Convert.ToString(appl.closeout_flag) == "f")
                                 {
-                                <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
+                                        <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("frpprAcceptance")?applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
                                 }
                                 @if (Convert.ToString(appl.closeout_flag) == "i")
                                 {
-                                <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to PMM IRPPR Acceptance Module"><b>IRPPR Approval Link</b></a>
+                                        <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("irpprAcceptance")?rpprId=@appl.irppr_id" title="Go to PMM IRPPR Acceptance Module"><b>IRPPR Approval Link</b></a>
                                 }
                                 @if (Convert.ToString(appl.closeout_flag) == "fi")
                                 {
-                                <a target="_new" href="@Session["frpprAcceptance"]?applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
+                                        <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("frpprAcceptance")??applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
                                 <b>&nbsp;&nbsp;</b>
-                                <a target="_new" href="@Session["irpprAcceptance"]?rpprId=@appl.irppr_id" title="Go to PMM IRPPR Acceptance Module"><b>IRPPR Approval Link</b></a>
+                                        <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("irpprAcceptance")?rpprId=@appl.irppr_id" title="Go to PMM IRPPR Acceptance Module"><b>IRPPR Approval Link</b></a>
                                 }
-                                </span>*@
+                                </span>
                             }
                         }
                     </div>
