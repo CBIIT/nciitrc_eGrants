@@ -22,7 +22,6 @@
 <link href="~/css/bootstrap-icons.css" rel="stylesheet" />
 <link href="~/css/egrantsmodal.css" rel="stylesheet" />
 <link href="~/css/jquery-ui.min.css" rel="stylesheet" />
-<script src="~/js/egrantscatszone.js"></script>
 <script src="~/js/egrantsqc.js"></script>
 <script src="~/js/bluebird.js"></script>
 <script src="~/js/jquery-ui-1.13.2.js"></script>
@@ -80,9 +79,9 @@
     <input type="text" hidden id="hidFilterAdminCode" name="FilterAdminCode" value="@Model.FilterAdminCode" />
     <input type="text" hidden id="hidFilterSerialNumber" name="FilterSerialNumber" value="@Model.FilterSerialNumber" />
 
-    <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id")) />
-    <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(HttpContextAccessor.HttpContext.Session.GetString("ImageServerUrl")) />
-    <input type="text" hidden id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(HttpContextAccessor.HttpContext.Session.GetString("egrantsDocEmail")) />
+    <input type="text" hidden id="hidPositionID" name="position_id" value="@Convert.ToInt32(Context.Session.GetInt32("position_id"))" />
+    <input type="text" hidden id="hidImageServer" name="ImageServer" value="@Convert.ToString(Context.Session.GetString("ImageServerUrl"))" />
+    <input type="text" hidden id="hidEgrantsEmail" name="egrantsemail" value="@Convert.ToString(Context.Session.GetString("egrantsDocEmail"))" />
 
 </form>
 <!--end save all data from server-->
@@ -643,3 +642,4 @@
     const loadSupplementBaseUrl = '@Url.Action("LoadSupplement", "EgrantsDoc")';
 </script>
 <script src="~/js/egrantsindex.js"></script>
+<script src="~/js/egrantscatszone.js"></script>

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data;
+using System.Text;
 
 using eGrants.DAL;
 using eGrants.DTOs;
@@ -44,9 +45,16 @@ namespace eGrants.Repositories
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
                 // Execute the stored procedure and return the results as a list of eGrantsSearchResults.
-                return await context.Set<eGrantsSearchResults>()
-                    .FromSqlRaw(sql, searchString, grantId, package, applId, currentPage, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId)
-                    .ToListAsync();
+                try
+                {
+                    return await context.Set<eGrantsSearchResults>()
+                        .FromSqlRaw(sql, searchString, grantId, package, applId, currentPage, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId)
+                        .ToListAsync();
+                }
+                catch (Exception ex)
+                {
+                    return new List<eGrantsSearchResults>();
+                }
             }
         }
 
@@ -180,10 +188,25 @@ namespace eGrants.Repositories
         {
             try
             {
-                // Format application IDs for use in the OPENQUERY SQL string.
-                var applsParam = string.Join(",", applIds.Select(id => $"''{id}''")); // Ensure each ID is quoted
+                // Format application IDs for use in the OPENQUERY SQL string so that not more than 8000 characters worth of Ids are used.
+                var sb = new StringBuilder();
+                int maxLength = 8000;
+                bool first = true;
 
-                // Construct the OPENQUERY SQL to retrieve MPI information from IRDB.
+                foreach (var id in applIds)
+                {
+                    var formatted = $"''{id}''";
+                    if (sb.Length + formatted.Length + (first ? 0 : 1) > maxLength)
+                        break;
+
+                    if (!first)
+                        sb.Append(",");
+                    sb.Append(formatted);
+                    first = false;
+                }
+
+                var applsParam = sb.ToString();
+
                 var openQuery = $@"
                     SELECT APPL_ID, First_Name, Last_name, Role_Type_Code
                     FROM OPENQUERY(IRDB, '
@@ -262,6 +285,45 @@ namespace eGrants.Repositories
     .               FirstOrDefaultAsync();
 
             }
+        //public async Task<List<string>> GetCategoryList(int grantId, string years)
+        //{
+        //    var results = await _context.CategoriesListDTO
+        //    .FromSqlRaw("EXEC dbo.sp_web_egrants_load_category_list @grant_id = {0}, @years = {1}", grantId, years)
+        //    .ToListAsync();
+
+        //    return results
+        //        .Select(r => $"{r.category_id}:{r.category_name}")
+        //        .ToList();
+        //}
+        public async Task<List<string>> GetCategoryList(int grantId, string years)
+        {
+            var categoryList = new List<string>();
+
+            using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                await connection.OpenAsync();
+
+                using (var command = new SqlCommand("dbo.sp_web_egrants_load_category_list", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@grant_id", grantId);
+                    command.Parameters.AddWithValue("@years", years);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            // Force cast to int regardless of underlying SQL type
+                            int categoryId = Convert.ToInt32(reader["category_id"]);
+                            string categoryName = reader["category_name"].ToString();
+
+                            categoryList.Add($"{categoryId}:{categoryName}");
+                        }
+                    }
+                }
+            }
+
+            return categoryList;
         }
     }
 }

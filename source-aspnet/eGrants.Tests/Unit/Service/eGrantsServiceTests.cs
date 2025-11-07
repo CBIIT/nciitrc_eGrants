@@ -8,6 +8,8 @@ using eGrants.Services;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
+using Microsoft.Extensions.Logging;
+
 using Moq;
 
 using Xunit;
@@ -18,13 +20,15 @@ namespace eGrants.Tests.Unit.Service
     {
         private readonly Mock<IeGrantsService> _mockService;
         private readonly Mock<IeGrantsRepository> _mockRepo;
+        private readonly Mock<ILogger<IeGrantsService>> _mockLogger;
         private readonly eGrantsService _service;
 
         public eGrantsServiceTests()
         {
             _mockService = new Mock<IeGrantsService>(); // { CallBase = true };
             _mockRepo = new Mock<IeGrantsRepository>();
-            _service = new eGrantsService(_mockRepo.Object);
+            _mockLogger = new Mock<ILogger<IeGrantsService>>();
+            _service = new eGrantsService(_mockRepo.Object, _mockLogger.Object);
         }
 
         #region GetEgrantsByStrAsync Tests
@@ -80,19 +84,11 @@ namespace eGrants.Tests.Unit.Service
         #region GetEgrantsByFilterAsync Tests
 
         [Fact]
-        public async Task ReturnsMessage_WhenAllFiltersAreEmpty()
+        public async Task ReturnsMessage_WhenAllFiltersAreEmptyOrInvalidTabOrPackage()
         {
             var sessionInfo = new SessionInfo { Ic = "IC", UserId = "dcdehuff", Browser = "Chrome" };
-            var expectedResult = new eGrantsSearchViewModel
-            {
-                Message = "No data found for the search",
-                grantlayer = null
-            };
 
-            _mockService.Setup(s => s.GetEgrantsByFilterAsync(0, "", 0, "", 1, 1, 1, sessionInfo))
-                .ReturnsAsync(expectedResult);
-
-            var result = await _mockService.Object.GetEgrantsByFilterAsync(0, "", 0, "", 1, 1, 1, sessionInfo);
+            var result = await _service.GetEgrantsByFilterAsync(0, "", 0, "", 1, 1, 1, sessionInfo, 0, null);
 
             Assert.Equal("No data found for the search", result.Message);
             Assert.Null(result.grantlayer);
@@ -124,10 +120,10 @@ namespace eGrants.Tests.Unit.Service
             _mockRepo.Setup(r => r.LoadPaginationAsync("SELECT * FROM Grants", "IC", "Chrome", "by_filters"))
                 .ReturnsAsync(new List<Pagination>());
 
-            _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo))
+            _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters"))
                 .ReturnsAsync(expectedResult);
 
-            var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
+            var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters");
 
             Assert.Equal("by_filters", result.SearchStyle);
             Assert.NotNull(result.grantlayer);
@@ -139,36 +135,44 @@ namespace eGrants.Tests.Unit.Service
         [Fact]
         public async Task ReturnsMessage_WhenGrantLayerPropertyIsNull()
         {
+            // Arrange
             var sessionInfo = new SessionInfo { Ic = "IC", UserId = "dcdehuff", Browser = "Chrome" };
-            var filterQuery = new List<FilterSearchResult>();
+            var filterQuery = new List<FilterSearchResult> { new FilterSearchResult { Value = "SELECT * FROM Grants" } };
 
-            filterQuery.Add(new FilterSearchResult { Value = "SELECT * FROM Grants" });
-
-            var viewModel = new eGrantsSearchViewModel
+            var intermediateViewModel = new eGrantsSearchViewModel
             {
-                grantlayerproperty = null
-            };
-
-            var expectedResult = new eGrantsSearchViewModel
-            {
-                grant_id = "1",
-                project_title = "Grant A",
-                Message = "No data found for the search",
-                grantlayer = null
+                grantlayerproperty = null,
+                appllayerproperty = null
             };
 
             _mockRepo.Setup(r => r.FilterSearchQuery(2024, "R01", "ADM", 123, 1, sessionInfo))
                 .ReturnsAsync(filterQuery);
 
-            _mockService.Setup(s => s.eGrantsSearchResults("SELECT * FROM Grants", 1, "by_filters", 1, 1, sessionInfo, It.IsAny<eGrantsSearchViewModel>(), true))
-                .ReturnsAsync(viewModel);
+            _mockService.Setup(s => s.eGrantsSearchResults(
+                    "SELECT * FROM Grants",
+                    1,
+                    "by_filters",
+                    1,
+                    1,
+                    sessionInfo,
+                    It.IsAny<eGrantsSearchViewModel>(),
+                    true))
+                .ReturnsAsync(intermediateViewModel);
 
-            _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo))
-                .ReturnsAsync(expectedResult);
+            // Act
+            var result = await _service.GetEgrantsByFilterAsync(
+                fiscalYear: 2024,
+                mechanism: "R01",
+                serialNum: 123,
+                adminCode: "ADM",
+                grantId: 1,
+                applId: 1,
+                currentPage: 1,
+                sessionInfo: sessionInfo,
+                tabNum: 1,
+                package: "by_filters");
 
-            //var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
-            var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
-            
+            // Assert
             Assert.Equal("No data found for the search", result.Message);
             Assert.Null(result.grantlayer);
         }
@@ -200,11 +204,11 @@ namespace eGrants.Tests.Unit.Service
             _mockService.Setup(s => s.eGrantsSearchResults(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), sessionInfo, It.IsAny<eGrantsSearchViewModel>(), true))
                 .ReturnsAsync(viewModel);
 
-            _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo))
+            _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters"))
                 .ReturnsAsync(expectedResult);
 
             //var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
-            var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
+            var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters");
 
             Assert.Equal(2024, result.FilterFY);
             Assert.Equal(123, result.FilterSerialNumber);
@@ -218,7 +222,7 @@ namespace eGrants.Tests.Unit.Service
             var sessionInfo = new SessionInfo { Ic = "IC", UserId = "dcdehuff", Browser = "Chrome" };
 
             // Simulate the service throwing an exception
-            _mockService.Setup(s => s.GetEgrantsByFilterAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), sessionInfo))
+            _mockRepo.Setup(r => r.FilterSearchQuery(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), sessionInfo))
                 .ThrowsAsync(new Exception("Database unreachable"));
 
             // Act
@@ -227,7 +231,7 @@ namespace eGrants.Tests.Unit.Service
 
             try
             {
-                result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
+                result = await _service.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 1, "by_filters");
             }
             catch (Exception ex)
             {
@@ -238,8 +242,9 @@ namespace eGrants.Tests.Unit.Service
             Assert.Null(result);
             Assert.Equal("Database unreachable", errorMessage);
         }
+
         #endregion
-        
+
         #region GetSupplements Tests
 
         [Fact]
@@ -304,6 +309,57 @@ namespace eGrants.Tests.Unit.Service
             await _mockService.Object.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1");
 
             _mockService.Verify(r => r.GetSupplements("ACT", 1, 2025, "A", "DOC123", 100, "IC1", "user1"), Times.Once);
+        }
+
+        #endregion
+
+        #region GetCategoryList Tests
+
+        [Fact]
+        public async Task GetCategoryList_ReturnsExpectedList_WhenRepositorySucceeds()
+        {
+            // Arrange
+            int grantId = 42;
+            string years = "All";
+            var expected = new List<string> { "Education", "Health" };
+
+            _mockRepo.Setup(r => r.GetCategoryList(grantId, years))
+                     .ReturnsAsync(expected);
+
+            // Act
+            var result = await _service.GetCategoryList(grantId, years);
+
+            // Assert
+            Assert.Equal(expected, result);
+            _mockRepo.Verify(r => r.GetCategoryList(grantId, years), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetCategoryList_LogsAndThrows_WhenRepositoryThrows()
+        {
+            // Arrange
+            int grantId = 99;
+            string years = "All";
+            var exception = new Exception("Database error");
+
+            _mockRepo.Setup(r => r.GetCategoryList(grantId, years))
+                     .ThrowsAsync(exception);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<Exception>(() => _service.GetCategoryList(grantId, years));
+
+            // Assert
+            Assert.Equal("Database error", ex.Message);
+
+            _mockLogger.Verify(
+                l => l.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) =>
+                        v.ToString().Contains("Error retrieving category list for GrantId")),
+                    It.Is<Exception>(ex => ex.Message == "Database error"),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                Times.Once);
         }
 
         #endregion

@@ -34,5 +34,6 @@ namespace eGrants.Repositories.Interfaces
         Task<int?> GetGrantID(int grantId);
 
         Task<int> CheckApplID(int applId);
+        Task<List<string>> GetCategoryList(int grantId, string years);
     }
 }

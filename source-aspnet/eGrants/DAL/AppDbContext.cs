@@ -43,6 +43,9 @@ namespace eGrants.DAL
 
         public DbSet<InstFileLoadOrgDocListDTO> InstFileLoadOrgDocListDTO { get; set; }
         
+        public DbSet<InstFileLoadOrgDocListDTO> InstFileLoadOrgDocListDTO { get; set; } 
+        
+        public DbSet<CategoriesListDTO> CategoriesListDTO { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -68,6 +71,7 @@ namespace eGrants.DAL
             modelBuilder.Entity<InstFileFindOrgDTO>().HasNoKey();
             modelBuilder.Entity<InsitutionalOrgNameIndex>().HasNoKey();
             modelBuilder.Entity<InstFileLoadOrgDocListDTO>().HasNoKey();
+            modelBuilder.Entity<CategoriesListDTO>().HasNoKey();
         }
     }
 }

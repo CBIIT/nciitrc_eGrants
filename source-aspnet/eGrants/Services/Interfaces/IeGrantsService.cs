@@ -31,8 +31,10 @@ namespace eGrants.Services.Interfaces
         /// <param name="applId">The application ID.</param>
         /// <param name="currentPage">The current page number for pagination.</param>
         /// <param name="sessionInfo">Session context information for the user.</param>
+        /// <param name="tabNum">The tab index indicating which section of the UI is active.</param>
+        /// <param name="packages">A package identifier to filter by.</param>
         /// <returns>A view model containing filtered eGrants search results.</returns>
-        public Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo);
+        public Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo, int tabNum, string packages);
 
         /// <summary>
         /// Retrieves eGrants search results using detailed grant-related parameters.
@@ -135,6 +137,29 @@ namespace eGrants.Services.Interfaces
         /// matching the specified criteria.
         /// </returns>
         public Task<List<supplement>> GetSupplements(string act, int grantId, int supportYear, string suffixCode, string docidStr, int formerApplId, string ic, string userId);
+        /// <summary>
+        /// Retrieves eGrants search results based on the provided application ID (applId).
+        /// </summary>
+        /// <param name="applId">The application ID to search for.</param>
+        /// <param name="mode">The mode of the search (e.g., specific filtering criteria).</param>
+        /// <param name="str">An additional string parameter for search customization.</param>
+        /// <param name="sessionInfo">The session information for the current user, including permissions and context.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an 
+        /// <see cref="eGrantsSearchViewModel"/> object with the search results.
+        /// </returns>
         public Task<eGrantsSearchViewModel> GetEgrantsByApplAsync(int applId, string mode, string str, SessionInfo sessionInfo);
+
+        /// <summary>
+        /// Retrieves a list of category names associated with a specific grant and year range.
+        /// </summary>
+        /// <param name="grantId">The unique identifier of the grant for which categories are requested.</param>
+        /// <param name="years">
+        /// A comma-separated string representing one or more years (e.g., "2022,2023") used to filter categories.
+        /// </param>
+        /// <returns>
+        /// A task that resolves to a list of category names matching the specified grant and year criteria.
+        /// </returns>
+        public Task<List<string>> GetCategoryList(int grantId, string years);
     }
 }

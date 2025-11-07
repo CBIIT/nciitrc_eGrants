@@ -573,26 +573,25 @@ namespace eGrants.Controllers.Egrants
         //        return JsonConvert.SerializeObject(list);
         //    }
 
-        //    // get category list by grant_id and years
-        //    /// <summary>
-        //    /// The load categories.
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <param name="years">
-        //    /// The years.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="string"/>.
-        //    /// </returns>
-        //    public string LoadCategories(int grant_id, string years)
-        //    {
-        //        var list = Dashboard.Functions.Egrants.GetCategoryList(grant_id, years);
+        // get category list by grant_id and years
+        /// <summary>
+        /// The load categories.
+        /// </summary>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <param name="years">
+        /// The years.
+        /// </param>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
+        public async Task<string> LoadCategories(int grantId, string years)
+        {
+            var list = await _eGrantsService.GetCategoryList(grantId, years);
 
-        //        // JavaScriptSerializer js = new JavaScriptSerializer();
-        //        return JsonConvert.SerializeObject(list);
-        //    }
+            return JsonConvert.SerializeObject(list);
+        }
 
         //    // get category list by grant_id and years
         //    /// <summary>
@@ -875,16 +874,25 @@ namespace eGrants.Controllers.Egrants
         /// <param name="serialNum">
         /// The serialNumber.
         /// </param>
+        /// <param name="pageNum">
+        /// The page number
+        /// </param>
+        /// <param name="tabNum">
+        /// The tab number
+        /// </param>
+        /// <param name="packages">
+        /// The package name
+        /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public async Task<IActionResult> by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialNum = 0)
+        public async Task<IActionResult> by_filters(int fiscalYear = 0, string mechanism = null, string adminCode = null, int serialNum = 0, int pageNum = 1, int tabNum = 1, string packages = "")
         {
             eGrantsSearchViewModel eGrantsSearchViewModelList = new eGrantsSearchViewModel();
 
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByFilterAsync(fiscalYear, mechanism, serialNum, adminCode, 0, 0, 0, sessionInfo);
+            eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByFilterAsync(fiscalYear, mechanism, serialNum, adminCode, 0, 0, pageNum, sessionInfo, tabNum, packages);
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
 
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
