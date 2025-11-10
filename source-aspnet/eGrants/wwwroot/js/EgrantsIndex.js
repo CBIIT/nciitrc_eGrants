@@ -158,7 +158,6 @@ function show_supplement(grant_id, act) {
 
 function view_supplement(grant_id, act) {
     var url = '@Url.Action("LoadSupplement", "EgrantsDoc")?act=' + act + '&grantId=' + grant_id;
-    alert(url);
 }
 
 // after delete or store doc
