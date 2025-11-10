@@ -261,7 +261,7 @@ namespace eGrants.Tests.Integration
                 fiscalYear: 2022,
                 mechanism: "R01",
                 adminCode: "CA",
-                serialNum: 123456,               
+                serialNum: 123456,
                 pageNum: 2,
                 tabNum: 1,
                 packages: "by_filters") as ViewResult;
@@ -359,6 +359,70 @@ namespace eGrants.Tests.Integration
             // Assert.Equal("Invalid grant ID or year format", errorResponse.Message);
         }
 
+        #endregion
+
+        #region by_appl controller tests
+        [Fact]
+        public async Task by_appl_WithDefaultParameters_ReturnsCorrectViewAndModel()
+        {
+            // Tests by_appl with default parameters and valid session
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.Set("userid", Encoding.UTF8.GetBytes("user123"));
+            session.Set("ic", Encoding.UTF8.GetBytes("1"));
+
+            var controller = CreateController(context, session);
+            var result = await controller.by_appl() as ViewResult;
+
+            // Verifies the view path and model type
+            Assert.NotNull(result);
+            Assert.Equal("~/Views/Index.cshtml", result.ViewName);
+            var model = Assert.IsType<eGrantsSearchViewModel>(result.Model);
+            Assert.NotNull(model);
+        }
+
+        [Fact]
+        public async Task by_appl_WithSpecificFilters_ReturnsPopulatedModel()
+        {
+            //Tests by_appl with valid session and parameteres
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.Set("userid", Encoding.UTF8.GetBytes("user456"));
+            session.Set("ic", Encoding.UTF8.GetBytes("1"));
+
+            var controller = CreateController(context, session);
+            var result = await controller.by_appl(
+                    applId: 4040100
+                ) as ViewResult;
+
+            // Verifies the view and ensures model is correctly typed and populated
+            Assert.NotNull(result);
+            Assert.Equal("~/Views/Index.cshtml", result.ViewName);
+            var model = Assert.IsType<eGrantsSearchViewModel>(result.Model);
+            Assert.NotNull(model.ICList); // Ensures ICList is loaded
+
+        }
+
+        [Fact]
+        public async Task by_appl_WithEmptySession_StillReturnsView()
+        {
+            //Tests by_appl with empty session and parameteres
+            using var context = CreateDevDbContext();
+            var session = new TestSession(); // no user id and ic
+
+            var controller = CreateController(context, session);
+            var result = await controller.by_appl(
+                    applId: 4001001,
+                    mode: "full",
+                    str: "testString"
+                ) as ViewResult;
+
+            // Verifies fallback behavior still returns view and model
+            Assert.NotNull(result);
+            Assert.Equal("~/Views/Index.cshtml", result.ViewName);
+            Assert.IsType<eGrantsSearchViewModel>(result.Model);
+
+        }
         #endregion
     }
 }

@@ -137,7 +137,21 @@ namespace eGrants.Services.Interfaces
         /// matching the specified criteria.
         /// </returns>
         public Task<List<supplement>> GetSupplements(string act, int grantId, int supportYear, string suffixCode, string docidStr, int formerApplId, string ic, string userId);
-
+        
+        /// <summary>
+        /// Retrieves eGrants search results based on the provided application ID (applId).
+        /// </summary>
+        /// <param name="applId">The application ID to search for.</param>
+        /// <param name="mode">The mode of the search (e.g., specific filtering criteria).</param>
+        /// <param name="str">An additional string parameter for search customization.</param>
+        /// <param name="sessionInfo">The session information for the current user, including permissions and context.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an 
+        /// <see cref="eGrantsSearchViewModel"/> object with the search results.
+        /// </returns>
+    
+        public Task<eGrantsSearchViewModel> GetEgrantsByApplAsync(int applId, string mode, string str, SessionInfo sessionInfo);
+        
         /// <summary>
         /// Retrieves a list of category names associated with a specific grant and year range.
         /// </summary>
@@ -149,5 +163,23 @@ namespace eGrants.Services.Interfaces
         /// A task that resolves to a list of category names matching the specified grant and year criteria.
         /// </returns>
         public Task<List<string>> GetCategoryList(int grantId, string years);
+        /// <summary>
+        /// Checks if an applicant ID exists for the specified grant ID.
+        /// </summary>
+        /// <param name="grantId">The grant identifier to check.</param>
+        /// <returns>
+        /// A Task representing the asynchronous operation, with the resulting applicant ID as an integer.
+        /// </returns>
+        public Task<int> CheckApplID(int grantId);
+
+        /// <summary>
+        /// Retrieves the grant ID associated with the specified applicant ID.
+        /// </summary>
+        /// <param name="applId">The applicant identifier.</param>
+        /// <returns>
+        /// A Task representing the asynchronous operation, with the resulting grant ID as a nullable integer.
+        /// If no grant is found for the specified applicant ID, the result is null.
+        /// </returns>
+        public Task<int?> GetGrantID(int applId);
     }
 }

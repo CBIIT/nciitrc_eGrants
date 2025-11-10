@@ -92,7 +92,7 @@ namespace eGrants.Repositories
 
                 // Execute the stored procedure to load available data years and return the results.
                 return await context.GrantDataYears
-                .FromSqlRaw("EXEC dbo.sp_web_egrants_load_data_years @fy = {0}, @mechanism = {1}, @adminCode = {2}, @serialnum = {3}", 
+                .FromSqlRaw("EXEC dbo.sp_web_egrants_load_data_years @fy = {0}, @mechanism = {1}, @adminCode = {2}, @serialnum = {3}",
                     fiscalYear, mechanism, adminCode, serialNumber)
                 .ToListAsync();
             }
@@ -265,16 +265,28 @@ namespace eGrants.Repositories
             }
         }
 
-        //public async Task<List<string>> GetCategoryList(int grantId, string years)
-        //{
-        //    var results = await _context.CategoriesListDTO
-        //    .FromSqlRaw("EXEC dbo.sp_web_egrants_load_category_list @grant_id = {0}, @years = {1}", grantId, years)
-        //    .ToListAsync();
+        public async Task<int> CheckApplID(int applId)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                return await context.VwAppls.Where(x => x.appl_id == applId).CountAsync();
+            }
+        }
 
-        //    return results
-        //        .Select(r => $"{r.category_id}:{r.category_name}")
-        //        .ToList();
-        //}
+        public async Task<int?> GetGrantID(int applId)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                return await context.VwAppls
+                    .Where(x => x.appl_id == applId)
+                    .Select(x => x.grant_id)
+                    .FirstOrDefaultAsync();
+
+            }
+        }
+
         public async Task<List<string>> GetCategoryList(int grantId, string years)
         {
             var categoryList = new List<string>();
@@ -305,5 +317,5 @@ namespace eGrants.Repositories
 
             return categoryList;
         }
+        }
     }
-}
