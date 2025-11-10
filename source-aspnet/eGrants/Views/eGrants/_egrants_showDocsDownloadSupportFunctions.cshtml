@@ -557,7 +557,7 @@
                       full.appl_id +
                       full.grant_id +
                       "\"" +
-                      ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+                      ((full.url && full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
                       "/></div>";
               } else
                   return "<div id=\"dl_checkbox_" +
