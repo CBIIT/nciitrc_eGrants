@@ -542,7 +542,7 @@ namespace eGrants.Controllers.Egrants
             var yearList = new List<string>();
             var list = await _eGrantsService.GetYearList(fiscalYear, mechanism, adminCode, serialNumber);
 
-            foreach(GrantDataYears val in list) 
+            foreach (GrantDataYears val in list)
             {
                 yearList.Add(val.full_grant_num + ":" + val.appl_id);
             }
@@ -690,6 +690,45 @@ namespace eGrants.Controllers.Egrants
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
         }
+
+        /// <summary>
+        /// The by_grant.
+        /// </summary>
+        /// <param name="grantId">
+        /// The grant_id.
+        /// </param>
+        /// <param name="package">
+        /// The package.
+        /// </param>
+        /// <param name="categories">
+        /// The categories.
+        /// </param>
+        /// <param name="applsList">
+        /// The appls_list.
+        /// </param>
+        /// <param name="years">
+        /// The years.
+        /// </param>
+        /// <param name="mode">
+        /// The mode.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<IActionResult> by_appl(
+            int applId = 0,
+            string mode = null,
+            string str = null)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByApplAsync(applId, mode, str, sessionInfo);
+
+            eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
+
+            return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
+        }
+
 
         //    /// <summary>
         //    /// The by_appl.
@@ -1216,7 +1255,7 @@ namespace eGrants.Controllers.Egrants
 
             SupplementObjectViewModel supplementObjectViewModel = new SupplementObjectViewModel();
 
-            supplementObjectViewModel.GrantID = grant_id;   
+            supplementObjectViewModel.GrantID = grant_id;
             supplementObjectViewModel.Act = act;
             supplementObjectViewModel.Supplement = supplements;
             supplementObjectViewModel.FormerAppls = new List<former_appls>();

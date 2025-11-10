@@ -1,27 +1,24 @@
 ﻿@using eGrants.Models
-@using Microsoft.AspNetCore.Http
+@using eGrants.ViewModels
 @inject IHttpContextAccessor HttpContextAccessor
 <!--start display appls -->
 @{
 
-    var grant_id = Model;
-    // List<ApplLayerObject> list = ViewBag.appllayer;
-    // var count = list.Count;
+    var grant_id = Model.GrantID;
 
     <!-- common function here used by all appls -->
-    // @Html.Partial("~/Egrants/Views/Download/_egrants_showDocsDownloadSupportFunctions.cshtml")
-    <!-- end common function here used by all appls -->
+    @Html.Partial("~/Views/eGrants/_egrants_showDocsDownloadSupportfunctions.cshtml")
 
+    <!-- end common function here used by all appls -->
     //loop with each appl
-    foreach (var appl in ViewBag.appllayer)
+    foreach (var appl in Model.appllayer)
     {
         <!-- start all appls for one grant -->
         <div id="appls_@grant_id" style="float:left; width:900px;">
-            @if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id))  //&& Convert.ToInt32(appl.doc_count) > 0 || Convert.ToInt16(appl.closeout_notcount) > 0
+            @if (Convert.ToInt32(appl.grant_id) == Convert.ToInt32(grant_id))
             {
                 int appl_id = Convert.ToInt32(appl.appl_id);
                 string fullGrantNum = Convert.ToString(appl.full_grant_num);
-                // var grantShort = ViewBag.grantlayer;
                 var passModel = new PageDownloadModel() { ApplId = appl_id, FullGrantNumber = fullGrantNum };
 
                 <!-- start show single appl data -->
@@ -34,42 +31,42 @@
                     <div id="flags_@appl_id" style="float:left;display:inline;">
                         @if (Convert.ToString(appl.appl_ds_flag) == "y")
                         {
-                            <img src="/images/flag_ds.jpg" style="margin-left:5px; height:16px; display:inline" title="Diversity Supplement Funded Grant" />
+                            <img src="~/images/flag_DS.jpg" style="margin-left:5px; height:16px; display:inline" title="Diversity Supplement Funded Grant" />
                         }
 
                         @if (Convert.ToString(appl.appl_fda_flag) == "y")
                         {
-                            <img src="/images/flag_fda.jpg" style="margin-left:5px; height:16px; display:inline" title="FDA Grant" />
+                            <img src="~/images/flag_fda.jpg" style="margin-left:5px; height:16px; display:inline" title="FDA Grant" />
                         }
 
                         @if (Convert.ToString(appl.appl_ms_flag) == "y")
                         {
-                            <img src="/images/flag_ms.jpg" style="margin-left:5px; height:16px; display:inline" title="Moonshot Funded Grant" />
+                            <img src="~/images/flag_MS.jpg" style="margin-left:5px; height:16px; display:inline" title="Moonshot Funded Grant" />
                         }
 
                         @if (Convert.ToString(appl.appl_od_flag) == "y")
                         {
-                            <img src="~/Content/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
+                            <img src="~/images/flag_od.jpg" style="margin-left:5px; height:16px; display:inline" title="OD Funded Grant" />
                         }
 
                         @if (appl.deleted_by_impac == "y")
                         {
-                            <img src="~/Content/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
+                            <img src="~/images/deleted_yr.png" style="margin-left:5px; height:16px; display:inline" title="Grant Year Deleted by IMPAC ||" />
                         }
 
                         @if (appl.competing == "yes")
                         {
-                            <img src="~/Content/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
+                            <img src="~/images/compet_yr.png" style="margin-left:5px; height:16px; display:inline" title="Competing Years" />
                         }
 
                         @if (Convert.ToInt16(appl.appl_type_code) == 4)
                         {
-                            <img src="~/Content/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
+                            <img src="~/images/Type4.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 4 Grant Extension" />
                         }
 
                         @if (Convert.ToInt16(appl.appl_type_code) == 7)
                         {
-                            <img src="~/Content/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
+                            <img src="~/images/Type7.bmp" style="margin-left:5px; height:16px; display:inline;" title="Type 7 Grant Transfer" />
                         }
                     </div>
                     <!--end show flags-->
@@ -86,7 +83,7 @@
                                 <span style="width:500px; float:right;">
                                     @if (Convert.ToString(appl.closeout_flag) == "f")
                                     {
-                                        <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("frpprAcceptance")?applId =@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
+                                        <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("frpprAcceptance")?applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
                                     }
                                     @if (Convert.ToString(appl.closeout_flag) == "i")
                                     {
@@ -94,7 +91,7 @@
                                     }
                                     @if (Convert.ToString(appl.closeout_flag) == "fi")
                                     {
-                                        <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("frpprAcceptance")?applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
+                                        <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("frpprAcceptance")??applId=@appl_id" title="Go to PMM FPR/FRPPR Acceptance Module"><b>FRPPR Approval Link</b></a>
                                         <b>&nbsp;&nbsp;</b>
                                         <a target="_new" href="@HttpContextAccessor.HttpContext.Session.GetString("irpprAcceptance")?rpprId=@appl.irppr_id" title="Go to PMM IRPPR Acceptance Module"><b>IRPPR Approval Link</b></a>
                                     }
@@ -104,15 +101,16 @@
                     </div>
                     <!--end notice for PD-->
                     <!--start create new buttons-->
-
                     <!--end create new buttons-->
                     <!--end appl header-->
                     <!--start show dos-->
+                    @Html.Partial("~/Views/eGrants/_egrants_showDocsDownload.cshtml", passModel)
 
-                    // @Html.Partial("~/Egrants/Views/Download/_egrants_showDocsDownload.cshtml", passModel)
 
 
-                    <div id="doc" style="height:20px"></div><!--add space for each appls-->
+                    <div id="doc" style="height:20px"></div>
+
+                    <!--add space for each appls-->
                     <!--end show dos-->
                     <!--end show single appl data-->
                 }
