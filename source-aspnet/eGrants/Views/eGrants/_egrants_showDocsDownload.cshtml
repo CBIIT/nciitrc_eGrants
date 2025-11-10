@@ -1,5 +1,5 @@
 ﻿<!--start display appls and documents-->
-<script src="~/js/jquery.datatables.js"></script>
+<script src="~/js/jquery.datatables.min.js"></script>
 <script src="~/js/moment.js"></script>
 <script src="~/js/datetime-moment.js"></script>
 <script src="~/js/datatables.bootstrap4.min.js"></script>
@@ -315,7 +315,7 @@
                             authWidth: true,
                             render: function(data, type, full, meta) {
 
-                                var str = ((full.url.substring(0, 11) == "https://i2e" ? "<img src=\"../images/new-fa-file-excel.gif\" title=\"File URL is not supported.\" />" : "<img style=\"visibility: hidden\" src=\"../images/new-fa-file-lines.gif\" title=\"File URL is supported.\"/>"));
+                                var str = ((full.url && full.url.substring(0, 11) == "https://i2e" ? "<img src=\"../images/new-fa-file-excel.gif\" title=\"File URL is not supported.\" />" : "<img style=\"visibility: hidden\" src=\"../images/new-fa-file-lines.gif\" title=\"File URL is supported.\"/>"));
 
                                 return str;
                             }
