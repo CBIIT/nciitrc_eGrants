@@ -375,7 +375,7 @@
                   {
                      "data": "doc_date",
                      render: function(data, type, full, meta) {
-                         if (full.document_date == "") return '';
+                         if (full.document_date == "" || full.document_date == null) return '';
                          else return moment(data).format('MM/DD/YYYY');
                      },
                      "autoWidth": true,

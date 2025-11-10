@@ -302,7 +302,7 @@
                             data: "doc_date",
                             autoWidth: true,
                             render: function(data, type, full, meta) {
-                                if (full.document_date == "") {
+                                if (full.document_date == "" || full.document_date == null) {
                                     return '';
                                 } else {
                                     return moment(data).format('MM/DD/YYYY');
