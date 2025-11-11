@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace eGrants.Repositories
 {
-    public class DocumentRepository : IDocumentRepository 
+    public class DocumentRepository : IDocumentRepository
     {
         private readonly AppDbContext _context;
         private readonly IServiceScopeFactory _serviceScopeFactory;
@@ -106,6 +106,35 @@ namespace eGrants.Repositories
                     })
                     .Distinct()
                     .ToListAsync();
+            }
+        }
+
+        public virtual async Task<List<DocumentInformation>> GetDocInfo(int docId)
+        {
+
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var list = await context.egrants
+                    .Where(e => e.document_id == docId)
+                    .Select(e => new DocumentInformation
+                    {
+                        admin_phs_org_code = e.admin_phs_org_code ?? "",
+                        serial_num = e.serial_num ,
+                        appl_id = e.appl_id,
+                        category_id = e.category_id,
+                        sub_category_name = e.sub_category_name ?? "",
+                        full_grant_num = e.full_grant_num ?? "",
+                        document_id = e.document_id,
+                        //document_date = e.document_date.HasValue
+                        //    ? e.document_date.Value.ToString("MM/dd/yyyy") 
+                        //    : "",
+                        //document_date = null,
+                        document_name = e.document_name ?? ""
+                    })
+                    .ToListAsync();
+                return list;
+
             }
         }
     }

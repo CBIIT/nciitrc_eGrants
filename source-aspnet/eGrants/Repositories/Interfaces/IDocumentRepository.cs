@@ -1,9 +1,12 @@
-﻿using eGrants.Models;
+﻿
+using eGrants.Models;
 
 namespace eGrants.Repositories.Interfaces
 {
     public interface IDocumentRepository
     {
+        Task<List<DocumentInformation>> GetDocInfo(int docId);
+
         // TODO:  Consider making this method asynchronous if the underlying data access supports it.
 
         /// <summary>

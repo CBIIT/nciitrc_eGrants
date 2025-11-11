@@ -1,9 +1,11 @@
 ﻿using eGrants.Models;
+using eGrants.ViewModels;
 
 namespace eGrants.Services.Interfaces
 {
     public interface IDocumentService
     {
+
         /// <summary>
         /// Retrieves a list of document layers based on application ID and search criteria.
         /// </summary>
@@ -16,6 +18,7 @@ namespace eGrants.Services.Interfaces
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo);
 
         public Task<List<former_appls>> loadFormerAppls(int grantId);
+        public  Task<eGrantsDocUploadViewModel> DocUploadDefaultAsync(int docId);
 
     }
 }
