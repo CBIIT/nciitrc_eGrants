@@ -36,6 +36,8 @@ namespace eGrants.DAL
         public DbSet<IMPP_Admin_Supplements_WIP> adminSupplementsWIP { get; set; }
 
         public DbSet<PersonInvolvement> PersonInvolvements { get; set; }
+        public DbSet<Egrants> egrants { get; set; }
+
 
         public DbSet<InstFileFindOrgDTO> InstFileFindOrgDTO { get; set; }
 
@@ -58,6 +60,7 @@ namespace eGrants.DAL
             modelBuilder.Entity<PersonInvolvement>().HasNoKey();
             modelBuilder.Entity<doclayer>().HasNoKey();
             modelBuilder.Entity<supplement>().HasNoKey();
+            modelBuilder.Entity<Egrants>().HasNoKey();
             modelBuilder.Entity<IMPP_Admin_Supplements_WIP>().HasKey(g => g.adm_supp_wip_id);
             // figure out why my query to this will not work without this line
             modelBuilder.Entity<IMPP_Admin_Supplements_WIP>().ToTable("IMPP_Admin_Supplements_WIP");

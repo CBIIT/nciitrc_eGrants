@@ -1,6 +1,9 @@
-﻿using eGrants.Models;
+﻿using System.Reflection.Metadata;
+
+using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
+using eGrants.ViewModels;
 
 namespace eGrants.Services
 {
@@ -50,5 +53,23 @@ namespace eGrants.Services
         {
             return await _documentRepository.loadFormerAppls(grantId);
         }
+
+        public async Task<eGrantsDocUploadViewModel> DocUploadDefaultAsync(int docId)
+        {
+            var DocInfor = await _documentRepository.GetDocInfo(docId);
+            eGrantsDocUploadViewModel eDocViewModel = new eGrantsDocUploadViewModel();
+            foreach (var doc in DocInfor)
+            {
+                eDocViewModel.DocId = doc.document_id;
+                eDocViewModel.ApplId = doc.appl_id;
+                eDocViewModel.DocName = doc.document_name;
+                eDocViewModel.DocDate = doc.document_date;
+                eDocViewModel.FullGrantNum = doc.full_grant_num;
+            }
+
+            return eDocViewModel;
+
+        }
+
     }
 }

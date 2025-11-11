@@ -73,6 +73,8 @@
 
 #endregion
 
+using System.Reflection.Metadata.Ecma335;
+
 using eGrants.Models;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
@@ -970,36 +972,24 @@ namespace eGrants.Controllers.Egrants
         //    return this.Json(new { url, message = mssg });
         //}
 
-        //// string full_grant_num, int appl_id, string full_grant_num, int appl_id, 
-        ///// <summary>
-        ///// The doc_upload_default.
-        ///// </summary>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult doc_upload_default(int doc_id)
-        //{
-        //    // ViewBag.DocId = doc_id;
-        //    // ViewBag.ApplId = appl_id;
-        //    // ViewBag.DocName = doc_name;
-        //    // ViewBag.DocDate = doc_date;
-        //    // ViewBag.FullGrantNum = full_grant_num;
-        //    var DocInfor = EgrantsDoc.GetDocInfo(doc_id);
+        // string full_grant_num, int appl_id, string full_grant_num, int appl_id, 
+        /// <summary>
+        /// The doc_upload_default.
+        /// </summary>
+        /// <param name="doc_id">
+        /// The doc_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> doc_upload_default(int doc_id)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //    foreach (var doc in DocInfor)
-        //    {
-        //        this.ViewBag.DocId = doc.document_id;
-        //        this.ViewBag.ApplId = doc.appl_id;
-        //        this.ViewBag.DocName = doc.document_name;
-        //        this.ViewBag.DocDate = doc.document_date;
-        //        this.ViewBag.FullGrantNum = doc.full_grant_num;
-        //    }
+            eGrantsDocUploadViewModel eDocViewModel = await _documentService.DocUploadDefaultAsync(doc_id);
 
-        //    return this.View("~/Egrants/Views/egrantsDocUpload.cshtml");
-        //}
+            return View("~Views/Egrants/egrantsDocUpload.cshtml", eDocViewModel);
+        }
 
         //// to show doc upload modal default
         ///// <summary>
