@@ -18,7 +18,8 @@ namespace eGrants.Services.Interfaces
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo);
 
         public Task<List<former_appls>> loadFormerAppls(int grantId);
-        public  Task<eGrantsDocUploadViewModel> DocUploadDefaultAsync(int docId);
+        public Task<eGrantsDocUploadViewModel> DocUploadDefaultAsync(int docId);
+        public Task<eGrantsDocUpdateViewModel> DocUpdateDefaultAsync(int docId, string previousUrl);
 
     }
 }

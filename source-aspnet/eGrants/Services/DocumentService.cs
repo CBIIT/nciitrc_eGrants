@@ -71,5 +71,36 @@ namespace eGrants.Services
 
         }
 
+        public async Task<eGrantsDocUpdateViewModel> DocUpdateDefaultAsync(int docId, string previousUrl)
+        {
+            var DocInfor = await _documentRepository.GetDocInfo(docId);
+            eGrantsDocUpdateViewModel eDocViewModel = new eGrantsDocUpdateViewModel();
+
+            foreach (var doc in DocInfor)
+            {
+                eDocViewModel.Act = "Update";
+                eDocViewModel.AdminCode = doc.admin_phs_org_code;
+                eDocViewModel.SerialNum = doc.serial_num;
+                eDocViewModel.ApplId = doc.appl_id;
+                eDocViewModel.DocId = doc.document_id;
+                eDocViewModel.CategoryId = doc.category_id;
+                eDocViewModel.SubCategory = doc.sub_category_name;
+                eDocViewModel.DocDate = doc.document_date;
+                eDocViewModel.PreviousUrl = previousUrl;
+                eDocViewModel.Status = "default";
+            }
+
+            int? appl_id = eDocViewModel.ApplId;
+            //this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
+            //this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"]));
+            //this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
+            //this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
+
+            //this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsByApplid(appl_id);
+
+            return eDocViewModel;
+
+        }
+
     }
 }
