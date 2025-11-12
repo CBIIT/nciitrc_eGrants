@@ -317,5 +317,32 @@ namespace eGrants.Repositories
 
             return categoryList;
         }
+
+        public async Task<List<string>> LoadDataAutocomplete(string sqlQuery, string term, string mechanism, string fy, string adminCode, string serialNum)
+        {
+            var dataList = new List<string>();
+
+            await using var connection = new SqlConnection(_context.Database.GetConnectionString());
+            await connection.OpenAsync().ConfigureAwait(false);
+
+            await using var command = new SqlCommand(sqlQuery, connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.Add("@term", SqlDbType.VarChar).Value = term;
+            command.Parameters.Add("@fy", SqlDbType.VarChar).Value = fy;
+            command.Parameters.Add("@mechanism", SqlDbType.VarChar).Value = mechanism;
+            command.Parameters.Add("@admincode", SqlDbType.VarChar).Value = adminCode;
+            command.Parameters.Add("@serialnum", SqlDbType.VarChar).Value = serialNum;
+
+            await using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+            while (await reader.ReadAsync().ConfigureAwait(false))
+            {
+                dataList.Add(reader[0].ToString());
+            }
+
+            return dataList;
         }
     }
+}
