@@ -126,10 +126,7 @@ namespace eGrants.Repositories
                         sub_category_name = e.sub_category_name ?? "",
                         full_grant_num = e.full_grant_num ?? "",
                         document_id = e.document_id,
-                        //document_date = e.document_date.HasValue
-                        //    ? e.document_date.Value.ToString("MM/dd/yyyy") 
-                        //    : "",
-                        //document_date = null,
+                        document_date = e.document_date,
                         document_name = e.document_name ?? ""
                     })
                     .ToListAsync();
