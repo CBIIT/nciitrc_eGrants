@@ -1,4 +1,6 @@
-﻿namespace eGrants.ViewModels
+﻿using eGrants.Models;
+
+namespace eGrants.ViewModels
 {
     public class eGrantsDocUpdateViewModel
     {
@@ -12,5 +14,7 @@
         public string? SubCategory { get; set; }
         public string? PreviousUrl { get; set; }
         public string? Status { get; set; }
+        public List<AdminCodes>? AdminCodeList { get; set; }
+        public List<Categories>? CategoryList { get; set; }
     }
 }
