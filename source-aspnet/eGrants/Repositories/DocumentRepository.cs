@@ -144,33 +144,6 @@ namespace eGrants.Repositories
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 
-                //try
-                //{
-                //    var debugList = await context.VwCategories
-                //        .Where(c => c.ic == ic && c.can_upload == "yes")
-                //        .ToListAsync();
-                //    foreach (var item in debugList)
-                //    {
-                //        Console.WriteLine($"category_id: {item.category_id}, category_name: {item.category_name}, package: {item.package}, input_type: {item.input_type}, input_constraint: {item.input_constraint}");
-                //    }
-                //    var list = await context.VwCategories
-                //        .Where(c => c.ic == ic && c.can_upload == "yes")
-                //        .OrderBy(c => c.category_name)
-                //        .Select(c => new Categories
-                //        {
-                //            category_id = Convert.ToInt32(c.category_id),
-                //            category_name = c.category_name ?? "",
-                //            package = c.package ?? "",
-                //            input_type = c.input_type ?? "",
-                //            input_constraint = c.input_constraint ?? "",
-                //        })
-                //        .ToListAsync();
-                //    return list;
-                //} catch (Exception e)
-                //{
-                //    Console.WriteLine(e.Message);
-                //    return null;
-                //}
                 var list = await context.VwCategories
                        .Where(c => c.ic == ic && c.can_upload == "yes")
                        .OrderBy(c => c.category_name)
