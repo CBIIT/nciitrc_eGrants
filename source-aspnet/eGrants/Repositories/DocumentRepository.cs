@@ -1,6 +1,7 @@
 ﻿using System.Data;
 
 using eGrants.DAL;
+using eGrants.DTOs;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 
@@ -137,7 +138,7 @@ namespace eGrants.Repositories
             }
         }
 
-        public virtual async Task<List<Categories>> LoadCategories(string ic)
+        public virtual async Task<List<CategoriesListDTO>> LoadCategories(string ic)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
@@ -173,9 +174,9 @@ namespace eGrants.Repositories
                 var list = await context.VwCategories
                        .Where(c => c.ic == ic && c.can_upload == "yes")
                        .OrderBy(c => c.category_name)
-                       .Select(c => new Categories
+                       .Select(c => new CategoriesListDTO
                        {
-                           //category_id = Convert.ToInt32(c.category_id),
+                           category_id = Convert.ToInt32(c.category_id),
                            category_name = c.category_name ?? "",
                            package = c.package ?? "",
                            input_type = c.input_type ?? "",

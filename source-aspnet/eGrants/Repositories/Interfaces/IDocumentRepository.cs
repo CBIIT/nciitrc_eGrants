@@ -1,4 +1,5 @@
 ﻿
+using eGrants.DTOs;
 using eGrants.Models;
 
 namespace eGrants.Repositories.Interfaces
@@ -39,6 +40,6 @@ namespace eGrants.Repositories.Interfaces
         /// A task representing the asynchronous operation. The task result contains a list of <see cref="Categories"/> objects
         /// associated with the specified grant.
         /// </returns>
-        Task<List<Categories>> LoadCategories(string ic);
+        Task<List<CategoriesListDTO>> LoadCategories(string ic);
     }
 }
