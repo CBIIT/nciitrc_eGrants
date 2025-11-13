@@ -19,6 +19,8 @@ namespace eGrants.ViewModels
         //public int parent { get; set; }
         public List<AdminCodes> ICList { get; set; }
 
+        public string admincode { get; set; }
+
         public string grant_id { get; set; }
         //public string? label { get; set; }
         //public string? serial_num { get; set; }
