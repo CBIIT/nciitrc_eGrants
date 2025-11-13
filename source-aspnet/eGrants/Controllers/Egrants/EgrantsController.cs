@@ -37,12 +37,12 @@
 using eGrants.Models;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
+
 using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json;
 
 #endregion
-using Microsoft.AspNetCore.Http;
 namespace eGrants.Controllers.Egrants
 {
     /// <summary>
@@ -1082,93 +1082,62 @@ namespace eGrants.Controllers.Egrants
         //        return View("~/Egrants/Views/Index.cshtml");
         //    }
 
-        //    // Autocomplete for fy, activity_code and serial_number
-        //    /// <summary>
-        //    /// The load_data_autocomplete.
-        //    /// </summary>
-        //    /// <param name="type">
-        //    /// The type.
-        //    /// </param>
-        //    /// <param name="term">
-        //    /// The term.
-        //    /// </param>
-        //    /// <param name="mechanism">
-        //    /// The mechanism.
-        //    /// </param>
-        //    /// <param name="fy">
-        //    /// The fy.
-        //    /// </param>
-        //    /// <param name="admincode">
-        //    /// The admincode.
-        //    /// </param>
-        //    /// <param name="serialnum">
-        //    /// The serialnum.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="JsonResult"/>.
-        //    /// </returns>
-        //    public JsonResult load_data_autocomplete(
-        //        string type,
-        //        string term,
-        //        string mechanism = null,
-        //        string fy = null,
-        //        string admincode = null,
-        //        string serialnum = null)
-        //    {
-        //        var sql_query = string.Empty;
+        // Autocomplete for fy, activity_code and serial_number
+        /// <summary>
+        /// The load_data_autocomplete.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <param name="term">
+        /// The term.
+        /// </param>
+        /// <param name="mechanism">
+        /// The mechanism.
+        /// </param>
+        /// <param name="fy">
+        /// The fy.
+        /// </param>
+        /// <param name="admincode">
+        /// The admincode.
+        /// </param>
+        /// <param name="serialnum">
+        /// The serialnum.
+        /// </param>
+        /// <returns>
+        /// The <see cref="JsonResult"/>.
+        /// </returns>
+        public async Task<JsonResult> load_data_autocomplete(
+            string type,
+            string term,
+            string mechanism = null,
+            string fy = null,
+            string adminCode = null,
+            string serialNum = null)
+        {
+            var viewModel = new eGrantsSearchViewModel
+            {
+                admincode = string.IsNullOrWhiteSpace(adminCode) || adminCode == "undefined" ? string.Empty : adminCode,
+                FilterMechanism = mechanism,
+                FilterAdminCode = adminCode
+            };
 
-        //        // List<string> data_list = new List<string>();
-        //        if (admincode != null && admincode != string.Empty)
-        //            ViewBag.admincode = admincode;
+            if (int.TryParse(fy, out int parsedFy))
+                viewModel.FilterFY = parsedFy;
+            else
+                fy = null;
 
-        //        if (admincode == "undefined")
-        //            ViewBag.admincode = string.Empty;
-        //        else
-        //            ViewBag.admincode = string.Empty;
+            if (int.TryParse(serialNum, out int parsedSerial))
+                viewModel.FilterSerialNumber = parsedSerial;
+            else
+                serialNum = null;
 
-        //        ViewBag.FilterFY = fy;
+            viewModel.ICList = await _commonService.LoadAdminCodes();
 
-        //        ViewBag.FilterSerialNumber = serialnum;
+            var dataList = await _eGrantsService.LoadDataAutocomplete(type, term, mechanism, fy, adminCode, serialNum);
 
-        //        ViewBag.FilterMechanism = mechanism;
-
-        //        ViewBag.FilterAdminCode = admincode;
-        //        ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-        //        var data_list = new List<string>();
-
-        //        using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["egrantsDB"].ConnectionString))
-        //        {
-        //            // if (type == "fy")
-        //            // {
-        //            // sql_query = "sp_web_egrants_load_data_autocomplete";
-        //            // }
-        //            if (type == "mechanism")
-        //                sql_query = "sp_web_egrants_load_data_autocomplete_mechanism";
-
-        //            if (type == "serialnum")
-        //                sql_query = "sp_web_egrants_load_data_autocomplete_serialnum";
-
-        //            if (type == "fy")
-        //                sql_query = "sp_web_egrants_load_data_autocomplete_fy";
-
-        //            var cmd = new SqlCommand(sql_query, conn);
-        //            cmd.CommandType = CommandType.StoredProcedure;
-        //            cmd.Parameters.AddWithValue("@term", term);
-        //            cmd.Parameters.AddWithValue("@fy", fy);
-        //            cmd.Parameters.AddWithValue("@mechanism", mechanism);
-        //            cmd.Parameters.AddWithValue("@admincode", admincode);
-        //            cmd.Parameters.AddWithValue("@serialnum", serialnum);
-        //            conn.Open();
-        //            var rdr = cmd.ExecuteReader();
-
-        //            while (rdr.Read())
-        //                data_list.Add(rdr[0].ToString());
-
-        //            // sql_query = rdr[0].ToString();
-        //        }
-
-        //        return this.Json(data_list, JsonRequestBehavior.AllowGet);
-        //    }
+            return Json(dataList);
+        }
 
         // load documents by appl_id
         /// <summary>

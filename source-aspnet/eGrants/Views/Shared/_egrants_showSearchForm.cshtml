@@ -260,13 +260,13 @@
 
                 //alert(Mechanism);
                 $('#FiscalYear').autocomplete({
-                    source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                    source: "/Egrants/load_data_autocomplete?type=fy" + "&adminCode=" + AdminCode + "&mechanism=" + Mechanism + "&serialNum=" + SerialNumber,
                 });
                 $('#Mechanism').autocomplete({
-                    source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                    source: "/Egrants/load_data_autocomplete?type=mechanism" + "&adminCode=" + AdminCode + "&fy=" + FiscalYear + "&serialNum=" + SerialNumber,
                 });
                 $('#SerialNumber').autocomplete({
-                    source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                    source: "/Egrants/load_data_autocomplete?type=serialnum" + "&adminCode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
                 });
 
                 $('#searchfilter').click(function () {
@@ -277,26 +277,26 @@
                         var FiscalYear = $('#FiscalYear').change().val();
                         //alert(Mechanism);
                         $('#FiscalYear').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                            source: "/Egrants/load_data_autocomplete?type=fy" + "&adminCode=" + AdminCode + "&mechanism=" + Mechanism + "&serialNum=" + SerialNumber,
                         });
                         $('#Mechanism').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&adminCode=" + AdminCode + "&fy=" + FiscalYear + "&serialNum=" + SerialNumber,
                         });
                         $('#SerialNumber').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&adminCode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
                         });
                     }
                     if (AdminCode == "" || AdminCode == null) {
                         //var AdminCode = "";
                         //var Mechanism = "";
                         $('#FiscalYear').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                            source: "/Egrants/load_data_autocomplete?type=fy" + "&adminCode=" + AdminCode + "&mechanism=" + Mechanism + "&serialNum=" + SerialNumber,
                         });
                         $('#Mechanism').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&adminCode=" + AdminCode + "&fy=" + FiscalYear + "&serialNum=" + SerialNumber,
                         });
                         $('#SerialNumber').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&adminCode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
                         });
                     }
                     else {
@@ -307,13 +307,13 @@
                         //Mechanism = "R56";
                         //alert(Mechanism);
                         $('#FiscalYear').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=fy" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&serialnum=" + SerialNumber,
+                            source: "/Egrants/load_data_autocomplete?type=fy" + "&adminCode=" + AdminCode + "&mechanism=" + Mechanism + "&serialNum=" + SerialNumber,
                         });
                         $('#Mechanism').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&admincode=" + AdminCode + "&fy=" + FiscalYear + "&serialnum=" + SerialNumber,
+                            source: "/Egrants/load_data_autocomplete?type=mechanism" + "&adminCode=" + AdminCode + "&fy=" + FiscalYear + "&serialNum=" + SerialNumber,
                         });
                         $('#SerialNumber').autocomplete({
-                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&admincode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
+                            source: "/Egrants/load_data_autocomplete?type=serialnum" + "&adminCode=" + AdminCode + "&mechanism=" + Mechanism + "&fy=" + FiscalYear,
                         });
                     };
                 });
