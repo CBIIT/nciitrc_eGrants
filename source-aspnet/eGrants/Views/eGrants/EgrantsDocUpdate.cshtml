@@ -1,10 +1,14 @@
-﻿<div>test</div>
+﻿@{
+    ViewBag.Title = "eGrants [Document Update Module]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+@inject IHttpContextAccessor HttpContextAccessor
 
 <script language="javascript" type="text/javascript">
 
-    //TO IMPLEMENT ALL
     $(document).ready(function () {
-        //set_default();
+        set_default();
     });
 
     function set_default() {
@@ -109,8 +113,8 @@
 <form name="frmGetInfo">
     <input type="text" hidden id="hidStatus" name="status" value="@Model.Status" />
     <input type="text" hidden id="hidAdmin_code" name="admin_code" value="@Model.AdminCode" />
-    @*<input type="text" hidden id="hidSerial_num" name="serial_num" value="@Model.SerialNum" />
-    <!--<input type="text" hidden id="hidMax_Categoryid" name="max_categoryid" value="@Model.MaxCategoryid" />-->
+    <input type="text" hidden id="hidSerial_num" name="serial_num" value="@Model.SerialNum" />
+    <input type="text" hidden id="hidMax_Categoryid" name="max_categoryid" value="@Model.MaxCategoryId" />
     <input type="text" hidden id="hidAct" name="act" value="modify" />
     <input type="text" hidden id="hidAppl_id" name="appl_id" value="@Model.ApplId" />
     <input type="text" hidden id="hidDocument_id" name="document_id" value="@Model.DocId" />
@@ -118,8 +122,8 @@
     <input type="text" hidden id="hidCategory_id" name="category_id" value="@Model.CategoryId" />
     <input type="text" hidden id="hidSub_category" name="sub_category" value="@Model.SubCategory" />
     <input type="text" hidden id="hidPrevious_url" name="previous_url" value="@Model.PreviousUrl" />
-    @*<input type="text" hidden id="hidPossionID" name="position_id" value="@Convert.ToString(HttpContextAccessor.HttpContext.Session.GetString("position_id"))" />
-*@
+    <input type="text" hidden id="hidPossionID" name="position_id" value="@Convert.ToString(HttpContextAccessor.HttpContext.Session.GetString("position_id"))" />
+
 </form>
 
 <div id="main" style="margin: 0; padding: 0;">
@@ -128,7 +132,7 @@
             <td>
                 <div id="caption" style="margin: 0; padding: 0;"><b id="page_title">Update Document</b></div>
                 <div>
-                    <!--Html.Partial("~/Egrants/Views/_egrants_Doc.cshtml") --> <!--to implement-->
+                    <!--Html.Partial("~/Views/Egrants/_egrants_Doc.cshtml") --> <!--to implement in egrants 870-->
                     <img width="650" height="10" src="~/images/horizontal_line.jpg" />
                     <table width="650">
                         <tr>

@@ -17,5 +17,8 @@ namespace eGrants.ViewModels
         public string? Status { get; set; }
         public List<AdminCodes>? AdminCodeList { get; set; }
         public List<CategoriesListDTO>? CategoryList { get; set; }
+        public int MaxCategoryId { get; set; }
+        public List<SubCategories>? SubCategoryList { get; set; }
+        public List<VwApplDTO>? GrantYearList { get; set; }
     }
 }

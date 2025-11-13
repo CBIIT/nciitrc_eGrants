@@ -13,13 +13,16 @@ namespace eGrants.Services
         private readonly IDocumentRepository _documentRepository;
         private readonly ISessionInfoService _sessionInfoService;
         private readonly ICommonRepository _commonRepository;
+        private readonly IeGrantsService _eGrantsService;
 
         // Constructor that initializes the repository via dependency injection
-        public DocumentService(IDocumentRepository DocumentRepository, ISessionInfoService sessionInfoService, ICommonRepository commonRepository)
+        public DocumentService(IDocumentRepository DocumentRepository, ISessionInfoService sessionInfoService, ICommonRepository commonRepository,
+            IeGrantsService eGrantsService)
         {
             _documentRepository = DocumentRepository;
             _sessionInfoService = sessionInfoService;
             _commonRepository = commonRepository;
+            _eGrantsService = eGrantsService;
         }
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo)
         {
@@ -93,13 +96,13 @@ namespace eGrants.Services
                 eDocViewModel.Status = "default";
             }
 
-            int? appl_id = eDocViewModel.ApplId;
+            int? applId = eDocViewModel.ApplId;
             eDocViewModel.AdminCodeList = await _commonRepository.LoadAdminCodes();
             eDocViewModel.CategoryList = await _documentRepository.LoadCategories(sessionInfo.Ic);
-            //this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
-            //this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
+            eDocViewModel.MaxCategoryId = await _documentRepository.GetMaxCategoryId(sessionInfo.Ic);
+            eDocViewModel.SubCategoryList = await _documentRepository.LoadSubCategoryList();
 
-            //this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsByApplid(appl_id);
+            eDocViewModel.GrantYearList = await _eGrantsService.LoadApplsByApplid(applId);
 
             return eDocViewModel;
 

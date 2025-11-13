@@ -160,5 +160,48 @@ namespace eGrants.Repositories
 
             }
         }
+
+        /// <summary>
+        ///     The get max categoryid.
+        /// </summary>
+        /// <param name="ic">The ic.</param>
+        /// <returns>rasmu
+        ///     The <see cref="int" /> .
+        /// </returns>
+        public virtual async Task<int> GetMaxCategoryId(string ic)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var maxCategoryId = await context.VwCategories
+                    .Where(c => c.ic == ic)
+                    .MaxAsync(c => Convert.ToInt32(c.category_id));
+                return maxCategoryId;
+                
+            }    
+        }
+
+        /// <summary>
+        ///     Load sub category list.
+        /// </summary>
+        /// <returns>
+        ///     The <see cref="System.Collections.Generic.List`1" /> .
+        /// </returns>
+        public virtual async Task<List<SubCategories>> LoadSubCategoryList()
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var list = await context.CategoriesSubcatLookup
+                    .Select(c => new SubCategories
+                    {
+                        parent_category_id = Convert.ToInt32(c.parent_category_id),
+                        sub_category_name = c.sub_category_name ?? ""
+                    })
+                    .ToListAsync();
+                    return list;                
+            }
+        }
+
     }
 }
