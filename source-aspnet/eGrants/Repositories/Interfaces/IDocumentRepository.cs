@@ -41,5 +41,14 @@ namespace eGrants.Repositories.Interfaces
         /// associated with the specified grant.
         /// </returns>
         Task<List<CategoriesListDTO>> LoadCategories(string ic);
+        /// <summary>
+        /// Asynchronously retrieves the maximum category ID for a given IC.
+        /// </summary>
+        /// <param name="ic">The unique identifier of the ic for which categories are being retrieved.</param>
+        ///  <returns>
+        /// A task representing the asynchronous operation. The task result contains an int with the max cateogory id
+        /// </returns>
+        Task<int> GetMaxCategoryId(string ic);
+        Task<List<SubCategories>> LoadSubCategoryList();
     }
 }

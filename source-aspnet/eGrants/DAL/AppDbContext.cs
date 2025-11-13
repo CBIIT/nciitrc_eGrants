@@ -47,6 +47,7 @@ namespace eGrants.DAL
         public DbSet<InstFileLoadOrgDocListDTO> InstFileLoadOrgDocListDTO { get; set; }
 
         public DbSet<CategoriesListDTO> CategoriesListDTO { get; set; }
+        public DbSet<categories_subcat_lookup> CategoriesSubcatLookup { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +76,9 @@ namespace eGrants.DAL
             modelBuilder.Entity<InsitutionalOrgNameIndex>().HasNoKey();
             modelBuilder.Entity<InstFileLoadOrgDocListDTO>().HasNoKey();
             modelBuilder.Entity<CategoriesListDTO>().HasNoKey();
+            modelBuilder.Entity<categories_subcat_lookup>().HasNoKey();
+            // same question as line 68
+            modelBuilder.Entity<categories_subcat_lookup>().ToTable("categories_subcat_lookup");
         }
     }
 }
