@@ -1,4 +1,6 @@
-﻿@{
+﻿@model eGrants.ViewModels.eGrantsDocUpdateViewModel
+
+@{
     ViewBag.Title = "eGrants [Document Update Module]";
     Layout = "~/Views/Shared/_egrants_header.cshtml";
 }
@@ -132,7 +134,7 @@
             <td>
                 <div id="caption" style="margin: 0; padding: 0;"><b id="page_title">Update Document</b></div>
                 <div>
-                    <!--Html.Partial("~/Views/Egrants/_egrants_Doc.cshtml") --> <!--to implement in egrants 870-->
+                    @Html.Partial("~/Views/Egrants/_egrants_Doc.cshtml", Model)
                     <img width="650" height="10" src="~/images/horizontal_line.jpg" />
                     <table width="650">
                         <tr>

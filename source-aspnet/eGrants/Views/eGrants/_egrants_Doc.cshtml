@@ -1,0 +1,360 @@
+﻿<!--this parallel file to return document data for EgrantsDocCreate.cshtml and EgrantsDocModify.cshtml-->
+@inject IHttpContextAccessor HttpContextAccessor
+
+<script src="~/js/jquery-ui-1.13.2.min.js"></script>
+<link href="~/css/jquery-ui.min.css" rel="stylesheet" />
+@* <link href="~/Content/jquery-ui.theme.min.css" rel="stylesheet" /> *@
+
+
+<script language="javascript" type="text/javascript">
+    var AdminCode = "";
+    var SerialNum = "";
+    var Applid = "";
+    var Categoryid = "";
+    var CategoryName = "";
+    var SubCategory = "";
+    var DocDate = "";
+    var appls_count = 0;
+
+    function create_new_appl(object) {
+       if (object.options[object.selectedIndex].value == 'CreateGrantYear') {
+          //check admin_code
+          get_admin_code();
+
+          //check serial number
+          if (get_serial_num() == false) {
+             return false
+          }
+
+          var url = "@Url.Action("appl_create_default", "EgrantsDoc")?admin_code=" + AdminCode + "&serial_num=" + SerialNum;
+          window.open(url, "NewAPPL", "toolbar=0,menubar=0,location=0,status=0,width=850,height=400,scrollbars=yes,left=200,top=200");
+       }
+    }
+
+    function load_appls() {
+       //alert("load_appls");
+       //var act = document.getElementById("hidAct").value;
+
+       //check admin_code
+       get_admin_code();
+
+       //check serial number
+       if (get_serial_num() == false) {
+          return false
+       }
+
+       $.ajax(
+          {
+             type: 'POST',
+             url: "/Egrants/GetAllApplsList",
+             data: { admin_code: AdminCode, serial_num: SerialNum }, //fy: fy, mechan: mechan,
+             success: function(resp) {
+                //sessionStorage.year = resp;
+                var jsonobj = JSON.parse(resp);
+                //alert(jsonobj);
+                $('#ddlAppls').empty();
+                $('#ddlAppls').append('<option value=' + -1 + '>' + 'Select grant year' + '</option>');
+                $.each(jsonobj,
+                   function(index, element) {
+                      var SplitPoint = element.indexOf(":");
+                      var full_grant_num = element.substring(0, SplitPoint);
+                      var appl_id = element.substring(SplitPoint + 1, element.length);
+                      //alert(element);
+                      $('#ddlAppls').append('<option value=' + appl_id + ' id=' + appl_id + '>' + full_grant_num + '</option>');
+                   });
+
+                //add create appl option for PossionID>=5
+                if (document.getElementById("hidPossionID").value >= 5) {
+                   $('#ddlAppls').append('<option value=CreateGrantYear>Create grant year</option>');
+                }
+             }
+          });
+    }
+
+    function show_sub_category() {
+       //enable btnFileUpload button and file
+        if (document.getElementById("btnFileUpload") != null && document.getElementById("btnFileUpload").disabled == true) {
+            if (document.getElementById("customFile").files.length === 1) {
+                document.getElementById("btnFileUpload").disabled = false;
+            }
+          //document.getElementById("UploadFile").value = "";
+       }
+
+       var MaxCategoryid = document.getElementById("hidMax_Categoryid").value;
+       //hide all
+       for (var i = 1; i <= MaxCategoryid; i++) {
+          var el = "sub_category_" + i;
+          if (document.getElementById(el) != null) {
+             document.getElementById(el).style.display = "none";
+          }
+       }
+
+       var category_id = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
+       var inputstring = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
+       var inputtype = inputstring.charAt(0);
+
+       //display one
+       var el = "sub_category_" + category_id;
+       if (document.getElementById(el) != null) {
+          document.getElementById(el).style.display = "inline";
+       }
+
+       //clear value for sub category
+       if (inputtype == "T") {
+          var el = "T_" + category_id;
+          document.getElementById(el).value = "";
+       } else if (inputtype == "D") {
+          var el = "D_" + category_id;
+          var el = "D_" + category_id;
+          document.getElementById(el).selectedIndex = 0;
+       }
+    }
+
+    function get_admin_code() {
+       //document.getElementById("hidAdminCode").value = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+       //AdminCode = document.getElementById("hidAdminCode").value;
+       AdminCode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+       return true;
+    }
+
+    function get_serial_num() {
+       if (document.getElementById("txtSerialnum").value == "") {
+          alert("Please insert the serial number");
+          document.getElementById("txtSerialnum").focus();
+          document.getElementById("ddlAppls").options[0].selected = "selected";
+          return false;
+       } else if (isInteger(document.getElementById("txtSerialnum").value) == false) {
+          alert("Please insert correct serial number");
+          document.getElementById("txtSerialnum").value = "";
+          document.getElementById("txtSerialnum").focus();
+          document.getElementById("ddlAppls").options[0].selected = "selected";
+          return false;
+       } else SerialNum = document.getElementById("txtSerialnum").value;
+       return true;
+    }
+
+    function get_appl() {
+       if (document.getElementById("ddlAppls").selectedIndex == 0) {
+          alert("Please select grant year");
+          document.getElementById("ddlAppls").options[0].selected = "yes";
+          return false;
+       } else Applid = document.getElementById("ddlAppls").options[document.getElementById("ddlAppls").selectedIndex].id;
+       //document.getElementById("hidApplid").value = document.getElementById("ddlAppls").options[document.getElementById("ddlAppls").selectedIndex].id;
+       //Applid = document.getElementById("hidApplid").value;
+       //alert("Applid="+Applid);
+       return true;
+    }
+
+    function get_category_id() {
+       if (document.getElementById("ddlCategories").selectedIndex == 0) {
+          alert("Please select category");
+          return false;
+       } else Categoryid = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].id;
+       CategoryName = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].text;
+       return true;
+    }
+
+    function get_sub_category(input_type, input_constraint, Categoryid, CategoryName) {
+       if (input_type == "T") {
+          var el = "T_" + Categoryid;
+          if (input_constraint == "1" && document.getElementById(el).value == '') {
+             alert("Please insert sub category for " + CategoryName);
+             document.getElementById(el).focus();
+             return false;
+          }
+
+          if (document.getElementById(el).value != '') {
+             var result = CheckCharacters(document.getElementById(el).value, 'sub category');
+             //check special characters
+             if (result == false || result == 'false') {
+                document.getElementById(el).value = "";
+                document.getElementById(el).focus();
+                return false;
+             } else SubCategory = document.getElementById(el).value;
+          }
+          //return true;
+       }
+
+       if (input_type == "D") {
+          var el = "D_" + Categoryid;
+          var SelectedIndex = document.getElementById(el).selectedIndex;
+          if (input_constraint == "1" && SelectedIndex == 0) {
+             alert("Please select sub category for " + CategoryName);
+             return false;
+          } else SubCategory = document.getElementById(el).options[SelectedIndex].value;
+          return true;
+       }
+    }
+
+    function get_document_date() {
+       if (document.getElementById("txtDocumentdate").value == "") {
+          alert("Please insert document date");
+          document.getElementById("txtDocumentdate").focus();
+          return false;
+       } else if (document.getElementById("txtDocumentdate").value.charAt(4) == '/') {
+          var year = document.getElementById("txtDocumentdate").value.substring(0, 4);
+          var month = document.getElementById("txtDocumentdate").value.substring(5, 7);
+          var day = document.getElementById("txtDocumentdate").value.substring(8, 10);
+          doc_date = month + "/" + day + "/" + year;
+       } else doc_date = document.getElementById("txtDocumentdate").value;
+
+       //check date format
+       if (isDate(doc_date) == false) {
+          document.getElementById("txtDocumentdate").value = "";
+          document.getElementById("txtDocumentdate").focus();
+          return false;
+       } else DocDate = doc_date;
+       return true;
+    }
+
+    //trig search button by click enter key
+    $(document).ready(function() {
+       $("#txtSerialnum").keyup(function(event) {
+          //alert(event.keyCode);
+          if (event.keyCode == 13) {
+             $("#btnSearch").click();
+          }
+       });
+    })
+</script>
+
+<div class="form-inline" style="margin: 0; padding: 0;">
+    <table>
+        <tr>
+            <td width="800">
+                <table width="800">
+                    <tbody>
+                        <tr>
+                            <td colspan="3" class="bg_grey pl-2 p-2">Confirm Institute and enter grant serial number before clicking Search.<br /></td>
+                        </tr>
+                        <tr>
+                            <td width="80">
+                                <label for="ddlAdmincodes" class="float-left ml-2  mt-2">
+                                    <strong>Institute:</strong>
+                                </label>
+                            </td>
+                            <td colspan="2">
+                                <div>
+                                    <select name="admin_code" id="ddlAdmincodes" class="form-control float-left my-2" style="width: 80px;" title="Select admin phs org code">
+                                        @foreach (var AdminCode in Model.AdminCodeList)
+                                        {
+                                            if (Model.AdminCode != null && Convert.ToString(Model.AdminCode) == AdminCode.admin_phs_org_code)
+                                            {
+                                                <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option>
+                                            }
+                                            else if (Model.AdminCode == null && AdminCode.profile != null && Convert.ToString(AdminCode.profile) == HttpContextAccessor.HttpContext.Session.GetString("ic"))
+                                            {
+                                                <option value="@AdminCode.admin_phs_org_code" selected>@AdminCode.admin_phs_org_code</option>
+                                            }
+                                        }
+                                    </select>
+                                    <label for="txtSerialnum" class="float-left mt-2 pt-3 pl-4">
+                                        <strong>Serial Number:</strong>
+                                    </label>
+                                    <input type="text" id="txtSerialnum" name="serial_num" class="form-control float-left my-2" style="width: 80px;" title="Insert serial number" value="@Model.SerialNum" />
+                                    <button type="button" id="btnSearch" name="search" class="btn btn-primary btn-sm eGrantsDocBtn float-left my-2 ml-5" AccessKey="S" OnClick="return load_appls();" title="Click here to load grant years [shift + alt + S]"><u>S</u>earch</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="bg_grey p-2">Confirm/Select Grant Year, select applicable Category and Date before clicking @Model.Act.<br /></td>
+                        </tr>
+                        <tr>
+                            <td width="80">
+                                <label class="float-left my-2">
+                                    <strong>Grant:</strong>
+                                </label>
+                            </td>
+                            <td>
+                                @Html.DropDownList("ddlAppls", new List<SelectListItem> { new SelectListItem { Text = string.Empty, Value = "-1" } }, new { @class = "form-control my-1", style = "width:250px;", onchange = "create_new_appl(this)", title = "Select a grant year" })
+                            </td>
+                            <td>
+                                <div class="float-right">
+                                    <a target="_new" href="~/Content/eGrants Category Glossary.docx" title="show eGrants Category Glossary">eGrants Category Glossary</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="80">
+                                <label for="ddlCategories" class="float-left my-2">
+                                    <strong>Category:</strong>
+                                </label>
+                            </td>
+                            <td colspan="2">
+                                <select name="category_id" id="ddlCategories" class="form-control my-3 float-left" style="width: 250px;" title="select category" onchange="show_sub_category()">
+                                    <option>Select a category</option>
+                                    @foreach (var main_category in Model.CategoryList)
+                                    {
+                                        <option id="@main_category.category_id" value="@main_category.input_type@main_category.input_constraint">@main_category.category_name</option>
+                                    }
+                                </select>
+                                @* </td> *@
+                                @* <td colspan="3" class="float-left"> *@
+                                @foreach (var maincategory in Model.CategoryList)
+                                {
+                                    if (maincategory.input_type == "D" || maincategory.input_type == "T")
+                                    {
+                                        <div id="sub_category_@maincategory.category_id" class="sub_category mt-3 ml-2" style="display: none">
+                                            @if (maincategory.input_type == "D")
+                                            {
+                                                <select name="sub_category" id="D_@maincategory.category_id" class="form-control float-left mt-3 ml-2" style="width: 280px;" title="select sub category">
+                                                    <option></option>
+                                                    @foreach (var SubCategory in Model.SubCategoryList)
+                                                    {
+                                                        if (SubCategory.parent_category_id == maincategory.category_id)
+                                                        {
+                                                            <option value="@SubCategory.sub_category_name">@SubCategory.sub_category_name</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            }
+
+                                            @if (maincategory.input_type == "T")
+                                            {
+                                                <input type="text" name="sub_category" id="T_@maincategory.category_id" class="form-control float-left mt-3 ml-2" maxlength="35" style="width: 390px;" title="Insert sub category" />
+                                                if (Convert.ToInt16(maincategory.input_constraint) == 0)
+                                                {
+                                                    <div>
+                                                        <span id="T_@maincategory.category_id" class="small form-text text-muted float-left ml-2">(35 char max) Optional</span>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div>
+                                                        <span class="small form-text text-muted float-left ml-2">(35 char max)</span>
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label for="txtDocumentdate" class="float-left my-2">
+                                    <strong>Date:</strong>
+                                </label>
+                            </td>
+                            <td colspan="2">
+                                <input type="text" class="form-control my-1" name="docdate" id="txtDocumentdate" style="width: 120px;" title="Insert document date" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script type="text/javascript">
+
+    $('#txtDocumentdate').datepicker({
+       showOn: "both",
+       buttonImageOnly: true,
+       buttonImage: '~/images/calendar.png',
+       buttonText: "Calendar"
+       //border: '0',
+       //border-color: 'white''
+    });
+</script>
