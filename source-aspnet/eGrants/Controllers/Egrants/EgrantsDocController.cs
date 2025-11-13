@@ -1415,10 +1415,10 @@ namespace eGrants.Controllers.Egrants
         /// <summary>
         /// The doc_index_update_default.
         /// </summary>
-        /// <param name="document_id">
+        /// <param name="documentId">
         /// The document_id.
         /// </param>
-        /// <param name="previous_url">
+        /// <param name="previousUrl">
         /// The previous_url.
         /// </param>
         /// <returns>
@@ -1430,7 +1430,7 @@ namespace eGrants.Controllers.Egrants
           
             eGrantsDocUpdateViewModel eDocViewModel = await _documentService.DocUpdateDefaultAsync(documentId, previousUrl, sessionInfo);
 
-            return View("~/Views/eGrants/egrantsDocUpdate.cshtml", eDocViewModel);
+            return View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
         }
 
         ///// <summary>
