@@ -1,4 +1,5 @@
-﻿using eGrants.Models;
+﻿using eGrants.DTOs;
+using eGrants.Models;
 
 namespace eGrants.ViewModels
 {
@@ -15,6 +16,6 @@ namespace eGrants.ViewModels
         public string? PreviousUrl { get; set; }
         public string? Status { get; set; }
         public List<AdminCodes>? AdminCodeList { get; set; }
-        public List<Categories>? CategoryList { get; set; }
+        public List<CategoriesListDTO>? CategoryList { get; set; }
     }
 }
