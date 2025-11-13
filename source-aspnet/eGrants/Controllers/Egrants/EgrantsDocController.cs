@@ -1430,7 +1430,7 @@ namespace eGrants.Controllers.Egrants
           
             eGrantsDocUpdateViewModel eDocViewModel = await _documentService.DocUpdateDefaultAsync(documentId, previousUrl, sessionInfo);
 
-            return View("~/Egrants/Views/egrantsDocUpdate.cshtml", eDocViewModel);
+            return View("~/Views/eGrants/egrantsDocUpdate.cshtml", eDocViewModel);
         }
 
         ///// <summary>
