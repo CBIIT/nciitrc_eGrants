@@ -8,6 +8,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using static System.Formats.Asn1.AsnWriter;
+
 namespace eGrants.Repositories
 {
     public class DocumentRepository : IDocumentRepository
@@ -130,6 +132,56 @@ namespace eGrants.Repositories
                         document_name = e.document_name ?? ""
                     })
                     .ToListAsync();
+                return list;
+
+            }
+        }
+
+        public virtual async Task<List<Categories>> LoadCategories(string ic)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                
+                //try
+                //{
+                //    var debugList = await context.VwCategories
+                //        .Where(c => c.ic == ic && c.can_upload == "yes")
+                //        .ToListAsync();
+                //    foreach (var item in debugList)
+                //    {
+                //        Console.WriteLine($"category_id: {item.category_id}, category_name: {item.category_name}, package: {item.package}, input_type: {item.input_type}, input_constraint: {item.input_constraint}");
+                //    }
+                //    var list = await context.VwCategories
+                //        .Where(c => c.ic == ic && c.can_upload == "yes")
+                //        .OrderBy(c => c.category_name)
+                //        .Select(c => new Categories
+                //        {
+                //            category_id = Convert.ToInt32(c.category_id),
+                //            category_name = c.category_name ?? "",
+                //            package = c.package ?? "",
+                //            input_type = c.input_type ?? "",
+                //            input_constraint = c.input_constraint ?? "",
+                //        })
+                //        .ToListAsync();
+                //    return list;
+                //} catch (Exception e)
+                //{
+                //    Console.WriteLine(e.Message);
+                //    return null;
+                //}
+                var list = await context.VwCategories
+                       .Where(c => c.ic == ic && c.can_upload == "yes")
+                       .OrderBy(c => c.category_name)
+                       .Select(c => new Categories
+                       {
+                           //category_id = Convert.ToInt32(c.category_id),
+                           category_name = c.category_name ?? "",
+                           package = c.package ?? "",
+                           input_type = c.input_type ?? "",
+                           input_constraint = c.input_constraint ?? "",
+                       })
+                       .ToListAsync();
                 return list;
 
             }

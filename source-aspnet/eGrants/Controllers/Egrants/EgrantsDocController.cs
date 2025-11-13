@@ -1428,7 +1428,7 @@ namespace eGrants.Controllers.Egrants
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
           
-            eGrantsDocUpdateViewModel eDocViewModel = await _documentService.DocUpdateDefaultAsync(documentId, previousUrl);
+            eGrantsDocUpdateViewModel eDocViewModel = await _documentService.DocUpdateDefaultAsync(documentId, previousUrl, sessionInfo);
 
             return View("~/Egrants/Views/egrantsDocUpdate.cshtml", eDocViewModel);
         }

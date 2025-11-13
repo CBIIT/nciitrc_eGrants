@@ -12,12 +12,14 @@ namespace eGrants.Services
         // Dependency injection of a product repository to access data
         private readonly IDocumentRepository _documentRepository;
         private readonly ISessionInfoService _sessionInfoService;
+        private readonly ICommonRepository _commonRepository;
 
         // Constructor that initializes the repository via dependency injection
-        public DocumentService(IDocumentRepository DocumentRepository, ISessionInfoService sessionInfoService)
+        public DocumentService(IDocumentRepository DocumentRepository, ISessionInfoService sessionInfoService, ICommonRepository commonRepository)
         {
             _documentRepository = DocumentRepository;
             _sessionInfoService = sessionInfoService;
+            _commonRepository = commonRepository;
         }
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo)
         {
@@ -71,7 +73,8 @@ namespace eGrants.Services
 
         }
 
-        public async Task<eGrantsDocUpdateViewModel> DocUpdateDefaultAsync(int docId, string previousUrl)
+        public async Task<eGrantsDocUpdateViewModel> DocUpdateDefaultAsync(int docId, string previousUrl, 
+            SessionInfo sessionInfo)
         {
             var DocInfor = await _documentRepository.GetDocInfo(docId);
             eGrantsDocUpdateViewModel eDocViewModel = new eGrantsDocUpdateViewModel();
@@ -91,8 +94,8 @@ namespace eGrants.Services
             }
 
             int? appl_id = eDocViewModel.ApplId;
-            //this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
-            //this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"]));
+            eDocViewModel.AdminCodeList = await _commonRepository.LoadAdminCodes();
+            eDocViewModel.CategoryList = await _documentRepository.LoadCategories(sessionInfo.Ic);
             //this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
             //this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
 

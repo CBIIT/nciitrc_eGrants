@@ -31,5 +31,14 @@ namespace eGrants.Repositories.Interfaces
         /// associated with the specified grant.
         /// </returns>
         Task<List<former_appls>> loadFormerAppls(int grantId);
+        /// <summary>
+        /// Asynchronously retrieves a list that could be uploaded by ic and it is for create new only
+        /// </summary>
+        /// <param name="ic">The unique identifier of the ic for which categories are being retrieved.</param>
+        /// <returns>
+        /// A task representing the asynchronous operation. The task result contains a list of <see cref="Categories"/> objects
+        /// associated with the specified grant.
+        /// </returns>
+        Task<List<Categories>> LoadCategories(string ic);
     }
 }
