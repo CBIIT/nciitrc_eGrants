@@ -171,13 +171,18 @@ namespace eGrants.Repositories
         public virtual async Task<int> GetMaxCategoryId(string ic)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var maxCategoryId = await context.VwCategories
-                    .Where(c => c.ic == ic)
-                    .MaxAsync(c => Convert.ToInt32(c.category_id));
-                return maxCategoryId;
-                
+            {   
+                try
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var maxCategoryId = await context.VwCategories
+                        .Where(c => c.ic == ic)
+                        .MaxAsync(c => Convert.ToInt32(c.category_id));
+                    return maxCategoryId;
+                } catch (Exception e)
+                {
+                    return 0; // case where this ic has no categories 
+                }
             }    
         }
 
