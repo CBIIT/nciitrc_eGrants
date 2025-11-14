@@ -609,6 +609,29 @@ namespace eGrants.Services
             }
         }
 
+        public async Task<List<string>> LoadDataAutocomplete(string type, string term, string mechanism = null, string fy = null, string adminCode = null, string serialNum = null)
+        {
+            var sql_query = string.Empty;
+            if (type == "mechanism")
+                sql_query = "sp_web_egrants_load_data_autocomplete_mechanism";
+
+            if (type == "serialnum")
+                sql_query = "sp_web_egrants_load_data_autocomplete_serialnum";
+
+            if (type == "fy")
+                sql_query = "sp_web_egrants_load_data_autocomplete_fy";
+
+            try
+            {
+                return await _eGrantRepository.LoadDataAutocomplete(sql_query, term, mechanism, fy, adminCode, serialNum);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing LoadDataAutocomplete for type '{Type}' and term '{Term}'", type, term);
+                throw;
+            }
+        }
+
         private async Task<List<GrantLayer>> PopulateGrantAndStringViews(bool isGrant, List<GrantLayer> grantList, List<ApplLayerObject> applList)
         {
             if (isGrant)
