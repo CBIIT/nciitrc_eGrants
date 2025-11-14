@@ -118,7 +118,7 @@ namespace eGrants.Repositories
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var list = await context.egrants
+                return await context.egrants
                     .Where(e => e.document_id == docId)
                     .Select(e => new DocumentInformation
                     {
@@ -133,7 +133,6 @@ namespace eGrants.Repositories
                         document_name = e.document_name ?? ""
                     })
                     .ToListAsync();
-                return list;
 
             }
         }
@@ -144,7 +143,7 @@ namespace eGrants.Repositories
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 
-                var list = await context.VwCategories
+                return await context.VwCategories
                        .Where(c => c.ic == ic && c.can_upload == "yes")
                        .OrderBy(c => c.category_name)
                        .Select(c => new CategoriesListDTO
@@ -156,7 +155,6 @@ namespace eGrants.Repositories
                            input_constraint = c.input_constraint ?? "",
                        })
                        .ToListAsync();
-                return list;
 
             }
         }
@@ -175,10 +173,9 @@ namespace eGrants.Repositories
                 try
                 {
                     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                    var maxCategoryId = await context.VwCategories
+                    return await context.VwCategories
                         .Where(c => c.ic == ic)
                         .MaxAsync(c => Convert.ToInt32(c.category_id));
-                    return maxCategoryId;
                 } catch (Exception e)
                 {
                     return 0; // case where this ic has no categories 
@@ -197,14 +194,13 @@ namespace eGrants.Repositories
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var list = await context.CategoriesSubcatLookup
+                return await context.CategoriesSubcatLookup
                     .Select(c => new SubCategories
                     {
                         parent_category_id = Convert.ToInt32(c.parent_category_id),
                         sub_category_name = c.sub_category_name ?? ""
                     })
-                    .ToListAsync();
-                    return list;                
+                    .ToListAsync();         
             }
         }
 
