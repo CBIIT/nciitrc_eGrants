@@ -974,8 +974,8 @@ namespace eGrants.Controllers.Egrants
         /// <summary>
         /// The doc_upload_default.
         /// </summary>
-        /// <param name="doc_id">
-        /// The doc_id.
+        /// <param name="docId">
+        /// The docId.
         /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
