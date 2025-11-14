@@ -159,13 +159,6 @@ namespace eGrants.Repositories
             }
         }
 
-        /// <summary>
-        ///     The get max categoryid.
-        /// </summary>
-        /// <param name="ic">The ic.</param>
-        /// <returns>rasmu
-        ///     The <see cref="int" /> .
-        /// </returns>
         public virtual async Task<int> GetMaxCategoryId(string ic)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
@@ -183,12 +176,6 @@ namespace eGrants.Repositories
             }    
         }
 
-        /// <summary>
-        ///     Load sub category list.
-        /// </summary>
-        /// <returns>
-        ///     The <see cref="System.Collections.Generic.List`1" /> .
-        /// </returns>
         public virtual async Task<List<SubCategories>> LoadSubCategoryList()
         {
             using (var scope = _serviceScopeFactory.CreateScope())
