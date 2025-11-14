@@ -1,5 +1,8 @@
-﻿using eGrants.Controllers.Egrants;
+﻿using System.Text;
+
+using eGrants.Controllers.Egrants;
 using eGrants.DAL;
+using eGrants.Models;
 using eGrants.Repositories;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
@@ -145,6 +148,118 @@ namespace eGrants.Tests.Integration
             Assert.Equal(act, model.Act);
         }
 
+        #endregion
+
+        #region doc_index_update_default tests
+        [Fact]
+        public async Task doc_index_update_default_ReturnsViewWithViewModel()
+        {
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.SetString("UserId", "user123");
+            session.SetString("Ic", "1");
+
+            var controller = CreateController(context, session);
+
+            int documentId = 123;
+            string previousUrl = "http://example.com/previous";
+
+            var result = await controller.doc_index_update_default(documentId, previousUrl);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("~/Views/Egrants/EgrantsDocUpdate.cshtml", viewResult.ViewName);
+            var model = Assert.IsType<eGrantsDocUpdateViewModel>(viewResult.Model);
+            Assert.NotNull(model);
+        }
+
+        [Fact]
+        public async Task doc_index_update_default_NullSessionInfo_ThrowsException()
+        {
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context, session: null);
+
+            await Assert.ThrowsAsync<NullReferenceException>(() =>
+                controller.doc_index_update_default(999, "test.com"));
+        }
+
+        [Fact]
+        public async Task doc_index_update_default_SetsCorrectPreviousUrlInViewModel()
+        {
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.SetString("UserId", "user456");
+            session.SetString("Ic", "2");
+
+            var controller = CreateController(context, session);
+
+            int documentId = 123;
+            string previousUrl = "http://example.com/previous";
+
+            var result = await controller.doc_index_update_default(documentId, previousUrl);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<eGrantsDocUpdateViewModel>(viewResult.Model);
+            Assert.Equal(previousUrl, model.PreviousUrl);
+        }
+        #endregion
+
+        #region doc_upload_default tests
+        [Fact]
+        public async Task doc_upload_default_ReturnsViewWithViewModel()
+        {
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.SetString("UserId", "user678");
+            session.SetString("Ic", "2");
+
+            var controller = CreateController(context, session);
+
+            int docId = 123;
+
+            var result = await controller.doc_upload_default(docId);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("~/Views/Egrants/EgrantsDocUpload.cshtml", viewResult.ViewName);
+            var model = Assert.IsType<eGrantsDocUploadViewModel>(viewResult.Model);
+            Assert.NotNull(model);
+        }
+
+        [Fact]
+        public async Task doc_upload_default_NullSessionInfo_ThrowsException()
+        {
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context, session: null);
+
+            await Assert.ThrowsAsync<NullReferenceException>(() =>
+                controller.doc_upload_default(999));
+        }
+
+        [Fact]
+        public async Task doc_upload_default_CallsDocumentServiceWithCorrectDocId()
+        {
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.SetString("UserId", "user678");
+            session.SetString("Ic", "2");
+
+            var mockDocumentService = new Mock<IDocumentService>();
+            var expectedViewModel = new eGrantsDocUploadViewModel { DocId = 456 };
+
+            mockDocumentService
+                .Setup(d => d.DocUploadDefaultAsync(456))
+                .ReturnsAsync(expectedViewModel);
+
+            var controller = CreateController(context, session, mockDocumentService.Object);
+
+            int docId = 456;
+
+            var result = await controller.doc_upload_default(docId);
+
+            mockDocumentService.Verify(d => d.DocUploadDefaultAsync(docId), Times.Once);
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<eGrantsDocUploadViewModel>(viewResult.Model);
+            Assert.Equal(docId, model.DocId);
+        }
         #endregion
     }
 }
