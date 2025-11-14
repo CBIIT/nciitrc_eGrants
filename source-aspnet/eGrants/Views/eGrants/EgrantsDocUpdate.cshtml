@@ -5,8 +5,6 @@
     Layout = "~/Views/Shared/_egrants_header.cshtml";
 }
 
-@inject IHttpContextAccessor HttpContextAccessor
-
 <script language="javascript" type="text/javascript">
 
     $(document).ready(function () {
@@ -124,7 +122,7 @@
     <input type="text" hidden id="hidCategory_id" name="category_id" value="@Model.CategoryId" />
     <input type="text" hidden id="hidSub_category" name="sub_category" value="@Model.SubCategory" />
     <input type="text" hidden id="hidPrevious_url" name="previous_url" value="@Model.PreviousUrl" />
-    <input type="text" hidden id="hidPossionID" name="position_id" value="@Convert.ToString(HttpContextAccessor.HttpContext.Session.GetString("position_id"))" />
+    <input type="text" hidden id="hidPossionID" name="position_id" value="@Context.Session.GetString("position_id")" />
 
 </form>
 
