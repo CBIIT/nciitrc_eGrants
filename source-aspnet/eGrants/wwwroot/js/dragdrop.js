@@ -4,7 +4,6 @@ filedrag.js - HTML5 File Drag & Drop
 // getElementById
 var dropedfile = null;
 var droppedFiles = null;
-//var frmdata = new FormData();
 
 function $id(id) {
     return document.getElementById(id);
@@ -19,7 +18,6 @@ function Output(msg) {
 window.addEventListener("dragenter", function (e) {
     if (e.target.id != dropArea) {
         e.preventDefault();
-        //e.dataTransfer.effectAllowed = "none";
         e.dataTransfer.dropEffect = "none";
     }
 }, false);
@@ -27,7 +25,6 @@ window.addEventListener("dragenter", function (e) {
 window.addEventListener("dragover", function (e) {
     if (e.target.id != dropArea) {
         e.preventDefault();
-        //e.dataTransfer.effectAllowed = "none";
         e.dataTransfer.dropEffect = "none";
     }
 });
