@@ -986,7 +986,7 @@ namespace eGrants.Controllers.Egrants
 
             eGrantsDocUploadViewModel eDocViewModel = await _documentService.DocUploadDefaultAsync(docId);
 
-            return View("~/Views/Egrants/egrantsDocUpload.cshtml", eDocViewModel);
+            return View("~/Views/Egrants/EgrantsDocUpload.cshtml", eDocViewModel);
         }
 
         //// to show doc upload modal default
