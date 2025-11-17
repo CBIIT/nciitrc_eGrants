@@ -20,6 +20,7 @@ namespace eGrants.Services.Interfaces
         public Task<List<former_appls>> loadFormerAppls(int grantId);
         public Task<eGrantsDocUploadViewModel> DocUploadDefaultAsync(int docId);
         public Task<eGrantsDocUpdateViewModel> DocUpdateDefaultAsync(int docId, string previousUrl, SessionInfo sessionInfo);
+        public Task<eGrantsDocCreateViewModel> DocCreateWithoutApplIdAsync(string previousUrl, SessionInfo sessionInfo);
 
     }
 }
