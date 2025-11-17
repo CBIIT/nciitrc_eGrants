@@ -970,36 +970,24 @@ namespace eGrants.Controllers.Egrants
         //    return this.Json(new { url, message = mssg });
         //}
 
-        //// string full_grant_num, int appl_id, string full_grant_num, int appl_id, 
-        ///// <summary>
-        ///// The doc_upload_default.
-        ///// </summary>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult doc_upload_default(int doc_id)
-        //{
-        //    // ViewBag.DocId = doc_id;
-        //    // ViewBag.ApplId = appl_id;
-        //    // ViewBag.DocName = doc_name;
-        //    // ViewBag.DocDate = doc_date;
-        //    // ViewBag.FullGrantNum = full_grant_num;
-        //    var DocInfor = EgrantsDoc.GetDocInfo(doc_id);
+        // string full_grant_num, int appl_id, string full_grant_num, int appl_id, 
+        /// <summary>
+        /// The doc_upload_default.
+        /// </summary>
+        /// <param name="docId">
+        /// The docId.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> doc_upload_default(int docId)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //    foreach (var doc in DocInfor)
-        //    {
-        //        this.ViewBag.DocId = doc.document_id;
-        //        this.ViewBag.ApplId = doc.appl_id;
-        //        this.ViewBag.DocName = doc.document_name;
-        //        this.ViewBag.DocDate = doc.document_date;
-        //        this.ViewBag.FullGrantNum = doc.full_grant_num;
-        //    }
+            eGrantsDocUploadViewModel eDocViewModel = await _documentService.DocUploadDefaultAsync(docId);
 
-        //    return this.View("~/Egrants/Views/egrantsDocUpload.cshtml");
-        //}
+            return View("~/Views/Egrants/EgrantsDocUpload.cshtml", eDocViewModel);
+        }
 
         //// to show doc upload modal default
         ///// <summary>
@@ -1421,49 +1409,27 @@ namespace eGrants.Controllers.Egrants
         //// }
 
 
-        //// to update document index for normal documents
-        ///// <summary>
-        ///// The doc_index_update_default.
-        ///// </summary>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <param name="previous_url">
-        ///// The previous_url.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult doc_index_update_default(int document_id, string previous_url)
-        //{
-        //    var DocInfor = EgrantsDoc.GetDocInfo(document_id);
+        // to update document index for normal documents
+        /// <summary>
+        /// The doc_index_update_default.
+        /// </summary>
+        /// <param name="documentId">
+        /// The document_id.
+        /// </param>
+        /// <param name="previousUrl">
+        /// The previous_url.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> doc_index_update_default(int documentId, string previousUrl)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+          
+            eGrantsDocUpdateViewModel eDocViewModel = await _documentService.DocUpdateDefaultAsync(documentId, previousUrl, sessionInfo);
 
-        //    foreach (var doc in DocInfor)
-        //    {
-        //        this.ViewBag.Act = "Update";
-        //        this.ViewBag.admincode = doc.admin_phs_org_code;
-        //        this.ViewBag.serialnum = doc.serial_num;
-        //        this.ViewBag.applid = doc.appl_id;
-        //        this.ViewBag.docid = doc.document_id;
-        //        this.ViewBag.categoryid = doc.category_id;
-        //        this.ViewBag.subcategory = doc.sub_category_name;
-        //        this.ViewBag.docdate = doc.document_date;
-        //        this.ViewBag.Previousurl = previous_url;
-        //        this.ViewBag.Status = "default";
-        //    }
-
-        //    int appl_id = Convert.ToInt32(this.ViewBag.applid);
-        //    this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
-        //    this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"]));
-        //    this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
-        //    this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
-
-        //    this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsByApplid(appl_id);
-
-        //    // ViewBag.UserList = EgrantsDoc.LoadUsers(Convert.ToString(Session["ic"]));
-        //    return this.View("~/Egrants/Views/egrantsDocUpdate.cshtml");
-        //}
+            return View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
+        }
 
         ///// <summary>
         ///// The doc_index_modify.

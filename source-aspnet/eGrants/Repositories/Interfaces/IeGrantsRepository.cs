@@ -35,6 +35,7 @@ namespace eGrants.Repositories.Interfaces
 
         Task<int> CheckApplID(int applId);
         Task<List<string>> GetCategoryList(int grantId, string years);
+        Task<List<VwApplDTO>> LoadApplsByApplid(int? applId);
 
         Task<List<string>> LoadDataAutocomplete(string sql_query, string term, string mechanism, string fy, string adminCode, string serialNum);
     }

@@ -53,7 +53,7 @@ namespace eGrants.Tests.Integration
             var commonService = new CommonService(commonRepository);
             var eGrantsService = new eGrantsService(eGrantsRepository);
             var sessionInfoService = new SessionInfoService();
-            var documentService = new DocumentService(documentRepository, sessionInfoService);
+            var documentService = new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService);
 
             var controller = new EgrantsController(eGrantsService, commonService, documentService, sessionInfoService);
             var httpContext = new DefaultHttpContext();

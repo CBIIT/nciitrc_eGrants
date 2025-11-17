@@ -318,6 +318,29 @@ namespace eGrants.Repositories
             return categoryList;
         }
 
+        public async Task<List<VwApplDTO>> LoadApplsByApplid(int? applId)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var GrantYearList = await context.VwAppls
+                .Where(vw => vw.grant_id == context.VwAppls
+                    .Where(a => a.appl_id == applId)
+                    .Select(a => a.grant_id)
+                    .FirstOrDefault())
+                    .OrderByDescending(vw => vw.support_year)
+                    .Select(vw => new VwApplDTO
+                    {
+                        appl_id = vw.appl_id,
+                        support_year = Convert.ToInt32(vw.support_year),
+                        full_grant_num = vw.full_grant_num ?? ""
+                    })
+                    .ToListAsync();
+                return GrantYearList;
+            }
+
+        }
+
         public async Task<List<string>> LoadDataAutocomplete(string sqlQuery, string term, string mechanism, string fy, string adminCode, string serialNum)
         {
             var dataList = new List<string>();

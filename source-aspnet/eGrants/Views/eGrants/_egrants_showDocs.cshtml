@@ -133,14 +133,14 @@
 
    //to upload document image
    function upload_doc(document_id) {
-      var url = "@Url.Action("doc_upload_default", "EgrantsDoc")?doc_id=" + document_id;
+      var url = "@Url.Action("doc_upload_default", "EgrantsDoc")?docId=" + document_id;
       window.self.location = url;
    }
 
    //to modify index for normal document
    function update_doc(document_id) {
       var current_url = encodeURIComponent(currenturl);
-      var url = "@Url.Action("doc_index_update_default", "EgrantsDoc")?document_id=" + document_id + "&previous_url=" + current_url;
+      var url = "@Url.Action("doc_index_update_default", "EgrantsDoc")?documentId=" + document_id + "&previousUrl=" + current_url;
       window.document.location.href = url;
    }
 
@@ -375,7 +375,7 @@
                   {
                      "data": "doc_date",
                      render: function(data, type, full, meta) {
-                         if (full.document_date == "") return '';
+                         if (full.document_date == "" || full.document_date == null) return '';
                          else return moment(data).format('MM/DD/YYYY');
                      },
                      "autoWidth": true,

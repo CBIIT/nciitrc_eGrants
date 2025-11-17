@@ -750,5 +750,20 @@ namespace eGrants.Services
                 grant.MPIContacts = piListThisGrant;
             }
         }
+
+        // to load appls by appl_id
+        /// <summary>
+        /// The load appls_by_applid.
+        /// </summary>
+        /// <param name="applId">
+        /// The appl_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="List"/>.
+        /// </returns>
+        public async Task<List<VwApplDTO>> LoadApplsByApplid(int? applId)
+        {
+            return await _eGrantRepository.LoadApplsByApplid(applId);
+        }
     }
 }
