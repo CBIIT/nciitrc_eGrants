@@ -50,5 +50,10 @@ namespace eGrants.Services
         {
             return await _documentRepository.loadFormerAppls(grantId);
         }
+
+        public async Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId)
+        {
+            return await _documentRepository.LoadDocsUnidentified(imageServer, userId);
+        }
     }
 }

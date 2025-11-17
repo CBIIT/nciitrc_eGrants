@@ -130,7 +130,7 @@ namespace eGrants.ViewModels
 
         public List<Pagination> Pagination { get; set; }
 
-        public List<string> UnidentifiedDocs { get; set; }
+        public List<DocsUnidentified> UnidentifiedDocs { get; set; }
 
         public List<GrantLayer> grantlayerproperty { get; set; }
 

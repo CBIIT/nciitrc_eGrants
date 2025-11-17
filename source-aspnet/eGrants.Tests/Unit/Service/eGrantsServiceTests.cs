@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 
 using Xunit;
+using Xunit.Sdk;
 
 namespace eGrants.Tests.Unit.Service
 {
@@ -23,13 +24,15 @@ namespace eGrants.Tests.Unit.Service
         private readonly Mock<IeGrantsRepository> _mockRepo;
         private readonly Mock<ILogger<IeGrantsService>> _mockLogger;
         private readonly eGrantsService _service;
+        private readonly Mock<IDocumentService> _mockDocumentService;
 
         public eGrantsServiceTests()
         {
             _mockService = new Mock<IeGrantsService>(); // { CallBase = true };
             _mockRepo = new Mock<IeGrantsRepository>();
             _mockLogger = new Mock<ILogger<IeGrantsService>>();
-            _service = new eGrantsService(_mockRepo.Object, _mockLogger.Object);
+            _mockDocumentService = new Mock<IDocumentService>();
+            _service = new eGrantsService(_mockRepo.Object, _mockLogger.Object, _mockDocumentService.Object);
         }
 
         #region GetEgrantsByStrAsync Tests
@@ -44,10 +47,10 @@ namespace eGrants.Tests.Unit.Service
                 grantlayer = null
             };
 
-            _mockService.Setup(s => s.GetEgrantsByStrAsync("", 1, 1, 1, sessionInfo))
-                .ReturnsAsync(expectedResult);
+            //_mockService.Setup(s => s.GetEgrantsByStrAsync("", 1, 1, 1, sessionInfo))
+            //    .ReturnsAsync(expectedResult);
 
-            var result = await _mockService.Object.GetEgrantsByStrAsync("", 1, 1, 1, sessionInfo);
+            var result = await _service.GetEgrantsByStrAsync("", 1, 1, 1, sessionInfo);
 
             Assert.Equal("No data found for the search", result.Message);
             Assert.Null(result.grantlayer);
@@ -74,7 +77,7 @@ namespace eGrants.Tests.Unit.Service
             _mockService.Setup(s => s.GetEgrantsByStrAsync("test", 1, 1, 1, sessionInfo))
                 .ReturnsAsync(viewModel);
 
-            var result = await _mockService.Object.GetEgrantsByStrAsync("test", 1, 1, 1, sessionInfo);
+            var result = await _service.GetEgrantsByStrAsync("test", 1, 1, 1, sessionInfo);
 
             Assert.NotNull(result.Pagination);
             Assert.Equal("test", result.Str);
@@ -125,7 +128,7 @@ namespace eGrants.Tests.Unit.Service
             _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters"))
                 .ReturnsAsync(expectedResult);
 
-            var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters");
+            var result = await _service.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters");
 
             Assert.Equal("by_filters", result.SearchStyle);
             Assert.NotNull(result.grantlayer);
@@ -203,14 +206,27 @@ namespace eGrants.Tests.Unit.Service
             _mockRepo.Setup(r => r.FilterSearchQuery(2024, "R01", "ADM", 123, 1, sessionInfo))
                 .ReturnsAsync(filterQuery);
 
-            _mockService.Setup(s => s.eGrantsSearchResults(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), sessionInfo, It.IsAny<eGrantsSearchViewModel>(), true))
-                .ReturnsAsync(viewModel);
+            //_mockService.Setup(s => s.eGrantsSearchResults(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), sessionInfo, It.IsAny<eGrantsSearchViewModel>(), true))
+            //    .ReturnsAsync(viewModel);
 
-            _mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters"))
-                .ReturnsAsync(expectedResult);
+            List<eGrantsSearchResults> expectedSearchResults = new List<eGrantsSearchResults>();
+
+            // Relaxed parameter matching using It.IsAny<T>()
+            _mockRepo.Setup(s => s.GetSearchResultsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<SessionInfo>()
+                ))
+                .ReturnsAsync(expectedSearchResults);
+
+            //_mockService.Setup(s => s.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters"))
+            //    .ReturnsAsync(expectedResult);
 
             //var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo);
-            var result = await _mockService.Object.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters");
+            var result = await _service.GetEgrantsByFilterAsync(2024, "R01", 123, "ADM", 1, 1, 1, sessionInfo, 2, "by_filters");
 
             Assert.Equal(2024, result.FilterFY);
             Assert.Equal(123, result.FilterSerialNumber);
@@ -245,6 +261,105 @@ namespace eGrants.Tests.Unit.Service
             Assert.Equal("Database unreachable", errorMessage);
         }
 
+        #endregion
+        #region GetEgrantsByPageAsync Tests
+
+        [Fact]
+        public async Task ReturnsMessage_WhenSearchStringIsEmptyOrInvalidPageOrTab()
+        {
+            var sessionInfo = new SessionInfo { Ic = "IC", UserId = "user", Browser = "Chrome" };
+
+            var result = await _service.GetEgrantsByPageAsync("", 1, 1, 0, 0, sessionInfo);
+
+            Assert.Equal("No data found for the search", result.Message);
+            Assert.Null(result.grantlayer);
+        }
+
+        [Fact]
+        public async Task ReturnsViewModel_WithPagination_WhenValidInputs()
+        {
+            var sessionInfo = new SessionInfo { Ic = "IC", UserId = "user", Browser = "Chrome" };
+            var expectedViewModel = new eGrantsSearchViewModel
+            {
+                Str = "search",
+                Pagination = new List<Pagination> { new Pagination() },
+                SearchStyle = "by_page"
+            };
+
+            List<eGrantsSearchResults> expectedSearchResults = new List<eGrantsSearchResults>();
+
+            // Relaxed parameter matching using It.IsAny<T>()
+            _mockRepo.Setup(s => s.GetSearchResultsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<SessionInfo>()
+                ))
+                .ReturnsAsync(expectedSearchResults);
+
+            _mockRepo.Setup(r => r.LoadPaginationAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new List<Pagination> { new Pagination() });
+
+            // Act
+            var result = await _service.GetEgrantsByPageAsync("P30", 0, 0, 2, 1, sessionInfo);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("P30", result.Str);
+            Assert.Equal("by_page", result.SearchStyle);
+            Assert.NotEmpty(result.Pagination);
+        }
+
+        [Fact]
+        public async Task ReturnsErrorMessage_WhenSearchResultsThrowsException()
+        {
+            var sessionInfo = new SessionInfo { Ic = "IC", UserId = "user", Browser = "Chrome" };
+            var expectedViewModel = new eGrantsSearchViewModel
+            {
+                Str = "search",
+                Pagination = new List<Pagination> { new Pagination() },
+                SearchStyle = "by_page"
+            };
+
+            _mockRepo.Setup(r => r.GetSearchResultsAsync(
+                It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(),
+                It.IsAny<int>(), It.IsAny<int>(), sessionInfo))
+                .ThrowsAsync(new Exception("Database unreachable"));
+
+
+            _mockRepo.Setup(r => r.LoadPaginationAsync("search", "IC", "user", ""))
+                .ReturnsAsync(new List<Pagination>()); // still called after exception
+
+            // Act
+            var result = await _service.GetEgrantsByPageAsync("search", 1, 1, 1, 1, sessionInfo);
+
+            Assert.Equal("Error occurred: Database unreachable", result.Message);
+            Assert.Null(result.grantlayer);
+        }
+
+        [Fact]
+        public async Task LoadsUnidentifiedDocs_WhenSearchStringIsQc()
+        {
+            var sessionInfo = new SessionInfo { Ic = "IC", UserId = "user", ImageServerUrl = "http://img" };
+
+            _mockService.Setup(r => r.eGrantsSearchResults(
+                "qc", 1, "", 1, 1, sessionInfo, It.IsAny<eGrantsSearchViewModel>(), true))
+                .ReturnsAsync(new eGrantsSearchViewModel());
+
+            _mockRepo.Setup(r => r.LoadPaginationAsync("qc", "IC", "user", ""))
+                .ReturnsAsync(new List<Pagination>());
+
+            _mockDocumentService.Setup(d => d.LoadDocsUnidentified("http://img", "user"))
+                .ReturnsAsync(new List<DocsUnidentified> { new DocsUnidentified() });
+
+            var result = await _service.GetEgrantsByPageAsync("qc", 1, 1, 1, 1, sessionInfo);
+
+            Assert.NotNull(result.UnidentifiedDocs);
+            Assert.Single(result.UnidentifiedDocs);
+        }
         #endregion
 
         #region GetSupplements Tests

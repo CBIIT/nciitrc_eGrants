@@ -5,5 +5,7 @@
         public string Ic { get; set; }
         public string Browser { get; set; }
         public string UserId { get; set; }
+
+        public string ImageServerUrl { get; set; }
     }
 }
