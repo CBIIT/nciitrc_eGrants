@@ -1,6 +1,7 @@
 ﻿using System.Data;
 
 using eGrants.DAL;
+using eGrants.DTOs;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 
@@ -8,9 +9,11 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using static System.Formats.Asn1.AsnWriter;
+
 namespace eGrants.Repositories
 {
-    public class DocumentRepository : IDocumentRepository 
+    public class DocumentRepository : IDocumentRepository
     {
         private readonly AppDbContext _context;
         private readonly IServiceScopeFactory _serviceScopeFactory;
@@ -108,5 +111,85 @@ namespace eGrants.Repositories
                     .ToListAsync();
             }
         }
+
+        public virtual async Task<List<DocumentInformation>> GetDocInfo(int docId)
+        {
+
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                return await context.egrants
+                    .Where(e => e.document_id == docId)
+                    .Select(e => new DocumentInformation
+                    {
+                        admin_phs_org_code = e.admin_phs_org_code ?? "",
+                        serial_num = e.serial_num ,
+                        appl_id = e.appl_id,
+                        category_id = e.category_id,
+                        sub_category_name = e.sub_category_name ?? "",
+                        full_grant_num = e.full_grant_num ?? "",
+                        document_id = e.document_id,
+                        document_date = e.document_date,
+                        document_name = e.document_name ?? ""
+                    })
+                    .ToListAsync();
+
+            }
+        }
+
+        public virtual async Task<List<CategoriesListDTO>> LoadCategories(string ic)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                
+                return await context.VwCategories
+                       .Where(c => c.ic == ic && c.can_upload == "yes")
+                       .OrderBy(c => c.category_name)
+                       .Select(c => new CategoriesListDTO
+                       {
+                           category_id = Convert.ToInt32(c.category_id),
+                           category_name = c.category_name ?? "",
+                           package = c.package ?? "",
+                           input_type = c.input_type ?? "",
+                           input_constraint = c.input_constraint ?? "",
+                       })
+                       .ToListAsync();
+
+            }
+        }
+
+        public virtual async Task<int> GetMaxCategoryId(string ic)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {   
+                try
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    return await context.VwCategories
+                        .Where(c => c.ic == ic)
+                        .MaxAsync(c => Convert.ToInt32(c.category_id));
+                } catch (Exception e)
+                {
+                    return 0; // case where this ic has no categories 
+                }
+            }    
+        }
+
+        public virtual async Task<List<SubCategories>> LoadSubCategoryList()
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                return await context.CategoriesSubcatLookup
+                    .Select(c => new SubCategories
+                    {
+                        parent_category_id = Convert.ToInt32(c.parent_category_id),
+                        sub_category_name = c.sub_category_name ?? ""
+                    })
+                    .ToListAsync();         
+            }
+        }
+
     }
 }

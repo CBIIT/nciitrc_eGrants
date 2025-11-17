@@ -181,6 +181,15 @@ namespace eGrants.Services.Interfaces
         /// If no grant is found for the specified applicant ID, the result is null.
         /// </returns>
         public Task<int?> GetGrantID(int applId);
+        /// <summary>
+        /// Retrieves a list of application layer objects associated with the specified application ID.
+        /// </summary>
+        /// <param name="applId">The application ID to filter the application layer objects.</param>
+        /// <returns>
+        /// A Task representing the asynchronous operation, with the result being a list of 
+        /// <see cref="ApplLayerObject"/> objects associated with the given application ID.
+        /// </returns>
+        public Task<List<VwApplDTO>> LoadApplsByApplid(int? applId);
 
         /// <summary>
         /// Asynchronously retrieves a list of autocomplete suggestions based on the specified type and search parameters.
