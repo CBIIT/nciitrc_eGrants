@@ -108,5 +108,21 @@ namespace eGrants.Services
 
         }
 
+        public async Task<eGrantsDocCreateViewModel> DocCreateWithoutApplIdAsync(string previousUrl,
+            SessionInfo sessionInfo)
+        {
+            eGrantsDocCreateViewModel eDocViewModel = new eGrantsDocCreateViewModel
+            {
+                Act = "Add",
+                AdminCodeList = await _commonRepository.LoadAdminCodes(),
+                CategoryList = await _documentRepository.LoadCategories(sessionInfo.Ic),
+                MaxCategoryId = await _documentRepository.GetMaxCategoryId(sessionInfo.Ic),
+                SubCategoryList = await _documentRepository.LoadSubCategoryList()
+            };
+
+            return eDocViewModel;
+
+        }
+
     }
 }
