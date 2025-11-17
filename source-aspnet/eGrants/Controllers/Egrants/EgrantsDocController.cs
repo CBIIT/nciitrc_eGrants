@@ -486,12 +486,6 @@ namespace eGrants.Controllers.Egrants
                 this.Session["ic"] = "NCI";
             }
             */
-            //this.ViewBag.Act = "Add";
-            //this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
-            //this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"])); // load categories that could only be upload
-            //this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
-            //this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
-            //this.ViewBag.Previousurl = previous_url;
 
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
