@@ -462,39 +462,38 @@ namespace eGrants.Controllers.Egrants
         //    return this.View("~/Egrants/Views/egrantsDocCreate.cshtml");
         //}
 
-        //// create new doc without selected appl_id
-        ///// <summary>
-        ///// The doc_create_without_applid.
-        ///// </summary>
-        ///// <param name="previous_url">
-        ///// The previous_url.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult doc_create_without_applid(string previous_url = null)
-        //{
-        //    /*
-        //    This code was added to hardcode IC for non-nci user to access file uploading/viewing page
-        //    It was removed on request. This code can potentially be used in the future to hardcode
-        //    access for non-nci employees (Replace "hindsrr" with user id of the user in question)
+        // create new doc without selected appl_id
+        /// <summary>
+        /// The doc_create_without_applid.
+        /// </summary>
+        /// <param name="previousUrl">
+        /// The previous_url.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> doc_create_without_applid(string previousUrl = null)
+        {
+            /*
+            This code was added to hardcode IC for non-nci user to access file uploading/viewing page
+            It was removed on request. This code can potentially be used in the future to hardcode
+            access for non-nci employees (Replace "hindsrr" with user id of the user in question)
 
-        //    var userId = Convert.ToString(this.Session["userid"]);
-        //    if (userId == "hindsrr")
-        //    {
-        //        this.Session["ic"] = "NCI";
-        //    }
-        //    */
-        //    this.ViewBag.Act = "Add";
-        //    this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
-        //    this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"])); // load categories that could only be upload
-        //    this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
-        //    this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
-        //    this.ViewBag.Previousurl = previous_url;
+            var userId = Convert.ToString(this.Session["userid"]);
+            if (userId == "hindsrr")
+            {
+                this.Session["ic"] = "NCI";
+            }
+            */
 
-        //    return this.View("~/Egrants/Views/egrantsDocCreate.cshtml");
-        //}
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            eGrantsDocCreateViewModel eDocViewModel = await _documentService.DocCreateWithoutApplIdAsync(previousUrl, sessionInfo);
+
+            return View("~/Views/Egrants/EgrantsDocCreate.cshtml", eDocViewModel);
+
+        }
 
         //// to create doc by file input
         ///// <summary>

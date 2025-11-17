@@ -39,7 +39,6 @@ namespace eGrants.DAL
         public DbSet<PersonInvolvement> PersonInvolvements { get; set; }
         public DbSet<Egrants> egrants { get; set; }
 
-
         public DbSet<InstFileFindOrgDTO> InstFileFindOrgDTO { get; set; }
 
         public DbSet<InsitutionalOrgNameIndex> InstitutionalOrgNameIndices { get; set; }
