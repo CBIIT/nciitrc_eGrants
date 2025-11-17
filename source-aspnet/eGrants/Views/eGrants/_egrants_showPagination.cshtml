@@ -35,8 +35,8 @@
         }
         else if (searchtype == "by_qc")
         {
-            var url = "@Url.Action("by_page", "Egrants")?str=qc&tab_num=" + tab_num + "&page_num=" + page_num + "&mode=qc";
-        } else var url = "@Url.Action("by_page", "Egrants")?str=" + str + "&tab_num=" + tab_num + "&page_num=" + page_num;
+            var url = "@Url.Action("by_page", "Egrants")?str=qc&tabNum=" + tab_num + "&pageNum=" + page_num + "&mode=qc";
+        } else var url = "@Url.Action("by_page", "Egrants")?str=" + str + "&tabNum=" + tab_num + "&pageNum=" + page_num;
 
         //alert(url);
         window.document.location.href = url;

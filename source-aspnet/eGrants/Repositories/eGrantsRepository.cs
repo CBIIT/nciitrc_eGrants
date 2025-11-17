@@ -317,5 +317,5 @@ namespace eGrants.Repositories
 
             return categoryList;
         }
-        }
     }
+}

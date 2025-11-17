@@ -11,7 +11,7 @@ using eGrants.Services;
 
 using Moq;
 
-namespace eGrants.Tests.Unit
+namespace eGrants.Tests.Unit.Service
 {
     public class InstitutionalFilesServiceTests
     {
@@ -111,10 +111,10 @@ namespace eGrants.Tests.Unit
             string orgName = "TestOrg";
 
             _mockRepo.Setup(r => r.FindOrg(orgId, orgName))
-                     .ThrowsAsync(new System.Exception("Database error"));
+                     .ThrowsAsync(new Exception("Database error"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<System.Exception>(() => _service.FindOrg(orgId, orgName));
+            await Assert.ThrowsAsync<Exception>(() => _service.FindOrg(orgId, orgName));
         }
 
         [Fact]
@@ -136,10 +136,10 @@ namespace eGrants.Tests.Unit
         {
             // Arrange
             _mockRepo.Setup(r => r.LoadOrgNameCharacterIndices())
-                     .ThrowsAsync(new System.Exception("Repository failure"));
+                     .ThrowsAsync(new Exception("Repository failure"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<System.Exception>(() => _service.LoadOrgNameCharacterIndices());
+            await Assert.ThrowsAsync<Exception>(() => _service.LoadOrgNameCharacterIndices());
         }
 
         [Fact]
@@ -165,10 +165,10 @@ namespace eGrants.Tests.Unit
             int orgId = 42;
 
             _mockRepo.Setup(r => r.LoadOrgDocList(orgId))
-                     .ThrowsAsync(new System.Exception("Data access error"));
+                     .ThrowsAsync(new Exception("Data access error"));
 
             // Act & Assert
-            await Assert.ThrowsAsync<System.Exception>(() => _service.LoadOrgDocList(orgId));
+            await Assert.ThrowsAsync<Exception>(() => _service.LoadOrgDocList(orgId));
         }
     }
 }

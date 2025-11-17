@@ -17,5 +17,7 @@ namespace eGrants.Services.Interfaces
 
         public Task<List<former_appls>> loadFormerAppls(int grantId);
 
+        public Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId);
+
     }
 }

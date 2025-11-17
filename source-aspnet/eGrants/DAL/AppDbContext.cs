@@ -45,6 +45,8 @@ namespace eGrants.DAL
 
         public DbSet<CategoriesListDTO> CategoriesListDTO { get; set; }
 
+        public DbSet<Egrants> egrants { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<eGrantsSearchResults>().HasNoKey();
@@ -70,6 +72,7 @@ namespace eGrants.DAL
             modelBuilder.Entity<InsitutionalOrgNameIndex>().HasNoKey();
             modelBuilder.Entity<InstFileLoadOrgDocListDTO>().HasNoKey();
             modelBuilder.Entity<CategoriesListDTO>().HasNoKey();
+            modelBuilder.Entity<Egrants>().HasNoKey().ToView("egrants");
         }
     }
 }

@@ -52,6 +52,23 @@ namespace eGrants.Services.Interfaces
         /// <returns>A view model containing eGrants search results.</returns>
         public Task<eGrantsSearchViewModel> GetEgrantsByGrantAsync(string searchString, int grantId, string package, int applId, int currentPage, string categories, string applsList, string years, string mode, SessionInfo sessionInfo);
 
+        //public Task<eGrantsSearchViewModel> GetEgrantsByPageAsync(string searchString, int grantId, string package, int applId, int currentPage, SessionInfo sessionInfo);
+
+        /// <summary>
+        /// Asynchronously retrieves a paginated list of eGrants based on the provided search criteria and session context.
+        /// </summary>
+        /// <param name="searchString">The search keyword or phrase to filter eGrants.</param>
+        /// <param name="grantId">The unique identifier of the grant to filter results.</param>
+        /// <param name="applId">The application ID associated with the grant search.</param>
+        /// <param name="currentPage">The current page number for pagination.</param>
+        /// <param name="tabNum">The tab index indicating the current view or category of results.</param>
+        /// <param name="sessionInfo">The session context containing user and access information.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an <see cref="eGrantsSearchViewModel"/>
+        /// with the filtered and paginated eGrants data.
+        /// </returns>
+        public Task<eGrantsSearchViewModel> GetEgrantsByPageAsync(string searchString, int grantId, int applId, int currentPage, int tabNum, SessionInfo sessionInfo);
+
         /// <summary>
         /// Loads pagination metadata for search results based on the provided filters.
         /// </summary>
