@@ -386,12 +386,7 @@ namespace Router
 
                     if (debug == "n")
                     {
-                        outmail2.Recipients.Add("jonesni@mail.nih.gov");
-                        outmail2.Recipients.Add("bakerb@mail.nih.gov");
-                        outmail2.Recipients.Add("dvellaj@mail.nih.gov");
-                        outmail2.Recipients.Add("agyemann@mail.nih.gov");
-                        outmail2.Recipients.Add("eugenia.chester@nih.gov");
-                        outmail2.Recipients.Add("emily.driskell@nih.gov");
+                        outmail2.Recipients.Add("NCIOGABOBTeam1@nih.gov");
                         // if they're not equal, send to both
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && !p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
