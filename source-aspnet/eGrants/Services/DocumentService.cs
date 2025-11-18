@@ -117,7 +117,8 @@ namespace eGrants.Services
                 AdminCodeList = await _commonRepository.LoadAdminCodes(),
                 CategoryList = await _documentRepository.LoadCategories(sessionInfo.Ic),
                 MaxCategoryId = await _documentRepository.GetMaxCategoryId(sessionInfo.Ic),
-                SubCategoryList = await _documentRepository.LoadSubCategoryList()
+                SubCategoryList = await _documentRepository.LoadSubCategoryList(),
+                PreviousUrl = previousUrl
             };
 
             return eDocViewModel;
