@@ -261,5 +261,57 @@ namespace eGrants.Tests.Integration
             Assert.Equal(docId, model.DocId);
         }
         #endregion
+
+        #region doc_create_without_applid tests
+        [Fact]
+        public async Task doc_create_without_applid_ReturnsViewWithViewModel()
+        {
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.SetString("UserId", "user678");
+            session.SetString("Ic", "2");
+
+            var controller = CreateController(context, session);
+
+            string previousUrl = "test.com";
+
+            var result = await controller.doc_create_without_applid(previousUrl);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("~/Views/Egrants/EgrantsDocCreate.cshtml", viewResult.ViewName);
+            var model = Assert.IsType<eGrantsDocCreateViewModel>(viewResult.Model);
+            Assert.NotNull(model);
+        }
+
+        [Fact]
+        public async Task doc_create_without_applid_NullSessionInfo_ThrowsException()
+        {
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context, session: null);
+
+            await Assert.ThrowsAsync<NullReferenceException>(() =>
+                controller.doc_upload_default(999));
+        }
+
+        [Fact]
+        public async Task doc_create_without_applid_SetsPreviousUrlInViewModel()
+        {
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.SetString("UserId", "user321");
+            session.SetString("Ic", "1");
+
+            var controller = CreateController(context, session);
+
+            string previousUrl = "test.com/previous";
+
+            var result = await controller.doc_create_without_applid(previousUrl);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<eGrantsDocCreateViewModel>(viewResult.Model);
+            Assert.Equal(previousUrl, model.PreviousUrl);
+            Assert.NotNull(model);
+        }
+        #endregion
     }
 }
