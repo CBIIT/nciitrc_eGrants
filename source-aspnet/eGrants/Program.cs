@@ -134,7 +134,7 @@ app.Use(async (context, next) =>
     var ImageServerUrl = builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty;
     context.Session.SetString("frpprAcceptance", frpprAcceptance);
     context.Session.SetString("irpprAcceptance", irpprAcceptance);
-    context.Session.SetString("ImageServerUrl", ImageServerUrl);
+    context.Session.SetString("imageServerUrl", ImageServerUrl);
 
     // You can log or use the URL here
     await next.Invoke();

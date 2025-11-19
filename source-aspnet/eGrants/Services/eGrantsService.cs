@@ -20,15 +20,15 @@ namespace eGrants.Services
     {
         // Dependency injection of a product repository to access data
         private readonly IeGrantsRepository _eGrantRepository;
-        private readonly IDocumentService _documentService;
+        //private readonly IDocumentService _documentService;
         private readonly ILogger<IeGrantsService> _logger;
         const int MAX_RETRIES = 3;
 
         // Constructor that initializes the repository via dependency injection
-        public eGrantsService(IeGrantsRepository eGrantRepository, ILogger<IeGrantsService> logger = null, IDocumentService documentService = null)
+        public eGrantsService(IeGrantsRepository eGrantRepository, ILogger<IeGrantsService> logger = null)
         {
             _eGrantRepository = eGrantRepository;
-            _documentService = documentService;
+            //_documentService = documentService;
             _logger = logger;
         }
 
@@ -142,7 +142,8 @@ namespace eGrants.Services
             int applId,
             int currentPage,
             int tabNum,
-            SessionInfo sessionInfo)
+            SessionInfo sessionInfo,
+            IDocumentService _documentService)
         {
             var viewModel = new eGrantsSearchViewModel
             {
