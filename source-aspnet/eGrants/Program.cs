@@ -1,15 +1,12 @@
-
 using eGrants.DAL;
 using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 using Serilog;
-using Serilog.Formatting.Compact;
 
 using SimpleECommerceCore.Middleware;
 
@@ -108,18 +105,26 @@ app.UseSession(); // Enable session middleware
 // TODO: Determine better way to handle getting user id information if possible
 app.Use(async (context, next) =>
 {
-    string userid = context.GetServerVariable("HEADER_SM_USER");
+    string userId = context.GetServerVariable("HEADER_SM_USER");
 
-    if (userid == null)
+    if (string.IsNullOrEmpty(userId))
     {
-        userid = "";
-#if DEBUG
-
-        userid = "dehuffdc"; // should correspond to person table, column: active
-#endif
+        // Prefer authenticated Windows identity
+        if (context.User?.Identity?.IsAuthenticated == true)
+        {
+            var fullName = context.User.Identity?.Name;
+            userId = fullName?.Contains('\\') == true
+                ? fullName.Split('\\')[1]
+                : fullName;
+        }
+        else
+        {
+            // Fallback to machine account
+            userId = Environment.UserName;
+        }
     }
 
-    context.Session.SetString("userid", userid);
+    context.Session.SetString("userid", userId);
     context.Session.SetString("Validation", "OK");
     context.Session.SetString("ic", "NCI");
     context.Session.SetString("Personid", "3941");
@@ -134,11 +139,28 @@ app.Use(async (context, next) =>
     var ImageServerUrl = builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty;
     context.Session.SetString("frpprAcceptance", frpprAcceptance);
     context.Session.SetString("irpprAcceptance", irpprAcceptance);
-    context.Session.SetString("imageServerUrl", ImageServerUrl);
+    context.Session.SetString("ImageServerUrl", ImageServerUrl);
 
     // You can log or use the URL here
     await next.Invoke();
 });
+
+//app.Use(async (context, next) =>
+//{
+//    //context.Request.Headers["SM_USER"] = "localtestuser";
+//    //await next();
+//    if (context.Request.Headers.TryGetValue("SM_USER", out var smUser))
+//    {
+//        // Store in session
+//        context.Session.SetString("SM_USER", smUser);
+
+//        // Or attach to claims
+//        var identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, smUser) }, "SiteMinder");
+//        context.User = new ClaimsPrincipal(identity);
+//    }
+
+//    await next();
+//});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
