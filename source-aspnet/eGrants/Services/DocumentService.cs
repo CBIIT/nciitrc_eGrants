@@ -1,4 +1,8 @@
 ﻿using System.Reflection.Metadata;
+using System.Web;
+using System.Xml.Serialization;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
@@ -124,6 +128,133 @@ namespace eGrants.Services
             return eDocViewModel;
 
         }
+
+        public async Task<DocumentCreateOrUploadResult> DocCreateByDdropAsync(IFormFile dropedfile,
+            int applId,
+            int categoryId,
+            string subCategory,
+            DateTime docDate,
+            string adminCode,
+            int serialNum,
+            SessionInfo sessionInfo)
+        {
+            var result = new DocumentCreateOrUploadResult();
+            var docName = string.Empty;
+
+            if (dropedfile != null && dropedfile.Length > 0)
+            {
+                try
+                {
+                    // Get file name and file extension
+                    var fileName = Path.GetFileName(dropedfile.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
+
+                    // Get document_id and create a new docName
+                    //var documentId = await _documentRepository.GetDocId(
+                    //    applId,
+                    //    categoryId,
+                    //    subCategory,
+                    //    docDate,
+                    //    fileExtension,
+                    //    sessionInfo.Ic,
+                    //    sessionInfo.UserId);
+
+                    //docName = Convert.ToString(documentId) + fileExtension;
+
+                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded2\\nci\\main\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+
+                    // Save the file
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await dropedfile.CopyToAsync(stream);
+                    }
+
+                    // Create review url
+                    var fileUrl = sessionInfo.ImageServerUrl + sessionInfo.EgrantsDocNewRelativePath + docName;
+
+                    result.Success = true;
+                    result.Url = fileUrl;
+                    result.Message = "Done! New document has been created";
+                    //result.DocumentId = documentId;
+                }
+                catch (Exception ex)
+                {
+                    result.Success = false;
+                    result.Url = null;
+                    result.Message = "ERROR:" + ex.Message;
+                }
+            }
+            else
+            {
+                result.Success = false;
+                result.Url = null;
+                result.Message = "You have not specified a file.";
+            }
+
+            return result;
+        }
+
+        public async Task<DocumentCreateOrUploadResult> DocUploadByDdropAsync(IFormFile dropedfile, int docId, SessionInfo sessionInfo)
+        {
+            var result = new DocumentCreateOrUploadResult();
+            var docName = string.Empty;
+
+            if (dropedfile != null && dropedfile.Length > 0)
+            {
+                try
+                {
+                    // Get file name and file extension
+                    var fileName = Path.GetFileName(dropedfile.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
+
+                    // Get document id and create new document name
+                    docName = Convert.ToString(docId) + fileExtension;
+
+                    // Update url for document
+                    //await _documentRepository.ModifyDocument(
+                    //    "to_upload",
+                    //    0,
+                    //    0,
+                    //    string.Empty,
+                    //    string.Empty,
+                    //    Convert.ToString(docId),
+                    //    fileExtension,
+                    //    sessionInfo.Ic,
+                    //    sessionInfo.UserId);
+
+                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\modify\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+                    // Save the file using FileStream
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await dropedfile.CopyToAsync(stream);
+                    }
+
+                    // Create review url
+                    var fileUrl = sessionInfo.ImageServerUrl + sessionInfo.EgrantsDocModifyRelativePath + docName;
+
+                    result.Success = true;
+                    result.Url = fileUrl;
+                    result.Message = "Done! New document has been created";
+                }
+                catch (Exception ex)
+                {
+                    result.Success = false;
+                    result.Url = null;
+                    result.Message = "ERROR:" + ex.Message;
+                }
+            }
+            else
+            {
+                result.Success = false;
+                result.Url = null;
+                result.Message = "Error while uploading the files.";
+            }
+
+            return result;
+        }
+
 
     }
 }
