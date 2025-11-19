@@ -73,11 +73,14 @@
 
 #endregion
 
+using System.Web;
+
 using eGrants.Models;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace eGrants.Controllers.Egrants
 {
@@ -1202,92 +1205,101 @@ namespace eGrants.Controllers.Egrants
         //    return this.Json(new { url, message = mssg });
         //}
 
-        //// to upload doc by dragdrop---added at 4/15/2019 FOR REFRESH AFTER UPLOAD
-        ///// <summary>
-        ///// The doc_upload_by_ddrop.
-        ///// </summary>
-        ///// <param name="dropedfile">
-        ///// The dropedfile.
-        ///// </param>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
+        // to create doc by dragdrop
+        /// <summary>
+        /// The doc_create_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="doc_date">
+        /// The doc_date.
+        /// </param>
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        /// TO IMPLEMENT IN NEW APP -----------------------------------------------------------
+        //[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         //[HttpPost]
-        //public ActionResult doc_upload_by_ddrop(HttpPostedFileBase dropedfile, int doc_id)
+        //public async Task<ActionResult> doc_create_by_ddrop(
+        //     IFormFile dropedfile,
+        //     int appl_id,
+        //     int category_id,
+        //     string sub_category,
+        //     DateTime doc_date,
+        //     string admin_code,
+        //     int serial_num)
         //{
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
+        //    var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //    if (dropedfile != null && dropedfile.ContentLength > 0)
-        //        try
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(dropedfile.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
+        //    var result = await _documentService.DocCreateByDdropAsync(
+        //        dropedfile,
+        //        appl_id,
+        //        category_id,
+        //        sub_category,
+        //        doc_date,
+        //        admin_code,
+        //        serial_num,
+        //        sessionInfo);
 
-        //            // get document id and create new document name       
-        //            docName = Convert.ToString(doc_id) + fileExtension;
-
-        //            // update url for document
-        //            EgrantsDoc.doc_modify(
-        //                "to_upload",
-        //                0,
-        //                0,
-        //                string.Empty,
-        //                string.Empty,
-        //                Convert.ToString(doc_id),
-        //                fileExtension,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
-
-        //            var filePath = Path.Combine(fileFolder, docName);
-        //            dropedfile.SaveAs(filePath);
-
-
-        //            // create review url
-        //            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
-        //                                                                                    + Convert.ToString(docName);
-
-        //            this.ViewBag.Message = "Done! New document has been created";
-
-        //            // ViewBag.Message = "please waiting window refresh...";
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = this.ViewBag.Message;
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            this.ViewBag.Message = "ERROR:" + ex.Message;
-        //        }
-        //    else
-        //        this.ViewBag.Message = "Error while uploading the files.";
-
-        //    return this.Json(new { url, message = mssg });
+        //    return Json(new { url = result.Url, message = result.Message });
         //}
 
-        //// to upload pdf docs by dragdrop
-        ///// <summary>
-        ///// The doc_upload_by_ddrop.
-        ///// </summary>
-        ///// <param name="dropedfile">
-        ///// The dropedfile.
-        ///// </param>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
+        // to upload pdf docs by dragdrop
+        /// <summary>
+        /// The doc_upload_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="docId">
+        /// The doc_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpPost]
+        public async Task<ActionResult> doc_upload_by_ddrop(IFormFile dropedfile, int docId)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            var result = await _documentService.DocUploadByDdropAsync(dropedfile, docId, sessionInfo);
+
+            return Json(new { url = result.Url, message = result.Message });
+        }
+
+        // to upload pdf docs by dragdrop
+        /// <summary>
+        /// The doc_upload_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="doc_id">
+        /// The doc_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
         //[OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
         //[HttpPost]
-        //public ActionResult doc_upload_pdf_by_ddrop(IEnumerable<HttpPostedFileBase> dropedfiles, int doc_id)
+        //public ActionResult doc_upload_pdf_by_ddrop(IEnumerable<HttpPostedFileBase> dropedfiles, int docId)
         //{
         //    var docName = string.Empty;
         //    string url = null;

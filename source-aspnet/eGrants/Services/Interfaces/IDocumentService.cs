@@ -1,4 +1,6 @@
-﻿using eGrants.Models;
+﻿using System.Web;
+
+using eGrants.Models;
 using eGrants.ViewModels;
 
 namespace eGrants.Services.Interfaces
@@ -21,6 +23,15 @@ namespace eGrants.Services.Interfaces
         public Task<eGrantsDocUploadViewModel> DocUploadDefaultAsync(int docId);
         public Task<eGrantsDocUpdateViewModel> DocUpdateDefaultAsync(int docId, string previousUrl, SessionInfo sessionInfo);
         public Task<eGrantsDocCreateViewModel> DocCreateWithoutApplIdAsync(string previousUrl, SessionInfo sessionInfo);
+        public Task<DocumentCreateOrUploadResult> DocCreateByDdropAsync(IFormFile dropedfile,
+            int applId,
+            int categoryId,
+            string subCategory,
+            DateTime docDate,
+            string adminCode,
+            int serialNum,
+            SessionInfo sessionInfo);
+        public Task<DocumentCreateOrUploadResult> DocUploadByDdropAsync(IFormFile dropedfile, int docId, SessionInfo sessionInfo);
 
     }
 }

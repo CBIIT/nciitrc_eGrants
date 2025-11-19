@@ -132,9 +132,11 @@ app.Use(async (context, next) =>
     var frpprAcceptance = builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty;
     var irpprAcceptance = builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty;
     var ImageServerUrl = builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty;
+    var WebGrantUrl = builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty;
     context.Session.SetString("frpprAcceptance", frpprAcceptance);
     context.Session.SetString("irpprAcceptance", irpprAcceptance);
     context.Session.SetString("ImageServerUrl", ImageServerUrl);
+    context.Session.SetString("WebGrantUrl", WebGrantUrl);
 
     // You can log or use the URL here
     await next.Invoke();
