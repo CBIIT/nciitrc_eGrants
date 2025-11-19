@@ -439,8 +439,8 @@ namespace eGrants.Tests.Integration
                 term: "cancer",
                 mechanism: "R01",
                 fy: "2023",
-                admincode: "NCI",
-                serialnum: "123456");
+                adminCode: "NCI",
+                serialNum: "123456");
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.NotNull(jsonResult.Value);
@@ -458,8 +458,8 @@ namespace eGrants.Tests.Integration
                 term: "therapy",
                 mechanism: null,
                 fy: null,
-                admincode: "undefined",
-                serialnum: null);
+                adminCode: "undefined",
+                serialNum: null);
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.NotNull(jsonResult.Value);
@@ -476,8 +476,8 @@ namespace eGrants.Tests.Integration
                 term: "genomics",
                 mechanism: "U01",
                 fy: "notanumber",
-                admincode: "NCI",
-                serialnum: "invalid");
+                adminCode: "NCI",
+                serialNum: "invalid");
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.NotNull(jsonResult.Value);
