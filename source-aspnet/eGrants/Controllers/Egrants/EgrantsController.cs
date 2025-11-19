@@ -1028,7 +1028,7 @@ namespace eGrants.Controllers.Egrants
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByPageAsync(str, 0, 0, pageNum, tabNum, sessionInfo);
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByPageAsync(str, 0, 0, pageNum, tabNum, sessionInfo, _documentService);
 
             eGrantsSearchViewModelList.Mode = str == "qc" ? "qc" : mode;
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();

@@ -67,7 +67,7 @@ namespace eGrants.Services.Interfaces
         /// A task that represents the asynchronous operation. The task result contains an <see cref="eGrantsSearchViewModel"/>
         /// with the filtered and paginated eGrants data.
         /// </returns>
-        public Task<eGrantsSearchViewModel> GetEgrantsByPageAsync(string searchString, int grantId, int applId, int currentPage, int tabNum, SessionInfo sessionInfo);
+        public Task<eGrantsSearchViewModel> GetEgrantsByPageAsync(string searchString, int grantId, int applId, int currentPage, int tabNum, SessionInfo sessionInfo, IDocumentService _documentService);
 
         /// <summary>
         /// Loads pagination metadata for search results based on the provided filters.
