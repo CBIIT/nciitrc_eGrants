@@ -95,6 +95,11 @@
       opacity: 0.75;
       display: none;
    }
+
+    a:hover {
+        color: #1a73e8; /* visible contrast */
+        background: transparent; /* if a background is applied on hover, ensure contrast */
+    }
 </style>
 
 <script language="JavaScript" type="text/javascript">
@@ -383,17 +388,24 @@
                   { "data": "page_count", "autoWidth": true },
                   {
                      // replace document image
-                     "render": function(data, type, full, meta) {
-                        if (document.getElementById("hidPositionID").value >= 2 && full.can_upload == "y" && full.frc_destroyed == 0) {
-                           return "<a href='JavaScript:upload_doc(" + full.document_id + ")' title='Replace Document'><img class='img_14_14' src='../images/upl.png' /></a>";
-                        } else return "";
-                     }
+                    "render": function(data, type, full, meta) {
+                        const posId = parseInt(document.getElementById("hidPositionID").value, 10);
+                        console.log("Replace Doc Check → posId:", posId, 
+                                    "can_upload:", full.can_upload, 
+                                    "frc_destroyed:", full.frc_destroyed);
+
+                        if (posId >= 2 && full.can_upload === "y" && full.frc_destroyed === 0) {
+                            return "<a href='JavaScript:upload_doc(" + full.document_id + ")' title='Replace Document'><img class='img_14_14' src='/images/upl.png' /></a>";
+                        } else {
+                            return "";
+                        }
+                    }
                   },
                   {
                      // update document index
                      "render": function(data, type, full, meta) {
                         if (document.getElementById("hidPositionID").value >= 2 && full.can_modify_index == "y" && full.frc_destroyed == 0) {
-                           return "<a href='JavaScript:update_doc(" + full.document_id + ")' title='Update Document'><img class='img_16_16' src='../images/Update File.png'/></a>";
+                           return "<a href='JavaScript:update_doc(" + full.document_id + ")' title='Update Document'><img class='img_16_16' src='/images/Update File.png'/></a>";
                         } else return "";
                      }
                   },
