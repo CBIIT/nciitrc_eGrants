@@ -53,7 +53,7 @@ namespace eGrants.Tests.Integration
             var commonService = new CommonService(commonRepository);
             var eGrantsService = new eGrantsService(eGrantsRepository);
             var sessionInfoService = new SessionInfoService();
-            var documentService = new DocumentService(documentRepository, sessionInfoService);
+            var documentService = new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService);
 
             var controller = new EgrantsController(eGrantsService, commonService, documentService, sessionInfoService);
             var httpContext = new DefaultHttpContext();
@@ -422,6 +422,65 @@ namespace eGrants.Tests.Integration
             Assert.Equal("~/Views/Index.cshtml", result.ViewName);
             Assert.IsType<eGrantsSearchViewModel>(result.Model);
 
+        }
+        #endregion
+
+        #region load_data_autocomplete tests
+
+        [Fact]
+        public async Task LoadDataAutocomplete_ReturnsJsonResult_WithExpectedData()
+        {
+            using var context = CreateDevDbContext();
+
+            var controller = CreateController(context);
+
+            var result = await controller.load_data_autocomplete(
+                type: "fy",
+                term: "cancer",
+                mechanism: "R01",
+                fy: "2023",
+                admincode: "NCI",
+                serialnum: "123456");
+
+            var jsonResult = Assert.IsType<JsonResult>(result);
+            Assert.NotNull(jsonResult.Value);
+            Assert.IsAssignableFrom<IEnumerable<object>>(jsonResult.Value); // Replace object with expected type if known
+        }
+
+        [Fact]
+        public async Task LoadDataAutocomplete_HandlesNullAndUndefinedParameters()
+        {
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context);
+
+            var result = await controller.load_data_autocomplete(
+                type: "mechanism",
+                term: "therapy",
+                mechanism: null,
+                fy: null,
+                admincode: "undefined",
+                serialnum: null);
+
+            var jsonResult = Assert.IsType<JsonResult>(result);
+            Assert.NotNull(jsonResult.Value);
+        }
+
+        [Fact]
+        public async Task LoadDataAutocomplete_IgnoresInvalidIntegerInputs()
+        {
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context);
+
+            var result = await controller.load_data_autocomplete(
+                type: "serialnum",
+                term: "genomics",
+                mechanism: "U01",
+                fy: "notanumber",
+                admincode: "NCI",
+                serialnum: "invalid");
+
+            var jsonResult = Assert.IsType<JsonResult>(result);
+            Assert.NotNull(jsonResult.Value);
         }
         #endregion
 

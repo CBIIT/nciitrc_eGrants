@@ -158,7 +158,6 @@ function show_supplement(grant_id, act) {
 
 function view_supplement(grant_id, act) {
     var url = '@Url.Action("LoadSupplement", "EgrantsDoc")?act=' + act + '&grantId=' + grant_id;
-    alert(url);
 }
 
 // after delete or store doc
@@ -170,7 +169,7 @@ function refresh_after_modify() {
 // to create new document without selected grant year
 function create_new() {
     var previous_url = encodeURIComponent(currenturl);
-    var url = '@Url.Action("doc_create_without_applid", "EgrantsDoc")?previous_url=' + previous_url;
+    var url = '/EgrantsDoc/doc_create_without_applid?previous_url=' + previous_url;
     window.document.location.href = url;
 }
 

@@ -1,9 +1,13 @@
-﻿using eGrants.Models;
+﻿
+using eGrants.DTOs;
+using eGrants.Models;
 
 namespace eGrants.Repositories.Interfaces
 {
     public interface IDocumentRepository
     {
+        Task<List<DocumentInformation>> GetDocInfo(int docId);
+
         // TODO:  Consider making this method asynchronous if the underlying data access supports it.
 
         /// <summary>
@@ -28,6 +32,24 @@ namespace eGrants.Repositories.Interfaces
         /// associated with the specified grant.
         /// </returns>
         Task<List<former_appls>> loadFormerAppls(int grantId);
+        /// <summary>
+        /// Asynchronously retrieves a list that could be uploaded by ic and it is for create new only
+        /// </summary>
+        /// <param name="ic">The unique identifier of the ic for which categories are being retrieved.</param>
+        /// <returns>
+        /// A task representing the asynchronous operation. The task result contains a list of <see cref="Categories"/> objects
+        /// associated with the specified grant.
+        /// </returns>
+        Task<List<CategoriesListDTO>> LoadCategories(string ic);
+        /// <summary>
+        /// Asynchronously retrieves the maximum category ID for a given IC.
+        /// </summary>
+        /// <param name="ic">The unique identifier of the ic for which categories are being retrieved.</param>
+        ///  <returns>
+        /// A task representing the asynchronous operation. The task result contains an int with the max cateogory id
+        /// </returns>
+        Task<int> GetMaxCategoryId(string ic);
+        Task<List<SubCategories>> LoadSubCategoryList();
 
         /// <summary>
         /// Asynchronously loads a list of unidentified documents associated with a specific user from the specified image server.

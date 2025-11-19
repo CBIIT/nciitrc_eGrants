@@ -317,5 +317,55 @@ namespace eGrants.Repositories
 
             return categoryList;
         }
+
+        public async Task<List<VwApplDTO>> LoadApplsByApplid(int? applId)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var GrantYearList = await context.VwAppls
+                .Where(vw => vw.grant_id == context.VwAppls
+                    .Where(a => a.appl_id == applId)
+                    .Select(a => a.grant_id)
+                    .FirstOrDefault())
+                    .OrderByDescending(vw => vw.support_year)
+                    .Select(vw => new VwApplDTO
+                    {
+                        appl_id = vw.appl_id,
+                        support_year = Convert.ToInt32(vw.support_year),
+                        full_grant_num = vw.full_grant_num ?? ""
+                    })
+                    .ToListAsync();
+                return GrantYearList;
+            }
+
+        }
+
+        public async Task<List<string>> LoadDataAutocomplete(string sqlQuery, string term, string mechanism, string fy, string adminCode, string serialNum)
+        {
+            var dataList = new List<string>();
+
+            await using var connection = new SqlConnection(_context.Database.GetConnectionString());
+            await connection.OpenAsync().ConfigureAwait(false);
+
+            await using var command = new SqlCommand(sqlQuery, connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.Add("@term", SqlDbType.VarChar).Value = term;
+            command.Parameters.Add("@fy", SqlDbType.VarChar).Value = fy;
+            command.Parameters.Add("@mechanism", SqlDbType.VarChar).Value = mechanism;
+            command.Parameters.Add("@admincode", SqlDbType.VarChar).Value = adminCode;
+            command.Parameters.Add("@serialnum", SqlDbType.VarChar).Value = serialNum;
+
+            await using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+            while (await reader.ReadAsync().ConfigureAwait(false))
+            {
+                dataList.Add(reader[0].ToString());
+            }
+
+            return dataList;
+        }
     }
 }
