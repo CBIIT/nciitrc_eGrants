@@ -619,6 +619,59 @@ namespace eGrants.Tests.Unit.Service
             _mockRepo.Verify(repo => repo.GetGrantID(applId), Times.Once);
         }
         #endregion
+
+        #region LoadDataAutocomplete Tests
+
+        [Fact]
+        public async Task LoadDataAutocomplete_ReturnsExpectedList_WhenRepositorySucceeds()
+        {
+            // Arrange
+            string type = "mechanism";
+            string term = "abc";
+            string sqlQuery = "sp_web_egrants_load_data_autocomplete_mechanism";
+            var expected = new List<string> { "M1", "M2" };
+
+            _mockRepo.Setup(r => r.LoadDataAutocomplete(sqlQuery, term, null, null, null, null))
+                     .ReturnsAsync(expected);
+
+            // Act
+            var result = await _service.LoadDataAutocomplete(type, term);
+
+            // Assert
+            Assert.Equal(expected, result);
+            _mockRepo.Verify(r => r.LoadDataAutocomplete(sqlQuery, term, null, null, null, null), Times.Once);
+        }
+
+        [Fact]
+        public async Task LoadDataAutocomplete_LogsAndThrows_WhenRepositoryThrows()
+        {
+            // Arrange
+            string type = "fy";
+            string term = "2025";
+            string sqlQuery = "sp_web_egrants_load_data_autocomplete_fy";
+            var exception = new Exception("Stored procedure failed");
+
+            _mockRepo.Setup(r => r.LoadDataAutocomplete(sqlQuery, term, null, null, null, null))
+                     .ThrowsAsync(exception);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<Exception>(() => _service.LoadDataAutocomplete(type, term));
+
+            // Assert
+            Assert.Equal("Stored procedure failed", ex.Message);
+
+            _mockLogger.Verify(
+                l => l.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) =>
+                        v.ToString().Contains("Error executing LoadDataAutocomplete")),
+                    It.Is<Exception>(ex => ex.Message == "Stored procedure failed"),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                Times.Once);
+        }
+
+        #endregion
     }
 }
 

@@ -126,6 +126,8 @@ namespace eGrants.Repositories.Interfaces
         /// <param name="years">The year(s) to filter by.</param>
         /// <returns>A task that returns a list of category names as strings.</returns>
         Task<List<string>> GetCategoryList(int grantId, string years);
+        Task<List<VwApplDTO>> LoadApplsByApplid(int? applId);
 
+        Task<List<string>> LoadDataAutocomplete(string sql_query, string term, string mechanism, string fy, string adminCode, string serialNum);
     }
 }

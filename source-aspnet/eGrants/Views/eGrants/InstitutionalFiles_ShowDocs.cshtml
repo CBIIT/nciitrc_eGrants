@@ -74,6 +74,11 @@
         opacity: 0.75;
         display: none;
     }
+
+    a:hover {
+        color: #1a73e8; /* visible contrast */
+        background: transparent; /* if a background is applied on hover, ensure contrast */
+    }
 </style>
 
 
@@ -90,7 +95,7 @@
 </script>
 
 
-<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/css/datatables.bootstrap4.min.css" rel="stylesheet" />
 @{
     var rowclass = string.Empty;
 }

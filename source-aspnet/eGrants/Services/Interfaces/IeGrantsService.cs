@@ -198,5 +198,29 @@ namespace eGrants.Services.Interfaces
         /// If no grant is found for the specified applicant ID, the result is null.
         /// </returns>
         public Task<int?> GetGrantID(int applId);
+        /// <summary>
+        /// Retrieves a list of application layer objects associated with the specified application ID.
+        /// </summary>
+        /// <param name="applId">The application ID to filter the application layer objects.</param>
+        /// <returns>
+        /// A Task representing the asynchronous operation, with the result being a list of 
+        /// <see cref="ApplLayerObject"/> objects associated with the given application ID.
+        /// </returns>
+        public Task<List<VwApplDTO>> LoadApplsByApplid(int? applId);
+
+        /// <summary>
+        /// Asynchronously retrieves a list of autocomplete suggestions based on the specified type and search parameters.
+        /// </summary>
+        /// <param name="type">The category or context of the autocomplete data to retrieve (e.g., organization, location, etc.).</param>
+        /// <param name="term">The search term used to filter autocomplete suggestions.</param>
+        /// <param name="mechanism">An optional filter to narrow results by mechanism type.</param>
+        /// <param name="fy">An optional filter to narrow results by fiscal year.</param>
+        /// <param name="admincode">An optional filter to narrow results by administrative code.</param>
+        /// <param name="serialnum">An optional filter to narrow results by serial number.</param>
+        /// <returns>
+        /// A task representing the asynchronous operation, containing a list of matching autocomplete suggestions as strings.
+        /// Returns an empty list if no matches are found.
+        /// </returns>
+        public Task<List<string>> LoadDataAutocomplete(string type, string term, string mechanism = null, string fy = null, string adminCode = null, string serialNum = null);
     }
 }
