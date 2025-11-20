@@ -50,5 +50,15 @@ namespace eGrants.Repositories.Interfaces
         /// </returns>
         Task<int> GetMaxCategoryId(string ic);
         Task<List<SubCategories>> LoadSubCategoryList();
+
+        /// <summary>
+        /// Asynchronously loads a list of unidentified documents associated with a specific user from the specified image server.
+        /// </summary>
+        /// <param name="imageServer">The address or identifier of the image server where the documents are stored.</param>
+        /// <param name="userId">The unique identifier of the user whose unidentified documents are to be retrieved.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains a list of <see cref="DocsUnidentified"/> objects.
+        /// </returns>
+        Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId);
     }
 }

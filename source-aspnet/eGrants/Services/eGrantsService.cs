@@ -43,7 +43,6 @@ namespace eGrants.Services
             else
             {
                 searchByStrViewModel.Str = searchString;
-                //searchByStrViewModel.Mode = aMode;
                 searchByStrViewModel.CurrentTab = 1;
                 searchByStrViewModel.CurrentPage = 1;
                 searchByStrViewModel.SearchStyle = "by_str";
@@ -86,6 +85,69 @@ namespace eGrants.Services
             return searchByStrViewModel;
         }
 
+        public async Task<eGrantsSearchViewModel> GetEgrantsByPageAsync(
+            string searchString,
+            int grantId,
+            int applId,
+            int currentPage,
+            int tabNum,
+            SessionInfo sessionInfo,
+            IDocumentService _documentService)
+        {
+            var viewModel = new eGrantsSearchViewModel
+            {
+                Str = searchString,
+                CurrentTab = tabNum,
+                CurrentPage = currentPage,
+                SearchStyle = "by_page"
+            };
+
+            // Guard clause for invalid input
+            if (string.IsNullOrEmpty(searchString) || currentPage == 0 || tabNum == 0)
+            {
+                viewModel.Message = "No data found for the search";
+                viewModel.grantlayer = null;
+                return viewModel;
+            }
+
+            try
+            {
+                viewModel = await eGrantsSearchResults(
+                    searchString,
+                    grantId,
+                    string.Empty,
+                    applId,
+                    currentPage,
+                    sessionInfo,
+                    viewModel,
+                    true);
+            }
+            catch (Exception ex)
+            {
+                // Log exception if needed, but don’t swallow silently
+                viewModel.Message = $"Error occurred: {ex.Message}";
+                viewModel.grantlayer = null;
+            }
+
+            // Load pagination
+            viewModel.Pagination = await LoadPagination(
+                searchString,
+                sessionInfo.Ic,
+                sessionInfo.UserId,
+                string.Empty);
+
+            // Load unidentified docs only for "qc"
+            if (searchString.Equals("qc", StringComparison.OrdinalIgnoreCase))
+            {
+                viewModel.UnidentifiedDocs = await _documentService.LoadDocsUnidentified(
+                    sessionInfo.ImageServerUrl,
+                    sessionInfo.UserId);
+            }
+
+            return viewModel;
+        }
+
+
         public async Task<eGrantsSearchViewModel> GetEgrantsByFilterAsync(int fiscalYear, string mechanism, int serialNum, string adminCode, int grantId, int applId, int currentPage, SessionInfo sessionInfo, int tabNum, string package)
         {
             eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
@@ -123,7 +185,7 @@ namespace eGrants.Services
                 }
                 else
                 {
-                    searchByStrViewModel.FilterFY = null; // string.Empty;
+                    searchByStrViewModel.FilterFY = null;
                 }
 
                 if (serialNum != 0)
