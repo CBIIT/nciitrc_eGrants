@@ -388,14 +388,18 @@
                   { "data": "page_count", "autoWidth": true },
                   {
                      // replace document image
-                       "render": function(data, type, full, meta) {
-                           const posId = parseInt(document.getElementById("hidPositionID").value, 10);
-                           if (posId >= 2 && full.can_upload === "y" && full.frc_destroyed === 0) {
-                               return "<a href='JavaScript:upload_doc(" + full.document_id + ")' title='Replace Document'><img class='img_14_14' src='/images/upl.png' /></a>";
-                           } else {
-                               return "";
-                           }
-                       }
+                    "render": function(data, type, full, meta) {
+                        const posId = parseInt(document.getElementById("hidPositionID").value, 10);
+                        console.log("Replace Doc Check → posId:", posId, 
+                                    "can_upload:", full.can_upload, 
+                                    "frc_destroyed:", full.frc_destroyed);
+
+                        if (posId >= 2 && full.can_upload === "y" && full.frc_destroyed === 0) {
+                            return "<a href='JavaScript:upload_doc(" + full.document_id + ")' title='Replace Document'><img class='img_14_14' src='/images/upl.png' /></a>";
+                        } else {
+                            return "";
+                        }
+                    }
                   },
                   {
                      // update document index
