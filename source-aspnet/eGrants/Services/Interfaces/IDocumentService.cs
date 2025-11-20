@@ -32,6 +32,7 @@ namespace eGrants.Services.Interfaces
             int serialNum,
             SessionInfo sessionInfo);
         public Task<DocumentCreateOrUploadResult> DocUploadByDdropAsync(IFormFile dropedfile, int docId, SessionInfo sessionInfo);
+        public Task<DocumentCreateOrUploadResult> DocUploadByFileAsync(IFormFile file, int docId, SessionInfo sessionInfo);
 
     }
 }

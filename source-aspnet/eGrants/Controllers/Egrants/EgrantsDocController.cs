@@ -1009,75 +1009,22 @@ namespace eGrants.Controllers.Egrants
         //    return this.View("~/Egrants/Views/_Modal_Doc_Upload.cshtml");
         //}
 
-        //// to upload doc by file --added at 4/15/2019 FOR REFRESH AFTER UPLOAD
-        ///// <summary>
-        ///// The doc_upload_by_file.
-        ///// </summary>
-        ///// <param name="file">
-        ///// The file.
-        ///// </param>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
-        //[HttpPost]
-        //public ActionResult doc_upload_by_file(HttpPostedFileBase file, int doc_id)
-        //{
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
+        /// <summary>
+        /// Upload document by file.
+        /// </summary>
+        /// <param name="file">The file to upload.</param>
+        /// <param name="doc_id">The document ID.</param>
+        /// <returns>JSON result with upload status.</returns>
+        [HttpPost]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]        
+        public async Task<IActionResult> doc_upload_by_file(IFormFile file, int doc_id)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //    if (file != null && file.ContentLength > 0)
-        //        try
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(file.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
+            var result = await _documentService.DocUploadByFileAsync(file, doc_id, sessionInfo);
 
-        //            // update url for document
-        //            EgrantsDoc.doc_modify(
-        //                "to_upload",
-        //                0,
-        //                0,
-        //                string.Empty,
-        //                string.Empty,
-        //                Convert.ToString(doc_id),
-        //                fileExtension,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            // get document id and create new document name       
-        //            docName = Convert.ToString(doc_id) + fileExtension;
-
-
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
-
-        //            var filePath = Path.Combine(fileFolder, docName);
-        //            file.SaveAs(filePath);
-
-
-        //            // create review url
-        //            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
-        //                                                                                 + Convert.ToString(docName);
-
-        //            this.ViewBag.Message = "Done! New document has been created";
-
-        //            // ViewBag.Message = "please waiting window refresh...";
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = this.ViewBag.Message;
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            this.ViewBag.Message = "ERROR:" + ex.Message;
-        //        }
-        //    else
-        //        this.ViewBag.Message = "Error while uploading the files.";
-
-        //    return this.Json(new { url, message = mssg });
-        //}
+            return Json(new { url = result.Url, message = result.Message });
+        }
 
         //// to upload doc by pdf file --added at 4/15/2019 FOR REFRESH AFTER UPLOAD
         ///// <summary>
