@@ -44,7 +44,6 @@ namespace eGrants.Tests.Unit
         public async Task DocUploadDefaultAsync_WithValidDocId_ReturnsViewModelWithDocumentData()
         {
             // Arrange
-            var date = DateTime.Now;
             var documentInfo = new List<DocumentInformation>
             {
                 new DocumentInformation
@@ -52,7 +51,6 @@ namespace eGrants.Tests.Unit
                     document_id = 123,
                     appl_id = 123456,
                     document_name = "Test Document",
-                    document_date = date,
                     full_grant_num = "1R01CA123456-01"
                 }
             };
@@ -72,7 +70,6 @@ namespace eGrants.Tests.Unit
             Assert.Equal(123, result.DocId);
             Assert.Equal(123456, result.ApplId);
             Assert.Equal("Test Document", result.DocName);
-            Assert.Equal(date, result.DocDate);
             Assert.Equal("1R01CA123456-01", result.FullGrantNum);
         }
 
@@ -189,7 +186,6 @@ namespace eGrants.Tests.Unit
             Assert.Equal(123456, result.ApplId);
             Assert.Equal(123, result.DocId);
             Assert.Equal("Research Grant", result.SubCategory);
-            Assert.Equal(date, result.DocDate);
             Assert.Equal("http://previous.url", result.PreviousUrl);
             Assert.Equal("default", result.Status);
         }
