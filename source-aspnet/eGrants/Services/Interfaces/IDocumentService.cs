@@ -22,5 +22,7 @@ namespace eGrants.Services.Interfaces
         public Task<eGrantsDocUpdateViewModel> DocUpdateDefaultAsync(int docId, string previousUrl, SessionInfo sessionInfo);
         public Task<eGrantsDocCreateViewModel> DocCreateWithoutApplIdAsync(string previousUrl, SessionInfo sessionInfo);
 
+        public Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId);
+
     }
 }

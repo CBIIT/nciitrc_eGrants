@@ -14,6 +14,7 @@ namespace eGrants.Services
                 Ic = session.TryGetValue("ic", out var icBytes) && icBytes != null ? System.Text.Encoding.UTF8.GetString(icBytes) : "",
                 Browser = session.TryGetValue("browser", out var browserBytes) && browserBytes != null ? System.Text.Encoding.UTF8.GetString(browserBytes) : "",
                 UserId = session.TryGetValue("userid", out var userBytes) && userBytes != null ? System.Text.Encoding.UTF8.GetString(userBytes) : "",
+                ImageServerUrl = session.TryGetValue("imageServerUrl", out var imgServerBytes) && imgServerBytes != null ? System.Text.Encoding.UTF8.GetString(imgServerBytes) : "",
             };
         }
     }
