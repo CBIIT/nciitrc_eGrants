@@ -78,7 +78,7 @@ namespace eGrants.DAL
             modelBuilder.Entity<categories_subcat_lookup>().HasNoKey();
             // same question as line 68
             modelBuilder.Entity<categories_subcat_lookup>().ToTable("categories_subcat_lookup");
-            modelBuilder.Entity<Egrants>().HasNoKey().ToView("egrants");
+            //modelBuilder.Entity<Egrants>().HasNoKey().ToView("egrants");
         }
     }
 }

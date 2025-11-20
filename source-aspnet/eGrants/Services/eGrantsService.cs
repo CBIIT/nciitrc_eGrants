@@ -20,7 +20,6 @@ namespace eGrants.Services
     {
         // Dependency injection of a product repository to access data
         private readonly IeGrantsRepository _eGrantRepository;
-        //private readonly IDocumentService _documentService;
         private readonly ILogger<IeGrantsService> _logger;
         const int MAX_RETRIES = 3;
 
@@ -28,7 +27,6 @@ namespace eGrants.Services
         public eGrantsService(IeGrantsRepository eGrantRepository, ILogger<IeGrantsService> logger = null)
         {
             _eGrantRepository = eGrantRepository;
-            //_documentService = documentService;
             _logger = logger;
         }
 
@@ -45,7 +43,6 @@ namespace eGrants.Services
             else
             {
                 searchByStrViewModel.Str = searchString;
-                //searchByStrViewModel.Mode = aMode;
                 searchByStrViewModel.CurrentTab = 1;
                 searchByStrViewModel.CurrentPage = 1;
                 searchByStrViewModel.SearchStyle = "by_str";
@@ -87,54 +84,6 @@ namespace eGrants.Services
 
             return searchByStrViewModel;
         }
-
-        //public async Task<eGrantsSearchViewModel> GetEgrantsByPageAsync(string searchString, int grantId, int applId, int currentPage, int tabNum, SessionInfo sessionInfo)
-        //{
-        //    eGrantsSearchViewModel searchByStrViewModel = new eGrantsSearchViewModel();
-
-        //    if (string.IsNullOrEmpty(searchString))
-        //    {
-        //        searchByStrViewModel.Message = "No data found for the search";
-        //        searchByStrViewModel.grantlayer = null;
-        //    }
-        //    else if (currentPage == 0 || tabNum == 0)
-        //    {
-        //        searchByStrViewModel.Message = "No data found for the search";
-        //        searchByStrViewModel.grantlayer = null;
-        //    }
-        //    else
-        //    {
-        //        searchByStrViewModel.Str = searchString;
-        //        searchByStrViewModel.CurrentTab = tabNum;
-        //        searchByStrViewModel.CurrentPage = currentPage;
-        //        searchByStrViewModel.SearchStyle = "by_page";
-
-        //        Exception exceptionKeeper = null;
-
-        //        try
-        //        {
-        //            searchByStrViewModel = await eGrantsSearchResults(searchString, grantId, "", applId, currentPage, sessionInfo, searchByStrViewModel, true);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            exceptionKeeper = ex;
-        //        }
-        //    }
-
-
-        //    searchByStrViewModel.Pagination = await LoadPagination(
-        //            searchString,
-        //            sessionInfo.Ic,
-        //            sessionInfo.UserId,
-        //            string.Empty);
-
-        //    if (searchString == "qc")
-        //    {
-        //        searchByStrViewModel.UnidentifiedDocs = await _documentService.LoadDocsUnidentified(sessionInfo.ImageServerUrl, sessionInfo.UserId);
-        //    }
-
-        //    return searchByStrViewModel;
-        //}
 
         public async Task<eGrantsSearchViewModel> GetEgrantsByPageAsync(
             string searchString,
@@ -236,7 +185,7 @@ namespace eGrants.Services
                 }
                 else
                 {
-                    searchByStrViewModel.FilterFY = null; // string.Empty;
+                    searchByStrViewModel.FilterFY = null;
                 }
 
                 if (serialNum != 0)
@@ -488,8 +437,7 @@ namespace eGrants.Services
             searchByStrViewModel.SearchResults = result;
 
             if (searchByStrViewModel.SearchResults == null)
-                //searchByStrViewModel.SearchResults = new List<eGrantsSearchResults>();
-                return new eGrantsSearchViewModel();// searchByStrViewModel;
+                return new eGrantsSearchViewModel();
 
             int appl_id = 0;
             var grantList = new List<GrantLayer>();
