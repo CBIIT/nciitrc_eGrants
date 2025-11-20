@@ -23,14 +23,7 @@ namespace eGrants.Services.Interfaces
         public Task<eGrantsDocUploadViewModel> DocUploadDefaultAsync(int docId);
         public Task<eGrantsDocUpdateViewModel> DocUpdateDefaultAsync(int docId, string previousUrl, SessionInfo sessionInfo);
         public Task<eGrantsDocCreateViewModel> DocCreateWithoutApplIdAsync(string previousUrl, SessionInfo sessionInfo);
-        public Task<DocumentCreateOrUploadResult> DocCreateByDdropAsync(IFormFile dropedfile,
-            int applId,
-            int categoryId,
-            string subCategory,
-            DateTime docDate,
-            string adminCode,
-            int serialNum,
-            SessionInfo sessionInfo);
+        //for later //public Task<DocumentCreateOrUploadResult> DocCreateByDdropAsync(IFormFile dropedfile, int applId, int categoryId, string subCategory, DateTime docDate, string adminCode, int serialNum, SessionInfo sessionInfo); 
         public Task<DocumentCreateOrUploadResult> DocUploadByDdropAsync(IFormFile dropedfile, int docId, SessionInfo sessionInfo);
         public Task<DocumentCreateOrUploadResult> DocUploadByFileAsync(IFormFile file, int docId, SessionInfo sessionInfo);
 
