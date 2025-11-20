@@ -72,7 +72,7 @@ namespace eGrants.Services
                 eDocViewModel.DocId = doc.document_id;
                 eDocViewModel.ApplId = doc.appl_id;
                 eDocViewModel.DocName = doc.document_name;
-                eDocViewModel.DocDate = doc.document_date;
+                eDocViewModel.DocDate = doc.document_date.HasValue ? doc.document_date.Value.ToString("MM/dd/yyyy") : string.Empty;
                 eDocViewModel.FullGrantNum = doc.full_grant_num;
             }
 
@@ -95,7 +95,7 @@ namespace eGrants.Services
                 eDocViewModel.DocId = doc.document_id;
                 eDocViewModel.CategoryId = doc.category_id;
                 eDocViewModel.SubCategory = doc.sub_category_name;
-                eDocViewModel.DocDate = doc.document_date;
+                eDocViewModel.DocDate = doc.document_date.HasValue ? doc.document_date.Value.ToString("MM/dd/yyyy") : string.Empty;
                 eDocViewModel.PreviousUrl = previousUrl;
                 eDocViewModel.Status = "default";
             }
@@ -211,19 +211,19 @@ namespace eGrants.Services
                     // Get document id and create new document name
                     docName = Convert.ToString(docId) + fileExtension;
 
-                    // Update url for document
-                    //await _documentRepository.ModifyDocument(
-                    //    "to_upload",
-                    //    0,
-                    //    0,
-                    //    string.Empty,
-                    //    string.Empty,
-                    //    Convert.ToString(docId),
-                    //    fileExtension,
-                    //    sessionInfo.Ic,
-                    //    sessionInfo.UserId);
+                    //Update url for document
+                    _documentRepository.DocModify(
+                       "to_upload",
+                       0,
+                       0,
+                       string.Empty,
+                       string.Empty,
+                       Convert.ToString(docId),
+                       fileExtension,
+                       sessionInfo.Ic,
+                       sessionInfo.UserId);
 
-                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\modify\\";
+                   var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\modify\\";
                     var filePath = Path.Combine(fileFolder, docName);
                     // Save the file using FileStream
                     using (var stream = new FileStream(filePath, FileMode.Create))

@@ -205,5 +205,6 @@ namespace eGrants.Services.Interfaces
         /// Returns an empty list if no matches are found.
         /// </returns>
         public Task<List<string>> LoadDataAutocomplete(string type, string term, string mechanism = null, string fy = null, string adminCode = null, string serialNum = null);
+        public Task<List<string>> GetAllApplsListAsync(string adminCode, string serialNum);
     }
 }

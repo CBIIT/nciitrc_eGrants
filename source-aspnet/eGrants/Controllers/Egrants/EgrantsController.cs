@@ -551,27 +551,25 @@ namespace eGrants.Controllers.Egrants
             return JsonConvert.SerializeObject(yearList);
         }
 
-        //    // load all appls list with or without documents
-        //    /// <summary>
-        //    /// The get all appls list.
-        //    /// </summary>
-        //    /// <param name="admin_code">
-        //    /// The admin_code.
-        //    /// </param>
-        //    /// <param name="serial_num">
-        //    /// The serial_num.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="string"/>.
-        //    /// </returns>
-        //    public string GetAllApplsList(string admin_code, string serial_num)
-        //    {
-        //        // string fy, string mechan, s
-        //        var list = EgrantsAppl.GetAllApplsList(admin_code, serial_num);
+        // load all appls list with or without documents
+        /// <summary>
+        /// The get all appls list.
+        /// </summary>
+        /// <param name="adminCode">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serialNum">
+        /// The serial_num.
+        /// </param>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
+        public async Task<string> GetAllApplsList(string adminCode, string serialNum)
+        {
+            var list = await _eGrantsService.GetAllApplsListAsync(adminCode, serialNum);
 
-        //        // JavaScriptSerializer js = new JavaScriptSerializer();
-        //        return JsonConvert.SerializeObject(list);
-        //    }
+            return JsonConvert.SerializeObject(list);
+        }
 
         // get category list by grant_id and years
         /// <summary>
