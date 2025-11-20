@@ -73,11 +73,14 @@
 
 #endregion
 
+using System.Web;
+
 using eGrants.Models;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace eGrants.Controllers.Egrants
 {
@@ -1006,75 +1009,22 @@ namespace eGrants.Controllers.Egrants
         //    return this.View("~/Egrants/Views/_Modal_Doc_Upload.cshtml");
         //}
 
-        //// to upload doc by file --added at 4/15/2019 FOR REFRESH AFTER UPLOAD
-        ///// <summary>
-        ///// The doc_upload_by_file.
-        ///// </summary>
-        ///// <param name="file">
-        ///// The file.
-        ///// </param>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
-        //[HttpPost]
-        //public ActionResult doc_upload_by_file(HttpPostedFileBase file, int doc_id)
-        //{
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
+        /// <summary>
+        /// Upload document by file.
+        /// </summary>
+        /// <param name="file">The file to upload.</param>
+        /// <param name="doc_id">The document ID.</param>
+        /// <returns>JSON result with upload status.</returns>
+        [HttpPost]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]        
+        public async Task<IActionResult> doc_upload_by_file(IFormFile file, int doc_id)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //    if (file != null && file.ContentLength > 0)
-        //        try
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(file.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
+            var result = await _documentService.DocUploadByFileAsync(file, doc_id, sessionInfo);
 
-        //            // update url for document
-        //            EgrantsDoc.doc_modify(
-        //                "to_upload",
-        //                0,
-        //                0,
-        //                string.Empty,
-        //                string.Empty,
-        //                Convert.ToString(doc_id),
-        //                fileExtension,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            // get document id and create new document name       
-        //            docName = Convert.ToString(doc_id) + fileExtension;
-
-
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
-
-        //            var filePath = Path.Combine(fileFolder, docName);
-        //            file.SaveAs(filePath);
-
-
-        //            // create review url
-        //            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
-        //                                                                                 + Convert.ToString(docName);
-
-        //            this.ViewBag.Message = "Done! New document has been created";
-
-        //            // ViewBag.Message = "please waiting window refresh...";
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = this.ViewBag.Message;
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            this.ViewBag.Message = "ERROR:" + ex.Message;
-        //        }
-        //    else
-        //        this.ViewBag.Message = "Error while uploading the files.";
-
-        //    return this.Json(new { url, message = mssg });
-        //}
+            return Json(new { url = result.Url, message = result.Message });
+        }
 
         //// to upload doc by pdf file --added at 4/15/2019 FOR REFRESH AFTER UPLOAD
         ///// <summary>
@@ -1202,92 +1152,86 @@ namespace eGrants.Controllers.Egrants
         //    return this.Json(new { url, message = mssg });
         //}
 
-        //// to upload doc by dragdrop---added at 4/15/2019 FOR REFRESH AFTER UPLOAD
-        ///// <summary>
-        ///// The doc_upload_by_ddrop.
-        ///// </summary>
-        ///// <param name="dropedfile">
-        ///// The dropedfile.
-        ///// </param>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
+        // to create doc by dragdrop
+        /// <summary>
+        /// The doc_create_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="doc_date">
+        /// The doc_date.
+        /// </param>
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        /// 
+        /// TO BE IMPLEMENTED LATER in ADD DOCUMENT FUNCTIONALITY TICKET ---------------------------------------------
+        /// 
+        //[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         //[HttpPost]
-        //public ActionResult doc_upload_by_ddrop(HttpPostedFileBase dropedfile, int doc_id)
+        //public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         //{
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
-
-        //    if (dropedfile != null && dropedfile.ContentLength > 0)
-        //        try
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(dropedfile.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
-
-        //            // get document id and create new document name       
-        //            docName = Convert.ToString(doc_id) + fileExtension;
-
-        //            // update url for document
-        //            EgrantsDoc.doc_modify(
-        //                "to_upload",
-        //                0,
-        //                0,
-        //                string.Empty,
-        //                string.Empty,
-        //                Convert.ToString(doc_id),
-        //                fileExtension,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
-
-        //            var filePath = Path.Combine(fileFolder, docName);
-        //            dropedfile.SaveAs(filePath);
-
-
-        //            // create review url
-        //            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
-        //                                                                                    + Convert.ToString(docName);
-
-        //            this.ViewBag.Message = "Done! New document has been created";
-
-        //            // ViewBag.Message = "please waiting window refresh...";
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = this.ViewBag.Message;
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            this.ViewBag.Message = "ERROR:" + ex.Message;
-        //        }
-        //    else
-        //        this.ViewBag.Message = "Error while uploading the files.";
-
-        //    return this.Json(new { url, message = mssg });
+        //    var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+        //    var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
+        //    return Json(new { url = result.Url, message = result.Message });
         //}
 
-        //// to upload pdf docs by dragdrop
-        ///// <summary>
-        ///// The doc_upload_by_ddrop.
-        ///// </summary>
-        ///// <param name="dropedfile">
-        ///// The dropedfile.
-        ///// </param>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
+        // to upload pdf docs by dragdrop
+        /// <summary>
+        /// The doc_upload_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="docId">
+        /// The doc_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpPost]
+        public async Task<ActionResult> doc_upload_by_ddrop(IFormFile dropedfile, int docId)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            var result = await _documentService.DocUploadByDdropAsync(dropedfile, docId, sessionInfo);
+
+            return Json(new { url = result.Url, message = result.Message });
+        }
+
+        // to upload pdf docs by dragdrop
+        /// <summary>
+        /// The doc_upload_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="doc_id">
+        /// The doc_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
         //[OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
         //[HttpPost]
-        //public ActionResult doc_upload_pdf_by_ddrop(IEnumerable<HttpPostedFileBase> dropedfiles, int doc_id)
+        //public ActionResult doc_upload_pdf_by_ddrop(IEnumerable<HttpPostedFileBase> dropedfiles, int docId)
         //{
         //    var docName = string.Empty;
         //    string url = null;
@@ -1430,60 +1374,53 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
         }
 
-        ///// <summary>
-        ///// The doc_index_modify.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="appl_id">
-        ///// The appl_id.
-        ///// </param>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="sub_category">
-        ///// The sub_category.
-        ///// </param>
-        ///// <param name="document_date">
-        ///// The document_date.
-        ///// </param>
-        ///// <param name="previous_url">
-        ///// The previous_url.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult doc_index_modify(
-        //    string act,
-        //    int appl_id,
-        //    int document_id,
-        //    int category_id,
-        //    string sub_category,
-        //    string document_date,
-        //    string previous_url)
-        //{
-        //    this.ViewBag.Status = "Done";
-        //    this.ViewBag.applid = appl_id;
-        //    this.ViewBag.Previousurl = previous_url;
-        //    var docids = Convert.ToString(document_id);
+        /// <summary>
+        /// The doc_index_modify.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="applId">
+        /// The appl_id.
+        /// </param>
+        /// <param name="document_id">
+        /// The document_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="document_date">
+        /// The document_date.
+        /// </param>
+        /// <param name="previous_url">
+        /// The previous_url.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        /// <summary>
+        /// The doc_index_modify.
+        /// </summary>
+        /// <param name="act">The act.</param>
+        /// <param name="appl_id">The appl_id.</param>
+        /// <param name="document_id">The document_id.</param>
+        /// <param name="category_id">The category_id.</param>
+        /// <param name="sub_category">The sub_category.</param>
+        /// <param name="document_date">The document_date.</param>
+        /// <param name="previous_url">The previous_url.</param>
+        /// <returns>The <see cref="ActionResult"/>.</returns>
+        public async Task<ActionResult> doc_index_modify(string act, int appl_id, int document_id, int category_id, string sub_category, string document_date, string previous_url)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            var docids = Convert.ToString(document_id);
 
-        //    EgrantsDoc.doc_modify(
-        //        act,
-        //        appl_id,
-        //        category_id,
-        //        sub_category,
-        //        document_date,
-        //        docids,
-        //        string.Empty,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            await _documentService.DocIndexModifyAsync(act, appl_id, category_id, sub_category, document_date, docids, sessionInfo);
 
-        //    return this.Redirect(previous_url);
-        //}
+            return Redirect(previous_url);
+        }
 
         //// to modify document index for unidentified documrnt
         ///// <summary>
