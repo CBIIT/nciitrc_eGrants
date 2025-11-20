@@ -317,5 +317,22 @@ namespace eGrants.Services
 
             return result;
         }
+
+        public async Task DocIndexModifyAsync(string act, int applId, int categoryId, string subCategory, string documentDate, string docIds, SessionInfo sessionInfo)
+        {
+            await Task.Run(() =>
+            {
+                _documentRepository.DocModify(
+                    act,
+                    applId,
+                    categoryId,
+                    subCategory,
+                    documentDate,
+                    docIds,
+                    string.Empty,
+                    sessionInfo.Ic,
+                    sessionInfo.UserId);
+            });
+        }
     }
 }
