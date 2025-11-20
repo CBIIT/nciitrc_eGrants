@@ -1001,84 +1001,37 @@ namespace eGrants.Controllers.Egrants
         //        return View("~/Egrants/Views/Index.cshtml");
         //    }
 
-        //    /// <summary>
-        //    /// The by_page.
-        //    /// </summary>
-        //    /// <param name="str">
-        //    /// The str.
-        //    /// </param>
-        //    /// <param name="tab_num">
-        //    /// The tab_num.
-        //    /// </param>
-        //    /// <param name="page_num">
-        //    /// The page_num.
-        //    /// </param>
-        //    /// <param name="package">
-        //    /// The package.
-        //    /// </param>
-        //    /// <param name="mode">
-        //    /// The mode.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult by_page(string str = null, int tab_num = 0, int page_num = 0, string package = null, string mode = null)
-        //    {
-        //        ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+        /// <summary>
+        /// The by_page.
+        /// </summary>
+        /// <param name="str">
+        /// The str.
+        /// </param>
+        /// <param name="tabNum">
+        /// The tab_num.
+        /// </param>
+        /// <param name="pageNum">
+        /// The page_num.
+        /// </param>
+        /// <param name="package">
+        /// The package.
+        /// </param>
+        /// <param name="mode">
+        /// The mode.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> by_page(string str = null, int tabNum = 0, int pageNum = 0, string package = null, string mode = null)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //        if (string.IsNullOrEmpty(str))
-        //        {
-        //            ViewBag.Message = "No data found for the search";
-        //            ViewBag.grantlayer = null;
-        //        }
-        //        else if (page_num == 0 || tab_num == 0)
-        //        {
-        //            ViewBag.Message = "No data found for the search";
-        //            ViewBag.grantlayer = null;
-        //        }
-        //        else
-        //        {
-        //            ViewBag.SearchStyle = "by_page";
-        //            ViewBag.CurrentTab = tab_num;
-        //            ViewBag.CurrentPage = page_num;
-        //            ViewBag.Str = str;
-        //            ViewBag.Mode = mode;
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByPageAsync(str, 0, 0, pageNum, tabNum, sessionInfo, _documentService);
 
-        //            Search.egrants_search(
-        //                str,
-        //                0,
-        //                string.Empty,
-        //                0,
-        //                page_num,
-        //                Convert.ToString(this.Session["browser"]),
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            ViewBag.grantlayer = Search.grantlayerproperty;
-        //            ViewBag.appllayer = Search.appllayerproperty;
-        //            ViewBag.appllayer_All = Search.appllayerproperty;
-        //            ViewBag.ApplCount = ViewBag.appllayer.Count;
-        //            ViewBag.doclayer = Search.doclayerproperty;
-        //            ViewBag.DocCount = ViewBag.doclayer.Count;
-
-        //            if (str == "qc")
-        //                ViewBag.Mode = "qc";
-
-        //            // show Pagination 
-        //            ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
-        //                str,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]),
-        //                package);
-
-        //            if (str == "qc")
-        //                ViewBag.UnidentifiedDocs = EgrantsDoc.LoadDocsUnidentified(
-        //                    Convert.ToString(this.Session["ImageServerUrl"]),
-        //                    Convert.ToString(this.Session["userid"]));
-        //        }
-
-        //        return View("~/Egrants/Views/Index.cshtml");
-        //    }
+            eGrantsSearchViewModelList.Mode = str == "qc" ? "qc" : mode;
+            eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
+            return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
+        }
 
         // Autocomplete for fy, activity_code and serial_number
         /// <summary>

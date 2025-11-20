@@ -71,5 +71,13 @@ namespace eGrants.Repositories.Interfaces
         /// <param name="ic">The institute or center code associated with the document.</param>
         /// <param name="userId">The identifier of the user performing the modification, used for auditing purposes.</param>
         void DocModify(string act, int applId, int categoryId, string subCategory, string docDate, string docidStr, string fileType, string ic, string userId);
+        /// Asynchronously loads a list of unidentified documents associated with a specific user from the specified image server.
+        /// </summary>
+        /// <param name="imageServer">The address or identifier of the image server where the documents are stored.</param>
+        /// <param name="userId">The unique identifier of the user whose unidentified documents are to be retrieved.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains a list of <see cref="DocsUnidentified"/> objects.
+        /// </returns>
+        Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId);
     }
 }

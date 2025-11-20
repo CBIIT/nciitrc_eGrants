@@ -483,5 +483,40 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(jsonResult.Value);
         }
         #endregion
+
+        #region by_page controller tests
+
+        [Fact]
+        public async Task by_page_WithDefaultParameters_ReturnsCorrectViewAndModel()
+        {
+            // Arrange: create a test database context and session
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.Set("userid", Encoding.UTF8.GetBytes("user123"));
+            session.Set("ic", Encoding.UTF8.GetBytes("1"));
+
+            var controller = CreateController(context, session);
+
+            // Act: call the controller method with default parameters
+            var result = await controller.by_page() as ViewResult;
+
+            // Assert: verify the view path and model type
+            Assert.NotNull(result);
+            Assert.Equal("~/Views/Index.cshtml", result.ViewName);
+            Assert.IsType<eGrantsSearchViewModel>(result.Model);
+
+            var model = result.Model as eGrantsSearchViewModel;
+            Assert.NotNull(model);
+
+            // Additional checks: Mode and ICList should be set
+            // Default str is null, so Mode should equal the passed mode (null here)
+            Assert.Null(model.Mode);
+
+            // ICList should be populated from _commonService.LoadAdminCodes()
+            Assert.NotNull(model.ICList);
+            Assert.NotEmpty(model.ICList);
+        }
+
+        #endregion
     }
 }

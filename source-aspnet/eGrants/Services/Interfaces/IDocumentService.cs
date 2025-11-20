@@ -27,5 +27,8 @@ namespace eGrants.Services.Interfaces
         public Task<DocumentCreateOrUploadResult> DocUploadByDdropAsync(IFormFile dropedfile, int docId, SessionInfo sessionInfo);
         public Task<DocumentCreateOrUploadResult> DocUploadByFileAsync(IFormFile file, int docId, SessionInfo sessionInfo);
         public Task DocIndexModifyAsync(string act, int appl_id, int category_id, string sub_category, string document_date, string docids, SessionInfo sessionInfo);
+
+        public Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId);
+
     }
 }
