@@ -1180,30 +1180,15 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        /// TO IMPLEMENT IN NEW APP -----------------------------------------------------------
+        /// 
+        /// TO BE IMPLEMENTED LATER in ADD DOCUMENT FUNCTIONALITY TICKET ---------------------------------------------
+        /// 
         //[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         //[HttpPost]
-        //public async Task<ActionResult> doc_create_by_ddrop(
-        //     IFormFile dropedfile,
-        //     int appl_id,
-        //     int category_id,
-        //     string sub_category,
-        //     DateTime doc_date,
-        //     string admin_code,
-        //     int serial_num)
+        //public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         //{
         //    var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
-        //    var result = await _documentService.DocCreateByDdropAsync(
-        //        dropedfile,
-        //        appl_id,
-        //        category_id,
-        //        sub_category,
-        //        doc_date,
-        //        admin_code,
-        //        serial_num,
-        //        sessionInfo);
-
+        //    var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
         //    return Json(new { url = result.Url, message = result.Message });
         //}
 
