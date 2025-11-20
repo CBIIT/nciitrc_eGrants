@@ -1374,60 +1374,53 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
         }
 
-        ///// <summary>
-        ///// The doc_index_modify.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="appl_id">
-        ///// The appl_id.
-        ///// </param>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="sub_category">
-        ///// The sub_category.
-        ///// </param>
-        ///// <param name="document_date">
-        ///// The document_date.
-        ///// </param>
-        ///// <param name="previous_url">
-        ///// The previous_url.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult doc_index_modify(
-        //    string act,
-        //    int appl_id,
-        //    int document_id,
-        //    int category_id,
-        //    string sub_category,
-        //    string document_date,
-        //    string previous_url)
-        //{
-        //    this.ViewBag.Status = "Done";
-        //    this.ViewBag.applid = appl_id;
-        //    this.ViewBag.Previousurl = previous_url;
-        //    var docids = Convert.ToString(document_id);
+        /// <summary>
+        /// The doc_index_modify.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="applId">
+        /// The appl_id.
+        /// </param>
+        /// <param name="document_id">
+        /// The document_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="document_date">
+        /// The document_date.
+        /// </param>
+        /// <param name="previous_url">
+        /// The previous_url.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        /// <summary>
+        /// The doc_index_modify.
+        /// </summary>
+        /// <param name="act">The act.</param>
+        /// <param name="appl_id">The appl_id.</param>
+        /// <param name="document_id">The document_id.</param>
+        /// <param name="category_id">The category_id.</param>
+        /// <param name="sub_category">The sub_category.</param>
+        /// <param name="document_date">The document_date.</param>
+        /// <param name="previous_url">The previous_url.</param>
+        /// <returns>The <see cref="ActionResult"/>.</returns>
+        public async Task<ActionResult> doc_index_modify(string act, int appl_id, int document_id, int category_id, string sub_category, string document_date, string previous_url)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            var docids = Convert.ToString(document_id);
 
-        //    EgrantsDoc.doc_modify(
-        //        act,
-        //        appl_id,
-        //        category_id,
-        //        sub_category,
-        //        document_date,
-        //        docids,
-        //        string.Empty,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            await _documentService.DocIndexModifyAsync(act, appl_id, category_id, sub_category, document_date, docids, sessionInfo);
 
-        //    return this.Redirect(previous_url);
-        //}
+            return Redirect(previous_url);
+        }
 
         //// to modify document index for unidentified documrnt
         ///// <summary>
