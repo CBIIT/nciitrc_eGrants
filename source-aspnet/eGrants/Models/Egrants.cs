@@ -11,5 +11,11 @@
         public string? sub_category_name { get; set; }
         public string? document_name { get; set; }
         public DateTime? document_date { get; set; }
+        public DateTime? qc_date { get; set; }
+        public int? parent_id { get; set; }
+        public string qc_userid { get; set; }
+        public string url { get; set; }
+        public string created_by { get; set; }
+        public DateTime? created_date { get; set; }
     }
 }

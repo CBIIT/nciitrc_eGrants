@@ -232,5 +232,26 @@ namespace eGrants.Repositories
             }
         }
 
+        public async Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId)
+        {
+
+            return await _context.egrants
+                .Where(e => e.appl_id == null
+                            && e.qc_date != null
+                            && e.parent_id == null
+                            && e.qc_userid == userId)
+            .Select(e => new DocsUnidentified
+            {
+                document_id = e.document_id.ToString(),
+                document_date = e.document_date.HasValue ? DateOnly.FromDateTime(e.document_date.Value) : (DateOnly?)null,
+                document_name = e.document_name,
+                created_by = e.created_by,
+                created_date = e.created_date.HasValue ? DateOnly.FromDateTime(e.created_date.Value) : (DateOnly?)null,
+                qc_date = e.qc_date.HasValue ? DateOnly.FromDateTime(e.qc_date.Value) : (DateOnly?)null,
+                category_id = e.category_id.ToString(),
+                url = imageServer + e.url
+            })
+            .ToListAsync();
+        }
     }
 }
