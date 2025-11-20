@@ -313,5 +313,91 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model);
         }
         #endregion
+
+        #region doc_upload_by_ddrop tests
+        [Fact]
+        public async Task doc_upload_by_ddrop_ValidFile_ReturnsSuccessJson()
+        {
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.SetString("UserId", "user123");
+            session.SetString("Ic", "NCI");
+            session.SetString("WebGrantUrl", "testserver");
+            session.SetString("ImageServerUrl", "http://testserver/");
+            session.SetString("EgrantsDocModifyRelativePath", "docs/modify/");
+
+            var mockDocumentService = new Mock<IDocumentService>();
+            var expectedResult = new DocumentCreateOrUploadResult
+            {
+                Success = true,
+                Url = "http://testserver/docs/modify/123.pdf",
+                Message = "Done! New document has been created"
+            };
+
+            mockDocumentService
+                .Setup(d => d.DocUploadByDdropAsync(It.IsAny<IFormFile>(), 123, It.IsAny<SessionInfo>()))
+                .ReturnsAsync(expectedResult);
+
+            var controller = CreateController(context, session, mockDocumentService.Object);
+
+            // Create a mock file
+            var content = "Test file content";
+            var fileName = "test.pdf";
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+            var formFile = new FormFile(stream, 0, stream.Length, "dropedfile", fileName)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "application/pdf"
+            };
+
+            var result = await controller.doc_upload_by_ddrop(formFile, 123);
+
+            var jsonResult = Assert.IsType<JsonResult>(result);
+            var jsonValue = jsonResult.Value;
+            Assert.NotNull(jsonValue);
+
+            var url = jsonValue.GetType().GetProperty("url")?.GetValue(jsonValue, null) as string;
+            var message = jsonValue.GetType().GetProperty("message")?.GetValue(jsonValue, null) as string;
+
+            Assert.Equal(expectedResult.Url, url);
+            Assert.Equal(expectedResult.Message, message);
+        }
+
+        [Fact]
+        public async Task doc_upload_by_ddrop_NullFile_ReturnsErrorJson()
+        {
+            using var context = CreateDevDbContext();
+            var session = new TestSession();
+            session.SetString("UserId", "user123");
+            session.SetString("Ic", "NCI");
+
+            var mockDocumentService = new Mock<IDocumentService>();
+            var expectedResult = new DocumentCreateOrUploadResult
+            {
+                Success = false,
+                Url = null,
+                Message = "Error while uploading the files."
+            };
+
+            mockDocumentService
+                .Setup(d => d.DocUploadByDdropAsync(null, 123, It.IsAny<SessionInfo>()))
+                .ReturnsAsync(expectedResult);
+
+            var controller = CreateController(context, session, mockDocumentService.Object);
+
+            var result = await controller.doc_upload_by_ddrop(null, 123);
+
+            var jsonResult = Assert.IsType<JsonResult>(result);
+            var jsonValue = jsonResult.Value;
+            Assert.NotNull(jsonValue);
+
+            var url = jsonValue.GetType().GetProperty("url")?.GetValue(jsonValue, null);
+            var message = jsonValue.GetType().GetProperty("message")?.GetValue(jsonValue, null) as string;
+
+            Assert.Null(url);
+            Assert.Equal(expectedResult.Message, message);
+        }
+
+        #endregion
     }
 }
