@@ -334,6 +334,8 @@ namespace eGrants.Services
                     sessionInfo.UserId);
             });
 
+        }
+
         public async Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId)
         {
             return await _documentRepository.LoadDocsUnidentified(imageServer, userId);
