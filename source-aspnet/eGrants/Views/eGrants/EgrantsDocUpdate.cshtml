@@ -85,8 +85,7 @@
         }
 
         var previous_url = get_previous_url();
-        var previousurl = encodeURIComponent(previous_url);
-        alert(url);
+        var url = "/EgrantsDoc/doc_index_modify?act=to_update&appl_id=" + Applid + "&document_id=" + Docid + "&category_id=" + Categoryid + "&sub_category=" + SubCategory + "&document_date=" + DocDate + "&previous_url=" + previous_url;
         window.self.location = url;
         return true;
     }

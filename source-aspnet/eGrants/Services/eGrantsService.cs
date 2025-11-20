@@ -6,12 +6,14 @@ using eGrants.DAL;
 using eGrants.DTOs;
 using eGrants.Functions;
 using eGrants.Models;
+using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace eGrants.Services
 {
@@ -21,13 +23,15 @@ namespace eGrants.Services
         // Dependency injection of a product repository to access data
         private readonly IeGrantsRepository _eGrantRepository;
         private readonly ILogger<IeGrantsService> _logger;
+        private readonly AppDbContext _context;
         const int MAX_RETRIES = 3;
 
         // Constructor that initializes the repository via dependency injection
-        public eGrantsService(IeGrantsRepository eGrantRepository, ILogger<IeGrantsService> logger = null)
+        public eGrantsService(IeGrantsRepository eGrantRepository, ILogger<IeGrantsService> logger = null, AppDbContext context = null)
         {
             _eGrantRepository = eGrantRepository;
             _logger = logger;
+            _context = context;
         }
 
         // Asynchronously retrieves a list of eGrants from the repository
@@ -826,6 +830,25 @@ namespace eGrants.Services
         public async Task<List<VwApplDTO>> LoadApplsByApplid(int? applId)
         {
             return await _eGrantRepository.LoadApplsByApplid(applId);
+        }
+
+        public async Task<List<string>> GetAllApplsListAsync(string adminCode, string serialNum)
+        {
+            var yearList = new List<string>();
+
+            if (!int.TryParse(serialNum, out int parsedSerialNum))
+            {
+                return yearList;
+            }
+
+            using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                return await _context.VwAppls
+                     .Where(a => a.admin_phs_org_code == adminCode && a.serial_num == serialNum)
+                     .OrderByDescending(a => a.support_year)
+                     .Select(a => $"{a.full_grant_num}:{a.appl_id}")
+                     .ToListAsync();
+            }
         }
     }
 }
