@@ -191,5 +191,46 @@ namespace eGrants.Repositories
             }
         }
 
+
+        public void DocModify(
+            string act,
+            int applId,
+            int categoryId,
+            string subCategory,
+            string docDate,
+            string docidStr,
+            string fileType,
+            string ic,
+            string userId)
+        {
+            using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                connection.Open();
+
+                using (SqlCommand cmd = new SqlCommand("sp_web_egrants_doc_modify", connection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    // Add parameters
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+                    cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = applId;
+                    cmd.Parameters.Add("@category_id", SqlDbType.Int).Value = categoryId;
+                    cmd.Parameters.Add("@sub_category", SqlDbType.VarChar).Value = subCategory;
+                    cmd.Parameters.Add("@doc_date", SqlDbType.VarChar).Value = docDate;
+                    cmd.Parameters.Add("@docid_str", SqlDbType.VarChar).Value = docidStr;
+                    cmd.Parameters.Add("@file_type", SqlDbType.VarChar).Value = fileType;
+                    cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                    cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userId;
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    reader.Close();
+                    connection.Close();
+                }
+
+
+            }
+        }
+
     }
 }

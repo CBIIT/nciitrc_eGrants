@@ -49,6 +49,27 @@ namespace eGrants.Repositories.Interfaces
         /// A task representing the asynchronous operation. The task result contains an int with the max cateogory id
         /// </returns>
         Task<int> GetMaxCategoryId(string ic);
+        /// <summary>
+        /// Asynchronously retrieves a list of all subcategories from the category subcategory lookup table.
+        /// </summary>
+        /// <returns>
+        /// A task representing the asynchronous operation. The task result contains a list of <see cref="SubCategories"/> objects
+        /// representing all available subcategories in the system.
+        /// </returns>
         Task<List<SubCategories>> LoadSubCategoryList();
+
+        /// <summary>
+        /// Modifies a document's metadata by performing a specified action (store, delete, or update) on the document index.
+        /// </summary>
+        /// <param name="act">The action to perform on the document (e.g., "store", "delete", "update").</param>
+        /// <param name="applId">The unique identifier of the application associated with the document.</param>
+        /// <param name="categoryId">The category identifier that classifies the document type.</param>
+        /// <param name="subCategory">The subcategory name providing additional classification for the document.</param>
+        /// <param name="docDate">The document date in string format.</param>
+        /// <param name="docidStr">The document ID as a string, which may represent a single document or multiple documents.</param>
+        /// <param name="fileType">The file type or extension of the document (e.g., "pdf", "docx").</param>
+        /// <param name="ic">The institute or center code associated with the document.</param>
+        /// <param name="userId">The identifier of the user performing the modification, used for auditing purposes.</param>
+        void DocModify(string act, int applId, int categoryId, string subCategory, string docDate, string docidStr, string fileType, string ic, string userId);
     }
 }

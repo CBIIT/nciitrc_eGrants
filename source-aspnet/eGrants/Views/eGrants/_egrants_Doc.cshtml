@@ -47,7 +47,7 @@
           {
              type: 'POST',
              url: "/Egrants/GetAllApplsList",
-             data: { admin_code: AdminCode, serial_num: SerialNum }, //fy: fy, mechan: mechan,
+             data: { adminCode: AdminCode, serialNum: SerialNum }, //fy: fy, mechan: mechan,
              success: function(resp) {
                 //sessionStorage.year = resp;
                 var jsonobj = JSON.parse(resp);
