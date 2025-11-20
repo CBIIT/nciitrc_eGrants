@@ -34,23 +34,15 @@
 
 #region
 
-using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.SqlClient;
-using System.IO;
-using System.Web;
 
-//using DocumentFormat.OpenXml.Wordprocessing;
+using eGrants.DAL;
+using eGrants.Models;
 
-//using egrants_new.Egrants.Functions;
+using Microsoft.EntityFrameworkCore;
 
-//using Hangfire.Annotations;
-
-//using Microsoft.Ajax.Utilities;
-
-//using MsgReader.Outlook;
+using Microsoft.Data.SqlClient;
 
 #endregion
 
@@ -59,11 +51,17 @@ namespace eGrants.Common
     /// <summary>
     ///     The egrants common.
     /// </summary>
-    public static class EgrantsCommon
+    public class EgrantsCommon
     {
-        public static readonly string[] SUPPORTED_FILE_TYPES = { ".pdf", ".txt", ".doc", ".docx", ".msg", ".rtf", ".jpg", ".jpeg", ".png", ".gif", ".tif", ".html", ".htm", ".log", ".dat" };
+        public readonly string[] SUPPORTED_FILE_TYPES = { ".pdf", ".txt", ".doc", ".docx", ".msg", ".rtf", ".jpg", ".jpeg", ".png", ".gif", ".tif", ".html", ".htm", ".log", ".dat" };
+        private readonly string _connectionString;
 
-        public static class ErrorMessages
+        public EgrantsCommon(IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
+
+        public class ErrorMessages()
         {
             public const string NotFound = "The requested resource was not found.";
             public const string ServerError = "An unexpected error occurred. Please try again later.";
@@ -195,128 +193,130 @@ namespace eGrants.Common
         //    return count;
         //}
 
-        //// check user application type
-        ///// <summary>
-        ///// The user type.
-        ///// </summary>
-        ///// <param name="ic">
-        ///// The ic.
-        ///// </param>
-        ///// <param name="userid">
-        ///// The userid.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="string"/> .
-        ///// </returns>
-        //public static string UserType(string ic, string userid)
-        //{
-        //    string applicationType = string.Empty;
+        // check user application type
+        /// <summary>
+        /// The user type.
+        /// </summary>
+        /// <param name="ic">
+        /// The ic.
+        /// </param>
+        /// <param name="userid">
+        /// The userid.
+        /// </param>
+        /// <returns>
+        /// The <see cref="string"/> .
+        /// </returns>
+        public string UserType(string ic, string userid)
+        {
+            string applicationType = string.Empty;
 
-        //    using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
-        //    {
-        //        var cmd = new SqlCommand("sp_web_egrants_user_type_check", conn);
-        //        cmd.CommandType = CommandType.StoredProcedure;
-        //        cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-        //        cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
-        //        cmd.Parameters.Add("@user_application_type", SqlDbType.VarChar, 2);
-        //        cmd.Parameters["@user_application_type"].Direction = ParameterDirection.Output;
-        //        conn.Open();
+            //var connectionString = _context.Database.GetConnectionString();
 
-        //        int i = cmd.ExecuteNonQuery();
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_user_type_check", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
+                cmd.Parameters.Add("@user_application_type", SqlDbType.VarChar, 2);
+                cmd.Parameters["@user_application_type"].Direction = ParameterDirection.Output;
+                conn.Open();
 
-        //        applicationType = Convert.ToString(cmd.Parameters["@user_application_type"].Value);
-        //    }
+                int i = cmd.ExecuteNonQuery();
 
-        //    return applicationType;
-        //}
+                applicationType = Convert.ToString(cmd.Parameters["@user_application_type"].Value);
+            }
 
-        ///// <summary>
-        ///// The uservar.
-        ///// </summary>
-        ///// <param name="userid">
-        ///// The userid.
-        ///// </param>
-        ///// <param name="ic">
-        ///// The ic.
-        ///// </param>
-        ///// <param name="type">
-        ///// The type.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="System.Collections.Generic.IEnumerable`1"/> .
-        ///// </returns>
-        //public static IEnumerable<User> uservar(string userid, string ic, string type)
-        //{
-        //    var connectionString = ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString;
-        //    var list = new List<User>();
+            return applicationType;
+        }
 
-        //    using (var conn = new SqlConnection(connectionString))
-        //    {
-        //        var cmd = new SqlCommand("sp_web_egrants_user_profile", conn);
-        //        cmd.CommandType = CommandType.StoredProcedure;
-        //        cmd.Parameters.AddWithValue("@ic", ic);
-        //        cmd.Parameters.AddWithValue("@Operator", userid);
-        //        cmd.Parameters.AddWithValue("@type", type);
+        /// <summary>
+        /// The uservar.
+        /// </summary>
+        /// <param name="userid">
+        /// The userid.
+        /// </param>
+        /// <param name="ic">
+        /// The ic.
+        /// </param>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <returns>
+        /// The <see cref="System.Collections.Generic.IEnumerable`1"/> .
+        /// </returns>
+        public IEnumerable<User> uservar(string userid, string ic, string type)
+        {
+            //var connectionString = _context.Database.GetConnectionString();
+            var list = new List<User>();
 
-        //        conn.Open();
-        //        var user = new User();
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_user_profile", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@ic", ic);
+                cmd.Parameters.AddWithValue("@Operator", userid);
+                cmd.Parameters.AddWithValue("@type", type);
 
-        //        using (var rdr = cmd.ExecuteReader())
-        //        {
-        //            while (rdr.Read())
-        //            {
-        //                if (rdr["nam"].ToString() == "VALIDATION")
-        //                {
-        //                    user.Validation = rdr["val"].ToString();
-        //                }
+                conn.Open();
+                var user = new User();
 
-        //                if (rdr["nam"].ToString() == "USERID")
-        //                {
-        //                    user.UserId = rdr["val"].ToString();
-        //                }
+                using (var rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        if (rdr["nam"].ToString() == "VALIDATION")
+                        {
+                            user.Validation = rdr["val"].ToString();
+                        }
 
-        //                if (rdr["nam"].ToString() == "IC")
-        //                {
-        //                    user.ic = rdr["val"].ToString();
-        //                }
+                        if (rdr["nam"].ToString() == "USERID")
+                        {
+                            user.UserId = rdr["val"].ToString();
+                        }
 
-        //                if (rdr["nam"].ToString() == "PERSONID")
-        //                {
-        //                    user.personID = Convert.ToInt32(rdr["val"]);
-        //                }
+                        if (rdr["nam"].ToString() == "IC")
+                        {
+                            user.ic = rdr["val"].ToString();
+                        }
 
-        //                if (rdr["nam"].ToString() == "POSITIONID")
-        //                {
-        //                    user.positionID = Convert.ToInt32(rdr["val"]);
-        //                }
+                        if (rdr["nam"].ToString() == "PERSONID")
+                        {
+                            user.personID = Convert.ToInt32(rdr["val"]);
+                        }
 
-        //                if (rdr["nam"].ToString() == "ISCOORDINATOR")
-        //                {
-        //                    user.isCoordinator = Convert.ToInt32(rdr["val"]);
-        //                }
+                        if (rdr["nam"].ToString() == "POSITIONID")
+                        {
+                            user.positionID = Convert.ToInt32(rdr["val"]);
+                        }
 
-        //                if (rdr["nam"].ToString() == "USERNAME")
-        //                {
-        //                    user.PersonName = rdr["val"].ToString();
-        //                }
+                        if (rdr["nam"].ToString() == "ISCOORDINATOR")
+                        {
+                            user.isCoordinator = Convert.ToInt32(rdr["val"]);
+                        }
 
-        //                if (rdr["nam"].ToString() == "USEREMAIL")
-        //                {
-        //                    user.PersonEmail = rdr["val"].ToString();
-        //                }
+                        if (rdr["nam"].ToString() == "USERNAME")
+                        {
+                            user.PersonName = rdr["val"].ToString();
+                        }
 
-        //                if (rdr["nam"].ToString() == "MENULIST")
-        //                {
-        //                    user.menulist = rdr["val"].ToString();
-        //                }
-        //            }
-        //        }
+                        if (rdr["nam"].ToString() == "USEREMAIL")
+                        {
+                            user.PersonEmail = rdr["val"].ToString();
+                        }
 
-        //        list.Add(user);
-        //    }
+                        if (rdr["nam"].ToString() == "MENULIST")
+                        {
+                            user.menulist = rdr["val"].ToString();
+                        }
+                    }
+                }
 
-        //    return list;
-        //}
+                list.Add(user);
+            }
+
+            return list;
+        }
 
         ///// <summary>
         ///// The load specialists.
