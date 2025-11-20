@@ -133,10 +133,12 @@ app.Use(async (context, next) =>
     var irpprAcceptance = builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty;
     var ImageServerUrl = builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty;
     var WebGrantUrl = builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty;
+    var EgrantsDocEmail = builder.Configuration["AppSettings:egrantsDocEmail"] ?? string.Empty;
     context.Session.SetString("frpprAcceptance", frpprAcceptance);
     context.Session.SetString("irpprAcceptance", irpprAcceptance);
     context.Session.SetString("ImageServerUrl", ImageServerUrl);
     context.Session.SetString("WebGrantUrl", WebGrantUrl);
+    context.Session.SetString("EgrantsDocEmail", EgrantsDocEmail);
 
     // You can log or use the URL here
     await next.Invoke();

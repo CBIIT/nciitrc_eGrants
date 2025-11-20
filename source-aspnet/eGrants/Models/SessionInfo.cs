@@ -9,5 +9,6 @@
         public string ImageServerUrl { get; set; }
         public string EgrantsDocModifyRelativePath { get; set; }
         public string EgrantsDocNewRelativePath { get; set; }
+        public string EgrantsDocEmail { get; set; }
     }
 }
