@@ -835,7 +835,6 @@ namespace eGrants.Services
         public async Task<List<string>> GetAllApplsListAsync(string adminCode, string serialNum)
         {
             var yearList = new List<string>();
-            var applsList = new List<ApplsList>();
 
             if (!int.TryParse(serialNum, out int parsedSerialNum))
             {
@@ -844,23 +843,12 @@ namespace eGrants.Services
 
             using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
             {
-               applsList = await _context.VwAppls
-                    .Where(a => a.admin_phs_org_code == adminCode && a.serial_num == serialNum)
-                    .OrderByDescending(a => a.support_year)
-                    .Select(a => new ApplsList
-                    {
-                        full_grant_num = a.full_grant_num,
-                        appl_id = a.appl_id
-                    })
-                    .ToListAsync();
+                return await _context.VwAppls
+                     .Where(a => a.admin_phs_org_code == adminCode && a.serial_num == serialNum)
+                     .OrderByDescending(a => a.support_year)
+                     .Select(a => $"{a.full_grant_num}:{a.appl_id}")
+                     .ToListAsync();
             }
-
-            foreach (var appl in applsList)
-            {
-                yearList.Add($"{appl.full_grant_num}:{appl.appl_id}");
-            }
-
-            return yearList;
         }
     }
 }
