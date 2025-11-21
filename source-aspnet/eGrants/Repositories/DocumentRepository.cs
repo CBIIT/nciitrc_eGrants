@@ -61,9 +61,9 @@ namespace eGrants.Repositories
                                 category_name = reader["category_name"] as string,
                                 sub_category_name = reader["sub_category_name"] as string,
                                 created_by = reader["created_by"] as string,
-                                modified_by = reader["modified_by"] as string,
-                                file_modified_by = reader["file_modified_by"] as string,
-                                problem_msg = reader["problem_msg"] as string,
+                                modified_by = reader["modified_by"] as string ?? string.Empty,
+                                file_modified_by = reader["file_modified_by"] as string ?? string.Empty,
+                                problem_msg = reader["problem_msg"] as string ?? string.Empty,
                                 problem_reported_by = reader["problem_reported_by"] as string,
                                 page_count = reader["page_count"] as int?,
                                 fsr_count = reader["fsr_count"] as int?,
@@ -81,7 +81,7 @@ namespace eGrants.Repositories
                                 doc_date = reader["doc_date"] as DateTime?,
                                 modified_date = reader["modified_date"] as string,
                                 file_modified_date = reader["file_modified_date"] as string,
-                                qc_date = reader["qc_date"] as string
+                                qc_date = reader["qc_date"] as string ?? string.Empty,
                             };
 
                             result.Add(doc);
