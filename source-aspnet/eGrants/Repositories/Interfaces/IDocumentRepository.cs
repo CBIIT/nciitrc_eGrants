@@ -1,5 +1,4 @@
-﻿
-using eGrants.DTOs;
+﻿using eGrants.DTOs;
 using eGrants.Models;
 
 namespace eGrants.Repositories.Interfaces
@@ -79,5 +78,20 @@ namespace eGrants.Repositories.Interfaces
         /// A task that represents the asynchronous operation. The task result contains a list of <see cref="DocsUnidentified"/> objects.
         /// </returns>
         Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId);
+
+        /// <summary>
+        /// Retrieves the document ID based on the specified criteria.
+        /// </summary>
+        /// <param name="applid">The application ID associated with the document.</param>
+        /// <param name="categoryid">The category ID of the document.</param>
+        /// <param name="subcategory">The subcategory of the document.</param>
+        /// <param name="docdate">The date of the document.</param>
+        /// <param name="filetype">The file type of the document.</param>
+        /// <param name="ic">The institute or center code.</param>
+        /// <param name="userid">The ID of the user requesting the document ID.</param>
+        /// <returns>
+        /// A string representing the document ID.
+        /// </returns>
+        int GetDocID(int applid, int categoryid, string subcategory, DateTime docdate, string filetype, string ic, string userid);
     }
 }

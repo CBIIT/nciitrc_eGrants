@@ -8,8 +8,11 @@ using eGrants.Repositories.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualBasic;
+using Microsoft.VisualBasic.FileIO;
 
 using static System.Formats.Asn1.AsnWriter;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace eGrants.Repositories
 {
@@ -61,9 +64,9 @@ namespace eGrants.Repositories
                                 category_name = reader["category_name"] as string,
                                 sub_category_name = reader["sub_category_name"] as string,
                                 created_by = reader["created_by"] as string,
-                                modified_by = reader["modified_by"] as string,
-                                file_modified_by = reader["file_modified_by"] as string,
-                                problem_msg = reader["problem_msg"] as string,
+                                modified_by = reader["modified_by"] as string ?? string.Empty,
+                                file_modified_by = reader["file_modified_by"] as string ?? string.Empty,
+                                problem_msg = reader["problem_msg"] as string ?? string.Empty,
                                 problem_reported_by = reader["problem_reported_by"] as string,
                                 page_count = reader["page_count"] as int?,
                                 fsr_count = reader["fsr_count"] as int?,
@@ -81,7 +84,7 @@ namespace eGrants.Repositories
                                 doc_date = reader["doc_date"] as DateTime?,
                                 modified_date = reader["modified_date"] as string,
                                 file_modified_date = reader["file_modified_date"] as string,
-                                qc_date = reader["qc_date"] as string
+                                qc_date = reader["qc_date"] as string ?? string.Empty,
                             };
 
                             result.Add(doc);
@@ -191,7 +194,6 @@ namespace eGrants.Repositories
             }
         }
 
-
         public void DocModify(
             string act,
             int applId,
@@ -232,6 +234,7 @@ namespace eGrants.Repositories
             }
         }
 
+
         public async Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId)
         {
 
@@ -253,5 +256,44 @@ namespace eGrants.Repositories
             })
             .ToListAsync();
         }
+
+        public int GetDocID(
+            int applid,
+            int categoryid,
+            string subcategory,
+            DateTime docdate,
+            string filetype,
+            string ic,
+            string userid)
+        {
+            using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                connection.Open();
+
+                using (SqlCommand cmd = new SqlCommand("sp_web_egrants_doc_create", connection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@ApplID", SqlDbType.Int).Value = applid;
+                    cmd.Parameters.Add("@CategoryID", SqlDbType.Int).Value = categoryid;
+                    cmd.Parameters.Add("@SubCategory", SqlDbType.VarChar).Value = subcategory;
+                    cmd.Parameters.Add("@DocDate", SqlDbType.DateTime).Value = docdate;
+                    cmd.Parameters.Add("@file_type", SqlDbType.VarChar).Value = filetype;
+                    cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                    cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+                    cmd.Parameters.Add("@DocumentID", SqlDbType.Int);
+                    cmd.Parameters["@DocumentID"].Direction = ParameterDirection.Output;
+
+                    var DataReader = cmd.ExecuteReader();
+
+                    DataReader.Close();
+                    connection.Close();
+
+                    int document_id = Convert.ToInt32(cmd.Parameters["@DocumentID"].Value);
+
+                    return document_id;
+                }
+            }
+        }
+
     }
 }

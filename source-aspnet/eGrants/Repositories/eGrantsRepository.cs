@@ -142,12 +142,6 @@ namespace eGrants.Repositories
                 }
             }
 
-            // Trim trailing comma if present.
-            if (CategoryNameList != string.Empty && CategoryNameList.IndexOf(",") > 0)
-            {
-                CategoryNameList = CategoryNameList.Substring(0, CategoryNameList.Length - 2);
-            }
-
             return CategoryNameList;
         }
 
