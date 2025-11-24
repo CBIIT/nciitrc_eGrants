@@ -124,71 +124,74 @@ if (!app.Environment.IsDevelopment())
 
 app.UseSession(); // Enable session middleware
 
+
 // TODO: Determine better way to handle getting user id information if possible
 app.Use(async (context, next) =>
 {
-    // Retrieve user ID from SiteMinder header or fallback to Windows identity
-    string userId = context.GetServerVariable("HEADER_SM_USER");
-
-    if (string.IsNullOrEmpty(userId))
+    if (string.IsNullOrEmpty(context.Session.GetString("userid")))
     {
-        if (context.User?.Identity?.IsAuthenticated == true)
+        // Retrieve user ID from SiteMinder header or fallback to Windows identity
+        string userId = context.GetServerVariable("HEADER_SM_USER");
+
+        if (string.IsNullOrEmpty(userId))
         {
-            var fullName = context.User.Identity?.Name;
-            userId = fullName?.Contains('\\') == true
-                ? fullName.Split('\\')[1]
-                : fullName;
+            if (context.User?.Identity?.IsAuthenticated == true)
+            {
+                var fullName = context.User.Identity?.Name;
+                userId = fullName?.Contains('\\') == true
+                    ? fullName.Split('\\')[1]
+                    : fullName;
+            }
+            else
+            {
+                userId = Environment.UserName; // Fallback to machine account
+            }
         }
-        else
+
+        context.Session.SetString("userid", userId);
+
+        // Capture IC (Institute/Org Code)
+        var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
+        context.Session.SetString("ic", ic);
+
+        // Detect browser from User-Agent
+        var userAgent = context.Request.Headers["User-Agent"].ToString();
+        string browserName = userAgent.Contains("Chrome") ? "Chrome" :
+                             userAgent.Contains("Firefox") ? "Firefox" :
+                             (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
+                             userAgent.Contains("Edg") ? "Edge" :
+                             (userAgent.Contains("MSIE") || userAgent.Contains("Trident")) ? "Internet Explorer" :
+                             "Unknown";
+
+        context.Session.SetString("browser", browserName);
+
+        // Resolve EgrantsCommon service
+        var egrantsCommon = app.Services.GetRequiredService<EgrantsCommon>();
+
+        // Populate user session variables
+        var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
+        var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);
+
+        foreach (var usr in users)
         {
-            userId = Environment.UserName; // Fallback to machine account
+            context.Session.SetString("Validation", usr.Validation);
+            context.Session.SetString("userid", usr.UserId);
+            context.Session.SetString("ic", usr.ic);
+            context.Session.SetInt32("Personid", usr.personID);
+            context.Session.SetInt32("position_id", usr.positionID);
+            context.Session.SetString("UserName", usr.PersonName);
+            context.Session.SetString("UserEmail", usr.PersonEmail);
+            context.Session.SetString("Menus", usr.menulist);
         }
+
+        // You can log or use the URL here
+        // Load app settings into session
+        context.Session.SetString("frpprAcceptance", builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty);
+        context.Session.SetString("irpprAcceptance", builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty);
+        context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+        context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
+        context.Session.SetString("EgrantsDocEmail", builder.Configuration["AppSettings:egrantsDocEmail"] ?? string.Empty);
     }
-
-    context.Session.SetString("userid", userId);
-
-    // Capture IC (Institute/Org Code)
-    var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
-    context.Session.SetString("ic", ic);
-
-    // Detect browser from User-Agent
-    var userAgent = context.Request.Headers["User-Agent"].ToString();
-    string browserName = userAgent.Contains("Chrome") ? "Chrome" :
-                         userAgent.Contains("Firefox") ? "Firefox" :
-                         (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
-                         userAgent.Contains("Edg") ? "Edge" :
-                         (userAgent.Contains("MSIE") || userAgent.Contains("Trident")) ? "Internet Explorer" :
-                         "Unknown";
-
-    context.Session.SetString("browser", browserName);
-
-    // Resolve EgrantsCommon service
-    var egrantsCommon = app.Services.GetRequiredService<EgrantsCommon>();
-
-    // Populate user session variables
-    var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
-    var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);
-
-    foreach (var usr in users)
-    {
-        context.Session.SetString("Validation", usr.Validation);
-        context.Session.SetString("userid", usr.UserId);
-        context.Session.SetString("ic", usr.ic);
-        context.Session.SetInt32("Personid", usr.personID);
-        context.Session.SetInt32("position_id", usr.positionID);
-        context.Session.SetString("UserName", usr.PersonName);
-        context.Session.SetString("UserEmail", usr.PersonEmail);
-        context.Session.SetString("Menus", usr.menulist);
-    }
-
-    // You can log or use the URL here
-    // Load app settings into session
-    context.Session.SetString("frpprAcceptance", builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty);
-    context.Session.SetString("irpprAcceptance", builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty);
-    context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
-    context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
-    context.Session.SetString("EgrantsDocEmail", builder.Configuration["AppSettings:egrantsDocEmail"] ?? string.Empty);
-
     await next.Invoke();
 });
 
