@@ -386,7 +386,7 @@ namespace Router
 
                     if (debug == "n")
                     {
-                        outmail2.Recipients.Add("NCIOGABOBTeam1@nih.gov");
+                        outmail2.Recipients.Add("nciogabobteam1@mail.nih.gov");
                         // if they're not equal, send to both
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && !p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
