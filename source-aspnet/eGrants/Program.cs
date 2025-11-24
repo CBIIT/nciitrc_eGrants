@@ -32,6 +32,7 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IInstitutionalFilesService, InstitutionalFilesService>();
 builder.Services.AddScoped<IInstitutionalFilesRepository, InstitutionalFilesRepository>();
+builder.Services.AddScoped<IManagementService, ManagementService>();
 
 // Utility class
 builder.Services.AddTransient<EgrantsCommon>();
