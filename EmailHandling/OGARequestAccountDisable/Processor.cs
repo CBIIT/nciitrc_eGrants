@@ -189,7 +189,6 @@ namespace OGARequestAccountDisable
             else
             {
                 mailItem.To = _eGrantsDevEmail;
-                mailItem.To = "aalyaan.feroz@nih.gov";
             }
 
             mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
