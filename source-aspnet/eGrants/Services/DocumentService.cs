@@ -195,6 +195,57 @@ namespace eGrants.Services
             return result;
         }
 
+        public async Task<DocumentCreateOrUploadResult> DocCreateByFileAsync(
+            IFormFile file,
+            int appl_id,
+            int category_id,
+            string sub_category,
+            DateTime doc_date,
+            string admin_code,
+            int serial_num,
+            SessionInfo sessionInfo)
+        {
+            var result = new DocumentCreateOrUploadResult();
+            var docName = string.Empty;
+
+            if (file != null && file.Length > 0)
+                try
+                {
+                    // get file name and file Extension
+                    var fileName = Path.GetFileName(file.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
+
+                    // get document_id and creat a new docName
+                    var document_id = _documentRepository.GetDocID(appl_id, category_id, sub_category, 
+                        doc_date, fileExtension, 
+                        sessionInfo.Ic, sessionInfo.UserId);
+
+                    docName = Convert.ToString(document_id) + fileExtension;
+
+                    // upload to image sever 
+                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded2\\nci\\main\\";
+
+                    var filePath = Path.Combine(fileFolder, docName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // create review url
+                    result.Url = sessionInfo.ImageServerUrl + sessionInfo.EgrantsDocNewRelativePath + Convert.ToString(docName);
+                    result.Message = "Done! New document has been created";
+                }
+                catch (Exception ex)
+                {
+                    result.Message = "ERROR:" + ex.Message;
+                }
+            else
+                result.Message = "You have not specified a file.";
+
+            return result;
+        }
+
         public async Task<DocumentCreateOrUploadResult> DocUploadByDdropAsync(IFormFile dropedfile, int docId, SessionInfo sessionInfo)
         {
             var result = new DocumentCreateOrUploadResult();

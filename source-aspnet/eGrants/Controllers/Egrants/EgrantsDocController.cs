@@ -585,6 +585,17 @@ namespace eGrants.Controllers.Egrants
         //    return this.Json(new { url, message = mssg });
         //}
 
+        [HttpPost]
+        public async Task<ActionResult> doc_create_by_file(IFormFile file, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            var result = await _documentService.DocCreateByFileAsync(file, appl_id, category_id, 
+                sub_category, doc_date, admin_code, serial_num, sessionInfo);
+
+            return Json(new { url = result.Url, message = result.Message });
+        }
+
 
         //// to create doc by file input
         ///// <summary>
@@ -744,7 +755,7 @@ namespace eGrants.Controllers.Egrants
 
         //// to create doc by dragdrop
         ///// <summary>
-        ///// The doc_create_by_ddrop.
+        ///// The convert_to_pdf_by_ddrop.
         ///// </summary>
         ///// <param name="dropedfile">
         ///// The dropedfile.
