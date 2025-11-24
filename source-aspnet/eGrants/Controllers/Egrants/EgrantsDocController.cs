@@ -742,95 +742,6 @@ namespace eGrants.Controllers.Egrants
         //    return this.Json(new { url, message = mssg });
         //}
 
-
-        //// to create doc by dragdrop
-        ///// <summary>
-        ///// The doc_create_by_ddrop.
-        ///// </summary>
-        ///// <param name="dropedfile">
-        ///// The dropedfile.
-        ///// </param>
-        ///// <param name="appl_id">
-        ///// The appl_id.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="sub_category">
-        ///// The sub_category.
-        ///// </param>
-        ///// <param name="doc_date">
-        ///// The doc_date.
-        ///// </param>
-        ///// <param name="admin_code">
-        ///// The admin_code.
-        ///// </param>
-        ///// <param name="serial_num">
-        ///// The serial_num.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpPost]
-        //public ActionResult doc_create_by_ddrop(
-        //    HttpPostedFileBase dropedfile,
-        //    int appl_id,
-        //    int category_id,
-        //    string sub_category,
-        //    DateTime doc_date,
-        //    string admin_code,
-        //    int serial_num)
-        //{
-
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
-
-        //    if (dropedfile != null && dropedfile.ContentLength > 0)
-        //        try
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(dropedfile.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
-
-        //            // get document_id and creat a new docName
-        //            var document_id = EgrantsDoc.GetDocID(
-        //                appl_id,
-        //                category_id,
-        //                sub_category,
-        //                doc_date,
-        //                fileExtension,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            docName = Convert.ToString(document_id) + fileExtension;
-
-
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
-
-        //            var filePath = Path.Combine(fileFolder, docName);
-
-        //            dropedfile.SaveAs(filePath);
-
-        //            // create review url
-        //            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
-        //                                                                                    + Convert.ToString(docName);
-
-        //            this.ViewBag.Message = "Done! New document has been created";
-
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = this.ViewBag.Message;
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            this.ViewBag.Message = "ERROR:" + ex.Message;
-        //        }
-        //    else
-        //        this.ViewBag.Message = "You have not specified a file.";
-
-        //    return this.Json(new { url, message = mssg });
-        //}
-
         //// to create doc by dragdrop
         ///// <summary>
         ///// The doc_create_by_ddrop.
@@ -1181,16 +1092,17 @@ namespace eGrants.Controllers.Egrants
         /// The <see cref="ActionResult"/>.
         /// </returns>
         /// 
-        /// TO BE IMPLEMENTED LATER in ADD DOCUMENT FUNCTIONALITY TICKET ---------------------------------------------
         /// 
-        //[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        //[HttpPost]
-        //public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
-        //{
-        //    var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-        //    var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
-        //    return Json(new { url = result.Url, message = result.Message });
-        //}
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpPost]
+        public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
+            
+            return Json(new { url = result.Url, message = result.Message });
+        }
 
         // to upload pdf docs by dragdrop
         /// <summary>
