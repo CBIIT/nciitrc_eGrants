@@ -73,6 +73,8 @@
 
 #endregion
 
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Web;
 
 using eGrants.Models;
@@ -94,13 +96,15 @@ namespace eGrants.Controllers.Egrants
         private readonly IDocumentService _documentService;
         private readonly ICommonService _commonService;
         private readonly ISessionInfoService _sessionInfoService;
+        private readonly IConfiguration _configuration;
 
-        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService)
+        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IConfiguration configuration)
         {
             _eGrantsService = eGrantsService;
             _commonService = commonService;
             _sessionInfoService = sessionInfoService;
             _documentService = documentService;
+            _configuration = configuration;
         }
 
         //// GET: Egrants
@@ -145,44 +149,39 @@ namespace eGrants.Controllers.Egrants
         //}
 
 
-        //// show era doc
-        ///// <summary>
-        ///// The show_era_doc.
-        ///// </summary>
-        ///// <param name="docurl">
-        ///// The docurl.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="RedirectResult"/>.
-        ///// </returns>
-        //public RedirectResult show_era_doc(string docurl)
-        //{
-        //    var cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
-        //    var cert_pass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
-        //    var certificate = new X509Certificate2(cert_url, cert_pass);
-        //    var uri = new Uri(docurl);
-        //    var webreq = (HttpWebRequest)WebRequest.Create(uri);
-        //    webreq.KeepAlive = false;
-        //    webreq.Method = "GET";
+        // show era doc
+        /// <summary>
+        /// The show_era_doc.
+        /// </summary>
+        /// <param name="docurl">
+        /// The docurl.
+        /// </param>
+        /// <returns>
+        /// The <see cref="RedirectResult"/>.
+        /// </returns>
+        public async Task<RedirectResult> show_era_doc(string docurl)
+        {
+            var certUrl = _configuration["AppSettings:certPath"];
 
-        //    // webreq.Accept = "text/xml";
-        //    webreq.AllowAutoRedirect = false;
-        //    webreq.ClientCertificates.Add(certificate);
-        //    HttpWebResponse webresp;
-        //    webresp = (HttpWebResponse)webreq.GetResponse();
+            // this value should be kept as a secret 
+            var certPass = _configuration["AppSettings:certPass"];
 
-        //    // string responsecode = webresp.StatusCode.ToString(); 
-        //    string tempLink;
+            var certificate = new X509Certificate2(certUrl, certPass);
 
-        //    var postStream = webresp.GetResponseStream();
+            var handler = new HttpClientHandler();
+            handler.ClientCertificates.Add(certificate);
+            handler.AllowAutoRedirect = false; // same as your current code
 
-        //    using (var reader = new StreamReader(postStream))
-        //    {
-        //        tempLink = reader.ReadToEnd();
-        //    }
+            using var client = new HttpClient(handler);
+            var response = await client.GetAsync(docurl);
 
-        //    return this.Redirect(tempLink);
-        //}
+            response.EnsureSuccessStatusCode();
+
+            var tempLink = await response.Content.ReadAsStringAsync();
+
+            return Redirect(tempLink);
+        }
+
 
         ///// <summary>
         ///// The load supplement doc.
