@@ -24,7 +24,7 @@ namespace eGrants.Services
             _sessionInfoService = sessionInfoService;
             _context = context;
         }
-      
+
         public List<EgrantsUsers> LoadUsers(
             string act,
             int index_id,
@@ -120,8 +120,31 @@ namespace eGrants.Services
 
                 return Users;
             }
-                
         }
+
+        public int ToCheckUserid(string userid)
+        {
+            using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                var cmd = new SqlCommand(
+                    "select count(*) from people where application_type='egrants' and userid = @userid",
+                    conn);
+
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
+
+                conn.Open();
+                var count_userid = 0;
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                    count_userid = Convert.ToInt16(rdr[0]);
+
+
+                return count_userid;
+            }
+        }
+
     }
 }
 

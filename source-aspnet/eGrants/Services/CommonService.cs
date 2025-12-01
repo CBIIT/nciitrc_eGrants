@@ -61,5 +61,75 @@ namespace eGrants.Services
 
             return list;
         }
+
+        public List<Profiles> LoadProfiles()
+        {
+            var list = new List<Profiles>();
+
+            using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                var cmd = new SqlCommand("select profile_id, [profile], admin_phs_org_code from profiles order by admin_phs_org_code", conn);
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
+
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(
+                        new Profiles
+                        {
+                            ProfileId = rdr["profile_id"]?.ToString(),
+                            Profile = rdr["profile"]?.ToString(),
+                            AdminPhsOrgCode = rdr["admin_phs_org_code"]?.ToString()
+                        });
+                }
+            }
+
+            return list;
+        }
+
+        public List<Position> LoadPositions()
+        {
+            List<Position> positions = new List<Position>();
+
+            using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                var cmd = new SqlCommand("select position_id, position_name from people_positions order by position_id", conn);
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    positions.Add(new Position { PositionId = rdr["position_id"].ToString(), PositionName = rdr["position_name"].ToString() });
+                }
+            }
+
+            return positions;
+        }
+
+        public List<EgrantsUsers> LoadCoordinators()
+        {
+            var list = new List<EgrantsUsers>();
+
+            using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                var cmd = new SqlCommand("select person_id, person_name from vw_people where is_coordinator=1 order by person_name", conn);
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(new EgrantsUsers { PersonId = rdr["person_id"]?.ToString(), person_name = rdr["person_name"]?.ToString() });
+                }
+            }
+
+            return list;
+        }
     }
 }

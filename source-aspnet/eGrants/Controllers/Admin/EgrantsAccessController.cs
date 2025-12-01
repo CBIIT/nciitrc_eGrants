@@ -155,77 +155,76 @@ namespace eGrants.Controllers.Admin
                 : users.OrderBy(keySelector).ToList();
         }
 
-        //// load all appls list with or without documents
-        ///// <summary>
-        ///// The to_ check_ userid.
-        ///// </summary>
-        ///// <param name="userid">
-        ///// The userid.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="int"/> .
-        ///// </returns>
-        //public int To_Check_Userid(string userid)
-        //{
-        //    var count_userid = EgrantsAccess.ToCheckUserid(userid);
+        // load all appls list with or without documents
+        /// <summary>
+        /// The to_ check_ userid.
+        /// </summary>
+        /// <param name="userid">
+        /// The userid.
+        /// </param>
+        /// <returns>
+        /// The <see cref="int"/> .
+        /// </returns>
+        public int To_Check_Userid(string userid)
+        {
+            var count_userid = _egrantsAccessService.ToCheckUserid(userid);
 
-        //    // JavaScriptSerializer js = new JavaScriptSerializer();
-        //    // return js.Serialize(Convert.ToInt16(count_userid));
-        //    return count_userid;
-        //}
+            return count_userid;
+        }
 
-        ///// <summary>
-        ///// The to_ search.
-        ///// </summary>
-        ///// <param name="person_id">
-        ///// The person_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/> .
-        ///// </returns>
-        //public ActionResult To_Search(int person_id)
-        //{
-        //    // load admin menu list
-        //    this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
+        /// <summary>
+        /// The to_ search.
+        /// </summary>
+        /// <param name="person_id">
+        /// The person_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/> .
+        /// </returns>
+        public ActionResult To_Search(int person_id)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            // load admin menu list
+            ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
-        //    // load profiles
-        //    this.ViewBag.Profiles = EgrantsCommon.LoadProfiles();
+            // load profiles
+            ViewBag.Profiles = _commonService.LoadProfiles();
 
-        //    // load positions
-        //    this.ViewBag.Positions = EgrantsCommon.LoadPositions();
+            // load positions
+            this.ViewBag.Positions = _commonService.LoadPositions();
 
-        //    // Load Coordinators
-        //    this.ViewBag.Coordinators = EgrantsCommon.LoadCoordinators();
+            // Load Coordinators
+            this.ViewBag.Coordinators = _commonService.LoadCoordinators();
 
-        //    // load user data 
-        //    this.ViewBag.User = EgrantsAccess.LoadUsers(
-        //        "search",
-        //        0,
-        //        0,
-        //        person_id,
-        //        string.Empty,
-        //        string.Empty,
-        //        string.Empty,
-        //        string.Empty,
-        //        string.Empty,
-        //        string.Empty,
-        //        0,
-        //        0,
-        //        1,
-        //        0,
-        //        0,
-        //        0,
-        //        0,
-        //        0,
-        //        0,
-        //        0,
-        //        0,
-        //        string.Empty,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            // load user data 
+            ViewBag.User = _egrantsAccessService.LoadUsers(
+                "search",
+                0,
+                0,
+                person_id,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                string.Empty,
+                sessionInfo.Ic,
+                sessionInfo.UserId);
 
-        //    return this.View("~/Egrants_Admin/Views/EgrantsAccessUpdate.cshtml");
-        //}
+            return View("~/Views/Admin/EgrantsAccessUpdate.cshtml");
+        }
 
         ///// <summary>
         /////     The to_ add.
