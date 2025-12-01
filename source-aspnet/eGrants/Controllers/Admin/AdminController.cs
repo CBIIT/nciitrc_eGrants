@@ -3,7 +3,7 @@
 // /****************************** Module Header ******************************\
 // Module Name:  AdminController.cs
 // Solution: egrants_new
-// Project:  egrants_new
+// Project:  egrants
 // Created: 2022-05-05
 // Contributors:
 //      - Feroz, Aalyaan (NIH/NCI) [C] - feroza2
