@@ -85,7 +85,6 @@ namespace eGrants.Controllers.Management
             // load qc report
             ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
 
-            //return this.View("~Views/Management/Index.cshtml");
             return View("~/Views/Management/Index.cshtml");
         }
 
