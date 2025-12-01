@@ -57,6 +57,7 @@ namespace eGrants.Controllers.Management
 
         private readonly IManagementService _managementService;
         private readonly ISessionInfoService _sessionInfoService = new SessionInfoService();
+        private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
         public ManagementController(IManagementService managementService, ISessionInfoService sessionInfoService)
         {
@@ -64,7 +65,6 @@ namespace eGrants.Controllers.Management
             _sessionInfoService = sessionInfoService;
         }
 
-        private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
         /// <summary>
         /// The index.
         /// </summary>
@@ -74,16 +74,16 @@ namespace eGrants.Controllers.Management
         public async Task<ActionResult> Index()
         {
             // load egrants qc reasons
-            this.ViewBag.QCReasons = await _managementService.LoadQCReasons(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCReasons = await _managementService.LoadQCReasons(Convert.ToString(sessionInfo.Ic));
 
             // load egrants specialist list
-            this.ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
+            ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
 
             // load qc persons list
-            this.ViewBag.QCPersons = await _managementService.LoadQCPersons(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCPersons = await _managementService.LoadQCPersons(Convert.ToString(sessionInfo.Ic));
 
             // load qc report
-            this.ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
 
             //return this.View("~Views/Management/Index.cshtml");
             return View("~/Views/Management/Index.cshtml");
@@ -118,16 +118,16 @@ namespace eGrants.Controllers.Management
                 Convert.ToString(sessionInfo.UserId));
 
             // load egrants qc reasons
-            this.ViewBag.QCReasons = await _managementService.LoadQCReasons(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCReasons = await _managementService.LoadQCReasons(Convert.ToString(sessionInfo.Ic));
 
             // load egrants specialist list
-            this.ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
+            ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
 
             // load qc persons list
-            this.ViewBag.QCPersons = await _managementService.LoadQCPersons(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCPersons = await _managementService.LoadQCPersons(Convert.ToString(sessionInfo.Ic));
 
             // load qc report
-            this.ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
 
             // return View("~/Management/Views/Index.cshtml");
             return this.RedirectToAction("Index");
@@ -162,16 +162,16 @@ namespace eGrants.Controllers.Management
                 Convert.ToString(sessionInfo.UserId));
 
             // load egrants qc reasons
-            this.ViewBag.QCReasons = await _managementService.LoadQCReasons(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCReasons = await _managementService.LoadQCReasons(Convert.ToString(sessionInfo.Ic));
 
             // load egrants specialist list
-            this.ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
+            ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
 
             // load qc persons list
-            this.ViewBag.QCPersons = await _managementService.LoadQCPersons(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCPersons = await _managementService.LoadQCPersons(Convert.ToString(sessionInfo.Ic));
 
             // load qc report
-            this.ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
 
             // return View("~/Management/Views/Index.cshtml");
             return this.RedirectToAction("Index");
@@ -210,16 +210,16 @@ namespace eGrants.Controllers.Management
                 Convert.ToString(sessionInfo.UserId));
 
             // load egrants qc reasons
-            this.ViewBag.QCReasons = await _managementService.LoadQCReasons(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCReasons = await _managementService.LoadQCReasons(Convert.ToString(sessionInfo.Ic));
 
             // load egrants specialist list
-            this.ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
+            ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
 
             // load qc persons list
-            this.ViewBag.QCPersons = await _managementService.LoadQCPersons(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCPersons = await _managementService.LoadQCPersons(Convert.ToString(sessionInfo.Ic));
 
             // load qc report
-            this.ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
+            ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
 
             // return View("~/Management/Views/Index.cshtml");
             return this.RedirectToAction("Index");
