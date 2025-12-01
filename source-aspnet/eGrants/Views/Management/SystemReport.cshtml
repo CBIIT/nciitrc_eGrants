@@ -1,0 +1,204 @@
+﻿@{
+   ViewBag.Title = "eGrants [System Report]";
+   Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<script language="javascript">
+
+    var currenturl = window.document.location.href;
+
+    function show_accession() {
+        //get accession id
+        var index = document.getElementById("ddlAccessions").selectedIndex;
+        if (index > 0) {
+            var accession_id = document.getElementById("ddlAccessions").options[index].value;
+            var url = "@Url.Action("by_Accessionid", "SystemReport")?accession_id=" + accession_id;
+            window.self.location.href = url;
+        }
+    }
+
+    function search() {
+         //get serial number
+        if (document.getElementById("txtSerialNum").value == '') {
+            alert("Please insert serial number to search");
+            document.getElementById("txtSerialNum").focus();
+            return false
+        } else var result = isInteger(document.getElementById("txtSerialNum").value);
+
+        if (result == false || result == 'false') {
+            alert("Please insert correct serial number to search");
+            document.getElementById("txtSerialNum").value = '';
+            document.getElementById("txtSerialNum").focus();
+            return false
+        } else var serialnumber = document.getElementById("txtSerialNum").value;
+
+        var url = "@Url.Action("by_Serialnum", "SystemReport")?serial_number=" + serialnumber;
+        window.self.location.href = url;
+    }
+</script>
+
+<div id="main">
+   <div style="text-align:left">
+      <!--start sub link-->
+      @Html.ActionLink("QC Assignment Report", "index", "Management", new { area = "Management" }, null)&#0160;&#47;
+      @Html.ActionLink("Document Transaction Report", "index", "DocTransactionReport", new { area = "Management" }, null)&#0160;&#47;
+      @Html.ActionLink("System Report", "index", "SystemReport", new { area = "Management" }, null)
+   </div>
+   <!--start main-->
+   <div id="caption"><b id="page_title">System Report</b></div>
+   <br />
+   <div id="report" class="form-inline">
+      <!--start report-->
+      <table id="modify" class="table table-borderless">
+         <thead>
+            <tr>
+               <td colspan="3"></td>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td colspan="3">* To search status for particular file folder, insert serial number to search</td>
+            </tr>
+            <tr>
+               <td width="200px">
+                  <Label ID="lblSerialNum" class="float-right"><b>Serial Number:</b></Label>
+               </td>
+               <td width="300px">
+                  <div class="form-group">
+                     <input type="text" ID="txtSerialNum" name="serial_number" class="form-control float-left" style="width: 150px;" value="@ViewBag.SerialNumber" />&nbsp;&nbsp;* Serial Number Only
+                  </div>
+               </td>
+               <td width="100px">
+                  <button AccessKey="S" id="btnSearch" class="btn btn-primary" title="Click to search [shift + alt + S]" onclick="JavaScript:return search()">
+                     <U>S</U>earch
+                  </button>
+               </td>
+            </tr>
+            <tr>
+               @* <td colspan="3">---------------------------------------------------------------------------------------------------------</td> *@
+            </tr>
+            <tr>
+               <td colspan="3">* To search content for particular accession, select an accession number from list</td>
+            </tr>
+            <tr>
+               <td><Label ID="lblAccessionNum" class="float-right"><b>Accession Number:</b></Label></td>
+               <td>
+                  <select id="ddlAccessions" class="form-control" style="width: 150px;" onchange="show_accession();">
+                     <option></option>
+                     @foreach (var item in ViewBag.Accessions)
+                     {
+                        if (Convert.ToString(ViewBag.AccessionID) == item.accession_id)
+                        {
+                           <option value=@item.accession_id selected="selected">@item.accession_number</option>
+                        }
+                        else
+                        {
+                           <option value=@item.accession_id>@item.accession_number</option>
+                        }
+                     }
+                  </select>
+               </td>
+
+            </tr>
+
+         </tbody>
+      </table>
+   </div>
+   @*</form>*@<!--end report-->
+
+
+<br />
+    @if (ViewBag.EgrantsFolders != null && ViewBag.EgrantsFolders.Count >= 1)
+    {
+        var docs = (List<eGrants.Models.EgrantFolders>)ViewBag.EgrantsFolders;
+
+        <style>
+            .custom-docs-table td,
+            .custom-docs-table th {
+                padding: 4px 8px;
+                line-height: 1.2;
+            }
+
+            .custom-docs-table thead th {
+                border-top: none !important;
+                border-bottom: none !important;
+                background-color: #003366;
+                color: #ffffff;
+                font-weight: bold;
+            }
+
+            .custom-docs-table tbody tr:nth-child(odd) {
+                background-color: #ffffff;
+            }
+
+            .custom-docs-table tbody tr:nth-child(even) {
+                background-color: #cfcfcf;
+            }
+        </style>
+
+        <table class="table custom-docs-table">
+            <thead>
+                <tr>
+                    <th>Folder</th>
+                    <th>Grant Year</th>
+                    <th>Location/Box</th>
+                    <th>Last Moved in Date</th>
+                    <th>Accession Destroyed Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in docs)
+                {
+                    <tr>
+                        <td><strong>@item.bar_code</strong></td>
+                        <td><strong>@item.id_string</strong></td>
+                        <td><strong>@item.current_status</strong></td>
+                        <td><strong>@item.latest_move_date</strong></td>
+                        <td><strong>@item.accession_destroyed_date</strong></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pager -->
+        <div class="pager">
+            @if (ViewBag.PageIndex > 1 || ViewBag.TotalPages > 1)
+            {
+                <a href="@Url.Action("To_Show_Report", new { pageIndex = 1, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">&lt;&lt;</a>
+                <a href="@Url.Action("To_Show_Report", new { pageIndex = ViewBag.PageIndex - 1, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">&lt;</a>
+            }
+
+            @{
+                int startPage = Math.Max(1, ViewBag.PageIndex - 5);
+                int endPage = Math.Min(ViewBag.TotalPages, startPage + 9);
+            }
+
+            @if (ViewBag.TotalPages > 1)  // only show page numbers if > 1
+            {
+                for (int i = startPage; i <= endPage; i++)
+                {
+                    if (i == ViewBag.PageIndex)
+                    {
+                        <span><strong>@i</strong></span>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("To_Show_Report", new { pageIndex = i, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">@i</a>
+                    }
+                }
+            }
+
+            @if (ViewBag.PageIndex < ViewBag.TotalPages)
+            {
+                <a href="@Url.Action("To_Show_Report", new { pageIndex = ViewBag.PageIndex + 1, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">&gt;</a>
+                <a href="@Url.Action("To_Show_Report", new { pageIndex = ViewBag.TotalPages, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">&gt;&gt;</a>
+            }
+        </div>
+    }
+    else if (ViewBag.HasSearched == true)
+    {
+        <p>No documents found.</p>
+    }
+
+
+ </div><!--end main--> 
