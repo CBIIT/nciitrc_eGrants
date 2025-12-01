@@ -49,127 +49,127 @@ namespace eGrants.Models
         /// <summary>
         ///     Gets or sets the person_id.
         /// </summary>
-        public string PersonId { get; set; }
+        public string? PersonId { get; set; }
 
         /// <summary>
         ///     Gets or sets the person_name.
         /// </summary>
-        public string person_name { get; set; }
+        public string? person_name { get; set; }
 
         /// <summary>
         ///     Gets or sets the userid.
         /// </summary>
-        public string userid { get; set; }
+        public string? userid { get; set; }
 
         /// <summary>
         ///     Gets or sets the first_name.
         /// </summary>
-        public string first_name { get; set; }
+        public string? first_name { get; set; }
 
         /// <summary>
         ///     Gets or sets the middle_name.
         /// </summary>
-        public string middle_name { get; set; }
+        public string? middle_name { get; set; }
 
         /// <summary>
         ///     Gets or sets the last_name.
         /// </summary>
-        public string last_name { get; set; }
+        public string? last_name { get; set; }
 
         /// <summary>
         ///     Gets or sets the phone_number.
         /// </summary>
-        public string phone_number { get; set; }
+        public string? phone_number { get; set; }
 
         /// <summary>
         ///     Gets or sets the email_address.
         /// </summary>
-        public string email_address { get; set; }
+        public string? email_address { get; set; }
 
         /// <summary>
         ///     Gets or sets the profile_id.
         /// </summary>
-        public string profile_id { get; set; }
+        public string? profile_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the position_id.
         /// </summary>
-        public string position_id { get; set; }
+        public string? position_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the position_name.
         /// </summary>
-        public string position_name { get; set; }
+        public string? position_name { get; set; }
 
         /// <summary>
         ///     Gets or sets the active.
         /// </summary>
-        public string active { get; set; }
+        public string? active { get; set; }
 
         /// <summary>
         ///     Gets or sets the ic.
         /// </summary>
-        public string ic { get; set; }
+        public string? ic { get; set; }
 
         /// <summary>
         ///     Gets or sets the application_type.
         /// </summary>
-        public string application_type { get; set; }
+        public string? application_type { get; set; }
 
         /// <summary>
         ///     Gets or sets the is_coordinator.
         /// </summary>
-        public string is_coordinator { get; set; }
+        public string? is_coordinator { get; set; }
 
         /// <summary>
         ///     Gets or sets the coordinator_id.
         /// </summary>
-        public string coordinator_id { get; set; }
+        public string? coordinator_id { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_admin.
         /// </summary>
-        public string can_admin { get; set; }
+        public string? can_admin { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_egrants.
         /// </summary>
-        public string can_egrants { get; set; }
+        public string? can_egrants { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_dashboard.
         /// </summary>
-        public string can_dashboard { get; set; }
+        public string? can_dashboard { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_coordinator.
         /// </summary>
-        public string can_coordinator { get; set; }
+        public string? can_coordinator { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_docman.
         /// </summary>
-        public string can_docman { get; set; }
+        public string? can_docman { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_cft.
         /// </summary>
-        public string can_cft { get; set; }
+        public string? can_cft { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_mgt.
         /// </summary>
-        public string can_mgt { get; set; }
+        public string? can_mgt { get; set; }
 
         /// <summary>
         ///     Gets or sets the can_iccoord.
         /// </summary>
-        public string can_iccoord { get; set; }
+        public string? can_iccoord { get; set; }
 
         /// <summary>
         ///     Gets or sets the start_date.
         /// </summary>
-        public string start_date { get; set; }
+        public string? start_date { get; set; }
 
         /// <summary>
         ///     Gets or sets the end_date.

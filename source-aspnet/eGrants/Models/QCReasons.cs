@@ -2,6 +2,6 @@
 {
     public class QCReasons
     {
-        public string qc_reason { get; set; }
+        public string? qc_reason { get; set; }
     }
 }
