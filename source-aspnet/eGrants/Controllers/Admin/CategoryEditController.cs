@@ -79,18 +79,18 @@ namespace eGrants.Controllers.Admin
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
             // load admin menu list
-            this.ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
+            ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
             //// Load Common Categroies list
-            this.ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
+            ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
 
             //// Load local Categroies list
-            this.ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
+            ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
 
             // return View
-            this.ViewBag.Message = string.Empty;
+            ViewBag.Message = string.Empty;
 
-            return this.View("~/Views/Admin/CategoryEditIndex.cshtml");
+            return View("~/Views/Admin/CategoryEditIndex.cshtml");
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace eGrants.Controllers.Admin
             var categoryid = Convert.ToInt32(category_id);
             var category_name = string.Empty;
 
-            this.ViewBag.Message = _categoryEditService.run_db(
+            ViewBag.Message = _categoryEditService.run_db(
                 act,
                 categoryid,
                 category_name,
@@ -118,16 +118,16 @@ namespace eGrants.Controllers.Admin
                 );
 
             // load admin menu list
-            this.ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
+            ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
             // Load Common Categroies list
-            this.ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
+            ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
 
             // Load local Categroies list
-            this.ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
+            ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
 
             // return View
-            return this.View("~/Views/Admin/CategoryEditIndex.cshtml");
+            return View("~/Views/Admin/CategoryEditIndex.cshtml");
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace eGrants.Controllers.Admin
             var categoryid = Convert.ToInt32(category_id);
             var category_name = string.Empty;
 
-            this.ViewBag.Message = _categoryEditService.run_db(
+            ViewBag.Message = _categoryEditService.run_db(
                 act,
                 categoryid,
                 category_name,
@@ -155,16 +155,16 @@ namespace eGrants.Controllers.Admin
                 );
 
             // load admin menu list
-            this.ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
+            ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
             // Load Common Categroies list
-            this.ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
+            ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
 
             // Load local Categroies list
-            this.ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
+            ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
 
             // return View
-            return this.View("~/Views/Admin/CategoryEditIndex.cshtml");
+            return View("~/Views/Admin/CategoryEditIndex.cshtml");
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace eGrants.Controllers.Admin
             var act = "create_new";
             var categoryid = 0;
 
-            this.ViewBag.Message = _categoryEditService.run_db(
+            ViewBag.Message = _categoryEditService.run_db(
                 act,
                 categoryid,
                 category_name,
@@ -191,16 +191,16 @@ namespace eGrants.Controllers.Admin
                 );
 
             // load admin menu list
-            this.ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
+            ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
             // Load Common Categroies list
-            this.ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
+            ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
 
             // Load local Categroies list
-            this.ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
+            ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
 
             // return View
-            return this.View("~/Views/Admin/CategoryEditIndex.cshtml");
+            return View("~/Views/Admin/CategoryEditIndex.cshtml");
         }
     }
 }
