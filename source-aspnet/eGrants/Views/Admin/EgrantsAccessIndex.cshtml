@@ -1,4 +1,5 @@
-﻿@using eGrants.Models
+﻿@using Microsoft.AspNetCore.Html
+@using eGrants.Models
 @{
     ViewBag.Title = "eGrants [Access Control Module]";
     Layout = "~/Views/Shared/_egrants_header.cshtml";
@@ -111,6 +112,27 @@
 </div><!--end to show Index for User Name-->
 
 <!--WebGrid was used in legacy system, not compatible with .NET Core 8-->
+
+@{
+    string curSort = ViewBag.SortColumn as string ?? "person_name";
+    string curDir = ViewBag.SortDirection as string ?? "asc";
+    Func<string, string, IHtmlContent> sortLink = (display, column) =>
+    {
+        bool isCur = curSort == column;
+        string nextDir = (isCur && curDir == "asc") ? "desc" : "asc";
+        string url = Url.Action("Index", "EgrantsAccess",
+            new
+            {
+                index_id = ViewBag.IndexID,
+                active_id = ViewBag.ActiveID,
+                page = ViewBag.CurrentPage,
+                sortColumn = column,
+                sortDirection = nextDir
+            });
+        return new HtmlString($"<a href=\"{url}\">{display}</a>");
+    };
+}
+
 <div id="grid" style="width:900px">
     @if (ViewBag.LoadUsers != null && ViewBag.LoadUsers.Count > 0)
     {
@@ -145,18 +167,18 @@
         <table class="webgrid-table">
             <thead>
                 <tr>
-                    <th class="webgrid-header col-sma">  </th>
-                    <th class="webgrid-header col-sma">  </th>
-                    <th class="webgrid-header col-exlarg"> User Name</th>
-                    <th class="webgrid-header col-larg"> Userid</th>
-                    <th class="webgrid-header col-larg"> Position</th>
-                    <th class="webgrid-header col-exs">E*</th>
-                    <th class="webgrid-header col-exs">M*</th>
-                    <th class="webgrid-header col-exs">A*</th>
-                    <th class="webgrid-header col-exs">D*</th>
-                    <th class="webgrid-header col-exs">IC*</th>
-                    <th class="webgrid-header col-larg"> Start Date</th>
-                    <th class="webgrid-header col-larg"> End Date</th>
+                    <th class="webgrid-header col-sma"></th>
+                    <th class="webgrid-header col-sma"></th>
+                    <th class="webgrid-header col-exlarg">@sortLink("User Name", "person_name")</th>
+                    <th class="webgrid-header col-larg">@sortLink("Userid", "userid")</th>
+                    <th class="webgrid-header col-larg">@sortLink("Position", "position_name")</th>
+                    <th class="webgrid-header col-exs">@sortLink("E*", "can_egrants")</th>
+                    <th class="webgrid-header col-exs">@sortLink("M*", "can_mgt")</th>
+                    <th class="webgrid-header col-exs">@sortLink("A*", "can_admin")</th>
+                    <th class="webgrid-header col-exs">@sortLink("D*", "can_dashboard")</th>
+                    <th class="webgrid-header col-exs">@sortLink("IC*", "can_iccoord")</th>
+                    <th class="webgrid-header col-larg">@sortLink("Start Date", "start_date")</th>
+                    <th class="webgrid-header col-larg">@sortLink("End Date", "end_date")</th>
                 </tr>
             </thead>
             <tbody>
@@ -177,7 +199,7 @@
                             }
                             else
                             {
-                                <img class="img_12_12" src="~/images/clear.jpg" title='To indicate user usage rights are valid or invalid' />
+                                <img class="img_12_12" src="~/images/Clear.jpg" title='To indicate user usage rights are valid or invalid' />
                             }
                         </td>
                         <td class="col-exlarg">@user.person_name</td>
