@@ -16,15 +16,12 @@ namespace eGrants.Services
     {
         // Dependency injection of a product repository to access data
         private readonly ISessionInfoService _sessionInfoService;
-        private readonly ICommonRepository _commonRepository;
         private readonly AppDbContext _context;
 
         // Constructor that initializes the repository via dependency injection
-        public CategoryEditService(ISessionInfoService sessionInfoService, ICommonRepository commonRepository, 
-            AppDbContext context)
+        public CategoryEditService(ISessionInfoService sessionInfoService, AppDbContext context)
         {
             _sessionInfoService = sessionInfoService;
-            _commonRepository = commonRepository;
             _context = context;
         }
 
