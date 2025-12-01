@@ -109,5 +109,17 @@ namespace eGrants.Services.Interfaces
             string end_date,
             string ic,
             string userid);
+
+        // check userid if exists in the system
+        /// <summary>
+        /// The to check userid.
+        /// </summary>
+        /// <param name="userid">
+        /// The userid.
+        /// </param>
+        /// <returns>
+        /// The <see cref="int"/>.
+        /// </returns>
+        public int ToCheckUserid(string userid);
     }
 }
