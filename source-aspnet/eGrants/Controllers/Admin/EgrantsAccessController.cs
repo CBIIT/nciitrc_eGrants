@@ -76,12 +76,14 @@ namespace eGrants.Controllers.Admin
         /// <returns>
         /// The <see cref="ActionResult"/> .
         /// </returns>
-        public ActionResult Index(int index_id, int active_id)
+        public ActionResult Index(int index_id = 0, int active_id = 1, int page = 1)
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            
             // save info
             ViewBag.IndexID = index_id;
             ViewBag.ActiveID = active_id;
+            ViewBag.CurrentPage = page;
 
             // load admin menu list
             ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
