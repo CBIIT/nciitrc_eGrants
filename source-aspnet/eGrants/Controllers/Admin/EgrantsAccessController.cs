@@ -64,26 +64,33 @@ namespace eGrants.Controllers.Admin
             _sessionInfoService = sessionInfoService;
             _egrantsAccessService = egrantsAccessService;
         }
+
         /// <summary>
         /// The index.
         /// </summary>
-        /// <param name="index_id">
-        /// The index_id.
-        /// </param>
-        /// <param name="active_id">
-        /// The active_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/> .
-        /// </returns>
-        public ActionResult Index(int index_id = 0, int active_id = 1, int page = 1)
+        /// <param name="index_id">The index_id.</param>
+        /// <param name="active_id">The active_id.</param>
+        /// <param name="page">The page number for pagination.</param>
+        /// <param name="sortColumn">The column to sort by (optional).</param>
+        /// <param name="sortDirection">The sort direction: "asc" or "desc" (optional).</param>
+        /// <returns>The <see cref="ActionResult"/>.</returns>
+        public ActionResult Index(
+            int index_id = 0,
+            int active_id = 1,
+            int page = 1,
+            string sortColumn = "person_name",
+            string sortDirection = "asc")
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-            
+
             // save info
             ViewBag.IndexID = index_id;
             ViewBag.ActiveID = active_id;
             ViewBag.CurrentPage = page;
+
+            // For sorting visual in the View
+            ViewBag.SortColumn = sortColumn;
+            ViewBag.SortDirection = sortDirection;
 
             // load admin menu list
             ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
@@ -92,7 +99,7 @@ namespace eGrants.Controllers.Admin
             ViewBag.CharacterIndex = _commonService.LoadCharacterIndex();
 
             // load user list
-            ViewBag.LoadUsers = _egrantsAccessService.LoadUsers(
+            var users = _egrantsAccessService.LoadUsers(
                 "load",
                 index_id,
                 active_id,
@@ -118,7 +125,34 @@ namespace eGrants.Controllers.Admin
                 sessionInfo.Ic,
                 sessionInfo.UserId);
 
+            // In-memory sorting
+            users = SortUsers(users, sortColumn, sortDirection);
+
+            ViewBag.LoadUsers = users;
+
             return View("~/Views/Admin/EgrantsAccessIndex.cshtml");
+        }
+
+        // Sorting helper method
+        private List<EgrantsUsers> SortUsers(IEnumerable<EgrantsUsers> users, string sortColumn, string sortDirection)
+        {
+            Func<EgrantsUsers, object> keySelector = sortColumn?.ToLower() switch
+            {
+                "userid" => u => u.userid,
+                "position_name" => u => u.position_name,
+                "can_egrants" => u => u.can_egrants,
+                "can_mgt" => u => u.can_mgt,
+                "can_admin" => u => u.can_admin,
+                "can_dashboard" => u => u.can_dashboard,
+                "can_iccoord" => u => u.can_iccoord,
+                "start_date" => u => u.start_date,
+                "end_date" => u => u.end_date,
+                _ => u => u.person_name
+            };
+
+            return sortDirection == "desc"
+                ? users.OrderByDescending(keySelector).ToList()
+                : users.OrderBy(keySelector).ToList();
         }
 
         //// load all appls list with or without documents
