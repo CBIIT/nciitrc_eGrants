@@ -129,8 +129,7 @@ namespace eGrants.Controllers.Management
             // load qc report
             ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
 
-            // return View("~/Management/Views/Index.cshtml");
-            return this.RedirectToAction("Index");
+            return RedirectToAction("Index");
         }
 
         /// <summary>
@@ -173,8 +172,7 @@ namespace eGrants.Controllers.Management
             // load qc report
             ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
 
-            // return View("~/Management/Views/Index.cshtml");
-            return this.RedirectToAction("Index");
+            return RedirectToAction("Index");
         }
 
         /// <summary>
@@ -221,8 +219,7 @@ namespace eGrants.Controllers.Management
             // load qc report
             ViewBag.QCReport = await _managementService.LoadQCReport(Convert.ToString(sessionInfo.Ic));
 
-            // return View("~/Management/Views/Index.cshtml");
-            return this.RedirectToAction("Index");
+            return RedirectToAction("Index");
         }
     }
 }
