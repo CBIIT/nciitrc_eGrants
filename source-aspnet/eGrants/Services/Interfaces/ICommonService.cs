@@ -9,5 +9,7 @@ namespace eGrants.Services.Interfaces
         /// </summary>
         /// <returns>A task that represents the asynchronous operation, containing a list of <see cref="AdminCodes"/> objects.</returns>
         public Task<List<AdminCodes>> LoadAdminCodes();
+
+        public List<CharacterIndex> LoadCharacterIndex();
     }
 }
