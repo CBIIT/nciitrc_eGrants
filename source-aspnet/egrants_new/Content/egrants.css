@@ -51,8 +51,8 @@ a:link {
 }
 
 a:hover {
-    color: #0056b3;
-    text-decoration: underline;
+    color:lightblue;
+    /*border-bottom: 1px solid Black;*/
 }
 
 a:visited {
