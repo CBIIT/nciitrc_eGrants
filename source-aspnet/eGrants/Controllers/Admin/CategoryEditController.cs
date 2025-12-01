@@ -93,108 +93,114 @@ namespace eGrants.Controllers.Admin
             return this.View("~/Views/Admin/CategoryEditIndex.cshtml");
         }
 
-        ///// <summary>
-        ///// The to_ move.
-        ///// </summary>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult To_Move(string category_id)
-        //{
-        //    var act = "remove_out";
-        //    var categoryid = Convert.ToInt32(category_id);
-        //    var category_name = string.Empty;
+        /// <summary>
+        /// The to_ move.
+        /// </summary>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult To_Move(string category_id)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            var act = "remove_out";
+            var categoryid = Convert.ToInt32(category_id);
+            var category_name = string.Empty;
 
-        //    this.ViewBag.Message = CategoryEdit.run_db(
-        //        act,
-        //        categoryid,
-        //        category_name,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            this.ViewBag.Message = _categoryEditService.run_db(
+                act,
+                categoryid,
+                category_name,
+                Convert.ToString(sessionInfo.Ic),
+                Convert.ToString(sessionInfo.UserId)
+                );
 
-        //    // load admin menu list
-        //    this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
+            // load admin menu list
+            this.ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
-        //    // Load Common Categroies list
-        //    this.ViewBag.CommonCategroies = CategoryEdit.LoadCommonCategroies(Convert.ToString(this.Session["ic"]));
+            // Load Common Categroies list
+            this.ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
 
-        //    // Load local Categroies list
-        //    this.ViewBag.LocalCategroies = CategoryEdit.LoadLocalCategroies(Convert.ToString(this.Session["ic"]));
+            // Load local Categroies list
+            this.ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
 
-        //    // return View
-        //    return this.View("~/Egrants_Admin/Views/CategoryEditIndex.cshtml");
-        //}
+            // return View
+            return this.View("~/Views/Admin/CategoryEditIndex.cshtml");
+        }
 
-        ///// <summary>
-        ///// The to_ add.
-        ///// </summary>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult To_Add(string category_id)
-        //{
-        //    var act = "add_in";
-        //    var categoryid = Convert.ToInt32(category_id);
-        //    var category_name = string.Empty;
+        /// <summary>
+        /// The to_ add.
+        /// </summary>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult To_Add(string category_id)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            var act = "add_in";
+            var categoryid = Convert.ToInt32(category_id);
+            var category_name = string.Empty;
 
-        //    this.ViewBag.Message = CategoryEdit.run_db(
-        //        act,
-        //        categoryid,
-        //        category_name,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            this.ViewBag.Message = _categoryEditService.run_db(
+                act,
+                categoryid,
+                category_name,
+                Convert.ToString(sessionInfo.Ic),
+                Convert.ToString(sessionInfo.UserId)
+                );
 
-        //    // load admin menu list
-        //    this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
+            // load admin menu list
+            this.ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
-        //    // Load Common Categroies list
-        //    this.ViewBag.CommonCategroies = CategoryEdit.LoadCommonCategroies(Convert.ToString(this.Session["ic"]));
+            // Load Common Categroies list
+            this.ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
 
-        //    // Load local Categroies list
-        //    this.ViewBag.LocalCategroies = CategoryEdit.LoadLocalCategroies(Convert.ToString(this.Session["ic"]));
+            // Load local Categroies list
+            this.ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
 
-        //    // return View
-        //    return this.View("~/Egrants_Admin/Views/CategoryEditIndex.cshtml");
-        //}
+            // return View
+            return this.View("~/Views/Admin/CategoryEditIndex.cshtml");
+        }
 
-        ///// <summary>
-        ///// The to_ create.
-        ///// </summary>
-        ///// <param name="category_name">
-        ///// The category_name.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult To_Create(string category_name)
-        //{
-        //    var act = "create_new";
-        //    var category_id = 0;
+        /// <summary>
+        /// The to_ create.
+        /// </summary>
+        /// <param name="category_name">
+        /// The category_name.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult To_Create(string category_name)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            var act = "create_new";
+            var categoryid = 0;
 
-        //    this.ViewBag.Message = CategoryEdit.run_db(
-        //        act,
-        //        category_id,
-        //        category_name,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            this.ViewBag.Message = _categoryEditService.run_db(
+                act,
+                categoryid,
+                category_name,
+                Convert.ToString(sessionInfo.Ic),
+                Convert.ToString(sessionInfo.UserId)
+                );
 
-        //    // load admin menu list
-        //    this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
+            // load admin menu list
+            this.ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
-        //    // Load Common Categroies list
-        //    this.ViewBag.CommonCategroies = CategoryEdit.LoadCommonCategroies(Convert.ToString(this.Session["ic"]));
+            // Load Common Categroies list
+            this.ViewBag.CommonCategories = _categoryEditService.LoadCommonCategories(sessionInfo.Ic);
 
-        //    // Load local Categroies list
-        //    this.ViewBag.LocalCategroies = CategoryEdit.LoadLocalCategroies(Convert.ToString(this.Session["ic"]));
+            // Load local Categroies list
+            this.ViewBag.LocalCategories = _categoryEditService.LoadLocalCategories(sessionInfo.Ic);
 
-        //    // return View
-        //    return this.View("~/Egrants_Admin/Views/CategoryEditIndex.cshtml");
-        //}
+            // return View
+            return this.View("~/Views/Admin/CategoryEditIndex.cshtml");
+        }
     }
 }
