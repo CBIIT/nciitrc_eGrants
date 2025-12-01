@@ -1,4 +1,6 @@
-﻿using eGrants.DAL;
+﻿using System.Data;
+
+using eGrants.DAL;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 
@@ -35,6 +37,43 @@ namespace eGrants.Repositories
                     profile = p.admin_phs_org_code == "ca" ? "NCI" : null
                 }).Distinct().OrderBy(p => p.admin_phs_org_code).ToListAsync();
             }
+        }
+
+        // Loads the admin menu for a specific user from the database
+        public List<AdminMenus> LoadAdminMenus(string userid)
+        {
+            var list = new List<AdminMenus>();
+
+            using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+
+                var cmd = new SqlCommand(
+                    "select menu_id, menu_title, menu_action from vw_adm_menu_assignment where person_id=(select person_id from vw_people where menu_action is not null and userid = @userid) order by menu_title",
+                    conn);
+
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
+                conn.Open();
+
+
+                var rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(
+                        new AdminMenus
+                        {
+                            MenuId = rdr["menu_id"]?.ToString(),
+                            MenuTitle = rdr["menu_title"]?.ToString(),
+                            MenuAction = rdr["menu_action"]?.ToString()
+                        });
+                }
+
+                rdr.Close();
+                conn.Close();
+            }
+
+            return list;
         }
     }
 }
