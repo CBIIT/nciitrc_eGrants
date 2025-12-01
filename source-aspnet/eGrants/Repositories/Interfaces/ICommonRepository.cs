@@ -12,5 +12,7 @@ namespace eGrants.Repositories.Interfaces
         /// available in the system.
         /// </returns>
         public Task<List<AdminCodes>> LoadAdminCodes();
+
+        public List<AdminMenus> LoadAdminMenus(string userid);
     }
 }
