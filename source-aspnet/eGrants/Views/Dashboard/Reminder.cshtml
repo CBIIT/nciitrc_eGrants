@@ -10,18 +10,9 @@
 <script language="JavaScript">
 var currenturl = window.document.location.href;
 
-//var serialnum=document.frmGetInfo.serial_num.value;
-//var appl_id=document.frmGetInfo.appl_id.value;
-//var assign_date=document.frmGetInfo.AssignDate.value;
-//var due_date=document.frmGetInfo.DueDate.value;
-//var act=document.frmGetInfo.act.value;
-
 function show_default(){
-	//window.focus();
-	//window.document.self.focus();
     document.getElementById("txtSerialNum").focus();
     document.getElementById("main").style.marginLeft = "80px";
-	//onBlur="self.focus();"
 
 	//show calculate days option
 	if (document.frmGetInfo.act.value == 'select' && document.frmGetInfo.AssignDate.value.length > 0) {
@@ -46,125 +37,6 @@ function show_default(){
 		}
 	}
 }
-
-//function search(){	
-//	if (document.getElementById("txtSerialNum").value==''){
-//		alert("Please insert serial number to search");
-//		document.getElementById("txtSerialNum").focus();
-//		return false;		
-//	}else var SerialNum=document.getElementById("txtSerialNum").value;
-//	var result=isInteger(SerialNum);
-//	if (result == false || result == 'false') {
-//	    alert("Please insert correct serial number to search");
-//	    document.getElementById("txtSerialNum").value = '';
-//	    document.getElementById("txtSerialNum").focus();
-//	    return false;
-//	} else
-
-//	    if (currenturl.indexOf("Reminder/") > 0) {
-//	        url = "Reminder_Search?act=search&serial_num=" + SerialNum;
-//	    } else url = "Reminder/Reminder_Search?act=search&serial_num=" + SerialNum;
-//	    //alert(url);   
-//	    window.self.location.href=url;	
-//}
-
-//function select_appl() {
-//    var SerialNum = document.getElementById("txtSerialNum").value;
-//	if (document.getElementById("ddlAppl").selectedIndex==0){
-//		alert("Please select a grant year");
-//		return false;
-//	}else appl_id=document.getElementById("ddlAppl").options[document.getElementById("ddlAppl").selectedIndex].value;
-
-//	if (currenturl.indexOf("Reminder/") > 0) {
-//	    url = "Reminder_Select?act=select&appl_id=" + appl_id + "&serial_num=" + SerialNum;
-//	} else url = "Reminder/Reminder_Select?act=select&appl_id=" + appl_id + "&serial_num=" + SerialNum;
-//    //alert(url);   
-//	window.self.location.href = url;	
-//}
-
-//function set_days(){
-//	document.getElementById('txtReminderDate').value='';
-//	var new_date='';
-//	var reminder_day='';
-//	var reminder_date='';
-
-//	if (document.getElementById("txtDays").value==''){
-//		alert("Please insert days");
-//		document.getElementById("txtDays").focus();
-//		document.getElementById('ddlDaysType').selectedIndex=0;		
-//		return false;	
-//	}else var Days=document.getElementById("txtDays").value;
-//		var result=isInteger(Days);
-//		if (result==false || result=='false'){
-//			alert("Please inset correct number for days");
-//			document.getElementById("txtDays").value='';
-//			document.getElementById("txtDays").focus();
-//			return false;
-//		}
-
-//	if (document.getElementById('ddlDaysType').selectedIndex==0){
-//		alert("Please select type of days");
-//		return false;
-//	}else var DaysType=document.getElementById('ddlDaysType').options[document.getElementById('ddlDaysType').selectedIndex].value;
-	
-//	//1=after assignment
-//	//2=before due date
-//	if (DaysType==1){
-//	    new_date = new Date(document.frmGetInfo.AssignDate.value).getTime() + (86400000 * Days);
-//	} else new_date = new Date(document.frmGetInfo.DueDate.value).getTime() - (86400000 * Days);
-			
-//	reminder_day= new Date(new_date);
-//	reminder_date = reminder_day.getMonth() + 1 + '/' + reminder_day.getDate() + '/' + reminder_day.getFullYear();
-//	document.getElementById("txtReminderDate").value=reminder_date;
-//}
-
-//function save(){	
-	
-//	//get appl_id
-//	if (document.getElementById("ddlAppl").selectedIndex==0){
-//		alert("Please select a grant year");
-//		return false;
-//	}else var appl_id=document.getElementById("ddlAppl").options[document.getElementById("ddlAppl").selectedIndex].value;
-	
-//	//get ReminderDate
-//	if (document.getElementById("txtReminderDate").value==''){
-//		alert("Please insert reminder date");
-//		document.getElementById("txtReminderDate").value='';
-//		document.getElementById("txtReminderDate").focus();
-//		return false;
-//	}else if (isAnyDate(document.getElementById("txtReminderDate").value)==false){
-//		document.getElementById("txtReminderDate").value='';
-//		document.getElementById("txtReminderDate").focus();
-//		return false;
-//	}else var effective_date=document.getElementById("txtReminderDate").value;
-		
-//	//get reminder text
-//	if (document.getElementById("txtNotice").value==''){
-//		alert("Please insert note or reminder text");
-//		document.getElementById("txtNotice").focus();
-//		return false;	
-//	}else var reminder_text=document.getElementById("txtNotice").value;
-	
-//	//get reminder type
-//	if (document.getElementById("chbEmail").checked!=true && document.getElementById("chbWeb").checked!=true){	
-//		alert("Please set reminder type");
-//		return false;
-//	}
-
-//	if (document.getElementById("chbEmail").checked == true) {
-//	    var by_email = "y";
-//	} else var by_email = "n";
-
-//	if (document.getElementById("chbWeb").checked==true){
-//	    var by_display="y";
-//	}else var by_display="n"
-
-//	if (currenturl.indexOf("Reminder/") > 0) {
-//	    url = "Save_Data?act=save&event_type=reminder&appl_id=" + appl_id+"&effective_date="+effective_date+"&reminder_text="+reminder_text+"&by_email="+by_email+"&by_display="+by_display;
-//	} else url = "Reminder/Save_Data?act=save&event_type=reminder&appl_id=" + appl_id+"&effective_date="+effective_date+"&reminder_text="+reminder_text+"&by_email="+by_email+"&by_display="+by_display;
-//	//alert(url);
-//	window.self.location.href=url;	
-//}
 
 function close_window(){
 	window.close();
