@@ -191,10 +191,10 @@ namespace eGrants.Controllers.Admin
             ViewBag.Profiles = _commonService.LoadProfiles();
 
             // load positions
-            this.ViewBag.Positions = _commonService.LoadPositions();
+            ViewBag.Positions = _commonService.LoadPositions();
 
             // Load Coordinators
-            this.ViewBag.Coordinators = _commonService.LoadCoordinators();
+            ViewBag.Coordinators = _commonService.LoadCoordinators();
 
             // load user data 
             ViewBag.User = _egrantsAccessService.LoadUsers(
@@ -226,32 +226,33 @@ namespace eGrants.Controllers.Admin
             return View("~/Views/Admin/EgrantsAccessUpdate.cshtml");
         }
 
-        ///// <summary>
-        /////     The to_ add.
-        ///// </summary>
-        ///// <returns>
-        /////     The <see cref="ActionResult" /> .
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult To_Add()
-        //{
-        //    // load admin menu list
-        //    this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
+        /// <summary>
+        ///     The to_ add.
+        /// </summary>
+        /// <returns>
+        ///     The <see cref="ActionResult" /> .
+        /// </returns>
+        [HttpGet]
+        public ActionResult To_Add()
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            // load admin menu list
+            ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
-        //    // load profiles
-        //    this.ViewBag.Profiles = EgrantsCommon.LoadProfiles();
+            // load profiles
+            ViewBag.Profiles = _commonService.LoadProfiles();
 
-        //    // load positions
-        //    this.ViewBag.Positions = EgrantsCommon.LoadPositions();
+            // load positions
+            ViewBag.Positions = _commonService.LoadPositions();
 
-        //    // Load Coordinators
-        //    this.ViewBag.Coordinators = EgrantsCommon.LoadCoordinators();
+            // Load Coordinators
+            ViewBag.Coordinators = _commonService.LoadCoordinators();
 
-        //    // Load user data
-        //    this.ViewBag.User = null;
+            // Load user data
+            ViewBag.User = null;
 
-        //    return this.View("~/Egrants_Admin/Views/EgrantsAccessCreate.cshtml");
-        //}
+            return View("~/Views/Admin/EgrantsAccessCreate.cshtml");
+        }
 
         /// <summary>
         /// The to_ update.
@@ -343,7 +344,7 @@ namespace eGrants.Controllers.Admin
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);            
             // load admin menu list
-            this.ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
+            ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
             // run db and update user data --commented by Leon 6/4/2019                     
             // EgrantsAccess.run_db(act, 0, 0, user_id, login_id, last_name, first_name, middle_name, email_address, phone_num, coordinator_id, position_id, ic_id, egrants_tab, mgt_tab, admin_tab, docman_tab, cft_tab, dashboard_tab, iccoord_tab, is_coordinator, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
@@ -380,7 +381,7 @@ namespace eGrants.Controllers.Admin
             {
                 // get the first letter from last name
                 var first_letter = last_name.Substring(0, 1);
-                this.ViewBag.FirstLetter = first_letter;
+                ViewBag.FirstLetter = first_letter;
                 var index_id = _egrantsAccessService.getCharacterIndex(first_letter);
 
                 // return default index
@@ -388,19 +389,19 @@ namespace eGrants.Controllers.Admin
             }
 
             // user data duplicate and return error message
-            this.ViewBag.ReturnNotice = return_notice;
+            ViewBag.ReturnNotice = return_notice;
 
             // load profiles
-            this.ViewBag.Profiles = _commonService.LoadProfiles();
+            ViewBag.Profiles = _commonService.LoadProfiles();
 
             // load positions
-            this.ViewBag.Positions = _commonService.LoadPositions();
+            ViewBag.Positions = _commonService.LoadPositions();
 
             // Load Coordinators
-            this.ViewBag.Coordinators = _commonService.LoadCoordinators();
+            ViewBag.Coordinators = _commonService.LoadCoordinators();
 
             // load user data 
-            this.ViewBag.User = _egrantsAccessService.LoadUsers(
+            ViewBag.User = _egrantsAccessService.LoadUsers(
                 "search",
                 0,
                 0,
@@ -426,159 +427,161 @@ namespace eGrants.Controllers.Admin
                 sessionInfo.Ic,
                 sessionInfo.UserId);
 
-            return this.View("~/Egrants_Admin/Views/EgrantsAccessUpdate.cshtml");
+            return View("~/Egrants_Admin/Views/EgrantsAccessUpdate.cshtml");
         }
 
-        ///// <summary>
-        ///// The to_ create.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="active_id">
-        ///// The active_id.
-        ///// </param>
-        ///// <param name="login_id">
-        ///// The login_id.
-        ///// </param>
-        ///// <param name="first_name">
-        ///// The first_name.
-        ///// </param>
-        ///// <param name="last_name">
-        ///// The last_name.
-        ///// </param>
-        ///// <param name="middle_name">
-        ///// The middle_name.
-        ///// </param>
-        ///// <param name="email_address">
-        ///// The email_address.
-        ///// </param>
-        ///// <param name="phone_num">
-        ///// The phone_num.
-        ///// </param>
-        ///// <param name="egrants_tab">
-        ///// The egrants_tab.
-        ///// </param>
-        ///// <param name="mgt_tab">
-        ///// The mgt_tab.
-        ///// </param>
-        ///// <param name="admin_tab">
-        ///// The admin_tab.
-        ///// </param>
-        ///// <param name="docman_tab">
-        ///// The docman_tab.
-        ///// </param>
-        ///// <param name="cft_tab">
-        ///// The cft_tab.
-        ///// </param>
-        ///// <param name="dashboard_tab">
-        ///// The dashboard_tab.
-        ///// </param>
-        ///// <param name="iccoord_tab">
-        ///// The iccoord_tab.
-        ///// </param>
-        ///// <param name="ic_id">
-        ///// The ic_id.
-        ///// </param>
-        ///// <param name="position_id">
-        ///// The position_id.
-        ///// </param>
-        ///// <param name="coordinator_id">
-        ///// The coordinator_id.
-        ///// </param>
-        ///// <param name="is_coordinator">
-        ///// The is_coordinator.
-        ///// </param>
-        ///// <param name="end_date">
-        ///// The end_date.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/> .
-        ///// </returns>
-        //public ActionResult To_Create(
-        //    string act,
-        //    int active_id,
-        //    string login_id,
-        //    string first_name,
-        //    string last_name,
-        //    string middle_name,
-        //    string email_address,
-        //    string phone_num,
-        //    int egrants_tab,
-        //    int mgt_tab,
-        //    int admin_tab,
-        //    int docman_tab,
-        //    int cft_tab,
-        //    int dashboard_tab,
-        //    int iccoord_tab,
-        //    int ic_id,
-        //    int position_id,
-        //    int coordinator_id,
-        //    int is_coordinator,
-        //    string end_date)
-        //{
-        //    // load admin menu list
-        //    this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
+        /// <summary>
+        /// The to_ create.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="active_id">
+        /// The active_id.
+        /// </param>
+        /// <param name="login_id">
+        /// The login_id.
+        /// </param>
+        /// <param name="first_name">
+        /// The first_name.
+        /// </param>
+        /// <param name="last_name">
+        /// The last_name.
+        /// </param>
+        /// <param name="middle_name">
+        /// The middle_name.
+        /// </param>
+        /// <param name="email_address">
+        /// The email_address.
+        /// </param>
+        /// <param name="phone_num">
+        /// The phone_num.
+        /// </param>
+        /// <param name="egrants_tab">
+        /// The egrants_tab.
+        /// </param>
+        /// <param name="mgt_tab">
+        /// The mgt_tab.
+        /// </param>
+        /// <param name="admin_tab">
+        /// The admin_tab.
+        /// </param>
+        /// <param name="docman_tab">
+        /// The docman_tab.
+        /// </param>
+        /// <param name="cft_tab">
+        /// The cft_tab.
+        /// </param>
+        /// <param name="dashboard_tab">
+        /// The dashboard_tab.
+        /// </param>
+        /// <param name="iccoord_tab">
+        /// The iccoord_tab.
+        /// </param>
+        /// <param name="ic_id">
+        /// The ic_id.
+        /// </param>
+        /// <param name="position_id">
+        /// The position_id.
+        /// </param>
+        /// <param name="coordinator_id">
+        /// The coordinator_id.
+        /// </param>
+        /// <param name="is_coordinator">
+        /// The is_coordinator.
+        /// </param>
+        /// <param name="end_date">
+        /// The end_date.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/> .
+        /// </returns>
+        public ActionResult To_Create(
+            string act,
+            int active_id = 0,
+            string login_id = "",
+            string first_name = "",
+            string last_name = "",
+            string middle_name = "",
+            string email_address = "",
+            string phone_num = "",
+            int egrants_tab = 0,
+            int mgt_tab = 0,
+            int admin_tab = 0,
+            int docman_tab = 0,
+            int cft_tab = 0,
+            int dashboard_tab = 0,
+            int iccoord_tab = 0,
+            int ic_id = 0,
+            int position_id = 0,
+            int coordinator_id = 0,
+            int is_coordinator = 0,
+            string end_date = "")
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            
+            // load admin menu list
+            ViewBag.AdminMenu = _commonRepository.LoadAdminMenus(sessionInfo.UserId);
 
-        //    // run db and update user data --commented by Leon 6/4/2019               
-        //    // EgrantsAccess.run_db(act, 0, active_id, 0, login_id, last_name, first_name, middle_name, email_address, phone_num, coordinator_id, position_id, ic_id, egrants_tab, mgt_tab, admin_tab, docman_tab, cft_tab, dashboard_tab, iccoord_tab, is_coordinator, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
+            // run db and update user data --commented by Leon 6/4/2019               
+            // EgrantsAccess.run_db(act, 0, active_id, 0, login_id, last_name, first_name, middle_name, email_address, phone_num, coordinator_id, position_id, ic_id, egrants_tab, mgt_tab, admin_tab, docman_tab, cft_tab, dashboard_tab, iccoord_tab, is_coordinator, end_date, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
 
-        //    // get return notice
-        //    var return_notice = EgrantsAccess.to_preview(
-        //        act,
-        //        0,
-        //        active_id,
-        //        0,
-        //        login_id,
-        //        last_name,
-        //        first_name,
-        //        middle_name,
-        //        email_address,
-        //        phone_num,
-        //        coordinator_id,
-        //        position_id,
-        //        ic_id,
-        //        egrants_tab,
-        //        mgt_tab,
-        //        admin_tab,
-        //        docman_tab,
-        //        cft_tab,
-        //        dashboard_tab,
-        //        iccoord_tab,
-        //        is_coordinator,
-        //        end_date,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            // get return notice
+            var return_notice = _egrantsAccessService.to_preview(
+                act,
+                0,
+                active_id,
+                0,
+                login_id,
+                last_name,
+                first_name,
+                middle_name,
+                email_address,
+                phone_num,
+                coordinator_id,
+                position_id,
+                ic_id,
+                egrants_tab,
+                mgt_tab,
+                admin_tab,
+                docman_tab,
+                cft_tab,
+                dashboard_tab,
+                iccoord_tab,
+                is_coordinator,
+                end_date,
+                sessionInfo.Ic,
+                sessionInfo.UserId);
 
-        //    // new user has been created and show index page
-        //    if (return_notice == "done")
-        //    {
-        //        // get the first letter from last name
-        //        var first_letter = last_name.Substring(0, 1);
-        //        this.ViewBag.FirstLetter = first_letter;
-        //        var index_id = EgrantsAccess.getCharacterIndex(first_letter);
+            // new user has been created and show index page
+            if (return_notice == "done")
+            {
+                // get the first letter from last name
+                var first_letter = last_name.Substring(0, 1);
+                ViewBag.FirstLetter = first_letter;
+                var index_id = _egrantsAccessService.getCharacterIndex(first_letter);
 
-        //        // return default index
-        //        return this.Index(index_id, 1);
-        //    }
+                // return default index
+                return this.Index(index_id, 1);
+            }
 
-        //    // user data duplicate and return error message
-        //    this.ViewBag.ReturnNotice = return_notice;
+            // user data duplicate and return error message
+            ViewBag.ReturnNotice = return_notice;
 
-        //    // load profiles
-        //    this.ViewBag.Profiles = EgrantsCommon.LoadProfiles();
+            // load profiles
+            ViewBag.Profiles = _commonService.LoadProfiles();
 
-        //    // load positions
-        //    this.ViewBag.Positions = EgrantsCommon.LoadPositions();
+            // load positions
+            ViewBag.Positions = _commonService.LoadPositions();
 
-        //    // Load Coordinators
-        //    this.ViewBag.Coordinators = EgrantsCommon.LoadCoordinators();
+            // Load Coordinators
+            ViewBag.Coordinators = _commonService.LoadCoordinators();
 
-        //    // Load user data
-        //    this.ViewBag.User = null;
+            // Load user data
+            ViewBag.User = null;
 
-        //    return this.View("~/Egrants_Admin/Views/EgrantsAccessCreate.cshtml");
-        //}
+            return View("~/Views/Admin/EgrantsAccessCreate.cshtml");
+        }
 
         /// <summary>
         /// The to_ change_ status.
@@ -637,24 +640,24 @@ namespace eGrants.Controllers.Admin
         //public ActionResult To_LoadAccept(int accept_user_id)
         //{
         //    // load admin menu list
-        //    this.ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
+        //    ViewBag.AdminMenu = EgrantsCommon.LoadAdminMenu(Convert.ToString(this.Session["userid"]));
 
         //    // load profiles
-        //    this.ViewBag.Profiles = EgrantsCommon.LoadProfiles();
+        //    ViewBag.Profiles = EgrantsCommon.LoadProfiles();
 
         //    // load positions
-        //    this.ViewBag.Positions = EgrantsCommon.LoadPositions();
+        //    ViewBag.Positions = EgrantsCommon.LoadPositions();
 
         //    // Load Coordinators
-        //    this.ViewBag.Coordinators = EgrantsCommon.LoadCoordinators();
+        //    ViewBag.Coordinators = EgrantsCommon.LoadCoordinators();
 
         //    // run db and load request  user data                
-        //    this.ViewBag.RequestUser = EgrantsAccess.LoadAccept(
+        //    ViewBag.RequestUser = EgrantsAccess.LoadAccept(
         //        accept_user_id,
         //        Convert.ToString(this.Session["ic"]),
         //        Convert.ToString(this.Session["userid"]));
 
-        //    return this.View("~/Egrants_Admin/Views/EgrantsAccessRequest.cshtml");
+        //    return View("~/Egrants_Admin/Views/EgrantsAccessRequest.cshtml");
         //}
     }
 }
