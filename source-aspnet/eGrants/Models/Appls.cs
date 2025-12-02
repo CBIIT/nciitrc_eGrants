@@ -1,7 +1,7 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  SessionInfo.cs
+// Module Name:  Appls.cs
 // Solution: egrants_new
 // Project:  egrants_new
 // Created: 2025-12-02
@@ -35,17 +35,14 @@
 
 namespace eGrants.Models
 {
-    public class SessionInfo
-    {
-        public string Ic { get; set; }
-        public string Browser { get; set; }
-        public string UserId { get; set; }
-        public string WebGrantUrl { get; set; }
-        public string ImageServerUrl { get; set; }
-        public string EgrantsDocModifyRelativePath { get; set; }
-        public string EgrantsDocNewRelativePath { get; set; }
-        public string EgrantsDocEmail { get; set; }
 
-        public int Dashboard { get; set; }
+        public class Appls
+        {
+            public string appl_id { get; set; }
+            public string serial_num { get; set; }
+            public string full_grant_num { get; set; }
+            public string assign_date { get; set; }
+            public string due_date { get; set; }
+        }
     }
-}
+    

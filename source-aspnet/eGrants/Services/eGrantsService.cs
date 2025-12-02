@@ -20,7 +20,7 @@ namespace eGrants.Services
     // Defines a service class that implements the IeGrantService interface
     public class eGrantsService : IeGrantsService
     {
-        // Dependency injection of a product repository to access data
+        // Dependency injection of a eGrant repository to access data
         private readonly IeGrantsRepository _eGrantRepository;
         private readonly ILogger<IeGrantsService> _logger;
         private readonly AppDbContext _context;

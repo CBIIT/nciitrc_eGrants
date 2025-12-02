@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  SessionInfo.cs
+// Module Name:  avgtime.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2025-12-02
+// Created: 2025-12-01
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 //      -
@@ -35,17 +35,30 @@
 
 namespace eGrants.Models
 {
-    public class SessionInfo
-    {
-        public string Ic { get; set; }
-        public string Browser { get; set; }
-        public string UserId { get; set; }
-        public string WebGrantUrl { get; set; }
-        public string ImageServerUrl { get; set; }
-        public string EgrantsDocModifyRelativePath { get; set; }
-        public string EgrantsDocNewRelativePath { get; set; }
-        public string EgrantsDocEmail { get; set; }
 
-        public int Dashboard { get; set; }
+        /// <summary>
+        /// The avgtime.
+        /// </summary>
+        public class avgtime
+        {
+            /// <summary>
+            /// Gets or sets the userid.
+            /// </summary>
+            public string USERID { get; set; }
+
+            /// <summary>
+            /// Gets or sets the allowe d_ releas e_ days.
+            /// </summary>
+            public string ALLOWED_RELEASE_DAYS { get; set; }
+
+            /// <summary>
+            /// Gets or sets the av g_ daystaken.
+            /// </summary>
+            public string AVG_DAYSTAKEN { get; set; }
+
+            /// <summary>
+            /// Gets or sets the gran t_ count.
+            /// </summary>
+            public string GRANT_COUNT { get; set; }
+        }
     }
-}

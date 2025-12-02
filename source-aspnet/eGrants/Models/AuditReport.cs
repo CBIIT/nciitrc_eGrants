@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  SessionInfo.cs
+// Module Name:  AuditReport.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2025-12-02
+// Created: 2025-12-01
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 //      -
@@ -35,17 +35,24 @@
 
 namespace eGrants.Models
 {
-    public class SessionInfo
-    {
-        public string Ic { get; set; }
-        public string Browser { get; set; }
-        public string UserId { get; set; }
-        public string WebGrantUrl { get; set; }
-        public string ImageServerUrl { get; set; }
-        public string EgrantsDocModifyRelativePath { get; set; }
-        public string EgrantsDocNewRelativePath { get; set; }
-        public string EgrantsDocEmail { get; set; }
+        /// <summary>
+        /// The audit report.
+        /// </summary>
+        public class AuditReport
+        {
+            /// <summary>
+            /// Gets or sets the report_name.
+            /// </summary>
+            public string report_name { get; set; }
 
-        public int Dashboard { get; set; }
+            /// <summary>
+            /// Gets or sets the report_url.
+            /// </summary>
+            public string report_url { get; set; }
+
+            /// <summary>
+            /// Gets or sets the run_date.
+            /// </summary>
+            public string run_date { get; set; }
+        }
     }
-}

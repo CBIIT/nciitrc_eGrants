@@ -1,0 +1,160 @@
+﻿<html>
+<head>
+<title>eGrants [Reminder]</title>
+<link rel="stylesheet" type="text/css" href="~/Content/egrants.css"/>
+<link rel="stylesheet" type="text/css" href="~/Content/dashboard.css" />
+<link rel="stylesheet" type="text/css" href="~/Content/bootstrap.min.css" />
+
+<script language="JavaScript" type="text/javascript" src="~/scripts/validation.js"></script>
+
+<script language="JavaScript">
+var currenturl = window.document.location.href;
+
+function show_default(){
+    document.getElementById("txtSerialNum").focus();
+    document.getElementById("main").style.marginLeft = "80px";
+
+	//show calculate days option
+	if (document.frmGetInfo.act.value == 'select' && document.frmGetInfo.AssignDate.value.length > 0) {
+		if (document.getElementById('calculate_days').style.display=="none"){
+			document.getElementById('calculate_days').style.display="inline";
+		}
+	}
+
+	//close popup window
+	if (document.frmGetInfo.act.value == 'save') {
+		if (document.getElementById('close_popup').style.display=="none"){
+			document.getElementById('close_popup').style.display="inline";
+
+			//disable all other objects
+			document.getElementById("txtSerialNum").disabled=true;
+			document.getElementById("btnSearch").disabled=true;			
+			document.getElementById("txtReminderDate").disabled=true;
+			document.getElementById("txtNotice").disabled=true;
+			document.getElementById("chbEmail").disabled=true;
+			document.getElementById("chbWeb").disabled=true;
+			document.getElementById("btnSave").disabled=true;
+		}
+	}
+}
+
+function close_window(){
+	window.close();
+}
+
+</script>
+</head>
+<body onload="show_default();">
+
+<form name="frmGetInfo">
+    <input type="text" id="hidAct" name="act" value="@ViewBag.Act" hidden/>
+    @if (@ViewBag.Appl != null)
+    {
+        foreach (var appl in ViewBag.Appl)
+        {
+            <input type="text" id="hidAssignDate" name="AssignDate" value="@appl.assign_date" hidden/>
+            <input type="text" id="hidDueDate" name="DueDate" value="@appl.due_date" hidden />
+        }
+    }
+</form>
+<br/><br/><br/>
+<div id="main">
+<table width="300" >
+<tr>
+<td width="300">
+<div class="dashboardItem">
+	<div class="panel panel-primary">
+        <div class="panel-heading"><center>Create a Reminder</center></div>
+        <div class="panel-body">
+
+	<table width="300px" class="table table-hover"> 
+	<tr>
+		<td width="100"><label for="textfield"><b>Serial Number:</b></label></td>
+  		<td width="200">
+			<input type="text" id="txtSerialNum" size="6" value="@ViewBag.SerialNum"/>
+			&#0160;&#0160;
+			<button id="btnSearch" onClick="search();" AccessKey="S" class="btn btn-primary btn-xs" title="Click here to search [alt + shift + S]">
+			   &#0160;<u>S</u>earch&#0160;
+			</button>
+		</td>          	
+	</tr> 
+	<tr>
+		<td><label for="textappl"><b>Grant Year:</b></label></td>
+  		<td>
+			<select name="appl" id="ddlAppl" class="smallfont" onChange="select_appl()">
+			<option></option>
+			@if (ViewBag.Appls != null)
+            {
+                foreach (var appls in ViewBag.Appls)
+                {                
+                    <option value="@appls.appl_id">@appls.full_grant_num</option>
+                }
+            }
+
+            @if (ViewBag.Appl != null)
+            {
+                foreach (var appl in ViewBag.Appl)
+                {                
+                    <option value="@appl.appl_id" selected="selected">@appl.full_grant_num</option>
+                }
+            }			
+       		</select>
+		</td>          	
+	</tr>
+	<tr>
+		<td colspan="2">
+		<div id="calculate_days" style="display:none">						
+			<input type="text" id="txtDays" size="1" title="insert days"/>&#0160;<b>days</b>
+            &#0160;&#0160;&#0160;&#0160;						
+			<select name="select" id="ddlDaysType" class="smallfont" size="1" onChange="set_days()">
+				<option></option>
+		        <option value="1">after assignment</option>
+                <option value="2">before due date</option>
+            </select>
+		</div>
+		</td>
+	</tr>		  
+	<tr>
+		<td><b>On:</b></td>
+		<td>
+			<input type="text" id="txtReminderDate" size="10"/>&#0160;(mm/dd/yyyy)
+		</td>
+	</tr>  
+	<tr>
+		<td><label for="textarea"><b>Text:</b></label></td>
+		<td>Type Note or Reminder text<br/>
+			<textarea name="textarea" rows="10" wrap="soft" id="txtNotice"></textarea>
+		</td>
+	</tr>   
+	<tr>
+		<td colspan="2"><input type="checkbox" name="by_email" id="chbEmail"/>&#0160;&#0160;<b>to be emailed</b></td>
+	</tr>   
+	<tr>
+		<td colspan="2"><input type="checkbox" name="by_display" id="chbWeb"/>&#0160;&#0160;<b>to be displayed</b></td>
+	</tr> 
+	<tr>
+		<td>
+			<button id="btnSave" onClick="save();" AccessKey="A" class="smallfont" title="Click here to save [alt + shift + A]">
+			   &#0160;S<u>a</u>ve&#0160;
+			</button>
+		</td>
+		<td>
+		<div valign="bottom" id="close_popup" style="display:none">	
+			<b>Data Saved!</b>&#0160;&#0160;
+			<button id="bunDSave" onClick="close_window();" AccessKey="C" class="smallfont" title="Click here to close popup window [alt + shift + C]">
+			   &#0160;<u>C</u>lose&#0160;
+			</button>	
+		</div>
+		</td>
+	</tr>                 	
+	</table>
+	</div>
+	</div>
+	</div>		  
+</td>
+</tr>
+</table>
+<br/><br/><br/>
+</div>
+</body>
+</html>
