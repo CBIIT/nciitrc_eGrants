@@ -1,0 +1,258 @@
+﻿@using Microsoft.AspNetCore.Html
+@using eGrants.Models
+@{
+    ViewBag.Title = "eGrants [Access Control Module]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<link rel="stylesheet" type="text/css" href="~/css/egrants.css" />
+
+<script language="JavaScript">
+        function show_tab(index_id) {
+            var active_id = document.getElementById("hidActiveID").value;
+            var url = "@Url.Action("Index", "EgrantsAccess")?index_id=" + index_id + "&active_id=" + active_id;
+            window.document.location.href = url;
+        }
+
+        function to_update(PersonId) {
+            var url = "@Url.Action("To_Search", "EgrantsAccess")?person_id=" + PersonId;
+            window.document.location.href = url;
+        }
+
+        function change_active_type() {
+            if (document.getElementById("ddlActiveType").selectedIndex != 0) {
+                var indexid = document.getElementById("hidIndexID").value;
+                var active_id = document.getElementById("ddlActiveType").options[document.getElementById("ddlActiveType").selectedIndex].id;
+                var url = "@Url.Action("Index", "EgrantsAccess")?index_id=" + indexid + "&active_id=" + active_id;
+                //alert(url);
+                window.document.location.href = url;
+            }
+        }
+</script>
+
+<form name="frmGetInfo">
+    <input type="text" hidden id="hidIndexID" name="indexid" value="@ViewBag.IndexID" />
+    <input type="text" hidden id="hidActiveID" name="activeid" value="@ViewBag.ActiveID" />
+    <input type="text" hidden id="hidFirstLetter" name="FirstLetter" value="@ViewBag.FirstLetter"/>
+</form>
+
+<div id="main">
+    <!--start main-->
+    <div>
+        @Html.Partial("~/Views/Admin/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">Access Control Management</b><br />
+        @Html.ActionLink("Add New", "To_Add", "EgrantsAccess", new { area = "Egrants_Admin" }, null)
+    </div>
+
+    @*@ViewBag.FirstLetter*@
+
+    <!--start to show Index for User Name -->
+    <div id="Index_list" class="form-inline">
+        <table width="900">
+            <thead>
+                <tr>
+                    <td width="150"><b>User Name Index:</b></td>
+                    <td width="500">
+                        @foreach (var index in ViewBag.CharacterIndex)
+                        {
+                            <div id="index.index_id" style="display:inline">
+                                <a href="JavaScript:show_tab(@index.index_id)" title="Search user name start with @index.character_index">
+                                    <b>@char.ToUpper(index.character_index[0])</b>&#0160;
+                                </a>
+                            </div>
+                        }
+                    </td>
+                    <td width="150">
+                        <b>Status:</b>
+                        <select name="display_type" id="ddlActiveType" class="form-control" style="height:30px; width:100px;" title="display type" onChange="change_active_type()">
+                            <option></option>
+                            @if (Convert.ToInt16(ViewBag.ActiveID) == 0)
+                            {
+                                <option id="0" value="0" selected="selected">Inactive</option>
+                            }
+                            else
+                            {
+                                <option id="0" value="0">Inactive</option>
+                            }
+                            @if (Convert.ToInt16(ViewBag.ActiveID) == 1)
+                            {
+                                <option id="1" value="1" selected="selected">Active</option>
+                            }
+                            else
+                            {
+                                <option id="1" value="1">Active</option>
+                            }
+                            @if (Convert.ToInt16(ViewBag.ActiveID) == 2)
+                            {
+                                <option id="2" value="2" selected="selected">All</option>
+                            }
+                            else
+                            {
+                                <option id="2" value="2">All</option>
+                            }
+                        </select>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>Tab Name Index:</b></td>
+                    <td colspan="2">
+                        @if (ViewBag.LoadUsers != null && ViewBag.LoadUsers.Count > 0)
+                        {
+                            <b>E=egrants; &#0160;M=Mangement;&#0160;A=Admin;&#0160;D=Dashboard;&#0160;IC=IC Coordinator</b>  
+                        }
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div><!--end to show Index for User Name-->
+
+<!--WebGrid was used in legacy system, not compatible with .NET Core 8-->
+
+@{
+    string curSort = ViewBag.SortColumn as string ?? "person_name";
+    string curDir = ViewBag.SortDirection as string ?? "asc";
+    Func<string, string, IHtmlContent> sortLink = (display, column) =>
+    {
+        bool isCur = curSort == column;
+        string nextDir = (isCur && curDir == "asc") ? "desc" : "asc";
+        string url = Url.Action("Index", "EgrantsAccess",
+            new
+            {
+                index_id = ViewBag.IndexID,
+                active_id = ViewBag.ActiveID,
+                page = ViewBag.CurrentPage,
+                sortColumn = column,
+                sortDirection = nextDir
+            });
+        return new HtmlString($"<a href=\"{url}\">{display}</a>");
+    };
+}
+
+<div id="grid" style="width:900px">
+    @if (ViewBag.LoadUsers != null && ViewBag.LoadUsers.Count > 0)
+    {
+        List<EgrantsUsers> usersList = ViewBag.LoadUsers;
+        int rowsPerPage = 50;
+        int currentPage = ViewBag.CurrentPage ?? 1;
+        int totalRecords = usersList.Count;
+        int totalPages = (int)Math.Ceiling((double)totalRecords / rowsPerPage);
+        int startIndex = (currentPage - 1) * rowsPerPage;
+        int endIndex = Math.Min(startIndex + rowsPerPage, totalRecords);
+        var pagedUsers = usersList.Skip(startIndex).Take(rowsPerPage).ToList();
+
+        <!-- Pagination (top) -->
+        @if (totalPages > 1)
+        {
+            <div class="webgrid-pagination">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    if (i == currentPage)
+                    {
+                        <span class="current-page">@i</span>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Index", "EgrantsAccess", new { index_id = ViewBag.IndexID, active_id = ViewBag.ActiveID, page = i })">@i</a>
+                    }
+                }
+            </div>
+        }
+
+        <!-- Table -->
+        <table class="webgrid-table">
+            <thead>
+                <tr>
+                    <th class="webgrid-header col-sma"></th>
+                    <th class="webgrid-header col-sma"></th>
+                    <th class="webgrid-header col-exlarg">@sortLink("User Name", "person_name")</th>
+                    <th class="webgrid-header col-larg">@sortLink("Userid", "userid")</th>
+                    <th class="webgrid-header col-larg">@sortLink("Position", "position_name")</th>
+                    <th class="webgrid-header col-exs">@sortLink("E*", "can_egrants")</th>
+                    <th class="webgrid-header col-exs">@sortLink("M*", "can_mgt")</th>
+                    <th class="webgrid-header col-exs">@sortLink("A*", "can_admin")</th>
+                    <th class="webgrid-header col-exs">@sortLink("D*", "can_dashboard")</th>
+                    <th class="webgrid-header col-exs">@sortLink("IC*", "can_iccoord")</th>
+                    <th class="webgrid-header col-larg">@sortLink("Start Date", "start_date")</th>
+                    <th class="webgrid-header col-larg">@sortLink("End Date", "end_date")</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int rowIndex = 0;
+                }
+                @foreach (var user in pagedUsers)
+                {
+                    var rowClass = rowIndex % 2 == 0 ? "webgrid-odd-row-style" : "webgrid-even-row-style";
+                    <tr class="@rowClass">
+                        <td class="col-sma">
+                            <img class="img_12_12" onclick="JavaScript:to_update('@user.PersonId')" src="~/images/Select Arrow.bmp" title="Click here to edit user information" style="cursor: pointer;" />
+                        </td>
+                        <td class="col-sma">
+                            @if (Convert.ToString(user.active) == "True")
+                            {
+                                <img class="img_12_12" src="~/images/box_checked.jpg" title='To indicate user usage rights are valid or invalid' />
+                            }
+                            else
+                            {
+                                <img class="img_12_12" src="~/images/Clear.jpg" title='To indicate user usage rights are valid or invalid' />
+                            }
+                        </td>
+                        <td class="col-exlarg">@user.person_name</td>
+                        <td class="col-larg">@user.userid</td>
+                        <td class="col-larg">@user.position_name</td>
+                        <td class="col-exs">@user.can_egrants</td>
+                        <td class="col-exs">@user.can_mgt</td>
+                        <td class="col-exs">@user.can_admin</td>
+                        <td class="col-exs">@user.can_dashboard</td>
+                        <td class="col-exs">@user.can_iccoord</td>
+                        <td class="col-larg">@user.start_date</td>
+                        <td class="col-larg">@user.end_date</td>
+                    </tr>
+                    rowIndex++;
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination (bottom) -->
+        @if (totalPages > 1)
+        {
+            <div class="webgrid-pagination">
+                @if (currentPage > 1)
+                {
+                    <a href="@Url.Action("Index", "EgrantsAccess",
+                                      new { index_id = ViewBag.IndexID, active_id = ViewBag.ActiveID, page = currentPage - 1 })">&lt;</a>
+                }
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    if (i == currentPage)
+                    {
+                        <span class="current-page">@i</span>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Index", "EgrantsAccess", new { index_id = ViewBag.IndexID, active_id = ViewBag.ActiveID, page = i })">@i</a>
+                    }
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <a href="@Url.Action("Index", "EgrantsAccess",
+                                      new { index_id = ViewBag.IndexID, active_id = ViewBag.ActiveID, page = currentPage + 1 })">&gt;</a>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <br />
+        <b>There is no record for this kind searching</b>
+    }
+    <br /><br />
+</div><!--end main-->
+<!--end main-->
