@@ -222,6 +222,12 @@
         @if (totalPages > 1)
         {
             <div class="webgrid-pagination">
+                @if (currentPage > 1)
+                {
+                    <a href="@Url.Action("Index", "EgrantsAccess",
+                                      new { index_id = ViewBag.IndexID, active_id = ViewBag.ActiveID, page = currentPage - 1 })">&lt;</a>
+                }
+
                 @for (int i = 1; i <= totalPages; i++)
                 {
                     if (i == currentPage)
@@ -232,6 +238,12 @@
                     {
                         <a href="@Url.Action("Index", "EgrantsAccess", new { index_id = ViewBag.IndexID, active_id = ViewBag.ActiveID, page = i })">@i</a>
                     }
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <a href="@Url.Action("Index", "EgrantsAccess",
+                                      new { index_id = ViewBag.IndexID, active_id = ViewBag.ActiveID, page = currentPage + 1 })">&gt;</a>
                 }
             </div>
         }
