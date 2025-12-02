@@ -36,6 +36,7 @@ builder.Services.AddScoped<ICategoryEditService, CategoryEditService>();
 builder.Services.AddScoped<IManagementService, ManagementService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
+builder.Services.AddScoped<IEgrantsAccessService, EgrantsAccessService>();
 
 // Utility class
 builder.Services.AddTransient<EgrantsCommon>();
