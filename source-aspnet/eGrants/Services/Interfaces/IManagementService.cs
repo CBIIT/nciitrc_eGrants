@@ -1,9 +1,4 @@
-﻿using System.Data;
-
-using eGrants.Models;
-using eGrants.ViewModels;
-
-using Microsoft.Data.SqlClient;
+﻿using eGrants.Models;
 
 namespace eGrants.Services.Interfaces
 {

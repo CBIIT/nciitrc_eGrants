@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  SessionInfo.cs
+// Module Name:  GrantStatus.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2025-12-02
+// Created: 2025-12-01
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 //      -
@@ -35,17 +35,30 @@
 
 namespace eGrants.Models
 {
-    public class SessionInfo
-    {
-        public string Ic { get; set; }
-        public string Browser { get; set; }
-        public string UserId { get; set; }
-        public string WebGrantUrl { get; set; }
-        public string ImageServerUrl { get; set; }
-        public string EgrantsDocModifyRelativePath { get; set; }
-        public string EgrantsDocNewRelativePath { get; set; }
-        public string EgrantsDocEmail { get; set; }
 
-        public int Dashboard { get; set; }
+        /// <summary>
+        /// The grant status.
+        /// </summary>
+        public class GrantStatus
+        {
+            /// <summary>
+            /// Gets or sets the tag.
+            /// </summary>
+            public string tag { get; set; }
+
+            /// <summary>
+            /// Gets or sets the action_type.
+            /// </summary>
+            public string action_type { get; set; }
+
+            /// <summary>
+            /// Gets or sets the status_code.
+            /// </summary>
+            public string status_code { get; set; }
+
+            /// <summary>
+            /// Gets or sets the grants_count.
+            /// </summary>
+            public string grants_count { get; set; }
+        }
     }
-}

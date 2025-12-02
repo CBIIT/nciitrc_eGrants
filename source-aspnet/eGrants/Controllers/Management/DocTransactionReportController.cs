@@ -52,7 +52,7 @@ namespace eGrants.Controllers.Management
     /// </summary>
     public class DocTransactionReportController : Controller
     {
-        // Injected dependencies: database context and product service
+        // Injected dependencies: database context and management service
 
         private readonly IManagementService _managementService;
         private readonly ISessionInfoService _sessionInfoService = new SessionInfoService();

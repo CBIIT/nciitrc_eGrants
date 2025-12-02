@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  SessionInfo.cs
+// Module Name:  WidgetData.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2025-12-02
+// Created: 2025-12-01
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 //      -
@@ -35,17 +35,44 @@
 
 namespace eGrants.Models
 {
-    public class SessionInfo
-    {
-        public string Ic { get; set; }
-        public string Browser { get; set; }
-        public string UserId { get; set; }
-        public string WebGrantUrl { get; set; }
-        public string ImageServerUrl { get; set; }
-        public string EgrantsDocModifyRelativePath { get; set; }
-        public string EgrantsDocNewRelativePath { get; set; }
-        public string EgrantsDocEmail { get; set; }
+        /// <summary>
+        /// The widget data.
+        /// </summary>
+        public class WidgetData
+        {
+            /// <summary>
+            /// Gets or sets the appl_id.
+            /// </summary>
+            public string appl_id { get; set; }
 
-        public int Dashboard { get; set; }
+            /// <summary>
+            /// Gets or sets the fgn.
+            /// </summary>
+            public string fgn { get; set; }
+
+            /// <summary>
+            /// Gets or sets the userid.
+            /// </summary>
+            public string userid { get; set; }
+
+            /// <summary>
+            /// Gets or sets the assigned_date.
+            /// </summary>
+            public string assigned_date { get; set; }
+
+            /// <summary>
+            /// Gets or sets the ncab_date.
+            /// </summary>
+            public string ncab_date { get; set; }
+
+            /// <summary>
+            /// Gets or sets the status_code.
+            /// </summary>
+            public string status_code { get; set; }
+
+            /// <summary>
+            /// Gets or sets the days_late.
+            /// </summary>
+            public string days_late { get; set; }
+        }
     }
-}

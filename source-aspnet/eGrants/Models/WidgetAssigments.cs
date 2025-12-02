@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  SessionInfo.cs
+// Module Name:  WidgetAssigments.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2025-12-02
+// Created: 2025-12-01
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 //      -
@@ -35,17 +35,25 @@
 
 namespace eGrants.Models
 {
-    public class SessionInfo
-    {
-        public string Ic { get; set; }
-        public string Browser { get; set; }
-        public string UserId { get; set; }
-        public string WebGrantUrl { get; set; }
-        public string ImageServerUrl { get; set; }
-        public string EgrantsDocModifyRelativePath { get; set; }
-        public string EgrantsDocNewRelativePath { get; set; }
-        public string EgrantsDocEmail { get; set; }
 
-        public int Dashboard { get; set; }
+        /// <summary>
+        /// The widget assigments.
+        /// </summary>
+        public class WidgetAssigments
+        {
+            /// <summary>
+            /// Gets or sets the widget_id.
+            /// </summary>
+            public string widget_id { get; set; }
+
+            /// <summary>
+            /// Gets or sets the widget_title.
+            /// </summary>
+            public string widget_title { get; set; }
+
+            /// <summary>
+            /// Gets or sets the selected.
+            /// </summary>
+            public string selected { get; set; }
+        }
     }
-}
