@@ -1,5 +1,4 @@
 ﻿@using Microsoft.AspNetCore.Http
-@inject IHttpContextAccessor HttpContextAccessor
 
 <!--start egrants searching-->
 <script language="JavaScript" type="text/javascript">
@@ -349,7 +348,12 @@
       <input type="text" id="hidFilterMechanism" name="FY" value="@ViewBag.FilterMechanism" hidden />
    </form>
 
-    @if (Model.grantList != null && Model.grantList.Count > 0)
+   @{
+       var hasGrants = (Model?.grantList?.Any() ?? false)
+       || (ViewBag.grantlayer?.Any() ?? false);
+   }
+
+   @if (hasGrants)
    {
       <div id="Dividing line" style="border-top: double; min-height: 15px; width: 900px; float: left; display: inline;"></div><br />
    }
@@ -382,14 +386,18 @@
          @Html.TextBox("Mechanism", "", new { @class = "form-control", style = "width:100px;margin-right:10px;margin-bottom:5px", placeholder = "Mechanism" })
          <select name="admincode" id="AdminCode" class="form-control" style="width: 75px; margin-right: 10px; margin-bottom: 5px" size="1" title="Select admin phs org code">
             <option id="0" value=""></option>
-            @foreach (var AdminCodes in Model.ICList)
+            @{
+                var icList = Model?.ICList ?? ViewBag.ICList;
+            }
+
+            @foreach (var AdminCodes in icList)
             {
                <option value="@AdminCodes.admin_phs_org_code">@AdminCodes.admin_phs_org_code</option>
             }
          </select>
          @Html.TextBox("SerialNumber", "", new { @class = "form-control", style = "width:120px;height=10px;margin-right:10px;margin-bottom:5px", placeholder = "Serial No" })
          @Html.DropDownList("Year", new List<SelectListItem> { new SelectListItem { Text = "", Value = "-1" } }, new { @class = "form-control", style = "width:200px; height=10px; margin-bottom:5px", onchange = "show_appl()" })
-            @if (Convert.ToInt16(HttpContextAccessor.HttpContext.Session.GetInt32("position_id")) > 1)
+            @if (Convert.ToInt16(Context.Session.GetInt32("position_id")) > 1)
          {
       <button type="button" style="font-size: medium; width: 150px; margin-left: 80px; margin-bottom: 5px; background-color:#008b8b;" accesskey="O" class="btn btn-sm btn-success rounded float-right" title="Add New Document [shift + alt + O]" onclick="JavaScript: create_new()">Add D<u>o</u>cument</button> @*Ayu*@
          }
@@ -484,7 +492,7 @@
       @* </fieldset> *@
 </form>
 
-    @if (Model.grantList != null && Model.grantList.Count > 0)
+   @if (hasGrants)
    {
       <div id="Dividing line" style="border-bottom: groove; border-color: darkgrey; width: 900px; padding-left: 20px; float: left;"></div>
    }

@@ -34,6 +34,8 @@ builder.Services.AddScoped<IInstitutionalFilesService, InstitutionalFilesService
 builder.Services.AddScoped<IInstitutionalFilesRepository, InstitutionalFilesRepository>();
 builder.Services.AddScoped<ICategoryEditService, CategoryEditService>();
 builder.Services.AddScoped<IManagementService, ManagementService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IReminderService, ReminderService>();
 
 // Utility class
 builder.Services.AddTransient<EgrantsCommon>();
