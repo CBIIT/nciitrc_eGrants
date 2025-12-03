@@ -348,9 +348,8 @@
       <input type="text" id="hidFilterMechanism" name="FY" value="@ViewBag.FilterMechanism" hidden />
    </form>
 
-   @{
-       var hasGrants = (Model?.grantList?.Any() ?? false)
-       || (ViewBag.grantlayer?.Any() ?? false);
+    @{
+        var hasGrants = (Model?.grantList?.Count > 0) || (ViewBag.grantlayer?.Count > 0);
    }
 
    @if (hasGrants)
