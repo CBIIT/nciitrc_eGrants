@@ -86,7 +86,7 @@ namespace egrants_new
                     this.userid = "";
 #if DEBUG
 
-                    this.userid = "hooverrl"; // should correspond to person table, column: active
+                    this.userid = Environment.UserName; // should correspond to person table, column: active
  #endif
                 }
 
