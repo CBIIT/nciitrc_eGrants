@@ -293,7 +293,7 @@ namespace eGrants.Services
                 if (categories == string.Empty || categories == "All" || categories == "all")
                     eGrantsSearchViewModelList.SelectedCategories = "All";
                 else if (categories != string.Empty && categories != "All" && categories != "all")
-                    eGrantsSearchViewModelList.SelectedCategories = await GetCategoryNameById(categories);
+                    eGrantsSearchViewModelList.SelectedCategories = await GetCategoryNameById(categories ?? "");
 
                 eGrantsSearchViewModelList.grantlayer = eGrantsSearchViewModelList.grantlayerproperty;
                 eGrantsSearchViewModelList.appllayer_All = eGrantsSearchViewModelList.appllayerproperty;
