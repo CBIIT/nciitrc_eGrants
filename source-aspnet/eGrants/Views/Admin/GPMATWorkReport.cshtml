@@ -1,0 +1,243 @@
+﻿@using Microsoft.AspNetCore.Html
+@using eGrants.Models
+@{
+    ViewBag.Title = "egrants [GPMAT Workload Report]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<div id="main">
+    <!--start main-->
+    <div>
+        @Html.Partial("~/Views/Admin/_AdminMenuIndex.cshtml")
+    </div>
+    <div id="caption">
+        <b id="page_title">GPMAT Workload Report</b>
+    </div>
+    <div>
+        Column Header Index: B=Branch; T=Team; _C=_CNT; _R=_REL; _W=_WRKLD;
+    </div>
+
+    <form name="frmFlags">
+        @{
+            string curSort = ViewBag.SortColumn as string ?? "";
+            string curDir = ViewBag.SortDirection as string ?? "asc";
+            Func<string, string, IHtmlContent> sortLink = (display, column) =>
+            {
+                bool isCur = curSort == column;
+                string nextDir = (isCur && curDir == "asc") ? "desc" : "asc";
+                string url = Url.Action("Index", new
+                {
+                    page = ViewBag.CurrentPage,
+                    sortColumn = column,
+                    sortDirection = nextDir
+                });
+                return new HtmlString($"<a href=\"{url}\">{display}</a>");
+            };
+        }
+
+        @if (ViewBag.Reports != null)
+        {
+            // Use pagination data from the controller
+            int currentPage = ViewBag.CurrentPage ?? 1;
+            int totalPages = ViewBag.TotalPages ?? 1;
+            List<PMATWorkReports> pagedReports = (List<PMATWorkReports>)ViewBag.Reports;
+
+            // Pagination for the top (shows 3 pages respective of the current page)
+            if (totalPages > 1)
+            {
+                var startPage = 0;
+                var endPage = 0;
+
+                if (currentPage - 1 < 2)
+                {
+                    startPage = 1;
+                    endPage = Math.Min(3, totalPages);
+                }
+                else if (currentPage + 1 > totalPages)
+                {
+                    startPage = totalPages - 2;
+                    if (startPage < 1) startPage = 1;
+                    endPage = totalPages;
+                }
+                else
+                {
+                    startPage = currentPage - 1;
+                    if (startPage < 1) startPage = 1;
+                    endPage = currentPage + 1;
+                    if (endPage > totalPages) endPage = totalPages;
+                }
+
+                <div class="webgrid-pagination">
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        if (i == currentPage)
+                        {
+                            <span class="current-page">@i</span>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", new { page = i, sortColumn = curSort, sortDirection = curDir })">@i</a>
+                        }
+                    }
+                </div>
+            }
+
+            <table class="webgrid-table">
+                <thead class="webgrid-header">
+                    <tr>
+                        <th class="col-exlarg">@sortLink("Name", "specialist_name")</th>
+                        <th class="col-exs">@sortLink("Code", "specialist_code")</th>
+                        <th class="col-exs">@sortLink("B", "branch")</th>
+                        <th class="col-exs">@sortLink("T", "team")</th>
+                        <th class="col-exs">@sortLink("FY", "fy")</th>
+                        <th class="col-exs">@sortLink("10_C", "oct_cnt")</th>
+                        <th class="col-exs">@sortLink("10_R", "oct_rel")</th>
+                        <th class="col-exs">@sortLink("10_W", "oct_wrkld")</th>
+                        <th class="col-exs">@sortLink("11_C", "nov_cnt")</th>
+                        <th class="col-exs">@sortLink("11_R", "nov_rel")</th>
+                        <th class="col-exs">@sortLink("11_W", "nov_wrkld")</th>
+                        <th class="col-exs">@sortLink("12_C", "dec_cnt")</th>
+                        <th class="col-exs">@sortLink("12_R", "dec_rel")</th>
+                        <th class="col-exs">@sortLink("12_W", "dec_wrkld")</th>
+                        <th class="col-exs">@sortLink("1_C", "jan_cnt")</th>
+                        <th class="col-exs">@sortLink("1_R", "jan_rel")</th>
+                        <th class="col-exs">@sortLink("1_W", "jan_wrkld")</th>
+                        <th class="col-exs">@sortLink("2_C", "feb_cnt")</th>
+                        <th class="col-exs">@sortLink("2_R", "feb_rel")</th>
+                        <th class="col-exs">@sortLink("2_W", "feb_wrkld")</th>
+                        <th class="col-exs">@sortLink("3_C", "mar_cnt")</th>
+                        <th class="col-exs">@sortLink("3_R", "mar_rel")</th>
+                        <th class="col-exs">@sortLink("3_W", "mar_wrkld")</th>
+                        <th class="col-exs">@sortLink("4_C", "apr_cnt")</th>
+                        <th class="col-exs">@sortLink("4_R", "apr_rel")</th>
+                        <th class="col-exs">@sortLink("4_W", "apr_wrkld")</th>
+                        <th class="col-exs">@sortLink("5_C", "may_cnt")</th>
+                        <th class="col-exs">@sortLink("5_R", "may_rel")</th>
+                        <th class="col-exs">@sortLink("5_W", "may_wrkld")</th>
+                        <th class="col-exs">@sortLink("6_C", "jun_cnt")</th>
+                        <th class="col-exs">@sortLink("6_R", "jun_rel")</th>
+                        <th class="col-exs">@sortLink("6_W", "jun_wrkld")</th>
+                        <th class="col-exs">@sortLink("7_C", "jul_cnt")</th>
+                        <th class="col-exs">@sortLink("7_R", "jul_rel")</th>
+                        <th class="col-exs">@sortLink("7_W", "jul_wrkld")</th>
+                        <th class="col-exs">@sortLink("8_C", "aug_cnt")</th>
+                        <th class="col-exs">@sortLink("8_R", "aug_rel")</th>
+                        <th class="col-exs">@sortLink("8_W", "aug_wrkld")</th>
+                        <th class="col-exs">@sortLink("9_C", "sep_cnt")</th>
+                        <th class="col-exs">@sortLink("9_R", "sep_rel")</th>
+                        <th class="col-exs">@sortLink("9_W", "sep_wrkld")</th>
+                        <th class="col-exs">@sortLink("T_C", "total_cnt")</th>
+                        <th class="col-exs">@sortLink("T_R", "total_rel")</th>
+                        <th class="col-exs">@sortLink("TOTAL_W", "total_wrkld")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int rowIndex = 0;
+                    }
+                    @foreach (var report in pagedReports)
+                    {
+                        var rowClass = rowIndex % 2 == 0 ? "webgrid-odd-row-style" : "webgrid-even-row-style";
+                        <tr class="@rowClass">
+                            <td class="col-exlarg">@report.specialist_name</td>
+                            <td class="col-exs">@report.specialist_code</td>
+                            <td class="col-exs">@report.branch</td>
+                            <td class="col-exs">@report.team</td>
+                            <td class="col-exs">@report.fy</td>
+                            <td class="col-exs">@report.OCT_CNT</td>
+                            <td class="col-exs">@report.OCT_REL</td>
+                            <td class="col-exs">@report.OCT_WRKLD</td>
+                            <td class="col-exs">@report.NOV_CNT</td>
+                            <td class="col-exs">@report.NOV_REL</td>
+                            <td class="col-exs">@report.NOV_WRKLD</td>
+                            <td class="col-exs">@report.DEC_CNT</td>
+                            <td class="col-exs">@report.DEC_REL</td>
+                            <td class="col-exs">@report.DEC_WRKLD</td>
+                            <td class="col-exs">@report.JAN_CNT</td>
+                            <td class="col-exs">@report.JAN_REL</td>
+                            <td class="col-exs">@report.JAN_WRKLD</td>
+                            <td class="col-exs">@report.FEB_CNT</td>
+                            <td class="col-exs">@report.FEB_REL</td>
+                            <td class="col-exs">@report.FEB_WRKLD</td>
+                            <td class="col-exs">@report.MAR_CNT</td>
+                            <td class="col-exs">@report.MAR_REL</td>
+                            <td class="col-exs">@report.MAR_WRKLD</td>
+                            <td class="col-exs">@report.APR_CNT</td>
+                            <td class="col-exs">@report.APR_REL</td>
+                            <td class="col-exs">@report.APR_WRKLD</td>
+                            <td class="col-exs">@report.MAY_CNT</td>
+                            <td class="col-exs">@report.MAY_REL</td>
+                            <td class="col-exs">@report.MAY_WRKLD</td>
+                            <td class="col-exs">@report.JUN_CNT</td>
+                            <td class="col-exs">@report.JUN_REL</td>
+                            <td class="col-exs">@report.JUN_WRKLD</td>
+                            <td class="col-exs">@report.JUL_CNT</td>
+                            <td class="col-exs">@report.JUL_REL</td>
+                            <td class="col-exs">@report.JUL_WRKLD</td>
+                            <td class="col-exs">@report.AUG_CNT</td>
+                            <td class="col-exs">@report.AUG_REL</td>
+                            <td class="col-exs">@report.AUG_WRKLD</td>
+                            <td class="col-exs">@report.SEP_CNT</td>
+                            <td class="col-exs">@report.SEP_REL</td>
+                            <td class="col-exs">@report.SEP_WRKLD</td>
+                            <td class="col-exs">@report.TOTAL_CNT</td>
+                            <td class="col-exs">@report.TOTAL_REL</td>
+                            <td class="col-exs">@report.TOTAL_WRKLD</td>
+                        </tr>
+                        rowIndex++;
+                    }
+                </tbody>
+            </table>
+
+            @* Pagination for the bottom (shows 3 pages respective of the current page and < > navigation) *@
+            @if (totalPages > 1)
+            {
+                var startPage = 0;
+                var endPage = 0;
+
+                if (currentPage - 1 < 2)
+                {
+                    startPage = 1;
+                    endPage = Math.Min(3, totalPages);
+                }
+                else if (currentPage + 1 > totalPages)
+                {
+                    startPage = totalPages - 2;
+                    if (startPage < 1) startPage = 1;
+                    endPage = totalPages;
+                }
+                else
+                {
+                    startPage = currentPage - 1;
+                    if (startPage < 1) startPage = 1;
+                    endPage = currentPage + 1;
+                    if (endPage > totalPages) endPage = totalPages;
+                }
+
+                <div class="webgrid-pagination">
+                    @if (currentPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { page = currentPage - 1, sortColumn = curSort, sortDirection = curDir })">&lt;</a>
+                    }
+
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        if (i == currentPage)
+                        {
+                            <span class="current-page">@i</span>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", new { page = i, sortColumn = curSort, sortDirection = curDir })">@i</a>
+                        }
+                    }
+
+                    @if (currentPage < totalPages)
+                    {
+                        <a href="@Url.Action("Index", new { page = currentPage + 1, sortColumn = curSort, sortDirection = curDir })">&gt;</a>
+                    }
+                </div>
+            }
+        }
+    </form>
+</div><!--end main-->
