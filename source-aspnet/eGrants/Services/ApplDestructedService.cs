@@ -267,7 +267,7 @@ namespace eGrants.Services
             }
         }
 
-        public void EditExceptionCode(string act = "", int id = 0, string detail = "", string code = "", string ic = "", string userid = "")
+        public void EditExceptionCode(string act, int id, string detail, string code, string ic, string userid)
         {
             try
             {
@@ -277,8 +277,8 @@ namespace eGrants.Services
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
                     cmd.Parameters.Add("@id", SqlDbType.Int).Value = id;
-                    cmd.Parameters.Add("@detail", SqlDbType.VarChar).Value = detail;
-                    cmd.Parameters.Add("@code", SqlDbType.VarChar).Value = code;
+                    cmd.Parameters.Add("@detail", SqlDbType.VarChar).Value = detail ?? "";
+                    cmd.Parameters.Add("@code", SqlDbType.VarChar).Value = code ?? "";
                     cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
                     cmd.Parameters.Add("@Operator", SqlDbType.VarChar).Value = userid;
                     conn.Open();
@@ -287,7 +287,7 @@ namespace eGrants.Services
                     conn.Close();
                 }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
                 Log.Error(ex,
                     "EditExceptionCode: Error occurred while editing exception code - Act: {Act}, Id: {Id}, Code: {Code}, UserId: {UserId}",

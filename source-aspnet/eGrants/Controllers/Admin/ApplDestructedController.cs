@@ -194,7 +194,7 @@ namespace egrants.Controllers
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public ActionResult Modify(string act, int year, string status, string exception, string str, string id_string, string exception_type)
+        public ActionResult Modify(string act = "", int year = 0, string status = "", string exception = "", string str = "", string id_string = "", string exception_type = "")
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
             // load admin menu list
