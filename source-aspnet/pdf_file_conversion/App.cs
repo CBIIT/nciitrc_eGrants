@@ -1,19 +1,15 @@
-﻿using EmailConcatenation;
-using EmailConcatenation.Converters;
-using EmailConcatenation.Interfaces;
-using IronPdf;
-using Markdig;
-using MsgReader.Outlook;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Web.UI.WebControls;
+
+using EmailConcatenation.Interfaces;
+
+using IronPdf;
+
+using Microsoft.Extensions.Configuration;
+
+using MsgReader.Outlook;
 
 namespace EmailConcatenation
 {

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace EmailConcatenation.Converters
 {
-    internal class FormattedTextConverter : IFormattedTextConverter, IConvertToPdf
+    public class FormattedTextConverter : IFormattedTextConverter, IConvertToPdf
     {
         public bool SupportsThisFileType(string fileName)
         {

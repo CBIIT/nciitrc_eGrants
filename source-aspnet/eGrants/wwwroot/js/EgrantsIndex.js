@@ -175,10 +175,16 @@ function create_new() {
 
 // to create new document or funding document with selected grant year
 function create_new_doc(type, admincode, serialnum, appl_id) {
-    var previous_url = encodeURIComponent(currenturl);
-    if (type == 'doc') {
-        var url = '@Url.Action("doc_create_with_applid", "EgrantsDoc")?admin_code=' + admincode + '&serial_num=' + serialnum + '&appl_id=' + appl_id + '&previous_url=' + previous_url;
-    } else var url = '@Url.Action("funding_doc_default", "EgrantsFunding")?admin_code=' + admincode + '&serial_num=' + serialnum + '&appl_id=' + appl_id + '&previous_url=' + previous_url;
+    var previous_url = encodeURIComponent(window.location.href);
+    var docCreateUrl = '/EgrantsDoc/doc_create_with_applid';// @Url.Action("doc_create_with_applid", "EgrantsDoc")';
+    var fundingDocUrl = '/EgrantsFunding/funding_doc_default'; // '@Url.Action("funding_doc_default", "EgrantsFunding")';
+
+    var url = (type === 'doc' ? docCreateUrl : fundingDocUrl);
+
+    url += '?admin_code=' + encodeURIComponent(admincode)
+        + '&serial_num=' + encodeURIComponent(serialnum)
+        + '&appl_id=' + encodeURIComponent(appl_id)
+        + '&previous_url=' + previous_url;
     window.document.location.href = url;
 }
 

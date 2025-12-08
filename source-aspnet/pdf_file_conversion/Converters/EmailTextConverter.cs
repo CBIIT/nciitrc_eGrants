@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace EmailConcatenation.Converters
 {
-    internal class EmailTextConverter : IEmailTextConverter, IConvertToPdf
+    public class EmailTextConverter : IEmailTextConverter, IConvertToPdf
     {
         public IGeneralImageConverter generalImageConverter;
         public ITIFFConverter TIFFConverter;

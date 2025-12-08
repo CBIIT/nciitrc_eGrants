@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace EmailConcatenation.Converters
 {
-    internal class TIFFConverter : ITIFFConverter
+    public class TIFFConverter : ITIFFConverter
     {
         public bool SupportsThisFileType(string fileName)
         {
