@@ -98,7 +98,7 @@ namespace eGrants.Repositories
             }
         }
 
-        public async Task<string> GetCategoryNameById(string categories)
+        public async Task<string> GetCategoryNameById(string categories = "")
         {
             var CategoryNameList = string.Empty;
 
