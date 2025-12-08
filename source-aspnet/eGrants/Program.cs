@@ -38,6 +38,9 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<IEgrantsAccessService, EgrantsAccessService>();
 builder.Services.AddScoped<EgrantsCommon>();
+builder.Services.AddScoped<IFlagMaintenanceService, FlagMaintenanceService>();
+builder.Services.AddScoped<IGPMATWorkReportService, GPMATWorkReportService>();
+builder.Services.AddScoped<IApplDestructedService, ApplDestructedService>();
 
 // Utility class
 builder.Services.AddTransient<EgrantsCommon>();
