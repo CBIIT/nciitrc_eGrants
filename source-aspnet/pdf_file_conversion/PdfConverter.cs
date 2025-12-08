@@ -1,21 +1,15 @@
-﻿using IronPdf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MsgReader.Outlook;
-using System.IO;
-using System.Web.UI.WebControls;
-using System.Text.RegularExpressions;
-using System.Drawing;
-using System.Drawing.Imaging;
-using BitMiracle.LibTiff.Classic;
-using Markdig;
+﻿using System.IO;
+
 using EmailConcatenation.Converters;
 using EmailConcatenation.Interfaces;
+
+using IronPdf;
+
+using Microsoft.Extensions.Configuration;
+
+using MsgReader.Outlook;
+
 using Ninject;
-using Grpc.Core.Logging;
 
 
 
@@ -29,6 +23,16 @@ namespace EmailConcatenation
         public PdfConverter()
         {
             IKernel kernel = new StandardKernel();
+
+            // Build configuration first
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            // Register IConfiguration with Ninject
+            kernel.Bind<IConfiguration>().ToConstant(configuration);
+
             kernel.Bind<IGeneralImageConverter>().To<GeneralImageConverter>();
             kernel.Bind<ITIFFConverter>().To<TIFFConverter>();
             kernel.Bind<IFormattedTextConverter>().To<FormattedTextConverter>();
