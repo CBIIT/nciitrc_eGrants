@@ -674,11 +674,11 @@ namespace eGrants.Controllers.Egrants
         /// </returns>
         public async Task<IActionResult> by_grant(
             int grantId = 0,
-            string package = null,
-            string categories = null,
-            string applsList = null,
-            string years = null,
-            string mode = null)
+            string package = "",
+            string categories = "",
+            string applsList = "",
+            string years = "",
+            string mode = "")
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
