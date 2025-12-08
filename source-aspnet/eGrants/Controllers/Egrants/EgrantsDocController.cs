@@ -4,9 +4,9 @@
 // Module Name:  EgrantsDocController.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2022-03-31
+// Created: 2025-12-03
 // Contributors:
-//      - Briggs, Robin (NIH/NCI) [C] - briggsr2
+//      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 //      -
 // Copyright (c) National Institute of Health
 // 
@@ -73,16 +73,21 @@
 
 #endregion
 
-using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Web;
 
+using eGrants.Common;
 using eGrants.Models;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OutputCaching;
+
+using MsgReader.Outlook;
+
+using eGrants.Functions;
+using EmailConcatenation;
 
 namespace eGrants.Controllers.Egrants
 {
@@ -97,14 +102,16 @@ namespace eGrants.Controllers.Egrants
         private readonly ICommonService _commonService;
         private readonly ISessionInfoService _sessionInfoService;
         private readonly IConfiguration _configuration;
+        private readonly EgrantsCommon _egrantsCommon;
 
-        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IConfiguration configuration)
+        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null)
         {
             _eGrantsService = eGrantsService;
             _commonService = commonService;
             _sessionInfoService = sessionInfoService;
             _documentService = documentService;
             _configuration = configuration;
+            _egrantsCommon = egrantsCommon;
         }
 
         //// GET: Egrants
@@ -400,69 +407,72 @@ namespace eGrants.Controllers.Egrants
         //    // return View("~/Egrants/Views/DocProcess.cshtml");
         //}
 
-        //// to create new doc
-        ///// <summary>
-        ///// The doc_create_with_applid.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="admin_code">
-        ///// The admin_code.
-        ///// </param>
-        ///// <param name="serial_num">
-        ///// The serial_num.
-        ///// </param>
-        ///// <param name="appl_id">
-        ///// The appl_id.
-        ///// </param>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="sub_category">
-        ///// The sub_category.
-        ///// </param>
-        ///// <param name="document_date">
-        ///// The document_date.
-        ///// </param>
-        ///// <param name="previous_url">
-        ///// The previous_url.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult doc_create_with_applid(
-        //    string act,
-        //    string admin_code,
-        //    int serial_num,
-        //    int appl_id = 0,
-        //    int document_id = 0,
-        //    int category_id = 0,
-        //    string sub_category = null,
-        //    string document_date = null,
-        //    string previous_url = null)
-        //{
-        //    var userId = Convert.ToString(this.Session["userid"]);
-        //    if (userId == "hindsrr")
-        //    {
-        //        this.Session["ic"] = "NCI";
-        //    }
-        //    this.ViewBag.Act = "Add";
-        //    this.ViewBag.admincode = admin_code;
-        //    this.ViewBag.serialnum = serial_num;
-        //    this.ViewBag.applid = appl_id;
-        //    this.ViewBag.Previousurl = previous_url;
-        //    this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
-        //    this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"])); // load categories that could only be upload
-        //    this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
-        //    this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
+        // to create new doc
+        /// <summary>
+        /// The doc_create_with_applid.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="document_id">
+        /// The document_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="document_date">
+        /// The document_date.
+        /// </param>
+        /// <param name="previous_url">
+        /// The previous_url.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> doc_create_with_applid(
+            string act,
+            string admin_code,
+            int serial_num,
+            int appl_id = 0,
+            int document_id = 0,
+            int category_id = 0,
+            string sub_category = null,
+            string document_date = null,
+            string previous_url = null)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            var userId = sessionInfo.UserId;
+            if (userId == "hindsrr")
+            {
+                sessionInfo.Ic = "NCI";
+            }
 
-        //    return this.View("~/Egrants/Views/egrantsDocCreate.cshtml");
-        //}
+            eGrantsDocCreateViewModel eDocViewModel = new eGrantsDocCreateViewModel();
+            eDocViewModel.Act = "Add";
+            eDocViewModel.AdminCode = admin_code;
+            eDocViewModel.SerialNum = serial_num;
+            eDocViewModel.ApplId = appl_id;
+            eDocViewModel.PreviousUrl = previous_url;
+            eDocViewModel.AdminCodeList = await _commonService.LoadAdminCodes();
+            eDocViewModel.CategoryList = await _documentService.LoadCategories(sessionInfo.Ic); // load categories that could only be upload
+            eDocViewModel.SubCategoryList = await _documentService.LoadSubCategoryList();
+            eDocViewModel.MaxCategoryId = await _documentService.GetMaxCategoryid(sessionInfo.Ic);
+
+            return this.View("~/Views/Egrants/EgrantsDocCreate.cshtml", eDocViewModel);
+        }
 
         // create new doc without selected appl_id
         /// <summary>
@@ -596,161 +606,155 @@ namespace eGrants.Controllers.Egrants
         }
 
 
-        //// to create doc by file input
-        ///// <summary>
-        ///// The doc_create_pdf_by_file.
-        ///// </summary>
-        ///// <param name="file">
-        ///// The file.
-        ///// </param>
-        ///// <param name="appl_id">
-        ///// The appl_id.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="sub_category">
-        ///// The sub_category.
-        ///// </param>
-        ///// <param name="doc_date">
-        ///// The doc_date.
-        ///// </param>
-        ///// <param name="admin_code">
-        ///// The admin_code.
-        ///// </param>
-        ///// <param name="serial_num">
-        ///// The serial_num.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpPost]
-        //public ActionResult doc_create_pdf_by_file(
-        //    IEnumerable<HttpPostedFileBase> files,
-        //    int appl_id,
-        //    int category_id,
-        //    string sub_category,
-        //    DateTime doc_date,
-        //    string admin_code,
-        //    int serial_num)
-        //{
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
-        //    string fileExtension = string.Empty;
-        //    var pdfDocs = new List<PdfDocument>();
-        //    var converter = new EmailConcatenation.PdfConverter();
+        // to create doc by file input
+        /// <summary>
+        /// The doc_create_pdf_by_file.
+        /// </summary>
+        /// <param name="file">
+        /// The file.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="doc_date">
+        /// The doc_date.
+        /// </param>
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpPost]
+        public ActionResult doc_create_pdf_by_file(
+            IEnumerable<IFormFile> files,
+            int appl_id,
+            int category_id,
+            string sub_category,
+            DateTime doc_date,
+            string admin_code,
+            int serial_num)
+        {
+            var docName = string.Empty;
+            string url = null;
+            string mssg = null;
+            string fileExtension = string.Empty;
+            var pdfDocs = new List<PdfDocument>();
+            var converter = new EmailConcatenation.PdfConverter();
 
-        //    if (files != null && files.Any())
-        //    {
-        //        try
-        //        {
-        //            var unsupportedFilesList = EgrantsCommon.GetUnsupportedFileList(files);
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+            //var egrantsCommon = app.Services.GetRequiredService<EgrantsCommon>();
 
-        //            foreach (var file in files)
-        //            {
-        //                // get file name and file Extension
-        //                var fileName = Path.GetFileName(file.FileName);
-        //                fileExtension = Path.GetExtension(fileName);
+            if (files != null && files.Any())
+            {
+                try
+                {
+                    var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(files);
 
-        //                byte[] fileData;
-        //                using (var binaryReader = new BinaryReader(file.InputStream))
-        //                {
-        //                    fileData = binaryReader.ReadBytes(file.ContentLength);
-        //                }
+                    foreach (var file in files)
+                    {
+                        // get file name and file Extension
+                        var fileName = Path.GetFileName(file.FileName);
+                        fileExtension = Path.GetExtension(fileName);
 
-        //                PdfDocument pdfResult = null;
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(file.OpenReadStream()))
+                        {
+                            fileData = binaryReader.ReadBytes((int)file.Length);
+                        }
 
-        //                if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-        //                {
-        //                    using (var memoryStream = new MemoryStream(fileData))
-        //                    {
-        //                        var emailFile = new Storage.Message(memoryStream);
-        //                        pdfResult = converter.Convert(emailFile);
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    using (var memoryStream = new MemoryStream(fileData))
-        //                    {
-        //                        pdfResult = converter.Convert(memoryStream, file.FileName);
-        //                    }
-        //                }
+                        PdfDocument pdfResult = null;
 
-        //                if (pdfResult != null)
-        //                {
-        //                    pdfDocs.Add(pdfResult);
-        //                }
-        //            }
-        //            fileExtension = ".pdf";
+                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                var emailFile = new Storage.Message(memoryStream);
+                                pdfResult = converter.Convert(emailFile);
+                            }
+                        }
+                        else
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                pdfResult = converter.Convert(memoryStream, file.FileName);
+                            }
+                        }
 
-        //            var sb = new StringBuilder();
-        //            if (pdfDocs.Any())
-        //            {
-        //                // get document_id and creat a new docName
-        //                var document_id = EgrantsDoc.GetDocID(
-        //                    appl_id,
-        //                    category_id,
-        //                    sub_category,
-        //                    doc_date,
-        //                    fileExtension,
-        //                    Convert.ToString(this.Session["ic"]),
-        //                    Convert.ToString(this.Session["userid"]));
+                        if (pdfResult != null)
+                        {
+                            pdfDocs.Add(pdfResult);
+                        }
+                    }
+                    fileExtension = ".pdf";
 
-        //                docName = Convert.ToString(document_id) + fileExtension;
+                    var sb = new StringBuilder();
+                    if (pdfDocs.Any())
+                    {
+                        // get document_id and creat a new docName
+                        var document_id = _documentService.GetDocID(
+                            appl_id,
+                            category_id,
+                            sub_category,
+                            doc_date,
+                            fileExtension,
+                            Convert.ToString(sessionInfo.Ic),
+                            Convert.ToString(sessionInfo.UserId));
 
-        //                // upload to image sever 
-        //                var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+                        docName = Convert.ToString(document_id) + fileExtension;
 
-        //                var filePath = Path.Combine(fileFolder, docName);
+                        // upload to image sever 
+                        var fileFolder = HttpContext.Session.GetString("WebGrantUrl");
+                        // leave in place for now for local testing
 
-        //                var pdfDoc = PdfDocument.Merge(pdfDocs);
-        //                pdfDoc.SaveAs(filePath);
+                        var filePath = Path.Combine(fileFolder, docName);
 
-        //                // create review url
-        //                this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
-        //                                                                                        + Convert.ToString(docName);
-        //                sb.Append("Done! New document has been created**#7|n3br3@k#**");
-        //            } else
-        //            {
-        //                sb.Append("No documents were found to convert**#7|n3br3@k#**");
-        //            }
+                        var pdfDoc = PdfDocument.Merge(pdfDocs);
+                        pdfDoc.SaveAs(filePath);
 
-        //            if (unsupportedFilesList.Count > 0)
-        //            {                        
-        //                sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-        //                foreach (var unsupportedFile in unsupportedFilesList)
-        //                {
-        //                    sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-        //                }
-        //            }
+                        // create review url
+                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath") + Convert.ToString(docName);
+                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
+                    }
+                    else
+                    {
+                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
+                    }
 
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = sb.ToString();
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            mssg = "ERROR: The file could not be converted!";
 
-        //            //Response.StatusCode = 500; //Write your own error code
-        //            //StringBuilder sb = new StringBuilder();
-        //            //sb.AppendLine($"exception type: {ex.GetType().Name}");
-        //            //sb.AppendLine($"exception message: {ex.Message}");
-        //            ////sb.AppendLine($"captured file path diagnostic after Path.Combine: {filePathDiangostic}");
-        //            //if (ex.InnerException != null)
-        //            //{
-        //            //    sb.AppendLine($"inner exception type: {ex.InnerException.GetType().Name}");
-        //            //    sb.AppendLine($"inner exception message: {ex.Message}");
-        //            //}
-        //            //Response.Write(sb.ToString());
-        //            //return null;
-        //        }
-        //    }
-        //    else
-        //        mssg = "You have not specified a file.";
+                    if (unsupportedFilesList.Count > 0)
+                    {
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
+                        foreach (var unsupportedFile in unsupportedFilesList)
+                        {
+                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
+                        }
+                    }
 
-        //    return this.Json(new { url, message = mssg });
-        //}
+                    url = this.ViewBag.FileUrl;
+                    mssg = sb.ToString();
+                }
+                catch (Exception ex)
+                {
+                    mssg = "ERROR: The file could not be converted!";
+
+
+                }
+            }
+            else
+                mssg = "You have not specified a file.";
+
+            return this.Json(new { url, message = mssg });
+        }
 
         //// to create doc by dragdrop
         ///// <summary>

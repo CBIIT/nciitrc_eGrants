@@ -7,10 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Views\Shared\egrants_default.htm" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="IronPdf" Version="2024.9.3" />
     <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters.CoreServices" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
@@ -18,7 +15,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="MsgReader" Version="5.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Octokit" Version="14.0.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="toastr" Version="2.1.1" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.0.1" />
@@ -30,7 +29,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\egrants_default.htm" />
     <None Include="wwwroot\images\search.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\pdf_file_conversion\pdf_file_conversion.csproj" />
   </ItemGroup>
 
 </Project>

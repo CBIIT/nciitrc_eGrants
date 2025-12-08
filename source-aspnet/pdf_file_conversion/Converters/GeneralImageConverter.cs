@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace EmailConcatenation.Converters
 {
-    internal class GeneralImageConverter : IGeneralImageConverter, IConvertToPdf
+    public class GeneralImageConverter : IGeneralImageConverter, IConvertToPdf
     {
         public bool SupportsThisFileType(string fileName)
         {
