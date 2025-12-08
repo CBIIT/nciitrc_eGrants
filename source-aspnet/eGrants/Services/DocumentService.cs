@@ -1,13 +1,21 @@
-﻿using System.Reflection.Metadata;
+﻿using System.Data;
+using System.IO;
+using System.Reflection.Metadata;
 using System.Web;
 using System.Xml.Serialization;
-using System.IO;
-using Microsoft.AspNetCore.Http;
 
+using eGrants.DAL;
+using eGrants.DTOs;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
+using Serilog;
 
 namespace eGrants.Services
 {
@@ -18,15 +26,17 @@ namespace eGrants.Services
         private readonly ISessionInfoService _sessionInfoService;
         private readonly ICommonRepository _commonRepository;
         private readonly IeGrantsService _eGrantsService;
+        private readonly AppDbContext _context;
 
         // Constructor that initializes the repository via dependency injection
         public DocumentService(IDocumentRepository DocumentRepository, ISessionInfoService sessionInfoService, ICommonRepository commonRepository,
-            IeGrantsService eGrantsService)
+            IeGrantsService eGrantsService, AppDbContext context = null)
         {
             _documentRepository = DocumentRepository;
             _sessionInfoService = sessionInfoService;
             _commonRepository = commonRepository;
             _eGrantsService = eGrantsService;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo)
         {
@@ -216,8 +226,8 @@ namespace eGrants.Services
                     var fileExtension = Path.GetExtension(fileName);
 
                     // get document_id and creat a new docName
-                    var document_id = _documentRepository.GetDocID(appl_id, category_id, sub_category, 
-                        doc_date, fileExtension, 
+                    var document_id = _documentRepository.GetDocID(appl_id, category_id, sub_category,
+                        doc_date, fileExtension,
                         sessionInfo.Ic, sessionInfo.UserId);
 
                     docName = Convert.ToString(document_id) + fileExtension;
@@ -306,7 +316,7 @@ namespace eGrants.Services
             return result;
         }
 
-    public async Task<DocumentCreateOrUploadResult> DocUploadByFileAsync(IFormFile file, int docId, SessionInfo sessionInfo)
+        public async Task<DocumentCreateOrUploadResult> DocUploadByFileAsync(IFormFile file, int docId, SessionInfo sessionInfo)
         {
             var result = new DocumentCreateOrUploadResult();
             var docName = string.Empty;
@@ -389,6 +399,133 @@ namespace eGrants.Services
         public async Task<List<DocsUnidentified>> LoadDocsUnidentified(string imageServer, string userId)
         {
             return await _documentRepository.LoadDocsUnidentified(imageServer, userId);
+        }
+
+        public async Task<List<CategoriesListDTO>> LoadCategories(string ic)
+        {
+            var list = new List<CategoriesListDTO>();
+
+            try
+            {
+                return await _documentRepository.LoadCategories(ic);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error loading categories for IC: {IC}", ic);
+            }
+
+            return list;
+        }
+
+        public async Task<List<SubCategories>> LoadSubCategoryList()
+        {
+            var list = new List<SubCategories>();
+
+            try
+            {
+                return await _documentRepository.LoadSubCategoryList();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error loading subcategories");
+            }
+
+            return list;
+        }
+
+        public async Task<int> GetMaxCategoryid(string ic)
+        {
+            var maxCategoryid = 0;
+
+            try
+            {
+                return await _documentRepository.GetMaxCategoryId(ic);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error getting max category id for IC: {IC}", ic);
+            }
+
+            return maxCategoryid;
+        }
+
+        public async Task<List<FundingCategories>> LoadFundingCategoryList()
+        {
+            var conn = new SqlConnection(_context.Database.GetConnectionString());
+
+            var cmd = new SqlCommand("SELECT distinct category_id,category_name,level_id,parent_id FROM funding_categories " +
+                                     "WHERE category_fy is null or category_fy = 2014 Order by level_id, category_name",
+                conn);
+
+            cmd.CommandType = CommandType.Text;
+
+            conn.Open();
+
+            var list = new List<FundingCategories>();
+            var rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                list.Add(new FundingCategories
+                {
+                    category_id = rdr["category_id"]?.ToString(),
+                    category_name = rdr["category_name"]?.ToString(),
+                    level_id = rdr["level_id"]?.ToString(),
+                    parent_id = rdr["parent_id"]?.ToString()
+                });
+
+            conn.Close();
+
+            return list;
+        }
+
+        public async Task<List<Appls>> LoadUploadableApplsByApplid(int appl_id)
+        {
+            var conn = new SqlConnection(_context.Database.GetConnectionString());
+
+            var cmd = new SqlCommand(
+                "select appl_id, support_year, full_grant_num from vw_appls "
+              + " where grant_id = (select grant_id from appls where appl_id = @applid) and frc_destroyed=0 and deleted_by_impac='n' order by support_year desc",
+                conn);
+
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.Add("@applid", SqlDbType.Int).Value = appl_id;
+            conn.Open();
+
+            var GrantYearList = new List<Appls>();
+            var rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+                GrantYearList.Add(
+                    new Appls
+                    {
+                        appl_id = rdr["appl_id"]?.ToString(),
+                        support_year = rdr["support_year"]?.ToString(),
+                        full_grant_num = rdr["full_grant_num"]?.ToString()
+                    });
+
+            rdr.Close();
+            conn.Close();
+
+            return GrantYearList;
+        }
+
+        public int GetDocID(
+            int applid,
+            int categoryid,
+            string subcategory,
+            DateTime docdate,
+            string filetype,
+            string ic,
+            string userid)
+        {
+            return _documentRepository.GetDocID(
+                applid,
+                categoryid,
+                subcategory,
+                docdate,
+                filetype,
+                ic,
+                userid);
         }
     }
 }

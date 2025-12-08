@@ -1,10 +1,10 @@
 ﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  Appls.cs
+// Module Name:  FundingCategories.cs
 // Solution: egrants_new
 // Project:  egrants_new
-// Created: 2025-12-02
+// Created: 2025-12-05
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 //      -
@@ -35,15 +35,14 @@
 
 namespace eGrants.Models
 {
-
-        public class Appls
+        public class FundingCategories
         {
-            public string appl_id { get; set; }
-            public string serial_num { get; set; }
-            public string full_grant_num { get; set; }
-            public string assign_date { get; set; }
-            public string due_date { get; set; }
-            public string support_year { get; set; }
+            public string level_id { get; set; }
+            public string parent_id { get; set; }
+            public string category_id { get; set; }
+            public string category_name { get; set; }
+            public string category_fy { get; set; }
+            public string child_count { get; set; }
+            public string doc_count { get; set; }
         }
     }
-    

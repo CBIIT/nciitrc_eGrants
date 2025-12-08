@@ -36,13 +36,18 @@
 
 using System.Configuration;
 using System.Data;
+using System.Net.Http.Headers;
+using System.Web;
 
 using eGrants.DAL;
 using eGrants.Models;
 
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
-using Microsoft.Data.SqlClient;
+using Octokit;
+
+using MsgReader.Outlook;
 
 #endregion
 
@@ -123,42 +128,42 @@ namespace eGrants.Common
         //    return true;
         //}
 
-        //// check user validation
-        ///// <summary>
-        ///// The check user validation.
-        ///// </summary>
-        ///// <param name="ic">
-        ///// The ic.
-        ///// </param>
-        ///// <param name="userid">
-        ///// The userid.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="int"/> .
-        ///// </returns>
-        //public static int CheckUserValidation(string ic, string userid)
-        //{
-        //    int count = 0;
+        // check user validation
+        /// <summary>
+        /// The check user validation.
+        /// </summary>
+        /// <param name="ic">
+        /// The ic.
+        /// </param>
+        /// <param name="userid">
+        /// The userid.
+        /// </param>
+        /// <returns>
+        /// The <see cref="int"/> .
+        /// </returns>
+        public int CheckUserValidation(string ic, string userid)
+        {
+            int count = 0;
 
-        //    using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
-        //    {
-        //        var cmd = new SqlCommand("sp_web_egrants_user_validation", conn);
-        //        cmd.CommandType = CommandType.StoredProcedure;
-        //        cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-        //        cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("sp_web_egrants_user_validation", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
 
-        //        conn.Open();
+                conn.Open();
 
-        //        var rdr = cmd.ExecuteReader();
+                var rdr = cmd.ExecuteReader();
 
-        //        while (rdr.Read())
-        //        {
-        //            count = Convert.ToInt16(rdr["count"]);
-        //        }
-        //    }
+                while (rdr.Read())
+                {
+                    count = Convert.ToInt16(rdr["count"]);
+                }
+            }
 
-        //    return count;
-        //}
+            return count;
+        }
 
         //// check user validation
         ///// <summary>
@@ -245,10 +250,10 @@ namespace eGrants.Common
         /// <returns>
         /// The <see cref="System.Collections.Generic.IEnumerable`1"/> .
         /// </returns>
-        public IEnumerable<User> uservar(string userid, string ic, string type)
+        public IEnumerable<Models.User> uservar(string userid, string ic, string type)
         {
             //var connectionString = _context.Database.GetConnectionString();
-            var list = new List<User>();
+            var list = new List<Models.User>();
 
             using (var conn = new SqlConnection(_connectionString))
             {
@@ -259,7 +264,7 @@ namespace eGrants.Common
                 cmd.Parameters.AddWithValue("@type", type);
 
                 conn.Open();
-                var user = new User();
+                var user = new Models.User();
 
                 using (var rdr = cmd.ExecuteReader())
                 {
@@ -631,77 +636,101 @@ namespace eGrants.Common
         //    return permission;
         //}
 
-        //internal static HashSet<string> GetUnsupportedFileList(IEnumerable<HttpPostedFileBase> inboundFiles)
-        //{
-        //    HashSet<string> unsupportedFileNames = new HashSet<string>();
+        internal HashSet<string> GetUnsupportedFileList(IEnumerable<IFormFile> inboundFiles)
+        {
+            HashSet<string> unsupportedFileNames = new HashSet<string>();
 
-        //    foreach (var inboundFile in inboundFiles)
-        //    {
-        //        var fileName = Path.GetFileName(inboundFile.FileName);
-        //        var fileExtension = Path.GetExtension(fileName);
+            foreach (var inboundFile in inboundFiles)
+            {
+                var fileName = Path.GetFileName(inboundFile.FileName);
+                var fileExtension = Path.GetExtension(fileName);
 
-        //        bool found = false;
-        //        foreach (var unsupportedType in SUPPORTED_FILE_TYPES)
-        //        {
-        //            if (inboundFile.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
-        //            {
-        //                found = true;
-        //            }
-        //        }
-        //        if (!found)
-        //        {
-        //            unsupportedFileNames.Add(fileName);
-        //        }
+                bool found = false;
+                foreach (var supportedType in SUPPORTED_FILE_TYPES)
+                {
+                    if (inboundFile.FileName.ToLower().EndsWith(supportedType.ToLower()))
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    unsupportedFileNames.Add(fileName);
+                }
 
-        //        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-        //        {
-        //            byte[] fileData = inboundFile.ToByteArray();
+                if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // Convert IFormFile to byte[]
+                    byte[] fileData;
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        inboundFile.CopyTo(memoryStream);
+                        fileData = memoryStream.ToArray();
+                    }
 
-        //            using (var memoryStream = new MemoryStream(fileData))
-        //            {
-        //                var emailFile = new Storage.Message(memoryStream);
-        //                foreach(var unsupportedFile in GetUnsupportedFileListFromMessage(emailFile))
-        //                {
-        //                    unsupportedFileNames.Add(unsupportedFile);
-        //                }
-        //            }
+                    using (var memoryStream = new MemoryStream(fileData))
+                    {
+                        var emailFile = new Storage.Message(memoryStream);
+                        foreach (var unsupportedFile in GetUnsupportedFileListFromMessage(emailFile))
+                        {
+                            unsupportedFileNames.Add(unsupportedFile);
+                        }
+                    }
 
-        //            inboundFile.InputStream.Position = 0;
-        //        }
-        //    }
-        //    return unsupportedFileNames;
-        //}
+                    // Reset stream position if you plan to reuse inboundFile
+                    inboundFile.OpenReadStream().Position = 0;
+                }
+            }
+            return unsupportedFileNames;
+        }
 
-        //private static HashSet<string> GetUnsupportedFileListFromMessage(Storage.Message emailFile)
-        //{
-        //    HashSet<string> unsupportedFileNames = new HashSet<string>();
 
-        //    foreach (var attachment in emailFile.Attachments)
-        //    {
-        //        if (attachment is Storage.Attachment storageAttachment)
-        //        {
-        //            bool found = false;
-        //            foreach (var unsupportedType in SUPPORTED_FILE_TYPES)
-        //            {
-        //                if (storageAttachment.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
-        //                {
-        //                    found = true;
-        //                }
-        //            }
-        //            if (!found)
-        //            {
-        //                unsupportedFileNames.Add(storageAttachment.FileName);
-        //            }
-        //        }
-        //        else if (attachment is Storage.Message messageAttachment)                                               // email message
-        //        {
-        //            foreach (var unsupportedName in GetUnsupportedFileListFromMessage((Storage.Message)attachment))
-        //            {
-        //                unsupportedFileNames.Add(unsupportedName);
-        //            }
-        //        }
-        //    }
-        //    return unsupportedFileNames;
-        //}
+        private HashSet<string> GetUnsupportedFileListFromMessage(Storage.Message emailFile)
+        {
+            HashSet<string> unsupportedFileNames = new HashSet<string>();
+
+            foreach (var attachment in emailFile.Attachments)
+            {
+                if (attachment is Storage.Attachment storageAttachment)
+                {
+                    bool found = false;
+                    foreach (var unsupportedType in SUPPORTED_FILE_TYPES)
+                    {
+                        if (storageAttachment.FileName.ToLower().EndsWith(unsupportedType.ToLower()))
+                        {
+                            found = true;
+                        }
+                    }
+                    if (!found)
+                    {
+                        unsupportedFileNames.Add(storageAttachment.FileName);
+                    }
+                }
+                else if (attachment is Storage.Message messageAttachment)                                               // email message
+                {
+                    foreach (var unsupportedName in GetUnsupportedFileListFromMessage((Storage.Message)attachment))
+                    {
+                        unsupportedFileNames.Add(unsupportedName);
+                    }
+                }
+            }
+            return unsupportedFileNames;
+        }
+        public string GetLatestReleaseTagAsync(string owner, string repoName, string token)
+        {
+            try
+            {
+                var client = new GitHubClient(new Octokit.ProductHeaderValue("eGrants"));
+                var tokenAuth = new Credentials(token);
+                client.Credentials = tokenAuth;
+                var latestRelease = client.Repository.Release.GetLatest(owner, repoName).Result;
+                return latestRelease.Name;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving release information: {ex.Message}");
+                return "Unknown Release"; // Or handle as appropriate    }
+            }
+        }
     }
 }

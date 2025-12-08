@@ -6,7 +6,7 @@ using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 using Serilog;
@@ -37,6 +37,7 @@ builder.Services.AddScoped<IManagementService, ManagementService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<IEgrantsAccessService, EgrantsAccessService>();
+builder.Services.AddScoped<EgrantsCommon>();
 builder.Services.AddScoped<IFlagMaintenanceService, FlagMaintenanceService>();
 builder.Services.AddScoped<IGPMATWorkReportService, GPMATWorkReportService>();
 builder.Services.AddScoped<IApplDestructedService, ApplDestructedService>();
@@ -136,6 +137,16 @@ app.UseSession(); // Enable session middleware
 // TODO: Determine better way to handle getting user id information if possible
 app.Use(async (context, next) =>
 {
+    // Remove unwanted headers
+    context.Response.OnStarting(() =>
+    {
+        context.Response.Headers.Remove("Server");
+        context.Response.Headers.Remove("X-AspNetMvc-Version");
+        context.Response.Headers.Remove("X-AspNet-Version");
+        context.Response.Headers.Remove("X-UA-Compatible");
+        return Task.CompletedTask;
+    });
+
     if (string.IsNullOrEmpty(context.Session.GetString("userid")))
     {
         // Retrieve user ID from SiteMinder header or fallback to Windows identity
@@ -172,12 +183,21 @@ app.Use(async (context, next) =>
                              "Unknown";
 
         context.Session.SetString("browser", browserName);
+        context.Session.SetString("CurrentView", "standardForm");
 
         // Resolve EgrantsCommon service
         var egrantsCommon = app.Services.GetRequiredService<EgrantsCommon>();
 
-        // Populate user session variables
         var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
+
+        if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
+        {
+            context.Response.Redirect("/egrants_default.htm");
+            return;
+        }
+
+        // Populate user session variables
+
         var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);
 
         foreach (var usr in users)
@@ -192,13 +212,33 @@ app.Use(async (context, next) =>
             context.Session.SetString("Menus", usr.menulist);
         }
 
+        if (context.Session.GetString("Validation").ToString() != "OK")
+        {
+            context.Response.Redirect("/egrants_default.htm");
+            return;
+        }
+
         // You can log or use the URL here
         // Load app settings into session
+        context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
+        context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
+        context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+        context.Session.SetInt32("dashboard",0);
+        context.Session.SetString("EgrantsDocNewRelativePath", builder.Configuration["AppSettings:egrantsDocNewRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsDocModifyRelativePath", builder.Configuration["AppSettings:egrantsDocModifyRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsFundingRelativePath", builder.Configuration["AppSettings:egrantsFundingRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsInstRelativePath", builder.Configuration["AppSettings:egrantsInstRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsFundingModifyRelativePath", builder.Configuration["AppSettings:egrantsFundingModifyRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsDocEmail", builder.Configuration["AppSettings:egrantsDocEmail"] ?? string.Empty);
+        context.Session.SetString("closeoutAcceptance", builder.Configuration["AppSettings:closeoutAcceptance"] ?? string.Empty);
         context.Session.SetString("frpprAcceptance", builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty);
         context.Session.SetString("irpprAcceptance", builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty);
-        context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
-        context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
-        context.Session.SetString("EgrantsDocEmail", builder.Configuration["AppSettings:egrantsDocEmail"] ?? string.Empty);
+        context.Session.SetString("GitHubToken", builder.Configuration["AppSettings:GitHubToken"] ?? string.Empty);
+
+        string token = context.Session.GetString("GitHubToken").ToString();
+        var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
+        var latestRelease = latestReleaseFull.Split(' ')[0];
+        context.Session.SetString("Release", latestRelease);
     }
     await next.Invoke();
 });

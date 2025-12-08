@@ -17,7 +17,7 @@ namespace eGrants.Services
         private readonly AppDbContext _context;
 
         public CommonService(ICommonRepository commonRepository, 
-            AppDbContext context)
+            AppDbContext context = null)
         {
             _commonRepository = commonRepository;
             _context = context;
