@@ -193,16 +193,6 @@ app.Use(async (context, next) =>
             return;
         }
 
-
-        // This may be used later so leave in place
-        //var userValidation = egrantsCommon.CheckUserValidation(context.Session.GetString("ic"), context.Session.GetString("userid"));
-
-        //if (userValidation == 0)
-        //{
-        //    context.Response.Redirect("/egrants_default.htm");
-        //    return;
-        //}
-
         // Populate user session variables
 
         var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);

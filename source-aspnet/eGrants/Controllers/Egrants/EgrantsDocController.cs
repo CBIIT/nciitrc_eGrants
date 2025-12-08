@@ -713,8 +713,13 @@ namespace eGrants.Controllers.Egrants
                         docName = Convert.ToString(document_id) + fileExtension;
 
                         // upload to image sever 
-                        var fileFolder = HttpContext.Session.GetString("WebGrantUrl");
+#if DEBUG
+                        var fileFolder = @"C:\PdfFileOutput\";
+#else
+                        var fileFolder = @"\\" + HttpContext.Session.GetString("WebGrantUrl") + "\\egrants\\funded2\\nci\\main\\";
+#endif
                         // leave in place for now for local testing
+
 
                         var filePath = Path.Combine(fileFolder, docName);
 

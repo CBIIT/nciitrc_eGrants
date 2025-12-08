@@ -43,6 +43,7 @@ namespace eGrants.Models
             public string full_grant_num { get; set; }
             public string assign_date { get; set; }
             public string due_date { get; set; }
+            public string support_year { get; set; }
         }
     }
     

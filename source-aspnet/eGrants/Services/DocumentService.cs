@@ -478,7 +478,7 @@ namespace eGrants.Services
             return list;
         }
 
-        public async Task<List<Appl>> LoadUploadableApplsByApplid(int appl_id)
+        public async Task<List<Appls>> LoadUploadableApplsByApplid(int appl_id)
         {
             var conn = new SqlConnection(_context.Database.GetConnectionString());
 
@@ -491,12 +491,12 @@ namespace eGrants.Services
             cmd.Parameters.Add("@applid", SqlDbType.Int).Value = appl_id;
             conn.Open();
 
-            var GrantYearList = new List<Appl>();
+            var GrantYearList = new List<Appls>();
             var rdr = cmd.ExecuteReader();
 
             while (rdr.Read())
                 GrantYearList.Add(
-                    new Appl
+                    new Appls
                     {
                         appl_id = rdr["appl_id"]?.ToString(),
                         support_year = rdr["support_year"]?.ToString(),

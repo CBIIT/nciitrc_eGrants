@@ -156,9 +156,9 @@ namespace eGrants.Services.Interfaces
         /// </param>
         /// <returns>
         /// A task that represents the asynchronous operation. 
-        /// The task result contains a list of <see cref="Appl"/> objects.
+        /// The task result contains a list of <see cref="Appls"/> objects.
         /// </returns>
-        public Task<List<Appl>> LoadUploadableApplsByApplid(int appl_id);
+        public Task<List<Appls>> LoadUploadableApplsByApplid(int appl_id);
 
 
         /// <summary>
