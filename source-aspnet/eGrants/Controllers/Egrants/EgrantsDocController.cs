@@ -104,6 +104,8 @@ namespace eGrants.Controllers.Egrants
         private readonly IConfiguration _configuration;
         private readonly EgrantsCommon _egrantsCommon;
 
+        private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
         public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null)
         {
             _eGrantsService = eGrantsService;
@@ -224,8 +226,6 @@ namespace eGrants.Controllers.Egrants
         public async Task<ActionResult> LoadSupplementDoc(string act, int grantId)
         {
             //this.ViewBag.FormerAppls = EgrantsDoc.LoadFormerAppls(grant_id);
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
             List<supplement> supplements = await _eGrantsService.GetSupplements(act,
                 grantId,
                 0,
@@ -302,8 +302,6 @@ namespace eGrants.Controllers.Egrants
         /// </returns>
         public async Task<ActionResult> LoadSupplement(string act, int grantId)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
             List<supplement> supplements = await _eGrantsService.GetSupplements(act,
                 grantId,
                 0,
@@ -368,8 +366,6 @@ namespace eGrants.Controllers.Egrants
 
         public async Task<ActionResult> ProcessSupplement(string act, int grantId, int supportYear, string suffixCode, int formerApplId, string docIdStr)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
             List<supplement> supplements = await _eGrantsService.GetSupplements(act,
                 grantId,
                 supportYear,
@@ -453,7 +449,6 @@ namespace eGrants.Controllers.Egrants
             string document_date = null,
             string previous_url = null)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
             var userId = sessionInfo.UserId;
             if (userId == "hindsrr")
             {
@@ -498,8 +493,6 @@ namespace eGrants.Controllers.Egrants
                 this.Session["ic"] = "NCI";
             }
             */
-
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
             eGrantsDocCreateViewModel eDocViewModel = await _documentService.DocCreateWithoutApplIdAsync(previousUrl, sessionInfo);
 
@@ -597,8 +590,6 @@ namespace eGrants.Controllers.Egrants
         [HttpPost]
         public async Task<ActionResult> doc_create_by_file(IFormFile file, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
             var result = await _documentService.DocCreateByFileAsync(file, appl_id, category_id, 
                 sub_category, doc_date, admin_code, serial_num, sessionInfo);
 
@@ -650,9 +641,6 @@ namespace eGrants.Controllers.Egrants
             string fileExtension = string.Empty;
             var pdfDocs = new List<PdfDocument>();
             var converter = new EmailConcatenation.PdfConverter();
-
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-            //var egrantsCommon = app.Services.GetRequiredService<EgrantsCommon>();
 
             if (files != null && files.Any())
             {
@@ -761,146 +749,146 @@ namespace eGrants.Controllers.Egrants
             return this.Json(new { url, message = mssg });
         }
 
-        //// to create doc by dragdrop
-        ///// <summary>
-        ///// The convert_to_pdf_by_ddrop.
-        ///// </summary>
-        ///// <param name="dropedfile">
-        ///// The dropedfile.
-        ///// </param>
-        ///// <param name="appl_id">
-        ///// The appl_id.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="sub_category">
-        ///// The sub_category.
-        ///// </param>
-        ///// <param name="doc_date">
-        ///// The doc_date.
-        ///// </param>
-        ///// <param name="admin_code">
-        ///// The admin_code.
-        ///// </param>
-        ///// <param name="serial_num">
-        ///// The serial_num.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpPost]
-        //public ActionResult convert_to_pdf_by_ddrop(
-        //    IEnumerable<HttpPostedFileBase> dropedfiles,
-        //    int appl_id,
-        //    int category_id,
-        //    string sub_category,
-        //    DateTime doc_date,
-        //    string admin_code,
-        //    int serial_num)
-        //{
+        // to create doc by dragdrop
+        /// <summary>
+        /// The convert_to_pdf_by_ddrop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="sub_category">
+        /// The sub_category.
+        /// </param>
+        /// <param name="doc_date">
+        /// The doc_date.
+        /// </param>
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpPost]
+        public ActionResult convert_to_pdf_by_ddrop(
+            IEnumerable<IFormFile> dropedfiles,
+            int appl_id,
+            int category_id,
+            string sub_category,
+            DateTime doc_date,
+            string admin_code,
+            int serial_num)
+        {
 
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
-        //    string fileExtension = string.Empty;
-        //    var pdfDocs = new List<PdfDocument>();
-        //    var converter = new EmailConcatenation.PdfConverter();
+            var docName = string.Empty;
+            string url = null;
+            string mssg = null;
+            string fileExtension = string.Empty;
+            var pdfDocs = new List<PdfDocument>();
+            var converter = new EmailConcatenation.PdfConverter();
 
-        //    if (dropedfiles != null && dropedfiles.Any())
-        //        try
-        //        {
-        //            var unsupportedFilesList = EgrantsCommon.GetUnsupportedFileList(dropedfiles);
+            if (dropedfiles != null && dropedfiles.Any())
+                try
+                {
+                    var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(dropedfiles);
 
-        //            foreach (var dropedfile in dropedfiles)
-        //            {
-        //                // get file name and file Extension
-        //                var fileName = Path.GetFileName(dropedfile.FileName);
-        //                fileExtension = Path.GetExtension(fileName);
+                    foreach (var dropedfile in dropedfiles)
+                    {
+                        // get file name and file Extension
+                        var fileName = Path.GetFileName(dropedfile.FileName);
+                        fileExtension = Path.GetExtension(fileName);
 
-        //                byte[] fileData;
-        //                using (var binaryReader = new BinaryReader(dropedfile.InputStream))
-        //                {
-        //                    fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
-        //                }
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
+                        {
+                            fileData = binaryReader.ReadBytes((int)dropedfile.Length);
+                        }
 
-        //                PdfDocument pdfResult = null;
-        //                if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-        //                {
-        //                    using (var memoryStream = new MemoryStream(fileData))
-        //                    {
-        //                        var emailFile = new Storage.Message(memoryStream);
-        //                        pdfResult = converter.Convert(emailFile);
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    using (var memoryStream = new MemoryStream(fileData))
-        //                    {
-        //                        pdfResult = converter.Convert(memoryStream, fileName);
-        //                    }
-        //                }
-        //                if (pdfResult != null)
-        //                {
-        //                    pdfDocs.Add(pdfResult);
-        //                }
-        //            }
-        //            fileExtension = ".pdf";
+                        PdfDocument pdfResult = null;
+                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                var emailFile = new Storage.Message(memoryStream);
+                                pdfResult = converter.Convert(emailFile);
+                            }
+                        }
+                        else
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                pdfResult = converter.Convert(memoryStream, fileName);
+                            }
+                        }
+                        if (pdfResult != null)
+                        {
+                            pdfDocs.Add(pdfResult);
+                        }
+                    }
+                    fileExtension = ".pdf";
 
-        //            var sb = new StringBuilder();
-        //            if (pdfDocs.Any())
-        //            {
-        //                // get document_id and creat a new docName
-        //                var document_id = EgrantsDoc.GetDocID(
-        //                    appl_id,
-        //                    category_id,
-        //                    sub_category,
-        //                    doc_date,
-        //                    fileExtension,
-        //                    Convert.ToString(this.Session["ic"]),
-        //                    Convert.ToString(this.Session["userid"]));
+                    var sb = new StringBuilder();
+                    if (pdfDocs.Any())
+                    {
+                        // get document_id and creat a new docName
+                        var document_id = _documentService.GetDocID(
+                            appl_id,
+                            category_id,
+                            sub_category,
+                            doc_date,
+                            fileExtension,
+                            sessionInfo.Ic,
+                            sessionInfo.UserId);
 
-        //                docName = Convert.ToString(document_id) + fileExtension;
+                        docName = Convert.ToString(document_id) + fileExtension;
 
 
-        //                var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
+                        var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded2\\nci\\main\\";
 
-        //                var filePath = Path.Combine(fileFolder, docName);
+                        var filePath = Path.Combine(fileFolder, docName);
 
-        //                var pdfDoc = PdfDocument.Merge(pdfDocs);
-        //                pdfDoc.SaveAs(filePath);
+                        var pdfDoc = PdfDocument.Merge(pdfDocs);
+                        pdfDoc.SaveAs(filePath);
 
-        //                // create review url
-        //                this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
-        //                                                                                        + Convert.ToString(docName);
-        //                sb.Append("Done! New document has been created**#7|n3br3@k#**");
-        //            }
-        //            else
-        //            {
-        //                sb.Append("No documents were found to convert**#7|n3br3@k#**");
-        //            }
+                        // create review url
+                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath")
+                                                                                                + Convert.ToString(docName);
+                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
+                    }
+                    else
+                    {
+                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
+                    }
 
-        //            if (unsupportedFilesList.Count > 0)
-        //            {
-        //                sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-        //                foreach (var unsupportedFile in unsupportedFilesList)
-        //                {
-        //                    sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-        //                }
-        //            }
+                    if (unsupportedFilesList.Count > 0)
+                    {
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
+                        foreach (var unsupportedFile in unsupportedFilesList)
+                        {
+                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
+                        }
+                    }
 
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = sb.ToString();
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            mssg = "ERROR: The file could not be converted!";
-        //        }
-        //    else
-        //        mssg = "You have not specified a file.";
+                    url = this.ViewBag.FileUrl;
+                    mssg = sb.ToString();
+                }
+                catch (Exception ex)
+                {
+                    mssg = "ERROR: The file could not be converted!";
+                }
+            else
+                mssg = "You have not specified a file.";
 
-        //    return this.Json(new { url, message = mssg });
-        //}
+            return this.Json(new { url, message = mssg });
+        }
 
         // string full_grant_num, int appl_id, string full_grant_num, int appl_id, 
         /// <summary>
@@ -914,8 +902,6 @@ namespace eGrants.Controllers.Egrants
         /// </returns>
         public async Task<ActionResult> doc_upload_default(int docId)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
             eGrantsDocUploadViewModel eDocViewModel = await _documentService.DocUploadDefaultAsync(docId);
 
             return View("~/Views/Egrants/EgrantsDocUpload.cshtml", eDocViewModel);
@@ -949,8 +935,6 @@ namespace eGrants.Controllers.Egrants
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]        
         public async Task<IActionResult> doc_upload_by_file(IFormFile file, int doc_id)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
             var result = await _documentService.DocUploadByFileAsync(file, doc_id, sessionInfo);
 
             return Json(new { url = result.Url, message = result.Message });
@@ -1116,8 +1100,6 @@ namespace eGrants.Controllers.Egrants
         [HttpPost]
         public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
             var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
             
             return Json(new { url = result.Url, message = result.Message });
@@ -1140,8 +1122,6 @@ namespace eGrants.Controllers.Egrants
         [HttpPost]
         public async Task<ActionResult> doc_upload_by_ddrop(IFormFile dropedfile, int docId)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-
             var result = await _documentService.DocUploadByDdropAsync(dropedfile, docId, sessionInfo);
 
             return Json(new { url = result.Url, message = result.Message });
@@ -1298,8 +1278,6 @@ namespace eGrants.Controllers.Egrants
         /// </returns>
         public async Task<ActionResult> doc_index_update_default(int documentId, string previousUrl)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
-          
             eGrantsDocUpdateViewModel eDocViewModel = await _documentService.DocUpdateDefaultAsync(documentId, previousUrl, sessionInfo);
 
             return View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
@@ -1345,7 +1323,6 @@ namespace eGrants.Controllers.Egrants
         /// <returns>The <see cref="ActionResult"/>.</returns>
         public async Task<ActionResult> doc_index_modify(string act, int appl_id, int document_id, int category_id, string sub_category, string document_date, string previous_url)
         {
-            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
             var docids = Convert.ToString(document_id);
 
             await _documentService.DocIndexModifyAsync(act, appl_id, category_id, sub_category, document_date, docids, sessionInfo);
