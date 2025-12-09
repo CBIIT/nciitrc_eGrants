@@ -1,0 +1,353 @@
+﻿@using Microsoft.AspNetCore.Html
+@using eGrants.Models
+
+@{
+   ViewBag.Title = "egrants [Supplement Index]";
+   Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<link rel="stylesheet" type="text/css" href="~/css/egrants.css" />
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+
+    $(document).ready(function () {
+        display_notice();
+    });
+
+        function display_notice(){
+            if (document.getElementById("hidReturnNotice").value != '') {
+                alert(document.getElementById("hidReturnNotice").value);
+            }
+        }
+
+        function to_search() {
+            if (document.getElementById("txtSerialNum").value == '') {
+                alert("Please insert serial number to search");
+                document.getElementById("txtSerialNum").focus();
+                return false;
+            } else var serialnum = document.getElementById("txtSerialNum").value;
+
+            var result = isInteger(serialnum);
+            if (result == false || result == 'false') {
+                    alert("Please inset correct serial number for searching");
+                    document.getElementById("txtSerialNum").value = '';
+                    document.getElementById("txtSerialNum").focus();
+                    return false;
+            }
+
+            var url="@Url.Action("Search_Notification", "Supplement")?serial_num=" + serialnum;
+            window.document.location.href = url;
+        }
+
+        function hide_and_show() {
+            //hide text input
+            var inputs = document.getElementsByTagName("input");
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].className == 'form-control pa' || inputs[i].className == 'form-control grantnum') {
+                    inputs[i].style.display = "none";
+                } else continue
+            }
+
+            //hide all save  and cancel button
+            var inputs = document.getElementsByTagName("button");
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].className == 'btn btn-primary btn-sm save' || inputs[i].className == 'btn btn-primary btn-sm cancel') {
+                    inputs[i].style.display = "none";
+                } else if (inputs[i].className == 'btn btn-primary btn-sm edit') {
+                    inputs[i].style.display = "inline";
+                }
+                else continue
+            }
+        }
+
+        function show_appl(appl_id) {
+            var url = "@Url.Action("by_appl", "Egrants")?appl_id=" + appl_id ;
+            window.document.location.href = url;
+        }
+
+        function to_edit(id) {
+            hide_and_show();
+
+            //show save button
+            var el = "save_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            //show cancel button
+            var el = "cancel_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            //hide edit button
+            var el = "edit_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //show fgn edit
+            var el = "txtFGN_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            //show pa edit
+            var el = "txtPA_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+        }
+
+        function to_cancel(id) {
+            //hide save button
+            var el = "save_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //hide cancel button
+            var el = "cancel_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //show edit button
+            var el = "edit_" + id;
+            if (document.getElementById(el).style.display == "none") {
+                document.getElementById(el).style.display = "inline";
+            };
+            //hide fgn text
+            var el = "txtFGN_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+            //hide pa edit
+            var el = "txtPA_" + id;
+            if (document.getElementById(el).style.display == "inline") {
+                document.getElementById(el).style.display = "none";
+            };
+        }
+
+        function to_save(id) {
+            var el="txtFGN_"+id;
+            if (document.getElementById(el).value==''){
+                alert("Please insert full grant number") ;
+                document.getElementById(el).focus();
+                return  false
+            }else var fgn=document.getElementById(el).value;
+
+            var el="txtPA_"+id;
+            if (document.getElementById(el).value==''){
+                alert("Please insert PA");
+                document.getElementById(el).focus();
+                return  false
+            }else var pa=document.getElementById(el).value;
+
+            if(fgn!='' && pa!=''){
+                var url = "@Url.Action("Save_Notification", "Supplement")?id=" + id + "&fgn=" + fgn + "&pa=" + pa;
+                window.document.location.href = url;
+            }
+        }
+
+        function to_delete(id, full_grant_num) {
+            if (confirm('Are you sure that you want to delete notification for ' + full_grant_num + '?')) {
+                var url="@Url.Action("Delete_Notification", "Supplement")?id=" + id;
+                window.document.location.href = url;
+            }
+        }
+
+        function to_review(id) {
+            var url="@Url.Action("Review_Notification", "Supplement")?id=" + id;
+            window.document.location.href = url;
+        }
+</script>
+
+<div id="main">
+   <!--start main-->
+   <form name="frmGetInfo">
+      <input type="text" hidden id="hidSerialNum" name="SerialNum" value="@ViewBag.SerialNum" />
+      <input type="text" hidden id="hidReturnNotice" name="ReturnNotice" value="@ViewBag.ReturnNotice" />
+   </form>
+   <div>
+      @Html.Partial("~/Views/Admin/_AdminMenuIndex.cshtml")
+   </div>
+   <div id="caption">
+      <b id="page_title">Admin Supplement</b><br />
+      @Html.ActionLink("eRA Notification", "Index", "Supplement") |
+      @Html.ActionLink("Email Template", "Load_Email_Template", "Supplement") |
+      @Html.ActionLink("Workflow", "Load_Workflow", "Supplement")
+   </div>
+   <div class="form-inline">
+      <lable for="serial number"><b>Serial Number:</b></lable>&#0160;
+      <input type="text" id="txtSerialNum" class="form-control" style="height:30px; width:120px;" title="Insert serial number to search" />&#0160;
+      <button AccessKey="S" class="btn btn-primary btn-sm" title="search by serial number[shift + alt + S]" onclick="return to_search()">
+         <U>S</U>earch
+      </button>&#0160;&#0160;( searching by serial number only )
+   </div>
+</div><!--end main-->
+
+<div style="width:900px;" class="float-left">
+   @{
+      string curSort = ViewBag.SortColumn as string ?? "full_grant_num";
+      string curDir = ViewBag.SortDirection as string ?? "asc";
+      Func<string, string, IHtmlContent> sortLink = (display, column) =>
+      {
+         bool isCur = curSort == column;
+         string nextDir = (isCur && curDir == "asc") ? "desc" : "asc";
+         string url = Url.Action("Index", new
+         {
+            page = ViewBag.CurrentPage,
+            sortColumn = column,
+            sortDirection = nextDir
+         });
+         return new HtmlString($"<a href=\"{url}\">{display}</a>");
+      };
+   }
+
+   @if (ViewBag.Notifications != null)
+   {
+      List<Notifications> notificationsList = (List<Notifications>)ViewBag.Notifications;
+      int rowsPerPage = 50;
+      int currentPage = ViewBag.CurrentPage ?? 1;
+      int totalRecords = notificationsList.Count;
+      int totalPages = (int)Math.Ceiling((double)totalRecords / rowsPerPage);
+      var pagedNotifications = notificationsList.Skip((currentPage - 1) * rowsPerPage).Take(rowsPerPage).ToList();
+
+      <b>Found @totalRecords.ToString("#,##0") records</b>
+
+      @if (totalRecords > 50)
+      {
+         <b>, 50 records per page.</b>
+      }
+
+      @* Pagination for the top (shows 10 pages) *@
+      @if (totalPages > 1)
+      {
+         var startPage = 0;
+         var endPage = 0;
+
+         if (currentPage - 2 < 1)
+         {
+            startPage = 1;
+            endPage = Math.Min(5, totalPages);
+         }
+         else if (currentPage + 2 > totalPages)
+         {
+            startPage = totalPages - 4;
+            if (startPage < 1) startPage = 1;
+            endPage = totalPages;
+         }
+         else
+         {
+            startPage = currentPage - 2;
+            if (startPage < 1) startPage = 1;
+            endPage = currentPage + 2;
+            if (endPage > totalPages) endPage = totalPages;
+         }
+
+         <b>Page: </b><span class="webgrid-pagination" style="display: inline;">
+            @for (int i = startPage; i <= endPage; i++)
+            {
+               if (i == currentPage)
+               {
+                  <span class="current-page">@i</span>
+               }
+               else
+               {
+                  <a href="@Url.Action("Index", new { page = i, sortColumn = curSort, sortDirection = curDir })">@i</a>
+               }
+            }
+         </span>
+      }
+
+      <table class="webgrid-table">
+         <thead class="webgrid-header">
+            <tr>
+               <th class="col-xxlarg">@sortLink("Grant Number", "full_grant_num")</th>
+               <th class="col-larg">@sortLink("PA", "pa")</th>
+               <th class="col-med">@sortLink("Recieved", "NotRcvd_dt")</th>
+               <th class="col-med">@sortLink("Created", "created_date")</th>
+               <th class="col-larg">Edit</th>
+               <th class="col-larg">Action</th>
+            </tr>
+         </thead>
+         <tbody>
+            @{
+               int rowIndex = 0;
+            }
+            @foreach (var item in pagedNotifications)
+            {
+               var rowClass = rowIndex % 2 == 0 ? "webgrid-odd-row-style" : "webgrid-even-row-style";
+               <tr class="@rowClass">
+                  <td class="col-xxlarg">
+                     <a href="JavaScript:show_appl(@item.appl_id)">@item.full_grant_num</a>
+                     <input type="text" id="txtFGN_@item.id" class="form-control grantnum" style="height:30px; width:150px; display:none" value="@item.full_grant_num" />
+                  </td>
+                  <td class="col-larg">
+                     <span id="labPA_@item.id" style="display:inline"><label id="lblPA">@item.pa</label></span>
+                     <input type="text" id="txtPA_@item.id" class="form-control pa" style="height:30px; width:80px; display:none" value="@item.pa" />
+                  </td>
+                  <td class="col-med">@item.NotRcvd_dt</td>
+                  <td class="col-med">@item.created_date</td>
+                  <td class="col-larg">
+                     <button class="btn btn-primary btn-sm edit" style="display:inline" id="edit_@item.id" onclick="JavaScript:to_edit(@item.id)">Edit</button>
+                     <button class="btn btn-primary btn-sm save" style="display:none" id="save_@item.id" onclick="JavaScript:to_save(@item.id)">Save</button>&#0160;
+                     <button class="btn btn-primary btn-sm cancel" style="display:none" id="cancel_@item.id" onclick="JavaScript:to_cancel(@item.id)">Cancel</button>
+                  </td>
+                  <td class="col-larg">
+                     <button class="btn btn-primary btn-sm" id="delete_@item.id" onclick="JavaScript:to_delete('@item.id', '@item.full_grant_num')">Delete</button>&#0160;
+                     <button class="btn btn-primary btn-sm" id="review_@item.id" onclick="JavaScript:to_review(@item.id)">Review</button>
+                  </td>
+               </tr>
+               rowIndex++;
+            }
+         </tbody>
+      </table>
+
+      @* Pagination for the bottom (shows 10 pages with < > navigation) *@
+      @if (totalPages > 1)
+      {
+         var startPage = 0;
+         var endPage = 0;
+
+         if (currentPage - 5 < 1)
+         {
+            startPage = 1;
+            endPage = Math.Min(10, totalPages);
+         }
+         else if (currentPage + 4 > totalPages)
+         {
+            startPage = totalPages - 9;
+            if (startPage < 1) startPage = 1;
+            endPage = totalPages;
+         }
+         else
+         {
+            startPage = currentPage - 5;
+            if (startPage < 1) startPage = 1;
+            endPage = currentPage + 4;
+            if (endPage > totalPages) endPage = totalPages;
+         }
+
+         <div class="webgrid-pagination">
+            @if (currentPage > 1)
+            {
+               <a href="@Url.Action("Index", new { page = currentPage - 1, sortColumn = curSort, sortDirection = curDir })">&lt;</a>
+            }
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+               if (i == currentPage)
+               {
+                  <span class="current-page">@i</span>
+               }
+               else
+               {
+                  <a href="@Url.Action("Index", new { page = i, sortColumn = curSort, sortDirection = curDir })">@i</a>
+               }
+            }
+
+            @if (currentPage < totalPages)
+            {
+               <a href="@Url.Action("Index", new { page = currentPage + 1, sortColumn = curSort, sortDirection = curDir })">&gt;</a>
+            }
+         </div>
+      }
+   }
+</div>
