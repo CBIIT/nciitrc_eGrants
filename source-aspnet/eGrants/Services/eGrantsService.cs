@@ -15,6 +15,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using Serilog;
+
 namespace eGrants.Services
 {
     // Defines a service class that implements the IeGrantService interface
@@ -849,6 +851,49 @@ namespace eGrants.Services
                      .Select(a => $"{a.full_grant_num}:{a.appl_id}")
                      .ToListAsync();
             }
+        }
+
+        public async Task<List<ImpacDocs>> LoadImpacDocs(string act, int appl_id)
+        {
+            var list = new List<ImpacDocs>();
+
+            try
+            {
+                await using var conn = new SqlConnection(_context.Database.GetConnectionString());
+                await using var cmd = new SqlCommand("sp_web_egrants_impac_docs", conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+                cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = appl_id;
+
+                await conn.OpenAsync();
+
+                await using var rdr = await cmd.ExecuteReaderAsync();
+                while (await rdr.ReadAsync())
+                {
+                    list.Add(new ImpacDocs
+                    {
+                        tag = rdr["tag"]?.ToString(),
+                        appl_id = rdr["appl_id"]?.ToString(),
+                        full_grant_num = rdr["full_grant_num"]?.ToString(),
+                        accepted_date = rdr["accepted_date"]?.ToString(),
+                        category_name = rdr["category_name"]?.ToString(),
+                        created_date = rdr["created_date"]?.ToString(),
+                        url = rdr["url"]?.ToString(),
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex,
+                    "Error loading ImpacDocs with act={Act} and appl_id={ApplId}",
+                    act, appl_id);
+                throw; // rethrow so caller can handle if needed
+            }
+
+            return list;
         }
     }
 }
