@@ -1471,27 +1471,27 @@ namespace eGrants.Controllers.Egrants
         //    return this.View("~/Egrants/Views/_Modal_Doc_Attachments.cshtml");
         //}
 
-        //// show impac doc FRS or Closeout Notification
-        ///// <summary>
-        ///// The impac_docs.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="appl_id">
-        ///// The appl_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult impac_docs(string act, int appl_id)
-        //{
-        //    this.ViewBag.ImpacDocs = EgrantsDoc.LoadImpacDocs(act, appl_id);
-        //    this.ViewBag.act = act;
-        //    this.ViewBag.appl_id = appl_id;
+        // show impac doc FRS or Closeout Notification
+        /// <summary>
+        /// The impac_docs.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="appl_id">
+        /// The appl_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> impac_docs(string act, int appl_id)
+        {
+            ViewBag.ImpacDocs = await _eGrantsService.LoadImpacDocs(act, appl_id);
+            ViewBag.act = act;
+            ViewBag.appl_id = appl_id;
 
-        //    return this.View("~/Egrants/Views/_Modal_Impac_Docs.cshtml");
-        //}
+            return this.View("~/Views/Egrants/_Modal_Impac_Docs.cshtml");
+        }
 
         //// show Closeout Notification
         ///// <summary>

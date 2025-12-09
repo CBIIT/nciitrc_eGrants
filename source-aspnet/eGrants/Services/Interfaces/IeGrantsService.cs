@@ -222,6 +222,27 @@ namespace eGrants.Services.Interfaces
         /// Returns an empty list if no matches are found.
         /// </returns>
         public Task<List<string>> LoadDataAutocomplete(string type, string term, string mechanism = null, string fy = null, string adminCode = null, string serialNum = null);
+
+        /// <summary>
+        /// Retrieves a list of application identifiers associated with the specified administrator code
+        /// and serial number.
+        /// </summary>
+        /// <param name="adminCode">The administrator code used to filter applications.</param>
+        /// <param name="serialNum">The serial number used to filter applications.</param>
+        /// <returns>
+        /// A task representing the asynchronous operation, containing a list of application identifiers.
+        /// </returns>
         public Task<List<string>> GetAllApplsListAsync(string adminCode, string serialNum);
+
+        /// <summary>
+        /// Loads Impac document records from the database for the specified action and application ID.
+        /// </summary>
+        /// <param name="act">The action code used to filter documents.</param>
+        /// <param name="appl_id">The application ID used to filter documents.</param>
+        /// <returns>
+        /// A task representing the asynchronous operation, containing a list of <see cref="ImpacDocs"/> objects.
+        /// </returns>
+        public Task<List<ImpacDocs>> LoadImpacDocs(string act, int appl_id);
+
     }
 }
