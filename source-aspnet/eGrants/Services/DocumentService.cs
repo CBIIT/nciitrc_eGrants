@@ -7,9 +7,12 @@ using System.Xml.Serialization;
 using eGrants.DAL;
 using eGrants.DTOs;
 using eGrants.Models;
+using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
+
+using Grpc.Core;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
@@ -526,6 +529,11 @@ namespace eGrants.Services
                 filetype,
                 ic,
                 userid);
+        }
+
+        public void DocModify(string act, int applId, int categoryId, string subCategory, string docDate, string docidStr, string fileType, string ic, string userId)
+        {
+            _documentRepository.DocModify(act, applId, categoryId, subCategory, docDate, docidStr, fileType, ic, userId);
         }
     }
 }
