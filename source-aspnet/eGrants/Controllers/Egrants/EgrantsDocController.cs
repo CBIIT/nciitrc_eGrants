@@ -445,9 +445,9 @@ namespace eGrants.Controllers.Egrants
             int appl_id = 0,
             int document_id = 0,
             int category_id = 0,
-            string sub_category = null,
-            string document_date = null,
-            string previous_url = null)
+            string sub_category = "",
+            string document_date = "",
+            string previous_url = "")
         {
             var userId = sessionInfo.UserId;
             if (userId == "hindsrr")
@@ -480,7 +480,7 @@ namespace eGrants.Controllers.Egrants
         /// The <see cref="ActionResult"/>.
         /// </returns>
         [HttpGet]
-        public async Task<ActionResult> doc_create_without_applid(string previousUrl = null)
+        public async Task<ActionResult> doc_create_without_applid(string previousUrl = "")
         {
             /*
             This code was added to hardcode IC for non-nci user to access file uploading/viewing page
