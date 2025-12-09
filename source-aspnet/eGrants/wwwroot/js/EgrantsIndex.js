@@ -169,7 +169,7 @@ function refresh_after_modify() {
 // to create new document without selected grant year
 function create_new() {
     var previous_url = encodeURIComponent(currenturl);
-    var url = '/EgrantsDoc/doc_create_without_applid?previous_url=' + previous_url;
+    var url = '/EgrantsDoc/doc_create_without_applid?previousUrl=' + previous_url;
     window.document.location.href = url;
 }
 
