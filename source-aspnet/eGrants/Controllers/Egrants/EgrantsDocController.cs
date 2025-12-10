@@ -78,16 +78,18 @@ using System.Text;
 using System.Web;
 
 using eGrants.Common;
+using eGrants.Functions;
 using eGrants.Models;
+using eGrants.Services;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
+using EmailConcatenation;
+
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 using MsgReader.Outlook;
-
-using eGrants.Functions;
-using EmailConcatenation;
 
 namespace eGrants.Controllers.Egrants
 {
@@ -1140,118 +1142,118 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        //[OutputCacheAttribute(VaryByParam = "*", Duration = 0, NoStore = true)]
-        //[HttpPost]
-        //public ActionResult doc_upload_pdf_by_ddrop(IEnumerable<HttpPostedFileBase> dropedfiles, int docId)
-        //{
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
-        //    string fileExtension = string.Empty;
-        //    var pdfDocs = new List<PdfDocument>();
-        //    var converter = new EmailConcatenation.PdfConverter();
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpPost]
+        public async Task<ActionResult> doc_upload_pdf_by_ddrop(IEnumerable<IFormFile> dropedfiles, int doc_id)
+        {
+            var docName = string.Empty;
+            string url = null;
+            string mssg = null;
+            string fileExtension = string.Empty;
+            var pdfDocs = new List<PdfDocument>();
+            var converter = new EmailConcatenation.PdfConverter();
 
-        //    if (dropedfiles != null && dropedfiles.Any())
-        //        try
-        //        {
-        //            var unsupportedFilesList = EgrantsCommon.GetUnsupportedFileList(dropedfiles);
+            if (dropedfiles != null && dropedfiles.Any())
+                try
+                {
+                    var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(dropedfiles);
 
-        //            foreach (var dropedfile in dropedfiles)
-        //            {
+                    foreach (var dropedfile in dropedfiles)
+                    {
 
-        //                // get file name and file Extension
-        //                var fileName = Path.GetFileName(dropedfile.FileName);
-        //                fileExtension = Path.GetExtension(fileName);
+                        // get file name and file Extension
+                        var fileName = Path.GetFileName(dropedfile.FileName);
+                        fileExtension = Path.GetExtension(fileName);
 
-        //                byte[] fileData;
-        //                using (var binaryReader = new BinaryReader(dropedfile.InputStream))
-        //                {
-        //                    fileData = binaryReader.ReadBytes(dropedfile.ContentLength);
-        //                }
+                        byte[] fileData;
+                        using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
+                        {
+                            fileData = binaryReader.ReadBytes((int)dropedfile.Length);
+                        }
 
-        //                PdfDocument pdfResult = null;
+                        PdfDocument pdfResult = null;
 
-        //                if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-        //                {
-        //                    using (var memoryStream = new MemoryStream(fileData))
-        //                    {
-        //                        var emailFile = new Storage.Message(memoryStream);
-        //                        pdfResult = converter.Convert(emailFile);
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    using (var memoryStream = new MemoryStream(fileData))
-        //                    {
-        //                        pdfResult = converter.Convert(memoryStream, dropedfile.FileName);
-        //                    }
-        //                }
+                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                var emailFile = new Storage.Message(memoryStream);
+                                pdfResult = converter.Convert(emailFile);
+                            }
+                        }
+                        else
+                        {
+                            using (var memoryStream = new MemoryStream(fileData))
+                            {
+                                pdfResult = converter.Convert(memoryStream, dropedfile.FileName);
+                            }
+                        }
 
-        //                if (pdfResult != null)
-        //                {
-        //                    pdfDocs.Add(pdfResult);
-        //                }
-        //            }
+                        if (pdfResult != null)
+                        {
+                            pdfDocs.Add(pdfResult);
+                        }
+                    }
 
-        //            fileExtension = ".pdf";
+                    fileExtension = ".pdf";
 
-        //            var sb = new StringBuilder();
-        //            if (pdfDocs.Any())
-        //            {
+                    var sb = new StringBuilder();
+                    if (pdfDocs.Any())
+                    {
 
-        //                // get document id and create new document name       
-        //                docName = Convert.ToString(doc_id) + fileExtension;
+                        // get document id and create new document name       
+                        docName = Convert.ToString(doc_id) + fileExtension;
 
-        //                // update url for document
-        //                EgrantsDoc.doc_modify(
-        //                    "to_upload",
-        //                    0,
-        //                    0,
-        //                    string.Empty,
-        //                    string.Empty,
-        //                    Convert.ToString(doc_id),
-        //                    fileExtension,
-        //                    Convert.ToString(this.Session["ic"]),
-        //                    Convert.ToString(this.Session["userid"]));
+                        // update url for document
+                        _documentService.DocModify(
+                            "to_upload",
+                            0,
+                            0,
+                            string.Empty,
+                            string.Empty,
+                            Convert.ToString(doc_id),
+                            fileExtension,
+                            sessionInfo.Ic,
+                            sessionInfo.UserId);
 
-        //                var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\modify\\";
+                        var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded\\nci\\modify\\";
 
-        //                var filePath = Path.Combine(fileFolder, docName);
+                        var filePath = Path.Combine(fileFolder, docName);
 
-        //                var pdfDoc = PdfDocument.Merge(pdfDocs);
-        //                pdfDoc.SaveAs(filePath);
+                        var pdfDoc = PdfDocument.Merge(pdfDocs);
+                        pdfDoc.SaveAs(filePath);
 
-        //                // create review url
-        //                this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocModifyRelativePath"])
-        //                                                                                        + Convert.ToString(docName);
-        //                sb.Append("Done! New document has been created**#7|n3br3@k#**");
-        //            }
-        //            else
-        //            {
-        //                sb.Append("No documents were found to convert**#7|n3br3@k#**");
-        //            }
+                        // create review url
+                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + Convert.ToString(HttpContext.Session.GetString("EgrantsDocModifyRelativePath"))
+                                                                                                + Convert.ToString(docName);
+                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
+                    }
+                    else
+                    {
+                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
+                    }
 
-        //            if (unsupportedFilesList.Count > 0)
-        //            {
-        //                sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-        //                foreach (var unsupportedFile in unsupportedFilesList)
-        //                {
-        //                    sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-        //                }
-        //            }
+                    if (unsupportedFilesList.Count > 0)
+                    {
+                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
+                        foreach (var unsupportedFile in unsupportedFilesList)
+                        {
+                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
+                        }
+                    }
 
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = sb.ToString();
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            this.ViewBag.Message = "ERROR: The file could not be converted!";
-        //        }
-        //    else
-        //        this.ViewBag.Message = "Error while uploading the files.";
+                    url = this.ViewBag.FileUrl;
+                    mssg = sb.ToString();
+                }
+                catch (Exception ex)
+                {
+                    this.ViewBag.Message = "ERROR: The file could not be converted!";
+                }
+            else
+                this.ViewBag.Message = "Error while uploading the files.";
 
-        //    return this.Json(new { url, message = mssg });
-        //}
+            return this.Json(new { url, message = mssg });
+        }
 
         //// public ActionResult impac_docs(string act, int appl_id)
         //// {
