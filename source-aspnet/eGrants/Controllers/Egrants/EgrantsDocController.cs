@@ -387,23 +387,21 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/eGrants/Supplement.cshtml", supplementObjectViewModel);
         }
 
-        //// modify doc for delete, store or modify doc index
-        ///// <summary>
-        ///// The doc_modify.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="docids">
-        ///// The docids.
-        ///// </param>
-        //public void doc_modify(string act, string docids)
-        //{
-        //    this.ViewBag.Status = "Done";
-        //    EgrantsDoc.doc_modify(act, 0, 0, string.Empty, string.Empty, docids, string.Empty, Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
-
-        //    // return View("~/Egrants/Views/DocProcess.cshtml");
-        //}
+        // modify doc for delete, store or modify doc index
+        /// <summary>
+        /// The doc_modify.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="docids">
+        /// The docids.
+        /// </param>
+        public void doc_modify(string act, string docids)
+        {
+            ViewBag.Status = "Done";
+            _documentService.DocModify(act, 0, 0, string.Empty, string.Empty, docids, string.Empty, sessionInfo.Ic, sessionInfo.UserId);
+        }
 
         // to create new doc
         /// <summary>
