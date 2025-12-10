@@ -182,5 +182,20 @@ namespace eGrants.Services.Interfaces
             string ic,
             string userid);
 
+        /// <summary>
+        /// Modifies a document record based on the specified action and metadata.
+        /// </summary>
+        /// <param name="act">The action to perform on the document (e.g., add, update, delete).</param>
+        /// <param name="applId">The application identifier associated with the document.</param>
+        /// <param name="categoryId">The category identifier to which the document belongs.</param>
+        /// <param name="subCategory">The subcategory name or code for further classification.</param>
+        /// <param name="docDate">The date of the document, typically in string format (e.g., yyyy-MM-dd).</param>
+        /// <param name="docidStr">The unique document identifier string.</param>
+        /// <param name="fileType">The type of file (e.g., PDF, DOCX, JPG).</param>
+        /// <param name="ic">An additional code or identifier (context-specific, e.g., internal code).</param>
+        /// <param name="userId">The identifier of the user performing the modification.</param>
+        public void DocModify(string act, int applId, int categoryId, string subCategory, string docDate, string docidStr, string fileType, string ic, string userId);
+
+
     }
 }
