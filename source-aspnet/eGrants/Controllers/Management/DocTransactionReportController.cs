@@ -101,6 +101,8 @@ namespace eGrants.Controllers.Management
             string date_range,
             int pageIndex = 1)
         {
+            // TODO: Can probably get rid of this method at the next pass since all Document Report logic is going through the To_Report method now.
+
             // load egrants specialist list
             ViewBag.Specialists = await _managementService.LoadSpecialists(sessionInfo.Ic);
 
@@ -163,6 +165,8 @@ namespace eGrants.Controllers.Management
         /// </returns>
         public async Task<ActionResult> To_Create_Report(string transaction_type, int person_id, string start_date, string end_date)
         {
+            // TODO: Can probably get rid of this method at the next pass since all Document Report logic is going through the To_Report method now.
+
             // load egrants specialist list
             ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
 
