@@ -196,6 +196,11 @@ namespace eGrants.Services.Interfaces
         /// <param name="userId">The identifier of the user performing the modification.</param>
         public void DocModify(string act, int applId, int categoryId, string subCategory, string docDate, string docidStr, string fileType, string ic, string userId);
 
-
+        /// <summary>
+        /// Process document download request and create zip file
+        /// </summary>
+        /// <param name="request">The download request</param>
+        /// <returns>Download model with results</returns>
+        Task<DownloadModel> ProcessDocumentDownloadAsync(DownloadRequest request);
     }
 }

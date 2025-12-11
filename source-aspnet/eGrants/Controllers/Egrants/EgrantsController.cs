@@ -467,6 +467,55 @@ namespace eGrants.Controllers.Egrants
         //        }
         //    }
 
+        /// <summary>
+        /// HttpPost - Download files and create zip
+        /// </summary>
+        /// <param name="appl">The application ID</param>
+        /// <param name="fullGrantNumber">The full grant number</param>
+        /// <param name="listOfUrl">List of URLs to download</param>
+        /// <returns>JSON result with download model</returns>
+        [HttpPost]
+        public async Task<IActionResult> IsDownloadForm(string appl, string fullGrantNumber, [FromQuery] IList<string> listOfUrl)
+        {
+
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            var request = new DownloadRequest
+            {
+                ApplId = appl,
+                FullGrantNumber = fullGrantNumber,
+                ListOfUrl = listOfUrl,
+                SessionInfo = sessionInfo
+            };
+
+
+            var downloadModel = await _documentService.ProcessDocumentDownloadAsync(request);
+
+            // Store zip bytes in TempData if successful
+            if (downloadModel.ZipFileBytes != null)
+            {
+                TempData[downloadModel.Handle] = downloadModel.ZipFileBytes;
+            }
+
+            return Json(downloadModel);
+        }
+
+        /// <summary>
+        /// Download action to serve the zip file
+        /// </summary>
+        /// <param name="fileGuid">The file GUID from TempData</param>
+        /// <param name="fileName">The filename</param>
+        /// <returns>File result</returns>
+        public virtual IActionResult Download(string fileGuid, string fileName)
+        {
+            if (TempData[fileGuid] is byte[] data)
+            {
+                return File(data, "application/zip", fileName);
+            }
+
+            return NotFound();
+        }
+
         //    public string ReplaceInvalidChars(string filename, string replacementCharacter)
         //    {
         //        return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));

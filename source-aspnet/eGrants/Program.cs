@@ -64,6 +64,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 #endregion
 
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
+
 #region Logging (Serilog)
 
 // Original commented-out logging configs (kept for reference)
