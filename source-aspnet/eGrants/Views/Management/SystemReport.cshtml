@@ -176,12 +176,6 @@
                     actionName = "by_Accessionid";
                     routeValues = new { accession_id = ViewBag.AccessionID, pageIndex = ViewBag.PageIndex };
                 }
-                else
-                {
-                    // fallback if needed
-                    actionName = "To_Show_Report";
-                    routeValues = new { pageIndex = ViewBag.PageIndex };
-                }
 
                 int startPage = Math.Max(1, ViewBag.PageIndex - 5);
                 int endPage = Math.Min(ViewBag.TotalPages, startPage + 9);
