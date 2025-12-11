@@ -1,13 +1,12 @@
-﻿#region FileHeader
+#region FileHeader
 
 // /****************************** Module Header ******************************\
-// Module Name:  SessionInfo.cs
-// Solution: egrants_new
-// Project:  egrants_new
-// Created: 2025-12-02
+// Module Name:  DownloadRequest.cs
+// Solution: eGrants
+// Project:  eGrants
+// Created: 2025-12-11
 // Contributors:
-//      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
-//      -
+//      - Feroz, Aalyaan (NIH/NCI) [C] - feroza2
 // Copyright (c) National Institute of Health
 // 
 // <Description of the file>
@@ -35,19 +34,30 @@
 
 namespace eGrants.Models
 {
-    public class SessionInfo
+    /// <summary>
+    /// Request model for downloading files
+    /// </summary>
+    public class DownloadRequest
     {
-        public string Ic { get; set; }
-        public string Browser { get; set; }
-        public string UserId { get; set; }
-        public string WebGrantUrl { get; set; }
-        public string ImageServerUrl { get; set; }
-        public string EgrantsDocModifyRelativePath { get; set; }
-        public string EgrantsDocNewRelativePath { get; set; }
-        public string EgrantsDocEmail { get; set; }
+        /// <summary>
+        /// Gets or sets the application ID
+        /// </summary>
+        public string ApplId { get; set; }
 
-        public int Dashboard { get; set; }
-        public string CertPath { get; set; }
-        public string CertPass { get; set; }
+        /// <summary>
+        /// Gets or sets the full grant number
+        /// </summary>
+        public string FullGrantNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of URLs to download
+        /// Format: url|category|subCategory|documentId|documentName|documentDate
+        /// </summary>
+        public IList<string> ListOfUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the session info
+        /// </summary>
+        public SessionInfo SessionInfo { get; set; }
     }
 }

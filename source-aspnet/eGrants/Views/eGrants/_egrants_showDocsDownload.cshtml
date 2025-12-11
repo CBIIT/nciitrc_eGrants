@@ -672,7 +672,14 @@
 
                         dataToSend.listOfUrl = list;
 
-                        //console.log("Data To C# = " + JSON.stringify(list));
+                        var urlParams = new URLSearchParams();
+                        urlParams.append('appl', @appl_id);
+                        urlParams.append('fullGrantNumber', '@fullGrantNumber');
+
+                        // Add each item in the list as a separate parameter
+                        for (var i = 0; i < dataToSend.listOfUrl.length; i++) {
+                            urlParams.append('listOfUrl', dataToSend.listOfUrl[i]);
+                        }
 
                         // post the data to the server
                         $.ajax(
@@ -681,13 +688,11 @@
                                 async: true,
                                 type: 'POST',
                                 dataType: 'JSON',
-                                contentType: 'application/json; charset=utf=8',
-                                url: "/Egrants/IsDownloadForm",
-                                data: JSON.stringify(dataToSend),
+                                contentType: 'application/json; charset=utf-8',                 
+                                url: "/Egrants/IsDownloadForm?appl=" + urlParams.toString(), 
                                 timeout: 600000,
                                 success: function(data) {
                                     console.log("SUCCESS: ");
-                                    //console.log(JSON.stringify(data));
 
                                     var countSuccess = 0;
 
