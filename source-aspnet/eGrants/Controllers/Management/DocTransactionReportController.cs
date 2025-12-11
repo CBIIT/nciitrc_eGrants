@@ -99,8 +99,6 @@ namespace eGrants.Controllers.Management
             string transaction_type,
             int person_id,
             string date_range,
-            string start_date,
-            string end_date,
             int pageIndex = 1)
         {
             // load egrants specialist list
@@ -111,8 +109,8 @@ namespace eGrants.Controllers.Management
             ViewBag.DateRange = date_range;
             ViewBag.UsingDateFilter = false;
 
-            //var start_date = string.Empty;
-            //var end_date = string.Empty;
+            var start_date = string.Empty;
+            var end_date = string.Empty;
 
             // load docs Transaction history
             var docs = await _managementService.LoadDocTransactionHistory(
