@@ -491,10 +491,10 @@ namespace eGrants.Controllers.Egrants
 
             var downloadModel = await _documentService.ProcessDocumentDownloadAsync(request);
 
-            // Store zip bytes in TempData if successful
+            // Store zip bytes in SESSION (.NET 8) if successful // was storing in TempData in legacy
             if (downloadModel.ZipFileBytes != null)
             {
-                TempData[downloadModel.Handle] = downloadModel.ZipFileBytes;
+                HttpContext.Session.Set(downloadModel.Handle, downloadModel.ZipFileBytes);
             }
 
             return Json(downloadModel);
@@ -508,8 +508,14 @@ namespace eGrants.Controllers.Egrants
         /// <returns>File result</returns>
         public virtual IActionResult Download(string fileGuid, string fileName)
         {
-            if (TempData[fileGuid] is byte[] data)
+            // Retrieve from SESSION instead of TempData
+            var data = HttpContext.Session.Get(fileGuid);
+
+            // Content-Disposition header set in ASP.NET Core,
+            // so the explicit header addition (from legacy) is technically redundant, not required
+            if (data != null)
             {
+                HttpContext.Session.Remove(fileGuid);
                 return File(data, "application/zip", fileName);
             }
 
