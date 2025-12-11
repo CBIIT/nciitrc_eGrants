@@ -92,6 +92,7 @@ namespace eGrants.Controllers.Management
 
             // load egrants accession list
             ViewBag.Accessions = await _managementService.LoadAccessions(sessionInfo.Ic);
+            ViewBag.SearchType = "SerialNumber"; // in by_Serialnum
 
 
             // load folders by serial number search
@@ -134,6 +135,7 @@ namespace eGrants.Controllers.Management
         {
             var act = "by_accessionid";
             ViewBag.AccessionID = accession_id;
+            ViewBag.SearchType = "AccessionID"; // in by_Accessionid
 
             // load egrants accession list
             ViewBag.Accessions = await _managementService.LoadAccessions(sessionInfo.Ic);

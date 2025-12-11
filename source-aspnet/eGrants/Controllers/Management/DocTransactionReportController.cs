@@ -101,12 +101,15 @@ namespace eGrants.Controllers.Management
             string date_range,
             int pageIndex = 1)
         {
+            // TODO: Can probably get rid of this method at the next pass since all Document Report logic is going through the To_Report method now.
+
             // load egrants specialist list
             ViewBag.Specialists = await _managementService.LoadSpecialists(sessionInfo.Ic);
 
             ViewBag.PersonID = person_id;
             ViewBag.TransactionType = transaction_type;
             ViewBag.DateRange = date_range;
+            ViewBag.UsingDateFilter = false;
 
             var start_date = string.Empty;
             var end_date = string.Empty;
@@ -162,6 +165,8 @@ namespace eGrants.Controllers.Management
         /// </returns>
         public async Task<ActionResult> To_Create_Report(string transaction_type, int person_id, string start_date, string end_date)
         {
+            // TODO: Can probably get rid of this method at the next pass since all Document Report logic is going through the To_Report method now.
+
             // load egrants specialist list
             ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
 
@@ -169,6 +174,7 @@ namespace eGrants.Controllers.Management
             ViewBag.TransactionType = transaction_type;
             ViewBag.StartDate = start_date;
             ViewBag.EndDate = end_date;
+            ViewBag.UsingDateFilter = true;
 
             // load docs Transaction history
             var docs = await _managementService.LoadDocTransactionHistory(
@@ -186,5 +192,61 @@ namespace eGrants.Controllers.Management
 
             return View("~/Views/Management/DocTransactionReport.cshtml");
         }
+
+        public async Task<ActionResult> To_Report(
+            string transaction_type,
+            int person_id,
+            string? date_range,
+            string? start_date,
+            string? end_date,
+            int pageIndex = 1)
+        {
+            // load egrants specialist list
+            ViewBag.Specialists = await _managementService.LoadSpecialists(Convert.ToString(sessionInfo.Ic));
+
+            ViewBag.PersonID = person_id;
+            ViewBag.TransactionType = transaction_type;
+
+            // Decide which filter mode we’re in
+            if (!string.IsNullOrEmpty(start_date) && !string.IsNullOrEmpty(end_date))
+            {
+                ViewBag.StartDate = start_date;
+                ViewBag.EndDate = end_date;
+                ViewBag.UsingDateFilter = true;
+            }
+            else if (!string.IsNullOrEmpty(date_range))
+            {
+                ViewBag.DateRange = date_range;
+                ViewBag.UsingDateFilter = false;
+            }
+
+            // load docs Transaction history
+            var docs = await _managementService.LoadDocTransactionHistory(
+                transaction_type,
+                person_id,
+                start_date,
+                end_date,
+                date_range,
+                Convert.ToString(sessionInfo.Ic),
+                Convert.ToString(sessionInfo.UserId));
+
+            // Paging setup
+            int pageSize = 50;
+            int totalCount = docs.Count();
+            int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var pagedDocs = docs
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.EgrantsDocs = pagedDocs;
+            ViewBag.PageIndex = pageIndex;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.HasSearched = !string.IsNullOrEmpty(transaction_type);
+
+            return View("~/Views/Management/DocTransactionReport.cshtml");
+        }
+
     }
 }
