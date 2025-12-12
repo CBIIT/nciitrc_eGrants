@@ -1,5 +1,7 @@
 ﻿using System.Data;
 
+using BitMiracle.LibTiff.Classic;
+
 using eGrants.DAL;
 using eGrants.DTOs;
 using eGrants.Models;
@@ -64,6 +66,11 @@ namespace eGrants.Services
         public async Task<string> GetDocID(int orgId, int categoryId, string fileType, string startDate, string endDate, string ic, string userId, string comments)
         {
             return await _institutionalFilesRepository.GetDocID(orgId, categoryId, fileType, startDate, endDate, ic, userId, comments);
+        }
+
+        public async Task<List<InstitutionalOrg>> SearchOrgList(string search_str)
+        {
+            return await _institutionalFilesRepository.SearchOrgList(search_str);
         }
     }
 }

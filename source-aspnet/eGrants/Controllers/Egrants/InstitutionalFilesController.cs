@@ -59,15 +59,13 @@ namespace eGrant.Controllers
     public class InstitutionalFilesController : Controller
     {
         private readonly IInstitutionalFilesService _institutionalFilesService;
-        private readonly IInstitutionalFilesRepository _institutionalFilesRepository;
         private readonly ISessionInfoService _sessionInfoService;
 
         private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        public InstitutionalFilesController(IInstitutionalFilesService institutionalFilesService, IInstitutionalFilesRepository institutionalFilesRepository, ISessionInfoService sessionInfoService)
+        public InstitutionalFilesController(IInstitutionalFilesService institutionalFilesService, ISessionInfoService sessionInfoService)
         {
             _institutionalFilesService = institutionalFilesService;
-            _institutionalFilesRepository = institutionalFilesRepository;
             _sessionInfoService = sessionInfoService;
         }
         /// <summary>
@@ -87,8 +85,8 @@ namespace eGrant.Controllers
             {
                 SelectedInstitutionalOrg = new InstitutionalOrg(),
                 Action = InstitutionalFilesPageAction.ShowOrgs,
-                CharacterIndices = await _institutionalFilesRepository.LoadOrgNameCharacterIndices(),
-                OrgList = await _institutionalFilesRepository.LoadOrgList(2)
+                CharacterIndices = await _institutionalFilesService.LoadOrgNameCharacterIndices(),
+                OrgList = await _institutionalFilesService.LoadOrgList(2)
             };
 
             return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
@@ -114,33 +112,31 @@ namespace eGrant.Controllers
                 OrgList = await _institutionalFilesService.LoadOrgList(index_id)
             };
 
-            return this.View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+            return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
         }
 
-        ///// <summary>
-        ///// The search_ orgs.
-        ///// </summary>
-        ///// <param name="str">
-        ///// The str.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult Search_Orgs(string str)
-        //{
-        //    var repository = new InstitutionalFilesRepo();
+        /// <summary>
+        /// The search_ orgs.
+        /// </summary>
+        /// <param name="str">
+        /// The str.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> Search_Orgs(string str)
+        {
+            var page = new InstitutionalFilesPage
+            {
+                SelectedInstitutionalOrg = new InstitutionalOrg(),
+                Action = InstitutionalFilesPageAction.ShowOrgs,
+                CharacterIndices = await _institutionalFilesService.LoadOrgNameCharacterIndices(),
+                OrgList = await _institutionalFilesService.SearchOrgList(str)
+            };
 
-        //    var page = new InstitutionalFilesPage
-        //                   {
-        //                       SelectedInstitutionalOrg = new InstitutionalOrg(),
-        //                       Action = InstitutionalFilesPageAction.ShowOrgs,
-        //                       CharacterIndices = repository.LoadOrgNameCharacterIndices(),
-        //                       OrgList = repository.SearchOrgList(str)
-        //                   };
-
-        //    return this.View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
-        //}
+            return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+        }
 
         /// <summary>
         /// The show_ docs.
@@ -231,7 +227,7 @@ namespace eGrant.Controllers
                 TodayText = DateTime.Now.ToShortDateString()
             };
 
-            return this.View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+            return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
         }
 
         /// <summary>
@@ -278,79 +274,80 @@ namespace eGrant.Controllers
             return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
         }
 
-        ///// <summary>
-        ///// The create_ doc_by_ d drop.
-        ///// </summary>
-        ///// <param name="dropedfile">
-        ///// The dropedfile.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="org_name">
-        ///// The org_name.
-        ///// </param>
-        ///// <param name="start_date">
-        ///// The start_date.
-        ///// </param>
-        ///// <param name="end_date">
-        ///// The end_date.
-        ///// </param>
-        ///// <param name="org_id">
-        ///// The org_id.
-        ///// </param>
-        ///// <param name="comments">
-        ///// The comments.
-        ///// </param>
-        //[HttpPost]
-        //public void Create_Doc_by_DDrop(
-        //    HttpPostedFileBase dropedfile,
-        //    int category_id,
-        //    string org_name,
-        //    string start_date,
-        //    string end_date,
-        //    int org_id,
-        //    string comments)
-        //{
-        //    var repository = new InstitutionalFilesRepo();
+        /// <summary>
+        /// The create_ doc_by_ d drop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="org_name">
+        /// The org_name.
+        /// </param>
+        /// <param name="start_date">
+        /// The start_date.
+        /// </param>
+        /// <param name="end_date">
+        /// The end_date.
+        /// </param>
+        /// <param name="org_id">
+        /// The org_id.
+        /// </param>
+        /// <param name="comments">
+        /// The comments.
+        /// </param>
+        [HttpPost]
+        public async Task Create_Doc_by_DDrop(
+            IFormFile dropedfile,
+            int category_id,
+            string org_name,
+            string start_date,
+            string end_date,
+            int org_id,
+            string comments)
+        {
 
-        //    try
-        //    {
-        //        if (dropedfile != null && dropedfile.ContentLength > 0)
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(dropedfile.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
+            try
+            {
+                if (dropedfile != null && dropedfile.Length > 0)
+                {
+                    // get file name and file Extension
+                    var fileName = Path.GetFileName(dropedfile.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
 
-        //            // get document id and create new document name 
-        //            var docID = repository.GetDocID(
-        //                org_id,
-        //                category_id,
-        //                fileExtension,
-        //                start_date,
-        //                end_date,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]),
-        //                comments);
+                    // get document id and create new document name 
+                    var docID = await _institutionalFilesService.GetDocID(
+                        org_id,
+                        category_id,
+                        fileExtension,
+                        start_date ?? "",
+                        end_date ?? "",
+                        sessionInfo.Ic,
+                        sessionInfo.UserId,
+                        comments ?? "");
 
-        //            var docName = Convert.ToString(docID) + fileExtension;
+                    var docName = Convert.ToString(docID) + fileExtension;
 
-        //            // upload to image sever 
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\institutional\\";
-        //            var filePath = Path.Combine(fileFolder, docName);
-        //            dropedfile.SaveAs(filePath);
+                    // upload to image sever 
+                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+                    // save file asynchronously
+                    await using var stream = new FileStream(filePath, FileMode.Create);
+                    await dropedfile.CopyToAsync(stream);
 
-        //        }
-        //        else
-        //        {
-        //            this.ViewBag.Message = "You have not specified a file.";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        this.ViewBag.Message = "ERROR:" + ex.Message;
-        //    }
-        //}
+                }
+                else
+                {
+                    ViewBag.Message = "You have not specified a file.";
+                }
+            }
+            catch (Exception ex)
+            {
+                this.ViewBag.Message = "ERROR:" + ex.Message;
+            }
+        }
 
         /// <summary>
         /// The create_ doc_by_ file.
@@ -418,12 +415,12 @@ namespace eGrant.Controllers
                 }
                 else
                 {
-                    this.ViewBag.Message = "You have not specified information correctly.";
+                    ViewBag.Message = "You have not specified information correctly.";
                 }
             }
             catch (Exception ex)
             {
-                this.ViewBag.Message = "ERROR:" + ex.Message;
+                ViewBag.Message = "ERROR:" + ex.Message;
             }
         }
 
@@ -460,11 +457,11 @@ namespace eGrant.Controllers
                         sessionInfo.UserId,
                         comments);
                 else
-                    this.ViewBag.Message = "You have not specified information correctly.";
+                    ViewBag.Message = "You have not specified information correctly.";
             }
             catch (Exception ex)
             {
-                this.ViewBag.Message = "ERROR:" + ex.Message;
+                ViewBag.Message = "ERROR:" + ex.Message;
             }
         }
     }

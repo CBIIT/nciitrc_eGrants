@@ -290,5 +290,41 @@ namespace eGrants.Repositories
             return documentId;
         }
 
+        public async Task<List<InstitutionalOrg>> SearchOrgList(string searchStr)
+        {
+            var results = new List<InstitutionalOrg>();
+
+            await using var conn = new SqlConnection(_context.Database.GetConnectionString());
+            await conn.OpenAsync();
+
+            await using var cmd = new SqlCommand("sp_web_egrants_inst_files_search_orgs", conn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+            cmd.Parameters.Add("@str", SqlDbType.VarChar).Value = searchStr;
+
+            await using var rdr = await cmd.ExecuteReaderAsync();
+
+            while (await rdr.ReadAsync())
+            {
+                results.Add(new InstitutionalOrg
+                {
+                    OrgId = rdr.GetInt32(rdr.GetOrdinal("org_id")),
+                    OrgName = rdr["org_name"] as string,
+                    SVCreatedBy = rdr["svcreated_by"] as string,
+                    SVCreatedDate = rdr["svcreated_date"] as string,
+                    SVEndDate = rdr["svend_date"] as string,
+                    SvUrl = rdr["sv_url"] as string,
+                    FUCreatedBy = rdr["fucreated_by"] as string,
+                    FUCreatedDate = rdr["fucreated_date"] as string,
+                    FUEndDate = rdr["fuend_date"] as string,
+                    FUUrl = rdr["fu_url"] as string,
+                    AnyOrgDoc = rdr.GetBoolean(rdr.GetOrdinal("anyorgdoc"))
+                });
+            }
+
+            return results;
+        }
+
     }
 }
