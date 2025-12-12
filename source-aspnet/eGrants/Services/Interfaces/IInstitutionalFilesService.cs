@@ -11,7 +11,7 @@ namespace eGrants.Services.Interfaces
         /// <param name="orgId">The unique identifier of the organization.</param>
         /// <param name="orgName">Optional name of the organization to refine the search.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the matching <see cref="InstitutionalOrg"/> object, or null if not found.</returns>
-        public Task<InstFileFindOrgDTO> FindOrg(int orgId, string orgName = "");
+        public Task<InstitutionalOrg> FindOrg(int orgId, string orgName = "");
 
 
         /// <summary>
@@ -25,7 +25,17 @@ namespace eGrants.Services.Interfaces
         /// </summary>
         /// <param name="indexId">The index ID used to filter the organizations.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see cref="InstitutionalOrg"/> objects.</returns>
-        public Task<List<InstFileLoadOrgDocListDTO>> LoadOrgDocList(int orgId);
+        public Task<List<InstitutionalDocFiles>> LoadOrgDocList(int orgId);
+
+        public Task<List<InstitutionalOrgCategory>> LoadOrgCategory(bool activeOnly);
+
+        public Task<List<InstitutionalOrg>> LoadOrgList(int indexId);
+
+        public Task<string> UpdateDocument(int docId, int categoryId, string startDate, string endDate, string ic, string userId, string comments);
+
+        public Task DisableDoc(int docId, string userId);
+
+        public Task<string> GetDocID(int orgId, int categoryId, string fileType, string startDate, string endDate, string ic, string userId, string comments);
 
     }
 }

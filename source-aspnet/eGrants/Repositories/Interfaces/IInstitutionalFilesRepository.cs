@@ -13,7 +13,7 @@ namespace eGrants.Repositories.Interfaces
         /// <returns>
         /// A task that returns an <see cref="InstFileFindOrgDTO"/> object containing the organization's details.
         /// </returns>
-        Task<InstFileFindOrgDTO> FindOrg(int orgId, string orgName = "");
+        Task<InstitutionalOrg> FindOrg(int orgId, string orgName = "");
 
         /// <summary>
         /// Loads a list of character indices used for indexing institutional organization names.
@@ -30,7 +30,16 @@ namespace eGrants.Repositories.Interfaces
         /// <returns>
         /// A task that returns a list of <see cref="InstFileLoadOrgDocListDTO"/> objects representing the organization's documents.
         /// </returns>
-        Task<List<InstFileLoadOrgDocListDTO>> LoadOrgDocList(int orgId);
+        Task<List<InstitutionalDocFiles>> LoadOrgDocList(int org_id);
 
+        Task<List<InstitutionalOrg>> LoadOrgList(int index_id);
+
+        Task<List<InstitutionalOrgCategory>> LoadOrgCategory(bool activeOnly);
+
+        Task<string> UpdateDocument(int docId, int categoryId, string startDate, string endDate, string ic, string userId, string comments);
+
+        Task DisableDoc(int docId, string userId);
+
+        Task<string> GetDocID(int orgId, int categoryId, string fileType, string startDate, string endDate, string ic, string userId, string comments);
     }
 }
