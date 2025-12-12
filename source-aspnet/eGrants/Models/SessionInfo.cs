@@ -45,9 +45,9 @@ namespace eGrants.Models
         public string EgrantsDocModifyRelativePath { get; set; }
         public string EgrantsDocNewRelativePath { get; set; }
         public string EgrantsDocEmail { get; set; }
-
         public int Dashboard { get; set; }
         public string CertPath { get; set; }
         public string CertPass { get; set; }
+        public string EraUrlBase { get; set; }
     }
 }

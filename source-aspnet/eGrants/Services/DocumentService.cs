@@ -1,7 +1,9 @@
 ﻿using System.Data;
 using System.IO;
 using System.Reflection.Metadata;
+using System.Security.Cryptography.X509Certificates;
 using System.Web;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 using eGrants.DAL;
@@ -655,7 +657,7 @@ namespace eGrants.Services
                         if (category == "CloseoutNotification" || category == "FFR_REJECTION")
                         {
                             await HandleCloseoutNotificationAsync(category, request.ApplId, documentName, tmpFileName,
-                                downloadDirectory, request.FullGrantNumber, documentDate, downloadData, diagnostics);
+                                downloadDirectory, request.FullGrantNumber, documentDate, downloadData, diagnostics, request.SessionInfo);
                         }
                         else
                         {
@@ -807,18 +809,16 @@ namespace eGrants.Services
         /// </summary>
         private async Task HandleCloseoutNotificationAsync(string category, string appl, string documentName,
             string tmpFileName, string downloadDirectory, string fullGrantNumber, string documentDate,
-            DownloadData downloadData, System.Text.StringBuilder diagnostics)
+            DownloadData downloadData, System.Text.StringBuilder diagnostics, SessionInfo sessionInfo)
         {
             diagnostics.Append("Closeout or FFR_Rej. ");
 
             // Get notification data
-            var notification = await GetCloseoutNotificationAsync(appl, documentName);
+            var notification = await GetCloseoutNotificationAsync(appl, documentName, sessionInfo);
             diagnostics.Append("Got notification. ");
 
-            // TODO: Implement PDF generation from notification data
-            // This would require a PDF generation library like DinkToPdf or similar
-            // For now, this is a placeholder
-            byte[] pdfBytes = Array.Empty<byte>();
+            diagnostics.Append($"Created report {appl}. ");
+            byte[] bytes = GenerateCloseoutNotificationPdf(notification, appl);
 
             string newFileName;
             if (category == "CloseoutNotification")
@@ -834,11 +834,113 @@ namespace eGrants.Services
                     "_");
             }
 
-            await System.IO.File.WriteAllBytesAsync(tmpFileName, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(tmpFileName, bytes);
             diagnostics.Append($"Wrote file to {tmpFileName} ");
             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
             diagnostics.Append("Moved.");
             downloadData.FileDownloaded = newFileName;
+        }
+
+        /// <summary>
+        /// Generate PDF from closeout notification HTML using EmailConcatenation.PdfConverter
+        /// </summary>
+        /// <param name="notification">The notification data</param>
+        /// <param name="applId">The application ID</param>
+        /// <returns>Byte array containing the PDF content</returns>
+        private byte[] GenerateCloseoutNotificationPdf(Notification notification, string applId)
+        {
+            var htmlContent = $@"<!DOCTYPE html>
+            <html>
+                <head>
+                    <meta name=""viewport"" content=""width=device-width"" />
+                    <title>Closeout Notification</title>
+                    <style>
+                        body {{
+                            font-family: Arial, sans-serif;
+                            margin: 0;
+                            padding: 0;
+                        }}
+                        header {{
+                            padding: 0 20px;
+                        }}
+                        h4 {{
+                            margin: 10px 0;
+                        }}
+                        label {{
+                            color: #666;
+                        }}
+                        .field {{
+                            font-weight: bold;
+                            margin: 5px 0;
+                        }}
+                        .field label {{
+                            width: 75px;
+                            text-align: left;
+                            display: inline-block;
+                            font-size: 0.9em;
+                        }}
+                        .subject-label {{
+                            width: 75px;
+                            text-align: right;
+                            display: inline-block;
+                            color: #666;
+                            font-size: 0.9em;
+                            text-transform: uppercase;
+                            margin-top: 20px;
+                        }}
+                        article {{
+                            padding: 10px 20px;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <header>
+                        <h4>
+                            <label>Grant Application Id:</label>{System.Web.HttpUtility.HtmlEncode(applId)}<br />
+                            <label>Notification Name:</label> {System.Web.HttpUtility.HtmlEncode(notification.notificationName ?? "")}
+                        </h4>
+                        <div class=""field"">
+                            <label>From:</label> 
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.fromAddress ?? "")}</span>
+                        </div>
+                        <div class=""field"">
+                            <label>To:</label> 
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.toAddress ?? "")}</span>
+                        </div>
+                        <div class=""field"">
+                            <label>cc:</label> 
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.ccAddress ?? "")}</span>
+                        </div>
+                        <div class=""field"">
+                            <label>Sent:</label> 
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.sentDate ?? "")}</span>
+                        </div>
+                        <div class=""field"">
+                            <label class=""subject-label"">Subject:</label>
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.subject ?? "")}</span>
+                        </div>
+                    </header>
+                    <article id=""mailbody"">
+                        {notification.emailContent ?? ""}
+                    </article>
+                </body>
+            </html>";
+
+            // Use EmailConcatenation.PdfConverter to convert HTML to PDF
+            var converter = new EmailConcatenation.PdfConverter();
+            var htmlBytes = System.Text.Encoding.UTF8.GetBytes(htmlContent);
+
+            using (var memoryStream = new MemoryStream(htmlBytes))
+            {
+                var pdfDocument = converter.Convert(memoryStream, "closeout-notification.html");
+
+                if (pdfDocument != null)
+                {
+                    return pdfDocument.BinaryData;
+                }
+            }
+
+            return Array.Empty<byte>();
         }
 
         /// <summary>
@@ -873,12 +975,84 @@ namespace eGrants.Services
         /// <summary>
         /// Get closeout notification data
         /// </summary>
-        private async Task<object> GetCloseoutNotificationAsync(string applId, string notificationName)
+        // Make the method async
+        private async Task<Notification> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
         {
-            // TODO: Implement this method to retrieve notification data
-            // This should call your existing closeout notification logic
-            await Task.CompletedTask;
-            return new { };
+#if DEBUG
+            // In DEBUG mode, skip certificate loading
+            Log.Warning("Running in DEBUG mode - skipping certificate validation");
+#else
+            // In RELEASE mode, load the certificate
+            var cerUri = request.SessionInfo.CertPath;
+            var certPass = request.SessionInfo.CertPass;
+
+            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
+            {
+                var certificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(cerUri, certPass);
+                handler.ClientCertificates.Add(certificate);
+            }
+            else
+            {
+                Log.Warning("Certificate not found at path: {CertPath}", cerUri);
+            }
+#endif
+            var eraUrl = sessionInfo.EraUrlBase;
+
+            // Create HttpClientHandler with certificate
+            using var handler = new HttpClientHandler();
+            
+
+            using var client = new HttpClient(handler);
+
+            var soapRequest = $@"<?xml version=""1.0"" encoding=""utf-8""?>  
+                <soap:Envelope xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
+                xmlns:mes=""http://era.nih.gov/grantDocumentInfo/message""> 
+                <soap:Header/> 
+                <soap:Body>
+                <mes:GrantCorrespondenceRequest>
+                <mes:applId>{applid}</mes:applId>               
+                </mes:GrantCorrespondenceRequest> 
+                </soap:Body>
+                </soap:Envelope>";
+
+            var content = new StringContent(soapRequest, System.Text.Encoding.UTF8, "application/xml");
+
+            var response = await client.PostAsync($"{eraUrl}grantfolder/services/GrantDocumentInfo", content);
+            response.EnsureSuccessStatusCode();
+
+            var serviceResult = await response.Content.ReadAsStringAsync();
+
+            var pos = serviceResult.IndexOf("apache.org>") + "apache.org>".Length;
+            serviceResult = serviceResult.Substring(pos);
+            pos = serviceResult.IndexOf("--uuid:");
+            serviceResult = serviceResult.Substring(0, pos);
+
+            var doc = XDocument.Parse(serviceResult);
+
+            XNamespace ns2 = "http://era.nih.gov/grantDocumentInfo/domain";
+            var responses = doc.Descendants(ns2 + "correspondenceData");
+            var notif = new Notification();
+
+            foreach (var resp in responses)
+            {
+                var notif_name = (string)resp.Element(ns2 + "notificationName");
+
+                if (notif_name?.ToLower() == notifName.ToLower())
+                {
+                    notif.notificationName = notif_name;
+                    notif.description = (string)resp.Element(ns2 + "description");
+                    notif.sentDate = (string)resp.Element(ns2 + "sentDate");
+                    notif.fromAddress = (string)resp.Element(ns2 + "fromAddress");
+                    notif.toAddress = (string)resp.Element(ns2 + "toAddress");
+                    notif.ccAddress = (string)resp.Element(ns2 + "ccAddress");
+                    notif.subject = (string)resp.Element(ns2 + "subject");
+                    var mailbody = (string)resp.Element(ns2 + "emailContent");
+                    notif.emailContent = mailbody;
+                    break; // Exit loop once found
+                }
+            }
+
+            return notif;
         }
 
         /// <summary>
