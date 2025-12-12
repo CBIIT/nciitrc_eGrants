@@ -253,7 +253,7 @@ namespace egrants_new.Controllers
                                TodayText = DateTime.Now.ToShortDateString()
                            };
 
-            return this.View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
+            return this.View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
         }
 
         /// <summary>

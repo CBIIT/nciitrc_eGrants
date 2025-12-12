@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Views\eGrants\InstitutionalFilesIndex2cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="IronPdf" Version="2024.9.3" />
     <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters.CoreServices" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />

@@ -1,4 +1,4 @@
-﻿@model eGrants.ViewModels.InstitutionalFilesPageViewModel
+﻿@model eGrants.Models.InstitutionalFilesPage
 
 @{
     var systemOrgName2 = (Model.SelectedInstitutionalOrg.OrgName != null) ? Html.Raw(Model.SelectedInstitutionalOrg.OrgName.Replace("'", "\\'")).ToString() : String.Empty;
@@ -74,11 +74,6 @@
         opacity: 0.75;
         display: none;
     }
-
-    a:hover {
-        color: #1a73e8; /* visible contrast */
-        background: transparent; /* if a background is applied on hover, ensure contrast */
-    }
 </style>
 
 
@@ -95,7 +90,7 @@
 </script>
 
 
-<link href="~/css/datatables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet" />
 @{
     var rowclass = string.Empty;
 }
