@@ -590,25 +590,6 @@ namespace eGrants.Services
                 return downloadModel;
             }
 
-            System.Security.Cryptography.X509Certificates.X509Certificate2 certificate = null;
-
-#if DEBUG
-            // In DEBUG mode, skip certificate loading
-            Log.Warning("Running in DEBUG mode - skipping certificate validation");
-#else
-            // In RELEASE mode, load the certificate
-            var cerUri = request.SessionInfo.CertPath;
-            var certPass = request.SessionInfo.CertPass;
-
-            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
-            {
-                certificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(cerUri, certPass);
-            }
-            else
-            {
-                Log.Warning("Certificate not found at path: {CertPath}", cerUri);
-            }
-#endif
             foreach (var dataInput in request.ListOfUrl)
             {
                 var downloadData = new DownloadData();
@@ -643,6 +624,17 @@ namespace eGrants.Services
                     // Handle ERA Server files
                     if (url.Contains("https://services."))
                     {
+                        var cerUri = request.SessionInfo.CertPath;
+                        var certPass = request.SessionInfo.CertPass;
+                        System.Security.Cryptography.X509Certificates.X509Certificate2 certificate = null;
+                        if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
+                        {
+                            certificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(cerUri, certPass);
+                        }
+                        else
+                        {
+                            Log.Warning("Certificate not found at path: {CertPath}", cerUri);
+                        }
                         diagnostics.Append("Handling as era service. ");
                         await HandleEraFileAsync(url, tmpFileName, certificate, downloadDirectory, request.FullGrantNumber,
                             category, documentName, documentDate, documentId, downloadData, diagnostics);
