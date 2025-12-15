@@ -830,10 +830,10 @@ namespace eGrants.Services
 
             // Get notification data
             var notification = await GetCloseoutNotificationAsync(appl, documentName, sessionInfo);
-            diagnostics.Append("Got notification. ");
-
+            
             if (notification != null)
             {
+                diagnostics.Append("Got notification. ");
                 diagnostics.Append($"Created report {appl}. ");
                 byte[] bytes = GenerateCloseoutNotificationPdf(notification, appl);
 
