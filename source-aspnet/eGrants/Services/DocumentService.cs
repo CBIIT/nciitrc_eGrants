@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.IO;
 using System.Reflection.Metadata;
+using System.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Web;
 using System.Xml.Linq;
@@ -1026,13 +1027,14 @@ namespace eGrants.Services
 
             using var client = new HttpClient(handler);
 
+            var escapedApplid = SecurityElement.Escape(applid);
             var soapRequest = $@"<?xml version=""1.0"" encoding=""utf-8""?>  
                 <soap:Envelope xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
                 xmlns:mes=""http://era.nih.gov/grantDocumentInfo/message""> 
                 <soap:Header/> 
                 <soap:Body>
                 <mes:GrantCorrespondenceRequest>
-                <mes:applId>{applid}</mes:applId>               
+                <mes:applId>{escapedApplid}</mes:applId>               
                 </mes:GrantCorrespondenceRequest> 
                 </soap:Body>
                 </soap:Envelope>";
