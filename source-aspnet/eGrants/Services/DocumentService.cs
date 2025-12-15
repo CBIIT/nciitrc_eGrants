@@ -626,19 +626,29 @@ namespace eGrants.Services
                     {
                         var cerUri = request.SessionInfo.CertPath;
                         var certPass = request.SessionInfo.CertPass;
-                        System.Security.Cryptography.X509Certificates.X509Certificate2 certificate = null;
+                        X509Certificate2 certificate = null;
                         if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
                         {
-                            certificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(cerUri, certPass);
+                            certificate = new X509Certificate2(cerUri, certPass);
+                            diagnostics.Append("Handling as era service. ");
+                            var resultStatus = await HandleEraFileAsync(url, tmpFileName, certificate, downloadDirectory, request.FullGrantNumber,
+                                category, documentName, documentDate, documentId, downloadData, diagnostics);
+                            if (resultStatus)
+                            {
+                                downloadModel.NumSucceeded += 1;
+                            } else
+                            {
+                                downloadModel.NumFailed += 1;
+                                downloadData.Error = "File not found.";
+                            }
                         }
                         else
                         {
                             Log.Warning("Certificate not found at path: {CertPath}", cerUri);
+                            downloadModel.NumFailed += 1;
+                            downloadData.Error = "File not found.";
                         }
-                        diagnostics.Append("Handling as era service. ");
-                        await HandleEraFileAsync(url, tmpFileName, certificate, downloadDirectory, request.FullGrantNumber,
-                            category, documentName, documentDate, documentId, downloadData, diagnostics);
-                        downloadModel.NumSucceeded += 1;
+                                         
                     }
                     else
                     {
@@ -723,8 +733,8 @@ namespace eGrants.Services
         /// <summary>
         /// Handle ERA service file download
         /// </summary>
-        private async Task HandleEraFileAsync(string url, string tmpFileName,
-            System.Security.Cryptography.X509Certificates.X509Certificate2 certificate,
+        private async Task<bool> HandleEraFileAsync(string url, string tmpFileName,
+            X509Certificate2 certificate,
             string downloadDirectory, string fullGrantNumber, string category, string documentName,
             string documentDate, string documentId, DownloadData downloadData, System.Text.StringBuilder diagnostics)
         {
@@ -732,48 +742,53 @@ namespace eGrants.Services
             diagnostics.Append("Uri created. ");
 
             var handler = new HttpClientHandler();
-#if DEBUG
-            Log.Warning("Certificate not added - running in local mode");
-#else
-
-            handler.ClientCertificates.Add(certificate);
-#endif
-            using var client = new HttpClient(handler);
-            var response = await client.GetAsync(uri);
-            response.EnsureSuccessStatusCode();
-
-            var downloadUrl = await response.Content.ReadAsStringAsync();
-
-            using var downloadClient = new HttpClient(handler);
-            downloadClient.DefaultRequestHeaders.Add("User-Agent", "eGrants");
-
-            var fileResponse = await downloadClient.GetAsync(downloadUrl);
-            fileResponse.EnsureSuccessStatusCode();
-
-            await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
-            await fileResponse.Content.CopyToAsync(fileStream);
-            fileStream.Close();
-
-            var disposition = fileResponse.Content.Headers.ContentDisposition?.FileName;
-            var filename = disposition?.Trim('"') ?? "file";
-            var fi = new FileInfo(filename);
-
-            string newFileName;
-            if (category == "Financial Report")
+            if (certificate != null)
             {
-                newFileName = ReplaceInvalidChars(
-                    $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}",
-                    "_");
-            }
-            else
-            {
-                newFileName = ReplaceInvalidChars(
-                    $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
-                    "_");
-            }
+                handler.ClientCertificates.Add(certificate);
+                using var client = new HttpClient(handler);
+                var response = await client.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
 
-            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
-            downloadData.FileDownloaded = newFileName;
+                var downloadUrl = await response.Content.ReadAsStringAsync();
+
+                using var downloadClient = new HttpClient(handler);
+                downloadClient.DefaultRequestHeaders.Add("User-Agent", "eGrants");
+
+                var fileResponse = await downloadClient.GetAsync(downloadUrl);
+                fileResponse.EnsureSuccessStatusCode();
+
+                await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
+                await fileResponse.Content.CopyToAsync(fileStream);
+                fileStream.Close();
+
+                var disposition = fileResponse.Content.Headers.ContentDisposition?.FileName;
+                var filename = disposition?.Trim('"') ?? "file";
+                var fi = new FileInfo(filename);
+
+                string newFileName;
+                if (category == "Financial Report")
+                {
+                    newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}",
+                        "_");
+                }
+                else
+                {
+                    newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
+                        "_");
+                }
+
+                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                downloadData.FileDownloaded = newFileName;
+                return true;
+            } else
+            {
+                Log.Warning("Certificate not found and not added to handler");
+                return false;
+            }
+                
+            
         }
 
         /// <summary>
@@ -980,7 +995,7 @@ namespace eGrants.Services
 
             if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
             {
-                var certificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(cerUri, certPass);
+                var certificate = new X509Certificate2(cerUri, certPass);
                 handler.ClientCertificates.Add(certificate);
             }
             else
