@@ -64,6 +64,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 #endregion
 
+
 #region Logging (Serilog)
 
 // Original commented-out logging configs (kept for reference)

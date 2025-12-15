@@ -113,7 +113,7 @@ namespace egrants.Controllers
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public ActionResult Search(int year, string status, string exception, string str)
+        public ActionResult Search(int year = 0, string status = "", string exception = "", string str = "")
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
             // load admin menu list

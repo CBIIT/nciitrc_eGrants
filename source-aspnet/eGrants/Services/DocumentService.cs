@@ -1,7 +1,10 @@
 ﻿using System.Data;
 using System.IO;
 using System.Reflection.Metadata;
+using System.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Web;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 using eGrants.DAL;
@@ -534,6 +537,554 @@ namespace eGrants.Services
         public void DocModify(string act, int applId, int categoryId, string subCategory, string docDate, string docidStr, string fileType, string ic, string userId)
         {
             _documentRepository.DocModify(act, applId, categoryId, subCategory, docDate, docidStr, fileType, ic, userId);
+        }
+
+        /// <summary>
+        /// Process document download request and create zip file
+        /// </summary>
+        /// <param name="request">The download request</param>
+        /// <returns>Download model with results</returns>
+        public async Task<DownloadModel> ProcessDocumentDownloadAsync(DownloadRequest request)
+        {
+            var downloadModel = new DownloadModel
+            {
+                ApplId = request.ApplId,
+                NumFailed = 0,
+                NumSucceeded = 0,
+                NumToDownload = request.ListOfUrl?.Count ?? 0,
+                DownloadDataList = new List<DownloadData>()
+            };
+
+            string downloadDirectory;
+
+            try
+            {
+                if (request.ListOfUrl == null || !request.ListOfUrl.Any())
+                {
+                    downloadModel.Error = "There are no URLs in the list!";
+                    return downloadModel;
+                }
+
+                downloadDirectory = Path.Combine(Path.GetTempPath(), request.ApplId);
+                var directoryInfo = Directory.CreateDirectory(downloadDirectory);
+
+                // Delete all files in directory
+                foreach (var file in directoryInfo.GetFiles())
+                {
+                    file.Delete();
+                }
+
+                // Delete all folders in directory
+                foreach (var dir in directoryInfo.GetDirectories())
+                {
+                    dir.Delete(true);
+                }
+            }
+            catch (ArgumentNullException)
+            {
+                downloadModel.Error = "There are no URLs in the list!";
+                return downloadModel;
+            }
+            catch (Exception)
+            {
+                downloadModel.Error = "General Exception. This is likely an error in accessing temp files and temp directories! Notify Development Team of this error.";
+                return downloadModel;
+            }
+
+            foreach (var dataInput in request.ListOfUrl)
+            {
+                var downloadData = new DownloadData();
+                var diagnostics = new System.Text.StringBuilder();
+
+                try
+                {
+                    var split = dataInput.Split('|', StringSplitOptions.None);
+
+                    var url = split[0];
+                    var category = split[1];
+                    var subCategory = split[2];
+                    var documentId = split[3];
+                    var documentName = split[4];
+                    var documentDate = split[5];
+
+                    downloadData.Url = url;
+                    downloadData.Category = category;
+                    downloadData.SubCategory = subCategory;
+                    downloadData.DocumentId = string.IsNullOrEmpty(documentId) ? 0 : Convert.ToInt32(documentId);
+                    downloadData.DocumentName = documentName;
+                    downloadData.DocumentDate = DateTime.TryParse(documentDate, out var result) ? result : null;
+
+                    var tmpFileName = Path.GetTempFileName();
+
+                    // Skip i2e files
+                    if (url.Contains("https://i2e"))
+                    {
+                        throw new Exception("We found an i2e path and these should not be included in downloads");
+                    }
+
+                    // Handle ERA Server files
+                    if (url.Contains("https://services."))
+                    {
+                        var cerUri = request.SessionInfo.CertPath;
+                        var certPass = request.SessionInfo.CertPass;
+                        X509Certificate2 certificate = null;
+                        if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
+                        {
+                            certificate = new X509Certificate2(cerUri, certPass);
+                            diagnostics.Append("Handling as era service. ");
+                            var resultStatus = await HandleEraFileAsync(url, tmpFileName, certificate, downloadDirectory, request.FullGrantNumber,
+                                category, documentName, documentDate, documentId, downloadData, diagnostics);
+                            if (!resultStatus)
+                            {                               
+                                downloadModel.NumFailed += 1;
+                                downloadData.Error = "File not found.";
+                            } else
+                            {
+                                downloadModel.NumSucceeded += 1;
+                            }
+                        }
+                        else
+                        {
+                            Log.Warning("Certificate not found at path: {CertPath}", cerUri);
+                            downloadModel.NumFailed += 1;
+                            downloadData.Error = "File not found.";
+                        }
+                                         
+                    }
+                    else
+                    {
+                        diagnostics.Append("Not era file. ");
+                        var uri = CreateUri(url, request.SessionInfo.ImageServerUrl, diagnostics);
+                        diagnostics.Append("Completed uri creation. ");
+
+                        if (category == "CloseoutNotification" || category == "FFR_REJECTION")
+                        {
+                            var resultStatus = await HandleCloseoutNotificationAsync(category, request.ApplId, documentName, tmpFileName,
+                                downloadDirectory, request.FullGrantNumber, documentDate, downloadData, diagnostics, request.SessionInfo);
+                            if (!resultStatus)
+                            {
+                                downloadModel.NumFailed += 1;
+                                downloadModel.Error += "File not found";
+                            } else
+                            {
+                                downloadModel.NumSucceeded += 1;
+                            }
+                        }
+                        else
+                        {
+                            await HandleStandardFileAsync(uri, tmpFileName, downloadDirectory, request.FullGrantNumber,
+                                documentName, documentId, downloadData, diagnostics);
+                            downloadModel.NumSucceeded += 1;
+                        }
+                        
+                    }
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    downloadData.Error = "File not found.";
+                    downloadModel.NumFailed += 1;
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    downloadData.Error = "Internal Server Error! Notify Dev Team!";
+                    downloadModel.NumFailed += 1;
+                }
+                catch (ArgumentNullException)
+                {
+                    downloadData.Error = "A value is null which should not be.";
+                    downloadModel.NumFailed += 1;
+                }
+                catch (Exception err)
+                {
+                    downloadData.Error = "General Exception! Screenshot this message and notify the Development Team: "
+                        + Environment.NewLine + err.Message + diagnostics.ToString();
+                    downloadModel.NumFailed += 1;
+                }
+
+                downloadModel.DownloadDataList.Add(downloadData);
+            }
+
+            // Create zip file
+            var handle = Guid.NewGuid().ToString();
+            downloadModel.Handle = handle;
+
+            var zipFileName = request.FullGrantNumber.Remove(0, 1) + ".zip";
+            var zipFileNameWithPath = Path.Combine(Path.GetTempPath(), zipFileName);
+            downloadModel.ZipFilename = zipFileName;
+
+            try
+            {
+                if (System.IO.File.Exists(zipFileNameWithPath))
+                {
+                    System.IO.File.Delete(zipFileNameWithPath);
+                }
+
+                System.IO.Compression.ZipFile.CreateFromDirectory(downloadDirectory, zipFileNameWithPath);
+
+                using (var ms = new MemoryStream())
+                using (var file = new FileStream(zipFileNameWithPath, FileMode.Open, FileAccess.Read))
+                {
+                    var bytes = new byte[file.Length];
+                    await file.ReadAsync(bytes, 0, (int)file.Length);
+                    await ms.WriteAsync(bytes, 0, (int)file.Length);
+                    downloadModel.ZipFileBytes = ms.ToArray();
+                }
+            }
+            catch (Exception err)
+            {
+                downloadModel.Error = "ZIP FILE ERROR! Screenshot this error and send to Dev team! "
+                    + Environment.NewLine + err.ToString();
+            }
+
+            return downloadModel;
+        }
+
+        /// <summary>
+        /// Handle ERA service file download
+        /// </summary>
+        private async Task<bool> HandleEraFileAsync(string url, string tmpFileName,
+            X509Certificate2 certificate,
+            string downloadDirectory, string fullGrantNumber, string category, string documentName,
+            string documentDate, string documentId, DownloadData downloadData, System.Text.StringBuilder diagnostics)
+        {
+            var uri = new Uri(url);
+            diagnostics.Append("Uri created. ");
+
+            var handler = new HttpClientHandler();
+            if (certificate != null)
+            {
+                handler.ClientCertificates.Add(certificate);
+                using var client = new HttpClient(handler);
+                var response = await client.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+
+                var downloadUrl = await response.Content.ReadAsStringAsync();
+
+                using var downloadClient = new HttpClient(handler);
+                downloadClient.DefaultRequestHeaders.Add("User-Agent", "eGrants");
+
+                var fileResponse = await downloadClient.GetAsync(downloadUrl);
+                fileResponse.EnsureSuccessStatusCode();
+
+                await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
+                await fileResponse.Content.CopyToAsync(fileStream);
+                fileStream.Close();
+
+                var disposition = fileResponse.Content.Headers.ContentDisposition?.FileName;
+                var filename = disposition?.Trim('"') ?? "file";
+                var fi = new FileInfo(filename);
+
+                string newFileName;
+                if (category == "Financial Report")
+                {
+                    newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}-{Path.GetFileNameWithoutExtension(fi.Name)}{fi.Extension}",
+                        "_");
+                }
+                else
+                {
+                    newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
+                        "_");
+                }
+
+                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                downloadData.FileDownloaded = newFileName;
+                return true;
+            } else
+            {
+                Log.Warning("Certificate not found and not added to handler");
+                return false;
+            }
+                
+            
+        }
+
+        /// <summary>
+        /// Create URI from URL string
+        /// </summary>
+        private Uri CreateUri(string url, string imageServerUrl, System.Text.StringBuilder diagnostics)
+        {
+            diagnostics.Append($"Creating w/ this url : {url} ");
+
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                return uri;
+            }
+
+            var imageServer = new Uri(imageServerUrl);
+            diagnostics.Append($"image server : {imageServer} ");
+            uri = new Uri(imageServer, url);
+            diagnostics.Append("Created img server uri. ");
+
+            return uri;
+        }
+
+        /// <summary>
+        /// Handle closeout notification files
+        /// </summary>
+        private async Task<bool> HandleCloseoutNotificationAsync(string category, string appl, string documentName,
+            string tmpFileName, string downloadDirectory, string fullGrantNumber, string documentDate,
+            DownloadData downloadData, System.Text.StringBuilder diagnostics, SessionInfo sessionInfo)
+        {
+            diagnostics.Append("Closeout or FFR_Rej. ");
+
+            // Get notification data
+            var notification = await GetCloseoutNotificationAsync(appl, documentName, sessionInfo);
+            
+            if (notification != null)
+            {
+                diagnostics.Append("Got notification. ");
+                diagnostics.Append($"Created report {appl}. ");
+                byte[] bytes = GenerateCloseoutNotificationPdf(notification, appl);
+
+                string newFileName;
+                if (category == "CloseoutNotification")
+                {
+                    newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
+                        "_");
+                }
+                else
+                {
+                    newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
+                        "_");
+                }
+
+                await System.IO.File.WriteAllBytesAsync(tmpFileName, bytes);
+                diagnostics.Append($"Wrote file to {tmpFileName} ");
+                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                diagnostics.Append("Moved.");
+                downloadData.FileDownloaded = newFileName;
+                return true;
+            } else
+            {
+                Log.Warning("Notification not found - Check certificate at:" + sessionInfo.CertPath);
+                return false;
+            }
+
+            
+        }
+
+        /// <summary>
+        /// Generate PDF from closeout notification HTML using EmailConcatenation.PdfConverter
+        /// </summary>
+        /// <param name="notification">The notification data</param>
+        /// <param name="applId">The application ID</param>
+        /// <returns>Byte array containing the PDF content</returns>
+        private byte[] GenerateCloseoutNotificationPdf(Notification notification, string applId)
+        {
+            var htmlContent = $@"<!DOCTYPE html>
+            <html>
+                <head>
+                    <meta name=""viewport"" content=""width=device-width"" />
+                    <title>Closeout Notification</title>
+                    <style>
+                        body {{
+                            font-family: Arial, sans-serif;
+                            margin: 0;
+                            padding: 0;
+                        }}
+                        header {{
+                            padding: 0 20px;
+                        }}
+                        h4 {{
+                            margin: 10px 0;
+                        }}
+                        label {{
+                            color: #666;
+                        }}
+                        .field {{
+                            font-weight: bold;
+                            margin: 5px 0;
+                        }}
+                        .field label {{
+                            width: 75px;
+                            text-align: left;
+                            display: inline-block;
+                            font-size: 0.9em;
+                        }}
+                        .subject-label {{
+                            width: 75px;
+                            text-align: right;
+                            display: inline-block;
+                            color: #666;
+                            font-size: 0.9em;
+                            text-transform: uppercase;
+                            margin-top: 20px;
+                        }}
+                        article {{
+                            padding: 10px 20px;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <header>
+                        <h4>
+                            <label>Grant Application Id:</label>{System.Web.HttpUtility.HtmlEncode(applId)}<br />
+                            <label>Notification Name:</label> {System.Web.HttpUtility.HtmlEncode(notification.notificationName ?? "")}
+                        </h4>
+                        <div class=""field"">
+                            <label>From:</label> 
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.fromAddress ?? "")}</span>
+                        </div>
+                        <div class=""field"">
+                            <label>To:</label> 
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.toAddress ?? "")}</span>
+                        </div>
+                        <div class=""field"">
+                            <label>cc:</label> 
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.ccAddress ?? "")}</span>
+                        </div>
+                        <div class=""field"">
+                            <label>Sent:</label> 
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.sentDate ?? "")}</span>
+                        </div>
+                        <div class=""field"">
+                            <label class=""subject-label"">Subject:</label>
+                            <span>{System.Web.HttpUtility.HtmlEncode(notification.subject ?? "")}</span>
+                        </div>
+                    </header>
+                    <article id=""mailbody"">
+                        {notification.emailContent ?? ""}
+                    </article>
+                </body>
+            </html>";
+
+            // Use EmailConcatenation.PdfConverter to convert HTML to PDF
+            var converter = new EmailConcatenation.PdfConverter();
+            var htmlBytes = System.Text.Encoding.UTF8.GetBytes(htmlContent);
+
+            using (var memoryStream = new MemoryStream(htmlBytes))
+            {
+                var pdfDocument = converter.Convert(memoryStream, "closeout-notification.html");
+
+                if (pdfDocument != null)
+                {
+                    return pdfDocument.BinaryData;
+                }
+            }
+
+            return Array.Empty<byte>();
+        }
+
+        /// <summary>
+        /// Handle standard file download
+        /// </summary>
+        private async Task HandleStandardFileAsync(Uri uri, string tmpFileName, string downloadDirectory,
+            string fullGrantNumber, string documentName, string documentId, DownloadData downloadData,
+            System.Text.StringBuilder diagnostics)
+        {
+            diagnostics.Append("Not closeout or FFR Rejection. ");
+
+            using var client = new HttpClient();
+
+            var response = await client.GetAsync(uri);
+            response.EnsureSuccessStatusCode();
+
+            await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
+            await response.Content.CopyToAsync(fileStream);
+            fileStream.Close();
+
+            var filename = Path.GetFileName(uri.LocalPath);
+            var fi = new FileInfo(filename);
+
+            var newFileName = ReplaceInvalidChars(
+                $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
+                "_");
+
+            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+            downloadData.FileDownloaded = newFileName;
+        }
+
+        /// <summary>
+        /// Get closeout notification data
+        /// </summary>
+        // Make the method async
+        private async Task<Notification> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
+        {
+            var handler = new HttpClientHandler();
+            // In RELEASE mode, load the certificate
+            var cerUri = sessionInfo.CertPath;
+            var certPass = sessionInfo.CertPass;
+            var notif = new Notification();
+
+            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
+            {
+                var certificate = new X509Certificate2(cerUri, certPass);
+                handler.ClientCertificates.Add(certificate);
+            }
+            else
+            {
+                Log.Warning("Certificate not found at path: {CertPath}", cerUri);
+                return null;
+            }
+            var eraUrl = sessionInfo.EraUrlBase;
+
+            // Create HttpClientHandler with certificate
+            
+
+            using var client = new HttpClient(handler);
+
+            var escapedApplid = SecurityElement.Escape(applid);
+            var soapRequest = $@"<?xml version=""1.0"" encoding=""utf-8""?>  
+                <soap:Envelope xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
+                xmlns:mes=""http://era.nih.gov/grantDocumentInfo/message""> 
+                <soap:Header/> 
+                <soap:Body>
+                <mes:GrantCorrespondenceRequest>
+                <mes:applId>{escapedApplid}</mes:applId>               
+                </mes:GrantCorrespondenceRequest> 
+                </soap:Body>
+                </soap:Envelope>";
+
+            var content = new StringContent(soapRequest, System.Text.Encoding.UTF8, "application/xml");
+
+            var response = await client.PostAsync($"{eraUrl}grantfolder/services/GrantDocumentInfo", content);
+            response.EnsureSuccessStatusCode();
+
+            var serviceResult = await response.Content.ReadAsStringAsync();
+
+            var pos = serviceResult.IndexOf("apache.org>") + "apache.org>".Length;
+            serviceResult = serviceResult.Substring(pos);
+            pos = serviceResult.IndexOf("--uuid:");
+            serviceResult = serviceResult.Substring(0, pos);
+
+            var doc = XDocument.Parse(serviceResult);
+
+            XNamespace ns2 = "http://era.nih.gov/grantDocumentInfo/domain";
+            var responses = doc.Descendants(ns2 + "correspondenceData");
+            
+
+            foreach (var resp in responses)
+            {
+                var notif_name = (string)resp.Element(ns2 + "notificationName");
+
+                if (notif_name?.ToLower() == notifName.ToLower())
+                {
+                    notif.notificationName = notif_name;
+                    notif.description = (string)resp.Element(ns2 + "description");
+                    notif.sentDate = (string)resp.Element(ns2 + "sentDate");
+                    notif.fromAddress = (string)resp.Element(ns2 + "fromAddress");
+                    notif.toAddress = (string)resp.Element(ns2 + "toAddress");
+                    notif.ccAddress = (string)resp.Element(ns2 + "ccAddress");
+                    notif.subject = (string)resp.Element(ns2 + "subject");
+                    var mailbody = (string)resp.Element(ns2 + "emailContent");
+                    notif.emailContent = mailbody;
+                    break; // Exit loop once found
+                }
+            }
+
+            return notif;
+        }
+
+        /// <summary>
+        /// Replace invalid file name characters
+        /// </summary>
+        private string ReplaceInvalidChars(string filename, string replacementCharacter)
+        {
+            return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));
         }
     }
 }
