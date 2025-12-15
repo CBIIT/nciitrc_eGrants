@@ -591,32 +591,32 @@ namespace eGrants.Controllers.Egrants
             return JsonConvert.SerializeObject(list);
         }
 
-        //    // get category list by grant_id and years
-        //    /// <summary>
-        //    /// The load categories.
-        //    /// </summary>
-        //    /// <param name="name">
-        //    /// The new label for the grant year
-        //    /// </param>
-        //    /// <param name="applId">
-        //    /// The appl_id for the grant year about to be renamed
-        //    /// </param>
-        //    /// <returns>
-        //    /// The function returns true if successful<see cref="bool"/>.
-        //    /// </returns>
-        //    public bool NewGrantYearName(string name, int applId)
-        //    {
-        //        if (string.IsNullOrEmpty(name))
-        //        {
-        //            name = string.Empty;
-        //        }
-        //        var length = name.Length;
-        //        var truncatedName = name.Substring(0, Math.Min(length,10));
+        // get category list by grant_id and years
+        /// <summary>
+        /// The load categories.
+        /// </summary>
+        /// <param name="name">
+        /// The new label for the grant year
+        /// </param>
+        /// <param name="applId">
+        /// The appl_id for the grant year about to be renamed
+        /// </param>
+        /// <returns>
+        /// The function returns true if successful<see cref="bool"/>.
+        /// </returns>
+        public bool NewGrantYearName(string name, int applId)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                name = string.Empty;
+            }
+            var length = name.Length;
+            var truncatedName = name.Substring(0, Math.Min(length, 10));
 
-        //        Dashboard.Functions.Egrants.SetGrantYearLabel(name, applId);
+            _eGrantsService.SetGrantYearLabel(name, applId);
 
-        //        return true;
-        //    }
+            return true;
+        }
 
         //    //public CountProperty<int> CountProperty;// = new CountProperty<int>();
         //    //countProperty.Value = 0;

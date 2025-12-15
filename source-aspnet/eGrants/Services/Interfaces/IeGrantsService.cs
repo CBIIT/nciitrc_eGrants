@@ -280,5 +280,19 @@ namespace eGrants.Services.Interfaces
             int currentPage,
             SessionInfo sessionInfo,
             IDocumentService _documentService);
+        /// Updates the grant year label for a specific application record.
+        /// </summary>
+        /// <param name="newLabel">
+        /// The new label value to assign to the application.
+        /// </param>
+        /// <param name="applId">
+        /// The unique identifier of the application record to update.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is
+        /// <c>true</c> if the update succeeds (at least one row affected),
+        /// otherwise <c>false</c>.
+        /// </returns>
+        public Task<bool> SetGrantYearLabel(string newLabel, int applId);
     }
 }
