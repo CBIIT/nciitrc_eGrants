@@ -895,6 +895,77 @@ namespace eGrants.Services
 
             return list;
         }
+
+        public async Task<eGrantsSearchViewModel> GetEgrantsByQCAsync(
+            string searchString,
+            int grantId,
+            string package, // Consider removing if unused
+            int applId,
+            int currentPage,
+            SessionInfo sessionInfo,
+            IDocumentService documentService)
+        {
+            if (string.IsNullOrWhiteSpace(searchString))
+            {
+                return new eGrantsSearchViewModel
+                {
+                    Str = searchString,
+                    CurrentTab = 1,
+                    CurrentPage = currentPage,
+                    SearchStyle = "by_qc",
+                    Message = "No data found for the search",
+                    grantlayer = null
+                };
+            }
+
+            var viewModel = new eGrantsSearchViewModel
+            {
+                Str = searchString,
+                CurrentTab = 1,
+                CurrentPage = currentPage,
+                SearchStyle = "by_qc"
+            };
+
+            try
+            {
+                viewModel = await eGrantsSearchResults(
+                    searchString,
+                    grantId,
+                    string.Empty,
+                    applId,
+                    currentPage,
+                    sessionInfo,
+                    viewModel,
+                    true).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // Proper logging (replace with ILogger or your logging framework)
+                // _logger.LogError(ex, "Error during search execution");
+
+                viewModel.Message = $"Error occurred: {ex.Message}";
+                viewModel.grantlayer = null;
+            }
+
+            // Run independent tasks concurrently
+            var paginationTask = LoadPagination(
+                searchString,
+                sessionInfo.Ic,
+                sessionInfo.UserId,
+                string.Empty);
+
+            var unidentifiedDocsTask = documentService.LoadDocsUnidentified(
+                sessionInfo.ImageServerUrl,
+                sessionInfo.UserId);
+
+            await Task.WhenAll(paginationTask, unidentifiedDocsTask).ConfigureAwait(false);
+
+            viewModel.Pagination = paginationTask.Result;
+            viewModel.UnidentifiedDocs = unidentifiedDocsTask.Result;
+
+            return viewModel;
+        }
+
         public async Task<bool> SetGrantYearLabel(string newLabel, int applId)
         {
             try

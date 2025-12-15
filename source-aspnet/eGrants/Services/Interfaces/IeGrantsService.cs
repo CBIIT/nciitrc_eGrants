@@ -245,6 +245,41 @@ namespace eGrants.Services.Interfaces
         public Task<List<ImpacDocs>> LoadImpacDocs(string act, int appl_id);
 
         /// <summary>
+        /// Retrieves eGrants search results filtered by QC (Quality Control) criteria.
+        /// </summary>
+        /// <param name="searchString">
+        /// The search query string used to filter grant records.
+        /// </param>
+        /// <param name="grantId">
+        /// The unique identifier of the grant to be searched.
+        /// </param>
+        /// <param name="package">
+        /// The package identifier or name associated with the grant.
+        /// </param>
+        /// <param name="applId">
+        /// The application identifier related to the grant search.
+        /// </param>
+        /// <param name="currentPage">
+        /// The current page number for paginated search results.
+        /// </param>
+        /// <param name="sessionInfo">
+        /// The session context containing user and environment details (e.g., UserId, ImageServerUrl).
+        /// </param>
+        /// <param name="_documentService">
+        /// The document service used to load unidentified documents associated with the search.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an
+        /// <see cref="eGrantsSearchViewModel"/> with search results, pagination, and related metadata.
+        /// </returns>
+        public Task<eGrantsSearchViewModel> GetEgrantsByQCAsync(
+            string searchString,
+            int grantId,
+            string package,
+            int applId,
+            int currentPage,
+            SessionInfo sessionInfo,
+            IDocumentService _documentService);
         /// Updates the grant year label for a specific application record.
         /// </summary>
         /// <param name="newLabel">
