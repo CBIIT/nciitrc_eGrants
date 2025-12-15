@@ -689,7 +689,7 @@
                                 type: 'POST',
                                 dataType: 'JSON',
                                 contentType: 'application/json; charset=utf-8',                 
-                                url: "/Egrants/IsDownloadForm?appl=" + urlParams.toString(), 
+                                url: "/Egrants/IsDownloadForm?" + urlParams.toString(), 
                                 timeout: 600000,
                                 success: function(data) {
                                     console.log("SUCCESS: ");
@@ -700,6 +700,7 @@
                                         function() {
                                             var tr = $(this).closest('tr');
                                             //console.log(JSON.stringify(tr));
+                                            //console.log(data);
 
                                             var row = table.row(tr);
                                             // if the row is checked add the url of the link is the same as one found in the object,
@@ -714,15 +715,15 @@
                                                         $("#ffrChildTable_@appl_id tr").each(function() {
                                                             console.log("In Financial Report Row");
                                                             if ($(this).find("input[type='checkbox']").prop('checked') == true) {
-
-                                                                var found = data.DownloadDataList.filter(function (item) { return item.Url === fsrUrl; });
+                                                                
+                                                                var found = data.downloadDataList.filter(function (item) { return item.url === fsrUrl; });
                                                                 if (found != null) {
                                                                     var trSvg = $(this).find('[data-fa-i2svg]');
                                                                     console.log("Found: ");
 
                                                                     //console.log(JSON.stringify(found));
-                                                                    console.log(found[0].Error);
-                                                                    if (found != null && found[0] != null && found[0].Error == null) {
+                                                                    console.log(found[0].error);
+                                                                    if (found != null && found[0] != null && found[0].error == null) {
                                                                         $(this).find('img').attr('src', '../images/new-fa-circle-check.gif');
                                                                         $(this).find('img').attr('title', 'File Download Successful!');
                                                                         $(this).find('img').css('visibility', 'visible');
@@ -735,7 +736,7 @@
                                                                         $(this).find('img').attr('title', 'File Not Found.');
                                                                         $(this).find('img').css('visibility', 'visible');
 
-                                                                        trSvg.attr("title", found[0].Error);
+                                                                        trSvg.attr("title", found[0].error);
                                                                     }
                                                                 }
                                                             }
@@ -751,14 +752,14 @@
                                                         //var row = table.row(tr);
                                                         if ($(this).find("input[type='checkbox']").prop('checked') == true) {
 
-                                                            var found = data.DownloadDataList.filter(function (item) { return item.Url === closeoutUrl; });
+                                                            var found = data.downloadDataList.filter(function (item) { return item.url === closeoutUrl; });
                                                             if (found != null) {
                                                                 var trSvg = $(this).find('[data-fa-i2svg]');
                                                                 console.log("Found: ");
 
                                                                 //console.log(JSON.stringify(found));
-                                                                console.log(found[0].Error);
-                                                                if (found[0].Error == null) {
+                                                                console.log(found[0].error);
+                                                                if (found[0].error == null) {
                                                                     $(this).find('img').attr('src', '../images/new-fa-circle-check.gif');
                                                                     $(this).find('img').attr('title', 'File Download Successful!');
                                                                     $(this).find('img').css('visibility', 'visible');
@@ -771,7 +772,7 @@
                                                                     $(this).find('img').attr('title', 'File Not Found.');
                                                                     $(this).find('img').css('visibility', 'visible');
 
-                                                                    trSvg.attr("title", found[0].Error);
+                                                                    trSvg.attr("title", found[0].error);
                                                                 }
                                                             }
                                                         }
@@ -791,7 +792,7 @@
 
                                                     //console.log("RowData:" + JSON.stringify(rowData));
 
-                                                    var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
+                                                    var found = data.downloadDataList.filter(function(item) { return item.url === rowData.url; });
 
                                                     if (found != null) {
                                                         var trSvg = tr.find('[data-fa-i2svg]');
@@ -799,7 +800,7 @@
 
                                                         //console.log(JSON.stringify(found));
                                                         // console.log(found[0].Error);
-                                                        if (found[0] != null && found[0].Error == null) {
+                                                        if (found[0] != null && found[0].error == null) {
                                                             tr.find('img').attr('src', '../images/new-fa-circle-check.gif');
                                                             tr.find('img').css('visibility', 'visible');
                                                             tr.find('img').attr("title", "File Download Successful!");
@@ -811,7 +812,7 @@
                                                             if (found.length == 0) {
                                                                 tr.find('img').attr("title", 'No error message could be recovered');
                                                             } else {
-                                                                tr.find('img').attr("title", found[0].Error);
+                                                                tr.find('img').attr("title", found[0].error);
                                                             }
                                                         }
                                                     }
@@ -826,7 +827,7 @@
                                         });
 
                                     if (countSuccess > 0) {
-                                        window.location = '/Egrants/Download?fileGuid=' + data.Handle + '&filename=' + data.ZipFilename;
+                                        window.location = '/Egrants/Download?fileGuid=' + data.handle + '&filename=' + data.zipFilename;
                                     } else {
                                         alert("No files were successfully downloaded!");
                                     }
