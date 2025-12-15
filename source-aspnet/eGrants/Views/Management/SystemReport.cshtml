@@ -162,18 +162,32 @@
 
         <!-- Pager -->
         <div class="pager">
-            @if (ViewBag.PageIndex > 1 || ViewBag.TotalPages > 1)
-            {
-                <a href="@Url.Action("To_Show_Report", new { pageIndex = 1, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">&lt;&lt;</a>
-                <a href="@Url.Action("To_Show_Report", new { pageIndex = ViewBag.PageIndex - 1, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">&lt;</a>
-            }
-
             @{
+                string actionName = "";
+                object routeValues;
+
+                if (ViewBag.SearchType == "SerialNumber")
+                {
+                    actionName = "by_Serialnum";
+                    routeValues = new { serial_number = ViewBag.SerialNumber, pageIndex = ViewBag.PageIndex };
+                }
+                else if (ViewBag.SearchType == "AccessionID")
+                {
+                    actionName = "by_Accessionid";
+                    routeValues = new { accession_id = ViewBag.AccessionID, pageIndex = ViewBag.PageIndex };
+                }
+
                 int startPage = Math.Max(1, ViewBag.PageIndex - 5);
                 int endPage = Math.Min(ViewBag.TotalPages, startPage + 9);
             }
 
-            @if (ViewBag.TotalPages > 1)  // only show page numbers if > 1
+            @if (ViewBag.PageIndex > 1 || ViewBag.TotalPages > 1)
+            {
+                <a href="@Url.Action(actionName, new { pageIndex = 1, serial_number = ViewBag.SerialNumber, accession_id = ViewBag.AccessionID })">&lt;&lt;</a>
+                <a href="@Url.Action(actionName, new { pageIndex = ViewBag.PageIndex - 1, serial_number = ViewBag.SerialNumber, accession_id = ViewBag.AccessionID })">&lt;</a>
+            }
+
+            @if (ViewBag.TotalPages > 1)
             {
                 for (int i = startPage; i <= endPage; i++)
                 {
@@ -183,15 +197,15 @@
                     }
                     else
                     {
-                        <a href="@Url.Action("To_Show_Report", new { pageIndex = i, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">@i</a>
+                        <a href="@Url.Action(actionName, new { pageIndex = i, serial_number = ViewBag.SerialNumber, accession_id = ViewBag.AccessionID })">@i</a>
                     }
                 }
             }
 
             @if (ViewBag.PageIndex < ViewBag.TotalPages)
             {
-                <a href="@Url.Action("To_Show_Report", new { pageIndex = ViewBag.PageIndex + 1, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">&gt;</a>
-                <a href="@Url.Action("To_Show_Report", new { pageIndex = ViewBag.TotalPages, transaction_type = ViewBag.TransactionType, person_id = ViewBag.PersonID, date_range = ViewBag.DateRange })">&gt;&gt;</a>
+                <a href="@Url.Action(actionName, new { pageIndex = ViewBag.PageIndex + 1, serial_number = ViewBag.SerialNumber, accession_id = ViewBag.AccessionID })">&gt;</a>
+                <a href="@Url.Action(actionName, new { pageIndex = ViewBag.TotalPages, serial_number = ViewBag.SerialNumber, accession_id = ViewBag.AccessionID })">&gt;&gt;</a>
             }
         </div>
     }
