@@ -966,5 +966,30 @@ namespace eGrants.Services
             return viewModel;
         }
 
+        public async Task<bool> SetGrantYearLabel(string newLabel, int applId)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
+                using (var cmd = new SqlCommand("UPDATE [EIM].[dbo].[appls] SET label=@label WHERE appl_id=@appl_id", conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add("@label", SqlDbType.VarChar).Value = newLabel;
+                    cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = applId;
+
+                    await conn.OpenAsync();
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                    Log.Information("Updated appl_id {ApplId} with label {Label}. Rows affected: {RowsAffected}", applId, newLabel, rowsAffected);
+
+                    return rowsAffected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error updating appl_id {ApplId} with label {Label}", applId, newLabel);
+                return false;
+            }
+        }
     }
 }
