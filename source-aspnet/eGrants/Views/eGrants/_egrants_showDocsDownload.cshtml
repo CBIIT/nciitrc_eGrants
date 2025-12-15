@@ -446,7 +446,6 @@
                         var prevtr = ptr.prev('tr')[0];
                         var data = table.row(prevtr).data();
 
-                        //console.log(JSON.stringify(data));
 
                         console.log("Row Clicked");
 
@@ -545,7 +544,6 @@
                         $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                             function() {
                                 var tr = $(this).closest('tr');
-                                //console.log(JSON.stringify(tr));
 
                                 var row = table.row(tr);
                                 var datvals;
@@ -640,8 +638,6 @@
                                     }
 
                                 } else {
-
-                                    // console.log(JSON.stringify(row));
                                     var data = row.data();
 
                                     var trSvg = tr.find('[data-fa-i2svg]');
@@ -699,9 +695,6 @@
                                     $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                                         function() {
                                             var tr = $(this).closest('tr');
-                                            //console.log(JSON.stringify(tr));
-                                            //console.log(data);
-
                                             var row = table.row(tr);
                                             // if the row is checked add the url of the link is the same as one found in the object,
                                             // check the error flag to see if there is an error and show the success or error icon
@@ -720,8 +713,6 @@
                                                                 if (found != null) {
                                                                     var trSvg = $(this).find('[data-fa-i2svg]');
                                                                     console.log("Found: ");
-
-                                                                    //console.log(JSON.stringify(found));
                                                                     console.log(found[0].error);
                                                                     if (found != null && found[0] != null && found[0].error == null) {
                                                                         $(this).find('img').attr('src', '../images/new-fa-circle-check.gif');
@@ -748,8 +739,6 @@
                                                     var tr = $(this).closest('tr');
                                                     var row = table.row(tr);
                                                     $("#closeoutChildTable_@appl_id tr").each(function() {
-                                                        //var tr = $(this).closest('tr');
-                                                        //var row = table.row(tr);
                                                         if ($(this).find("input[type='checkbox']").prop('checked') == true) {
 
                                                             var found = data.downloadDataList.filter(function (item) { return item.url === closeoutUrl; });
@@ -757,7 +746,6 @@
                                                                 var trSvg = $(this).find('[data-fa-i2svg]');
                                                                 console.log("Found: ");
 
-                                                                //console.log(JSON.stringify(found));
                                                                 console.log(found[0].error);
                                                                 if (found[0].error == null) {
                                                                     $(this).find('img').attr('src', '../images/new-fa-circle-check.gif');
@@ -790,16 +778,13 @@
 
                                                     var rowData = row.data();
 
-                                                    //console.log("RowData:" + JSON.stringify(rowData));
+
 
                                                     var found = data.downloadDataList.filter(function(item) { return item.url === rowData.url; });
 
                                                     if (found != null) {
                                                         var trSvg = tr.find('[data-fa-i2svg]');
                                                         console.log("Found: ");
-
-                                                        //console.log(JSON.stringify(found));
-                                                        // console.log(found[0].Error);
                                                         if (found[0] != null && found[0].error == null) {
                                                             tr.find('img').attr('src', '../images/new-fa-circle-check.gif');
                                                             tr.find('img').css('visibility', 'visible');
@@ -818,9 +803,6 @@
 
                                                 }
                                             }
-                                            //else {
-                                            //      alert("A matching row was never found! Notify the System Developer of this error! This should not happen!");
-                                            // }
 
 
                                         });
