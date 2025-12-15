@@ -476,66 +476,25 @@ namespace eGrants.Controllers.Egrants
         //        return View("~/Egrants/Views/Index.cshtml");
         //    }
 
-        //    /// <summary>
-        //    /// The by_qc.
-        //    /// </summary>
-        //    /// <param name="str">
-        //    /// The str.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult by_qc(string str = null)
-        //    {
-        //        ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
+        /// <summary>
+        /// The by_qc.
+        /// </summary>
+        /// <param name="str">
+        /// The str.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> by_qc(string str = null)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //        // if (str == null || str == "")
-        //        // {
-        //        // ViewBag.Message = "No data found for the search";
-        //        // ViewBag.grantlayer = null;
-        //        // }
-        //        // else
-        //        // {
-        //        ViewBag.str = "qc";
-        //        ViewBag.Mode = "qc";
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByQCAsync("qc", 0, string.Empty, 0, 1, sessionInfo, _documentService);
 
-        //        // ViewBag.DocSort = "date";
-        //        ViewBag.CurrentTab = 1;
-        //        ViewBag.CurrentPage = 1;
-        //        ViewBag.SearchStyle = "by_qc";
-
-        //        // load data
-        //        Search.egrants_search(
-        //            "qc",
-        //            0,
-        //            string.Empty,
-        //            0,
-        //            1,
-        //            Convert.ToString(this.Session["browser"]),
-        //            Convert.ToString(this.Session["ic"]),
-        //            Convert.ToString(this.Session["userid"]));
-
-        //        ViewBag.grantlayer = Search.grantlayerproperty;
-        //        ViewBag.appllayer = Search.appllayerproperty;
-        //        ViewBag.appllayer_All = Search.appllayerproperty;
-        //        ViewBag.ApplCount = ViewBag.appllayer.Count;
-        //        ViewBag.doclayer = Search.doclayerproperty;
-        //        ViewBag.DocCount = ViewBag.doclayer.Count;
-
-        //        ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
-        //            "qc",
-        //            Convert.ToString(this.Session["ic"]),
-        //            Convert.ToString(this.Session["userid"]),
-        //            string.Empty);
-
-        //        ViewBag.UnidentifiedDocs = EgrantsDoc.LoadDocsUnidentified(
-        //            Convert.ToString(this.Session["ImageServerUrl"]),
-        //            Convert.ToString(this.Session["userid"]));
-
-
-
-        //        return View("~/Egrants/Views/Index.cshtml");
-        //    }
+            eGrantsSearchViewModelList.Mode = "qc";
+            eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
+            return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
+        }
 
         /// <summary>
         /// The by_filters.
