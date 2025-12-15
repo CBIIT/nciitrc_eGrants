@@ -42,6 +42,7 @@ builder.Services.AddScoped<IFlagMaintenanceService, FlagMaintenanceService>();
 builder.Services.AddScoped<IGPMATWorkReportService, GPMATWorkReportService>();
 builder.Services.AddScoped<IApplDestructedService, ApplDestructedService>();
 builder.Services.AddScoped<ISupplementService, SupplementService>();
+builder.Services.AddScoped<IEgrantsFundingService, EgrantsFundingService>();
 
 // Utility class
 builder.Services.AddTransient<EgrantsCommon>();

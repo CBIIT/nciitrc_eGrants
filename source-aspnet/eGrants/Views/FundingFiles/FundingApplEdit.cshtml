@@ -1,0 +1,156 @@
+@{
+    ViewBag.Title = "egrants [Funding Application Edit]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<script language="javascript">
+    var FY = @ViewBag.FY;
+    var DocId = @ViewBag.Docid;
+
+    function applEdit(act, applId) {
+        if (confirm('Are you sure you want to ' + act + ' this application association?')) {
+            window.location.href = '@Url.Action("ApplEdit", "FundingFiles")?act=' + act + 
+                                   '&applId=' + applId + '&docId=' + DocId + '&fy=' + FY;
+        }
+    }
+
+    function loadDocAppls() {
+        var serialNum = document.getElementById("txtSerialnum").value;
+        var adminCode = document.getElementById("ddlAdmincodes").value;
+
+        if (serialNum == "" || isNaN(serialNum)) {
+            alert("Please enter a valid serial number");
+            return false;
+        }
+
+        window.location.href = '@Url.Action("LoadDocAppls", "FundingFiles")?serialNum=' + serialNum + 
+                               '&adminCode=' + adminCode + '&docId=' + DocId + '&fy=' + FY;
+    }
+
+    function back() {
+        window.location.href = '@Url.Action("ViewEdit", "FundingFiles")?fy=' + FY;
+    }
+</script>
+
+<div id="main" style="margin: 0; padding: 0;">
+    <div id="caption" style="margin: 0; padding: 0;">
+        <b id="page_title">Edit Application Associations - Document ID: @ViewBag.Docid</b><br />
+    </div>
+
+    <div id="content" style="margin: 10px; padding: 10px;">
+        <div class="toolbar bg-light p-3 mb-3">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="form-inline">
+                        <label for="ddlAdmincodes" class="mr-2"><strong>Institute:</strong></label>
+                        <select id="ddlAdmincodes" class="form-control mr-2" style="width: 80px;">
+                            @if (ViewBag.AdminCodeList != null)
+                            {
+                                @foreach (var adminCode in ViewBag.AdminCodeList)
+                                {
+                                    <option value="@adminCode.admin_phs_org_code" 
+                                            selected="@(adminCode.admin_phs_org_code == ViewBag.admincode)">
+                                        @adminCode.admin_phs_org_code
+                                    </option>
+                                }
+                            }
+                        </select>
+
+                        <label for="txtSerialnum" class="mr-2"><strong>Serial Number:</strong></label>
+                        <input type="text" id="txtSerialnum" class="form-control mr-2" 
+                               style="width: 100px;" value="@ViewBag.SerialNum" />
+
+                        <button onclick="loadDocAppls()" class="btn btn-primary btn-sm mr-2" 
+                                title="Load applications">
+                            <i class="fa fa-search"></i> Load Applications
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4 text-right">
+                    <button onclick="back()" class="btn btn-secondary btn-sm" 
+                            title="Return to edit documents">
+                        <i class="fa fa-arrow-left"></i> Return
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Available Applications</h5>
+                @if (ViewBag.GrantYearList != null && ViewBag.GrantYearList.Count > 0)
+                {
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Grant Number</th>
+                                <th>Support Year</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var grant in ViewBag.GrantYearList)
+                            {
+                                <tr>
+                                    <td>@grant.full_grant_num</td>
+                                    <td>@grant.support_year</td>
+                                    <td>
+                                        <button onclick="applEdit('add', @grant.appl_id)" 
+                                                class="btn btn-sm btn-success" 
+                                                title="Add application">
+                                            <i class="fa fa-plus"></i> Add
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle"></i> No available applications to add.
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-6">
+                <h5>Associated Applications</h5>
+                @if (ViewBag.DocAppls != null && ViewBag.DocAppls.Count > 0)
+                {
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Grant Number</th>
+                                <th>Support Year</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var appl in ViewBag.DocAppls)
+                            {
+                                <tr>
+                                    <td>@appl.full_grant_num</td>
+                                    <td>@appl.support_year</td>
+                                    <td>
+                                        <button onclick="applEdit('remove', @appl.appl_id)" 
+                                                class="btn btn-sm btn-danger" 
+                                                title="Remove application">
+                                            <i class="fa fa-minus"></i> Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle"></i> No applications associated with this document.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
