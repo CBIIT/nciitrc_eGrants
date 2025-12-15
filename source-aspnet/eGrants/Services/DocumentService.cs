@@ -633,13 +633,13 @@ namespace eGrants.Services
                             diagnostics.Append("Handling as era service. ");
                             var resultStatus = await HandleEraFileAsync(url, tmpFileName, certificate, downloadDirectory, request.FullGrantNumber,
                                 category, documentName, documentDate, documentId, downloadData, diagnostics);
-                            if (resultStatus)
-                            {
-                                downloadModel.NumSucceeded += 1;
-                            } else
-                            {
+                            if (!resultStatus)
+                            {                               
                                 downloadModel.NumFailed += 1;
                                 downloadData.Error = "File not found.";
+                            } else
+                            {
+                                downloadModel.NumSucceeded += 1;
                             }
                         }
                         else
@@ -658,16 +658,24 @@ namespace eGrants.Services
 
                         if (category == "CloseoutNotification" || category == "FFR_REJECTION")
                         {
-                            await HandleCloseoutNotificationAsync(category, request.ApplId, documentName, tmpFileName,
+                            var resultStatus = await HandleCloseoutNotificationAsync(category, request.ApplId, documentName, tmpFileName,
                                 downloadDirectory, request.FullGrantNumber, documentDate, downloadData, diagnostics, request.SessionInfo);
+                            if (!resultStatus)
+                            {
+                                downloadModel.NumFailed += 1;
+                                downloadModel.Error += "File not found";
+                            } else
+                            {
+                                downloadModel.NumSucceeded += 1;
+                            }
                         }
                         else
                         {
                             await HandleStandardFileAsync(uri, tmpFileName, downloadDirectory, request.FullGrantNumber,
                                 documentName, documentId, downloadData, diagnostics);
+                            downloadModel.NumSucceeded += 1;
                         }
-
-                        downloadModel.NumSucceeded += 1;
+                        
                     }
                 }
                 catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -814,7 +822,7 @@ namespace eGrants.Services
         /// <summary>
         /// Handle closeout notification files
         /// </summary>
-        private async Task HandleCloseoutNotificationAsync(string category, string appl, string documentName,
+        private async Task<bool> HandleCloseoutNotificationAsync(string category, string appl, string documentName,
             string tmpFileName, string downloadDirectory, string fullGrantNumber, string documentDate,
             DownloadData downloadData, System.Text.StringBuilder diagnostics, SessionInfo sessionInfo)
         {
@@ -824,28 +832,38 @@ namespace eGrants.Services
             var notification = await GetCloseoutNotificationAsync(appl, documentName, sessionInfo);
             diagnostics.Append("Got notification. ");
 
-            diagnostics.Append($"Created report {appl}. ");
-            byte[] bytes = GenerateCloseoutNotificationPdf(notification, appl);
-
-            string newFileName;
-            if (category == "CloseoutNotification")
+            if (notification != null)
             {
-                newFileName = ReplaceInvalidChars(
-                    $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
-                    "_");
-            }
-            else
+                diagnostics.Append($"Created report {appl}. ");
+                byte[] bytes = GenerateCloseoutNotificationPdf(notification, appl);
+
+                string newFileName;
+                if (category == "CloseoutNotification")
+                {
+                    newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
+                        "_");
+                }
+                else
+                {
+                    newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
+                        "_");
+                }
+
+                await System.IO.File.WriteAllBytesAsync(tmpFileName, bytes);
+                diagnostics.Append($"Wrote file to {tmpFileName} ");
+                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                diagnostics.Append("Moved.");
+                downloadData.FileDownloaded = newFileName;
+                return true;
+            } else
             {
-                newFileName = ReplaceInvalidChars(
-                    $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
-                    "_");
+                Log.Warning("Notification not found - Check certificate at:" + sessionInfo.CertPath);
+                return false;
             }
 
-            await System.IO.File.WriteAllBytesAsync(tmpFileName, bytes);
-            diagnostics.Append($"Wrote file to {tmpFileName} ");
-            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
-            diagnostics.Append("Moved.");
-            downloadData.FileDownloaded = newFileName;
+            
         }
 
         /// <summary>
@@ -985,13 +1003,11 @@ namespace eGrants.Services
         // Make the method async
         private async Task<Notification> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
         {
-#if DEBUG
-            // In DEBUG mode, skip certificate loading
-            Log.Warning("Running in DEBUG mode - skipping certificate validation");
-#else
+            var handler = new HttpClientHandler();
             // In RELEASE mode, load the certificate
-            var cerUri = request.SessionInfo.CertPath;
-            var certPass = request.SessionInfo.CertPass;
+            var cerUri = sessionInfo.CertPath;
+            var certPass = sessionInfo.CertPass;
+            var notif = new Notification();
 
             if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
             {
@@ -1001,12 +1017,11 @@ namespace eGrants.Services
             else
             {
                 Log.Warning("Certificate not found at path: {CertPath}", cerUri);
+                return null;
             }
-#endif
             var eraUrl = sessionInfo.EraUrlBase;
 
             // Create HttpClientHandler with certificate
-            using var handler = new HttpClientHandler();
             
 
             using var client = new HttpClient(handler);
@@ -1038,7 +1053,7 @@ namespace eGrants.Services
 
             XNamespace ns2 = "http://era.nih.gov/grantDocumentInfo/domain";
             var responses = doc.Descendants(ns2 + "correspondenceData");
-            var notif = new Notification();
+            
 
             foreach (var resp in responses)
             {
