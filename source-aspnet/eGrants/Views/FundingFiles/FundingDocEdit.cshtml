@@ -1,0 +1,116 @@
+@{
+    ViewBag.Title = "eGrants [Funding QC List]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+
+    function back_to_funding_index() {
+        var url = "@Url.Action("FundingIndex", "EgrantsFunding")";
+        window.self.location = url;
+    }
+
+    function appl_edit(docid) {
+        var url = "@Url.Action("ApplEditDefault", "EgrantsFunding")?doc_id=" + docid + "&fy=" + document.getElementById("hidFY").value;;
+        window.self.location.href = url;
+    }
+
+    function doc_edit(act, docid, applid) {
+      if (confirm('Are you sure that you want to ' + act + ' this document?')) {
+            act = 'to_' + act;
+            var url = "@Url.Action("DocEdit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=" + act + "&appl_id=" + applid + "&doc_id=" + docid
+            //alert(url);
+            window.self.location.href = url;
+        }
+    }
+
+    function show_doc(docurl) {
+        var ImageServer = document.getElementById("hidImageServer").value;
+        //alert(docurl);
+        if (docurl.substring(0, 5) == "/data") {
+            var url = ImageServer + docurl.substring(1, docurl.length);
+        } else if (docurl.substring(0, 5) == "data/") {
+            var url = ImageServer + docurl;
+        } else url = docurl;
+
+        //alert(url);
+        window.open(url);
+    }
+</script>
+
+<form name="frmGetInfo">
+    <input type="text" hidden id="hidFY" name="fy" value="@ViewBag.FY" />
+    <input type="text" hidden id="hidImageServer" name="MImageServer" value="@Context.Session.GetString("ImageServerUrl") />
+</form>
+
+<div id="main">
+    <!--start main-->
+    <div id="caption"><b id="page_title">Edit Funding Document </b></div>
+    <br />
+    <a href="JavaScript:back_to_funding_index()"><b>NCI Funding Files Index</b></a>
+    <br /><br />
+    <div>
+
+        <div class="container-fluid">
+            @if (ViewBag.FundingDocs != null && ViewBag.FundingDocs.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table id="fundingDocsTable" class="table table-striped table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Category Name</th>
+                                <th>Full Grant Number</th>
+                                <th>Edit Appls</th>
+                                <th>Store</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in ViewBag.FundingDocs)
+                            {
+                                <tr>
+                                    <td>
+                                        <a href="javascript:void(0);"
+                                           onclick="show_doc('@doc.url')"
+                                           title="Click here to display funding document"
+                                           class="text-primary">
+                                            @doc.category_name
+                                        </a>
+                                    </td>
+                                    <td>@doc.full_grant_num</td>
+                                    <td>
+                                        <a href="javascript:void(0);"
+                                           onclick="appl_edit('@doc.document_id')"
+                                           title="Click here to edit appls for funding document"
+                                           class="btn btn-sm btn-info action-link">
+                                            <i class="fa fa-edit"></i> Edit Appls
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="javascript:void(0);"
+                                           onclick="doc_edit('store', '@doc.document_id', '@doc.appl_id')"
+                                           title="Click here to store funding document"
+                                           class="btn btn-sm btn-success action-link">
+                                            <i class="fa fa-save"></i> Store
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="javascript:void(0);"
+                                           onclick="doc_edit('delete', '@doc.document_id', '@doc.appl_id')"
+                                           title="Click here to delete funding document"
+                                           class="btn btn-sm btn-danger action-link">
+                                            <i class="fa fa-trash"></i> Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+    </div>
+</div><!--end main-->
+<br />
+<br />
+<br />
