@@ -39,7 +39,7 @@ using Microsoft.AspNetCore.Mvc;
 
 #endregion
 
-namespace egrants_new.Controllers
+namespace eGrants.Controllers
 {
     /// <summary>
     /// The qc controller.
