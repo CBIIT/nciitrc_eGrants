@@ -25,7 +25,7 @@
        } else var str = document.getElementById("txtKeyWord").value;
        var fy = document.getElementById("hidFY").value;
 
-       var url = "@Url.Action("ViewSearch", "EgrantsFunding")?serial_num=" + str + "&fy=" + fy;
+       var url = "@Url.Action("ViewSearch", "EgrantsFunding")?serialNum=" + str + "&fy=" + fy;
        window.self.location = url;
     }
 
