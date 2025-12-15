@@ -446,7 +446,6 @@
                         var prevtr = ptr.prev('tr')[0];
                         var data = table.row(prevtr).data();
 
-                        //console.log(JSON.stringify(data));
 
                         console.log("Row Clicked");
 
@@ -545,7 +544,6 @@
                         $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                             function() {
                                 var tr = $(this).closest('tr');
-                                //console.log(JSON.stringify(tr));
 
                                 var row = table.row(tr);
                                 var datvals;
@@ -640,8 +638,6 @@
                                     }
 
                                 } else {
-
-                                    // console.log(JSON.stringify(row));
                                     var data = row.data();
 
                                     var trSvg = tr.find('[data-fa-i2svg]');
@@ -672,7 +668,14 @@
 
                         dataToSend.listOfUrl = list;
 
-                        //console.log("Data To C# = " + JSON.stringify(list));
+                        var urlParams = new URLSearchParams();
+                        urlParams.append('appl', @appl_id);
+                        urlParams.append('fullGrantNumber', '@fullGrantNumber');
+
+                        // Add each item in the list as a separate parameter
+                        for (var i = 0; i < dataToSend.listOfUrl.length; i++) {
+                            urlParams.append('listOfUrl', dataToSend.listOfUrl[i]);
+                        }
 
                         // post the data to the server
                         $.ajax(
@@ -681,21 +684,17 @@
                                 async: true,
                                 type: 'POST',
                                 dataType: 'JSON',
-                                contentType: 'application/json; charset=utf=8',
-                                url: "/Egrants/IsDownloadForm",
-                                data: JSON.stringify(dataToSend),
+                                contentType: 'application/json; charset=utf-8',                 
+                                url: "/Egrants/IsDownloadForm?" + urlParams.toString(), 
                                 timeout: 600000,
                                 success: function(data) {
                                     console.log("SUCCESS: ");
-                                    //console.log(JSON.stringify(data));
 
                                     var countSuccess = 0;
 
                                     $.each($('#loadgridDownload_' + @appl_id + ' input.showDownload'),
                                         function() {
                                             var tr = $(this).closest('tr');
-                                            //console.log(JSON.stringify(tr));
-
                                             var row = table.row(tr);
                                             // if the row is checked add the url of the link is the same as one found in the object,
                                             // check the error flag to see if there is an error and show the success or error icon
@@ -709,15 +708,13 @@
                                                         $("#ffrChildTable_@appl_id tr").each(function() {
                                                             console.log("In Financial Report Row");
                                                             if ($(this).find("input[type='checkbox']").prop('checked') == true) {
-
-                                                                var found = data.DownloadDataList.filter(function (item) { return item.Url === fsrUrl; });
+                                                                
+                                                                var found = data.downloadDataList.filter(function (item) { return item.url === fsrUrl; });
                                                                 if (found != null) {
                                                                     var trSvg = $(this).find('[data-fa-i2svg]');
                                                                     console.log("Found: ");
-
-                                                                    //console.log(JSON.stringify(found));
-                                                                    console.log(found[0].Error);
-                                                                    if (found != null && found[0] != null && found[0].Error == null) {
+                                                                    console.log(found[0].error);
+                                                                    if (found != null && found[0] != null && found[0].error == null) {
                                                                         $(this).find('img').attr('src', '../images/new-fa-circle-check.gif');
                                                                         $(this).find('img').attr('title', 'File Download Successful!');
                                                                         $(this).find('img').css('visibility', 'visible');
@@ -730,7 +727,7 @@
                                                                         $(this).find('img').attr('title', 'File Not Found.');
                                                                         $(this).find('img').css('visibility', 'visible');
 
-                                                                        trSvg.attr("title", found[0].Error);
+                                                                        trSvg.attr("title", found[0].error);
                                                                     }
                                                                 }
                                                             }
@@ -742,18 +739,15 @@
                                                     var tr = $(this).closest('tr');
                                                     var row = table.row(tr);
                                                     $("#closeoutChildTable_@appl_id tr").each(function() {
-                                                        //var tr = $(this).closest('tr');
-                                                        //var row = table.row(tr);
                                                         if ($(this).find("input[type='checkbox']").prop('checked') == true) {
 
-                                                            var found = data.DownloadDataList.filter(function (item) { return item.Url === closeoutUrl; });
+                                                            var found = data.downloadDataList.filter(function (item) { return item.url === closeoutUrl; });
                                                             if (found != null) {
                                                                 var trSvg = $(this).find('[data-fa-i2svg]');
                                                                 console.log("Found: ");
 
-                                                                //console.log(JSON.stringify(found));
-                                                                console.log(found[0].Error);
-                                                                if (found[0].Error == null) {
+                                                                console.log(found[0].error);
+                                                                if (found[0].error == null) {
                                                                     $(this).find('img').attr('src', '../images/new-fa-circle-check.gif');
                                                                     $(this).find('img').attr('title', 'File Download Successful!');
                                                                     $(this).find('img').css('visibility', 'visible');
@@ -766,7 +760,7 @@
                                                                     $(this).find('img').attr('title', 'File Not Found.');
                                                                     $(this).find('img').css('visibility', 'visible');
 
-                                                                    trSvg.attr("title", found[0].Error);
+                                                                    trSvg.attr("title", found[0].error);
                                                                 }
                                                             }
                                                         }
@@ -784,21 +778,17 @@
 
                                                     var rowData = row.data();
 
-                                                    //console.log("RowData:" + JSON.stringify(rowData));
 
-                                                    var found = data.DownloadDataList.filter(function(item) { return item.Url === rowData.url; });
+
+                                                    var found = data.downloadDataList.filter(function(item) { return item.url === rowData.url; });
 
                                                     if (found != null) {
                                                         var trSvg = tr.find('[data-fa-i2svg]');
                                                         console.log("Found: ");
-
-                                                        //console.log(JSON.stringify(found));
-                                                        // console.log(found[0].Error);
-                                                        if (found[0] != null && found[0].Error == null) {
+                                                        if (found[0] != null && found[0].error == null) {
                                                             tr.find('img').attr('src', '../images/new-fa-circle-check.gif');
                                                             tr.find('img').css('visibility', 'visible');
-                                                            tr.find('img').attr("title", "File Download Successful!");
-
+                                                            tr.find('img').attr("title", "File Download Successful!")
                                                             countSuccess++;
                                                         } else {
                                                             tr.find('img').attr('src', '../images/new-fa-circle-exclamation.gif');
@@ -806,22 +796,19 @@
                                                             if (found.length == 0) {
                                                                 tr.find('img').attr("title", 'No error message could be recovered');
                                                             } else {
-                                                                tr.find('img').attr("title", found[0].Error);
+                                                                tr.find('img').attr("title", found[0].error);
                                                             }
                                                         }
                                                     }
 
                                                 }
                                             }
-                                            //else {
-                                            //      alert("A matching row was never found! Notify the System Developer of this error! This should not happen!");
-                                            // }
 
 
                                         });
 
                                     if (countSuccess > 0) {
-                                        window.location = '/Egrants/Download?fileGuid=' + data.Handle + '&filename=' + data.ZipFilename;
+                                        window.location = '/Egrants/Download?fileGuid=' + data.handle + '&filename=' + data.zipFilename;
                                     } else {
                                         alert("No files were successfully downloaded!");
                                     }
