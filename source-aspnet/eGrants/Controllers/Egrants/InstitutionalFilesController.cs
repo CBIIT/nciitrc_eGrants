@@ -43,6 +43,7 @@ using System.Web;
 
 using eGrants.Common.Enums;
 using eGrants.Models;
+using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
@@ -58,84 +59,84 @@ namespace eGrant.Controllers
     public class InstitutionalFilesController : Controller
     {
         private readonly IInstitutionalFilesService _institutionalFilesService;
+        private readonly ISessionInfoService _sessionInfoService;
 
-        public InstitutionalFilesController(IInstitutionalFilesService institutionalFilesService)
+        private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+        public InstitutionalFilesController(IInstitutionalFilesService institutionalFilesService, ISessionInfoService sessionInfoService)
         {
             _institutionalFilesService = institutionalFilesService;
+            _sessionInfoService = sessionInfoService;
         }
-        ///// <summary>
-        ///// The index.
-        ///// </summary>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult Index()
-        //{
-        //    var repository = new InstitutionalFilesRepo();
+        /// <summary>
+        /// The index.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> Index()
+        {
+            //var repository = new InstitutionalFilesRepo();
 
-        //    // Create new Page Model to adhere to MVC practices
-        //    // Should have a Builder but... This will do for now
-        //    var page = new InstitutionalFilesPage
-        //                   {
-        //                       SelectedInstitutionalOrg = new InstitutionalOrg(),
-        //                       Action = InstitutionalFilesPageAction.ShowOrgs,
-        //                       CharacterIndices = repository.LoadOrgNameCharacterIndices(),
-        //                       OrgList = repository.LoadOrgList(2)
-        //                   };
+            // Create new Page Model to adhere to MVC practices
+            // Should have a Builder but... This will do for now
+            var page = new InstitutionalFilesPage
+            {
+                SelectedInstitutionalOrg = new InstitutionalOrg(),
+                Action = InstitutionalFilesPageAction.ShowOrgs,
+                CharacterIndices = await _institutionalFilesService.LoadOrgNameCharacterIndices(),
+                OrgList = await _institutionalFilesService.LoadOrgList(2)
+            };
 
-        //    return this.View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
-        //}
+            return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+        }
 
-        ///// <summary>
-        ///// The show_ orgs.
-        ///// </summary>
-        ///// <param name="index_id">
-        ///// The index_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult Show_Orgs(int index_id)
-        //{
-        //    var repository = new InstitutionalFilesRepo();
+        /// <summary>
+        /// The show_ orgs.
+        /// </summary>
+        /// <param name="index_id">
+        /// The index_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> Show_Orgs(int index_id)
+        {
+            var page = new InstitutionalFilesPage
+            {
+                SelectedInstitutionalOrg = new InstitutionalOrg(),
+                Action = InstitutionalFilesPageAction.ShowOrgs,
+                CharacterIndices = await _institutionalFilesService.LoadOrgNameCharacterIndices(),
+                OrgList = await _institutionalFilesService.LoadOrgList(index_id)
+            };
 
-        //    var page = new InstitutionalFilesPage
-        //                   {
-        //                       SelectedInstitutionalOrg = new InstitutionalOrg(),
-        //                       Action = InstitutionalFilesPageAction.ShowOrgs,
-        //                       CharacterIndices = repository.LoadOrgNameCharacterIndices(),
-        //                       OrgList = repository.LoadOrgList(index_id)
-        //                   };
+            return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+        }
 
-        //    return this.View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
-        //}
+        /// <summary>
+        /// The search_ orgs.
+        /// </summary>
+        /// <param name="str">
+        /// The str.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> Search_Orgs(string str)
+        {
+            var page = new InstitutionalFilesPage
+            {
+                SelectedInstitutionalOrg = new InstitutionalOrg(),
+                Action = InstitutionalFilesPageAction.ShowOrgs,
+                CharacterIndices = await _institutionalFilesService.LoadOrgNameCharacterIndices(),
+                OrgList = await _institutionalFilesService.SearchOrgList(str)
+            };
 
-        ///// <summary>
-        ///// The search_ orgs.
-        ///// </summary>
-        ///// <param name="str">
-        ///// The str.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult Search_Orgs(string str)
-        //{
-        //    var repository = new InstitutionalFilesRepo();
-
-        //    var page = new InstitutionalFilesPage
-        //                   {
-        //                       SelectedInstitutionalOrg = new InstitutionalOrg(),
-        //                       Action = InstitutionalFilesPageAction.ShowOrgs,
-        //                       CharacterIndices = repository.LoadOrgNameCharacterIndices(),
-        //                       OrgList = repository.SearchOrgList(str)
-        //                   };
-
-        //    return this.View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
-        //}
+            return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+        }
 
         /// <summary>
         /// The show_ docs.
@@ -150,13 +151,13 @@ namespace eGrant.Controllers
         /// The <see cref="ActionResult"/>.
         /// </returns>
         [HttpGet]
-        public async Task<ActionResult> Show_Docs(int orgId = 0, string orgName = "")
+        public async Task<ActionResult> Show_Docs(int org_id = 0, string org_name = "")
         {
             //var repository = new InstitutionalFilesRepo();
 
-            var selectedInstitutionalOrg = await _institutionalFilesService.FindOrg(orgId, orgName);
+            var selectedInstitutionalOrg = await _institutionalFilesService.FindOrg(org_id, org_name);
 
-            var page = new InstitutionalFilesPageViewModel
+            var page = new InstitutionalFilesPage
             {
                 SelectedInstitutionalOrg = selectedInstitutionalOrg,
                 Action = InstitutionalFilesPageAction.ShowDocs,
@@ -167,302 +168,301 @@ namespace eGrant.Controllers
             return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
         }
 
-        ///// <summary>
-        ///// The delete_ doc.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <param name="org_id">
-        ///// The org_id.
-        ///// </param>
-        ///// <param name="org_name">
-        ///// The org_name.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult Delete_Doc(string act, int doc_id, int org_id, string org_name)
-        //{
-        //    var repository = new InstitutionalFilesRepo();
+        /// <summary>
+        /// The delete_ doc.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="doc_id">
+        /// The doc_id.
+        /// </param>
+        /// <param name="org_id">
+        /// The org_id.
+        /// </param>
+        /// <param name="org_name">
+        /// The org_name.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> Delete_Doc(string act, int doc_id, int org_id, string org_name)
+        {
+            // disable_doc
+            _institutionalFilesService.DisableDoc(doc_id, sessionInfo.UserId);
 
-        //    // disable_doc
-        //    repository.DisableDoc(doc_id, Convert.ToString(this.Session["userid"]));
+            this.ViewBag.Act = act;
+            this.ViewBag.OrgID = org_id;
+            this.ViewBag.OrgName = org_name;
 
-        //    this.ViewBag.Act = act;
-        //    this.ViewBag.OrgID = org_id;
-        //    this.ViewBag.OrgName = org_name;
+            return await Show_Docs(org_id, org_name);
+        }
 
-        //    return this.Show_Docs(org_id, org_name);
-        //}
+        /// <summary>
+        /// The show_ create_ doc.
+        /// </summary>
+        /// <param name="org_id">
+        /// The org_id.
+        /// </param>
+        /// <param name="org_name">
+        /// The org_name.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> Show_Create_Doc(int org_id)
+        {
+            // set act
+            var selectedInstitutionalOrg = await _institutionalFilesService.FindOrg(org_id);
 
-        ///// <summary>
-        ///// The show_ create_ doc.
-        ///// </summary>
-        ///// <param name="org_id">
-        ///// The org_id.
-        ///// </param>
-        ///// <param name="org_name">
-        ///// The org_name.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public ActionResult Show_Create_Doc(int org_id)
-        //{
-        //    var repository = new InstitutionalFilesRepo();
+            var page = new InstitutionalFilesPage
+            {
+                SelectedInstitutionalOrg = selectedInstitutionalOrg,
+                Action = InstitutionalFilesPageAction.CreateNew,
+                CharacterIndices = await _institutionalFilesService.LoadOrgNameCharacterIndices(),
+                DocFiles = await _institutionalFilesService.LoadOrgDocList(org_id),
+                OrgCategories = await _institutionalFilesService.LoadOrgCategory(true),
+                TodayText = DateTime.Now.ToShortDateString()
+            };
 
-        //    // set act
-        //    var selectedInstitutionalOrg = repository.FindOrg(org_id);
+            return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+        }
 
-        //    var page = new InstitutionalFilesPage
-        //                   {
-        //                       SelectedInstitutionalOrg = selectedInstitutionalOrg,
-        //                       Action = InstitutionalFilesPageAction.CreateNew,
-        //                       CharacterIndices = repository.LoadOrgNameCharacterIndices(),
-        //                       DocFiles = repository.LoadOrgDocList(org_id),
-        //                       OrgCategories = repository.LoadOrgCategory(true),
-        //                       TodayText = DateTime.Now.ToShortDateString()
-        //                   };
+        /// <summary>
+        /// The show_ update_ doc.
+        /// </summary>
+        /// <param name="docId">
+        /// The doc_id.
+        /// </param>
+        /// <param name="orgId">
+        /// The org_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult> Show_Update_Doc(int doc_id, int org_id)
+        {
+            var selectedInstitutionalOrg = await _institutionalFilesService.FindOrg(org_id);
 
-        //    return this.View("~/Egrants/Views/InstitutionalFilesIndex.cshtml", page);
-        //}
+            var docDto = (await _institutionalFilesService.LoadOrgDocList(selectedInstitutionalOrg.OrgId)).Where(d => d.DocumentId == doc_id).FirstOrDefault();
 
-        ///// <summary>
-        ///// The show_ update_ doc.
-        ///// </summary>
-        ///// <param name="docId">
-        ///// The doc_id.
-        ///// </param>
-        ///// <param name="orgId">
-        ///// The org_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpGet]
-        //public async Task<ActionResult> Show_Update_Doc(int docId, int orgId)
-        //{
-        //    var selectedInstitutionalOrg = await _institutionalFilesService.FindOrg(orgId);
+            var page = new InstitutionalFilesPage
+            {
+                SelectedInstitutionalOrg = selectedInstitutionalOrg,
+                Action = InstitutionalFilesPageAction.UpdateDoc,
+                CharacterIndices = await _institutionalFilesService.LoadOrgNameCharacterIndices(),
+                SelectedDocFile = docDto == null ? null : new InstitutionalDocFiles
+                {
+                    DocumentId = docDto.DocumentId,
+                    category_name = docDto.category_name,
+                    created_date = docDto.created_date,
+                    org_id = docDto.org_id.ToString(),
+                    org_name = docDto.org_name,
+                    url = docDto.url,
+                    start_date = docDto.start_date,
+                    end_date = docDto.end_date,
+                    comments = docDto.comments
+                    // Map other properties as needed
+                },
+                OrgCategories = await _institutionalFilesService.LoadOrgCategory(false),
+                TodayText = DateTime.Now.ToShortDateString()
+            };
 
-        //    var docDto = (await _institutionalFilesService.LoadOrgDocList(selectedInstitutionalOrg.OrgId)).Where(d => d.DocumentId == docId).FirstOrDefault();
+            return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+        }
 
-        //    var page = new InstitutionalFilesPageViewModel
-        //    {
-        //        SelectedInstitutionalOrg = selectedInstitutionalOrg,
-        //        Action = InstitutionalFilesPageAction.ShowDocs,
-        //        CharacterIndices = await _institutionalFilesService.LoadOrgNameCharacterIndices(),
-        //        SelectedDocFile = docDto == null ? null : new InstitutionalDocFiles
-        //        {
-        //            DocumentId = docDto.DocumentId,
-        //            category_name = docDto.category_name,
-        //            created_date = docDto.created_date,
-        //            org_id = docDto.org_id.ToString(),
-        //            org_name = docDto.OrgName,
-        //            url = docDto.url
-        //            // Map other properties as needed
-        //        },
-        //        //OrgCategories = await _institutionalFilesService.LoadOrgCategory(false),
-        //        TodayText = DateTime.Now.ToShortDateString()
-        //    };
+        /// <summary>
+        /// The create_ doc_by_ d drop.
+        /// </summary>
+        /// <param name="dropedfile">
+        /// The dropedfile.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="org_name">
+        /// The org_name.
+        /// </param>
+        /// <param name="start_date">
+        /// The start_date.
+        /// </param>
+        /// <param name="end_date">
+        /// The end_date.
+        /// </param>
+        /// <param name="org_id">
+        /// The org_id.
+        /// </param>
+        /// <param name="comments">
+        /// The comments.
+        /// </param>
+        [HttpPost]
+        public async Task Create_Doc_by_DDrop(
+            IFormFile dropedfile,
+            int category_id,
+            string org_name,
+            string start_date,
+            string end_date,
+            int org_id,
+            string comments)
+        {
 
-        //    return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
-        //}
+            try
+            {
+                if (dropedfile != null && dropedfile.Length > 0)
+                {
+                    // get file name and file Extension
+                    var fileName = Path.GetFileName(dropedfile.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
 
-        ///// <summary>
-        ///// The create_ doc_by_ d drop.
-        ///// </summary>
-        ///// <param name="dropedfile">
-        ///// The dropedfile.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="org_name">
-        ///// The org_name.
-        ///// </param>
-        ///// <param name="start_date">
-        ///// The start_date.
-        ///// </param>
-        ///// <param name="end_date">
-        ///// The end_date.
-        ///// </param>
-        ///// <param name="org_id">
-        ///// The org_id.
-        ///// </param>
-        ///// <param name="comments">
-        ///// The comments.
-        ///// </param>
-        //[HttpPost]
-        //public void Create_Doc_by_DDrop(
-        //    HttpPostedFileBase dropedfile,
-        //    int category_id,
-        //    string org_name,
-        //    string start_date,
-        //    string end_date,
-        //    int org_id,
-        //    string comments)
-        //{
-        //    var repository = new InstitutionalFilesRepo();
+                    // get document id and create new document name 
+                    var docID = await _institutionalFilesService.GetDocID(
+                        org_id,
+                        category_id,
+                        fileExtension,
+                        start_date ?? "",
+                        end_date ?? "",
+                        sessionInfo.Ic,
+                        sessionInfo.UserId,
+                        comments ?? "");
 
-        //    try
-        //    {
-        //        if (dropedfile != null && dropedfile.ContentLength > 0)
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(dropedfile.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
+                    var docName = Convert.ToString(docID) + fileExtension;
 
-        //            // get document id and create new document name 
-        //            var docID = repository.GetDocID(
-        //                org_id,
-        //                category_id,
-        //                fileExtension,
-        //                start_date,
-        //                end_date,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]),
-        //                comments);
+                    // upload to image sever 
+                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+                    // save file asynchronously
+                    await using var stream = new FileStream(filePath, FileMode.Create);
+                    await dropedfile.CopyToAsync(stream);
 
-        //            var docName = Convert.ToString(docID) + fileExtension;
+                }
+                else
+                {
+                    ViewBag.Message = "You have not specified a file.";
+                }
+            }
+            catch (Exception ex)
+            {
+                this.ViewBag.Message = "ERROR:" + ex.Message;
+            }
+        }
 
-        //            // upload to image sever 
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\institutional\\";
-        //            var filePath = Path.Combine(fileFolder, docName);
-        //            dropedfile.SaveAs(filePath);
+        /// <summary>
+        /// The create_ doc_by_ file.
+        /// </summary>
+        /// <param name="file">
+        /// The file.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="org_name">
+        /// The org_name.
+        /// </param>
+        /// <param name="start_date">
+        /// The start_date.
+        /// </param>
+        /// <param name="end_date">
+        /// The end_date.
+        /// </param>
+        /// <param name="org_id">
+        /// The org_id.
+        /// </param>
+        /// <param name="comments">
+        /// The comments.
+        /// </param>
+        [HttpPost]
+        public async Task Create_Doc_by_File(
+            IFormFile file,
+            int category_id,
+            string org_name,
+            string start_date,
+            string end_date,
+            int org_id,
+            string comments)
+        {
+            string url = null;
+            string mssg = null;
 
-        //        }
-        //        else
-        //        {
-        //            this.ViewBag.Message = "You have not specified a file.";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        this.ViewBag.Message = "ERROR:" + ex.Message;
-        //    }
-        //}
+            try
+            {
+                if (file != null && file.Length > 0 && category_id != 0)
+                {
+                    // get file name and file Extension
+                    var fileName = Path.GetFileName(file.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
 
-        ///// <summary>
-        ///// The create_ doc_by_ file.
-        ///// </summary>
-        ///// <param name="file">
-        ///// The file.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="org_name">
-        ///// The org_name.
-        ///// </param>
-        ///// <param name="start_date">
-        ///// The start_date.
-        ///// </param>
-        ///// <param name="end_date">
-        ///// The end_date.
-        ///// </param>
-        ///// <param name="org_id">
-        ///// The org_id.
-        ///// </param>
-        ///// <param name="comments">
-        ///// The comments.
-        ///// </param>
-        //[HttpPost]
-        //public void Create_Doc_by_File(
-        //    HttpPostedFileBase file,
-        //    int category_id,
-        //    string org_name,
-        //    string start_date,
-        //    string end_date,
-        //    int org_id,
-        //    string comments)
-        //{
-        //    string url = null;
-        //    string mssg = null;
-        //    var repository = new InstitutionalFilesRepo();
+                    // get document id and create new document name 
+                    var docID = _institutionalFilesService.GetDocID(
+                        org_id,
+                        category_id,
+                        fileExtension,
+                        start_date ?? "",
+                        end_date ?? "",
+                        sessionInfo.Ic,
+                        sessionInfo.UserId,
+                        comments ?? "");
 
-        //    try
-        //    {
-        //        if (file != null && file.ContentLength > 0 && category_id != 0)
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(file.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
+                    var docName = Convert.ToString(docID) + fileExtension;
 
-        //            // get document id and create new document name 
-        //            var docID = repository.GetDocID(
-        //                org_id,
-        //                category_id,
-        //                fileExtension,
-        //                start_date,
-        //                end_date,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]),
-        //                comments);
+                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+                    var filePath = Path.Combine(fileFolder, docName);
+                    // save file asynchronously
+                    await using var stream = new FileStream(filePath, FileMode.Create);
+                    await file.CopyToAsync(stream);
+                }
+                else
+                {
+                    ViewBag.Message = "You have not specified information correctly.";
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "ERROR:" + ex.Message;
+            }
+        }
 
-        //            var docName = Convert.ToString(docID) + fileExtension;
-
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded\\nci\\institutional\\";
-        //            var filePath = Path.Combine(fileFolder, docName);
-        //            file.SaveAs(filePath);
-        //        }
-        //        else
-        //        {
-        //            this.ViewBag.Message = "You have not specified information correctly.";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        this.ViewBag.Message = "ERROR:" + ex.Message;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// The update_ doc.
-        ///// </summary>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="start_date">
-        ///// The start_date.
-        ///// </param>
-        ///// <param name="end_date">
-        ///// The end_date.
-        ///// </param>
-        ///// <param name="comments">
-        ///// The comments.
-        ///// </param>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        //[HttpPost]
-        //public void Update_Doc(int category_id, string start_date, string end_date, string comments, int doc_id)
-        //{
-        //    var repository = new InstitutionalFilesRepo();
-
-        //    try
-        //    {
-        //        if (category_id != 0)
-        //            repository.UpdateDocument(
-        //                doc_id,
-        //                category_id,
-        //                start_date,
-        //                end_date,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]),
-        //                comments);
-        //        else
-        //            this.ViewBag.Message = "You have not specified information correctly.";
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        this.ViewBag.Message = "ERROR:" + ex.Message;
-        //    }
-        //}
+        /// <summary>
+        /// The update_ doc.
+        /// </summary>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="start_date">
+        /// The start_date.
+        /// </param>
+        /// <param name="end_date">
+        /// The end_date.
+        /// </param>
+        /// <param name="comments">
+        /// The comments.
+        /// </param>
+        /// <param name="doc_id">
+        /// The doc_id.
+        /// </param>
+        [HttpPost]
+        public async Task Update_Doc(int category_id, string start_date, string end_date, string comments, int doc_id)
+        {
+            try
+            {
+                if (category_id != 0)
+                    _institutionalFilesService.UpdateDocument(
+                        doc_id,
+                        category_id,
+                        start_date ?? "",
+                        end_date ?? "",
+                        sessionInfo.Ic,
+                        sessionInfo.UserId,
+                        comments);
+                else
+                    ViewBag.Message = "You have not specified information correctly.";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = "ERROR:" + ex.Message;
+            }
+        }
     }
 }

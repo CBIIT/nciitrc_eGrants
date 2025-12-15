@@ -1,10 +1,12 @@
 ﻿@using System.Text.Json
 @using eGrants.Common.Enums
-@using eGrants.ViewModels
-@model InstitutionalFilesPageViewModel
+@using eGrants.Models
+@model InstitutionalFilesPage
 @{
    ViewBag.Title = "egrants [Institutional Files]";
    Layout = "~/Views/Shared/_egrants_header.cshtml";
+
+
 }
 
 @*<style>
@@ -52,7 +54,7 @@
    }
 
    function show_docs(org_id, org_name) {
-      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?orgId=" + org_id + "&orgName=" + org_name;
+      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
       window.document.location.href = url;
    }
 
@@ -63,22 +65,24 @@
    }
 
    function to_update_doc(doc_id, org_id) {
-      var url = "@Url.Action("Show_Update_Doc", "InstitutionalFiles")?docId=" + doc_id + "&orgId=" + org_id;
+      var url = "@Url.Action("Show_Update_Doc", "InstitutionalFiles")?doc_id=" + doc_id + "&org_id=" + org_id;
       window.document.location.href = url;
    }
 
    function refresh_after_upload(org_id, org_name) {
-      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?orgId=" + org_id + "&orgName=" + org_name;
+      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
       window.document.location.href = url;
    }
 
    function show_doc(docurl) {
       var ImageServer = document.getElementById("hidImageServer").value;
+
       if (docurl.substring(0, 5) == "/data") {
          var url = ImageServer + docurl.substring(1, docurl.length);
       } else if (docurl.substring(0, 5) == "data/") {
          var url = ImageServer + docurl;
       } else url = docurl;
+
       window.open(url);
    }
 
@@ -122,7 +126,7 @@
    function check_comment() {
 
       Comments = $("#comments").val();
-      //alert(Comments);
+
       var catId = document.getElementById("ddlCategories").options[document.getElementById("ddlCategories").selectedIndex].value;
       var category = categories.find(c => c.category_id === catId);
 
@@ -145,7 +149,6 @@
       Comments = $("#comments").val();
 
       if (Comments.length > 50 && category.require_comments == 1) {
-         //alert("The Comments are not to exceed 50 Characters");
          $("#comments").val(Comments.substr(0, 50));
          $("#comment-warning").removeClass("not-shown");
          event.preventDefault();
@@ -189,7 +192,7 @@
       } else {
          StartDate = document.getElementById("txtStartDate").value;
          EndDate = document.getElementById("txtEndDate").value;
-         //alert("EndDate=" + EndDate);
+
          return true;
       }
    }
@@ -198,8 +201,8 @@
 
 <form name="frmGetInfo">
    <input type="text" hidden id="hidACT" name="act" value="@ViewBag.Act"/>
-    <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Context.Session.GetString("browser")" />
-    <input type="text" hidden id="hidImageServer" name="MImageServer" value="@Context.Session.GetString("ImageServerUrl")" />
+   <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Context.Session.GetString("browser")" />
+   <input type="text" hidden id="hidImageServer" name="MImageServer" value="@Context.Session.GetString("ImageServerUrl")" />
 </form>
 
 <div id="main">
@@ -213,8 +216,8 @@
       @foreach (var index in Model.CharacterIndices)
       {
          <div id="index.index_id" style="display: inline">
-            <a href="JavaScript:show_orgs(@index.IndexId)" title="Search Institution Files with @index.CharacterIndex.ToUpper()">
-               <b>@index.CharacterIndex.ToUpper()</b>&#0160;
+            <a href="JavaScript:show_orgs(@index.IndexId)" title="Search Institution Files with @index.CharacterIndex">
+               <b>@char.ToUpper(index.CharacterIndex[0])</b>&#0160;
             </a>
          </div>
       }
@@ -230,26 +233,26 @@
    <!--start show orgs list-->
    @if (Model.OrgList.Count > 0)
    {
-      @Html.Partial("~/Views/Egrants/InstitutionalFiles_OrgList.cshtml", Model)
+      @Html.Partial("~/Views/eGrants/InstitutionalFiles_OrgList.cshtml", Model.OrgList)
    }
    <!--end show orgs list-->
    <!--start show docs list-->
    @if (Model.Action != InstitutionalFilesPageAction.ShowOrgs && Model.OrgCategories.Count == 0)
    {
-      @Html.Partial("~/Views/Egrants/InstitutionalFiles_ShowDocs.cshtml", Model)
+      @Html.Partial("~/Views/eGrants/InstitutionalFiles_ShowDocs.cshtml", Model)
    }
    <!--end show docs list-->
    <!--start create new doc-->
    @if (Model.Action == InstitutionalFilesPageAction.CreateNew)
    {
-      @Html.Partial("~/Views/Egrants/InstitutionalFiles_CreateDocs.cshtml", Model)
+      @Html.Partial("~/Views/eGrants/InstitutionalFiles_CreateDocs.cshtml", Model)
    }
    <!--end create new doc--->
 
    <!--start create new doc-->
    @if (Model.Action == InstitutionalFilesPageAction.UpdateDoc)
    {
-      @Html.Partial("~/Views/Egrants/InstitutionalFiles_UpdateDocs.cshtml", Model)
+      @Html.Partial("~/Views/eGrants/InstitutionalFiles_UpdateDocs.cshtml", Model)
    }
    <!--end create new doc--->
 
