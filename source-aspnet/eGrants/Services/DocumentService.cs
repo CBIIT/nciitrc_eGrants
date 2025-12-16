@@ -988,6 +988,9 @@ namespace eGrants.Services
                 var certificate = new X509Certificate2(cerUri, certPass);
                 handler.ClientCertificates.Add(certificate);
                 diagnostics.Append("Certificate added. ");
+            } else
+            {
+                Log.Warning("Certificate not found");
             }
 
             client = new HttpClient(handler);
