@@ -102,13 +102,14 @@ namespace eGrants.Controllers.Egrants
         private readonly IeGrantsService _eGrantsService;
         private readonly IDocumentService _documentService;
         private readonly ICommonService _commonService;
+        private readonly IApplService _applService;
         private readonly ISessionInfoService _sessionInfoService;
         private readonly IConfiguration _configuration;
         private readonly EgrantsCommon _egrantsCommon;
 
         private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null)
+        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null, IApplService applService = null)
         {
             _eGrantsService = eGrantsService;
             _commonService = commonService;
@@ -116,6 +117,7 @@ namespace eGrants.Controllers.Egrants
             _documentService = documentService;
             _configuration = configuration;
             _egrantsCommon = egrantsCommon;
+            _applService = applService;
         }
 
         //// GET: Egrants
@@ -1374,30 +1376,24 @@ namespace eGrants.Controllers.Egrants
         //// return RedirectToAction("by_appl", "Egrants", new { appl_id = ViewBag.applid, mode="qc" });
         //// }
 
-        ///// <summary>
-        ///// The appl_create_default.
-        ///// </summary>
-        ///// <param name="admin_code">
-        ///// The admin_code.
-        ///// </param>
-        ///// <param name="serial_num">
-        ///// The serial_num.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult appl_create_default(string admin_code, int serial_num)
-        //{
-        //    this.ViewBag.admincode = admin_code;
-        //    this.ViewBag.serialnum = serial_num;
+        /// <summary>
+        /// Display the application creation page
+        /// </summary>
+        /// <param name="adminCode">The admin code</param>
+        /// <param name="serialNum">The serial number</param>
+        /// <returns>The application creation view</returns>
+        [HttpGet]
+        public async Task<ActionResult> ApplCreateDefault(string adminCode, int serialNum)
+        {
+            ViewBag.admincode = adminCode;
+            ViewBag.serialnum = serialNum;
+            ViewBag.AdminCodeList = await _commonService.LoadAdminCodes();
+            ViewBag.ApplTypeList = await _applService.LoadApplTypeAsync();
+            ViewBag.ActivityCodeList = await _applService.LoadActivityCodeAsync(adminCode);
+            ViewBag.GrantYearList = await _applService.LoadApplsBySerialNumAsync(adminCode, serialNum);
 
-        //    this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
-        //    this.ViewBag.ApplTypeList = EgrantsAppl.LoadApplType();
-        //    this.ViewBag.ActivityCodeList = EgrantsAppl.LoadActivityCode(admin_code);
-        //    this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsBySerialnum(admin_code, serial_num);
-
-        //    return this.View("~/Egrants/Views/EgrantsApplCreate.cshtml");
-        //}
+            return View("~/Views/Egrants/EgrantsApplCreate.cshtml");
+        }
 
         ///// <summary>
         ///// The create_new_appl.

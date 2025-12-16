@@ -35,14 +35,17 @@
 
 namespace eGrants.Models
 {
-        public class FundingCategories
-        {
-            public string level_id { get; set; }
-            public string parent_id { get; set; }
-            public string category_id { get; set; }
-            public string category_name { get; set; }
-            public string category_fy { get; set; }
-            public string child_count { get; set; }
-            public string doc_count { get; set; }
-        }
+    /// <summary>
+    /// Represents a funding category
+    /// </summary>
+    public class FundingCategories
+    {
+        public string level_id { get; set; }
+        public string parent_id { get; set; }
+        public string category_id { get; set; }
+        public string category_name { get; set; }
+        public string category_fy { get; set; }
+        public string child_count { get; set; }
+        public string doc_count { get; set; }
     }
+}

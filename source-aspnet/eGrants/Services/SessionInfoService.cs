@@ -19,9 +19,9 @@ namespace eGrants.Services
                 EgrantsDocNewRelativePath = session.TryGetValue("EgrantsDocNewRelativePath", out var NewRelativePathBytes) && NewRelativePathBytes != null ? System.Text.Encoding.UTF8.GetString(NewRelativePathBytes) : "",
                 EgrantsDocModifyRelativePath = session.TryGetValue("EgrantsDocModifyRelativePath", out var ModifyrelativePathBytes) && ModifyrelativePathBytes != null ? System.Text.Encoding.UTF8.GetString(ModifyrelativePathBytes) : "",
                 EgrantsDocEmail = session.TryGetValue("EgrantsDocEmail", out var EgrantsDocEmailBytes) && EgrantsDocEmailBytes != null ? System.Text.Encoding.UTF8.GetString(EgrantsDocEmailBytes) : "",
-                CertPath = session.TryGetValue("certPath", out var certPathBytes) && certPathBytes != null ? System.Text.Encoding.UTF8.GetString(certPathBytes) : "",
-                CertPass = session.TryGetValue("certPass", out var certPassBytes) && certPassBytes != null ? System.Text.Encoding.UTF8.GetString(certPassBytes) : "",
-                EraUrlBase = session.TryGetValue("eraUrlBase", out var eraUrlBaseBytes) && eraUrlBaseBytes != null ? System.Text.Encoding.UTF8.GetString(eraUrlBaseBytes) : ""
+                CertPath = session.TryGetValue("CertPath", out var certPathBytes) && certPathBytes != null ? System.Text.Encoding.UTF8.GetString(certPathBytes) : "",
+                CertPass = session.TryGetValue("CertPass", out var certPassBytes) && certPassBytes != null ? System.Text.Encoding.UTF8.GetString(certPassBytes) : "",
+                EraUrlBase = session.TryGetValue("EraUrlBase", out var eraUrlBaseBytes) && eraUrlBaseBytes != null ? System.Text.Encoding.UTF8.GetString(eraUrlBaseBytes) : ""
             };
         }
     }
