@@ -237,6 +237,9 @@ app.Use(async (context, next) =>
         context.Session.SetString("frpprAcceptance", builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty);
         context.Session.SetString("irpprAcceptance", builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty);
         context.Session.SetString("GitHubToken", builder.Configuration["AppSettings:GitHubToken"] ?? string.Empty);
+        context.Session.SetString("CertPath", builder.Configuration["AppSettings:certPath"] ?? string.Empty);
+        context.Session.SetString("CertPass", builder.Configuration["AppSettings:certPass"] ?? string.Empty);
+        context.Session.SetString("EraUrlBase", builder.Configuration["AppSettings:eraUrlBase"] ?? string.Empty);
 
         string token = context.Session.GetString("GitHubToken").ToString();
         var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
