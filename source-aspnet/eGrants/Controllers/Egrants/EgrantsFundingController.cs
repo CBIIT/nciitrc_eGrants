@@ -130,15 +130,38 @@ namespace eGrants.Controllers.Funding
         /// Views funding documents for editing
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> ViewEdit(int fy)
+        public async Task<IActionResult> ViewEdit(int fy, string sortColumn = null, string sortDirection = "asc")
         {
             ViewBag.FY = fy;
-            ViewBag.FundingDocs = await _fundingService.LoadFundingDocsAsync(
+            ViewBag.SortColumn = sortColumn;
+            ViewBag.SortDirection = sortDirection;
+
+            var fundingDocs = await _fundingService.LoadFundingDocsAsync(
                 "view_edit",
                 0,
                 fy,
                 sessionInfo.Ic,
                 sessionInfo.UserId);
+
+            // Apply sorting if specified
+            if (!string.IsNullOrEmpty(sortColumn))
+            {
+                switch (sortColumn.ToLower())
+                {
+                    case "category_name":
+                        fundingDocs = sortDirection == "asc"
+                            ? fundingDocs.OrderBy(d => d.category_name).ToList()
+                            : fundingDocs.OrderByDescending(d => d.category_name).ToList();
+                        break;
+                    case "full_grant_num":
+                        fundingDocs = sortDirection == "asc"
+                            ? fundingDocs.OrderBy(d => d.full_grant_num).ToList()
+                            : fundingDocs.OrderByDescending(d => d.full_grant_num).ToList();
+                        break;
+                }
+            }
+
+            ViewBag.FundingDocs = fundingDocs;
 
             return View("~/Views/FundingFiles/FundingDocEdit.cshtml");
         }
@@ -269,19 +292,41 @@ namespace eGrants.Controllers.Funding
         /// <summary>
         /// Edits funding document (delete or restore)
         /// </summary>
-        [HttpPost]
-        public async Task<IActionResult> DocEdit(string act, int applId, int docId, int fy)
+        [HttpGet]
+        public async Task<IActionResult> DocEdit(string act, int appl_id, int doc_id, int fy, string sortColumn = null, string sortDirection = "asc")
         {
             ViewBag.FY = fy;
+            ViewBag.SortColumn = sortColumn;
+            ViewBag.SortDirection = sortDirection;
 
-            await _fundingService.EditFundingDocAsync(act, applId, docId, sessionInfo.Ic, sessionInfo.UserId);
+            await _fundingService.EditFundingDocAsync(act, appl_id, doc_id, sessionInfo.Ic, sessionInfo.UserId);
 
-            ViewBag.FundingDocs = await _fundingService.LoadFundingDocsAsync(
+            var fundingDocs = await _fundingService.LoadFundingDocsAsync(
                 "view_edit",
                 0,
                 fy,
                 sessionInfo.Ic,
                 sessionInfo.UserId);
+
+            // Apply sorting if specified
+            if (!string.IsNullOrEmpty(sortColumn))
+            {
+                switch (sortColumn.ToLower())
+                {
+                    case "category_name":
+                        fundingDocs = sortDirection == "asc"
+                            ? fundingDocs.OrderBy(d => d.category_name).ToList()
+                            : fundingDocs.OrderByDescending(d => d.category_name).ToList();
+                        break;
+                    case "full_grant_num":
+                        fundingDocs = sortDirection == "asc"
+                            ? fundingDocs.OrderBy(d => d.full_grant_num).ToList()
+                            : fundingDocs.OrderByDescending(d => d.full_grant_num).ToList();
+                        break;
+                }
+            }
+
+            ViewBag.FundingDocs = fundingDocs;
 
             return View("~/Views/FundingFiles/FundingDocEdit.cshtml");
         }

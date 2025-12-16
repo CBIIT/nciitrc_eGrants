@@ -87,7 +87,7 @@
     }
 
     function to_edit(docid, applid) {
-       var url = "@Url.Action("DocEdit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=to_edit&appl_id=" + applid + "&doc_id=" + docid;
+       var url = "@Url.Action("DocEdit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=to_edit&applId=" + applid + "&docId=" + docid;
        window.self.location.href = url;
     }
 
