@@ -10,7 +10,6 @@
 
     function back_to_funding_index() {
         var url = "@Url.Action("funding_index", "EgrantsFunding")";
-        //alert(url);
         window.self.location = url;
     }
 
@@ -47,7 +46,6 @@
 
         if (appl_id != "" || appl_id !=null) {
             var url = "@Url.Action("ApplEdit", "EgrantsFunding")?act=add_appl&applId=" + appl_id + "&docId=" + document.getElementById("hidDocid").value + "&fy=" + document.getElementById("hidFY").value;
-            //alert(url);
             window.self.location = url;
             return true;
         }
@@ -56,7 +54,6 @@
     function appl_delete(appl_id) {
         if (confirm('Are you sure that you want to delete the funding document for this appl?')) {
             var url = "@Url.Action("ApplEdit", "EgrantsFunding")?act=delete_appl&applId=" + appl_id + "&docId=" + document.getElementById("hidDocid").value + "&fy=" + document.getElementById("hidFY").value;
-            //alert(url);
             window.self.location = url;
         }
     }
