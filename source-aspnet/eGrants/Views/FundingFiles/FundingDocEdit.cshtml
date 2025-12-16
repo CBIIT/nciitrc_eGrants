@@ -1,0 +1,116 @@
+@using Microsoft.AspNetCore.Html
+@{
+    ViewBag.Title = "eGrants [Funding QC List]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+}
+
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+
+    function back_to_funding_index() {
+        var url = "@Url.Action("FundingIndex", "EgrantsFunding")";
+        window.self.location = url;
+    }
+
+    function appl_edit(docid) {
+        var url = "@Url.Action("ApplEditDefault", "EgrantsFunding")?docId=" + docid + "&fy=" + document.getElementById("hidFY").value;
+        window.self.location.href = url;
+    }
+
+    function doc_edit(act, docid, applid) {
+        if (confirm('Are you sure that you want to ' + act + ' this document?')) {
+            act = 'to_' + act;
+            var url = "@Url.Action("DocEdit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=" + act + "&applId=" + applid + "&docId=" + docid;
+            window.self.location.href = url;
+        }
+    }
+
+    function show_doc(docurl) {
+        var ImageServer = document.getElementById("hidImageServer").value;
+        if (docurl.substring(0, 5) == "/data") {
+            var url = ImageServer + docurl.substring(1, docurl.length);
+        } else if (docurl.substring(0, 5) == "data/") {
+            var url = ImageServer + docurl;
+        } else url = docurl;
+
+        window.open(url);
+    }
+</script>
+
+<form name="frmGetInfo">
+    <input type="hidden" id="hidFY" name="fy" value="@ViewBag.FY" />
+    <input type="hidden" id="hidImageServer" name="MImageServer" value="@Context.Session.GetString("ImageServerUrl")" />
+</form>
+
+<div id="main">
+    <!--start main-->
+    <div id="caption"><b id="page_title">Edit Funding Document</b></div>
+    <br />
+    <a href="JavaScript:back_to_funding_index()"><b>NCI Funding Files Index</b></a>
+    <br /><br />
+    <div>
+        <!--start show docs-->
+        @if (ViewBag.FundingDocs != null && ViewBag.FundingDocs.Count >= 1)
+        {
+            
+            string curSort = ViewBag.SortColumn as string ?? "";
+            string curDir = ViewBag.SortDirection as string ?? "asc";
+            int fy = ViewBag.FY ?? 0;
+
+            Func<string, string, IHtmlContent> sortLink = (display, column) =>
+            {
+                string nextDir = (curSort == column && curDir == "asc") ? "desc" : "asc";
+                var linkUrl = Url.Action("ViewEdit", new
+                {
+                    fy = fy,
+                    sortColumn = column,
+                    sortDirection = nextDir
+                });
+                return new HtmlString($"<a href=\"{linkUrl}\">{display}</a>");
+            };
+            
+            <div id="grid">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr class="webgrid-header">
+                            <th>@sortLink("Category Name", "category_name")</th>
+                            <th>@sortLink("Full Grant Number", "full_grant_num")</th>
+                            <th>Edit Appls</th>
+                            <th>Store</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody class="webgrid-body">
+                        @{
+                            int rowIndex = 0;
+                        }
+                        @foreach (var doc in ViewBag.FundingDocs)
+                        {
+                            var rowClass = rowIndex % 2 == 0 ? "webgrid-odd-row-style" : "webgrid-even-row-style";
+                            rowIndex++;
+                            <tr class="@rowClass">
+                                <td class="col-med">
+                                    <a href="Javascript:show_doc('@doc.url')" title="click here to display funding document">@doc.category_name</a>
+                                </td>
+                                <td class="col-med">@doc.full_grant_num</td>
+                                <td class="col-sma">
+                                    <a href="JavaScript:appl_edit('@doc.document_id')" title="Click here to edit appls for funding document">Edit Appls</a>
+                                </td>
+                                <td class="col-sma">
+                                    <a href="JavaScript:doc_edit('store', '@doc.document_id','@doc.appl_id')" title="Click here to store funding document">Store Document</a>
+                                </td>
+                                <td class="col-sma">
+                                    <a href="JavaScript:doc_edit('delete', '@doc.document_id','@doc.appl_id')" title="Click here to delete funding document">Delete Document</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        <!--end show docs-->
+    </div>
+</div><!--end main-->
+<br />
+<br />
+<br />
