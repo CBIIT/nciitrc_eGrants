@@ -1,156 +1,215 @@
 @{
-    ViewBag.Title = "egrants [Funding Application Edit]";
+    ViewBag.Title = "eGrants [Funding Appl Edit]";
     Layout = "~/Views/Shared/_egrants_header.cshtml";
 }
 
-<script language="javascript">
-    var FY = @ViewBag.FY;
-    var DocId = @ViewBag.Docid;
+<script language="JavaScript">
+    var currenturl = window.document.location.href;
+    var d = new Date();
+    var y = d.getFullYear();
 
-    function applEdit(act, applId) {
-        if (confirm('Are you sure you want to ' + act + ' this application association?')) {
-            window.location.href = '@Url.Action("ApplEdit", "FundingFiles")?act=' + act + 
-                                   '&applId=' + applId + '&docId=' + DocId + '&fy=' + FY;
-        }
+    function back_to_funding_index() {
+        var url = "@Url.Action("funding_index", "EgrantsFunding")";
+        //alert(url);
+        window.self.location = url;
     }
 
-    function loadDocAppls() {
-        var serialNum = document.getElementById("txtSerialnum").value;
-        var adminCode = document.getElementById("ddlAdmincodes").value;
+    function load_doc_appls() {
+        var admincode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
 
-        if (serialNum == "" || isNaN(serialNum)) {
-            alert("Please enter a valid serial number");
+        if (get_serial_num() == false) {
+            return false;
+        } else var serialnum = document.getElementById("txtSerialnum").value;
+
+        var url = "@Url.Action("LoadDocAppls", "EgrantsFunding")?serialNum=" + serialnum + "&adminCode=" + admincode + "&docId=" + document.getElementById("hidDocid").value + "&fy=" + document.getElementById("hidFY").value;
+        window.self.location = url;
+    }
+
+    function by_appl(appl_id) {
+        var url = "@Url.Action("by_appl", "Egrants")?applId=" + appl_id;
+        window.document.location.href = url;
+    }
+
+    function appl_add() {
+        if (document.getElementById("txtSerialnum").value == '') {
+            alert("Please insert serial number for searching available grants");
             return false;
         }
 
-        window.location.href = '@Url.Action("LoadDocAppls", "FundingFiles")?serialNum=' + serialNum + 
-                               '&adminCode=' + adminCode + '&docId=' + DocId + '&fy=' + FY;
+        if (document.getElementById("ddlAppls").selectedIndex == 0 || document.getElementById("ddlAppls").selectedIndex == (document.getElementById("ddlAppls").length - 1)) {
+            alert("Please select a grant year");
+            return false;
+        }
+        else
+        {
+            var appl_id = document.getElementById("ddlAppls").options[document.getElementById("ddlAppls").selectedIndex].value;
+        }
+
+        if (appl_id != "" || appl_id !=null) {
+            var url = "@Url.Action("ApplEdit", "EgrantsFunding")?act=add_appl&applId=" + appl_id + "&docId=" + document.getElementById("hidDocid").value + "&fy=" + document.getElementById("hidFY").value;
+            //alert(url);
+            window.self.location = url;
+            return true;
+        }
     }
 
-    function back() {
-        window.location.href = '@Url.Action("ViewEdit", "FundingFiles")?fy=' + FY;
+    function appl_delete(appl_id) {
+        if (confirm('Are you sure that you want to delete the funding document for this appl?')) {
+            var url = "@Url.Action("ApplEdit", "EgrantsFunding")?act=delete_appl&applId=" + appl_id + "&docId=" + document.getElementById("hidDocid").value + "&fy=" + document.getElementById("hidFY").value;
+            //alert(url);
+            window.self.location = url;
+        }
+    }
+
+    function create_new_appl(object) {
+        if (object.options[object.selectedIndex].value == 'CreateGrantYear') {
+            var admincode = document.getElementById("ddlAdmincodes").options[document.getElementById("ddlAdmincodes").selectedIndex].value;
+
+            if (get_serial_num() == false) {
+                return false;
+            } else var serialnum = document.getElementById("txtSerialnum").value;
+
+            var url = "@Url.Action("ApplCreateDefault", "EgrantsDoc")?adminCode=" + admincode + "&serialNum=" + serialnum;
+            window.open(url, "NewAPPL", "toolbar=0,menubar=0,location=0,status=0,width=850,height=400,scrollbars=yes,left=200,top=200");
+        }
+    }
+
+    function get_serial_num() {
+        if (document.getElementById("txtSerialnum").value == "") {
+            alert("Please insert serial number");
+            document.getElementById("txtSerialnum").focus();
+            document.getElementById("ddlAppls").options[0].selected = "selected";
+            return false;
+        } else if (isInteger(document.getElementById("txtSerialnum").value) == false) {
+            alert("Please insert correct serial number");
+            document.getElementById("txtSerialnum").value = "";
+            document.getElementById("txtSerialnum").focus();
+            document.getElementById("ddlAppls").options[0].selected = "selected";
+            return false;
+        } else return true;
     }
 </script>
 
-<div id="main" style="margin: 0; padding: 0;">
-    <div id="caption" style="margin: 0; padding: 0;">
-        <b id="page_title">Edit Application Associations - Document ID: @ViewBag.Docid</b><br />
-    </div>
+<form name="frmGetInfo">
+    <input type="text" hidden id="hidFY" name="fy" value="@ViewBag.FY" />
+    <input type="text" hidden id="hidDocid" name="doc_id" value="@ViewBag.Docid" />
+</form>
 
-    <div id="content" style="margin: 10px; padding: 10px;">
-        <div class="toolbar bg-light p-3 mb-3">
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="form-inline">
-                        <label for="ddlAdmincodes" class="mr-2"><strong>Institute:</strong></label>
-                        <select id="ddlAdmincodes" class="form-control mr-2" style="width: 80px;">
-                            @if (ViewBag.AdminCodeList != null)
+<!--start main-->
+<div id="main">
+    <div id="caption">
+        <strong id="page_title">Edit Funding Document for Appl</strong>
+    </div>
+    <br />
+    <a href="JavaScript:back_to_funding_index()">
+        <strong>NCI Funding Files Index</strong>
+    </a>
+    <br /><br />
+    <!--start search appl-->
+    <div class="form-inline">
+        <table width="800">
+            <thead>
+                <tr>
+                    <td colspan="2" class="bg_grey p-1">* Select admin phs org code, inset serial number and press Check Available Grants<br /></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td width="100">
+                        <label class="float-left ml-2 mt-2" for="ic">
+                            <strong>Institute:</strong>
+                        </label>
+                    </td>
+                    <td>
+                        <select name="admin_code" id="ddlAdmincodes" class="form-control float-left my-2" style="width:80px;" size="1" title="Select admin phs org code">
+                            @foreach (var ic in ViewBag.AdminCodeList)
                             {
-                                @foreach (var adminCode in ViewBag.AdminCodeList)
+                                if (ic.profile != null && Convert.ToString(ic.profile) == Context.Session.GetString("ic"))
                                 {
-                                    <option value="@adminCode.admin_phs_org_code" 
-                                            selected="@(adminCode.admin_phs_org_code == ViewBag.admincode)">
-                                        @adminCode.admin_phs_org_code
-                                    </option>
+                                    <option value="@ic.admin_phs_org_code" selected>@ic.admin_phs_org_code</option>
+                                }
+                                else if (Convert.ToString(ViewBag.admincode) == ic.admin_phs_org_code)
+                                {
+                                    <option value="@ic.admin_phs_org_code">@ic.admin_phs_org_code</option>
+                                }
+                                else
+                                {
+                                    <option value="@ic.admin_phs_org_code">@ic.admin_phs_org_code</option>
                                 }
                             }
                         </select>
 
-                        <label for="txtSerialnum" class="mr-2"><strong>Serial Number:</strong></label>
-                        <input type="text" id="txtSerialnum" class="form-control mr-2" 
-                               style="width: 100px;" value="@ViewBag.SerialNum" />
+                        <label class="float-left mt-3 pl-4" for="txtSerialnum"><strong>Serial Number:</strong></label>
 
-                        <button onclick="loadDocAppls()" class="btn btn-primary btn-sm mr-2" 
-                                title="Load applications">
-                            <i class="fa fa-search"></i> Load Applications
+                        <input name="serial_num" type="text" id="txtSerialnum" class="form-control float-left my-2 ml-2" style="width:80px;" title="Insert serial number" value="@ViewBag.SerialNum" />
+
+                        <button type="button" name="load appls" id="btnLoadAppls" class="btn btn-primary btn-sm float-left my-2 ml-3" AccessKey="C" OnClick="return load_doc_appls();" title="Click here to load available appls [shift + alt + C]">
+                            <U>C</U>heck Available Grants
                         </button>
-                    </div>
-                </div>
-                <div class="col-md-4 text-right">
-                    <button onclick="back()" class="btn btn-secondary btn-sm" 
-                            title="Return to edit documents">
-                        <i class="fa fa-arrow-left"></i> Return
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <h5>Available Applications</h5>
-                @if (ViewBag.GrantYearList != null && ViewBag.GrantYearList.Count > 0)
-                {
-                    <table class="table table-sm table-bordered">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Grant Number</th>
-                                <th>Support Year</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var grant in ViewBag.GrantYearList)
-                            {
-                                <tr>
-                                    <td>@grant.full_grant_num</td>
-                                    <td>@grant.support_year</td>
-                                    <td>
-                                        <button onclick="applEdit('add', @grant.appl_id)" 
-                                                class="btn btn-sm btn-success" 
-                                                title="Add application">
-                                            <i class="fa fa-plus"></i> Add
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <div class="alert alert-info">
-                        <i class="fa fa-info-circle"></i> No available applications to add.
-                    </div>
-                }
-            </div>
-
-            <div class="col-md-6">
-                <h5>Associated Applications</h5>
-                @if (ViewBag.DocAppls != null && ViewBag.DocAppls.Count > 0)
-                {
-                    <table class="table table-sm table-bordered">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Grant Number</th>
-                                <th>Support Year</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var appl in ViewBag.DocAppls)
-                            {
-                                <tr>
-                                    <td>@appl.full_grant_num</td>
-                                    <td>@appl.support_year</td>
-                                    <td>
-                                        <button onclick="applEdit('remove', @appl.appl_id)" 
-                                                class="btn btn-sm btn-danger" 
-                                                title="Remove application">
-                                            <i class="fa fa-minus"></i> Remove
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <div class="alert alert-info">
-                        <i class="fa fa-info-circle"></i> No applications associated with this document.
-                    </div>
-                }
-            </div>
-        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-</div>
+    <!-- end search appl -->
+    <!-- start add or delete appl -->
+    <div class="form-inline">
+        <table width="800">
+            @* <thead> *@
+            @*    <tr> *@
+            @*       <td colspan="2" class="bg_grey pl-3">* Select grant year and add it for this funding document<br /></td> *@
+            @*    </tr> *@
+            @* </thead> *@
+            <tbody>
+                <tr>
+                    <td colspan="2" class="bg_grey p-1">* Select grant year and add it for this funding document<br /></td>
+                </tr>
+                <tr>
+                    <td width="100"><label class="float-left my-2" for="ddlAppls"><b>Grant:</b></label></td>
+                    <td>
+                        <select name="appl_id" id="ddlAppls" class="form-control float-left my-2" style="width: 180px;" onChange="create_new_appl(this)" title="Select here to create new grant year">
+                            <option value="select grant year">Select grant year</option>
+                            @if (ViewBag.GrantYearList != null)
+                            {
+                                foreach (var appls in ViewBag.GrantYearList)
+                                {
+                                    <option value="@appls.appl_id">@appls.full_grant_num</option>
+                                }
+                            }
+                            <option value="CreateGrantYear">Create grant year</option>
+                        </select>
+
+                        <button type="button" class="btn btn-primary btn-sm float-left my-2 ml-3" AccessKey="N" OnClick="return appl_add();" title="Add available appl [shift + alt + N]">
+                            Add <u>N</u>ew Appl
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <b>This funding document has been applied to:</b><br />
+    <div class="d-block">
+        <table>
+            <thead>
+                <tr>
+                    <td width="200"></td>
+                    <td width="150"></td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var docappls in ViewBag.DocAppls)
+                {
+                    <tr>
+                        <td>
+                            <a href="Javascript:by_appl(@docappls.appl_id)" title="Click here to show funding documents from @docappls.appl_id">@docappls.full_grant_num</a>
+                        </td>
+                        <td>
+                            <a href="JavaScript:appl_delete(@docappls.appl_id)">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div> <!--end add or delete appl-->
+</div><!--end main-->
