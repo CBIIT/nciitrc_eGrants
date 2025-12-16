@@ -1,15 +1,23 @@
 ﻿using System.Data;
+using System.IO;
+using System.Reflection.Metadata;
 using System.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Web;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 
 using eGrants.DAL;
 using eGrants.DTOs;
 using eGrants.Models;
+using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
+using Grpc.Core;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -665,7 +673,7 @@ namespace eGrants.Services
                         else
                         {
                             await HandleStandardFileAsync(uri, tmpFileName, downloadDirectory, request.FullGrantNumber,
-                                documentName, documentId, downloadData, diagnostics, request.SessionInfo);
+                                documentName, documentId, downloadData, diagnostics);
                             downloadModel.NumSucceeded += 1;
                         }
                         
@@ -966,67 +974,28 @@ namespace eGrants.Services
         /// </summary>
         private async Task HandleStandardFileAsync(Uri uri, string tmpFileName, string downloadDirectory,
             string fullGrantNumber, string documentName, string documentId, DownloadData downloadData,
-            System.Text.StringBuilder diagnostics, SessionInfo sessionInfo)
+            System.Text.StringBuilder diagnostics)
         {
             diagnostics.Append("Not closeout or FFR Rejection. ");
 
-            HttpClient client;
-            diagnostics.Append("Internal server detected, adding certificate. ");
+            using var client = new HttpClient();
 
-            var handler = new HttpClientHandler
-            {
-                UseDefaultCredentials = true,
-                PreAuthenticate = true
-            };
+            var response = await client.GetAsync(uri);
+            response.EnsureSuccessStatusCode();
 
-            // Add certificate if available
-            var cerUri = sessionInfo.CertPath;
-            var certPass = sessionInfo.CertPass;
+            await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
+            await response.Content.CopyToAsync(fileStream);
+            fileStream.Close();
 
-            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
-            {
-                var certificate = new X509Certificate2(cerUri, certPass);
-                handler.ClientCertificates.Add(certificate);
-                diagnostics.Append("Certificate added. ");
-            } else
-            {
-                Log.Warning("Certificate not found");
-            }
+            var filename = Path.GetFileName(uri.LocalPath);
+            var fi = new FileInfo(filename);
 
-            client = new HttpClient(handler);
-            
-            using (client)
-            {
-                client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
+            var newFileName = ReplaceInvalidChars(
+                $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
+                "_");
 
-                var response = await client.GetAsync(uri);
-
-                // Log response details for debugging
-                diagnostics.Append($"Response status: {response.StatusCode}. ");
-                diagnostics.Append($"Content-Type: {response.Content.Headers.ContentType?.MediaType}. ");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    diagnostics.Append($"Error response: {errorContent.Substring(0, Math.Min(200, errorContent.Length))}. ");
-                }
-
-                response.EnsureSuccessStatusCode();
-
-                await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
-                await response.Content.CopyToAsync(fileStream);
-                fileStream.Close();
-
-                var filename = Path.GetFileName(uri.LocalPath);
-                var fi = new FileInfo(filename);
-
-                var newFileName = ReplaceInvalidChars(
-                    $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
-                    "_");
-
-                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
-                downloadData.FileDownloaded = newFileName;
-            
+            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+            downloadData.FileDownloaded = newFileName;
         }
 
         /// <summary>
