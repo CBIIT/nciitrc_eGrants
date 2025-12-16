@@ -994,7 +994,7 @@ namespace eGrants.Services
             }
 
             client = new HttpClient(handler);
-            
+
             using (client)
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
@@ -1026,7 +1026,7 @@ namespace eGrants.Services
 
                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                 downloadData.FileDownloaded = newFileName;
-            
+            }
         }
 
         /// <summary>
