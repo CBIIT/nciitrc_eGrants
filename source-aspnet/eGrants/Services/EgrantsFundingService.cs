@@ -7,7 +7,6 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
-using IronPdf;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
@@ -26,16 +25,13 @@ namespace eGrants.Services
     {
         private readonly AppDbContext _context;
         private readonly ICommonRepository _commonRepository;
-        private readonly ILogger<EgrantsFundingService> _logger;
 
         public EgrantsFundingService(
             AppDbContext context,
-            ICommonRepository commonRepository,
-            ILogger<EgrantsFundingService> logger)
+            ICommonRepository commonRepository)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<FundingCategories>> LoadFundingCategoriesAsync(int fiscalYear)
@@ -74,7 +70,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading funding categories for fiscal year: {FiscalYear}", fiscalYear);
+                Log.Error(ex, "Error loading funding categories for fiscal year: {FiscalYear}", fiscalYear);
                 throw;
             }
 
@@ -120,7 +116,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading funding docs with act={Act}, serialNum={SerialNum}, fy={FiscalYear}",
+                Log.Error(ex, "Error loading funding docs with act={Act}, serialNum={SerialNum}, fy={FiscalYear}",
                     act, serialNum, fiscalYear);
                 throw;
             }
@@ -155,7 +151,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating funding document for applId={ApplId}, categoryId={CategoryId}",
+                Log.Error(ex, "Error creating funding document for applId={ApplId}, categoryId={CategoryId}",
                     applId, categoryId);
                 throw;
             }
@@ -190,7 +186,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading funding category list");
+                Log.Error(ex, "Error loading funding category list");
                 throw;
             }
 
@@ -223,7 +219,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting max category id for fiscal year: {FiscalYear}", fiscalYear);
+                Log.Error(ex, "Error getting max category id for fiscal year: {FiscalYear}", fiscalYear);
                 throw;
             }
         }
@@ -259,7 +255,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading doc appls for docId={DocId}", docId);
+                Log.Error(ex, "Error loading doc appls for docId={DocId}", docId);
                 throw;
             }
 
@@ -300,7 +296,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading full grant numbers for serialNum={SerialNum}, adminCode={AdminCode}, docId={DocId}",
+                Log.Error(ex, "Error loading full grant numbers for serialNum={SerialNum}, adminCode={AdminCode}, docId={DocId}",
                     serialNum, adminCode, docId);
                 throw;
             }
@@ -328,7 +324,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error editing funding doc with act={Act}, applId={ApplId}, docId={DocId}",
+                Log.Error(ex, "Error editing funding doc with act={Act}, applId={ApplId}, docId={DocId}",
                     act, applId, docId);
                 throw;
             }
@@ -354,7 +350,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error editing funding appl with act={Act}, applId={ApplId}, docId={DocId}",
+                Log.Error(ex, "Error editing funding appl with act={Act}, applId={ApplId}, docId={DocId}",
                     act, applId, docId);
                 throw;
             }
@@ -411,7 +407,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating funding doc by drag-drop for applId={ApplId}", applId);
+                Log.Error(ex, "Error creating funding doc by drag-drop for applId={ApplId}", applId);
                 result.Success = false;
                 result.Message = $"ERROR: {ex.Message}";
             }
@@ -531,7 +527,7 @@ namespace eGrants.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating PDF funding doc for applId={ApplId}", applId);
+                Log.Error(ex, "Error creating PDF funding doc for applId={ApplId}", applId);
                 result.Success = false;
                 result.Message = "ERROR: The file could not be converted!";
             }
