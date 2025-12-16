@@ -293,13 +293,13 @@ namespace eGrants.Controllers.Funding
         /// Edits funding document (delete or restore)
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> DocEdit(string act, int appl_id, int doc_id, int fy, string sortColumn = null, string sortDirection = "asc")
+        public async Task<IActionResult> DocEdit(string act, int applId, int docId, int fy, string sortColumn = null, string sortDirection = "asc")
         {
             ViewBag.FY = fy;
             ViewBag.SortColumn = sortColumn;
             ViewBag.SortDirection = sortDirection;
 
-            await _fundingService.EditFundingDocAsync(act, appl_id, doc_id, sessionInfo.Ic, sessionInfo.UserId);
+            await _fundingService.EditFundingDocAsync(act, applId, docId, sessionInfo.Ic, sessionInfo.UserId);
 
             var fundingDocs = await _fundingService.LoadFundingDocsAsync(
                 "view_edit",
@@ -367,7 +367,7 @@ namespace eGrants.Controllers.Funding
         /// <summary>
         /// Edits application association with funding document
         /// </summary>
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> ApplEdit(string act, int applId, int docId, int fy)
         {
             ViewBag.FY = fy;

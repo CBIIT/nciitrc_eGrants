@@ -13,14 +13,14 @@
     }
 
     function appl_edit(docid) {
-        var url = "@Url.Action("ApplEditDefault", "EgrantsFunding")?doc_id=" + docid + "&fy=" + document.getElementById("hidFY").value;
+        var url = "@Url.Action("ApplEditDefault", "EgrantsFunding")?docId=" + docid + "&fy=" + document.getElementById("hidFY").value;
         window.self.location.href = url;
     }
 
     function doc_edit(act, docid, applid) {
         if (confirm('Are you sure that you want to ' + act + ' this document?')) {
             act = 'to_' + act;
-            var url = "@Url.Action("DocEdit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=" + act + "&appl_id=" + applid + "&doc_id=" + docid;
+            var url = "@Url.Action("DocEdit", "EgrantsFunding")?fy=" + document.getElementById("hidFY").value + "&act=" + act + "&applId=" + applid + "&docId=" + docid;
             window.self.location.href = url;
         }
     }
