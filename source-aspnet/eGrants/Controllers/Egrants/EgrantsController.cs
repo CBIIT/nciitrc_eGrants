@@ -96,13 +96,6 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
         }
 
-        //    public string SetCurrentViewSessionVariable(string currentView)
-        //    {
-        //        Console.WriteLine("In setting session Variable: " + currentView);
-        //        Session["CurrentView"] = currentView;
-
-        //        return currentView;
-        //    }
 
         /// <summary>
         /// HttpPost - Download files and create zip
@@ -159,23 +152,6 @@ namespace eGrants.Controllers.Egrants
             return NotFound();
         }
 
-
-        //    /// <summary>
-        //    /// Get all appls list for appls toggle by grant_id
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="string"/>.
-        //    /// </returns>
-        //    public string LoadAllAppls(int grant_id)
-        //    {
-        //            List<string> list = EgrantsAppl.GetAllAppls(grant_id);
-
-        //            // JavaScriptSerializer js = new JavaScriptSerializer();
-        //            return JsonConvert.SerializeObject(list);
-        //    }
 
         //    /// <summary>
         //    /// Load 12 appls list for appls toggle by grant_id
