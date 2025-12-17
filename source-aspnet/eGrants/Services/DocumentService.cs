@@ -968,65 +968,322 @@ namespace eGrants.Services
             string fullGrantNumber, string documentName, string documentId, DownloadData downloadData,
             System.Text.StringBuilder diagnostics, SessionInfo sessionInfo)
         {
+            Log.Information("HandleStandardFileAsync started for URI: {Uri}, DocumentId: {DocumentId}, DocumentName: {DocumentName}",
+                uri.ToString(), documentId, documentName);
+
             diagnostics.Append("Not closeout or FFR Rejection. ");
 
             HttpClient client;
-            diagnostics.Append("Internal server detected, adding certificate. ");
+            HttpClientHandler handler = null;
 
-            var handler = new HttpClientHandler
+            try
             {
-                UseDefaultCredentials = true,
-                PreAuthenticate = true
-            };
+                // Check if this is an internal NIH server that needs authentication
+                var needsAuth = uri.Host.Contains("egrants") || uri.Host.Contains("nci.nih.gov") || uri.Host.Contains("nih.gov");
+                Log.Information("URI Host: {Host}, Needs Authentication: {NeedsAuth}", uri.Host, needsAuth);
 
-            // Add certificate if available
-            var cerUri = sessionInfo.CertPath;
-            var certPass = sessionInfo.CertPass;
-
-            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
-            {
-                var certificate = new X509Certificate2(cerUri, certPass);
-                handler.ClientCertificates.Add(certificate);
-                diagnostics.Append("Certificate added. ");
-            } else
-            {
-                Log.Warning("Certificate not found");
-            }
-
-            client = new HttpClient(handler);
-
-            using (client)
-            {
-                client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
-
-                var response = await client.GetAsync(uri);
-
-                // Log response details for debugging
-                diagnostics.Append($"Response status: {response.StatusCode}. ");
-                diagnostics.Append($"Content-Type: {response.Content.Headers.ContentType?.MediaType}. ");
-
-                if (!response.IsSuccessStatusCode)
+                if (needsAuth)
                 {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    diagnostics.Append($"Error response: {errorContent.Substring(0, Math.Min(200, errorContent.Length))}. ");
+                    diagnostics.Append("Internal server detected, adding certificate. ");
+                    Log.Information("Configuring authentication for internal server");
+
+                    handler = new HttpClientHandler
+                    {
+                        UseDefaultCredentials = true,
+                        PreAuthenticate = true,
+                        UseCookies = true,
+                        CookieContainer = new System.Net.CookieContainer(),
+                        AllowAutoRedirect = true,
+                        MaxAutomaticRedirections = 5
+                    };
+
+                    // Add certificate if available
+                    var cerUri = sessionInfo.CertPath;
+                    var certPass = sessionInfo.CertPass;
+
+                    Log.Information("Certificate configuration - Path: {CertPath}, Password Length: {PasswordLength}, Password Provided: {HasPassword}",
+                        cerUri,
+                        certPass?.Length ?? 0,
+                        !string.IsNullOrEmpty(certPass));
+
+                    if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
+                    {
+                        Log.Information("Certificate file exists at path: {CertPath}, File size: {FileSize} bytes",
+                            cerUri, new FileInfo(cerUri).Length);
+
+                        try
+                        {
+                            // Attempt to load the certificate with the provided password
+                            var certificate = new X509Certificate2(cerUri, certPass);
+
+                            // Log certificate details (without sensitive info)
+                            Log.Information("Certificate loaded successfully - Subject: {Subject}, Issuer: {Issuer}, Thumbprint: {Thumbprint}, Expiration: {Expiration}, HasPrivateKey: {HasPrivateKey}",
+                                certificate.Subject,
+                                certificate.Issuer,
+                                certificate.Thumbprint,
+                                certificate.NotAfter,
+                                certificate.HasPrivateKey);
+
+                            // Check if certificate is valid
+                            if (certificate.NotAfter < DateTime.Now)
+                            {
+                                Log.Warning("Certificate has EXPIRED on {ExpirationDate}. Current date: {CurrentDate}",
+                                    certificate.NotAfter, DateTime.Now);
+                                diagnostics.Append("WARNING: Certificate expired. ");
+                            }
+                            else if (certificate.NotBefore > DateTime.Now)
+                            {
+                                Log.Warning("Certificate is NOT YET VALID. Valid from: {ValidFrom}, Current date: {CurrentDate}",
+                                    certificate.NotBefore, DateTime.Now);
+                                diagnostics.Append("WARNING: Certificate not yet valid. ");
+                            }
+                            else
+                            {
+                                Log.Information("Certificate is valid. Valid from {ValidFrom} to {ValidTo}",
+                                    certificate.NotBefore, certificate.NotAfter);
+                            }
+
+                            if (!certificate.HasPrivateKey)
+                            {
+                                Log.Warning("Certificate does NOT have a private key. This may cause authentication issues.");
+                                diagnostics.Append("WARNING: No private key. ");
+                            }
+
+                            handler.ClientCertificates.Add(certificate);
+                            diagnostics.Append("Certificate exists and added. ");
+                            Log.Information("Certificate successfully added to HttpClientHandler");
+                        }
+                        catch (System.Security.Cryptography.CryptographicException cryptoEx)
+                        {
+                            Log.Error(cryptoEx, "CRYPTOGRAPHIC ERROR loading certificate from {CertPath}. This usually indicates an INCORRECT PASSWORD or corrupted certificate file. Error: {ErrorMessage}",
+                                cerUri, cryptoEx.Message);
+
+                            diagnostics.Append($"CERT ERROR: {cryptoEx.Message}. ");
+
+                            // Don't throw - try to continue without certificate
+                            Log.Warning("Continuing without certificate due to cryptographic error");
+                        }
+                        catch (Exception certEx)
+                        {
+                            Log.Error(certEx, "ERROR loading certificate from {CertPath}. Error type: {ErrorType}, Message: {ErrorMessage}",
+                                cerUri, certEx.GetType().Name, certEx.Message);
+
+                            diagnostics.Append($"CERT ERROR: {certEx.Message}. ");
+
+                            // Don't throw - try to continue without certificate
+                            Log.Warning("Continuing without certificate due to error");
+                        }
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(cerUri))
+                        {
+                            Log.Warning("Certificate path is NULL or EMPTY");
+                        }
+                        else
+                        {
+                            Log.Warning("Certificate file NOT FOUND at path: {CertPath}", cerUri);
+                        }
+
+                        diagnostics.Append("Certificate NOT found. ");
+                    }
+
+                    client = new HttpClient(handler);
+                }
+                else
+                {
+                    Log.Information("External URL, using basic HttpClient without authentication");
+                    client = new HttpClient();
                 }
 
-                response.EnsureSuccessStatusCode();
+                using (client)
+                {
+                    client.Timeout = TimeSpan.FromMinutes(5);
+                    client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
+                    client.DefaultRequestHeaders.Add("Accept", "application/octet-stream, application/*, */*");
 
-                await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
-                await response.Content.CopyToAsync(fileStream);
-                fileStream.Close();
+                    Log.Information("Sending GET request to: {Uri}", uri.ToString());
 
-                var filename = Path.GetFileName(uri.LocalPath);
-                var fi = new FileInfo(filename);
+                    var response = await client.GetAsync(uri);
 
-                var newFileName = ReplaceInvalidChars(
-                    $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
-                    "_");
+                    var statusCode = response.StatusCode;
+                    var contentType = response.Content.Headers.ContentType?.MediaType ?? "unknown";
+                    var contentLength = response.Content.Headers.ContentLength ?? 0;
 
-                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
-                downloadData.FileDownloaded = newFileName;
+                    // Log response details
+                    Log.Information("Response received - Status: {StatusCode}, Content-Type: {ContentType}, Content-Length: {ContentLength}",
+                        statusCode, contentType, contentLength);
+
+                    diagnostics.Append($"Response status: {statusCode}. ");
+                    diagnostics.Append($"Content-Type: {contentType}. ");
+                    diagnostics.Append($"Content-Length: {contentLength}. ");
+
+                    // Check for redirect responses
+                    if ((int)statusCode >= 300 && (int)statusCode < 400)
+                    {
+                        var location = response.Headers.Location?.ToString() ?? "N/A";
+                        Log.Warning("Received redirect response. Location: {Location}", location);
+                        diagnostics.Append($"Redirect to: {location}. ");
+                    }
+
+                    // Check if we got HTML instead of the expected file
+                    if (contentType.Contains("text/html") || contentType.Contains("application/xhtml"))
+                    {
+                        var htmlContent = await response.Content.ReadAsStringAsync();
+
+                        Log.Error("Received HTML content instead of file. Content-Type: {ContentType}, Status: {StatusCode}, URI: {Uri}, Preview: {Preview}",
+                            contentType, statusCode, uri.ToString());
+
+                        diagnostics.Append($"ERROR: Got HTML instead of file! ");
+
+                        downloadData.Error = $"Server returned HTML (authentication page or error) instead of file. Content-Type: {contentType}";
+                        throw new HttpRequestException($"Server returned HTML (likely auth page) instead of file. Status: {statusCode}, Content-Type: {contentType}");
+                    }
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        var errorPreview = errorContent.Substring(0, Math.Min(500, errorContent.Length));
+
+                        Log.Error("HTTP request failed. Status: {StatusCode}, Content-Type: {ContentType}, Error: {ErrorPreview}",
+                            statusCode, contentType, errorPreview);
+
+                        diagnostics.Append($"Error response: {errorPreview.Substring(0, Math.Min(200, errorPreview.Length))}. ");
+                    }
+
+                    response.EnsureSuccessStatusCode();
+
+                    Log.Information("Beginning file download to temp file: {TempFile}", tmpFileName);
+
+                    // Download the file
+                    await using var fileStream = new FileStream(tmpFileName, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await response.Content.CopyToAsync(fileStream);
+                    await fileStream.FlushAsync();
+                    fileStream.Close();
+
+                    var fileInfo = new FileInfo(tmpFileName);
+                    Log.Information("File downloaded successfully. Size: {FileSize} bytes, Path: {TempFile}",
+                        fileInfo.Length, tmpFileName);
+
+                    // Validate the downloaded file
+                    if (fileInfo.Length == 0)
+                    {
+                        Log.Error("Downloaded file is empty: {TempFile}", tmpFileName);
+                        throw new InvalidOperationException("Downloaded file is empty");
+                    }
+
+                    // Check if the downloaded file is actually HTML by examining the first few bytes
+                    using (var fs = new FileStream(tmpFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        var buffer = new byte[Math.Min(1024, (int)fs.Length)];
+                        await fs.ReadAsync(buffer, 0, buffer.Length);
+                        var fileStart = System.Text.Encoding.UTF8.GetString(buffer).ToLower();
+
+                        if (fileStart.Contains("<!doctype html") ||
+                            fileStart.Contains("<html") ||
+                            fileStart.Contains("<head") ||
+                            (fileStart.Contains("<!doctype") && fileStart.Contains("html")))
+                        {
+                            Log.Error("Downloaded file contains HTML content.");
+
+                            diagnostics.Append("ERROR: Downloaded file is HTML! ");
+
+                            downloadData.Error = "Downloaded file is HTML (authentication required or access denied)";
+                            throw new InvalidOperationException("Downloaded file appears to be an HTML page instead of the expected document");
+                        }
+                    }
+
+                    // Create the final filename
+                    var filename = Path.GetFileName(uri.LocalPath);
+                    var fi = new FileInfo(filename);
+                    var fileExtension = fi.Extension;
+
+                    // If no extension from URI, try to get from Content-Type
+                    if (string.IsNullOrEmpty(fileExtension) || fileExtension == ".")
+                    {
+                        fileExtension = GetExtensionFromContentType(contentType);
+                        Log.Information("No extension in URI, derived from Content-Type: {Extension}", fileExtension);
+                    }
+
+                    var newFileName = ReplaceInvalidChars(
+                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fileExtension}",
+                        "_");
+
+                    var finalPath = Path.Combine(downloadDirectory, newFileName);
+
+                    Log.Information("Moving file from {TempFile} to {FinalPath}", tmpFileName, finalPath);
+
+                    // Ensure the file doesn't already exist
+                    if (System.IO.File.Exists(finalPath))
+                    {
+                        Log.Warning("Target file already exists, deleting: {FinalPath}", finalPath);
+                        System.IO.File.Delete(finalPath);
+                    }
+
+                    System.IO.File.Move(tmpFileName, finalPath);
+
+                    downloadData.FileDownloaded = newFileName;
+
+                    Log.Information("File successfully downloaded and saved: {FileName}, Size: {FileSize} bytes",
+                        newFileName, fileInfo.Length);
+
+                    diagnostics.Append($"Success: Downloaded {fileInfo.Length} bytes. ");
+                }
             }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error in HandleStandardFileAsync. URI: {Uri}, DocumentId: {DocumentId}, DocumentName: {DocumentName}",
+                    uri.ToString(), documentId, documentName);
+
+                diagnostics.Append($"Exception: {ex.Message}. ");
+
+                // Clean up temp file if it exists
+                if (System.IO.File.Exists(tmpFileName))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(tmpFileName);
+                        Log.Information("Cleaned up temp file after error: {TempFile}", tmpFileName);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        Log.Warning(cleanupEx, "Failed to cleanup temp file: {TempFile}", tmpFileName);
+                    }
+                }
+
+                throw;
+            }
+            finally
+            {
+                handler?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Get file extension from Content-Type header
+        /// </summary>
+        private string GetExtensionFromContentType(string contentType)
+        {
+            if (string.IsNullOrEmpty(contentType))
+                return ".bin";
+
+            return contentType.ToLower() switch
+            {
+                var ct when ct.Contains("pdf") => ".pdf",
+                var ct when ct.Contains("word") || ct.Contains("msword") => ".doc",
+                var ct when ct.Contains("wordprocessingml") => ".docx",
+                var ct when ct.Contains("excel") || ct.Contains("ms-excel") => ".xls",
+                var ct when ct.Contains("spreadsheetml") => ".xlsx",
+                var ct when ct.Contains("powerpoint") || ct.Contains("ms-powerpoint") => ".ppt",
+                var ct when ct.Contains("presentationml") => ".pptx",
+                var ct when ct.Contains("text/plain") => ".txt",
+                var ct when ct.Contains("image/jpeg") => ".jpg",
+                var ct when ct.Contains("image/png") => ".png",
+                var ct when ct.Contains("image/gif") => ".gif",
+                var ct when ct.Contains("application/zip") => ".zip",
+                var ct when ct.Contains("application/x-zip") => ".zip",
+                _ => ".bin"
+            };
         }
 
         /// <summary>
