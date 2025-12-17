@@ -196,37 +196,6 @@ namespace eGrants.Controllers.Egrants
         }
 
 
-        ///// <summary>
-        ///// The load supplement doc.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="grant_id">
-        ///// The grant_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult LoadSupplementDoc(string act, int grant_id)
-        //{
-        //    this.ViewBag.Act = act;
-        //    this.ViewBag.GrantID = grant_id;
-        //    this.ViewBag.FormerAppls = EgrantsDoc.LoadFormerAppls(grant_id);
-
-        //    this.ViewBag.Supplement = EgrantsDoc.LoadSupplement(
-        //        act,
-        //        grant_id,
-        //        0,
-        //        string.Empty,
-        //        0,
-        //        string.Empty,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
-
-        //    return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
-        //}
-
         public async Task<ActionResult> LoadSupplementDoc(string act, int grantId)
         {
             //this.ViewBag.FormerAppls = EgrantsDoc.LoadFormerAppls(grant_id);
@@ -324,49 +293,6 @@ namespace eGrants.Controllers.Egrants
 
             return View("~/Views/eGrants/Supplement.cshtml", supplementObjectViewModel);
         }
-
-        ///// <summary>
-        ///// The process supplement.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="grant_id">
-        ///// The grant_id.
-        ///// </param>
-        ///// <param name="support_year">
-        ///// The support_year.
-        ///// </param>
-        ///// <param name="suffix_code">
-        ///// The suffix_code.
-        ///// </param>
-        ///// <param name="former_applid">
-        ///// The former_applid.
-        ///// </param>
-        ///// <param name="docid_str">
-        ///// The docid_str.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult ProcessSupplement(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
-        //{
-        //    this.ViewBag.Status = "Done";
-        //    this.ViewBag.GrantID = grant_id;
-        //    this.ViewBag.FormerAppls = EgrantsDoc.LoadFormerAppls(grant_id);
-
-        //    this.ViewBag.Supplement = EgrantsDoc.LoadSupplement(
-        //        act,
-        //        grant_id,
-        //        support_year,
-        //        suffix_code,
-        //        former_applid,
-        //        docid_str,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
-
-        //    return this.View("~/Egrants/Views/Supplement.cshtml");
-        //}
 
         public async Task<ActionResult> ProcessSupplement(string act, int grantId, int supportYear, string suffixCode, int formerApplId, string docIdStr)
         {
@@ -502,92 +428,6 @@ namespace eGrants.Controllers.Egrants
 
         }
 
-        //// to create doc by file input
-        ///// <summary>
-        ///// The doc_create_by_file.
-        ///// </summary>
-        ///// <param name="file">
-        ///// The file.
-        ///// </param>
-        ///// <param name="appl_id">
-        ///// The appl_id.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="sub_category">
-        ///// The sub_category.
-        ///// </param>
-        ///// <param name="doc_date">
-        ///// The doc_date.
-        ///// </param>
-        ///// <param name="admin_code">
-        ///// The admin_code.
-        ///// </param>
-        ///// <param name="serial_num">
-        ///// The serial_num.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //[HttpPost]
-        //public ActionResult doc_create_by_file(
-        //    HttpPostedFileBase file,
-        //    int appl_id,
-        //    int category_id,
-        //    string sub_category,
-        //    DateTime doc_date,
-        //    string admin_code,
-        //    int serial_num)
-        //{
-        //    var docName = string.Empty;
-        //    string url = null;
-        //    string mssg = null;
-
-        //    if (file != null && file.ContentLength > 0)
-        //        try
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(file.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
-
-        //            // get document_id and creat a new docName
-        //            var document_id = EgrantsDoc.GetDocID(
-        //                appl_id,
-        //                category_id,
-        //                sub_category,
-        //                doc_date,
-        //                fileExtension,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            docName = Convert.ToString(document_id) + fileExtension;
-
-        //            // upload to image sever 
-        //            var fileFolder = @"\\" + Convert.ToString(this.Session["WebGrantUrl"]) + "\\egrants\\funded2\\nci\\main\\";
-
-        //            var filePath = Path.Combine(fileFolder, docName);
-
-        //            file.SaveAs(filePath);
-
-        //            // create review url
-        //            this.ViewBag.FileUrl = Convert.ToString(this.Session["ImageServerUrl"]) + Convert.ToString(this.Session["EgrantsDocNewRelativePath"])
-        //                                 + Convert.ToString(docName);
-
-        //            this.ViewBag.Message = "Done! New document has been created";
-
-        //            url = this.ViewBag.FileUrl;
-        //            mssg = this.ViewBag.Message;
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            this.ViewBag.Message = "ERROR:" + ex.Message;
-        //        }
-        //    else
-        //        this.ViewBag.Message = "You have not specified a file.";
-
-        //    return this.Json(new { url, message = mssg });
-        //}
 
         [HttpPost]
         public async Task<ActionResult> doc_create_by_file(IFormFile file, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
@@ -1254,15 +1094,6 @@ namespace eGrants.Controllers.Egrants
 
             return this.Json(new { url, message = mssg });
         }
-
-        //// public ActionResult impac_docs(string act, int appl_id)
-        //// {
-        ////     this.ViewBag.ImpacDocs = EgrantsDoc.LoadImpacDocs(act, appl_id);
-        ////     this.ViewBag.act = act;
-        ////     this.ViewBag.appl_id = appl_id;
-        ////
-        ////     return this.View("~/Egrants/Views/_Modal_Impac_Docs.cshtml");
-        //// }
 
 
         // to update document index for normal documents
