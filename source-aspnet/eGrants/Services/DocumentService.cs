@@ -623,6 +623,7 @@ namespace eGrants.Services
                         if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
                         {
                             certificate = new X509Certificate2(cerUri, certPass);
+                            Log.Information("Certificate loaded from path: {CertPath}", cerUri);
                             diagnostics.Append("Handling as era service. ");
                             var resultStatus = await HandleEraFileAsync(url, tmpFileName, certificate, downloadDirectory, request.FullGrantNumber,
                                 category, documentName, documentDate, documentId, downloadData, diagnostics);
@@ -630,6 +631,7 @@ namespace eGrants.Services
                             {                               
                                 downloadModel.NumFailed += 1;
                                 downloadData.Error = "File not found.";
+                                Log.Warning("ERA file download failed, possible certificate issue, for URL: {Url}", url);
                             } else
                             {
                                 downloadModel.NumSucceeded += 1;
