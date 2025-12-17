@@ -274,8 +274,6 @@ namespace eGrants.Controllers.Egrants
             return true;
         }
 
-        //    //public CountProperty<int> CountProperty;// = new CountProperty<int>();
-        //    //countProperty.Value = 0;
 
         /// <summary>
         /// The by_str.
@@ -292,9 +290,6 @@ namespace eGrants.Controllers.Egrants
         [HttpGet]
         public async Task<IActionResult> by_str(string str, string mode = null)
         {
-            //TODO: Determine if the following code is ever being used
-            // CountProperty = new CountProperty<int>();
-            // CountProperty.Value = 0;
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
             eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByStrAsync(str, 0, 0, 0, sessionInfo);
@@ -383,74 +378,6 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
         }
 
-
-        //    /// <summary>
-        //    /// The by_appl.
-        //    /// </summary>
-        //    /// <param name="appl_id">
-        //    /// The appl_id.
-        //    /// </param>
-        //    /// <param name="mode">
-        //    /// The mode.
-        //    /// </param>
-        //    /// <param name="str">
-        //    /// The str.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult by_appl(int appl_id = 0, string mode = null, string str = null)
-        //    {
-        //        ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-        //        var isexisting = EgrantsAppl.CheckApplID(appl_id);
-
-        //        if (appl_id == 0 || isexisting == 0)
-        //        {
-        //            ViewBag.Message = "No data found for the search";
-        //            ViewBag.grantlayer = null;
-        //        }
-        //        else
-        //        {
-        //            // ViewBag.YearList = Egrants.Models.Egrants.P2_getYearList();
-        //            if (str != null)
-        //                ViewBag.Str = str;
-
-
-        //            ViewBag.Mode = mode;
-        //            ViewBag.SearchStyle = "by_appl";
-        //            ViewBag.ApplID = appl_id;
-        //            ViewBag.GrantID = Dashboard.Functions.Egrants.GetGrantID(appl_id);
-        //            ViewBag.SelectedCats = "All";
-        //            ViewBag.SelectedCategories = "All";
-        //            ViewBag.SelectedAppls = appl_id.ToString();
-
-        //            // load data from DB
-        //            Search.egrants_search(
-        //                string.Empty,
-        //                0,
-        //                string.Empty,
-        //                appl_id,
-        //                0,
-        //                Convert.ToString(this.Session["browser"]),
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            ViewBag.grantlayer = Search.grantlayerproperty;
-        //            ViewBag.appllayer = Search.appllayerproperty;
-        //            ViewBag.appllayer_All = Search.appllayerproperty;
-        //            ViewBag.ApplCount = ViewBag.appllayer.Count;
-        //            ViewBag.doclayer = Search.doclayerproperty;
-        //            ViewBag.DocCount = ViewBag.doclayer.Count;
-        //            if (Search.appllayerproperty != null && Search.appllayerproperty.Count() > 0)
-        //            {
-        //                var thisAppl = Search.appllayerproperty.FirstOrDefault(a => a.appl_id == appl_id.ToString());
-        //                if (thisAppl != null)
-        //                    ViewBag.yearName = thisAppl.label;
-        //            }
-        //        }
-
-        //        return View("~/Egrants/Views/Index.cshtml");
-        //    }
 
         /// <summary>
         /// The by_qc.
@@ -836,23 +763,5 @@ namespace eGrants.Controllers.Egrants
         //    }
         //}
 
-
-        //class MyWebClient : WebClient
-        //{
-        //    protected override WebRequest GetWebRequest(Uri address)
-        //    {
-        //        var cert_url = ConfigurationManager.ConnectionStrings["certPath"].ToString();
-        //        var cert_pass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
-        //        var certificate = new X509Certificate2(cert_url, cert_pass);
-
-        //        HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
-
-        //        if (request != null)
-        //        {
-        //            request.ClientCertificates.Add(certificate);
-        //        }
-
-        //        return request;
-        //    }
     }
 }
