@@ -202,5 +202,7 @@ namespace eGrants.Services.Interfaces
         /// <param name="request">The download request</param>
         /// <returns>Download model with results</returns>
         Task<DownloadModel> ProcessDocumentDownloadAsync(DownloadRequest request);
+
+        Task report_doc_error(string errormsg, int docId, string ic, string userId);
     }
 }

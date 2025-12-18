@@ -120,46 +120,46 @@ namespace eGrants.Controllers.Egrants
             _applService = applService;
         }
 
-        //// GET: Egrants
-        ///// <summary>
-        ///// The report error index.
-        ///// </summary>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult ReportErrorIndex(int document_id)
-        //{
-        //    this.ViewBag.DocID = document_id;
+        // GET: Egrants
+        /// <summary>
+        /// The report error index.
+        /// </summary>
+        /// <param name="document_id">
+        /// The document_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult ReportErrorIndex(int document_id)
+        {
+            this.ViewBag.DocID = 1; // document_id;
 
-        //    return this.View("~/Egrants/Views/_Modal_Report_Error.cshtml");
-        //}
+            return this.View("~/Views/Egrants/_Modal_Report_Error.cshtml");
+        }
 
-        ///// <summary>
-        ///// The report error.
-        ///// </summary>
-        ///// <param name="errormsg">
-        ///// The errormsg.
-        ///// </param>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <param name="currenturl">
-        ///// The currenturl.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult ReportError(string errormsg, int document_id, string currenturl)
-        //{
-        //    this.ViewBag.DocID = document_id;
-        //    this.ViewBag.Errormsg = errormsg;
-        //    EgrantsDoc.report_doc_error(errormsg, document_id, Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
+        /// <summary>
+        /// The report error.
+        /// </summary>
+        /// <param name="errormsg">
+        /// The errormsg.
+        /// </param>
+        /// <param name="document_id">
+        /// The document_id.
+        /// </param>
+        /// <param name="currenturl">
+        /// The currenturl.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult ReportError(string errormsg, int document_id, string currenturl)
+        {
+            this.ViewBag.DocID = document_id;
+            this.ViewBag.Errormsg = errormsg;
+            _documentService.report_doc_error(errormsg, document_id, sessionInfo.Ic, sessionInfo.UserId);
 
-        //    return this.Redirect(currenturl);
-        //}
+            return this.Redirect(currenturl);
+        }
 
 
         // show era doc
@@ -218,48 +218,55 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/eGrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
         }
 
-        ///// <summary>
-        ///// The process supplement doc.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="grant_id">
-        ///// The grant_id.
-        ///// </param>
-        ///// <param name="support_year">
-        ///// The support_year.
-        ///// </param>
-        ///// <param name="suffix_code">
-        ///// The suffix_code.
-        ///// </param>
-        ///// <param name="former_applid">
-        ///// The former_applid.
-        ///// </param>
-        ///// <param name="docid_str">
-        ///// The docid_str.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
-        //{
-        //    this.ViewBag.Status = "Done";
-        //    this.ViewBag.GrantID = grant_id;
-        //    this.ViewBag.FormerAppls = EgrantsDoc.LoadFormerAppls(grant_id);
+        /// <summary>
+        /// The process supplement doc.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <param name="support_year">
+        /// The support_year.
+        /// </param>
+        /// <param name="suffix_code">
+        /// The suffix_code.
+        /// </param>
+        /// <param name="former_applid">
+        /// The former_applid.
+        /// </param>
+        /// <param name="docid_str">
+        /// The docid_str.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task <ActionResult> ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
+        {
+            ViewBag.Status = "Done";
+            ViewBag.GrantID = grant_id;
+            ViewBag.FormerAppls = await _documentService.loadFormerAppls(grant_id);
 
-        //    this.ViewBag.Supplement = EgrantsDoc.LoadSupplement(
-        //        act,
-        //        grant_id,
-        //        support_year,
-        //        suffix_code,
-        //        former_applid,
-        //        docid_str,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            ViewBag.Supplement = _eGrantsService.GetSupplements(
+                act,
+                grant_id,
+                support_year,
+                suffix_code,
+                docid_str,
+                former_applid,
+                sessionInfo.Ic,
+                sessionInfo.UserId);
 
-        //    return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
-        //}
+            SupplementObjectViewModel supplementObjectViewModel = new SupplementObjectViewModel();
+
+            supplementObjectViewModel.GrantID = grant_id;
+            supplementObjectViewModel.Act = act;
+            supplementObjectViewModel.Supplement = ViewBag.Supplement;
+            supplementObjectViewModel.FormerAppls = await _documentService.loadFormerAppls(grant_id);
+
+            return this.View("~/Views/Egrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
+        }
 
         /// <summary>
         /// The load supplement.
