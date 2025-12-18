@@ -30,7 +30,7 @@
 
     function create_new() {
         var previous_url = encodeURIComponent(currenturl);
-        var url = "@Url.Action("doc_create_without_applid", "EgrantsDoc")?previous_url=" + previous_url;
+        var url = "@Url.Action("doc_create_without_applid", "EgrantsDoc")?previousUrl=" + previous_url;
         window.document.location.href = url;
     }
 
