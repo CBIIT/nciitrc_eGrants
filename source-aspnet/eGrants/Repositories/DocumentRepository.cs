@@ -295,5 +295,24 @@ namespace eGrants.Repositories
             }
         }
 
+        public async Task report_doc_error(string errormsg, int docId, string ic, string userId)
+        {
+            await using var conn = new SqlConnection(_context.Database.GetConnectionString());
+            await conn.OpenAsync();
+
+            await using var cmd = new SqlCommand("sp_web_egrants_doc_error", conn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            // Add parameters
+            cmd.Parameters.Add("@error", SqlDbType.VarChar).Value = errormsg;
+            cmd.Parameters.Add("@docid", SqlDbType.Int).Value = docId;
+            cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+            cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userId;
+
+            // If you don’t need to read results, use ExecuteNonQueryAsync
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 }
