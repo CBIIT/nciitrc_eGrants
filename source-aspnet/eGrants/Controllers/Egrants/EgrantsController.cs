@@ -42,6 +42,8 @@ using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json;
 
+using Serilog;
+
 #endregion
 namespace eGrants.Controllers.Egrants
 {
@@ -603,6 +605,28 @@ namespace eGrants.Controllers.Egrants
 
         //        return null;
         //    }
+
+        /// <summary>
+        /// Gets IMPAC docs data as JSON string for the specified application (legacy format)
+        /// </summary>
+        /// <param name="act">The action to perform</param>
+        /// <param name="appl_id">The application ID</param>
+        /// <returns>JSON serialized string of IMPAC docs</returns>
+        [HttpPost]
+        public async Task<string> impac_docs_data(string act, int appl_id)
+        {
+            try
+            {
+                var list = await _eGrantsService.LoadImpacDocs(act, appl_id);
+                return JsonConvert.SerializeObject(list);
+            }
+            catch (Exception ex)
+            {
+                // Log error appropriately
+                Log.Error($"Error loading IMPAC docs: {ex}");
+                return null;
+            }
+        }
 
         //    public string doc_attachments_data(int document_id)
         //    {
