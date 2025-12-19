@@ -629,7 +629,7 @@ namespace eGrants.Services
                             if (!resultStatus)
                             {                               
                                 downloadModel.NumFailed += 1;
-                                downloadData.Error = "File not found.";
+                                downloadData.Error = "File not found or certificate issues";
                             } else
                             {
                                 downloadModel.NumSucceeded += 1;
