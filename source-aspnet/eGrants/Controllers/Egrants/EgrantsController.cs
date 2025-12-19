@@ -421,111 +421,6 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
         }
 
-        //    /// <summary>
-        //    /// The by_filters_page.
-        //    /// </summary>
-        //    /// <param name="tab_num">
-        //    /// The tab_num.
-        //    /// </param>
-        //    /// <param name="page_num">
-        //    /// The page_num.
-        //    /// </param>
-        //    /// <param name="package">
-        //    /// The package.
-        //    /// </param>
-        //    /// <param name="fy">
-        //    /// The fy.
-        //    /// </param>
-        //    /// <param name="mechanism">
-        //    /// The mechanism.
-        //    /// </param>
-        //    /// <param name="admincode">
-        //    /// The admincode.
-        //    /// </param>
-        //    /// <param name="serialnum">
-        //    /// The serialnum.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult by_filters_page(
-        //        int tab_num = 0,
-        //        int page_num = 0,
-        //        string package = null,
-        //        int fiscalYear = 0,
-        //        string mechanism = null,
-        //        string adminCode = null,
-        //        int serialNumber = 0)
-        //    {
-        //        ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-
-        //        /*string.IsNullOrEmpty(admincode) &&*/
-        //        if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNumber == 0)
-        //        {
-        //            ViewBag.Message = "No data found for the search";
-        //            ViewBag.grantlayer = null;
-        //        }
-        //        else if (tab_num == 0 || page_num == 0 || string.IsNullOrEmpty(package) || package != "by_filters")
-        //        {
-        //            ViewBag.Message = "No data found for the search";
-        //            ViewBag.grantlayer = null;
-        //        }
-        //        else
-        //        {
-        //            ViewBag.SearchStyle = package;
-        //            ViewBag.CurrentTab = tab_num;
-        //            ViewBag.CurrentPage = page_num;
-
-        //            // create return value
-        //            if (fiscalYear != 0)
-        //                ViewBag.FilterFY = fiscalYear;
-        //            else
-        //                ViewBag.FilterFY = string.Empty;
-
-        //            ViewBag.FilterMechanism = mechanism;
-        //            ViewBag.FilterAdminCode = adminCode;
-
-        //            if (serialNumber != 0)
-        //                ViewBag.FilterSerialNumber = serialNumber;
-
-        //            // create filters search sql query
-        //            var FilterSearchQuery = Dashboard.Functions.Egrants.GetSearchQuery(
-        //                fiscalYear,
-        //                mechanism,
-        //                adminCode,
-        //                serialNumber,
-        //                page_num,
-        //                Convert.ToString(this.Session["browser"]),
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            // load data
-        //            Search.egrants_search(
-        //                FilterSearchQuery,
-        //                0,
-        //                package,
-        //                0,
-        //                page_num,
-        //                Convert.ToString(this.Session["browser"]),
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            ViewBag.grantlayer = Search.grantlayerproperty;
-        //            ViewBag.appllayer = Search.appllayerproperty;
-        //            ViewBag.appllayer_All = Search.appllayerproperty;
-        //            ViewBag.ApplCount = ViewBag.appllayer.Count;
-
-        //            // show Pagination 
-        //            ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
-        //                FilterSearchQuery,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]),
-        //                package);
-        //        }
-
-        //        return View("~/Egrants/Views/Index.cshtml");
-        //    }
-
         /// <summary>
         /// The by_page.
         /// </summary>
@@ -639,24 +534,6 @@ namespace eGrants.Controllers.Egrants
         {
             var docs = _documentService.LoadDocs(applId, searchType, categoryList, mode, HttpContext.Session);
             return Json(new { data = docs });
-        }
-
-        public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)
-        {
-            //Search_by_appl_id.LoadDocs(
-            //    appl_id,
-            //    search_type,
-            //    category_list,
-            //    Convert.ToString(this.Session["ic"]),
-            //    Convert.ToString(this.Session["userid"]));
-
-            //ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
-
-            //// ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
-            //dynamic res = new { data = ViewBag.doclayer };
-
-            //return Json(res, JsonRequestBehavior.AllowGet);
-            return Json(null);
         }
 
         //    /// <summary>
