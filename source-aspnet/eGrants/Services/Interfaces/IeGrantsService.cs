@@ -280,6 +280,7 @@ namespace eGrants.Services.Interfaces
             int currentPage,
             SessionInfo sessionInfo,
             IDocumentService _documentService);
+
         /// Updates the grant year label for a specific application record.
         /// </summary>
         /// <param name="newLabel">
@@ -294,5 +295,19 @@ namespace eGrants.Services.Interfaces
         /// otherwise <c>false</c>.
         /// </returns>
         public Task<bool> SetGrantYearLabel(string newLabel, int applId);
+
+        /// <summary>
+        /// The load stop notice.
+        /// </summary>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <param name="ic">
+        /// The ic.
+        /// </param>
+        /// <returns>
+        /// The <see cref="System.Collections.Generic.List`1"/> .
+        /// </returns>
+        public List<StopNoticeObject> LoadStopNotice(int grant_id, string ic);
     }
 }
