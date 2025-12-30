@@ -202,5 +202,19 @@ namespace eGrants.Services.Interfaces
         /// <param name="request">The download request</param>
         /// <returns>Download model with results</returns>
         Task<DownloadModel> ProcessDocumentDownloadAsync(DownloadRequest request);
+
+        /// <summary>
+        ///     The load doc attachments.
+        /// </summary>
+        /// <param name="document_id">The document_id.</param>
+        /// <returns>
+        ///     The <see cref="System.Collections.Generic.List`1" /> .
+        /// </returns>
+        /// <summary>
+        /// Load document attachments asynchronously
+        /// </summary>
+        /// <param name="documentId">The document_id</param>
+        /// <returns>List of document attachments</returns>
+        public Task<List<DocAttachment>> LoadDocAttachmentsAsync(int document_id);
     }
 }
