@@ -589,25 +589,6 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/eGrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
         }
 
-        //    public string impac_docs_data(string act, int appl_id)
-        //    {
-        //        try
-        //        {
-        //            ViewBag.ImpacDocs = EgrantsDoc.LoadImpacDocs(act, appl_id);
-        //            ViewBag.act = act;
-        //            ViewBag.appl_id = appl_id;
-
-        //            List<ImpacDocs> list = EgrantsDoc.LoadImpacDocs(act, appl_id);
-        //            return JsonConvert.SerializeObject(list);
-        //        }
-        //        catch (Exception err)
-        //        {
-        //            Console.WriteLine(err);
-        //        }
-
-        //        return null;
-        //    }
-
         /// <summary>
         /// Gets IMPAC docs data as JSON string for the specified application (legacy format)
         /// </summary>
