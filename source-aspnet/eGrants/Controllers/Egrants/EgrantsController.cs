@@ -611,24 +611,22 @@ namespace eGrants.Controllers.Egrants
             }
         }
 
-        //    public string doc_attachments_data(int document_id)
-        //    {
-        //        try
-        //        {
+        public async Task<string> doc_attachments_data(int document_id)
+        {
+            try
+            {
 
-        //            List<DocAttachment> list = EgrantsDoc.LoadDocAttachments(document_id);
+                List<DocAttachment> list = await _documentService.LoadDocAttachmentsAsync(document_id);
 
-        //            return JsonConvert.SerializeObject(list);
+                return JsonConvert.SerializeObject(list);
 
-        //        }
-        //        catch (Exception err)
-        //        {
-        //            Console.WriteLine(err);
-        //        }
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
+            }
 
-        //        return null;
-        //    }
-        //}
-
+            return null;
+        }
     }
 }
