@@ -538,21 +538,23 @@ namespace eGrants.Controllers.Egrants
             return Json(new { data = docs });
         }
 
-        //    /// <summary>
-        //    /// The stop_notice.
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult stop_notice(int grant_id)
-        //    {
-        //        ViewBag.StopNotice = Dashboard.Functions.Egrants.LoadStopNotice(grant_id, Convert.ToString(this.Session["ic"]));
+        /// <summary>
+        /// The stop_notice.
+        /// </summary>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult stop_notice(int grant_id)
+        {
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        //        return View("~/Egrants/Views/_Modal_Stop_Notice.cshtml");
-        //    }
+            ViewBag.StopNotice = _eGrantsService.LoadStopNotice(grant_id, sessionInfo.Ic);
+
+            return View("~/Views/Egrants/_Modal_Stop_Notice.cshtml");
+        }
 
         /// <summary>
         /// The supplement.
