@@ -91,6 +91,8 @@ using Microsoft.AspNetCore.OutputCaching;
 
 using MsgReader.Outlook;
 
+using Serilog;
+
 namespace eGrants.Controllers.Egrants
 {
     /// <summary>
@@ -162,37 +164,63 @@ namespace eGrants.Controllers.Egrants
         //}
 
 
-        // show era doc
         /// <summary>
-        /// The show_era_doc.
+        /// Show ERA document by retrieving temporary download link
         /// </summary>
-        /// <param name="docurl">
-        /// The docurl.
-        /// </param>
-        /// <returns>
-        /// The <see cref="RedirectResult"/>.
-        /// </returns>
-        public async Task<RedirectResult> show_era_doc(string docurl)
+        /// <param name="docurl">The document URL</param>
+        /// <returns>Redirect to temporary download link or error view</returns>
+        public async Task<IActionResult> show_era_doc(string docurl)
         {
-            var certUrl = _configuration["AppSettings:certPath"];
+            try
+            {
 
-            // this value should be kept as a secret 
-            var certPass = _configuration["AppSettings:certPass"];
+                var certUrl = _configuration["AppSettings:certPath"];
+                var certPass = _configuration["AppSettings:certPass"];
 
-            var certificate = new X509Certificate2(certUrl, certPass);
+                if (string.IsNullOrEmpty(certUrl) || !System.IO.File.Exists(certUrl))
+                {
+                    Log.Error("Certificate not found at path: {CertPath}", certUrl);
+                }
 
-            var handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(certificate);
-            handler.AllowAutoRedirect = false; // same as your current code
+                var certificate = new X509Certificate2(certUrl, certPass);
 
-            using var client = new HttpClient(handler);
-            var response = await client.GetAsync(docurl);
+                var handler = new HttpClientHandler
+                {
+                    AllowAutoRedirect = false, // Prevent automatic redirects
+                    ClientCertificateOptions = ClientCertificateOption.Manual
+                };
+                handler.ClientCertificates.Add(certificate);
 
-            response.EnsureSuccessStatusCode();
+                using var client = new HttpClient(handler);
+                client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
+                client.Timeout = TimeSpan.FromSeconds(30);
 
-            var tempLink = await response.Content.ReadAsStringAsync();
+                Log.Information("Requesting ERA document: {DocUrl}", docurl);
 
-            return Redirect(tempLink);
+                var response = await client.GetAsync(docurl);
+
+                // Log response details
+                Log.Information("ERA response status: {StatusCode}", response.StatusCode);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Log.Error("ERA request failed. Status: {Status}, Content: {Content}",
+                        response.StatusCode, errorContent.Substring(0, Math.Min(200, errorContent.Length)));
+                }
+
+                var tempLink = await response.Content.ReadAsStringAsync();
+                tempLink = tempLink?.Trim();
+
+                Log.Information("Redirecting to temporary link: {TempLink}", tempLink);
+
+                return Redirect(tempLink);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Unexpected error in show_era_doc for URL: {DocUrl}", docurl);
+                throw;
+            }
         }
 
 
