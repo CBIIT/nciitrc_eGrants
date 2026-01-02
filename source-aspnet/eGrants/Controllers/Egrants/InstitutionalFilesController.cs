@@ -49,6 +49,8 @@ using eGrants.ViewModels;
 
 using Microsoft.AspNetCore.Mvc;
 
+using Serilog;
+
 #endregion
 
 namespace eGrant.Controllers
@@ -395,7 +397,7 @@ namespace eGrant.Controllers
                     var fileExtension = Path.GetExtension(fileName);
 
                     // get document id and create new document name 
-                    var docID = _institutionalFilesService.GetDocID(
+                    var docID = await _institutionalFilesService.GetDocID(
                         org_id,
                         category_id,
                         fileExtension,
@@ -407,11 +409,20 @@ namespace eGrant.Controllers
 
                     var docName = Convert.ToString(docID) + fileExtension;
 
-                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
-                    var filePath = Path.Combine(fileFolder, docName);
-                    // save file asynchronously
-                    await using var stream = new FileStream(filePath, FileMode.Create);
-                    await file.CopyToAsync(stream);
+                    try
+                    {
+                        var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+                        var filePath = Path.Combine(fileFolder, docName);
+                        // save file asynchronously
+                        await using var stream = new FileStream(filePath, FileMode.Create);
+                        await file.CopyToAsync(stream);
+                        Log.Information("Successfully copyied file to " + fileFolder);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Error in saving Institutional file: " + ex.Message);
+                    }
+
                 }
                 else
                 {

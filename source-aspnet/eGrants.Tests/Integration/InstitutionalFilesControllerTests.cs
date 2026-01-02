@@ -48,10 +48,10 @@ namespace eGrants.Tests.Integration
             var scopeFactory = CreateScopeFactory();
 
             var repository = new InstitutionalFilesRepository(context, scopeFactory);
-            var service = new InstitutionalFilesService(repository);
+            var service = new InstitutionalFilesService(repository, context);
             var sessionInfoService = new SessionInfoService();
 
-            var controller = new InstitutionalFilesController(service);
+            var controller = new InstitutionalFilesController(service, sessionInfoService);
             var httpContext = new DefaultHttpContext();
             httpContext.Session = session;
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

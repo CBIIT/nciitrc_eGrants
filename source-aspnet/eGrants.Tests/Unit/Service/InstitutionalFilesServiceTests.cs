@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using eGrants.DAL;
 using eGrants.DTOs;
 using eGrants.Models;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services;
+
+using Microsoft.EntityFrameworkCore;
 
 using Moq;
 
@@ -16,12 +19,17 @@ namespace eGrants.Tests.Unit.Service
     public class InstitutionalFilesServiceTests
     {
         private readonly Mock<IInstitutionalFilesRepository> _mockRepo;
+        private readonly AppDbContext _dbContext;
         private readonly InstitutionalFilesService _service;
 
         public InstitutionalFilesServiceTests()
         {
             _mockRepo = new Mock<IInstitutionalFilesRepository>();
-            _service = new InstitutionalFilesService(_mockRepo.Object);
+
+            var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(databaseName: "TestDb").Options; 
+            _dbContext = new AppDbContext(options);
+
+            _service = new InstitutionalFilesService(_mockRepo.Object, _dbContext);
         }
 
         [Fact]
@@ -30,7 +38,7 @@ namespace eGrants.Tests.Unit.Service
             // Arrange
             int orgId = 1;
             string orgName = "TestOrg";
-            var expected = new InstFileFindOrgDTO { OrgId = orgId, OrgName = orgName };
+            var expected = new InstitutionalOrg { OrgId = orgId, OrgName = orgName };
 
             _mockRepo.Setup(r => r.FindOrg(orgId, orgName))
                      .ReturnsAsync(expected);
@@ -69,10 +77,10 @@ namespace eGrants.Tests.Unit.Service
         {
             // Arrange
             int orgId = 42;
-            var expected = new List<InstFileLoadOrgDocListDTO>
+            var expected = new List<InstitutionalDocFiles>
         {
-            new InstFileLoadOrgDocListDTO { DocumentId = 1, category_name = "Doc1" },
-            new InstFileLoadOrgDocListDTO { DocumentId = 2, category_name = "Doc2" }
+            new InstitutionalDocFiles { DocumentId = 1, category_name = "Doc1" },
+            new InstitutionalDocFiles { DocumentId = 2, category_name = "Doc2" }
         };
 
             _mockRepo.Setup(r => r.LoadOrgDocList(orgId))
@@ -94,7 +102,7 @@ namespace eGrants.Tests.Unit.Service
             string orgName = "UnknownOrg";
 
             _mockRepo.Setup(r => r.FindOrg(orgId, orgName))
-                     .ReturnsAsync((InstFileFindOrgDTO)null);
+                     .ReturnsAsync((InstitutionalOrg)null);
 
             // Act
             var result = await _service.FindOrg(orgId, orgName);
@@ -149,7 +157,7 @@ namespace eGrants.Tests.Unit.Service
             int orgId = 123;
 
             _mockRepo.Setup(r => r.LoadOrgDocList(orgId))
-                     .ReturnsAsync(new List<InstFileLoadOrgDocListDTO>());
+                     .ReturnsAsync(new List<InstitutionalDocFiles>());
 
             // Act
             var result = await _service.LoadOrgDocList(orgId);
