@@ -164,39 +164,6 @@ namespace eGrants.Controllers.Egrants
         //}
 
 
-        // show era doc
-        /// <summary>
-        /// The show_era_doc.
-        /// </summary>
-        /// <param name="docurl">
-        /// The docurl.
-        /// </param>
-        /// <returns>
-        /// The <see cref="RedirectResult"/>.
-        /// </returns>
-        //public async Task<RedirectResult> show_era_doc(string docurl)
-        //{
-        //    var certUrl = _configuration["AppSettings:certPath"];
-
-        //    // this value should be kept as a secret 
-        //    var certPass = _configuration["AppSettings:certPass"];
-
-        //    var certificate = new X509Certificate2(certUrl, certPass);
-
-        //    var handler = new HttpClientHandler();
-        //    handler.ClientCertificates.Add(certificate);
-        //    handler.AllowAutoRedirect = false; // same as your current code
-
-        //    using var client = new HttpClient(handler);
-        //    var response = await client.GetAsync(docurl);
-
-        //    response.EnsureSuccessStatusCode();
-
-        //    var tempLink = await response.Content.ReadAsStringAsync();
-
-        //    return Redirect(tempLink);
-        //}
-
         /// <summary>
         /// Show ERA document by retrieving temporary download link
         /// </summary>
@@ -240,7 +207,6 @@ namespace eGrants.Controllers.Egrants
                     var errorContent = await response.Content.ReadAsStringAsync();
                     Log.Error("ERA request failed. Status: {Status}, Content: {Content}",
                         response.StatusCode, errorContent.Substring(0, Math.Min(200, errorContent.Length)));
-                    return StatusCode((int)response.StatusCode, "Failed to retrieve document");
                 }
 
                 var tempLink = await response.Content.ReadAsStringAsync();
