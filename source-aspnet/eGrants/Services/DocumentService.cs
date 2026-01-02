@@ -629,7 +629,7 @@ namespace eGrants.Services
                             if (!resultStatus)
                             {                               
                                 downloadModel.NumFailed += 1;
-                                downloadData.Error = "File not found.";
+                                downloadData.Error = "File not found or certificate issues";
                             } else
                             {
                                 downloadModel.NumSucceeded += 1;
@@ -1116,6 +1116,40 @@ namespace eGrants.Services
         private string ReplaceInvalidChars(string filename, string replacementCharacter)
         {
             return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));
+        }
+
+        // load doc attachments
+        public async Task<List<DocAttachment>> LoadDocAttachmentsAsync(int document_id)
+        {
+            var list = new List<DocAttachment>();
+
+            try
+            {
+                await using var conn = new SqlConnection(_context.Database.GetConnectionString());
+                await using var cmd = new SqlCommand("SELECT url, document_name FROM vw_attachments WHERE document_id=@document_id", conn);
+
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@document_id", SqlDbType.Int).Value = document_id;
+
+                await conn.OpenAsync();
+
+                await using var rdr = await cmd.ExecuteReaderAsync();
+                while (await rdr.ReadAsync())
+                {
+                    list.Add(new DocAttachment
+                    {
+                        document_name = rdr["document_name"]?.ToString(),
+                        url = rdr["url"]?.ToString()
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error loading document attachments for document_id: {DocumentId}", document_id);
+                throw;
+            }
+
+            return list;
         }
     }
 }

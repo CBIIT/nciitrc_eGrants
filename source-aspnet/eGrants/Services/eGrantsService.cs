@@ -991,5 +991,42 @@ namespace eGrants.Services
                 return false;
             }
         }
+
+        public List<StopNoticeObject> LoadStopNotice(int grant_id, string ic)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
+                {
+                    var cmd = new SqlCommand("sp_web_egrants_stop_notice ", conn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@GrantID", SqlDbType.Int).Value = grant_id;
+                    cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+
+                    conn.Open();
+
+                    var list = new List<StopNoticeObject>();
+
+                    var rdr = cmd.ExecuteReader();
+
+                    while (rdr.Read())
+                        list.Add(new StopNoticeObject
+                        {
+                            appl_id = rdr["appl_id"]?.ToString(),
+                            full_grant_num = rdr["full_grant_num"]?.ToString(),
+                            closeout_fsr_code = rdr["closeout_fsr_code"]?.ToString(),
+                            final_invention_stmnt_code = rdr["final_invention_stmnt_code"]?.ToString(),
+                            final_report_date = rdr["final_report_date"]?.ToString()
+                        });
+
+                    return list;
+                }
+            } catch (Exception ex)
+            {
+                Log.Error(ex, "Error loading StopNotice for GrantID: {GrantID}, IC: {IC}", grant_id, ic);
+                throw;
+            }
+            
+        }
     }
 }
