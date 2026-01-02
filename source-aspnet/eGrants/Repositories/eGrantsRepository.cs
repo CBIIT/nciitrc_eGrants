@@ -29,33 +29,104 @@ namespace eGrants.Repositories
         // Retrieves specific grants from the database asynchronously
         public async Task<List<eGrantsSearchResults>> GetSearchResultsAsync(string searchString, int grantId, string package, int applId, int currentPage, SessionInfo sessionInfo)
         {
-            var sql = @"
-                EXEC dbo.sp_web_egrants 
-                    @str = {0}, 
-                    @grant_id = {1}, 
-                    @package = {2}, 
-                    @appl_id = {3}, 
-                    @current_page = {4}, 
-                    @browser = {5}, 
-                    @ic = {6}, 
-                    @operator = {7}";
+            var results = new List<eGrantsSearchResults>();
 
-            using (var scope = _serviceScopeFactory.CreateScope())
+            using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
+            using (var cmd = new SqlCommand("dbo.sp_web_egrants", conn))
             {
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                cmd.CommandType = CommandType.StoredProcedure;
 
-                // Execute the stored procedure and return the results as a list of eGrantsSearchResults.
+                cmd.Parameters.AddWithValue("@str", searchString ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@grant_id", grantId);
+                cmd.Parameters.AddWithValue("@package", package);
+                cmd.Parameters.AddWithValue("@appl_id", applId);
+                cmd.Parameters.AddWithValue("@current_page", currentPage);
+                cmd.Parameters.AddWithValue("@browser", sessionInfo.Browser ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ic", sessionInfo.Ic ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@operator", sessionInfo.UserId);
+
                 try
                 {
-                    return await context.Set<eGrantsSearchResults>()
-                        .FromSqlRaw(sql, searchString, grantId, package, applId, currentPage, sessionInfo.Browser, sessionInfo.Ic, sessionInfo.UserId)
-                        .ToListAsync();
+                    await conn.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var item = new eGrantsSearchResults
+                            {
+                                tag = reader["tag"] as int?,
+                                parent = reader["parent"] as int?,
+                                grant_id = reader["grant_id"] as int?,
+                                label = reader["label"] as string,
+                                serial_num = reader["serial_num"] as string,
+                                admin_phs_org_code = reader["admin_phs_org_code"] as string,
+                                former_grant_num = reader["former_grant_num"] as string,
+                                latest_full_grant_num = reader["latest_full_grant_num"] as string,
+                                all_activity_code = reader["all_activity_code"] as string,
+                                project_title = reader["project_title"] as string,
+                                org_id = reader["org_id"] as int?,
+                                org_name = reader["org_name"] as string,
+                                pi_name = reader["pi_name"] as string,
+                                current_pi_name = reader["current_pi_name"] as string,
+                                current_pi_email_address = reader["current_pi_email_address"] as string,
+                                current_pd_name = reader["current_pd_name"] as string,
+                                current_pd_email_address = reader["current_pd_email_address"] as string,
+                                current_spec_name = reader["current_spec_name"] as string,
+                                current_spec_email_address = reader["current_spec_email_address"] as string,
+                                current_bo_email_address = reader["current_bo_email_address"] as string,
+                                prog_class_code = reader["prog_class_code"] as string,
+                                sv_url = reader["sv_url"] as string,
+                                arra_flag = reader["arra_flag"] as string,
+                                fda_flag = reader["fda_flag"] as string,
+                                stop_flag = reader["stop_flag"] as string,
+                                ms_flag = reader["ms_flag"] as string,
+                                od_flag = reader["od_flag"] as string,
+                                ds_flag = reader["ds_flag"] as string,
+                                adm_supp = reader["adm_supp"] as int?,
+                                institutional_flag1 = reader["institutional_flag1"] as int?,
+                                institutional_flag2 = reader["institutional_flag2"] as int?,
+                                inst_flag1_url = reader["inst_flag1_url"] as string,
+                                appl_id = reader["appl_id"] as int?,
+                                full_grant_num = reader["full_grant_num"] as string,
+                                appl_type_code = reader["appl_type_code"] as string,
+                                deleted_by_impac = reader["deleted_by_impac"] as string,
+                                doc_count = reader["doc_count"] as int?,
+                                closeout_notcount = reader["closeout_notcount"] as int?,
+                                competing = reader["competing"] as string,
+                                fsr_count = reader["fsr_count"] as int?,
+                                frc_destroyed = reader["frc_destroyed"] as int?,
+                                appl_fda_flag = reader["appl_fda_flag"] as string,
+                                appl_ms_flag = reader["appl_ms_flag"] as string,
+                                appl_od_flag = reader["appl_od_flag"] as string,
+                                appl_ds_flag = reader["appl_ds_flag"] as string,
+                                closeout_flag = reader["closeout_flag"] as string,
+                                irppr_id = reader["irppr_id"] as int?,
+                                can_add_doc = reader["can_add_doc"] as string,
+                                can_add_funding = reader["can_add_funding"] as string,
+                                docs_count = reader["docs_count"] as int?,
+                                is_current_pi = reader["is_current_pi"] as int?,
+                                specific_year_pi_name = reader["specific_year_pi_name"] as string,
+                                specific_year_pi_email_address = reader["specific_year_pi_email_address"] as string,
+                                specific_year_project_name = reader["specific_year_project_name"] as string,
+                                specific_year_org_name = reader["specific_year_org_name"] as string,
+                                specific_year_full_grant_num = reader["specific_year_full_grant_num"] as string,
+                                specific_year_institution1 = reader["specific_year_institution1"] as int?,
+                                specific_year_institution2 = reader["specific_year_institution2"] as int?,
+                                support_year = reader["support_year"] as string
+                            };
+
+                            results.Add(item);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
                     return new List<eGrantsSearchResults>();
                 }
             }
+
+            return results;
         }
 
         public async Task<List<Pagination>> LoadPaginationAsync(string searchString, string ic, string userId, string package = null)
