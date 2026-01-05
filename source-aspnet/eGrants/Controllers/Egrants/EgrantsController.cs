@@ -42,6 +42,8 @@ using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json;
 
+using Serilog;
+
 #endregion
 namespace eGrants.Controllers.Egrants
 {
@@ -152,40 +154,6 @@ namespace eGrants.Controllers.Egrants
             return NotFound();
         }
 
-        //    /// <summary>
-        //    /// Get all appls list for appls toggle by grant_id
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="string"/>.
-        //    /// </returns>
-        //    public string LoadAllAppls(int grant_id)
-        //    {
-        //            List<string> list = EgrantsAppl.GetAllAppls(grant_id);
-
-        //            // JavaScriptSerializer js = new JavaScriptSerializer();
-        //            return JsonConvert.SerializeObject(list);
-        //    }
-
-
-        //    /// <summary>
-        //    /// Load 12 appls list for appls toggle by grant_id
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="string"/>.
-        //    /// </returns>
-        //    public string LoadDefaultAppls(int grant_id)
-        //    {
-        //        var list = EgrantsAppl.GetDefaultAppls(grant_id);
-
-        //        // JavaScriptSerializer js = new JavaScriptSerializer();
-        //        return JsonConvert.SerializeObject(list);
-        //    }
 
         // get appls list with documents by (admin_code and serial_num) added by Ayu at 3/15/2019
         /// <summary>
@@ -455,111 +423,6 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Index.cshtml", eGrantsSearchViewModelList);
         }
 
-        //    /// <summary>
-        //    /// The by_filters_page.
-        //    /// </summary>
-        //    /// <param name="tab_num">
-        //    /// The tab_num.
-        //    /// </param>
-        //    /// <param name="page_num">
-        //    /// The page_num.
-        //    /// </param>
-        //    /// <param name="package">
-        //    /// The package.
-        //    /// </param>
-        //    /// <param name="fy">
-        //    /// The fy.
-        //    /// </param>
-        //    /// <param name="mechanism">
-        //    /// The mechanism.
-        //    /// </param>
-        //    /// <param name="admincode">
-        //    /// The admincode.
-        //    /// </param>
-        //    /// <param name="serialnum">
-        //    /// The serialnum.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult by_filters_page(
-        //        int tab_num = 0,
-        //        int page_num = 0,
-        //        string package = null,
-        //        int fiscalYear = 0,
-        //        string mechanism = null,
-        //        string adminCode = null,
-        //        int serialNumber = 0)
-        //    {
-        //        ViewBag.ICList = EgrantsCommon.LoadAdminCodes();
-
-        //        /*string.IsNullOrEmpty(admincode) &&*/
-        //        if (fiscalYear == 0 && string.IsNullOrEmpty(mechanism) && serialNumber == 0)
-        //        {
-        //            ViewBag.Message = "No data found for the search";
-        //            ViewBag.grantlayer = null;
-        //        }
-        //        else if (tab_num == 0 || page_num == 0 || string.IsNullOrEmpty(package) || package != "by_filters")
-        //        {
-        //            ViewBag.Message = "No data found for the search";
-        //            ViewBag.grantlayer = null;
-        //        }
-        //        else
-        //        {
-        //            ViewBag.SearchStyle = package;
-        //            ViewBag.CurrentTab = tab_num;
-        //            ViewBag.CurrentPage = page_num;
-
-        //            // create return value
-        //            if (fiscalYear != 0)
-        //                ViewBag.FilterFY = fiscalYear;
-        //            else
-        //                ViewBag.FilterFY = string.Empty;
-
-        //            ViewBag.FilterMechanism = mechanism;
-        //            ViewBag.FilterAdminCode = adminCode;
-
-        //            if (serialNumber != 0)
-        //                ViewBag.FilterSerialNumber = serialNumber;
-
-        //            // create filters search sql query
-        //            var FilterSearchQuery = Dashboard.Functions.Egrants.GetSearchQuery(
-        //                fiscalYear,
-        //                mechanism,
-        //                adminCode,
-        //                serialNumber,
-        //                page_num,
-        //                Convert.ToString(this.Session["browser"]),
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            // load data
-        //            Search.egrants_search(
-        //                FilterSearchQuery,
-        //                0,
-        //                package,
-        //                0,
-        //                page_num,
-        //                Convert.ToString(this.Session["browser"]),
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]));
-
-        //            ViewBag.grantlayer = Search.grantlayerproperty;
-        //            ViewBag.appllayer = Search.appllayerproperty;
-        //            ViewBag.appllayer_All = Search.appllayerproperty;
-        //            ViewBag.ApplCount = ViewBag.appllayer.Count;
-
-        //            // show Pagination 
-        //            ViewBag.Pagination = Dashboard.Functions.Egrants.LoadPagination(
-        //                FilterSearchQuery,
-        //                Convert.ToString(this.Session["ic"]),
-        //                Convert.ToString(this.Session["userid"]),
-        //                package);
-        //        }
-
-        //        return View("~/Egrants/Views/Index.cshtml");
-        //    }
-
         /// <summary>
         /// The by_page.
         /// </summary>
@@ -675,39 +538,23 @@ namespace eGrants.Controllers.Egrants
             return Json(new { data = docs });
         }
 
-        public JsonResult LoadDocsGridForDownload(int appl_id, string search_type = null, string category_list = null, string mode = null)
+        /// <summary>
+        /// The stop_notice.
+        /// </summary>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult stop_notice(int grant_id)
         {
-            //Search_by_appl_id.LoadDocs(
-            //    appl_id,
-            //    search_type,
-            //    category_list,
-            //    Convert.ToString(this.Session["ic"]),
-            //    Convert.ToString(this.Session["userid"]));
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            //ViewBag.doclayer = Search_by_appl_id.doclayerproperty;
+            ViewBag.StopNotice = _eGrantsService.LoadStopNotice(grant_id, sessionInfo.Ic);
 
-            //// ViewBag.doclayer = Search_by_appl_id.doclayerproperty.ToList();
-            //dynamic res = new { data = ViewBag.doclayer };
-
-            //return Json(res, JsonRequestBehavior.AllowGet);
-            return Json(null);
+            return View("~/Views/Egrants/_Modal_Stop_Notice.cshtml");
         }
-
-        //    /// <summary>
-        //    /// The stop_notice.
-        //    /// </summary>
-        //    /// <param name="grant_id">
-        //    /// The grant_id.
-        //    /// </param>
-        //    /// <returns>
-        //    /// The <see cref="ActionResult"/>.
-        //    /// </returns>
-        //    public ActionResult stop_notice(int grant_id)
-        //    {
-        //        ViewBag.StopNotice = Dashboard.Functions.Egrants.LoadStopNotice(grant_id, Convert.ToString(this.Session["ic"]));
-
-        //        return View("~/Egrants/Views/_Modal_Stop_Notice.cshtml");
-        //    }
 
         /// <summary>
         /// The supplement.
@@ -742,43 +589,44 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/eGrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
         }
 
-        //    public string impac_docs_data(string act, int appl_id)
-        //    {
-        //        try
-        //        {
-        //            ViewBag.ImpacDocs = EgrantsDoc.LoadImpacDocs(act, appl_id);
-        //            ViewBag.act = act;
-        //            ViewBag.appl_id = appl_id;
+        /// <summary>
+        /// Gets IMPAC docs data as JSON string for the specified application (legacy format)
+        /// </summary>
+        /// <param name="act">The action to perform</param>
+        /// <param name="appl_id">The application ID</param>
+        /// <returns>JSON serialized string of IMPAC docs</returns>
+        [HttpPost]
+        public async Task<string> impac_docs_data(string act, int appl_id)
+        {
+            try
+            {
+                var list = await _eGrantsService.LoadImpacDocs(act, appl_id);
+                return JsonConvert.SerializeObject(list);
+            }
+            catch (Exception ex)
+            {
+                // Log error appropriately
+                Log.Error($"Error loading IMPAC docs: {ex}");
+                return null;
+            }
+        }
 
-        //            List<ImpacDocs> list = EgrantsDoc.LoadImpacDocs(act, appl_id);
-        //            return JsonConvert.SerializeObject(list);
-        //        }
-        //        catch (Exception err)
-        //        {
-        //            Console.WriteLine(err);
-        //        }
+        public async Task<string> doc_attachments_data(int document_id)
+        {
+            try
+            {
 
-        //        return null;
-        //    }
+                List<DocAttachment> list = await _documentService.LoadDocAttachmentsAsync(document_id);
 
-        //    public string doc_attachments_data(int document_id)
-        //    {
-        //        try
-        //        {
+                return JsonConvert.SerializeObject(list);
 
-        //            List<DocAttachment> list = EgrantsDoc.LoadDocAttachments(document_id);
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err);
+            }
 
-        //            return JsonConvert.SerializeObject(list);
-
-        //        }
-        //        catch (Exception err)
-        //        {
-        //            Console.WriteLine(err);
-        //        }
-
-        //        return null;
-        //    }
-        //}
-
+            return null;
+        }
     }
 }
