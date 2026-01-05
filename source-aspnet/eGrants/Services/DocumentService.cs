@@ -1034,7 +1034,7 @@ namespace eGrants.Services
         /// Get closeout notification data
         /// </summary>
         // Make the method async
-        private async Task<Notification> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
+        public async Task<Notification> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
         {
             var handler = new HttpClientHandler();
             // In RELEASE mode, load the certificate
@@ -1176,6 +1176,10 @@ namespace eGrants.Services
                 Log.Error(ex, "Unexpected error while reporting document error. DocId={DocId}, User={UserId}", docId, userId);
                 throw;
             }
+        }
+        public async Task<List<DocumentInformation>> GetDocInfo(int docId)
+        {
+            return await _documentRepository.GetDocInfo(docId);
         }
     }
 }

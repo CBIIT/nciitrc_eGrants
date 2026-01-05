@@ -218,5 +218,9 @@ namespace eGrants.Services.Interfaces
         public Task<List<DocAttachment>> LoadDocAttachmentsAsync(int document_id);
 
         Task report_doc_error(string errormsg, int docId, string ic, string userId);
+
+        public Task<Notification> GetCloseoutNotificationAsync(string appl, string documentName, SessionInfo sessionInfo);
+
+        public Task<List<DocumentInformation>> GetDocInfo(int docId);
     }
 }

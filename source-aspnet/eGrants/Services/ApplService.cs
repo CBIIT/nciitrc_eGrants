@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 using System.Data;
 
+using Serilog;
+
 namespace eGrants.Services
 {
     public class ApplService : IApplService
@@ -120,6 +122,51 @@ namespace eGrants.Services
             await conn.CloseAsync();
 
             return grantYearList;
+        }
+
+        public async Task<string> CreateNewAppl(
+            string admin_code,
+            int serial_num,
+            int appl_type,
+            string activity_code,
+            int support_year,
+            string suffix_code,
+            string ic,
+            string userid)
+        {
+            try
+            {
+                await using var conn = new SqlConnection(_context.Database.GetConnectionString());
+                await using var cmd = new SqlCommand("dbo.sp_web_egrants_create_appl", conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                cmd.Parameters.Add("@admin_code", SqlDbType.VarChar).Value = admin_code;
+                cmd.Parameters.Add("@serial_num", SqlDbType.Int).Value = serial_num;
+                cmd.Parameters.Add("@appl_type_code", SqlDbType.Int).Value = appl_type;
+                cmd.Parameters.Add("@activity_code", SqlDbType.VarChar).Value = activity_code;
+                cmd.Parameters.Add("@support_year", SqlDbType.Int).Value = support_year;
+                cmd.Parameters.Add("@suffix_code", SqlDbType.VarChar).Value = suffix_code;
+                cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
+                cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+
+                var output = cmd.Parameters.Add("@return_notice", SqlDbType.VarChar, 200);
+                output.Direction = ParameterDirection.Output;
+
+                await conn.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+
+                return output.Value?.ToString() ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex,
+                    "Error creating new application. AdminCode={AdminCode}, Serial={Serial}, ApplType={ApplType}, Activity={Activity}, Year={Year}, Suffix={Suffix}, IC={IC}, User={User}",
+                    admin_code, serial_num, appl_type, activity_code, support_year, suffix_code, ic, userid);
+
+                throw; // rethrow so upstream can handle it
+            }
         }
     }
 }
