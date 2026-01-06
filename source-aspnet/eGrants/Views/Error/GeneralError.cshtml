@@ -1,0 +1,17 @@
+﻿@{
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+    ViewData["Title"] = "Unexpected Error";
+}
+
+<h1>Something went wrong</h1>
+<p>We're sorry — an unexpected error occurred while processing your request.</p>
+
+<p>If the problem continues, please contact support.</p>
+
+<!-- Optional: show details only in Development -->
+@if (Context.RequestServices.GetService<IWebHostEnvironment>()?.IsDevelopment() == true)
+{
+    <hr />
+    <h3>Developer Information</h3>
+    <p>Exception details are available in the server logs.</p>
+}
