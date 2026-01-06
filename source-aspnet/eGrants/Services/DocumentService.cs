@@ -691,6 +691,7 @@ namespace eGrants.Services
                     downloadData.Error = "General Exception! Screenshot this message and notify the Development Team: "
                         + Environment.NewLine + err.Message + diagnostics.ToString();
                     downloadModel.NumFailed += 1;
+                    Log.Error(Convert.ToString(err.InnerException));
                 }
 
                 downloadModel.DownloadDataList.Add(downloadData);
