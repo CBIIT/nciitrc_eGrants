@@ -93,5 +93,7 @@ namespace eGrants.Repositories.Interfaces
         /// A string representing the document ID.
         /// </returns>
         int GetDocID(int applid, int categoryid, string subcategory, DateTime docdate, string filetype, string ic, string userid);
+
+        Task report_doc_error(string errormsg, int docId, string ic, string userId);
     }
 }
