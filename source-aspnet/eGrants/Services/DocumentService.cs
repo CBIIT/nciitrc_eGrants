@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using eGrants.DAL;
 using eGrants.DTOs;
 using eGrants.Models;
+using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
@@ -1033,7 +1034,7 @@ namespace eGrants.Services
         /// Get closeout notification data
         /// </summary>
         // Make the method async
-        private async Task<Notification> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
+        public async Task<Notification> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
         {
             var handler = new HttpClientHandler();
             // In RELEASE mode, load the certificate
@@ -1150,6 +1151,35 @@ namespace eGrants.Services
             }
 
             return list;
+        }
+
+        public async Task report_doc_error(string errormsg, int docId, string ic, string userId)
+        {
+            try
+            {
+                // If repository method is synchronous, wrap in Task.Run
+                await Task.Run(() =>
+                    _documentRepository.report_doc_error(errormsg, docId, ic, userId)
+                );
+
+                Log.Information("Document error reported successfully. DocId={DocId}, User={UserId}", docId, userId);
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log SQL-specific errors
+                Log.Error(sqlEx, "SQL error while reporting document error. DocId={DocId}, User={UserId}", docId, userId);
+                throw; // rethrow if you want upstream handling
+            }
+            catch (Exception ex)
+            {
+                // Log general errors
+                Log.Error(ex, "Unexpected error while reporting document error. DocId={DocId}, User={UserId}", docId, userId);
+                throw;
+            }
+        }
+        public async Task<List<DocumentInformation>> GetDocInfo(int docId)
+        {
+            return await _documentRepository.GetDocInfo(docId);
         }
     }
 }

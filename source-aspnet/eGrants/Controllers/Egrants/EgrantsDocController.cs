@@ -111,7 +111,7 @@ namespace eGrants.Controllers.Egrants
 
         private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null, IApplService applService = null)
+        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IApplService applService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null)
         {
             _eGrantsService = eGrantsService;
             _commonService = commonService;
@@ -122,46 +122,46 @@ namespace eGrants.Controllers.Egrants
             _applService = applService;
         }
 
-        //// GET: Egrants
-        ///// <summary>
-        ///// The report error index.
-        ///// </summary>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult ReportErrorIndex(int document_id)
-        //{
-        //    this.ViewBag.DocID = document_id;
+        // GET: Egrants
+        /// <summary>
+        /// The report error index.
+        /// </summary>
+        /// <param name="document_id">
+        /// The document_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult ReportErrorIndex(int document_id)
+        {
+            this.ViewBag.DocID = 1; // document_id;
 
-        //    return this.View("~/Egrants/Views/_Modal_Report_Error.cshtml");
-        //}
+            return this.View("~/Views/Egrants/_Modal_Report_Error.cshtml");
+        }
 
-        ///// <summary>
-        ///// The report error.
-        ///// </summary>
-        ///// <param name="errormsg">
-        ///// The errormsg.
-        ///// </param>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <param name="currenturl">
-        ///// The currenturl.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult ReportError(string errormsg, int document_id, string currenturl)
-        //{
-        //    this.ViewBag.DocID = document_id;
-        //    this.ViewBag.Errormsg = errormsg;
-        //    EgrantsDoc.report_doc_error(errormsg, document_id, Convert.ToString(this.Session["ic"]), Convert.ToString(this.Session["userid"]));
+        /// <summary>
+        /// The report error.
+        /// </summary>
+        /// <param name="errormsg">
+        /// The errormsg.
+        /// </param>
+        /// <param name="document_id">
+        /// The document_id.
+        /// </param>
+        /// <param name="currenturl">
+        /// The currenturl.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult ReportError(string errormsg, int document_id, string currenturl)
+        {
+            this.ViewBag.DocID = document_id;
+            this.ViewBag.Errormsg = errormsg;
+            _documentService.report_doc_error(errormsg, document_id, sessionInfo.Ic, sessionInfo.UserId);
 
-        //    return this.Redirect(currenturl);
-        //}
+            return this.Redirect(currenturl);
+        }
 
 
         /// <summary>
@@ -246,48 +246,55 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/eGrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
         }
 
-        ///// <summary>
-        ///// The process supplement doc.
-        ///// </summary>
-        ///// <param name="act">
-        ///// The act.
-        ///// </param>
-        ///// <param name="grant_id">
-        ///// The grant_id.
-        ///// </param>
-        ///// <param name="support_year">
-        ///// The support_year.
-        ///// </param>
-        ///// <param name="suffix_code">
-        ///// The suffix_code.
-        ///// </param>
-        ///// <param name="former_applid">
-        ///// The former_applid.
-        ///// </param>
-        ///// <param name="docid_str">
-        ///// The docid_str.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
-        //{
-        //    this.ViewBag.Status = "Done";
-        //    this.ViewBag.GrantID = grant_id;
-        //    this.ViewBag.FormerAppls = EgrantsDoc.LoadFormerAppls(grant_id);
+        /// <summary>
+        /// The process supplement doc.
+        /// </summary>
+        /// <param name="act">
+        /// The act.
+        /// </param>
+        /// <param name="grant_id">
+        /// The grant_id.
+        /// </param>
+        /// <param name="support_year">
+        /// The support_year.
+        /// </param>
+        /// <param name="suffix_code">
+        /// The suffix_code.
+        /// </param>
+        /// <param name="former_applid">
+        /// The former_applid.
+        /// </param>
+        /// <param name="docid_str">
+        /// The docid_str.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task <ActionResult> ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
+        {
+            ViewBag.Status = "Done";
+            ViewBag.GrantID = grant_id;
+            ViewBag.FormerAppls = await _documentService.loadFormerAppls(grant_id);
 
-        //    this.ViewBag.Supplement = EgrantsDoc.LoadSupplement(
-        //        act,
-        //        grant_id,
-        //        support_year,
-        //        suffix_code,
-        //        former_applid,
-        //        docid_str,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            ViewBag.Supplement = _eGrantsService.GetSupplements(
+                act,
+                grant_id,
+                support_year,
+                suffix_code,
+                docid_str,
+                former_applid,
+                sessionInfo.Ic,
+                sessionInfo.UserId);
 
-        //    return this.View("~/Egrants/Views/_Modal_Supplement.cshtml");
-        //}
+            SupplementObjectViewModel supplementObjectViewModel = new SupplementObjectViewModel();
+
+            supplementObjectViewModel.GrantID = grant_id;
+            supplementObjectViewModel.Act = act;
+            supplementObjectViewModel.Supplement = ViewBag.Supplement;
+            supplementObjectViewModel.FormerAppls = await _documentService.loadFormerAppls(grant_id);
+
+            return this.View("~/Views/Egrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
+        }
 
         /// <summary>
         /// The load supplement.
@@ -777,23 +784,23 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Egrants/EgrantsDocUpload.cshtml", eDocViewModel);
         }
 
-        //// to show doc upload modal default
-        ///// <summary>
-        ///// The doc_upload_modal.
-        ///// </summary>
-        ///// <param name="doc_id">
-        ///// The doc_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult doc_upload_modal(int doc_id)
-        //{
-        //    this.ViewBag.DocId = doc_id;
-        //    this.ViewBag.DocInfo = EgrantsDoc.GetDocInfo(doc_id);
+        // to show doc upload modal default
+        /// <summary>
+        /// The doc_upload_modal.
+        /// </summary>
+        /// <param name="doc_id">
+        /// The doc_id.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> doc_upload_modal(int doc_id)
+        {
+            this.ViewBag.DocId = doc_id;
+            this.ViewBag.DocInfo = await _documentService.GetDocInfo(doc_id);
 
-        //    return this.View("~/Egrants/Views/_Modal_Doc_Upload.cshtml");
-        //}
+            return this.View("~/Views/Egrants/_Modal_Doc_Upload.cshtml");
+        }
 
         /// <summary>
         /// Upload document by file.
@@ -1194,39 +1201,40 @@ namespace eGrants.Controllers.Egrants
             return Redirect(previous_url);
         }
 
-        //// to modify document index for unidentified documrnt
-        ///// <summary>
-        ///// The unidentified_doc_modify.
-        ///// </summary>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <param name="category_id">
-        ///// The category_id.
-        ///// </param>
-        ///// <param name="document_date">
-        ///// The document_date.
-        ///// </param>
-        ///// <param name="previous_url">
-        ///// The previous_url.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult unidentified_doc_modify(int document_id, int category_id, string document_date, string previous_url)
-        //{
-        //    this.ViewBag.docid = document_id;
-        //    this.ViewBag.categoryid = category_id;
-        //    this.ViewBag.docdate = document_date;
-        //    this.ViewBag.Previousurl = previous_url;
+        // to modify document index for unidentified documrnt
+        /// <summary>
+        /// The unidentified_doc_modify.
+        /// </summary>
+        /// <param name="document_id">
+        /// The document_id.
+        /// </param>
+        /// <param name="category_id">
+        /// The category_id.
+        /// </param>
+        /// <param name="document_date">
+        /// The document_date.
+        /// </param>
+        /// <param name="previous_url">
+        /// The previous_url.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> unidentified_doc_modify(int document_id, int category_id, string document_date, string previous_url)
+        {
+            eGrantsDocUpdateViewModel eDocViewModel = new eGrantsDocUpdateViewModel();
+            eDocViewModel.DocId = document_id;
+            eDocViewModel.CategoryId = (short?)category_id;
+            eDocViewModel.DocDate = document_date;
+            eDocViewModel.PreviousUrl = previous_url;
 
-        //    this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
-        //    this.ViewBag.CategoryList = EgrantsDoc.LoadCategories(Convert.ToString(this.Session["ic"]));
-        //    this.ViewBag.MaxCategoryid = EgrantsDoc.GetMaxCategoryid(Convert.ToString(this.Session["ic"]));
-        //    this.ViewBag.SubCategoryList = EgrantsDoc.LoadSubCategoryList();
+            eDocViewModel.AdminCodeList = await _commonService.LoadAdminCodes();
+            eDocViewModel.CategoryList = await _documentService.LoadCategories(sessionInfo.Ic); // load categories that could only be upload
+            eDocViewModel.MaxCategoryId = await _documentService.GetMaxCategoryid(sessionInfo.Ic);
+            eDocViewModel.SubCategoryList = await _documentService.LoadSubCategoryList();
 
-        //    return this.View("~/Egrants/Views/egrantsDocUpdate.cshtml");
-        //}
+            return this.View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
+        }
 
         //// public ActionResult doc_index_modify(string act, int appl_id, int document_id, int category_id, string sub_category, string document_date, int specialist_id)
         //// {
@@ -1257,59 +1265,59 @@ namespace eGrants.Controllers.Egrants
             return View("~/Views/Egrants/EgrantsApplCreate.cshtml");
         }
 
-        ///// <summary>
-        ///// The create_new_appl.
-        ///// </summary>
-        ///// <param name="admin_code">
-        ///// The admin_code.
-        ///// </param>
-        ///// <param name="serial_num">
-        ///// The serial_num.
-        ///// </param>
-        ///// <param name="appl_type">
-        ///// The appl_type.
-        ///// </param>
-        ///// <param name="activity_code">
-        ///// The activity_code.
-        ///// </param>
-        ///// <param name="support_year">
-        ///// The support_year.
-        ///// </param>
-        ///// <param name="suffix_code">
-        ///// The suffix_code.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult create_new_appl(
-        //    string admin_code,
-        //    int serial_num,
-        //    int appl_type,
-        //    string activity_code,
-        //    int support_year,
-        //    string suffix_code)
-        //{
-        //    this.ViewBag.admincode = admin_code;
-        //    this.ViewBag.serialnum = serial_num;
+        /// <summary>
+        /// The create_new_appl.
+        /// </summary>
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <param name="appl_type">
+        /// The appl_type.
+        /// </param>
+        /// <param name="activity_code">
+        /// The activity_code.
+        /// </param>
+        /// <param name="support_year">
+        /// The support_year.
+        /// </param>
+        /// <param name="suffix_code">
+        /// The suffix_code.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> create_new_appl(
+            string admin_code,
+            int serial_num,
+            int appl_type,
+            string activity_code,
+            int support_year,
+            string suffix_code)
+        {
+            this.ViewBag.admincode = admin_code;
+            this.ViewBag.serialnum = serial_num;
 
-        //    this.ViewBag.AdminCodeList = EgrantsCommon.LoadAdminCodes();
-        //    this.ViewBag.ApplTypeList = EgrantsAppl.LoadApplType();
-        //    this.ViewBag.ActivityCodeList = EgrantsAppl.LoadActivityCode(admin_code);
+            this.ViewBag.AdminCodeList = _commonService.LoadAdminCodes();
+            ViewBag.ApplTypeList = await _applService.LoadApplTypeAsync();
+            ViewBag.ActivityCodeList = await _applService.LoadActivityCodeAsync(admin_code);
 
-        //    this.ViewBag.Message = EgrantsAppl.CreateNewAppl(
-        //        admin_code,
-        //        serial_num,
-        //        appl_type,
-        //        activity_code,
-        //        support_year,
-        //        suffix_code,
-        //        Convert.ToString(this.Session["ic"]),
-        //        Convert.ToString(this.Session["userid"]));
+            this.ViewBag.Message = await _applService.CreateNewAppl(
+                admin_code,
+                serial_num,
+                appl_type,
+                activity_code,
+                support_year,
+                suffix_code,
+                sessionInfo.Ic,
+                sessionInfo.UserId);
 
-        //    this.ViewBag.GrantYearList = EgrantsAppl.LoadApplsBySerialnum(admin_code, serial_num);
+            this.ViewBag.GrantYearList = await _applService.LoadApplsBySerialNumAsync(admin_code, serial_num);
 
-        //    return this.View("~/Egrants/Views/EgrantsApplCreate.cshtml");
-        //}
+            return this.View("~/Views/Egrants/EgrantsApplCreate.cshtml");
+        }
 
         //// show attachments docs
         ///// <summary>
@@ -1351,25 +1359,25 @@ namespace eGrants.Controllers.Egrants
             return this.View("~/Views/Egrants/_Modal_Impac_Docs.cshtml");
         }
 
-        //// show Closeout Notification
-        ///// <summary>
-        ///// The closeout_notif.
-        ///// </summary>
-        ///// <param name="applid">
-        ///// The applid.
-        ///// </param>
-        ///// <param name="notifName">
-        ///// The notif name.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult closeout_notif(string applid, string notifName)
-        //{
-        //    this.ViewBag.notification = EgrantsDoc.getCloseoutNotif(applid, notifName);
-        //    this.ViewBag.applid = applid;
+        // show Closeout Notification
+        /// <summary>
+        /// The closeout_notif.
+        /// </summary>
+        /// <param name="applid">
+        /// The applid.
+        /// </param>
+        /// <param name="notifName">
+        /// The notif name.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public ActionResult closeout_notif(string applid, string notifName)
+        {
+            ViewBag.notification = _documentService.GetCloseoutNotificationAsync(applid, notifName, sessionInfo);
+            ViewBag.applid = applid;
 
-        //    return this.View("~/Egrants/Views/CloseoutNotif.cshtml");
-        //}
+            return this.View("~/Views/Egrants/CloseoutNotif.cshtml");
+        }
     }
 }
