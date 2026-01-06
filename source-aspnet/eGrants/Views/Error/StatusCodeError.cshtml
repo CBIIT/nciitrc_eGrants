@@ -1,0 +1,29 @@
+﻿@model int
+
+@{
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
+    ViewData["Title"] = "Error " + Model;
+}
+
+<h1>Error @Model</h1>
+
+@if (Model == 404)
+{
+    <p>The page you’re looking for could not be found.</p>
+}
+else if (Model == 403)
+{
+    <p>You don’t have permission to access this resource.</p>
+}
+else
+{
+    <p>Something went wrong while processing your request.</p>
+}
+
+<!-- Optional developer info -->
+@if (Context.RequestServices.GetService<IWebHostEnvironment>()?.IsDevelopment() == true)
+{
+    <hr />
+    <h3>Developer Information</h3>
+    <p>Status code: @Model</p>
+}
