@@ -5,25 +5,75 @@
     ViewData["Title"] = "Error " + Model;
 }
 
-<h1>Error @Model</h1>
+<div class="error-container">
+    <div class="error-card">
+        <h1 class="error-title">Error @Model</h1>
 
-@if (Model == 404)
-{
-    <p>The page you’re looking for could not be found.</p>
-}
-else if (Model == 403)
-{
-    <p>You don’t have permission to access this resource.</p>
-}
-else
-{
-    <p>Something went wrong while processing your request.</p>
-}
+        @if (Model == 404)
+        {
+            <p class="error-message">The page you’re looking for could not be found.</p>
+        }
+        else if (Model == 403)
+        {
+            <p class="error-message">You don’t have permission to access this resource.</p>
+        }
+        else
+        {
+            <p class="error-message">Something went wrong while processing your request.</p>
+        }
 
-<!-- Optional developer info -->
-@if (Context.RequestServices.GetService<IWebHostEnvironment>()?.IsDevelopment() == true)
-{
-    <hr />
-    <h3>Developer Information</h3>
-    <p>Status code: @Model</p>
-}
+        <p class="error-suggestion">
+            If this keeps happening, please contact support.
+        </p>
+
+        @if (Context.RequestServices.GetService<IWebHostEnvironment>()?.IsDevelopment() == true)
+        {
+            <hr />
+            <h3>Developer Information</h3>
+            <p>Status code: @Model</p>
+        }
+    </div>
+</div>
+
+<style>
+    .error-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 20px;
+    }
+
+    .error-card {
+        max-width: 600px;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    .error-title {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #c0392b;
+    }
+
+    .error-message {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        color: #444;
+    }
+
+    .error-suggestion {
+        font-size: 1rem;
+        margin-top: 10px;
+        margin-bottom: 25px;
+        color: #666;
+    }
+
+    hr {
+        margin: 30px 0;
+    }
+</style>
+

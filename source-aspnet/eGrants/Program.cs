@@ -1,17 +1,21 @@
-using System;
-
 using eGrants.Common;
 using eGrants.DAL;
 using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.EntityFrameworkCore;
 
 using Serilog;
 
 using SimpleECommerceCore.Middleware;
+
+var selfLogPath = Path.Combine(AppContext.BaseDirectory, "serilog-selflog.txt"); 
+
+Serilog.Debugging.SelfLog.Enable(message => { 
+    File.AppendAllText(selfLogPath, message + Environment.NewLine); 
+});
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,9 +105,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
     configuration
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File(@"C:\Logs\log-.txt", rollingInterval: RollingInterval.Day);
+        .Enrich.FromLogContext();
 });
 
 #endregion
