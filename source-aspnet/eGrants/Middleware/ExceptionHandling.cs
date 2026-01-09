@@ -25,7 +25,7 @@ namespace SimpleECommerceCore.Middleware
             }
             catch (Exception ex)
             {
-                //Log.Error(ex, "Unhandled exception occurred while processing request: " + context.Request.Path);
+                Log.Error(ex, "Unhandled exception occurred while processing request: " + context.Request.Path);
 
                 context.Response.StatusCode = 500;
                 context.Response.ContentType = "application/json";

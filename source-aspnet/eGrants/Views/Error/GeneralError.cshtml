@@ -3,15 +3,64 @@
     ViewData["Title"] = "Unexpected Error";
 }
 
-<h1>Something went wrong</h1>
-<p>We're sorry — an unexpected error occurred while processing your request.</p>
+<div class="error-container">
+    <div class="error-card">
+        <h1 class="error-title">Oops! Something went wrong</h1>
+        <p class="error-message">
+            We ran into an unexpected issue while processing your request.
+        </p>
 
-<p>If the problem continues, please contact support.</p>
+        <p class="error-suggestion">
+            Please try again in a moment. If the problem continues, feel free to contact our support team.
+        </p>
 
-<!-- Optional: show details only in Development -->
-@if (Context.RequestServices.GetService<IWebHostEnvironment>()?.IsDevelopment() == true)
-{
-    <hr />
-    <h3>Developer Information</h3>
-    <p>Exception details are available in the server logs.</p>
-}
+        @if (Context.RequestServices.GetService<IWebHostEnvironment>()?.IsDevelopment() == true)
+        {
+            <hr />
+            <h3>Developer Information</h3>
+            <p>Exception details have been logged and can be reviewed in the server logs.</p>
+        }
+    </div>
+</div>
+
+<style>
+    .error-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 20px;
+    }
+
+    .error-card {
+        max-width: 600px;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    .error-title {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #c0392b;
+    }
+
+    .error-message {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        color: #444;
+    }
+
+    .error-suggestion {
+        font-size: 1rem;
+        margin-bottom: 25px;
+        color: #666;
+    }
+
+    hr {
+        margin: 30px 0;
+    }
+</style>
+
