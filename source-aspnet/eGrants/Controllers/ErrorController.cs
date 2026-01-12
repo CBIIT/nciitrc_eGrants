@@ -16,8 +16,6 @@
 
             if (exceptionFeature != null)
             {
-                //var client = new SmtpClient("mailfwd.nih.gov", 25); 
-                //client.Send("eGrants@nih.gov", "daryl.dehuff@nih.gov", "Test Email", "Hello from SmtpClient");
                 Log.Error(exceptionFeature.Error,
                     "Unhandled exception at path {Path}", exceptionFeature.Path);
             }
@@ -28,8 +26,6 @@
         [Route("Error/{statusCode}")]
         public IActionResult HttpStatusCodeHandler(int statusCode)
         {
-            //var client = new SmtpClient("mailfwd.nih.gov", 25);
-            //client.Send("eGrants@nih.gov", "daryl.dehuff@nih.gov", "Test Email", "Hello from SmtpClient");
             Log.Error("HTTP {StatusCode} at path {Path}",
                 statusCode,
                 HttpContext.Request.Path);

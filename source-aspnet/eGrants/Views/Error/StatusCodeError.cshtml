@@ -17,21 +17,22 @@
         {
             <p class="error-message">You don’t have permission to access this resource.</p>
         }
+        else if (Model == 400)
+        {
+            <p class="error-message">The request was invalid. Please check your input and try again.</p>
+        }
+        else if (Model == 401)
+        {
+            <p class="error-message">You must be authenticated to access this resource.</p>
+        }
         else
         {
             <p class="error-message">Something went wrong while processing your request.</p>
         }
 
-        <p class="error-suggestion">
-            If this keeps happening, please contact support.
+        <p class="error-suggestion"> 
+            If this keeps happening, <a href="mailto:eGrantsDevs@mail.nih.gov">please contact support</a>.
         </p>
-
-        @if (Context.RequestServices.GetService<IWebHostEnvironment>()?.IsDevelopment() == true)
-        {
-            <hr />
-            <h3>Developer Information</h3>
-            <p>Status code: @Model</p>
-        }
     </div>
 </div>
 
