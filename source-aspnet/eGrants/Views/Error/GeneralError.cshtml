@@ -11,15 +11,8 @@
         </p>
 
         <p class="error-suggestion">
-            Please try again in a moment. If the problem continues, feel free to contact our support team.
+            Please try again in a moment. If the problem continues, feel free to <a href="mailto:eGrantsDevs@mail.nih.gov">contact our support team</a>.
         </p>
-
-        @if (Context.RequestServices.GetService<IWebHostEnvironment>()?.IsDevelopment() == true)
-        {
-            <hr />
-            <h3>Developer Information</h3>
-            <p>Exception details have been logged and can be reviewed in the server logs.</p>
-        }
     </div>
 </div>
 
