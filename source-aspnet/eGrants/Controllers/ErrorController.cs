@@ -5,8 +5,6 @@
 
     using Serilog;
 
-    //using System.Net.Mail;
-
     public class ErrorController : Controller
     {
         [Route("Error")]
