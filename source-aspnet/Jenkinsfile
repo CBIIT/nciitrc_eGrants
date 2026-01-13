@@ -1,3 +1,6 @@
+/* ------------------------------
+   EGRANTS PIPELINE SCRIPT
+------------------------------ */
 pipeline {
     agent any
 environment {
