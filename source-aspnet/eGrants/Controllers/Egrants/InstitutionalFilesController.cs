@@ -412,6 +412,7 @@ namespace eGrant.Controllers
                     try
                     {
                         var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+                        Log.Information("fileFolder: " + fileFolder);
                         var filePath = Path.Combine(fileFolder, docName);
                         // save file asynchronously
                         await using var stream = new FileStream(filePath, FileMode.Create);
