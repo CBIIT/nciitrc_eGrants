@@ -1,0 +1,138 @@
+pipeline {
+    agent any
+environment {
+        // Jenkins credentials IDs
+        GIT_CREDENTIALS_ID = 'github-creds'
+        SSH_CREDENTIALS_ID = 'ssh-remote-creds'
+ARTIFACT_NAME = 'BuildArtifacts.zip'
+        ARTIFACT_DIR  = 'artifacts'
+    }
+options {
+        ansiColor('xterm')
+        timestamps()
+    }
+/* ---------------------------------------------------------
+       TRIGGERS
+       pollSCM = Jenkins checks GitHub every 5 minutes
+       To switch to GitHub webhooks later, remove pollSCM
+       and enable "GitHub hook trigger" in job config.
+    --------------------------------------------------------- */
+    triggers {
+        pollSCM('H/5 * * * *')   // Every 5 minutes
+    }
+stages {
+/* ------------------------------
+           CHECKOUT SOURCE CODE
+        ------------------------------ */
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/eGrants-Core-Main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/CBIIT/nciitrc_eGrants.git',
+                        credentialsId: env.GIT_CREDENTIALS_ID
+                    ]]
+                ])
+            }
+        }
+/* ------------------------------
+           BUILD ARTIFACT
+        ------------------------------ */
+		stage('Build Artifact') {
+			steps {
+				bat """
+					if exist ${ARTIFACT_DIR} rmdir /S /Q ${ARTIFACT_DIR}
+					mkdir ${ARTIFACT_DIR}
+
+					REM Adjust paths to match your repo structure
+					powershell -Command "Compress-Archive -Path 'src','config' -DestinationPath '${ARTIFACT_DIR}\\${ARTIFACT_NAME}' -Force"
+				"""
+
+				archiveArtifacts artifacts: "${ARTIFACT_DIR}/${ARTIFACT_NAME}", fingerprint: true
+			}
+		}
+
+/* ------------------------------
+           DEPLOY TO DEV (automatic)
+        ------------------------------ */
+        stage('Deploy to DEV') {
+			when { branch 'dev' }
+            steps {
+                script {
+                    deployToEnv(
+                        envName: 'dev',
+                        host: 'egrants-web-dev-core-migration.nci.nih.gov',
+                        deployDir: 'D:\\Contents\\Publish',
+                        webroot: 'D:\\Contents\\egrants-web-dev-core-migration'
+                    )
+                }
+            }
+        }
+/* ------------------------------
+           DEPLOY TO TEST (approval)
+        ------------------------------ */
+        stage('Deploy to TEST') {
+            when { branch 'test' }
+            steps {
+                script {
+                    deployToEnv(
+                        envName: 'test',
+                        host: 'egrants-web-test-core-migration.nci.nih.gov',
+                        deployDir: 'D:\\Contents\\Publish',
+                        webroot: 'D:\\Contents\\egrants-web-test-core-migration'
+                    )
+                }
+            }
+        }
+/* ------------------------------
+           DEPLOY TO STAGE (approval)
+        ------------------------------ */
+        stage('Deploy to STAGE') {
+            when { branch 'stage' }
+            steps {
+                script {
+                    deployToEnv(
+                        envName: 'stage',
+                        host: 'egrants-web-stage-core-migration.nci.nih.gov',
+                        deployDir: 'D:\\Contents\\Publish',
+                        webroot: 'D:\\Contents\\egrants-web-stage-core-migration'
+                    )
+                }
+            }
+        }
+/* ------------------------------
+           DEPLOY TO PROD (approval)
+        ------------------------------ */
+        stage('Deploy to PROD') {
+            when { branch 'eGrants-Core-Main' }
+            steps {
+                script {
+                    deployToEnv(
+                        envName: 'prod',
+                        host: 'egrants-web-core-migration.nci.nih.gov',
+                        deployDir: 'D:\\Contents\\Publish',
+                        webroot: 'D:\\Contents\\egrants-web-core-migration'
+                    )
+                }
+            }
+        }
+    }
+}
+/* ---------------------------------------------------------
+   SHARED DEPLOY FUNCTION (Linux SSH-based deployment)
+--------------------------------------------------------- */
+def deployToEnv(Map args) {
+    def envName   = args.envName
+    def host      = args.host
+    def deployDir = args.deployDir
+    def webroot   = args.webroot
+echo "Deploying ${env.ARTIFACT_NAME} to ${envName} (${host})"
+sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+        sh """
+            ssh -o StrictHostKeyChecking=no ${host} "mkdir -p ${deployDir} ${webroot}"
+scp -o StrictHostKeyChecking=no ${ARTIFACT_DIR}/${ARTIFACT_NAME} ${host}:${deployDir}/
+ssh -o StrictHostKeyChecking=no ${host} "unzip -o ${deployDir}/${ARTIFACT_NAME} -d ${webroot}"
+        """
+    }
+}
