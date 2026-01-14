@@ -964,7 +964,7 @@ namespace eGrants.Services
         }
 
         /// <summary>
-        /// Handle standard file download with SiteMinder authentication passthrough
+        /// Handle standard file download with SiteMinder authentication (cookie passthrough)
         /// </summary>
         private async Task HandleStandardFileAsync(Uri uri, string tmpFileName, string downloadDirectory,
             string fullGrantNumber, string documentName, string documentId, DownloadData downloadData,
@@ -972,24 +972,57 @@ namespace eGrants.Services
         {
             diagnostics.Append("Not closeout or FFR Rejection. ");
 
-            // Use HttpClientHandler with Windows credentials for SiteMinder
+            // Create HttpClientHandler with same settings as legacy WebClient
             var handler = new HttpClientHandler
             {
-                UseDefaultCredentials = true,      // This passes Windows auth
-                PreAuthenticate = true,
-                AllowAutoRedirect = false,         // Don't follow redirects to login pages
+                UseDefaultCredentials = true,
+                Credentials = System.Net.CredentialCache.DefaultNetworkCredentials,
                 UseCookies = true,
                 CookieContainer = new System.Net.CookieContainer()
             };
 
             using var client = new HttpClient(handler);
 
-            // Set User-Agent
+            // Add User-Agent header
             client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
 
-            client.Timeout = TimeSpan.FromSeconds(30);
+            if (!string.IsNullOrEmpty(sessionInfo.BrowserCookies))
+            {
+                // Parse and add cookies to the container
+                var cookieHeader = sessionInfo.BrowserCookies;
+                var cookies = cookieHeader.Split(';');
 
-            diagnostics.Append($"Attempting download for user: {sessionInfo.UserId}, IC: {sessionInfo.Ic}. ");
+                foreach (var cookie in cookies)
+                {
+                    var trimmedCookie = cookie.Trim();
+                    if (string.IsNullOrEmpty(trimmedCookie)) continue;
+
+                    var parts = trimmedCookie.Split('=', 2);
+                    if (parts.Length == 2)
+                    {
+                        try
+                        {
+                            var cookieName = parts[0].Trim();
+                            var cookieValue = parts[1].Trim();
+                            handler.CookieContainer.Add(uri, new System.Net.Cookie(cookieName, cookieValue));
+                            diagnostics.Append($"Added cookie: {cookieName}. ");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "Failed to add cookie: {Cookie}", trimmedCookie);
+                        }
+                    }
+                }
+
+                diagnostics.Append($"Forwarded {cookies.Length} cookies for SiteMinder auth. ");
+            }
+            else
+            {
+                Log.Warning("No browser cookies available to forward for SiteMinder authentication");
+                diagnostics.Append("WARNING: No cookies to forward! ");
+            }
+
+            diagnostics.Append($"Downloading from: {uri}. ");
 
             try
             {
@@ -997,40 +1030,25 @@ namespace eGrants.Services
 
                 // Log response details
                 diagnostics.Append($"Response status: {response.StatusCode}. ");
-                diagnostics.Append($"Content-Type: {response.Content.Headers.ContentType?.MediaType}. ");
-
-                // Check if we got an HTML response (likely auth page)
                 var contentType = response.Content.Headers.ContentType?.MediaType;
-                if (contentType != null && contentType.Contains("text/html"))
+                diagnostics.Append($"Content-Type: {contentType}. ");
+
+                // Check if we got an HTML response (likely auth page) instead of the file
+                if (contentType != null && contentType.Contains("text/html", StringComparison.OrdinalIgnoreCase))
                 {
-                    var htmlContent = await response.Content.ReadAsStringAsync();
+                    var htmlPreview = await response.Content.ReadAsStringAsync();
+                    diagnostics.Append("RECEIVED HTML INSTEAD OF FILE! ");
 
-                    // Check if it's a SiteMinder login page
-                    if (htmlContent.Contains("siteminder", StringComparison.OrdinalIgnoreCase) ||
-                        htmlContent.Contains("authentication", StringComparison.OrdinalIgnoreCase))
-                    {
-                        diagnostics.Append("AUTHENTICATION PAGE DETECTED! SiteMinder auth failed. ");
-                        Log.Error("Downloaded authentication page instead of file. URL: {Url}, User: {User}, HTML: {Html}",
-                            uri, sessionInfo.UserId, htmlContent.Substring(0, Math.Min(500, htmlContent.Length)));
+                    Log.Error("Downloaded authentication page instead of file. URL: {Url}, User: {User}, HTML Preview: {Html}",
+                        uri, sessionInfo.UserId, htmlPreview.Substring(0, Math.Min(500, htmlPreview.Length)));
 
-                        throw new UnauthorizedAccessException("SiteMinder authentication failed - received login page instead of file");
-                    }
+                    throw new UnauthorizedAccessException("SiteMinder authentication failed - received login page instead of file");
                 }
 
-                // Check for explicit auth failures
-                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                if (!response.IsSuccessStatusCode)
                 {
-                    diagnostics.Append("HTTP 401 - Authentication required. ");
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    Log.Error("HTTP 401 for URL: {Url}, User: {User}, Response: {Response}",
-                        uri, sessionInfo.UserId, errorContent.Substring(0, Math.Min(200, errorContent.Length)));
-                    throw new UnauthorizedAccessException("HTTP 401 - SiteMinder authentication failed");
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-                {
-                    diagnostics.Append("HTTP 403 - Authorization failed. ");
-                    Log.Error("HTTP 403 for URL: {Url}, User: {User}", uri, sessionInfo.UserId);
-                    throw new UnauthorizedAccessException("HTTP 403 - User not authorized to access this resource");
+                    diagnostics.Append($"Error: {errorContent.Substring(0, Math.Min(200, errorContent.Length))}. ");
                 }
 
                 response.EnsureSuccessStatusCode();
@@ -1040,24 +1058,42 @@ namespace eGrants.Services
                 await response.Content.CopyToAsync(fileStream);
                 fileStream.Close();
 
+                diagnostics.Append($"Downloaded {new FileInfo(tmpFileName).Length} bytes. ");
+
+                // Get filename and create new filename (matching legacy logic)
                 var filename = Path.GetFileName(uri.LocalPath);
                 var fi = new FileInfo(filename);
 
+                // Match legacy naming: remove first 4 characters from grant number, add document name and ID
                 var newFileName = ReplaceInvalidChars(
                     $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
                     "_");
 
-                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
+                // Move the file from temp to download directory
+                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName), true);
                 downloadData.FileDownloaded = newFileName;
 
-                diagnostics.Append("File downloaded successfully. ");
-                Log.Information("File downloaded successfully: {FileName}, Size: {Size} bytes",
-                    newFileName, new FileInfo(Path.Combine(downloadDirectory, newFileName)).Length);
+                diagnostics.Append($"File saved as: {newFileName}. ");
+                Log.Information("File downloaded successfully: {FileName}, Size: {Size} bytes, User: {User}",
+                    newFileName, new FileInfo(Path.Combine(downloadDirectory, newFileName)).Length, sessionInfo.UserId);
+                Log.Information("Download diagnostics: {Diagnostics}", diagnostics.ToString());
             }
-            catch (HttpRequestException ex)
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                diagnostics.Append($"HTTP Request failed: {ex.Message}. ");
-                Log.Error(ex, "HTTP request failed for {Url}, User: {User}", uri, sessionInfo.UserId);
+                diagnostics.Append("HTTP 401 - Authentication failed. ");
+                Log.Error(ex, "SiteMinder authentication failed for {Url}, User: {User}", uri, sessionInfo.UserId);
+                throw new UnauthorizedAccessException("HTTP 401 - SiteMinder authentication failed", ex);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                diagnostics.Append("HTTP 403 - Authorization failed. ");
+                Log.Error(ex, "SiteMinder authorization failed for {Url}, User: {User}", uri, sessionInfo.UserId);
+                throw new UnauthorizedAccessException("HTTP 403 - User not authorized to access this resource", ex);
+            }
+            catch (Exception ex)
+            {
+                diagnostics.Append($"Exception: {ex.Message}. ");
+                Log.Error(ex, "File download failed for {Url}", uri);
                 throw;
             }
         }

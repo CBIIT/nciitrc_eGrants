@@ -7,8 +7,18 @@ namespace eGrants.Services
 {
     public class SessionInfoService : ISessionInfoService
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public SessionInfoService(IHttpContextAccessor httpContextAccessor)
+        {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
         public SessionInfo GetSessionInfo(ISession session)
         {
+            // Get browser cookies from the current HTTP request
+            var browserCookies = _httpContextAccessor.HttpContext?.Request.Headers["Cookie"].ToString() ?? string.Empty;
+
             return new SessionInfo
             {
                 Ic = session.TryGetValue("ic", out var icBytes) && icBytes != null ? System.Text.Encoding.UTF8.GetString(icBytes) : "",
@@ -21,7 +31,8 @@ namespace eGrants.Services
                 EgrantsDocEmail = session.TryGetValue("EgrantsDocEmail", out var EgrantsDocEmailBytes) && EgrantsDocEmailBytes != null ? System.Text.Encoding.UTF8.GetString(EgrantsDocEmailBytes) : "",
                 CertPath = session.TryGetValue("CertPath", out var certPathBytes) && certPathBytes != null ? System.Text.Encoding.UTF8.GetString(certPathBytes) : "",
                 CertPass = session.TryGetValue("CertPass", out var certPassBytes) && certPassBytes != null ? System.Text.Encoding.UTF8.GetString(certPassBytes) : "",
-                EraUrlBase = session.TryGetValue("EraUrlBase", out var eraUrlBaseBytes) && eraUrlBaseBytes != null ? System.Text.Encoding.UTF8.GetString(eraUrlBaseBytes) : ""
+                EraUrlBase = session.TryGetValue("EraUrlBase", out var eraUrlBaseBytes) && eraUrlBaseBytes != null ? System.Text.Encoding.UTF8.GetString(eraUrlBaseBytes) : "",
+                BrowserCookies = browserCookies
             };
         }
     }
