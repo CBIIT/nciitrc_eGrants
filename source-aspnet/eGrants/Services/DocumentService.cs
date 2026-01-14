@@ -963,8 +963,8 @@ namespace eGrants.Services
             return Array.Empty<byte>();
         }
 
-        /// <summary>
-        /// Handle standard file download
+        //// <summary>
+        /// Handle standard file download with SiteMinder authentication
         /// </summary>
         private async Task HandleStandardFileAsync(Uri uri, string tmpFileName, string downloadDirectory,
             string fullGrantNumber, string documentName, string documentId, DownloadData downloadData,
@@ -972,40 +972,54 @@ namespace eGrants.Services
         {
             diagnostics.Append("Not closeout or FFR Rejection. ");
 
-            HttpClient client;
-            diagnostics.Append("Internal server detected, adding certificate. ");
-
             var handler = new HttpClientHandler
             {
                 UseDefaultCredentials = true,
-                PreAuthenticate = true
+                PreAuthenticate = true,
+                UseCookies = true,
+                CookieContainer = new System.Net.CookieContainer()
             };
 
-            // Add certificate if available
-            var cerUri = sessionInfo.CertPath;
-            var certPass = sessionInfo.CertPass;
+            using var client = new HttpClient(handler);
 
-            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
+            // Add standard User-Agent header
+            client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
+
+            if (!string.IsNullOrEmpty(sessionInfo.UserId))
             {
-                var certificate = new X509Certificate2(cerUri, certPass);
-                handler.ClientCertificates.Add(certificate);
-                diagnostics.Append("Certificate added. ");
-            } else
-            {
-                Log.Warning("Certificate not found");
+                // SiteMinder user authentication header
+                client.DefaultRequestHeaders.Add("HEADER_SM_USER", sessionInfo.UserId);
+
+                diagnostics.Append($"Added SiteMinder auth for user: {sessionInfo.UserId}. ");
             }
 
-            client = new HttpClient(handler);
-
-            using (client)
+            // Add IC (Institute/Org) header if available
+            if (!string.IsNullOrEmpty(sessionInfo.Ic))
             {
-                client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
+                client.DefaultRequestHeaders.Add("HEADER_USER_SUB_ORG", sessionInfo.Ic);
 
+                diagnostics.Append($"Added IC: {sessionInfo.Ic}. ");
+            }
+
+            try
+            {
                 var response = await client.GetAsync(uri);
 
                 // Log response details for debugging
                 diagnostics.Append($"Response status: {response.StatusCode}. ");
                 diagnostics.Append($"Content-Type: {response.Content.Headers.ContentType?.MediaType}. ");
+
+                // Check for authentication failures
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    diagnostics.Append("HTTP 401 - SiteMinder authentication required. ");
+                    Log.Error("SiteMinder authentication failed for URL: {Url}, User: {User}", uri, sessionInfo.UserId, diagnostics);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    diagnostics.Append("HTTP 403 - SiteMinder authorization failed. ");
+                    Log.Error("SiteMinder authorization failed for URL: {Url}, User: {User}", uri, sessionInfo.UserId, diagnostics);
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -1028,6 +1042,21 @@ namespace eGrants.Services
 
                 System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName));
                 downloadData.FileDownloaded = newFileName;
+
+                diagnostics.Append("File downloaded successfully with SiteMinder auth. ");
+                Log.Information("File downloaded successfully: {FileName} for URL: {Url}", newFileName, uri, diagnostics);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                diagnostics.Append("HTTP 401 - SiteMinder authentication required. ");
+                Log.Error(ex, "SiteMinder authentication failed for {Url}", uri, diagnostics);
+                throw;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                diagnostics.Append("HTTP 403 - SiteMinder authorization failed. ");
+                Log.Error(ex, "SiteMinder authorization failed for {Url}", uri, diagnostics);
+                throw;
             }
         }
 
