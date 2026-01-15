@@ -176,8 +176,8 @@ function create_new() {
 // to create new document or funding document with selected grant year
 function create_new_doc(type, admincode, serialnum, appl_id) {
     var previous_url = encodeURIComponent(window.location.href);
-    var docCreateUrl = '/EgrantsDoc/doc_create_with_applid';// @Url.Action("doc_create_with_applid", "EgrantsDoc")';
-    var fundingDocUrl = '/EgrantsFunding/funding_doc_default'; // '@Url.Action("funding_doc_default", "EgrantsFunding")';
+    var docCreateUrl = '/EgrantsDoc/doc_create_with_applid';
+    var fundingDocUrl = '/EgrantsFunding/funding_doc_default';
 
     var url = (type === 'doc' ? docCreateUrl : fundingDocUrl);
 
