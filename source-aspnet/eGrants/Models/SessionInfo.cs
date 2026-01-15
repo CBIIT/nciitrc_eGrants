@@ -49,5 +49,7 @@ namespace eGrants.Models
         public string CertPath { get; set; }
         public string CertPass { get; set; }
         public string EraUrlBase { get; set; }
+        public string BrowserCookies { get; set; }
+
     }
 }
