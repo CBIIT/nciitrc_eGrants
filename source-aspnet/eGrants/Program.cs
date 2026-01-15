@@ -124,11 +124,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Handles unhandled exceptions (500 errors)
-app.UseExceptionHandler("/Error");
+#if !DEBUG
+    // Handles unhandled exceptions (500 errors)
+    app.UseExceptionHandler("/Error");
 
-// Handles HTTP status codes (404, 403, etc.)
-app.UseStatusCodePagesWithReExecute("/Error/{0}");
+    // Handles HTTP status codes (404, 403, etc.)
+    app.UseStatusCodePagesWithReExecute("/Error/{0}");
+#endif
+
 
 // Is this cookie really needed?    
 //app.Run(async context =>
