@@ -97,7 +97,7 @@
         } else {
             var url = document.getElementById("hidOriginal_url").value;
         }
-        return url;
+        return encodeURIComponent(url);
     }
 
     function back() {
