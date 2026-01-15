@@ -1192,7 +1192,8 @@ namespace eGrants.Controllers.Egrants
         /// <param name="document_date">The document_date.</param>
         /// <param name="previous_url">The previous_url.</param>
         /// <returns>The <see cref="ActionResult"/>.</returns>
-        public async Task<ActionResult> doc_index_modify(string act, int appl_id, int document_id, int category_id, string sub_category, string document_date, string previous_url)
+        public async Task<ActionResult> doc_index_modify(string act = "", int appl_id = 0, int document_id = 0, 
+            int category_id = 0, string sub_category = "", string document_date = "", string previous_url = "")
         {
             var docids = Convert.ToString(document_id);
 
