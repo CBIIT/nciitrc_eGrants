@@ -254,6 +254,10 @@ app.Use(async (context, next) =>
         var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
         var latestRelease = latestReleaseFull.Split(' ')[0];
         context.Session.SetString("Release", latestRelease);
+
+        var browserCookies = context.Request.Headers["Cookie"].ToString();
+        context.Session.SetString("BrowserCookies", browserCookies);
+
     }
     await next.Invoke();
 });
