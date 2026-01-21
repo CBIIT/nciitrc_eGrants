@@ -64,9 +64,32 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;              // Make session cookie essential
 });
 
-// Register DbContext with connection string
+//// Register DbContext with connection string
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var raw = builder.Configuration.GetConnectionString("DefaultConnection");
+// Pull username/password from environment variables
+var user = builder.Configuration["DB_USER"];
+var password = builder.Configuration["DB_PASSWORD"];
+// Replace placeholders
+var finalConnectionString = raw
+    .Replace("{DB_USER}", user)
+    .Replace("{DB_PASSWORD}", password);
+// Use the final connection string
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(finalConnectionString));
+
+//var user = builder.Configuration["DB_USER"];
+//var password = builder.Configuration["DB_PASSWORD"];
+
+//var finalConnectionString =
+//    $"Data Source=NCIDB-D387-V.nci.nih.gov\\MSSQLEGRANTSQ,52000;Persist Security Info=True;Initial Catalog=EIM;User Id={user};Password={password};Connect Timeout=45;TrustServerCertificate=True;";
+
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseSqlServer(finalConnectionString));
+
+
 
 #endregion
 
@@ -112,6 +135,17 @@ builder.Host.UseSerilog((context, services, configuration) =>
 #endregion
 
 var app = builder.Build();
+
+//var raw = app.Configuration.GetConnectionString("DefaultConnection");
+//var user = app.Configuration["DB_USER"];
+//var password = app.Configuration["DB_PASSWORD"];
+
+//var finalConnectionString = raw
+//    .Replace("{DB_USER}", user)
+//    .Replace("{DB_PASSWORD}", password);
+
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseSqlServer(finalConnectionString));
 
 #region Middleware Pipeline
 
