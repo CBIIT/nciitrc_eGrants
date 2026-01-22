@@ -5,12 +5,12 @@
 }
 @using System.Web.SessionState;
 
-<link rel="stylesheet" type="text/css" href="~/Content/DragdropArea.css" />
-<script src="~/scripts/dragdrop.js"></script>
-<script src="~/scripts/ProgressBar.js"></script>
-<link href="~/Content/jquery-ui.min.css" rel="stylesheet"/>
-<script src="~/scripts/jquery-ui-1.13.2.min.js"></script>
-<script src="~/scripts/bs-custom-file-input.min.js"></script>
+<link rel="stylesheet" type="text/css" href="~/css/DragdropArea.css" />
+<script src="~/js/dragdrop.js"></script>
+<script src="~/js/ProgressBar.js"></script>
+<link href="~/css/jquery-ui.min.css" rel="stylesheet"/>
+<script src="~/js/jquery-ui-1.13.2.min.js"></script>
+<script src="~/js/bs-custom-file-input.min.js"></script>
 
 <style>
    body {
@@ -650,7 +650,7 @@
                <!--show loading icon-->
                <td width="50">
                   <div class="loading" style="display: none">
-                     <img src="~/Content/images/Loading.gif" width="50" />
+                     <img src="~/images/Loading.gif" width="50" />
                   </div>
                </td>
 
@@ -703,7 +703,7 @@
                    </div><!--end myTabContent-->
                    <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
                    <a target="_new" href="#" id="notice" style="visibility: hidden">
-                       <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
+                       <img src="~/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
                    </a>
                    <b id="done">
                        <span id="mssgGood"></span>
@@ -731,7 +731,7 @@
    $('#txtDocumentdate').datepicker({
       showOn: "both",
       buttonImageOnly: true,
-      buttonImage: '../Content/images/calendar.png',
+      buttonImage: '../images/calendar.png',
       buttonText: "Calendar"
    });
 </script>
