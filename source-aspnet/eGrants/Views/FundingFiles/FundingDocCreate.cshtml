@@ -276,9 +276,25 @@
     }
 
     function create_by_file() {
-        if (!get_appl() || !get_category_id() || !get_sub_category() || !get_document_date()) {
-            return false;
-        }
+      // check appl_id
+      if (get_appl() == false) {
+         return false;
+      }
+
+      // check category_id
+      if (get_category_id() == false) {
+         return false;
+      }
+
+      // sheck sub string
+      if (get_sub_category() == false) {
+         return false;
+      }
+
+      // check document_date
+      if (get_document_date() == false) {
+         return false;
+      }
 
         if (!check_file()) {
             return false;
@@ -298,9 +314,25 @@
     }
 
     function create_pdf_by_file() {
-        if (!get_appl() || !get_category_id() || !get_sub_category() || !get_document_date()) {
-            return false;
-        }
+      // check appl_id
+      if (get_appl() == false) {
+         return false;
+      }
+
+      // check category_id
+      if (get_category_id() == false) {
+         return false;
+      }
+
+      // sheck sub string
+      if (get_sub_category() == false) {
+         return false;
+      }
+
+      // check document_date
+      if (get_document_date() == false) {
+         return false;
+      }
 
         if (!check_file()) {
             return false;
@@ -317,16 +349,37 @@
             frmdata.append('files', fileInput.files[i]);
         }
 
-        docupload(frmdata, "/EGrantsFunding/DocCreatePdfByFile");
+        docupload(frmdata, "/EgrantsFunding/DocCreatePdfByFile");
         $('#btnFileUpload').attr("disabled", "disabled");
         $('#btnFilePdfUpload').attr("disabled", "disabled");
         clear_all("by_file");
     }
 
     function create_by_ddrop() {
-        if (!get_appl() || !get_category_id() || !get_sub_category() || !get_document_date()) {
-            return false;
-        }
+      // check appl_id
+      if (get_appl() == false) {
+         return false;
+      }
+
+      // check category_id
+      if (get_category_id() == false) {
+         return false;
+      }
+
+      // sheck sub string
+      if (get_sub_category() == false) {
+         return false;
+      }
+
+      // check document_date
+      if (get_document_date() == false) {
+         return false;
+      }
+
+      // // check file, file type and file size
+      // if (!check_file()) {
+      //    return false;
+      // } else var file = document.getElementById('customFile').files[0];
 
         var frmdata = new FormData();
         frmdata.append('dropedfile', dropedfile);
@@ -335,15 +388,31 @@
         frmdata.append('documentDate', DocDate);
         frmdata.append('subCategory', SubCategory);
 
-        docupload(frmdata, "/EGrantsFunding/DocCreateByDdrop");
+        docupload(frmdata, "/EgrantsFunding/DocCreateByDdrop");
         $('#btnDragdrop').attr("disabled", "disabled");
         clear_all("by_dd");
     }
 
     function create_pdf_by_ddrop() {
-        if (!get_appl() || !get_category_id() || !get_sub_category() || !get_document_date()) {
-            return false;
-        }
+      // check appl_id
+      if (get_appl() == false) {
+         return false;
+      }
+
+      // check category_id
+      if (get_category_id() == false) {
+         return false;
+      }
+
+      // sheck sub string
+      if (get_sub_category() == false) {
+         return false;
+      }
+
+      // check document_date
+      if (get_document_date() == false) {
+         return false;
+      }
 
         var frmdata = new FormData();
         frmdata.append('applId', Applid);
@@ -355,7 +424,7 @@
             frmdata.append('dropedfiles', dropedfiles[i]);
         }
 
-        docupload(frmdata, "/EGrantsFunding/DocCreatePdfByDdrop");
+        docupload(frmdata, "/EgrantsFunding/DocCreatePdfByDdrop");
         $('#btnDragdrop').attr("disabled", "disabled");
         $('#btnPdfDragdrop').attr("disabled", "disabled");
         clear_all("by_dd");
