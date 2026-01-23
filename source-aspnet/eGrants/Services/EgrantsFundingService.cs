@@ -391,7 +391,11 @@ namespace eGrants.Services
                     ? $"0{documentId}{fileExtension}"
                     : $"00{documentId}{fileExtension}";
 
+#if DEBUG
+                var fileFolder = $@"C:\\PdfFileOutput\";
+#else
                 var fileFolder = $@"\\{sessionInfo.WebGrantUrl}\egrants\funded\nci\funding\upload\";
+#endif
                 var filePath = Path.Combine(fileFolder, docName);
 
                 await using (var stream = new FileStream(filePath, FileMode.Create))
@@ -497,8 +501,13 @@ namespace eGrants.Services
                         ? $"0{documentId}.pdf"
                         : $"00{documentId}.pdf";
 
+#if DEBUG
+                    var fileFolder = $@"C:\PdfFileOutput\";
+#else
                     var fileFolder = $@"\\{sessionInfo.WebGrantUrl}\egrants\funded\nci\funding\upload\";
+#endif
                     var filePath = Path.Combine(fileFolder, docName);
+
 
                     var mergedPdf = PdfDocument.Merge(pdfDocs);
                     mergedPdf.SaveAs(filePath);
