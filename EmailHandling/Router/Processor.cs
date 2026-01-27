@@ -538,7 +538,7 @@ namespace Router
                         emailTimestampCount[receivedTime]++;
 
                         int emailPosition = emailTimestampCount[receivedTime];
-                        int delayInSeconds = (emailPosition - 1) * 30; // 30 seconds between each email in same batch
+                        int delayInSeconds = (emailPosition - 1) * 5; // 5 seconds between each email in same batch
 
                         CommonUtilities.ShowDiagnosticIfVerbose($"Public Access Email #{emailPosition} at {receivedTime}. Waiting {delayInSeconds} seconds for PDF generation...", verbose);
                         Thread.Sleep(delayInSeconds * 1000);
