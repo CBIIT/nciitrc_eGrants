@@ -29,6 +29,8 @@ namespace Router
         // Used by tests
         public Dictionary<string, string> emailsSentThisSession { get; private set; }
 
+        private Dictionary<DateTime, int> emailTimestampCount = new Dictionary<DateTime, int>();
+
         public Processor()
         {
             emailsSentThisSession = new Dictionary<string, string>();
@@ -520,6 +522,27 @@ namespace Router
 
                         var replySubj = $"category=PublicAccess, sub={subCat}, applid={applId}, extract=1, {currentItem.Subject}";
 
+                        // Track emails by received time and apply progressive delay
+                        var receivedTime = new DateTime(
+                            currentItem.ReceivedTime.Year,
+                            currentItem.ReceivedTime.Month,
+                            currentItem.ReceivedTime.Day,
+                            currentItem.ReceivedTime.Hour,
+                            currentItem.ReceivedTime.Minute,
+                            0); // Normalize to minute precision
+
+                        if (!emailTimestampCount.ContainsKey(receivedTime))
+                        {
+                            emailTimestampCount[receivedTime] = 0;
+                        }
+                        emailTimestampCount[receivedTime]++;
+
+                        int emailPosition = emailTimestampCount[receivedTime];
+                        int delayInSeconds = (emailPosition - 1) * 15; // 15 seconds between each email in same batch
+
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Public Access Email #{emailPosition} at {receivedTime}. Waiting {delayInSeconds} seconds for PDF generation...", verbose);
+                        Thread.Sleep(delayInSeconds * 1000);
+
                         CommonUtilities.ShowDiagnosticIfVerbose($"dBugEmail :{_dBugEmail}", verbose);
                         CommonUtilities.ShowDiagnosticIfVerbose($"eGrantsDevEmail :{_eGrantsDevEmail}", verbose);
                         CommonUtilities.ShowDiagnosticIfVerbose($"replySubj :{replySubj}", verbose);
@@ -531,7 +554,6 @@ namespace Router
                             outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Recipients.Add(_eGrantsTestEmail);
                             outmail.Recipients.Add(_eGrantsStageEmail);
-                            //===>STOPPING THIS UNTILL FIX IT/5/30 started
                             outmail.Subject = replySubj;
                             Send(outmail);
                         }
