@@ -61,9 +61,10 @@ namespace eGrants.Common
         public readonly string[] SUPPORTED_FILE_TYPES = { ".pdf", ".txt", ".doc", ".docx", ".msg", ".rtf", ".jpg", ".jpeg", ".png", ".gif", ".tif", ".html", ".htm", ".log", ".dat" };
         private readonly string _connectionString;
 
-        public EgrantsCommon(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        public EgrantsCommon(AppDbContext dbContext)
+        { 
+            // EF Core exposes the actual connection string it is using
+            _connectionString = dbContext.Database.GetDbConnection().ConnectionString; 
         }
 
         public class ErrorMessages()

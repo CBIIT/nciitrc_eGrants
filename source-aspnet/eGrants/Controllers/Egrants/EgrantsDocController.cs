@@ -1192,7 +1192,8 @@ namespace eGrants.Controllers.Egrants
         /// <param name="document_date">The document_date.</param>
         /// <param name="previous_url">The previous_url.</param>
         /// <returns>The <see cref="ActionResult"/>.</returns>
-        public async Task<ActionResult> doc_index_modify(string act, int appl_id, int document_id, int category_id, string sub_category, string document_date, string previous_url)
+        public async Task<ActionResult> doc_index_modify(string act = "", int appl_id = 0, int document_id = 0, 
+            int category_id = 0, string sub_category = "", string document_date = "", string previous_url = "")
         {
             var docids = Convert.ToString(document_id);
 
@@ -1247,22 +1248,28 @@ namespace eGrants.Controllers.Egrants
         //// }
 
         /// <summary>
-        /// Display the application creation page
+        /// The appl_create_default.
         /// </summary>
-        /// <param name="adminCode">The admin code</param>
-        /// <param name="serialNum">The serial number</param>
-        /// <returns>The application creation view</returns>
-        [HttpGet]
-        public async Task<ActionResult> ApplCreateDefault(string adminCode, int serialNum)
+        /// <param name="admin_code">
+        /// The admin_code.
+        /// </param>
+        /// <param name="serial_num">
+        /// The serial_num.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ActionResult"/>.
+        /// </returns>
+        public async Task<ActionResult> appl_create_default(string admin_code, int serial_num)
         {
-            ViewBag.admincode = adminCode;
-            ViewBag.serialnum = serialNum;
-            ViewBag.AdminCodeList = await _commonService.LoadAdminCodes();
-            ViewBag.ApplTypeList = await _applService.LoadApplTypeAsync();
-            ViewBag.ActivityCodeList = await _applService.LoadActivityCodeAsync(adminCode);
-            ViewBag.GrantYearList = await _applService.LoadApplsBySerialNumAsync(adminCode, serialNum);
+            ViewBag.admincode = admin_code;
+            ViewBag.serialnum = serial_num;
 
-            return View("~/Views/Egrants/EgrantsApplCreate.cshtml");
+            ViewBag.AdminCodeList = _commonService.LoadAdminCodes();
+            ViewBag.ApplTypeList = await _applService.LoadApplTypeAsync();
+            ViewBag.ActivityCodeList = await _applService.LoadActivityCodeAsync(admin_code);
+            ViewBag.GrantYearList = await _applService.LoadApplsBySerialNumAsync(admin_code, serial_num);
+
+            return this.View("~/Views/eGrants/EgrantsApplCreate.cshtml");
         }
 
         /// <summary>

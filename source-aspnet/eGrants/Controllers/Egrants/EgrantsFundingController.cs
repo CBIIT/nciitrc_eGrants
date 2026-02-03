@@ -204,16 +204,16 @@ namespace eGrants.Controllers.Funding
         /// Displays the funding document creation page
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> FundingDocDefault(string adminCode, int serialNum, int applId, string previousUrl = null)
+        public async Task<ActionResult> funding_doc_default(string admin_code, int serial_num, int appl_id, string previous_url = null)
         {
-            ViewBag.admincode = adminCode;
-            ViewBag.serialnum = serialNum;
-            ViewBag.applid = applId;
-            ViewBag.Previousurl = previousUrl;
+            ViewBag.admincode = admin_code;
+            ViewBag.serialnum = serial_num;
+            ViewBag.applid = appl_id;
+            ViewBag.Previousurl = previous_url;
 
             ViewBag.AdminCodeList = await _commonService.LoadAdminCodes();
             ViewBag.CategoryList = await _fundingService.LoadFundingCategoryListAsync();
-            ViewBag.GrantYearList = await _egrantsService.LoadApplsByApplid(applId);
+            ViewBag.GrantYearList = await _egrantsService.LoadApplsByApplid(appl_id);
 
             return View("~/Views/FundingFiles/FundingDocCreate.cshtml");
         }

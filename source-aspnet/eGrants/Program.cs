@@ -11,13 +11,36 @@ using Serilog;
 
 using SimpleECommerceCore.Middleware;
 
-var selfLogPath = Path.Combine(AppContext.BaseDirectory, "serilog-selflog.txt"); 
+// Enable Serilog internal diagnostics. 
+// This logs Serilog’s own configuration or sink failures (not application logs) 
+// Useful only for troubleshooting when logs are not appearing as expected.
+var selfLogPath = Path.Combine(AppContext.BaseDirectory, "serilog-selflog.txt");
 
-Serilog.Debugging.SelfLog.Enable(message => { 
-    File.AppendAllText(selfLogPath, message + Environment.NewLine); 
+Serilog.Debugging.SelfLog.Enable(message =>
+{
+    File.AppendAllText(selfLogPath, message + Environment.NewLine);
 });
 
+#region Setting up the database connection
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Register DbContext with connection string
+var raw = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Pull username/password from environment variables
+var user = builder.Configuration["DB_USER"];
+var password = builder.Configuration["DB_PASSWORD"];
+
+// Replace placeholders
+var finalConnectionString = raw
+    .Replace("{DB_USER}", user)
+    .Replace("{DB_PASSWORD}", password);
+
+// Use the final connection string
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(finalConnectionString));
+#endregion
 
 #region Service Configuration
 
@@ -27,6 +50,7 @@ builder.Services.AddHttpForwarder();
 builder.Services.AddHttpContextAccessor();
 
 // Application Services & Repositories (Dependency Injection)
+builder.Services.AddScoped<EgrantsCommon>();
 builder.Services.AddScoped<IeGrantsService, eGrantsService>();
 builder.Services.AddScoped<IeGrantsRepository, eGrantsRepository>();
 builder.Services.AddScoped<ICommonService, CommonService>();
@@ -41,7 +65,6 @@ builder.Services.AddScoped<IManagementService, ManagementService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<IEgrantsAccessService, EgrantsAccessService>();
-builder.Services.AddScoped<EgrantsCommon>();
 builder.Services.AddScoped<IFlagMaintenanceService, FlagMaintenanceService>();
 builder.Services.AddScoped<IGPMATWorkReportService, GPMATWorkReportService>();
 builder.Services.AddScoped<IApplDestructedService, ApplDestructedService>();
@@ -50,7 +73,7 @@ builder.Services.AddScoped<IEgrantsFundingService, EgrantsFundingService>();
 builder.Services.AddScoped<IApplService, ApplService>();
 
 // Utility class
-builder.Services.AddTransient<EgrantsCommon>();
+//builder.Services.AddTransient<EgrantsCommon>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -63,10 +86,6 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;                 // Make session cookie HTTP-only
     options.Cookie.IsEssential = true;              // Make session cookie essential
 });
-
-// Register DbContext with connection string
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 #endregion
 
@@ -124,11 +143,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Handles unhandled exceptions (500 errors)
-app.UseExceptionHandler("/Error");
+#if !DEBUG
+    // Handles unhandled exceptions (500 errors)
+    app.UseExceptionHandler("/Error");
 
-// Handles HTTP status codes (404, 403, etc.)
-app.UseStatusCodePagesWithReExecute("/Error/{0}");
+    // Handles HTTP status codes (404, 403, etc.)
+    app.UseStatusCodePagesWithReExecute("/Error/{0}");
+#endif
+
 
 // Is this cookie really needed?    
 //app.Run(async context =>
@@ -147,6 +169,17 @@ app.UseSession(); // Enable session middleware
 
 
 // TODO: Determine better way to handle getting user id information if possible
+
+// Middleware to initialize and validate the user session.
+//
+// - Strips server-identifying response headers.
+// - If no session user exists:
+//      • Resolve user ID from SiteMinder, Windows identity, or machine account.
+//      • Store IC code, browser type, and default view.
+//      • Load user type and profile via EgrantsCommon; redirect if invalid.
+//      • Populate session with user details and app configuration values.
+//      • Fetch latest GitHub release tag and store cookies.
+// - Continues request pipeline afterward.
 app.Use(async (context, next) =>
 {
     // Remove unwanted headers
@@ -198,7 +231,7 @@ app.Use(async (context, next) =>
         context.Session.SetString("CurrentView", "standardForm");
 
         // Resolve EgrantsCommon service
-        var egrantsCommon = app.Services.GetRequiredService<EgrantsCommon>();
+        var egrantsCommon = context.RequestServices.GetRequiredService<EgrantsCommon>();
 
         var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
 
@@ -254,6 +287,10 @@ app.Use(async (context, next) =>
         var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
         var latestRelease = latestReleaseFull.Split(' ')[0];
         context.Session.SetString("Release", latestRelease);
+
+        var browserCookies = context.Request.Headers["Cookie"].ToString();
+        context.Session.SetString("BrowserCookies", browserCookies);
+
     }
     await next.Invoke();
 });

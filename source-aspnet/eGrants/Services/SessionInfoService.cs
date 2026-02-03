@@ -21,7 +21,8 @@ namespace eGrants.Services
                 EgrantsDocEmail = session.TryGetValue("EgrantsDocEmail", out var EgrantsDocEmailBytes) && EgrantsDocEmailBytes != null ? System.Text.Encoding.UTF8.GetString(EgrantsDocEmailBytes) : "",
                 CertPath = session.TryGetValue("CertPath", out var certPathBytes) && certPathBytes != null ? System.Text.Encoding.UTF8.GetString(certPathBytes) : "",
                 CertPass = session.TryGetValue("CertPass", out var certPassBytes) && certPassBytes != null ? System.Text.Encoding.UTF8.GetString(certPassBytes) : "",
-                EraUrlBase = session.TryGetValue("EraUrlBase", out var eraUrlBaseBytes) && eraUrlBaseBytes != null ? System.Text.Encoding.UTF8.GetString(eraUrlBaseBytes) : ""
+                EraUrlBase = session.TryGetValue("EraUrlBase", out var eraUrlBaseBytes) && eraUrlBaseBytes != null ? System.Text.Encoding.UTF8.GetString(eraUrlBaseBytes) : "",
+                BrowserCookies = session.TryGetValue("BrowserCookies", out var cookieBytes) && cookieBytes != null ? System.Text.Encoding.UTF8.GetString(cookieBytes) : ""
             };
         }
     }
