@@ -372,7 +372,7 @@
                     </div><!--end myTabContent-->
                     <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="javascript: show_docs('@Model.SelectedInstitutionalOrg.OrgId', '@systemOrgName2')"><u>R</u>eturn to Institutional File</button>&#0160;&#0160;
                     <a target="_new" href="#" id="notice" style="visibility: hidden">
-                        <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
+                        <img src="~/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
                     </a>
                     <b id="done">
                         <span id="mssg"></span>
@@ -384,7 +384,7 @@
                     @if (ViewBag.FileUrl != null)
                     {
                         <a target="_new" href="@ViewBag.FileUrl" title="Click here to check uploaded file">
-                            <img src="~/Content/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
+                            <img src="~/images/check_doc_btn.png" style="height: 35px;" title="Check Document" />
                         </a>
                     }
                     <b>@ViewBag.Message</b>

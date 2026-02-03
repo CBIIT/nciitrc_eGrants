@@ -9,18 +9,13 @@
 
 }
 
-@*<style>
-   .nav-tabs > li > a:hover {
-      color: #ffffff;
-      background-color: #808080 !important;
-   }
+<style>
+    a:hover {
+        color: #1a73e8; /* visible contrast */
+        background: transparent; /* if a background is applied on hover, ensure contrast */
+    }
 
-   .nav-tabs > li > a:focus {
-      color: #ffffff;
-      background-color: #808080 !important;
-   }
-
-</style>*@
+</style>
 
 @{
     var catArray = JsonSerializer.Serialize(Model.OrgCategories.ToArray());
