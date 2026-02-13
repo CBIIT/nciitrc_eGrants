@@ -25,13 +25,16 @@ namespace eGrants.Services
     {
         private readonly AppDbContext _context;
         private readonly ICommonRepository _commonRepository;
+        private readonly string _fundingRelativePath;
 
         public EgrantsFundingService(
             AppDbContext context,
-            ICommonRepository commonRepository)
+            ICommonRepository commonRepository,
+            IConfiguration config)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
+            _fundingRelativePath = config["AppSettings:egrantsFundingRelativePath"];
         }
 
         public async Task<List<FundingCategories>> LoadFundingCategoriesAsync(int fiscalYear)
@@ -403,7 +406,7 @@ namespace eGrants.Services
                     await file.CopyToAsync(stream);
                 }
 
-                var fundingRelativePath = "egrants/funded/nci/funding/upload/";
+                var fundingRelativePath = _fundingRelativePath;
                 result.Url = $"{sessionInfo.ImageServerUrl}data/{fundingRelativePath}{docName}";
                 result.Message = "Done! Funding document has been uploaded";
                 result.Success = true;
