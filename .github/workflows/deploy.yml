@@ -8,7 +8,7 @@ jobs:
     runs-on: egrants_fcas-oasys_runner
 
     steps:
-      - name: Copy a.txt to destination share
+      - name: Copy test-transfer.txt to destination share
         shell: powershell
         run: |
           $source = 'D:\Content\egrants-web-dev-core-migration.nci.nih.gov\test-transfer.txt'
@@ -24,8 +24,8 @@ jobs:
 
           Copy-Item $source $destination -Force
 
-          if (-not (Test-Path (Join-Path $destination 'a.txt'))) {
-            throw "Copy verification failed: a.txt not found in destination"
+          if (-not (Test-Path (Join-Path $destination 'test-transfer.txt'))) {
+            throw "Copy verification failed: test-transfer.txt not found in destination"
           }
 
           Write-Host 'Copy completed successfully.'
