@@ -30,10 +30,6 @@ namespace EmailConcatenation.Converters
     public class WordDocConverter : IWordDocConverter, IConvertToPdf
     {
         private readonly string _libreOfficePath;
-        //private static bool _loWarmupDone = false;
-        //private static readonly object _loWarmupLock = new object();
-
-        //private const string LibreProfilePath = @"C:\LibreOfficeProfile"; 
 
         public WordDocConverter(IConfiguration configuration)
         {
@@ -122,82 +118,6 @@ namespace EmailConcatenation.Converters
             catch { }
 
             return new List<PdfDocument> { pdfDocument };
-        }
-
-
-
-        //// ------------------------------------------------------------
-        //// Warm-up helper: runs once per worker process
-        //// ------------------------------------------------------------
-        //private void EnsureLibreOfficeWarmup()
-        //{
-        //    if (_loWarmupDone)
-        //        return;
-
-        //    lock (_loWarmupLock)
-        //    {
-        //        if (_loWarmupDone)
-        //            return;
-
-        //        try
-        //        {
-        //            Log.Information("LibreOffice warm-up starting");
-
-        //            string warmupDocx = Path.Combine(Path.GetTempPath(), "lo-warmup.docx");
-
-        //            // Create minimal DOCX if missing
-        //            if (!File.Exists(warmupDocx))
-        //            {
-        //                File.WriteAllBytes(warmupDocx, CreateMinimalDocx());
-        //            }
-
-        //            var warmupInfo = new ProcessStartInfo
-        //            {
-        //                FileName = _libreOfficePath,
-        //                Arguments =
-        //                    "--headless --nologo --nofirststartwizard " +
-        //                    $"--convert-to pdf \"{warmupDocx}\" --outdir \"{Path.GetTempPath()}\"",
-        //                RedirectStandardOutput = true,
-        //                RedirectStandardError = true,
-        //                UseShellExecute = false,
-        //                CreateNoWindow = true
-        //            };
-
-        //            using (var warmupProcess = Process.Start(warmupInfo))
-        //            {
-        //                warmupProcess.WaitForExit();
-        //            }
-
-        //            Log.Information("LibreOffice warm-up complete");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            Log.Warning("LibreOffice warm-up failed but will not block conversions: " + ex.Message);
-        //        }
-
-        //        _loWarmupDone = true;
-        //    }
-        //}
-
-
-        // ------------------------------------------------------------
-        // Creates a tiny valid DOCX file for warm-up
-        // ------------------------------------------------------------
-        private byte[] CreateMinimalDocx()
-        {
-            using (var ms = new MemoryStream())
-            {
-                using (var archive = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Create, true))
-                {
-                    var entry = archive.CreateEntry("word/document.xml");
-                    using (var writer = new StreamWriter(entry.Open()))
-                    {
-                        writer.Write("<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:t>Warmup</w:t></w:r></w:p></w:body></w:document>");
-                    }
-                }
-
-                return ms.ToArray();
-            }
         }
 
         private static HttpContent Upload(string actionUrl, string paramString, Stream paramFileStream, byte[] paramFileBytes)
