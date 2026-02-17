@@ -54,8 +54,9 @@ namespace eGrants.Tests.Integration
             var eGrantsService = new eGrantsService(eGrantsRepository);
             var sessionInfoService = new SessionInfoService();
             var documentService = mockDocumentService ?? new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService);
+            var applService = new ApplService(context);
 
-            var controller = new EgrantsDocController(eGrantsService, commonService, documentService, sessionInfoService);
+            var controller = new EgrantsDocController(eGrantsService, commonService, documentService, sessionInfoService, applService);
             var httpContext = new DefaultHttpContext();
             httpContext.Session = session;
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
