@@ -1,0 +1,31 @@
+name: eGrants Deployment Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copy-file:
+    runs-on: egrants_fcas-oasys_runner
+
+    steps:
+      - name: Copy a.txt to destination share
+        shell: pwsh
+        run: |
+          $source = 'D:\Content\egrants-web-dev-core-migration.nci.nih.gov\test-transfer.txt'
+          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
+
+          if (-not (Test-Path $source)) {
+            throw "Source file not found: $source"
+          }
+
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
+          }
+
+          Copy-Item $source $destination -Force
+
+          if (-not (Test-Path (Join-Path $destination 'a.txt'))) {
+            throw "Copy verification failed: a.txt not found in destination"
+          }
+
+          Write-Host 'Copy completed successfully.'
