@@ -22,7 +22,7 @@ using NPOI.XWPF.UserModel;
 
 using Spire.Doc;
 
-
+using Serilog;
 
 
 namespace EmailConcatenation.Converters
@@ -30,10 +30,19 @@ namespace EmailConcatenation.Converters
     public class WordDocConverter : IWordDocConverter, IConvertToPdf
     {
         private readonly string _libreOfficePath;
+        //private static bool _loWarmupDone = false;
+        //private static readonly object _loWarmupLock = new object();
+
+        //private const string LibreProfilePath = @"C:\LibreOfficeProfile"; 
 
         public WordDocConverter(IConfiguration configuration)
         {
+#if DEBUG
+            _libreOfficePath = "C:\\Development\\LibreOffice\\program\\soffice.exe";
+#else
             _libreOfficePath = configuration["LibreOffice:Path"];
+#endif
+
             if (string.IsNullOrEmpty(_libreOfficePath))
             {
                 throw new InvalidOperationException("LibreOffice path not configured in appsettings.json");
@@ -53,53 +62,143 @@ namespace EmailConcatenation.Converters
             if (content.GetBytes().Length == 0)
                 return null;
 
-            // Write input file to temp location
+            // 1. Write input DOC to temp
             string tempInputPath = Path.Combine(Path.GetTempPath(), content.SingleFileFileName);
+            Log.Information("tempInputPath: " + tempInputPath);
             File.WriteAllBytes(tempInputPath, content.GetBytes());
 
-            // Prepare output path
+            // 2. Determine output PDF path
             string tempOutputDir = Path.GetTempPath().TrimEnd('\\');
-
             string tempOutputPath = Path.Combine(
                 tempOutputDir,
                 Path.GetFileNameWithoutExtension(content.SingleFileFileName) + ".pdf"
             );
 
-            // Call LibreOffice using configured path
+            Log.Information("tempOutputDir: " + tempOutputDir);
+
+            // 3. Build LibreOffice process info
             var processInfo = new ProcessStartInfo
             {
                 FileName = _libreOfficePath,
-                Arguments = $"--headless --convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\"",
+                Arguments =
+                    "--headless --nologo --nofirststartwizard " +
+                    $"--convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\"",
+
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
 
+            // 4. Execute conversion
             using (var process = Process.Start(processInfo))
             {
+                string stdout = process.StandardOutput.ReadToEnd();
+                string stderr = process.StandardError.ReadToEnd();
+
                 process.WaitForExit();
+
+                Log.Information("LibreOffice stdout: {Stdout}", stdout);
+                Log.Information("LibreOffice stderr: {Stderr}", stderr);
+
                 if (process.ExitCode != 0)
                 {
-                    throw new Exception("LibreOffice conversion failed: " + process.StandardError.ReadToEnd());
+                    throw new Exception($"LibreOffice conversion failed. ExitCode={process.ExitCode}. Error: {stderr}");
                 }
             }
 
-            // Load PDF back into IronPdf
-            //byte[] pdfBytes = File.ReadAllBytes(tempOutputPath);
+            // 5. Load PDF
+            if (!File.Exists(tempOutputPath))
+                throw new Exception("LibreOffice reported success but no PDF was created.");
+
             PdfDocument pdfDocument = PdfDocument.FromFile(tempOutputPath);
 
-            // Clean up temp files
+            // 6. Cleanup
             try
             {
                 File.Delete(tempInputPath);
                 File.Delete(tempOutputPath);
             }
-            catch { /* ignore cleanup errors */ }
+            catch { }
 
             return new List<PdfDocument> { pdfDocument };
         }
 
+
+
+        //// ------------------------------------------------------------
+        //// Warm-up helper: runs once per worker process
+        //// ------------------------------------------------------------
+        //private void EnsureLibreOfficeWarmup()
+        //{
+        //    if (_loWarmupDone)
+        //        return;
+
+        //    lock (_loWarmupLock)
+        //    {
+        //        if (_loWarmupDone)
+        //            return;
+
+        //        try
+        //        {
+        //            Log.Information("LibreOffice warm-up starting");
+
+        //            string warmupDocx = Path.Combine(Path.GetTempPath(), "lo-warmup.docx");
+
+        //            // Create minimal DOCX if missing
+        //            if (!File.Exists(warmupDocx))
+        //            {
+        //                File.WriteAllBytes(warmupDocx, CreateMinimalDocx());
+        //            }
+
+        //            var warmupInfo = new ProcessStartInfo
+        //            {
+        //                FileName = _libreOfficePath,
+        //                Arguments =
+        //                    "--headless --nologo --nofirststartwizard " +
+        //                    $"--convert-to pdf \"{warmupDocx}\" --outdir \"{Path.GetTempPath()}\"",
+        //                RedirectStandardOutput = true,
+        //                RedirectStandardError = true,
+        //                UseShellExecute = false,
+        //                CreateNoWindow = true
+        //            };
+
+        //            using (var warmupProcess = Process.Start(warmupInfo))
+        //            {
+        //                warmupProcess.WaitForExit();
+        //            }
+
+        //            Log.Information("LibreOffice warm-up complete");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Log.Warning("LibreOffice warm-up failed but will not block conversions: " + ex.Message);
+        //        }
+
+        //        _loWarmupDone = true;
+        //    }
+        //}
+
+
+        // ------------------------------------------------------------
+        // Creates a tiny valid DOCX file for warm-up
+        // ------------------------------------------------------------
+        private byte[] CreateMinimalDocx()
+        {
+            using (var ms = new MemoryStream())
+            {
+                using (var archive = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Create, true))
+                {
+                    var entry = archive.CreateEntry("word/document.xml");
+                    using (var writer = new StreamWriter(entry.Open()))
+                    {
+                        writer.Write("<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:t>Warmup</w:t></w:r></w:p></w:body></w:document>");
+                    }
+                }
+
+                return ms.ToArray();
+            }
+        }
 
         private static HttpContent Upload(string actionUrl, string paramString, Stream paramFileStream, byte[] paramFileBytes)
         {
