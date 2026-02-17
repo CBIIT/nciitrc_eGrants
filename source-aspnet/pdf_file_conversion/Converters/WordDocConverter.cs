@@ -22,7 +22,7 @@ using NPOI.XWPF.UserModel;
 
 using Spire.Doc;
 
-
+using Serilog;
 
 
 namespace EmailConcatenation.Converters
@@ -33,7 +33,12 @@ namespace EmailConcatenation.Converters
 
         public WordDocConverter(IConfiguration configuration)
         {
+#if DEBUG
+            _libreOfficePath = "C:\\Development\\LibreOffice\\program\\soffice.exe";
+#else
             _libreOfficePath = configuration["LibreOffice:Path"];
+#endif
+
             if (string.IsNullOrEmpty(_libreOfficePath))
             {
                 throw new InvalidOperationException("LibreOffice path not configured in appsettings.json");
@@ -53,53 +58,67 @@ namespace EmailConcatenation.Converters
             if (content.GetBytes().Length == 0)
                 return null;
 
-            // Write input file to temp location
+            // 1. Write input DOC to temp
             string tempInputPath = Path.Combine(Path.GetTempPath(), content.SingleFileFileName);
+            Log.Information("tempInputPath: " + tempInputPath);
             File.WriteAllBytes(tempInputPath, content.GetBytes());
 
-            // Prepare output path
+            // 2. Determine output PDF path
             string tempOutputDir = Path.GetTempPath().TrimEnd('\\');
-
             string tempOutputPath = Path.Combine(
                 tempOutputDir,
                 Path.GetFileNameWithoutExtension(content.SingleFileFileName) + ".pdf"
             );
 
-            // Call LibreOffice using configured path
+            Log.Information("tempOutputDir: " + tempOutputDir);
+
+            // 3. Build LibreOffice process info
             var processInfo = new ProcessStartInfo
             {
                 FileName = _libreOfficePath,
-                Arguments = $"--headless --convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\"",
+                Arguments =
+                    "--headless --nologo --nofirststartwizard " +
+                    $"--convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\"",
+
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
 
+            // 4. Execute conversion
             using (var process = Process.Start(processInfo))
             {
+                string stdout = process.StandardOutput.ReadToEnd();
+                string stderr = process.StandardError.ReadToEnd();
+
                 process.WaitForExit();
+
+                Log.Information("LibreOffice stdout: {Stdout}", stdout);
+                Log.Information("LibreOffice stderr: {Stderr}", stderr);
+
                 if (process.ExitCode != 0)
                 {
-                    throw new Exception("LibreOffice conversion failed: " + process.StandardError.ReadToEnd());
+                    throw new Exception($"LibreOffice conversion failed. ExitCode={process.ExitCode}. Error: {stderr}");
                 }
             }
 
-            // Load PDF back into IronPdf
-            //byte[] pdfBytes = File.ReadAllBytes(tempOutputPath);
+            // 5. Load PDF
+            if (!File.Exists(tempOutputPath))
+                throw new Exception("LibreOffice reported success but no PDF was created.");
+
             PdfDocument pdfDocument = PdfDocument.FromFile(tempOutputPath);
 
-            // Clean up temp files
+            // 6. Cleanup
             try
             {
                 File.Delete(tempInputPath);
                 File.Delete(tempOutputPath);
             }
-            catch { /* ignore cleanup errors */ }
+            catch { }
 
             return new List<PdfDocument> { pdfDocument };
         }
-
 
         private static HttpContent Upload(string actionUrl, string paramString, Stream paramFileStream, byte[] paramFileBytes)
         {
