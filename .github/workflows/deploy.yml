@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Copy a.txt to destination share
-        shell: pwsh
+        shell: powershell
         run: |
           $source = 'D:\Content\egrants-web-dev-core-migration.nci.nih.gov\test-transfer.txt'
           $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
