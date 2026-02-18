@@ -50,6 +50,8 @@ jobs:
 
           Write-Host "Archive completed successfully with exit code $exitCode."
 
+          exit 0
+
       - name: Stop IIS site before deployment
         shell: powershell
         run: |
@@ -93,6 +95,8 @@ jobs:
           }
 
           Write-Host "Deployment completed successfully with exit code $exitCode."
+
+          exit 0
 
       - name: Start IIS site after deployment
         shell: powershell
