@@ -3,7 +3,7 @@
 on:
   push:
     branches:
-      - Dev
+      - dev
   workflow_dispatch:
 
 jobs:
@@ -23,55 +23,81 @@ jobs:
       - name: Archive existing destination directory
         shell: powershell
         run: |
-          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
-          $archiveRoot = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\_archive'
+          $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov\'
+          $archiveRoot = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov\eGrantsArchive\'
 
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
           }
 
+          # Ensure archive root exists
           if (-not (Test-Path $archiveRoot)) {
             New-Item -ItemType Directory -Path $archiveRoot | Out-Null
           }
 
+          # Create timestamped folder name
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-          $archivePath = Join-Path $archiveRoot "backup_$timestamp"
+          $tempBackupFolder = Join-Path $archiveRoot "backup_$timestamp"
+          $zipFile = Join-Path $archiveRoot "backup_$timestamp.zip"
 
-          Write-Host "Creating archive folder: $archivePath"
-          New-Item -ItemType Directory -Path $archivePath | Out-Null
+          Write-Host "Creating temporary archive folder: $tempBackupFolder"
+          New-Item -ItemType Directory -Path $tempBackupFolder | Out-Null
 
-          Write-Host "Archiving current destination contents..."
-          robocopy $destination $archivePath /MIR
+          Write-Host "Copying destination contents into temporary archive folder..."
+          robocopy $destination $tempBackupFolder /MIR
+          $exitCode = $LASTEXITCODE
 
-          if ($LASTEXITCODE -ge 8) {
-            throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
+          if ($exitCode -ge 8) {
+            throw "Robocopy archive failed. Exit code: $exitCode"
           }
 
-          Write-Host "Archive completed successfully."
+          Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
 
-      - name: Stop IIS site before deployment
+          Write-Host "Creating ZIP archive: $zipFile"
+          Compress-Archive -Path "$tempBackupFolder\*" -DestinationPath $zipFile -Force
+
+          Write-Host "ZIP archive created successfully."
+
+          Write-Host "Removing temporary uncompressed backup folder..."
+          Remove-Item -Path $tempBackupFolder -Recurse -Force
+
+          Write-Host "Archive process completed successfully."
+          exit 0
+
+      - name: Stop IIS site and app pool before deployment
         shell: powershell
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+          $siteName = "egrants-web-dev-core-migration"
+          $appPool = "egrants-web-dev-core-migration-pool"
 
           Write-Host "Stopping IIS site: $siteName"
-          Stop-Website -Name $siteName
+          Stop-Website -Name $siteName -ErrorAction Stop
 
-          Start-Sleep -Seconds 3
+          Write-Host "Stopping IIS application pool: $appPool"
+          Stop-WebAppPool -Name $appPool -ErrorAction Stop
 
+          Write-Host "Waiting for IIS to fully stop..."
+          Start-Sleep -Seconds 5
+
+          # Validate both are stopped
           if ((Get-Website -Name $siteName).state -ne "Stopped") {
-            throw "Failed to stop IIS site: $siteName"
+            throw "IIS site did not stop properly: $siteName"
           }
 
-          Write-Host "IIS site stopped successfully."
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+            throw "IIS app pool did not stop properly: $appPool"
+          }
+
+          Write-Host "IIS site and app pool stopped successfully."
+          exit 0
 
       - name: Deploy build output to destination share
         shell: powershell
         run: |
           $source = "$(Get-Location)\build_output"
-          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
+          $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov'
 
           if (-not (Test-Path $source)) {
             throw "Build output not found: $source"
@@ -85,27 +111,41 @@ jobs:
 
           # Mirror build output → destination, excluding web.config
           robocopy $source $destination /MIR /XF web.config
+          $exitCode = $LASTEXITCODE
 
-          if ($LASTEXITCODE -ge 8) {
-            throw "Robocopy deployment failed. Exit code: $LASTEXITCODE"
+          if ($exitCode -ge 8) {
+              throw "Robocopy deployment failed. Exit code: $exitCode"
           }
 
-          Write-Host "Deployment completed successfully."
+          Write-Host "Deployment completed successfully with exit code $exitCode."
 
-      - name: Start IIS site after deployment
+          exit 0
+
+      - name: Start IIS site and app pool after deployment
         shell: powershell
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+          $siteName = "egrants-web-dev-core-migration"
+          $appPool = "egrants-web-dev-core-migration-pool"
+
+          Write-Host "Starting IIS application pool: $appPool"
+          Start-WebAppPool -Name $appPool -ErrorAction Stop
 
           Write-Host "Starting IIS site: $siteName"
-          Start-Website -Name $siteName
+          Start-Website -Name $siteName -ErrorAction Stop
 
+          Write-Host "Waiting for IIS to fully start..."
           Start-Sleep -Seconds 3
 
           if ((Get-Website -Name $siteName).state -ne "Started") {
-            throw "Failed to start IIS site: $siteName"
+            throw "IIS site did not start properly: $siteName"
           }
 
-          Write-Host "IIS site started successfully."
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+            throw "IIS app pool did not start properly: $appPool"
+          }
+
+          Write-Host "IIS site and app pool started successfully."
+          exit 0
+
