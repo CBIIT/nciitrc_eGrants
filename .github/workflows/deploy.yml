@@ -17,8 +17,8 @@ jobs:
       - name: Build project
         shell: powershell
         run: |
-          dotnet restore
-          dotnet publish -c Release -o ./build_output
+          dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
+          dotnet publish "./source-aspnet/eGrants/eGrants.csproj" -c Release -o ./build_output
 
       - name: Archive existing destination directory
         shell: powershell
