@@ -57,7 +57,7 @@ jobs:
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+          $siteName = "egrants-web-dev-core-migration"
 
           Write-Host "Stopping IIS site: $siteName"
           Stop-Website -Name $siteName
@@ -103,7 +103,7 @@ jobs:
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+          $siteName = "egrants-web-dev-core-migration"
 
           Write-Host "Starting IIS site: $siteName"
           Start-Website -Name $siteName
