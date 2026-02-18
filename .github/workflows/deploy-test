@@ -1,0 +1,187 @@
+name: eGrants Test Deployment Workflow
+
+on:
+  push:
+    branches:
+      - Test
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-test:
+    runs-on: egrants_fcas-oasys_runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------------
+      # NEW STEP: Only allow Dev→Test merges or manual runs
+      # ---------------------------------------------------------
+      - name: Validate trigger (only merge from Dev or manual run)
+        id: validate
+        shell: powershell
+        run: |
+          $branch = $env:GITHUB_REF_NAME
+          $event = $env:GITHUB_EVENT_NAME
+          $message = $env:GITHUB_EVENT_HEAD_COMMIT_MESSAGE
+
+          Write-Host "Branch: $branch"
+          Write-Host "Event: $event"
+          Write-Host "Commit message: $message"
+
+          if ($event -eq "workflow_dispatch") {
+              Write-Host "Manual run detected — proceeding with deployment."
+              echo "proceed=true" >> $env:GITHUB_OUTPUT
+              exit 0
+          }
+
+          if ($branch -eq "Test" -and $message.StartsWith("Merge branch 'Dev'")) {
+              Write-Host "Valid merge from Dev → Test — proceeding with deployment."
+              echo "proceed=true" >> $env:GITHUB_OUTPUT
+              exit 0
+          }
+
+          Write-Host "Not a merge from Dev → Test — skipping deployment."
+          echo "proceed=false" >> $env:GITHUB_OUTPUT
+          exit 0
+
+      # ---------------------------------------------------------
+      # All remaining steps run ONLY if proceed=true
+      # ---------------------------------------------------------
+
+      - name: Build project
+        if: steps.validate.outputs.proceed == 'true'
+        shell: powershell
+        run: |
+          dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
+          dotnet publish "./source-aspnet/eGrants/eGrants.csproj" -c Release -o ./build_output
+
+      - name: Archive existing Test destination directory
+        if: steps.validate.outputs.proceed == 'true'
+        shell: powershell
+        run: |
+          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants-web-test-core-migration.nci.nih.gov\'
+          $archiveRoot = '\\nciws-q2409-v.nci.nih.gov\eGrants-Archive\'
+
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
+          }
+
+          if (-not (Test-Path $archiveRoot)) {
+            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
+          }
+
+          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+          $archivePath = Join-Path $archiveRoot "backup_$timestamp"
+
+          Write-Host "Creating archive folder: $archivePath"
+          New-Item -ItemType Directory -Path $archivePath | Out-Null
+
+          Write-Host "Archiving current destination contents..."
+          robocopy $destination $archivePath /MIR
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -ge 8) {
+            throw "Robocopy archive failed. Exit code: $exitCode"
+          }
+
+          Write-Host "Robocopy completed with exit code $exitCode."
+
+          # Create ZIP archive
+          $zipFile = "$archivePath.zip"
+          Write-Host "Creating ZIP archive: $zipFile"
+          Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
+
+          Write-Host "ZIP archive created successfully."
+
+          # Remove uncompressed folder
+          Write-Host "Removing uncompressed archive folder: $archivePath"
+          Remove-Item -Path $archivePath -Recurse -Force
+
+          Write-Host "Archive process completed successfully."
+          exit 0
+
+      - name: Stop IIS Test site and app pool before deployment
+        if: steps.validate.outputs.proceed == 'true'
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+
+          $siteName = "egrants-web-test-core-migration"
+          $appPool = "egrants-web-test-core-migration-pool"
+
+          Write-Host "Stopping IIS site: $siteName"
+          Stop-Website -Name $siteName -ErrorAction Stop
+
+          Write-Host "Stopping IIS application pool: $appPool"
+          Stop-WebAppPool -Name $appPool -ErrorAction Stop
+
+          Write-Host "Waiting for IIS to fully stop..."
+          Start-Sleep -Seconds 5
+
+          if ((Get-Website -Name $siteName).state -ne "Stopped") {
+            throw "IIS site did not stop properly: $siteName"
+          }
+
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+            throw "IIS app pool did not stop properly: $appPool"
+          }
+
+          Write-Host "IIS site and app pool stopped successfully."
+          exit 0
+
+      - name: Deploy Test build output to destination share
+        if: steps.validate.outputs.proceed == 'true'
+        shell: powershell
+        run: |
+          $source = "$(Get-Location)\build_output"
+          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants-web-test-core-migration.nci.nih.gov\'
+
+          if (-not (Test-Path $source)) {
+            throw "Build output not found: $source"
+          }
+
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
+          }
+
+          Write-Host "Deploying build output to Test destination..."
+
+          robocopy $source $destination /MIR /XF web.config
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -ge 8) {
+            throw "Robocopy deployment failed. Exit code: $exitCode"
+          }
+
+          Write-Host "Deployment completed successfully with exit code $exitCode."
+          exit 0
+
+      - name: Start IIS Test site and app pool after deployment
+        if: steps.validate.outputs.proceed == 'true'
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+
+          $siteName = "egrants-web-test-core-migration"
+          $appPool = "egrants-web-test-core-migration-pool"
+
+          Write-Host "Starting IIS application pool: $appPool"
+          Start-WebAppPool -Name $appPool -ErrorAction Stop
+
+          Write-Host "Starting IIS site: $siteName"
+          Start-Website -Name $siteName -ErrorAction Stop
+
+          Write-Host "Waiting for IIS to fully start..."
+          Start-Sleep -Seconds 3
+
+          if ((Get-Website -Name $siteName).state -ne "Started") {
+            throw "IIS site did not start properly: $siteName"
+          }
+
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+            throw "IIS app pool did not start properly: $appPool"
+          }
+
+          Write-Host "IIS Test site and app pool started successfully."
+          exit 0
