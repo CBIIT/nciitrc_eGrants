@@ -41,7 +41,8 @@ jobs:
           New-Item -ItemType Directory -Path $archivePath | Out-Null
 
           Write-Host "Archiving current destination contents..."
-          robocopy $destination $archivePath /MIR
+          robocopy $destination $archivePath /MIR /XD "$destination\_archive"
+
 
           if ($LASTEXITCODE -ge 8) {
             throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
