@@ -57,7 +57,7 @@ jobs:
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+          $siteName = "egrants-web-dev-core-migration"
           $appPool = "egrants-web-dev-core-migration-pool"
 
           Write-Host "Stopping IIS site: $siteName"
@@ -114,7 +114,7 @@ jobs:
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+          $siteName = "egrants-web-dev-core-migration"
           $appPool = "egrants-web-dev-core-migration-pool"
 
           Write-Host "Starting IIS application pool: $appPool"
