@@ -42,13 +42,13 @@ jobs:
 
           Write-Host "Archiving current destination contents..."
           robocopy $destination $archivePath /MIR /XD "$destination\_archive"
+          $exitCode = $LASTEXITCODE
 
-
-          if ($LASTEXITCODE -ge 8) {
-            throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
+          if ($exitCode -ge 8) {
+              throw "Robocopy archive failed. Exit code: $exitCode"
           }
 
-          Write-Host "Archive completed successfully."
+          Write-Host "Archive completed successfully with exit code $exitCode."
 
       - name: Stop IIS site before deployment
         shell: powershell
@@ -86,12 +86,13 @@ jobs:
 
           # Mirror build output → destination, excluding web.config
           robocopy $source $destination /MIR /XF web.config
+          $exitCode = $LASTEXITCODE
 
-          if ($LASTEXITCODE -ge 8) {
-            throw "Robocopy deployment failed. Exit code: $LASTEXITCODE"
+          if ($exitCode -ge 8) {
+              throw "Robocopy deployment failed. Exit code: $exitCode"
           }
 
-          Write-Host "Deployment completed successfully."
+          Write-Host "Deployment completed successfully with exit code $exitCode."
 
       - name: Start IIS site after deployment
         shell: powershell
