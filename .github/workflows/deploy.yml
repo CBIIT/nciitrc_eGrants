@@ -1,4 +1,4 @@
-﻿name: eGrants Deployment Workflow
+﻿name: eGrants Dev Deployment Workflow
 
 on:
   push:
