@@ -23,8 +23,8 @@ jobs:
       - name: Archive existing destination directory
         shell: powershell
         run: |
-          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
-          $archiveRoot = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\_archive'
+          $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov'
+          $archiveRoot = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov\_archive'
 
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
@@ -72,7 +72,7 @@ jobs:
         shell: powershell
         run: |
           $source = "$(Get-Location)\build_output"
-          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
+          $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov'
 
           if (-not (Test-Path $source)) {
             throw "Build output not found: $source"
