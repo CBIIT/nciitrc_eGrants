@@ -24,7 +24,7 @@ jobs:
         shell: powershell
         run: |
           $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov'
-          $archiveRoot = '\\nciws-d2411-v\eGrants archive'
+          $archiveRoot = '\\nciws-d2411-v\eGrants-Archive'
 
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
