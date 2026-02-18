@@ -23,33 +23,45 @@ jobs:
       - name: Archive existing destination directory
         shell: powershell
         run: |
-          $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov'
-          $archiveRoot = '\\nciws-d2411-v\eGrants-Archive'
+          $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov\'
+          $archiveRoot = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov\eGrantsArchive\'
 
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
           }
 
+          # Ensure archive root exists
           if (-not (Test-Path $archiveRoot)) {
             New-Item -ItemType Directory -Path $archiveRoot | Out-Null
           }
 
+          # Create timestamped folder name
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-          $archivePath = Join-Path $archiveRoot "backup_$timestamp"
+          $tempBackupFolder = Join-Path $archiveRoot "backup_$timestamp"
+          $zipFile = Join-Path $archiveRoot "backup_$timestamp.zip"
 
-          Write-Host "Creating archive folder: $archivePath"
-          New-Item -ItemType Directory -Path $archivePath | Out-Null
+          Write-Host "Creating temporary archive folder: $tempBackupFolder"
+          New-Item -ItemType Directory -Path $tempBackupFolder | Out-Null
 
-          Write-Host "Archiving current destination contents..."
-          robocopy $destination $archivePath /MIR /XD "$destination\_archive"
+          Write-Host "Copying destination contents into temporary archive folder..."
+          robocopy $destination $tempBackupFolder /MIR
           $exitCode = $LASTEXITCODE
 
           if ($exitCode -ge 8) {
-              throw "Robocopy archive failed. Exit code: $exitCode"
+            throw "Robocopy archive failed. Exit code: $exitCode"
           }
 
-          Write-Host "Archive completed successfully with exit code $exitCode."
+          Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
 
+          Write-Host "Creating ZIP archive: $zipFile"
+          Compress-Archive -Path "$tempBackupFolder\*" -DestinationPath $zipFile -Force
+
+          Write-Host "ZIP archive created successfully."
+
+          Write-Host "Removing temporary uncompressed backup folder..."
+          Remove-Item -Path $tempBackupFolder -Recurse -Force
+
+          Write-Host "Archive process completed successfully."
           exit 0
 
       - name: Stop IIS site and app pool before deployment
