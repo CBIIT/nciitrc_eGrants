@@ -1,0 +1,111 @@
+﻿name: eGrants Deployment Workflow
+
+on:
+  push:
+    branches:
+      - Dev
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: egrants_fcas-oasys_runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build project
+        shell: powershell
+        run: |
+          dotnet restore
+          dotnet publish -c Release -o ./build_output
+
+      - name: Archive existing destination directory
+        shell: powershell
+        run: |
+          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
+          $archiveRoot = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\_archive'
+
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
+          }
+
+          if (-not (Test-Path $archiveRoot)) {
+            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
+          }
+
+          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+          $archivePath = Join-Path $archiveRoot "backup_$timestamp"
+
+          Write-Host "Creating archive folder: $archivePath"
+          New-Item -ItemType Directory -Path $archivePath | Out-Null
+
+          Write-Host "Archiving current destination contents..."
+          robocopy $destination $archivePath /MIR
+
+          if ($LASTEXITCODE -ge 8) {
+            throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
+          }
+
+          Write-Host "Archive completed successfully."
+
+      - name: Stop IIS site before deployment
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+
+          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+
+          Write-Host "Stopping IIS site: $siteName"
+          Stop-Website -Name $siteName
+
+          Start-Sleep -Seconds 3
+
+          if ((Get-Website -Name $siteName).state -ne "Stopped") {
+            throw "Failed to stop IIS site: $siteName"
+          }
+
+          Write-Host "IIS site stopped successfully."
+
+      - name: Deploy build output to destination share
+        shell: powershell
+        run: |
+          $source = "$(Get-Location)\build_output"
+          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
+
+          if (-not (Test-Path $source)) {
+            throw "Build output not found: $source"
+          }
+
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
+          }
+
+          Write-Host "Deploying build output to destination..."
+
+          # Mirror build output → destination, excluding web.config
+          robocopy $source $destination /MIR /XF web.config
+
+          if ($LASTEXITCODE -ge 8) {
+            throw "Robocopy deployment failed. Exit code: $LASTEXITCODE"
+          }
+
+          Write-Host "Deployment completed successfully."
+
+      - name: Start IIS site after deployment
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+
+          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+
+          Write-Host "Starting IIS site: $siteName"
+          Start-Website -Name $siteName
+
+          Start-Sleep -Seconds 3
+
+          if ((Get-Website -Name $siteName).state -ne "Started") {
+            throw "Failed to start IIS site: $siteName"
+          }
+
+          Write-Host "IIS site started successfully."
