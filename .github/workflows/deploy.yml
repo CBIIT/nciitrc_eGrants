@@ -52,23 +52,34 @@ jobs:
 
           exit 0
 
-      - name: Stop IIS site before deployment
+      - name: Stop IIS site and app pool before deployment
         shell: powershell
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration"
+          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+          $appPool = "egrants-web-dev-core-migration-pool"
 
           Write-Host "Stopping IIS site: $siteName"
-          Stop-Website -Name $siteName
+          Stop-Website -Name $siteName -ErrorAction Stop
 
-          Start-Sleep -Seconds 3
+          Write-Host "Stopping IIS application pool: $appPool"
+          Stop-WebAppPool -Name $appPool -ErrorAction Stop
 
+          Write-Host "Waiting for IIS to fully stop..."
+          Start-Sleep -Seconds 5
+
+          # Validate both are stopped
           if ((Get-Website -Name $siteName).state -ne "Stopped") {
-            throw "Failed to stop IIS site: $siteName"
+            throw "IIS site did not stop properly: $siteName"
           }
 
-          Write-Host "IIS site stopped successfully."
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+            throw "IIS app pool did not stop properly: $appPool"
+          }
+
+          Write-Host "IIS site and app pool stopped successfully."
+          exit 0
 
       - name: Deploy build output to destination share
         shell: powershell
@@ -98,20 +109,31 @@ jobs:
 
           exit 0
 
-      - name: Start IIS site after deployment
+      - name: Start IIS site and app pool after deployment
         shell: powershell
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration"
+          $siteName = "egrants-web-dev-core-migration.nci.nih.gov"
+          $appPool = "egrants-web-dev-core-migration-pool"
+
+          Write-Host "Starting IIS application pool: $appPool"
+          Start-WebAppPool -Name $appPool -ErrorAction Stop
 
           Write-Host "Starting IIS site: $siteName"
-          Start-Website -Name $siteName
+          Start-Website -Name $siteName -ErrorAction Stop
 
+          Write-Host "Waiting for IIS to fully start..."
           Start-Sleep -Seconds 3
 
           if ((Get-Website -Name $siteName).state -ne "Started") {
-            throw "Failed to start IIS site: $siteName"
+            throw "IIS site did not start properly: $siteName"
           }
 
-          Write-Host "IIS site started successfully."
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+            throw "IIS app pool did not start properly: $appPool"
+          }
+
+          Write-Host "IIS site and app pool started successfully."
+          exit 0
+
