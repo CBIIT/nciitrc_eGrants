@@ -4,6 +4,11 @@ on:
   push:
     branches: [dev, test, stage, main]
   workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Branch to deploy"
+        required: true
+        default: "dev"
 
 jobs:
   build-and-deploy:
