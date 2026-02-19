@@ -11,84 +11,70 @@ jobs:
     environment: ${{ github.ref_name }}
 
     steps:
+      # ---------------------------------------------------------
+      # CHECKOUT
+      # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # ---------------------------------------------------------
-      # ENVIRONMENT MAPPING BLOCK (branch → environment settings)
+      # LOAD ENVIRONMENT VARIABLES (from GitHub Environments)
       # ---------------------------------------------------------
-      - name: Map environment variables
+      - name: Load environment variables
         id: envmap
         shell: powershell
         run: |
-          switch ("${{ github.ref_name }}") {
-            "dev" {
-              echo "PUBLISH_PROFILE=Dev.pubxml" >> $env:GITHUB_OUTPUT
-              echo "DEST_PATH=\\\\nciws-d2411-v\\egrants-web-dev-core-migration.nci.nih.gov" >> $env:GITHUB_OUTPUT
-              echo "ARCHIVE_PATH=\\\\nciws-d2411-v\\eGrants-Archive" >> $env:GITHUB_OUTPUT
-              echo "SITE_NAME=egrants-web-dev-core-migration" >> $env:GITHUB_OUTPUT
-              echo "APP_POOL=egrants-web-dev-core-migration-pool" >> $env:GITHUB_OUTPUT
-            }
-            "test" {
-              echo "PUBLISH_PROFILE=Test.pubxml" >> $env:GITHUB_OUTPUT
-              echo "DEST_PATH=\\\\server\\egrants-web-test" >> $env:GITHUB_OUTPUT
-              echo "ARCHIVE_PATH=\\\\server\\egrants-test-archive" >> $env:GITHUB_OUTPUT
-              echo "SITE_NAME=egrants-web-test" >> $env:GITHUB_OUTPUT
-              echo "APP_POOL=egrants-web-test-pool" >> $env:GITHUB_OUTPUT
-            }
-            "stage" {
-              echo "PUBLISH_PROFILE=Stage.pubxml" >> $env:GITHUB_OUTPUT
-              echo "DEST_PATH=\\\\server\\egrants-web-stage" >> $env:GITHUB_OUTPUT
-              echo "ARCHIVE_PATH=\\\\server\\egrants-stage-archive" >> $env:GITHUB_OUTPUT
-              echo "SITE_NAME=egrants-web-stage" >> $env:GITHUB_OUTPUT
-              echo "APP_POOL=egrants-web-stage-pool" >> $env:GITHUB_OUTPUT
-            }
-            default {
-              echo "PUBLISH_PROFILE=Prod.pubxml" >> $env:GITHUB_OUTPUT
-              echo "DEST_PATH=\\\\server\\egrants-web-prod" >> $env:GITHUB_OUTPUT
-              echo "ARCHIVE_PATH=\\\\server\\egrants-prod-archive" >> $env:GITHUB_OUTPUT
-              echo "SITE_NAME=egrants-web-prod" >> $env:GITHUB_OUTPUT
-              echo "APP_POOL=egrants-web-prod-pool" >> $env:GITHUB_OUTPUT
-            }
-          }
+          echo "PUBLISH_PROFILE=${{ vars.PUBLISH_PROFILE }}" >> $env:GITHUB_OUTPUT
+          echo "DEST_PATH=${{ vars.DEST_PATH }}" >> $env:GITHUB_OUTPUT
+          echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
+          echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
+          echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
 
       # ---------------------------------------------------------
       # BUILD USING PUBLISH PROFILE
       # ---------------------------------------------------------
-      - name: Build using publish profile
+      - name: Build project using publish profile
         shell: powershell
         run: |
+          dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             /p:PublishProfile=${{ steps.envmap.outputs.PUBLISH_PROFILE }} `
             -o ./build_output
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE
+      # ARCHIVE CURRENT SITE (NO AUTH NEEDED)
       # ---------------------------------------------------------
       - name: Archive existing destination directory
         shell: powershell
-        env:
-          SHARE_USER: ${{ secrets.DEPLOY_SHARE_USERNAME }}
-          SHARE_PASS: ${{ secrets.DEPLOY_SHARE_PASSWORD }}
         run: |
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
           $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
 
-          # Authenticate to UNC share
-          cmdkey /add:$destination /user:$env:SHARE_USER /pass:$env:SHARE_PASS
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
+          }
 
-          if (-not (Test-Path $destination)) { throw "Destination share not reachable: $destination" }
-          if (-not (Test-Path $archiveRoot)) { New-Item -ItemType Directory -Path $archiveRoot | Out-Null }
+          if (-not (Test-Path $archiveRoot)) {
+            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
+          }
 
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $archivePath = Join-Path $archiveRoot "backup_$timestamp"
 
+          Write-Host "Creating archive folder: $archivePath"
           New-Item -ItemType Directory -Path $archivePath | Out-Null
-          robocopy $destination $archivePath /MIR
-          if ($LASTEXITCODE -ge 8) { throw "Robocopy archive failed: $LASTEXITCODE" }
 
+          Write-Host "Archiving current destination contents..."
+          robocopy $destination $archivePath /MIR
+          if ($LASTEXITCODE -ge 8) {
+            throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
+          }
+
+          Write-Host "Creating ZIP archive..."
           Compress-Archive -Path "$archivePath\*" -DestinationPath "$archivePath.zip" -Force
+
+          Write-Host "Removing uncompressed archive folder..."
           Remove-Item -Path $archivePath -Recurse -Force
 
       # ---------------------------------------------------------
@@ -97,30 +83,52 @@ jobs:
       - name: Stop IIS site and app pool
         shell: powershell
         env:
-          IIS_USER: ${{ secrets.IIS_USERNAME }}
-          IIS_PASS: ${{ secrets.IIS_PASSWORD }}
+          IIS_USERNAME: ${{ secrets.IIS_USERNAME }}
+          IIS_PASSWORD: ${{ secrets.IIS_PASSWORD }}
         run: |
           Import-Module WebAdministration
-          Stop-Website -Name "${{ steps.envmap.outputs.SITE_NAME }}"
-          Stop-WebAppPool -Name "${{ steps.envmap.outputs.APP_POOL }}"
+
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          Write-Host "Stopping IIS site: $siteName"
+          Stop-Website -Name $siteName -ErrorAction Stop
+
+          Write-Host "Stopping IIS app pool: $appPool"
+          Stop-WebAppPool -Name $appPool -ErrorAction Stop
+
           Start-Sleep -Seconds 5
 
+          if ((Get-Website -Name $siteName).state -ne "Stopped") {
+            throw "IIS site did not stop properly: $siteName"
+          }
+
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+            throw "IIS app pool did not stop properly: $appPool"
+          }
+
       # ---------------------------------------------------------
-      # DEPLOY FILES
+      # DEPLOY FILES (NO AUTH NEEDED)
       # ---------------------------------------------------------
       - name: Deploy build output
         shell: powershell
-        env:
-          SHARE_USER: ${{ secrets.DEPLOY_SHARE_USERNAME }}
-          SHARE_PASS: ${{ secrets.DEPLOY_SHARE_PASSWORD }}
         run: |
           $source = "$(Get-Location)\build_output"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
-          cmdkey /add:$destination /user:$env:SHARE_USER /pass:$env:SHARE_PASS
+          if (-not (Test-Path $source)) {
+            throw "Build output not found: $source"
+          }
 
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
+          }
+
+          Write-Host "Deploying build output..."
           robocopy $source $destination /MIR /XF web.config
-          if ($LASTEXITCODE -ge 8) { throw "Robocopy deployment failed: $LASTEXITCODE" }
+          if ($LASTEXITCODE -ge 8) {
+            throw "Robocopy deployment failed. Exit code: $LASTEXITCODE"
+          }
 
       # ---------------------------------------------------------
       # START IIS
@@ -129,5 +137,22 @@ jobs:
         shell: powershell
         run: |
           Import-Module WebAdministration
-          Start-WebAppPool -Name "${{ steps.envmap.outputs.APP_POOL }}"
-          Start-Website -Name "${{ steps.envmap.outputs.SITE_NAME }}"
+
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          Write-Host "Starting IIS app pool: $appPool"
+          Start-WebAppPool -Name $appPool -ErrorAction Stop
+
+          Write-Host "Starting IIS site: $siteName"
+          Start-Website -Name $siteName -ErrorAction Stop
+
+          Start-Sleep -Seconds 3
+
+          if ((Get-Website -Name $siteName).state -ne "Started") {
+            throw "IIS site did not start properly: $siteName"
+          }
+
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+            throw "IIS app pool did not start properly: $appPool"
+          }
