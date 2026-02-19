@@ -1,30 +1,60 @@
-﻿name: eGrants Deployment Workflow
+name: eGrants Deployment Workflow
 
 on:
   push:
-    branches:
-      - dev
+    branches: [dev, test, stage, eGrants-Core-Main]
   workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Branch to deploy"
+        required: true
+        default: "dev"
 
 jobs:
   build-and-deploy:
     runs-on: egrants_fcas-oasys_runner
+    environment: ${{ github.ref_name }}
 
     steps:
+      # ---------------------------------------------------------
+      # CHECKOUT
+      # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build project
+      # ---------------------------------------------------------
+      # LOAD ENVIRONMENT VARIABLES (from GitHub Environments)
+      # ---------------------------------------------------------
+      - name: Load environment variables
+        id: envmap
+        shell: powershell
+        run: |
+          echo "PUBLISH_PROFILE=${{ vars.PUBLISH_PROFILE }}" >> $env:GITHUB_OUTPUT
+          echo "DEST_PATH=${{ vars.DEST_PATH }}" >> $env:GITHUB_OUTPUT
+          echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
+          echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
+          echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
+
+      # ---------------------------------------------------------
+      # BUILD USING PUBLISH PROFILE
+      # ---------------------------------------------------------
+      - name: Build project using publish profile
         shell: powershell
         run: |
           dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
-          dotnet publish "./source-aspnet/eGrants/eGrants.csproj" -c Release -o ./build_output
+          dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
+            -c Release `
+            /p:PublishProfile=${{ steps.envmap.outputs.PUBLISH_PROFILE }} `
+            -o ./build_output
 
+      # ---------------------------------------------------------
+      # ARCHIVE CURRENT SITE (NO AUTH NEEDED)
+      # ---------------------------------------------------------
       - name: Archive existing destination directory
         shell: powershell
         run: |
-          $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov'
-          $archiveRoot = '\\nciws-d2411-v\eGrants-Archive'
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
 
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
@@ -41,46 +71,39 @@ jobs:
           New-Item -ItemType Directory -Path $archivePath | Out-Null
 
           Write-Host "Archiving current destination contents..."
-          robocopy $destination $archivePath /MIR /XD "$destination\_archive"
-          $exitCode = $LASTEXITCODE
-
-          if ($exitCode -ge 8) {
-              throw "Robocopy archive failed. Exit code: $exitCode"
+          robocopy $destination $archivePath /MIR
+          if ($LASTEXITCODE -ge 8) {
+            throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
           }
 
-          Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
+          Write-Host "Creating ZIP archive..."
+          Compress-Archive -Path "$archivePath\*" -DestinationPath "$archivePath.zip" -Force
 
-          # Create ZIP file path based on the archive folder 
-          $zipFile = "$archivePath.zip" 
-          
-          Write-Host "Creating ZIP archive: $zipFile" 
-          Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
+          Write-Host "Removing uncompressed archive folder..."
+          Remove-Item -Path $archivePath -Recurse -Force
 
-          # Remove the uncompressed folder 
-          Write-Host "Removing uncompressed archive folder: $archivePath" 
-          Remove-Item -Path $archivePath -Recurse -Force 
-          
-          Write-Host "Archive process completed successfully."
-          exit 0
-
-      - name: Stop IIS site and app pool before deployment
+      # ---------------------------------------------------------
+      # STOP IIS
+      # ---------------------------------------------------------
+      - name: Stop IIS site and app pool
         shell: powershell
+        env:
+          IIS_USERNAME: ${{ secrets.IIS_USERNAME }}
+          IIS_PASSWORD: ${{ secrets.IIS_PASSWORD }}
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration"
-          $appPool = "egrants-web-dev-core-migration-pool"
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
           Write-Host "Stopping IIS site: $siteName"
           Stop-Website -Name $siteName -ErrorAction Stop
 
-          Write-Host "Stopping IIS application pool: $appPool"
+          Write-Host "Stopping IIS app pool: $appPool"
           Stop-WebAppPool -Name $appPool -ErrorAction Stop
 
-          Write-Host "Waiting for IIS to fully stop..."
           Start-Sleep -Seconds 5
 
-          # Validate both are stopped
           if ((Get-Website -Name $siteName).state -ne "Stopped") {
             throw "IIS site did not stop properly: $siteName"
           }
@@ -89,14 +112,14 @@ jobs:
             throw "IIS app pool did not stop properly: $appPool"
           }
 
-          Write-Host "IIS site and app pool stopped successfully."
-          exit 0
-
-      - name: Deploy build output to destination share
+      # ---------------------------------------------------------
+      # DEPLOY FILES (NO AUTH NEEDED)
+      # ---------------------------------------------------------
+      - name: Deploy build output
         shell: powershell
         run: |
           $source = "$(Get-Location)\build_output"
-          $destination = '\\nciws-d2411-v\egrants-web-dev-core-migration.nci.nih.gov'
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
           if (-not (Test-Path $source)) {
             throw "Build output not found: $source"
@@ -106,35 +129,29 @@ jobs:
             throw "Destination share not reachable: $destination"
           }
 
-          Write-Host "Deploying build output to destination..."
-
-          # Mirror build output → destination, excluding web.config
+          Write-Host "Deploying build output..."
           robocopy $source $destination /MIR /XF web.config
-          $exitCode = $LASTEXITCODE
-
-          if ($exitCode -ge 8) {
-              throw "Robocopy deployment failed. Exit code: $exitCode"
+          if ($LASTEXITCODE -ge 8) {
+            throw "Robocopy deployment failed. Exit code: $LASTEXITCODE"
           }
 
-          Write-Host "Deployment completed successfully with exit code $exitCode."
-
-          exit 0
-
-      - name: Start IIS site and app pool after deployment
+      # ---------------------------------------------------------
+      # START IIS
+      # ---------------------------------------------------------
+      - name: Start IIS site and app pool
         shell: powershell
         run: |
           Import-Module WebAdministration
 
-          $siteName = "egrants-web-dev-core-migration"
-          $appPool = "egrants-web-dev-core-migration-pool"
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          Write-Host "Starting IIS application pool: $appPool"
+          Write-Host "Starting IIS app pool: $appPool"
           Start-WebAppPool -Name $appPool -ErrorAction Stop
 
           Write-Host "Starting IIS site: $siteName"
           Start-Website -Name $siteName -ErrorAction Stop
 
-          Write-Host "Waiting for IIS to fully start..."
           Start-Sleep -Seconds 3
 
           if ((Get-Website -Name $siteName).state -ne "Started") {
@@ -144,7 +161,3 @@ jobs:
           if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
             throw "IIS app pool did not start properly: $appPool"
           }
-
-          Write-Host "IIS site and app pool started successfully."
-          exit 0
-
