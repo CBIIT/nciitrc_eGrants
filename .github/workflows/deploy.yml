@@ -76,6 +76,8 @@ jobs:
             throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
           }
 
+          exit 0
+
           Write-Host "Creating ZIP archive..."
           Compress-Archive -Path "$archivePath\*" -DestinationPath "$archivePath.zip" -Force 
 
