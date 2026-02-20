@@ -94,7 +94,7 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # STOP IIS
+      # STOP IIS (only if running)
       # ---------------------------------------------------------
       - name: Stop IIS site and app pool
         shell: powershell
@@ -104,14 +104,27 @@ jobs:
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          Write-Host "Stopping IIS site: $siteName"
-          Stop-Website -Name $siteName -ErrorAction Stop
+          # Check App Pool state
+          $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
+          if ($appPoolState -ne "Stopped") {
+              Write-Host "Stopping IIS app pool: $appPool"
+              Stop-WebAppPool -Name $appPool -ErrorAction Stop
+          } else {
+              Write-Host "App pool '$appPool' is already stopped. Skipping..."
+          }
 
-          Write-Host "Stopping IIS app pool: $appPool"
-          Stop-WebAppPool -Name $appPool -ErrorAction Stop
+          # Check Site state
+          $siteState = (Get-Website -Name $siteName).state
+          if ($siteState -ne "Stopped") {
+              Write-Host "Stopping IIS site: $siteName"
+              Stop-Website -Name $siteName -ErrorAction Stop
+          } else {
+              Write-Host "Site '$siteName' is already stopped. Skipping..."
+          }
 
-          Start-Sleep -Seconds 5
+          Start-Sleep -Seconds 3
 
+          # Validate final state
           if ((Get-Website -Name $siteName).state -ne "Stopped") {
             throw "IIS site did not stop properly: $siteName"
           }
@@ -119,6 +132,9 @@ jobs:
           if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
             throw "IIS app pool did not stop properly: $appPool"
           }
+
+          Write-Host "IIS site and app pool stopped successfully."
+          exit 0
 
       # ---------------------------------------------------------
       # DEPLOY FILES (NO AUTH NEEDED)
@@ -162,14 +178,27 @@ jobs:
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          Write-Host "Starting IIS app pool: $appPool"
-          Start-WebAppPool -Name $appPool -ErrorAction Stop
+          # Start App Pool only if not already started
+          $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
+          if ($appPoolState -ne "Started") {
+              Write-Host "Starting IIS app pool: $appPool"
+              Start-WebAppPool -Name $appPool -ErrorAction Stop
+          } else {
+              Write-Host "App pool '$appPool' is already started. Skipping..."
+          }
 
-          Write-Host "Starting IIS site: $siteName"
-          Start-Website -Name $siteName -ErrorAction Stop
+          # Start Site only if not already started
+          $siteState = (Get-Website -Name $siteName).state
+          if ($siteState -ne "Started") {
+              Write-Host "Starting IIS site: $siteName"
+              Start-Website -Name $siteName -ErrorAction Stop
+          } else {
+              Write-Host "Site '$siteName' is already started. Skipping..."
+          }
 
           Start-Sleep -Seconds 3
 
+          # Validate final state
           if ((Get-Website -Name $siteName).state -ne "Started") {
             throw "IIS site did not start properly: $siteName"
           }
@@ -177,6 +206,7 @@ jobs:
           if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
             throw "IIS app pool did not start properly: $appPool"
           }
-          
+
           Write-Host "IIS site and app pool started successfully."
           exit 0
+
