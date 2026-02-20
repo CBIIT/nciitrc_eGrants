@@ -79,9 +79,6 @@ jobs:
           Write-Host "Creating ZIP archive..."
           Compress-Archive -Path "$archivePath\*" -DestinationPath "$archivePath.zip" -Force
 
-          Write-Host "Removing uncompressed archive folder..."
-          # Remove-Item -Path $archivePath -Recurse -Force
-
       # ---------------------------------------------------------
       # STOP IIS
       # ---------------------------------------------------------
