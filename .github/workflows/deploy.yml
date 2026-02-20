@@ -79,31 +79,8 @@ jobs:
           Write-Host "Creating ZIP archive..."
           Compress-Archive -Path "$archivePath\*" -DestinationPath "$archivePath.zip" -Force
 
-          # -----------------------------------------------------
-          # MOVE-THEN-DELETE FIX (prevents locked-folder failures)
-          # -----------------------------------------------------
-          $toDelete = Join-Path $archiveRoot "to_delete_$timestamp"
-
-          Write-Host "Moving archive folder to: $toDelete"
-          Move-Item -Path $archivePath -Destination $toDelete -Force
-
-          # Retry delete up to 5 times
-          $retries = 5
-          for ($i = 1; $i -le $retries; $i++) {
-              try {
-                  Remove-Item -Path $toDelete -Recurse -Force -ErrorAction Stop
-                  Write-Host "Archive folder removed successfully."
-                  break
-              }
-              catch {
-                  Write-Host "Delete attempt $i failed: $_"
-                  if ($i -eq $retries) {
-                      Write-Host "WARNING: Could not delete archive folder after $retries attempts. Leaving it in place."
-                      break
-                  }
-                  Start-Sleep -Seconds 3
-              }
-          }
+          Write-Host "Removing uncompressed archive folder..."
+          # Remove-Item -Path $archivePath -Recurse -Force
 
       # ---------------------------------------------------------
       # STOP IIS
