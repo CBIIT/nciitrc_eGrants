@@ -80,7 +80,22 @@ jobs:
           Compress-Archive -Path "$archivePath\*" -DestinationPath "$archivePath.zip" -Force
 
           Write-Host "Removing uncompressed archive folder..."
-          Remove-Item -Path $archivePath -Recurse -Force
+          # Retry delete up to 5 times with a short delay
+          $retries = 5
+          for ($i = 1; $i -le $retries; $i++) {
+              try {
+                  Remove-Item -Path $archivePath -Recurse -Force -ErrorAction Stop
+                  Write-Host "Archive folder removed successfully."
+                  break
+              }
+              catch {
+                  if ($i -eq $retries) {
+                      throw "Failed to remove archive folder after $retries attempts. Error: $_"
+                  }
+                  Write-Host "Delete attempt $i failed. Retrying in 2 seconds..."
+                  Start-Sleep -Seconds 2
+              }
+          }
 
       # ---------------------------------------------------------
       # STOP IIS
