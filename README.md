@@ -5,6 +5,8 @@ Source repository for eGrants application and supporting resources.
 Cloned Repo
 When the repo is cloned you will notice a number of web.config files.
 
+trigger test 1
+
 Purpose:
 1. Web.Base.Config - This file contains the web.config file that is required to run on the server. 
   - Whenever the code is compiled with the "Debug" confgureation the debug flag IS NOTT removed.
