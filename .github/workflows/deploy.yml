@@ -72,15 +72,25 @@ jobs:
 
           Write-Host "Archiving current destination contents..."
           robocopy $destination $archivePath /MIR
-          if ($LASTEXITCODE -ge 8) {
-            throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -ge 8) {
+              throw "Robocopy archive failed. Exit code: $exitCode"
           }
 
-          exit 0
+          Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
 
-          Write-Host "Creating ZIP archive..."
-          Compress-Archive -Path "$archivePath\*" -DestinationPath "$archivePath.zip" -Force 
+          # Create ZIP file path based on the archive folder 
+          $zipFile = "$archivePath.zip" 
+          
+          Write-Host "Creating ZIP archive: $zipFile" 
+          Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
 
+          # Remove the uncompressed folder 
+          Write-Host "Removing uncompressed archive folder: $archivePath" 
+          Remove-Item -Path $archivePath -Recurse -Force 
+          
+          Write-Host "Archive process completed successfully."
           exit 0
 
       # ---------------------------------------------------------
