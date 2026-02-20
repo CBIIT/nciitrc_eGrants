@@ -515,7 +515,7 @@ namespace eGrants.Services
                     var mergedPdf = PdfDocument.Merge(pdfDocs);
                     mergedPdf.SaveAs(filePath);
 
-                    var fundingRelativePath = "egrants/funded/nci/funding/upload/";
+                    var fundingRelativePath = _fundingRelativePath;
                     result.Url = $"{sessionInfo.ImageServerUrl}data/{fundingRelativePath}{docName}";
                     result.DocumentId = documentId;
                     sb.Append("Done! New document has been created**#7|n3br3@k#**");
