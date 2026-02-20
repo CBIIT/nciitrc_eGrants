@@ -14,7 +14,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: egrants_fcas-oasys_runner
-    environment: ${{ github.ref_name }}
+    environment: ${{ github.event.inputs.target_branch }}
 
     steps:
       # ---------------------------------------------------------
