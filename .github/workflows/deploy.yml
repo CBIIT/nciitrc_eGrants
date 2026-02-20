@@ -84,9 +84,6 @@ jobs:
       # ---------------------------------------------------------
       - name: Stop IIS site and app pool
         shell: powershell
-        env:
-          IIS_USERNAME: ${{ secrets.IIS_USERNAME }}
-          IIS_PASSWORD: ${{ secrets.IIS_PASSWORD }}
         run: |
           Import-Module WebAdministration
 
