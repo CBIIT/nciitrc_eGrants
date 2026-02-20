@@ -76,6 +76,11 @@ jobs:
             throw "Robocopy archive failed. Exit code: $LASTEXITCODE"
           }
 
+          Write-Host "Creating ZIP archive..."
+          Compress-Archive -Path "$archivePath\*" -DestinationPath "$archivePath.zip" -Force 
+
+          exit 0
+
       # ---------------------------------------------------------
       # STOP IIS
       # ---------------------------------------------------------
