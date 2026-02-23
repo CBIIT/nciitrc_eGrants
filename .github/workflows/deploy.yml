@@ -3,7 +3,7 @@ name: eGrants Deployment Workflow
 
 on:
   push:
-    branches: [dev, test, stage, eGrants-Core-Main]
+    branches: [dev2, test, stage, eGrants-Core-Main]
   workflow_dispatch:
     inputs:
       target_branch:
