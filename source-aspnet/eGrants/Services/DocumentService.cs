@@ -1096,6 +1096,10 @@ namespace eGrants.Services
                 Log.Error(ex, "File download failed for {Url}", uri);
                 throw;
             }
+            finally
+            {
+                Log.Information("Download diagnostics: {Diagnostics}", diagnostics.ToString());
+            }
         }
 
         /// <summary>
