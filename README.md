@@ -2,7 +2,7 @@
 
 Source repository for eGrants application and supporting resources.
 
-Cloned Repo
+Cloned Repos
 When the repo is cloned you will notice a number of web.config files.
 
 Purpose:

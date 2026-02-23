@@ -1,31 +1,206 @@
+# refresh
 name: eGrants Deployment Workflow
 
 on:
-  workflow_dispatch:
+  push:
+    branches: dev
 
 jobs:
-  copy-file:
+  build-and-deploy:
     runs-on: egrants_fcas-oasys_runner
+    environment: ${{ github.event.inputs.target_branch || github.ref_name }}
 
     steps:
-      - name: Copy test-transfer.txt to destination share
+      # ---------------------------------------------------------
+      # CHECKOUT
+      # ---------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------------
+      # LOAD ENVIRONMENT VARIABLES (from GitHub Environments)
+      # ---------------------------------------------------------
+      - name: Load environment variables
+        id: envmap
         shell: powershell
         run: |
-          $source = 'D:\Content\egrants-web-dev-core-migration.nci.nih.gov\test-transfer.txt'
-          $destination = '\\nciws-q2409-v.nci.nih.gov\egrants.nci.nih.gov\'
+          echo "PUBLISH_PROFILE=${{ vars.PUBLISH_PROFILE }}" >> $env:GITHUB_OUTPUT
+          echo "DEST_PATH=${{ vars.DEST_PATH }}" >> $env:GITHUB_OUTPUT
+          echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
+          echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
+          echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
+
+      # ---------------------------------------------------------
+      # BUILD USING PUBLISH PROFILE
+      # ---------------------------------------------------------
+      - name: Build project using publish profile
+        shell: powershell
+        run: |
+          dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
+          dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
+            -c Release `
+            /p:PublishProfile=${{ steps.envmap.outputs.PUBLISH_PROFILE }} `
+            -o ./build_output
+
+      # ---------------------------------------------------------
+      # ARCHIVE CURRENT SITE (NO AUTH NEEDED)
+      # ---------------------------------------------------------
+      - name: Archive existing destination directory
+        shell: powershell
+        run: |
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
+
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
+          }
+
+          if (-not (Test-Path $archiveRoot)) {
+            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
+          }
+
+          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+          $archivePath = Join-Path $archiveRoot "backup_$timestamp"
+
+          Write-Host "Creating archive folder: $archivePath"
+          New-Item -ItemType Directory -Path $archivePath | Out-Null
+
+          Write-Host "Archiving current destination contents..."
+          robocopy $destination $archivePath /MIR
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -ge 8) {
+              throw "Robocopy archive failed. Exit code: $exitCode"
+          }
+
+          Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
+
+          # Create ZIP file path based on the archive folder 
+          $zipFile = "$archivePath.zip" 
+          
+          Write-Host "Creating ZIP archive: $zipFile" 
+          Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
+
+          # Remove the uncompressed folder 
+          Write-Host "Removing uncompressed archive folder: $archivePath" 
+          Remove-Item -Path $archivePath -Recurse -Force 
+          
+          Write-Host "Archive process completed successfully."
+          exit 0
+
+      # ---------------------------------------------------------
+      # STOP IIS (only if running)
+      # ---------------------------------------------------------
+      - name: Stop IIS site and app pool
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          # Check App Pool state
+          $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
+          if ($appPoolState -ne "Stopped") {
+              Write-Host "Stopping IIS app pool: $appPool"
+              Stop-WebAppPool -Name $appPool -ErrorAction Stop
+          } else {
+              Write-Host "App pool '$appPool' is already stopped. Skipping..."
+          }
+
+          # Check Site state
+          $siteState = (Get-Website -Name $siteName).state
+          if ($siteState -ne "Stopped") {
+              Write-Host "Stopping IIS site: $siteName"
+              Stop-Website -Name $siteName -ErrorAction Stop
+          } else {
+              Write-Host "Site '$siteName' is already stopped. Skipping..."
+          }
+
+          Start-Sleep -Seconds 3
+
+          # Validate final state
+          if ((Get-Website -Name $siteName).state -ne "Stopped") {
+            throw "IIS site did not stop properly: $siteName"
+          }
+
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+            throw "IIS app pool did not stop properly: $appPool"
+          }
+
+          Write-Host "IIS site and app pool stopped successfully."
+          exit 0
+
+      # ---------------------------------------------------------
+      # DEPLOY FILES (NO AUTH NEEDED)
+      # ---------------------------------------------------------
+      - name: Deploy build output
+        shell: powershell
+        run: |
+          $source = "$(Get-Location)\build_output"
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
           if (-not (Test-Path $source)) {
-            throw "Source file not found: $source"
+            throw "Build output not found: $source"
           }
 
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
           }
 
-          Copy-Item $source $destination -Force
+          Write-Host "Deploying build output..."
+          
+          # Mirror build output → destination, excluding web.config
+          robocopy $source $destination /MIR /XF web.config
+          $exitCode = $LASTEXITCODE
 
-          if (-not (Test-Path (Join-Path $destination 'test-transfer.txt'))) {
-            throw "Copy verification failed: test-transfer.txt not found in destination"
+          if ($exitCode -ge 8) {
+              throw "Robocopy deployment failed. Exit code: $exitCode"
           }
 
-          Write-Host 'Copy completed successfully.'
+          Write-Host "Deployment completed successfully with exit code $exitCode."
+
+          exit 0
+
+      # ---------------------------------------------------------
+      # START IIS
+      # ---------------------------------------------------------
+      - name: Start IIS site and app pool
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          # Start App Pool only if not already started
+          $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
+          if ($appPoolState -ne "Started") {
+              Write-Host "Starting IIS app pool: $appPool"
+              Start-WebAppPool -Name $appPool -ErrorAction Stop
+          } else {
+              Write-Host "App pool '$appPool' is already started. Skipping..."
+          }
+
+          # Start Site only if not already started
+          $siteState = (Get-Website -Name $siteName).state
+          if ($siteState -ne "Started") {
+              Write-Host "Starting IIS site: $siteName"
+              Start-Website -Name $siteName -ErrorAction Stop
+          } else {
+              Write-Host "Site '$siteName' is already started. Skipping..."
+          }
+
+          Start-Sleep -Seconds 3
+
+          # Validate final state
+          if ((Get-Website -Name $siteName).state -ne "Started") {
+            throw "IIS site did not start properly: $siteName"
+          }
+
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+            throw "IIS app pool did not start properly: $appPool"
+          }
+
+          Write-Host "IIS site and app pool started successfully."
+          exit 0
