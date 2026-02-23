@@ -3,7 +3,7 @@ name: eGrants Deployment Workflow
 
 on:
   push:
-    branches: [dev2, test, stage, eGrants-Core-Main]
+    branches: [dev, test, stage, eGrants-Core-Main]
 
 jobs:
   build-and-deploy:
