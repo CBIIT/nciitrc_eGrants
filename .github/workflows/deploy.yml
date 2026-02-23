@@ -4,12 +4,6 @@ name: eGrants Deployment Workflow
 on:
   push:
     branches: [dev2, test, stage, eGrants-Core-Main]
-  workflow_dispatch:
-    inputs:
-      target_branch:
-        description: "Branch to deploy"
-        required: true
-        default: "dev"
 
 jobs:
   build-and-deploy:
