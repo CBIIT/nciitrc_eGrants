@@ -89,6 +89,38 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
+      # PRUNE OLD ARCHIVES (KEEP ONLY 5)
+      # ---------------------------------------------------------
+      - name: Prune old archives (keep only 5)
+        shell: powershell
+        run: |
+          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
+
+          if (-not (Test-Path $archiveRoot)) {
+            Write-Host "Archive root does not exist. Nothing to prune."
+            exit 0
+          }
+
+          Write-Host "Pruning old archives in: $archiveRoot"
+
+          $archives = Get-ChildItem -Path $archiveRoot -Filter *.zip |
+                      Sort-Object LastWriteTime -Descending
+
+          if ($archives.Count -le 5) {
+            Write-Host "Archive count ($($archives.Count)) is within limit. No pruning needed."
+            exit 0
+          }
+
+          $toDelete = $archives | Select-Object -Skip 5
+
+          Write-Host "Deleting the following old archives:"
+          $toDelete | ForEach-Object { Write-Host " - $($_.FullName)" }
+
+          $toDelete | Remove-Item -Force -ErrorAction SilentlyContinue
+
+          Write-Host "Archive pruning complete. Kept 5 newest versions."
+
+      # ---------------------------------------------------------
       # STOP IIS (only if running)
       # ---------------------------------------------------------
       - name: Stop IIS site and app pool
