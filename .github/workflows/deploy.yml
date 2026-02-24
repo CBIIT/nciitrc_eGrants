@@ -1,9 +1,12 @@
-# refresh
 name: eGrants Deployment Workflow
 
 on:
   push:
-    branches: [dev, test, stage, eGrants-Core-Main]
+    branches:
+      - dev
+      - test
+      - stage
+      - eGrants-Core-Main
 
 jobs:
   build-and-deploy:
@@ -24,26 +27,24 @@ jobs:
         id: envmap
         shell: powershell
         run: |
-          echo "PUBLISH_PROFILE=${{ vars.PUBLISH_PROFILE }}" >> $env:GITHUB_OUTPUT
           echo "DEST_PATH=${{ vars.DEST_PATH }}" >> $env:GITHUB_OUTPUT
           echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
           echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
           echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
 
       # ---------------------------------------------------------
-      # BUILD USING PUBLISH PROFILE
+      # BUILD WITHOUT PUBLISH PROFILE
       # ---------------------------------------------------------
-      - name: Build project using publish profile
+      - name: Build project
         shell: powershell
         run: |
           dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
-            /p:PublishProfile=${{ steps.envmap.outputs.PUBLISH_PROFILE }} `
             -o ./build_output
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE (NO AUTH NEEDED)
+      # ARCHIVE CURRENT SITE
       # ---------------------------------------------------------
       - name: Archive existing destination directory
         shell: powershell
@@ -75,53 +76,18 @@ jobs:
 
           Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
 
-          # Create ZIP file path based on the archive folder 
-          $zipFile = "$archivePath.zip" 
-          
-          Write-Host "Creating ZIP archive: $zipFile" 
+          $zipFile = "$archivePath.zip"
+          Write-Host "Creating ZIP archive: $zipFile"
           Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
 
-          # Remove the uncompressed folder 
-          Write-Host "Removing uncompressed archive folder: $archivePath" 
-          Remove-Item -Path $archivePath -Recurse -Force 
-          
+          Write-Host "Removing uncompressed archive folder: $archivePath"
+          Remove-Item -Path $archivePath -Recurse -Force
+
           Write-Host "Archive process completed successfully."
           exit 0
 
       # ---------------------------------------------------------
-      # PRUNE OLD ARCHIVES (KEEP ONLY 5)
-      # ---------------------------------------------------------
-      - name: Prune old archives (keep only 5)
-        shell: powershell
-        run: |
-          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
-
-          if (-not (Test-Path $archiveRoot)) {
-            Write-Host "Archive root does not exist. Nothing to prune."
-            exit 0
-          }
-
-          Write-Host "Pruning old archives in: $archiveRoot"
-
-          $archives = Get-ChildItem -Path $archiveRoot -Filter *.zip |
-                      Sort-Object LastWriteTime -Descending
-
-          if ($archives.Count -le 5) {
-            Write-Host "Archive count ($($archives.Count)) is within limit. No pruning needed."
-            exit 0
-          }
-
-          $toDelete = $archives | Select-Object -Skip 5
-
-          Write-Host "Deleting the following old archives:"
-          $toDelete | ForEach-Object { Write-Host " - $($_.FullName)" }
-
-          $toDelete | Remove-Item -Force -ErrorAction SilentlyContinue
-
-          Write-Host "Archive pruning complete. Kept 5 newest versions."
-
-      # ---------------------------------------------------------
-      # STOP IIS (only if running)
+      # STOP IIS
       # ---------------------------------------------------------
       - name: Stop IIS site and app pool
         shell: powershell
@@ -131,27 +97,20 @@ jobs:
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          # Check App Pool state
           $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
           if ($appPoolState -ne "Stopped") {
               Write-Host "Stopping IIS app pool: $appPool"
               Stop-WebAppPool -Name $appPool -ErrorAction Stop
-          } else {
-              Write-Host "App pool '$appPool' is already stopped. Skipping..."
           }
 
-          # Check Site state
           $siteState = (Get-Website -Name $siteName).state
           if ($siteState -ne "Stopped") {
               Write-Host "Stopping IIS site: $siteName"
               Stop-Website -Name $siteName -ErrorAction Stop
-          } else {
-              Write-Host "Site '$siteName' is already stopped. Skipping..."
           }
 
           Start-Sleep -Seconds 3
 
-          # Validate final state
           if ((Get-Website -Name $siteName).state -ne "Stopped") {
             throw "IIS site did not stop properly: $siteName"
           }
@@ -164,7 +123,7 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # DEPLOY FILES (NO AUTH NEEDED)
+      # DEPLOY FILES
       # ---------------------------------------------------------
       - name: Deploy build output
         shell: powershell
@@ -181,8 +140,6 @@ jobs:
           }
 
           Write-Host "Deploying build output..."
-          
-          # Mirror build output → destination, excluding web.config
           robocopy $source $destination /MIR /XF web.config
           $exitCode = $LASTEXITCODE
 
@@ -191,7 +148,6 @@ jobs:
           }
 
           Write-Host "Deployment completed successfully with exit code $exitCode."
-
           exit 0
 
       # ---------------------------------------------------------
@@ -205,27 +161,20 @@ jobs:
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          # Start App Pool only if not already started
           $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
           if ($appPoolState -ne "Started") {
               Write-Host "Starting IIS app pool: $appPool"
               Start-WebAppPool -Name $appPool -ErrorAction Stop
-          } else {
-              Write-Host "App pool '$appPool' is already started. Skipping..."
           }
 
-          # Start Site only if not already started
           $siteState = (Get-Website -Name $siteName).state
           if ($siteState -ne "Started") {
               Write-Host "Starting IIS site: $siteName"
               Start-Website -Name $siteName -ErrorAction Stop
-          } else {
-              Write-Host "Site '$siteName' is already started. Skipping..."
           }
 
           Start-Sleep -Seconds 3
 
-          # Validate final state
           if ((Get-Website -Name $siteName).state -ne "Started") {
             throw "IIS site did not start properly: $siteName"
           }
