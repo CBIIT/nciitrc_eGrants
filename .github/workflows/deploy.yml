@@ -11,7 +11,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: egrants_fcas-oasys_runner
-    environment: ${{ github.event.inputs.target_branch || github.ref_name }}
+    environment: ${{ github.ref_name }}
 
     steps:
       # ---------------------------------------------------------
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       # ---------------------------------------------------------
-      # LOAD ENVIRONMENT VARIABLES (from GitHub Environments)
+      # LOAD ENVIRONMENT VARIABLES
       # ---------------------------------------------------------
       - name: Load environment variables
         id: envmap
@@ -31,9 +31,11 @@ jobs:
           echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
           echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
           echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
+          echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
+          exit 0
 
       # ---------------------------------------------------------
-      # BUILD WITHOUT PUBLISH PROFILE
+      # BUILD
       # ---------------------------------------------------------
       - name: Build project
         shell: powershell
@@ -42,15 +44,17 @@ jobs:
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             -o ./build_output
+          exit 0
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE
+      # ARCHIVE CURRENT SITE (REMOTE)
       # ---------------------------------------------------------
       - name: Archive existing destination directory
         shell: powershell
         run: |
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
           $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
+          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
 
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
@@ -74,56 +78,52 @@ jobs:
               throw "Robocopy archive failed. Exit code: $exitCode"
           }
 
-          Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
-
           $zipFile = "$archivePath.zip"
-          Write-Host "Creating ZIP archive: $zipFile"
           Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
-
-          Write-Host "Removing uncompressed archive folder: $archivePath"
           Remove-Item -Path $archivePath -Recurse -Force
 
           Write-Host "Archive process completed successfully."
           exit 0
 
       # ---------------------------------------------------------
-      # STOP IIS
+      # STOP IIS (REMOTE)
       # ---------------------------------------------------------
-      - name: Stop IIS site and app pool
+      - name: Stop IIS site and app pool (remote)
         shell: powershell
         run: |
-          Import-Module WebAdministration
-
+          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
-          if ($appPoolState -ne "Stopped") {
-              Write-Host "Stopping IIS app pool: $appPool"
-              Stop-WebAppPool -Name $appPool -ErrorAction Stop
-          }
+          Invoke-Command -ComputerName $remote -ScriptBlock {
+              param($siteName, $appPool)
 
-          $siteState = (Get-Website -Name $siteName).state
-          if ($siteState -ne "Stopped") {
-              Write-Host "Stopping IIS site: $siteName"
-              Stop-Website -Name $siteName -ErrorAction Stop
-          }
+              Import-Module WebAdministration
 
-          Start-Sleep -Seconds 3
+              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+                  Stop-WebAppPool -Name $appPool -ErrorAction Stop
+              }
 
-          if ((Get-Website -Name $siteName).state -ne "Stopped") {
-            throw "IIS site did not stop properly: $siteName"
-          }
+              if ((Get-Website -Name $siteName).state -ne "Stopped") {
+                  Stop-Website -Name $siteName -ErrorAction Stop
+              }
 
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-            throw "IIS app pool did not stop properly: $appPool"
-          }
+              Start-Sleep -Seconds 3
 
-          Write-Host "IIS site and app pool stopped successfully."
+              if ((Get-Website -Name $siteName).state -ne "Stopped") {
+                throw "IIS site did not stop properly: $siteName"
+              }
+
+              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+                throw "IIS app pool did not stop properly: $appPool"
+              }
+          } -ArgumentList $siteName, $appPool
+
+          Write-Host "Remote IIS site and app pool stopped successfully."
           exit 0
 
       # ---------------------------------------------------------
-      # DEPLOY FILES
+      # DEPLOY FILES (UNC PATH)
       # ---------------------------------------------------------
       - name: Deploy build output
         shell: powershell
@@ -147,41 +147,42 @@ jobs:
               throw "Robocopy deployment failed. Exit code: $exitCode"
           }
 
-          Write-Host "Deployment completed successfully with exit code $exitCode."
+          Write-Host "Deployment completed successfully."
           exit 0
 
       # ---------------------------------------------------------
-      # START IIS
+      # START IIS (REMOTE)
       # ---------------------------------------------------------
-      - name: Start IIS site and app pool
+      - name: Start IIS site and app pool (remote)
         shell: powershell
         run: |
-          Import-Module WebAdministration
-
+          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
-          if ($appPoolState -ne "Started") {
-              Write-Host "Starting IIS app pool: $appPool"
-              Start-WebAppPool -Name $appPool -ErrorAction Stop
-          }
+          Invoke-Command -ComputerName $remote -ScriptBlock {
+              param($siteName, $appPool)
 
-          $siteState = (Get-Website -Name $siteName).state
-          if ($siteState -ne "Started") {
-              Write-Host "Starting IIS site: $siteName"
-              Start-Website -Name $siteName -ErrorAction Stop
-          }
+              Import-Module WebAdministration
 
-          Start-Sleep -Seconds 3
+              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+                  Start-WebAppPool -Name $appPool -ErrorAction Stop
+              }
 
-          if ((Get-Website -Name $siteName).state -ne "Started") {
-            throw "IIS site did not start properly: $siteName"
-          }
+              if ((Get-Website -Name $siteName).state -ne "Started") {
+                  Start-Website -Name $siteName -ErrorAction Stop
+              }
 
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
-            throw "IIS app pool did not start properly: $appPool"
-          }
+              Start-Sleep -Seconds 3
 
-          Write-Host "IIS site and app pool started successfully."
+              if ((Get-Website -Name $siteName).state -ne "Started") {
+                throw "IIS site did not start properly: $siteName"
+              }
+
+              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+                throw "IIS app pool did not start properly: $appPool"
+              }
+          } -ArgumentList $siteName, $appPool
+
+          Write-Host "Remote IIS site and app pool started successfully."
           exit 0
