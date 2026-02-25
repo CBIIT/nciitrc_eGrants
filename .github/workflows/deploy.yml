@@ -56,39 +56,6 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # INJECT GITHUB TOKEN INTO MAIN APPSETTINGS.JSON
-      # ---------------------------------------------------------
-      - name: Update main appsettings.json with GitHub token
-        shell: powershell
-        run: |
-          $token = "${{ steps.token.outputs.GITHUB_TOKEN }}"
-          $appSettingsPath = "./source-aspnet/eGrants/appsettings.json"
-
-          if (-not (Test-Path $appSettingsPath)) {
-            throw "Main appsettings.json file not found: $appSettingsPath"
-          }
-
-          # Load JSON
-          $json = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
-
-          # Ensure AppSettings exists
-          if (-not $json.AppSettings) {
-            $json | Add-Member -MemberType NoteProperty -Name "AppSettings" -Value (@{})
-          }
-
-          # Replace placeholder "_GITHUB_TOKEN"
-          if ($json.AppSettings.GitHubToken -eq "_GITHUB_TOKEN") {
-            $json.AppSettings.GitHubToken = $token
-          } else {
-            Write-Host "GitHubToken placeholder not found; existing value preserved."
-          }
-
-          # Save JSON
-          $json | ConvertTo-Json -Depth 10 | Set-Content $appSettingsPath -Encoding UTF8
-
-          exit 0
-
-      # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE
       # ---------------------------------------------------------
       - name: Archive existing destination directory
@@ -168,6 +135,36 @@ jobs:
 
           robocopy $source $destination /MIR /XF web.config
           if ($LASTEXITCODE -ge 8) { throw "Robocopy deployment failed." }
+
+          exit 0
+
+      # ---------------------------------------------------------
+      # INJECT GITHUB TOKEN INTO MAIN APPSETTINGS.JSON
+      # (MOVED HERE AS REQUESTED)
+      # ---------------------------------------------------------
+      - name: Update main appsettings.json with GitHub token
+        shell: powershell
+        run: |
+          $token = "${{ steps.token.outputs.GITHUB_TOKEN }}"
+          $appSettingsPath = "./source-aspnet/eGrants/appsettings.json"
+
+          if (-not (Test-Path $appSettingsPath)) {
+            throw "Main appsettings.json file not found: $appSettingsPath"
+          }
+
+          $json = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+
+          if (-not $json.AppSettings) {
+            $json | Add-Member -MemberType NoteProperty -Name "AppSettings" -Value (@{})
+          }
+
+          if ($json.AppSettings.GitHubToken -eq "_GITHUB_TOKEN") {
+            $json.AppSettings.GitHubToken = $token
+          } else {
+            Write-Host "GitHubToken placeholder not found; existing value preserved."
+          }
+
+          $json | ConvertTo-Json -Depth 10 | Set-Content $appSettingsPath -Encoding UTF8
 
           exit 0
 
