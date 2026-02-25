@@ -35,6 +35,15 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
+      # LOAD GITHUB TOKEN
+      # ---------------------------------------------------------
+      - name: Load GitHub token
+        id: token
+        shell: powershell
+        run: |
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $env:GITHUB_OUTPUT
+
+      # ---------------------------------------------------------
       # BUILD
       # ---------------------------------------------------------
       - name: Build project
@@ -44,6 +53,39 @@ jobs:
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             -o ./build_output
+          exit 0
+
+      # ---------------------------------------------------------
+      # INJECT GITHUB TOKEN INTO MAIN APPSETTINGS.JSON
+      # ---------------------------------------------------------
+      - name: Update main appsettings.json with GitHub token
+        shell: powershell
+        run: |
+          $token = "${{ steps.token.outputs.GITHUB_TOKEN }}"
+          $appSettingsPath = "./source-aspnet/eGrants/appsettings.json"
+
+          if (-not (Test-Path $appSettingsPath)) {
+            throw "Main appsettings.json file not found: $appSettingsPath"
+          }
+
+          # Load JSON
+          $json = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+
+          # Ensure AppSettings exists
+          if (-not $json.AppSettings) {
+            $json | Add-Member -MemberType NoteProperty -Name "AppSettings" -Value (@{})
+          }
+
+          # Replace placeholder "_GITHUB_TOKEN"
+          if ($json.AppSettings.GitHubToken -eq "_GITHUB_TOKEN") {
+            $json.AppSettings.GitHubToken = $token
+          } else {
+            Write-Host "GitHubToken placeholder not found; existing value preserved."
+          }
+
+          # Save JSON
+          $json | ConvertTo-Json -Depth 10 | Set-Content $appSettingsPath -Encoding UTF8
+
           exit 0
 
       # ---------------------------------------------------------
