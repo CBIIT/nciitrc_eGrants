@@ -32,7 +32,6 @@ jobs:
           echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
           echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
-          exit 0
 
       # ---------------------------------------------------------
       # BUILD
@@ -44,7 +43,6 @@ jobs:
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             -o ./build_output
-          exit 0
 
       # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE (REMOTE)
@@ -83,7 +81,6 @@ jobs:
           Remove-Item -Path $archivePath -Recurse -Force
 
           Write-Host "Archive process completed successfully."
-          exit 0
 
       # ---------------------------------------------------------
       # STOP IIS (REMOTE)
@@ -120,7 +117,6 @@ jobs:
           } -ArgumentList $siteName, $appPool
 
           Write-Host "Remote IIS site and app pool stopped successfully."
-          exit 0
 
       # ---------------------------------------------------------
       # DEPLOY FILES (UNC PATH)
@@ -148,7 +144,6 @@ jobs:
           }
 
           Write-Host "Deployment completed successfully."
-          exit 0
 
       # ---------------------------------------------------------
       # START IIS (REMOTE)
