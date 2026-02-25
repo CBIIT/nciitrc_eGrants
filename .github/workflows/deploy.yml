@@ -84,7 +84,6 @@ jobs:
           Remove-Item -Path $archivePath -Recurse -Force
 
           Write-Host "Archive process completed successfully."
-          exit 0
 
       # ---------------------------------------------------------
       # STOP IIS
@@ -120,7 +119,6 @@ jobs:
           }
 
           Write-Host "IIS site and app pool stopped successfully."
-          exit 0
 
       # ---------------------------------------------------------
       # DEPLOY FILES
@@ -148,7 +146,6 @@ jobs:
           }
 
           Write-Host "Deployment completed successfully with exit code $exitCode."
-          exit 0
 
       # ---------------------------------------------------------
       # START IIS
@@ -184,4 +181,3 @@ jobs:
           }
 
           Write-Host "IIS site and app pool started successfully."
-          exit 0
