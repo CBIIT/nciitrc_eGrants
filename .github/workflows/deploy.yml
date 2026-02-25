@@ -140,7 +140,6 @@ jobs:
 
       # ---------------------------------------------------------
       # INJECT GITHUB TOKEN INTO MAIN APPSETTINGS.JSON
-      # (MOVED HERE AS REQUESTED)
       # ---------------------------------------------------------
       - name: Update main appsettings.json with GitHub token
         shell: powershell
@@ -152,18 +151,18 @@ jobs:
             throw "Main appsettings.json file not found: $appSettingsPath"
           }
 
+          # Load JSON
           $json = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
 
+          # Ensure AppSettings exists
           if (-not $json.AppSettings) {
             $json | Add-Member -MemberType NoteProperty -Name "AppSettings" -Value (@{})
           }
 
-          if ($json.AppSettings.GitHubToken -eq "_GITHUB_TOKEN") {
-            $json.AppSettings.GitHubToken = $token
-          } else {
-            Write-Host "GitHubToken placeholder not found; existing value preserved."
-          }
+          # Always set the GitHubToken value
+          $json.AppSettings.GitHubToken = $token
 
+          # Save JSON
           $json | ConvertTo-Json -Depth 10 | Set-Content $appSettingsPath -Encoding UTF8
 
           exit 0
