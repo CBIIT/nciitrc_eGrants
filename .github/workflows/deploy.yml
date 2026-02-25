@@ -139,27 +139,39 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # INJECT GITHUB TOKEN INTO DEPLOYED APPSETTINGS.JSON
+      # UPDATE APPSETTINGS.JSON ON DESTINATION SERVER
       # ---------------------------------------------------------
-      - name: Update deployed appsettings.json with GitHub token
+      - name: Update GitHubToken in destination appsettings.json
         shell: powershell
         run: |
+          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
           $token = "${{ steps.token.outputs.GITHUB_TOKEN }}"
-          $appSettingsPath = "$(Get-Location)\build_output\appsettings.json"
 
-          if (-not (Test-Path $appSettingsPath)) {
-            throw "Deployed appsettings.json not found: $appSettingsPath"
-          }
+          Invoke-Command -ComputerName $remote -ScriptBlock {
+              param($destination, $token)
 
-          $json = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+              $appSettingsPath = Join-Path $destination "appsettings.json"
 
-          if (-not $json.AppSettings) {
-            $json | Add-Member -MemberType NoteProperty -Name "AppSettings" -Value (@{})
-          }
+              if (-not (Test-Path $appSettingsPath)) {
+                  throw "Destination appsettings.json not found: $appSettingsPath"
+              }
 
-          $json.AppSettings.GitHubToken = $token
+              # Load JSON
+              $json = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
 
-          $json | ConvertTo-Json -Depth 10 | Set-Content $appSettingsPath -Encoding UTF8
+              # Ensure AppSettings exists
+              if (-not $json.AppSettings) {
+                  $json | Add-Member -MemberType NoteProperty -Name "AppSettings" -Value (@{})
+              }
+
+              # Update GitHubToken value
+              $json.AppSettings.GitHubToken = $token
+
+              # Save JSON back to file
+              $json | ConvertTo-Json -Depth 10 | Set-Content $appSettingsPath -Encoding UTF8
+
+          } -ArgumentList $destination, $token
 
           exit 0
 
