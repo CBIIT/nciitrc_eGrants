@@ -44,48 +44,6 @@ jobs:
             -o ./build_output
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE
-      # ---------------------------------------------------------
-      - name: Archive existing destination directory
-        shell: powershell
-        run: |
-          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
-
-          if (-not (Test-Path $destination)) {
-            throw "Destination share not reachable: $destination"
-          }
-
-          if (-not (Test-Path $archiveRoot)) {
-            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
-          }
-
-          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-          $archivePath = Join-Path $archiveRoot "backup_$timestamp"
-
-          Write-Host "Creating archive folder: $archivePath"
-          New-Item -ItemType Directory -Path $archivePath | Out-Null
-
-          Write-Host "Archiving current destination contents..."
-          robocopy $destination $archivePath /MIR
-          $exitCode = $LASTEXITCODE
-
-          if ($exitCode -ge 8) {
-              throw "Robocopy archive failed. Exit code: $exitCode"
-          }
-
-          Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
-
-          $zipFile = "$archivePath.zip"
-          Write-Host "Creating ZIP archive: $zipFile"
-          Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
-
-          Write-Host "Removing uncompressed archive folder: $archivePath"
-          Remove-Item -Path $archivePath -Recurse -Force
-
-          Write-Host "Archive process completed successfully."
-
-      # ---------------------------------------------------------
       # STOP IIS
       # ---------------------------------------------------------
       - name: Stop IIS site and app pool
