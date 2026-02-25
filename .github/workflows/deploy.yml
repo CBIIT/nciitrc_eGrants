@@ -32,6 +32,7 @@ jobs:
           echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
           echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
+          echo "IS_DEV=$([string]::Equals('${{ github.ref_name }}','dev','InvariantCultureIgnoreCase'))" >> $env:GITHUB_OUTPUT
           exit 0
 
       # ---------------------------------------------------------
@@ -86,18 +87,18 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # STOP IIS (REMOTE)
+      # STOP IIS (LOCAL OR REMOTE)
       # ---------------------------------------------------------
-      - name: Stop IIS site and app pool (remote)
+      - name: Stop IIS site and app pool
         shell: powershell
         run: |
+          $isDev = [System.Convert]::ToBoolean("${{ steps.envmap.outputs.IS_DEV }}")
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-              param($siteName, $appPool)
-
+          if ($isDev) {
+              Write-Host "Environment is DEV — stopping IIS locally."
               Import-Module WebAdministration
 
               if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
@@ -107,17 +108,22 @@ jobs:
               if ((Get-Website -Name $siteName).state -ne "Stopped") {
                   Stop-Website -Name $siteName -ErrorAction Stop
               }
+          }
+          else {
+              Write-Host "Environment is NOT DEV — stopping IIS remotely."
+              Invoke-Command -ComputerName $remote -ScriptBlock {
+                  param($siteName, $appPool)
+                  Import-Module WebAdministration
 
-              Start-Sleep -Seconds 3
+                  if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+                      Stop-WebAppPool -Name $appPool -ErrorAction Stop
+                  }
 
-              if ((Get-Website -Name $siteName).state -ne "Stopped") {
-                throw "IIS site did not stop properly: $siteName"
-              }
-
-              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-                throw "IIS app pool did not stop properly: $appPool"
-              }
-          } -ArgumentList $siteName, $appPool
+                  if ((Get-Website -Name $siteName).state -ne "Stopped") {
+                      Stop-Website -Name $siteName -ErrorAction Stop
+                  }
+              } -ArgumentList $siteName, $appPool
+          }
 
           exit 0
 
@@ -139,54 +145,64 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # UPDATE APPSETTINGS.JSON ON DESTINATION SERVER WITHOUT LOSING FORMATTING
+      # UPDATE APPSETTINGS.JSON (LOCAL OR REMOTE)
       # ---------------------------------------------------------
       - name: Update GitHubToken in destination appsettings.json
         shell: powershell
         run: |
+          $isDev = [System.Convert]::ToBoolean("${{ steps.envmap.outputs.IS_DEV }}")
           $token = "${{ secrets._GITHUB_TOKEN }}"
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-              param($destination, $token)
-
+          if ($isDev) {
+              Write-Host "Environment is DEV — updating appsettings locally."
               $appSettingsPath = Join-Path $destination "appsettings.json"
 
               if (-not (Test-Path $appSettingsPath)) {
                   throw "Destination appsettings.json not found: $appSettingsPath"
               }
 
-              # Read file as raw text (preserves formatting)
               $content = Get-Content $appSettingsPath -Raw
-
-              # Regex replace ONLY the GitHubToken value
-              # Matches: "GitHubToken": "anything"
               $pattern = '"GitHubToken"\s*:\s*".*?"'
               $replacement = '"GitHubToken": "' + $token + '"'
-
               $newContent = [regex]::Replace($content, $pattern, $replacement)
-
-              # Write back without altering formatting
               Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
+          }
+          else {
+              Write-Host "Environment is NOT DEV — updating appsettings remotely."
+              Invoke-Command -ComputerName $remote -ScriptBlock {
+                  param($destination, $token)
 
-          } -ArgumentList $destination, $token
+                  $appSettingsPath = Join-Path $destination "appsettings.json"
+
+                  if (-not (Test-Path $appSettingsPath)) {
+                      throw "Destination appsettings.json not found: $appSettingsPath"
+                  }
+
+                  $content = Get-Content $appSettingsPath -Raw
+                  $pattern = '"GitHubToken"\s*:\s*".*?"'
+                  $replacement = '"GitHubToken": "' + $token + '"'
+                  $newContent = [regex]::Replace($content, $pattern, $replacement)
+                  Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
+              } -ArgumentList $destination, $token
+          }
 
           exit 0
 
       # ---------------------------------------------------------
-      # START IIS (REMOTE)
+      # START IIS (LOCAL OR REMOTE)
       # ---------------------------------------------------------
-      - name: Start IIS site and app pool (remote)
+      - name: Start IIS site and app pool
         shell: powershell
         run: |
+          $isDev = [System.Convert]::ToBoolean("${{ steps.envmap.outputs.IS_DEV }}")
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-              param($siteName, $appPool)
-
+          if ($isDev) {
+              Write-Host "Environment is DEV — starting IIS locally."
               Import-Module WebAdministration
 
               if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
@@ -196,16 +212,21 @@ jobs:
               if ((Get-Website -Name $siteName).state -ne "Started") {
                   Start-Website -Name $siteName -ErrorAction Stop
               }
+          }
+          else {
+              Write-Host "Environment is NOT DEV — starting IIS remotely."
+              Invoke-Command -ComputerName $remote -ScriptBlock {
+                  param($siteName, $appPool)
+                  Import-Module WebAdministration
 
-              Start-Sleep -Seconds 3
+                  if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+                      Start-WebAppPool -Name $appPool -ErrorAction Stop
+                  }
 
-              if ((Get-Website -Name $siteName).state -ne "Started") {
-                throw "IIS site did not start properly: $siteName"
-              }
-
-              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
-                throw "IIS app pool did not start properly: $appPool"
-              }
-          } -ArgumentList $siteName, $appPool
+                  if ((Get-Website -Name $siteName).state -ne "Started") {
+                      Start-Website -Name $siteName -ErrorAction Stop
+                  }
+              } -ArgumentList $siteName, $appPool
+          }
 
           exit 0
