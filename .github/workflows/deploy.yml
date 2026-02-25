@@ -139,14 +139,16 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # UPDATE APPSETTINGS.JSON ON DESTINATION SERVER
+      # UPDATE APPSETTINGS.JSON ON DESTINATION SERVER USING _GITHUB_TOKEN ENV SECRET
       # ---------------------------------------------------------
       - name: Update GitHubToken in destination appsettings.json
         shell: powershell
         run: |
+          # Pull the token from the environment secret
+          $token = "${{ secrets._GITHUB_TOKEN }}"
+
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-          $token = "${{ steps.token.outputs.GITHUB_TOKEN }}"
 
           Invoke-Command -ComputerName $remote -ScriptBlock {
               param($destination, $token)
@@ -168,8 +170,9 @@ jobs:
               # Update GitHubToken value
               $json.AppSettings.GitHubToken = $token
 
-              # Save JSON back to file
-              $json | ConvertTo-Json -Depth 10 | Set-Content $appSettingsPath -Encoding UTF8
+              # Save JSON with proper formatting
+              $formatted = $json | ConvertTo-Json -Depth 20 -Compress:$false
+              Set-Content -Path $appSettingsPath -Value $formatted -Encoding UTF8
 
           } -ArgumentList $destination, $token
 
