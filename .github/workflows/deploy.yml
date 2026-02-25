@@ -32,7 +32,9 @@ jobs:
           echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
           echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
-          echo "IS_DEV=$([string]::Equals('${{ github.ref_name }}','dev','InvariantCultureIgnoreCase'))" >> $env:GITHUB_OUTPUT
+
+          # Correct boolean flag
+          echo "IS_DEV=${{ github.ref_name == 'dev' }}" >> $env:GITHUB_OUTPUT
           exit 0
 
       # ---------------------------------------------------------
@@ -92,7 +94,7 @@ jobs:
       - name: Stop IIS site and app pool
         shell: powershell
         run: |
-          $isDev = [System.Convert]::ToBoolean("${{ steps.envmap.outputs.IS_DEV }}")
+          $isDev = "${{ steps.envmap.outputs.IS_DEV }}" -eq "true"
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
@@ -150,7 +152,7 @@ jobs:
       - name: Update GitHubToken in destination appsettings.json
         shell: powershell
         run: |
-          $isDev = [System.Convert]::ToBoolean("${{ steps.envmap.outputs.IS_DEV }}")
+          $isDev = "${{ steps.envmap.outputs.IS_DEV }}" -eq "true"
           $token = "${{ secrets._GITHUB_TOKEN }}"
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
@@ -185,6 +187,7 @@ jobs:
                   $replacement = '"GitHubToken": "' + $token + '"'
                   $newContent = [regex]::Replace($content, $pattern, $replacement)
                   Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
+
               } -ArgumentList $destination, $token
           }
 
@@ -196,7 +199,7 @@ jobs:
       - name: Start IIS site and app pool
         shell: powershell
         run: |
-          $isDev = [System.Convert]::ToBoolean("${{ steps.envmap.outputs.IS_DEV }}")
+          $isDev = "${{ steps.envmap.outputs.IS_DEV }}" -eq "true"
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
