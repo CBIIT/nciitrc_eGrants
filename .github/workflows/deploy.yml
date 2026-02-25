@@ -32,6 +32,7 @@ jobs:
           echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
           echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
+          exit 0
 
       # ---------------------------------------------------------
       # BUILD
@@ -43,16 +44,16 @@ jobs:
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             -o ./build_output
+          exit 0
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE (REMOTE)
+      # ARCHIVE CURRENT SITE
       # ---------------------------------------------------------
       - name: Archive existing destination directory
         shell: powershell
         run: |
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
           $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
-          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
 
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
@@ -65,22 +66,15 @@ jobs:
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $archivePath = Join-Path $archiveRoot "backup_$timestamp"
 
-          Write-Host "Creating archive folder: $archivePath"
           New-Item -ItemType Directory -Path $archivePath | Out-Null
-
-          Write-Host "Archiving current destination contents..."
           robocopy $destination $archivePath /MIR
-          $exitCode = $LASTEXITCODE
-
-          if ($exitCode -ge 8) {
-              throw "Robocopy archive failed. Exit code: $exitCode"
-          }
+          if ($LASTEXITCODE -ge 8) { throw "Robocopy archive failed." }
 
           $zipFile = "$archivePath.zip"
           Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
           Remove-Item -Path $archivePath -Recurse -Force
 
-          Write-Host "Archive process completed successfully."
+          exit 0
 
       # ---------------------------------------------------------
       # STOP IIS (REMOTE)
@@ -116,10 +110,10 @@ jobs:
               }
           } -ArgumentList $siteName, $appPool
 
-          Write-Host "Remote IIS site and app pool stopped successfully."
+          exit 0
 
       # ---------------------------------------------------------
-      # DEPLOY FILES (UNC PATH)
+      # DEPLOY FILES
       # ---------------------------------------------------------
       - name: Deploy build output
         shell: powershell
@@ -127,23 +121,13 @@ jobs:
           $source = "$(Get-Location)\build_output"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
-          if (-not (Test-Path $source)) {
-            throw "Build output not found: $source"
-          }
+          if (-not (Test-Path $source)) { throw "Build output not found: $source" }
+          if (-not (Test-Path $destination)) { throw "Destination share not reachable: $destination" }
 
-          if (-not (Test-Path $destination)) {
-            throw "Destination share not reachable: $destination"
-          }
-
-          Write-Host "Deploying build output..."
           robocopy $source $destination /MIR /XF web.config
-          $exitCode = $LASTEXITCODE
+          if ($LASTEXITCODE -ge 8) { throw "Robocopy deployment failed." }
 
-          if ($exitCode -ge 8) {
-              throw "Robocopy deployment failed. Exit code: $exitCode"
-          }
-
-          Write-Host "Deployment completed successfully."
+          exit 0
 
       # ---------------------------------------------------------
       # START IIS (REMOTE)
@@ -179,5 +163,4 @@ jobs:
               }
           } -ArgumentList $siteName, $appPool
 
-          Write-Host "Remote IIS site and app pool started successfully."
           exit 0
