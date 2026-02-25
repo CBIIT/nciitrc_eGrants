@@ -139,14 +139,12 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # UPDATE APPSETTINGS.JSON ON DESTINATION SERVER USING _GITHUB_TOKEN ENV SECRET
+      # UPDATE APPSETTINGS.JSON ON DESTINATION SERVER WITHOUT LOSING FORMATTING
       # ---------------------------------------------------------
       - name: Update GitHubToken in destination appsettings.json
         shell: powershell
         run: |
-          # Pull the token from the environment secret
           $token = "${{ secrets._GITHUB_TOKEN }}"
-
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
@@ -159,20 +157,18 @@ jobs:
                   throw "Destination appsettings.json not found: $appSettingsPath"
               }
 
-              # Load JSON
-              $json = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+              # Read file as raw text (preserves formatting)
+              $content = Get-Content $appSettingsPath -Raw
 
-              # Ensure AppSettings exists
-              if (-not $json.AppSettings) {
-                  $json | Add-Member -MemberType NoteProperty -Name "AppSettings" -Value (@{})
-              }
+              # Regex replace ONLY the GitHubToken value
+              # Matches: "GitHubToken": "anything"
+              $pattern = '"GitHubToken"\s*:\s*".*?"'
+              $replacement = '"GitHubToken": "' + $token + '"'
 
-              # Update GitHubToken value
-              $json.AppSettings.GitHubToken = $token
+              $newContent = [regex]::Replace($content, $pattern, $replacement)
 
-              # Save JSON with proper formatting
-              $formatted = $json | ConvertTo-Json -Depth 20 -Compress:$false
-              Set-Content -Path $appSettingsPath -Value $formatted -Encoding UTF8
+              # Write back without altering formatting
+              Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
 
           } -ArgumentList $destination, $token
 
