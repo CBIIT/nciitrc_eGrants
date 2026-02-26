@@ -11,7 +11,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: egrants_fcas-oasys_runner
-    environment: ${{ github.event.inputs.target_branch || github.ref_name }}
+    environment: ${{ github.ref_name }}
 
     steps:
       # ---------------------------------------------------------
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       # ---------------------------------------------------------
-      # LOAD ENVIRONMENT VARIABLES (from GitHub Environments)
+      # LOAD ENVIRONMENT VARIABLES
       # ---------------------------------------------------------
       - name: Load environment variables
         id: envmap
@@ -31,9 +31,20 @@ jobs:
           echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
           echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
           echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
+          echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
+          exit 0
 
       # ---------------------------------------------------------
-      # BUILD WITHOUT PUBLISH PROFILE
+      # LOAD GITHUB TOKEN (kept as-is)
+      # ---------------------------------------------------------
+      - name: Load GitHub token
+        id: token
+        shell: powershell
+        run: |
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $env:GITHUB_OUTPUT
+
+      # ---------------------------------------------------------
+      # BUILD
       # ---------------------------------------------------------
       - name: Build project
         shell: powershell
@@ -42,6 +53,7 @@ jobs:
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             -o ./build_output
+          exit 0
 
       # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE
@@ -63,50 +75,34 @@ jobs:
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $archivePath = Join-Path $archiveRoot "backup_$timestamp"
 
-          Write-Host "Creating archive folder: $archivePath"
           New-Item -ItemType Directory -Path $archivePath | Out-Null
-
-          Write-Host "Archiving current destination contents..."
           robocopy $destination $archivePath /MIR
-          $exitCode = $LASTEXITCODE
-
-          if ($exitCode -ge 8) {
-              throw "Robocopy archive failed. Exit code: $exitCode"
-          }
-
-          Write-Host "Robocopy completed with exit code $exitCode. Proceeding to ZIP."
+          if ($LASTEXITCODE -ge 8) { throw "Robocopy archive failed." }
 
           $zipFile = "$archivePath.zip"
-          Write-Host "Creating ZIP archive: $zipFile"
           Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
-
-          Write-Host "Removing uncompressed archive folder: $archivePath"
           Remove-Item -Path $archivePath -Recurse -Force
 
-          Write-Host "Archive process completed successfully."
           exit 0
 
       # ---------------------------------------------------------
-      # STOP IIS
+      # STOP IIS (DEV LOCAL)
       # ---------------------------------------------------------
-      - name: Stop IIS site and app pool
+      - name: Stop IIS site and app pool (dev/local)
+        if: ${{ github.ref_name == 'dev' }}
         shell: powershell
         run: |
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+
           Import-Module WebAdministration
 
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
-          if ($appPoolState -ne "Stopped") {
-              Write-Host "Stopping IIS app pool: $appPool"
-              Stop-WebAppPool -Name $appPool -ErrorAction Stop
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+            Stop-WebAppPool -Name $appPool -ErrorAction Stop
           }
 
-          $siteState = (Get-Website -Name $siteName).state
-          if ($siteState -ne "Stopped") {
-              Write-Host "Stopping IIS site: $siteName"
-              Stop-Website -Name $siteName -ErrorAction Stop
+          if ((Get-Website -Name $siteName).state -ne "Stopped") {
+            Stop-Website -Name $siteName -ErrorAction Stop
           }
 
           Start-Sleep -Seconds 3
@@ -114,12 +110,46 @@ jobs:
           if ((Get-Website -Name $siteName).state -ne "Stopped") {
             throw "IIS site did not stop properly: $siteName"
           }
-
           if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
             throw "IIS app pool did not stop properly: $appPool"
           }
 
-          Write-Host "IIS site and app pool stopped successfully."
+          exit 0
+
+      # ---------------------------------------------------------
+      # STOP IIS (NON-DEV REMOTE)
+      # ---------------------------------------------------------
+      - name: Stop IIS site and app pool (remote)
+        if: ${{ github.ref_name != 'dev' }}
+        shell: powershell
+        run: |
+          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          Invoke-Command -ComputerName $remote -ScriptBlock {
+            param($siteName, $appPool)
+
+            Import-Module WebAdministration
+
+            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+              Stop-WebAppPool -Name $appPool -ErrorAction Stop
+            }
+
+            if ((Get-Website -Name $siteName).state -ne "Stopped") {
+              Stop-Website -Name $siteName -ErrorAction Stop
+            }
+
+            Start-Sleep -Seconds 3
+
+            if ((Get-Website -Name $siteName).state -ne "Stopped") {
+              throw "IIS site did not stop properly: $siteName"
+            }
+            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+              throw "IIS app pool did not stop properly: $appPool"
+            }
+          } -ArgumentList $siteName, $appPool
+
           exit 0
 
       # ---------------------------------------------------------
@@ -131,46 +161,85 @@ jobs:
           $source = "$(Get-Location)\build_output"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
-          if (-not (Test-Path $source)) {
-            throw "Build output not found: $source"
-          }
+          if (-not (Test-Path $source)) { throw "Build output not found: $source" }
+          if (-not (Test-Path $destination)) { throw "Destination share not reachable: $destination" }
 
-          if (-not (Test-Path $destination)) {
-            throw "Destination share not reachable: $destination"
-          }
-
-          Write-Host "Deploying build output..."
           robocopy $source $destination /MIR /XF web.config
-          $exitCode = $LASTEXITCODE
+          if ($LASTEXITCODE -ge 8) { throw "Robocopy deployment failed." }
 
-          if ($exitCode -ge 8) {
-              throw "Robocopy deployment failed. Exit code: $exitCode"
-          }
-
-          Write-Host "Deployment completed successfully with exit code $exitCode."
           exit 0
 
       # ---------------------------------------------------------
-      # START IIS
+      # UPDATE APPSETTINGS.JSON (DEV LOCAL)
       # ---------------------------------------------------------
-      - name: Start IIS site and app pool
+      - name: Update GitHubToken in destination appsettings.json (dev/local)
+        if: ${{ github.ref_name == 'dev' }}
         shell: powershell
         run: |
-          Import-Module WebAdministration
+          $token = "${{ secrets._GITHUB_TOKEN }}"
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+          $appSettingsPath = Join-Path $destination "appsettings.json"
 
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          $appPoolState = (Get-WebAppPoolState -Name $appPool).Value
-          if ($appPoolState -ne "Started") {
-              Write-Host "Starting IIS app pool: $appPool"
-              Start-WebAppPool -Name $appPool -ErrorAction Stop
+          if (-not (Test-Path $appSettingsPath)) {
+            throw "Destination appsettings.json not found: $appSettingsPath"
           }
 
-          $siteState = (Get-Website -Name $siteName).state
-          if ($siteState -ne "Started") {
-              Write-Host "Starting IIS site: $siteName"
-              Start-Website -Name $siteName -ErrorAction Stop
+          $content = Get-Content $appSettingsPath -Raw
+          $pattern = '"GitHubToken"\s*:\s*".*?"'
+          $replacement = '"GitHubToken": "' + $token + '"'
+          $newContent = [regex]::Replace($content, $pattern, $replacement)
+
+          Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
+          exit 0
+
+      # ---------------------------------------------------------
+      # UPDATE APPSETTINGS.JSON (NON-DEV REMOTE)
+      # ---------------------------------------------------------
+      - name: Update GitHubToken in destination appsettings.json (remote)
+        if: ${{ github.ref_name != 'dev' }}
+        shell: powershell
+        run: |
+          $token = "${{ secrets._GITHUB_TOKEN }}"
+          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+
+          Invoke-Command -ComputerName $remote -ScriptBlock {
+            param($destination, $token)
+
+            $appSettingsPath = Join-Path $destination "appsettings.json"
+
+            if (-not (Test-Path $appSettingsPath)) {
+              throw "Destination appsettings.json not found: $appSettingsPath"
+            }
+
+            $content = Get-Content $appSettingsPath -Raw
+            $pattern = '"GitHubToken"\s*:\s*".*?"'
+            $replacement = '"GitHubToken": "' + $token + '"'
+            $newContent = [regex]::Replace($content, $pattern, $replacement)
+
+            Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
+          } -ArgumentList $destination, $token
+
+          exit 0
+
+      # ---------------------------------------------------------
+      # START IIS (DEV LOCAL)
+      # ---------------------------------------------------------
+      - name: Start IIS site and app pool (dev/local)
+        if: ${{ github.ref_name == 'dev' }}
+        shell: powershell
+        run: |
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          Import-Module WebAdministration
+
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+            Start-WebAppPool -Name $appPool -ErrorAction Stop
+          }
+
+          if ((Get-Website -Name $siteName).state -ne "Started") {
+            Start-Website -Name $siteName -ErrorAction Stop
           }
 
           Start-Sleep -Seconds 3
@@ -178,10 +247,44 @@ jobs:
           if ((Get-Website -Name $siteName).state -ne "Started") {
             throw "IIS site did not start properly: $siteName"
           }
-
           if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
             throw "IIS app pool did not start properly: $appPool"
           }
 
-          Write-Host "IIS site and app pool started successfully."
+          exit 0
+
+      # ---------------------------------------------------------
+      # START IIS (NON-DEV REMOTE)
+      # ---------------------------------------------------------
+      - name: Start IIS site and app pool (remote)
+        if: ${{ github.ref_name != 'dev' }}
+        shell: powershell
+        run: |
+          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          Invoke-Command -ComputerName $remote -ScriptBlock {
+            param($siteName, $appPool)
+
+            Import-Module WebAdministration
+
+            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+              Start-WebAppPool -Name $appPool -ErrorAction Stop
+            }
+
+            if ((Get-Website -Name $siteName).state -ne "Started") {
+              Start-Website -Name $siteName -ErrorAction Stop
+            }
+
+            Start-Sleep -Seconds 3
+
+            if ((Get-Website -Name $siteName).state -ne "Started") {
+              throw "IIS site did not start properly: $siteName"
+            }
+            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
+              throw "IIS app pool did not start properly: $appPool"
+            }
+          } -ArgumentList $siteName, $appPool
+
           exit 0
