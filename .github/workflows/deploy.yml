@@ -15,7 +15,7 @@ jobs:
 
     steps:
       # ---------------------------------------------------------
-      # CHECKOUT NOW
+      # CHECKOUT
       # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
