@@ -122,33 +122,55 @@ jobs:
       - name: Stop IIS site and app pool (remote)
         if: ${{ github.ref_name != 'dev' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
           $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-            param($siteName, $appPool)
+          if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_PASS) {
+            throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
+          }
 
-            Import-Module WebAdministration
+          # Build secure credential object from secrets (password never echoed)
+          $securePass = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential ($env:DEPLOY_USER, $securePass)
 
-            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-              Stop-WebAppPool -Name $appPool -ErrorAction Stop
+          $session = $null
+          try {
+            # Create a remote session using the supplied credentials
+            $session = New-PSSession -ComputerName $remote -Credential $cred -ErrorAction Stop
+
+            Invoke-Command -Session $session -ScriptBlock {
+              param($siteName, $appPool)
+
+              Import-Module WebAdministration
+
+              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+                Stop-WebAppPool -Name $appPool -ErrorAction Stop
+              }
+
+              if ((Get-Website -Name $siteName).state -ne "Stopped") {
+                Stop-Website -Name $siteName -ErrorAction Stop
+              }
+
+              Start-Sleep -Seconds 3
+
+              if ((Get-Website -Name $siteName).state -ne "Stopped") {
+                throw "IIS site did not stop properly: $siteName"
+              }
+              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+                throw "IIS app pool did not stop properly: $appPool"
+              }
+            } -ArgumentList $siteName, $appPool -ErrorAction Stop
+
+          } finally {
+            if ($session) {
+              Remove-PSSession -Session $session -ErrorAction SilentlyContinue
             }
-
-            if ((Get-Website -Name $siteName).state -ne "Stopped") {
-              Stop-Website -Name $siteName -ErrorAction Stop
-            }
-
-            Start-Sleep -Seconds 3
-
-            if ((Get-Website -Name $siteName).state -ne "Stopped") {
-              throw "IIS site did not stop properly: $siteName"
-            }
-            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-              throw "IIS app pool did not stop properly: $appPool"
-            }
-          } -ArgumentList $siteName, $appPool
+          }
 
           exit 0
 
