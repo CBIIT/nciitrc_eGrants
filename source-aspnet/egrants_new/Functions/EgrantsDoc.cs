@@ -1,6 +1,4 @@
-﻿using egrants_new.Egrants.Models;
-using egrants_new.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -8,8 +6,14 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+
+using egrants_new.Egrants.Models;
+using egrants_new.Models;
+
+using Newtonsoft.Json;
 
 namespace egrants_new.Functions
 {
@@ -628,76 +632,126 @@ namespace egrants_new.Functions
         /// <returns>
         ///     The <see cref="EgrantsDoc.Notification" /> .
         /// </returns>
+        //public static Notification getCloseoutNotif(string applid, string notifName)
+        //{
+        //    var certUrl = ConfigurationManager.ConnectionStrings["certPath"].ToString();
+        //    var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
+        //    var certificate = new X509Certificate2(certUrl, certPass);
+        //    var eraUrl = ConfigurationManager.AppSettings["era_url_base"];
+        //    var request = (HttpWebRequest)WebRequest.Create($"{eraUrl}grantfolder/services/GrantDocumentInfo");
+        //    request.ContentType = "application/xml";
+        //    request.Method = "POST";
+        //    request.ClientCertificates.Add(certificate);
+
+        //    var SOAPReqBody = new XmlDocument();
+
+        //    SOAPReqBody.LoadXml(
+        //        @"<?xml version=""1.0"" encoding=""utf-8""?>  
+        //            <soap:Envelope xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
+        //            xmlns:mes=""http://era.nih.gov/grantDocumentInfo/message""> 
+        //            <soap:Header/> 
+        //            <soap:Body>
+        //            <mes:GrantCorrespondenceRequest>
+        //            <mes:applId>" + applid + @"</mes:applId>               
+        //            </mes:GrantCorrespondenceRequest> 
+        //            </soap:Body>
+        //            </soap:Envelope>");
+
+        //    using (var stream = request.GetRequestStream())
+        //    {
+        //        SOAPReqBody.Save(stream);
+        //    }
+
+        //    using (var Serviceres = request.GetResponse())
+        //    {
+        //        using (var rd = new StreamReader(Serviceres.GetResponseStream()))
+        //        {
+        //            var ServiceResult = rd.ReadToEnd();
+        //            var pos = ServiceResult.IndexOf("apache.org>") + "apache.org>".Length;
+        //            ServiceResult = ServiceResult.Substring(pos);
+        //            pos = ServiceResult.IndexOf("--uuid:");
+        //            ServiceResult = ServiceResult.Substring(0, pos);
+        //            var doc = XDocument.Parse(ServiceResult);
+
+        //            // return doc;
+        //            XNamespace ns2 = "http://era.nih.gov/grantDocumentInfo/domain";
+        //            var responses = doc.Descendants(ns2 + "correspondenceData");
+        //            string notif_name = null;
+        //            var notif = new Notification();
+
+        //            foreach (var response in responses)
+        //            {
+        //                notif_name = (string)response.Element(ns2 + "notificationName");
+
+        //                if (notif_name.ToLower() == notifName.ToLower())
+        //                {
+        //                    notif.notificationName = notif_name;
+        //                    notif.description = (string)response.Element(ns2 + "description");
+        //                    notif.sentDate = (string)response.Element(ns2 + "sentDate");
+        //                    notif.fromAddress = (string)response.Element(ns2 + "fromAddress");
+        //                    notif.toAddress = (string)response.Element(ns2 + "toAddress");
+        //                    notif.ccAddress = (string)response.Element(ns2 + "ccAddress");
+        //                    notif.subject = (string)response.Element(ns2 + "subject");
+        //                    var mailbody = (string)response.Element(ns2 + "emailContent");
+
+        //                    // mailbody = mailbody.Replace("<pre>", "");
+        //                    // mailbody = mailbody.Replace("</pre>", "");
+        //                    notif.emailContent = mailbody;
+        //                }
+        //            }
+
+        //            return notif;
+        //        }
+        //    }
+        //}
+
         public static Notification getCloseoutNotif(string applid, string notifName)
         {
             var certUrl = ConfigurationManager.ConnectionStrings["certPath"].ToString();
             var certPass = ConfigurationManager.ConnectionStrings["certPass"].ToString();
             var certificate = new X509Certificate2(certUrl, certPass);
-            var eraUrl = ConfigurationManager.AppSettings["era_url_base"];
-            var request = (HttpWebRequest)WebRequest.Create($"{eraUrl}grantfolder/services/GrantDocumentInfo");
-            request.ContentType = "application/xml";
+
+            var eraUrlBase = ConfigurationManager.AppSettings["era_url_base"]?.TrimEnd('/');
+            var url = $"{eraUrlBase}/grantfolder/api/gfdocuments/getGrantCorrespondence";
+
+            var requestDto = new GrantCorrespondenceRequest { ApplId = applid };
+            var jsonBody = JsonConvert.SerializeObject(requestDto);
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";
+            request.ContentType = "application/json";
+            request.Accept = "application/json";
             request.ClientCertificates.Add(certificate);
-
-            var SOAPReqBody = new XmlDocument();
-
-            SOAPReqBody.LoadXml(
-                @"<?xml version=""1.0"" encoding=""utf-8""?>  
-                    <soap:Envelope xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
-                    xmlns:mes=""http://era.nih.gov/grantDocumentInfo/message""> 
-                    <soap:Header/> 
-                    <soap:Body>
-                    <mes:GrantCorrespondenceRequest>
-                    <mes:applId>" + applid + @"</mes:applId>               
-                    </mes:GrantCorrespondenceRequest> 
-                    </soap:Body>
-                    </soap:Envelope>");
 
             using (var stream = request.GetRequestStream())
             {
-                SOAPReqBody.Save(stream);
+                var bytes = Encoding.UTF8.GetBytes(jsonBody);
+                stream.Write(bytes, 0, bytes.Length);
             }
 
-            using (var Serviceres = request.GetResponse())
+            using (var response = request.GetResponse())
+            using (var rd = new System.IO.StreamReader(response.GetResponseStream()))
             {
-                using (var rd = new StreamReader(Serviceres.GetResponseStream()))
+                var responseJson = rd.ReadToEnd();
+                var dto = JsonConvert.DeserializeObject<GrantCorrespondence>(responseJson);
+
+                var notif = new Notification();
+
+                var cd = dto?.CorrespondenceData;
+                if (cd != null && !string.IsNullOrWhiteSpace(cd.NotificationName) &&
+                    cd.NotificationName.Equals(notifName, StringComparison.OrdinalIgnoreCase))
                 {
-                    var ServiceResult = rd.ReadToEnd();
-                    var pos = ServiceResult.IndexOf("apache.org>") + "apache.org>".Length;
-                    ServiceResult = ServiceResult.Substring(pos);
-                    pos = ServiceResult.IndexOf("--uuid:");
-                    ServiceResult = ServiceResult.Substring(0, pos);
-                    var doc = XDocument.Parse(ServiceResult);
-
-                    // return doc;
-                    XNamespace ns2 = "http://era.nih.gov/grantDocumentInfo/domain";
-                    var responses = doc.Descendants(ns2 + "correspondenceData");
-                    string notif_name = null;
-                    var notif = new Notification();
-
-                    foreach (var response in responses)
-                    {
-                        notif_name = (string)response.Element(ns2 + "notificationName");
-
-                        if (notif_name.ToLower() == notifName.ToLower())
-                        {
-                            notif.notificationName = notif_name;
-                            notif.description = (string)response.Element(ns2 + "description");
-                            notif.sentDate = (string)response.Element(ns2 + "sentDate");
-                            notif.fromAddress = (string)response.Element(ns2 + "fromAddress");
-                            notif.toAddress = (string)response.Element(ns2 + "toAddress");
-                            notif.ccAddress = (string)response.Element(ns2 + "ccAddress");
-                            notif.subject = (string)response.Element(ns2 + "subject");
-                            var mailbody = (string)response.Element(ns2 + "emailContent");
-
-                            // mailbody = mailbody.Replace("<pre>", "");
-                            // mailbody = mailbody.Replace("</pre>", "");
-                            notif.emailContent = mailbody;
-                        }
-                    }
-
-                    return notif;
+                    notif.notificationName = cd.NotificationName;
+                    notif.description = cd.Description;
+                    notif.sentDate = cd.SentDate;
+                    notif.fromAddress = cd.FromAddress;
+                    notif.toAddress = cd.ToAddress;
+                    notif.ccAddress = cd.CcAddress;
+                    notif.subject = cd.Subject;
+                    notif.emailContent = cd.EmailContent;
                 }
+
+                return notif;
             }
         }
     }
