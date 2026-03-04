@@ -38,6 +38,35 @@ def search_by_string(
     return _parse_tagged_results(rows)
 
 
+def search_by_grant(
+    db: Session,
+    grant_id: int,
+    ic: str,
+    operator: str,
+) -> dict:
+    """Load all applications and documents for a grant (legacy 'All' button).
+
+    Calls sp_web_egrants with @grant_id and @package='All', replicating
+    the old getByAll(grant_id) → by_grant(grant_id, 'All', 'All', cats_list, 'All').
+    """
+    rows = exec_sp(
+        db,
+        "EXEC dbo.sp_web_egrants "
+        "@str=NULL, @grant_id=:grant_id, @package=:package, "
+        "@appl_id=NULL, @current_page=1, @browser=:browser, "
+        "@ic=:ic, @operator=:operator",
+        {
+            "grant_id": grant_id,
+            "package": "All",
+            "browser": "Chrome",
+            "ic": ic,
+            "operator": operator,
+        },
+    )
+
+    return _parse_tagged_results(rows)
+
+
 def search_by_filters(
     db: Session,
     fy: str,
@@ -139,19 +168,41 @@ def get_supplement(
 def load_data_years(
     db: Session, fy: str, mechanism: str, admin_code: str, serial_num: str
 ) -> list[dict]:
-    """Load available data years for filter dropdowns."""
-    return exec_sp(
-        db,
+    """Load available data years for filter dropdowns.
+
+    This SP uses dynamic SQL internally (exec(@sql)).  The actual data comes
+    back in the *first* result set that has rows, but exec_sp() returns the
+    *last* result set (which may contain the SQL text string).  We replicate
+    the legacy .NET SqlDataReader behaviour by taking the first result set
+    with actual rows instead.
+    """
+    sql = (
         "EXEC sp_web_egrants_load_data_years "
-        "@fy=:fy, @mechanism=:mechanism, "
-        "@admincode=:admin_code, @serialnum=:serial_num",
-        {
-            "fy": fy,
-            "mechanism": mechanism,
-            "admin_code": admin_code,
-            "serial_num": serial_num,
-        },
+        "@fy=?, @mechanism=?, @admincode=?, @serialnum=?"
     )
+    params = (fy, mechanism, admin_code, serial_num)
+
+    raw_conn = db.connection().connection.dbapi_connection
+    cursor = raw_conn.cursor()
+    cursor.execute(sql, params)
+
+    # Take the first result set that has columns and rows (matches .NET behaviour)
+    rows: list[dict] = []
+    while True:
+        if cursor.description:
+            columns = [col[0] for col in cursor.description]
+            fetched = cursor.fetchall()
+            if fetched:
+                rows = [dict(zip(columns, row)) for row in fetched]
+                # Consume remaining result sets so the connection is clean
+                while cursor.nextset():
+                    pass
+                break
+        if not cursor.nextset():
+            break
+
+    cursor.close()
+    return rows
 
 
 def autocomplete_fy(

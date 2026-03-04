@@ -42,6 +42,11 @@ class DocumentModifyRequest(BaseModel):
     document_date: str = ""
 
 
+class DocumentQcRequest(BaseModel):
+    act: str  # "to store", "to delete", "to restore", "to store all", etc.
+    docids: str  # comma-separated document IDs
+
+
 class DocumentGridResponse(BaseModel):
     documents: list[DocumentOut] = []
     categories: list[dict] = []

@@ -42,6 +42,10 @@ export function searchByString(q: string, pkg?: string): Promise<SearchResult> {
   return fetchJson(`${API_BASE}/search/by-string?${params}`);
 }
 
+export function searchByGrant(grantId: number): Promise<SearchResult> {
+  return fetchJson(`${API_BASE}/search/by-grant/${grantId}`);
+}
+
 export function searchByFilters(
   fy: string,
   mechanism: string,
@@ -68,6 +72,14 @@ export function searchByApplId(
   if (searchType) params.set("search_type", searchType);
   if (categoryList) params.set("category_list", categoryList);
   return fetchJson(`${API_BASE}/search/by-appl/${applId}?${params}`);
+}
+
+export function getSupplement(
+  grantId: number,
+  act: string = "to_view",
+): Promise<Record<string, unknown>[]> {
+  const params = new URLSearchParams({ grant_id: String(grantId), act });
+  return fetchJson(`${API_BASE}/search/supplement?${params}`);
 }
 
 export function getStopNotice(grantId: number): Promise<Record<string, unknown>[]> {
@@ -97,8 +109,16 @@ export function autocompleteSerialNum(term: string): Promise<string[]> {
 }
 
 // ---- Documents ----
-export function getDocumentGrid(applId: number): Promise<DocumentGridResponse> {
-  return fetchJson(`${API_BASE}/documents/grid/${applId}`);
+export function getDocumentGrid(
+  applId: number,
+  searchType?: string,
+  categoryList?: string,
+): Promise<DocumentGridResponse> {
+  const params = new URLSearchParams();
+  if (searchType) params.set("search_type", searchType);
+  if (categoryList) params.set("category_list", categoryList);
+  const qs = params.toString();
+  return fetchJson(`${API_BASE}/documents/grid/${applId}${qs ? `?${qs}` : ""}`);
 }
 
 export function createDocument(data: {
@@ -123,6 +143,10 @@ export async function uploadDocumentFile(
   });
   if (!res.ok) throw new Error("Failed to upload file");
   return res.json();
+}
+
+export function docQcAction(act: string, docids: string): Promise<{ ok: boolean }> {
+  return postJson(`${API_BASE}/documents/qc-action`, { act, docids });
 }
 
 export function getCategories(grantId: number, years?: string): Promise<Record<string, unknown>[]> {
@@ -188,6 +212,10 @@ export function createFundingDoc(data: Record<string, unknown>): Promise<{ docum
 // ---- Institutional ----
 export function getInstitutionalOrgs(): Promise<OrgOut[]> {
   return fetchJson(`${API_BASE}/institutional/orgs`);
+}
+
+export function findInstitutionalOrg(orgId: number): Promise<OrgOut[]> {
+  return fetchJson(`${API_BASE}/institutional/orgs/${orgId}`);
 }
 
 export function searchInstitutionalOrgs(q: string): Promise<OrgOut[]> {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { UserInfo } from "@/lib/types";
 
 interface HeaderProps {
@@ -11,9 +12,9 @@ export default function Header({ user }: HeaderProps) {
     <header className="bg-white border-b border-border" role="banner">
       <div className="flex items-center justify-between px-6 py-3">
         <div className="flex items-center gap-5">
-          <a href="/" title="eGrant Links">
+          <Link href="/" title="eGrant Links">
             <img src="/images/eglogo.png" alt="eGrants" width={400} height={50} />
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center gap-2.5">

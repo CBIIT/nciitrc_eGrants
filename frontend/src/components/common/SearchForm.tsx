@@ -42,7 +42,7 @@ export default function SearchForm({ user }: SearchFormProps) {
     getDataYears(fy, mechanism, ic, serialNum)
       .then((rows) => {
         const yrs = rows
-          .map((r) => String(r.year ?? r.support_year ?? Object.values(r)[0] ?? ""))
+          .map((r) => String(r.year ?? r.support_year ?? r.full_grant_num ?? Object.values(r)[0] ?? ""))
           .filter(Boolean);
         setYears(yrs);
       })

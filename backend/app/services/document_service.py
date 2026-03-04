@@ -94,6 +94,30 @@ def modify_document(
     return {"document_id": document_id, "status": "modified"}
 
 
+def qc_action(db: Session, act: str, docids: str, ic: str, operator: str) -> dict:
+    """Store, delete, or restore documents via stored procedure.
+
+    Matches old system's EgrantsDoc.doc_modify(act, 0, 0, '', '', docids, '', ic, operator).
+    """
+    exec_sp(
+        db,
+        "EXEC sp_web_egrants_doc_modify "
+        "@act=:act, @appl_id=0, @category_id=0, "
+        "@sub_category=:empty, @document_date=:empty, "
+        "@document_id=0, @file_ext=:empty, "
+        "@ic=:ic, @operator=:operator, @docid_str=:docids",
+        {
+            "act": act,
+            "empty": "",
+            "docids": docids,
+            "ic": ic,
+            "operator": operator,
+        },
+    )
+    db.commit()
+    return {"ok": True}
+
+
 def get_impac_docs(db: Session, act: str, appl_id: int) -> list[dict]:
     """Get IMPAC document references."""
     return exec_sp(

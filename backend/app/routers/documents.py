@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import require_authorized
 from ..database import get_db
 from ..schemas.auth import UserInfo
-from ..schemas.document import DocumentCreateRequest, DocumentModifyRequest
+from ..schemas.document import DocumentCreateRequest, DocumentModifyRequest, DocumentQcRequest
 from ..services import document_service
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -46,6 +46,15 @@ def modify_document(
         data.sub_category, data.document_date, data.document_id,
         "", user.ic, user.userid,
     )
+
+
+@router.post("/qc-action")
+def qc_action(
+    data: DocumentQcRequest,
+    db: Session = Depends(get_db),
+    user: UserInfo = Depends(require_authorized),
+):
+    return document_service.qc_action(db, data.act, data.docids, user.ic, user.userid)
 
 
 @router.post("/upload/{document_id}")

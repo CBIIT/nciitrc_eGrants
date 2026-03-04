@@ -80,9 +80,9 @@ export default function NavTabs({ user, onToggleQuickLinks }: NavTabsProps) {
             {resourcesOpen && (
               <div className="dropdown-menu-gray">
                 {isStaff && (
-                  <a href="/documents?mode=audit" className="dropdown-item-gray">
+                  <Link href="/documents?mode=audit" className="dropdown-item-gray">
                     Audit File Download (Chrome Only)
-                  </a>
+                  </Link>
                 )}
                 <a href="/content/eGrants_Category_Glossary.docx" target="_blank" rel="noopener" className="dropdown-item-gray">
                   eGrants Glossary

@@ -19,6 +19,15 @@ def search_by_string(
     return search_service.search_by_string(db, q, package, user.ic, user.userid)
 
 
+@router.get("/by-grant/{grant_id}")
+def search_by_grant(
+    grant_id: int,
+    db: Session = Depends(get_db),
+    user: UserInfo = Depends(require_authorized),
+):
+    return search_service.search_by_grant(db, grant_id, user.ic, user.userid)
+
+
 @router.get("/by-filters")
 def search_by_filters(
     fy: str = "",
@@ -59,6 +68,7 @@ def get_stop_notice(
 @router.get("/supplement")
 def get_supplement(
     grant_id: int,
+    act: str = "to_view",
     support_year: str = "",
     suffix_code: str = "",
     docid_str: str = "",
@@ -67,7 +77,7 @@ def get_supplement(
     user: UserInfo = Depends(require_authorized),
 ):
     return search_service.get_supplement(
-        db, "show", grant_id, support_year, suffix_code,
+        db, act, grant_id, support_year, suffix_code,
         docid_str, former_applid, user.ic, user.userid,
     )
 
