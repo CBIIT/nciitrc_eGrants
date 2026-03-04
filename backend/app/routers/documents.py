@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import require_authorized
@@ -82,6 +82,33 @@ async def upload_file(
     # New documents already have their url set by sp_web_egrants_doc_create;
     # just save the file to the "main" directory (funded2/nci/main/).
     filename = document_service.save_uploaded_file(document_id, file_bytes, ext)
+
+    return {"document_id": document_id, "filename": filename}
+
+
+@router.post("/upload-as-pdf/{document_id}")
+async def upload_file_as_pdf(
+    document_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: UserInfo = Depends(require_authorized),
+):
+    """Convert uploaded file to PDF and save to disk.
+
+    Matches old system's convert_to_pdf_by_ddrop: converts the file
+    server-side then saves as {document_id}.pdf.
+    """
+    file_bytes = await file.read()
+    ext = ""
+    if file.filename and "." in file.filename:
+        ext = "." + file.filename.rsplit(".", 1)[1].lower()
+
+    try:
+        pdf_bytes = document_service.convert_to_pdf(file_bytes, ext)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    filename = document_service.save_uploaded_file(document_id, pdf_bytes, ".pdf")
 
     return {"document_id": document_id, "filename": filename}
 

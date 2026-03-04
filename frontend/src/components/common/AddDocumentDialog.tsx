@@ -8,6 +8,7 @@ import {
   getSubCategories,
   createDocument,
   uploadDocumentFile,
+  uploadDocumentFileAsPdf,
   createGrantYear,
 } from "@/lib/api";
 import type { ApplicationResult, Category, SubCategory } from "@/lib/types";
@@ -51,6 +52,18 @@ function parseGrantNum(fullGrantNum: string): { adminCode: string; serialNum: st
 function todayStr(): string {
   const d = new Date();
   return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}/${d.getFullYear()}`;
+}
+
+/** Convert MM/DD/YYYY → YYYY-MM-DD for native date input. */
+function toIsoDate(mmddyyyy: string): string {
+  const m = mmddyyyy.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[1]}-${m[2]}` : "";
+}
+
+/** Convert YYYY-MM-DD → MM/DD/YYYY from native date input. */
+function fromIsoDate(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[2]}/${m[3]}/${m[1]}` : "";
 }
 
 function isValidDate(s: string): boolean {
@@ -358,7 +371,6 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
 
     if (!documentDate.trim()) errs.documentDate = "Document date is required";
     else if (!isValidDate(documentDate)) errs.documentDate = "Invalid date (MM/DD/YYYY)";
-    else if (isFutureDate(documentDate)) errs.documentDate = "Date cannot be in the future";
 
     if (!file) errs.file = "File is required";
     else {
@@ -370,8 +382,8 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
     return errs;
   }, [serialNum, selectedApplId, applsList, selectedCategoryId, selectedCategory, subCategoryValue, documentDate, file]);
 
-  // Submit
-  const handleSubmit = useCallback(async () => {
+  // Submit (shared by both "Add" and "Convert to PDF & Add")
+  const doSubmit = useCallback(async (convertToPdf: boolean) => {
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
@@ -380,7 +392,8 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
     setSubmitError("");
 
     try {
-      const ext = file ? getFileExtension(file.name) : "";
+      // When converting to PDF, the stored file_type is always .pdf
+      const ext = convertToPdf ? ".pdf" : (file ? getFileExtension(file.name) : "");
 
       // Step 1: Create document record
       const { document_id } = await createDocument({
@@ -393,8 +406,12 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
 
       if (!document_id) throw new Error("Failed to create document record");
 
-      // Step 2: Upload file
-      await uploadDocumentFile(document_id, file!);
+      // Step 2: Upload file (with or without PDF conversion)
+      if (convertToPdf) {
+        await uploadDocumentFileAsPdf(document_id, file!);
+      } else {
+        await uploadDocumentFile(document_id, file!);
+      }
 
       // Step 3: Success
       onSuccess();
@@ -405,6 +422,9 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
       setSubmitting(false);
     }
   }, [validate, file, selectedApplId, selectedCategoryId, subCategoryValue, documentDate, onSuccess, onClose]);
+
+  const handleSubmit = useCallback(() => doSubmit(false), [doSubmit]);
+  const handleConvertAndSubmit = useCallback(() => doSubmit(true), [doSubmit]);
 
   // Drag & drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -463,10 +483,21 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
             </p>
 
             {/* ── PII/PHI Reminder ── */}
-            <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-              <strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII) includes
-              Social Security Numbers, financial account numbers, and medical records. Documents containing
-              sensitive PII or PHI must not be uploaded into eGrants.
+            <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 leading-relaxed text-justify">
+              <strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII;
+              e.g. Social Security Number, personal financial information, Alien Registration
+              Number, etc.) or Protected Health Information (e.g. personal medical conditions,
+              etc.) requires strict handling due to the increased risk to an individual if the
+              data is compromised. Documents containing sensitive PII or PHI must not be uploaded
+              into eGrants. More information can be found in the{" "}
+              <a
+                href="https://policymanual.nih.gov/manage/chapter/view/1745"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline hover:text-primary/80"
+              >
+                Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program
+              </a>.
             </div>
 
             <div className="mt-4 space-y-3">
@@ -506,7 +537,17 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
 
               {/* ── Grant Year ── */}
               <div>
-                <label className="block text-xs font-semibold text-text-secondary mb-1">Grant Year</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-text-secondary">Grant Year</label>
+                  <a
+                    href="/eGrants Category Glossary.docx"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-primary hover:text-primary/80 underline"
+                  >
+                    eGrants Category Glossary
+                  </a>
+                </div>
                 <select
                   value={showCreateGrantYear ? "__create__" : selectedApplId}
                   onChange={handleGrantYearChange}
@@ -589,12 +630,11 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
 
               {/* ── Document Date ── */}
               <div>
-                <label className="block text-xs font-semibold text-text-secondary mb-1">Document Date (MM/DD/YYYY)</label>
+                <label className="block text-xs font-semibold text-text-secondary mb-1">Document Date</label>
                 <input
-                  type="text"
-                  value={documentDate}
-                  onChange={(e) => setDocumentDate(e.target.value)}
-                  placeholder="MM/DD/YYYY"
+                  type="date"
+                  value={toIsoDate(documentDate)}
+                  onChange={(e) => setDocumentDate(fromIsoDate(e.target.value))}
                   className={`w-full rounded-md border px-2.5 py-1.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none ${errors.documentDate ? "border-red-400" : "border-border"}`}
                 />
                 {errors.documentDate && <p className="mt-0.5 text-xs text-red-600">{errors.documentDate}</p>}
@@ -700,6 +740,15 @@ export default function AddDocumentDialog({ application, onClose, onSuccess }: A
                 ) : (
                   "Add"
                 )}
+              </button>
+              <button
+                type="button"
+                onClick={handleConvertAndSubmit}
+                disabled={submitting}
+                title="Convert document to PDF and add it"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
+              >
+                {submitting ? "..." : (<><u>C</u>onvert to PDF &amp; Add</>)}
               </button>
             </div>
           </div>

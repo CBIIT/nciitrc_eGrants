@@ -1,6 +1,9 @@
 """Document service -- document CRUD, grid display, QC, file operations."""
 
+import io
 import os
+import subprocess
+import tempfile
 
 from sqlalchemy.orm import Session
 
@@ -159,6 +162,89 @@ def save_uploaded_file(
         f.write(file_bytes)
 
     return filename
+
+
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".tif", ".tiff", ".bmp"}
+TEXT_EXTENSIONS = {".txt", ".log", ".dat", ".csv"}
+LIBREOFFICE_EXTENSIONS = {".doc", ".docx", ".rtf", ".html", ".htm", ".msg"}
+
+
+def convert_to_pdf(file_bytes: bytes, file_ext: str) -> bytes:
+    """Convert an uploaded file to PDF.
+
+    Old system used IronPDF (.NET commercial) and EmailConcatenation.PdfConverter.
+    We use LibreOffice headless for Office formats, plus lightweight Python libs
+    for images and text.
+    """
+    ext = file_ext.lower()
+
+    # Already PDF — pass through
+    if ext == ".pdf":
+        return file_bytes
+
+    # Images → PDF via img2pdf (preserves quality) with Pillow fallback
+    if ext in IMAGE_EXTENSIONS:
+        try:
+            import img2pdf
+            return img2pdf.convert(file_bytes)
+        except Exception:
+            from PIL import Image
+            img = Image.open(io.BytesIO(file_bytes))
+            if img.mode != "RGB":
+                img = img.convert("RGB")
+            buf = io.BytesIO()
+            img.save(buf, "PDF")
+            return buf.getvalue()
+
+    # Plain text → PDF via fpdf2
+    if ext in TEXT_EXTENSIONS:
+        from fpdf import FPDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Courier", size=10)
+        text = file_bytes.decode("utf-8", errors="replace")
+        for line in text.splitlines():
+            safe = line.encode("latin-1", errors="replace").decode("latin-1")
+            pdf.cell(0, 5, safe, new_x="LMARGIN", new_y="NEXT")
+        return bytes(pdf.output())
+
+    # Office formats → PDF via LibreOffice headless
+    if ext in LIBREOFFICE_EXTENSIONS:
+        soffice = _find_libreoffice()
+        if not soffice:
+            raise ValueError(
+                f"LibreOffice is required to convert {ext} files but is not installed"
+            )
+        return _libreoffice_convert(soffice, file_bytes, ext)
+
+    raise ValueError(f"Cannot convert {ext} files to PDF")
+
+
+def _find_libreoffice() -> str | None:
+    """Find the LibreOffice binary on the system."""
+    for name in ("libreoffice", "soffice",
+                 "/Applications/LibreOffice.app/Contents/MacOS/soffice"):
+        try:
+            subprocess.run([name, "--version"], capture_output=True, timeout=5)
+            return name
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+    return None
+
+
+def _libreoffice_convert(soffice: str, file_bytes: bytes, ext: str) -> bytes:
+    """Convert a file to PDF using LibreOffice headless."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        src = os.path.join(tmpdir, f"input{ext}")
+        with open(src, "wb") as f:
+            f.write(file_bytes)
+        subprocess.run(
+            [soffice, "--headless", "--convert-to", "pdf", "--outdir", tmpdir, src],
+            check=True, timeout=60, capture_output=True,
+        )
+        pdf_path = os.path.join(tmpdir, "input.pdf")
+        with open(pdf_path, "rb") as f:
+            return f.read()
 
 
 def get_download_url(document_id: int, url: str) -> str:

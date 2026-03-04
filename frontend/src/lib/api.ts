@@ -169,6 +169,23 @@ export async function uploadDocumentFile(
   return res.json();
 }
 
+export async function uploadDocumentFileAsPdf(
+  documentId: number,
+  file: File,
+): Promise<{ document_id: number; filename: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_BASE}/documents/upload-as-pdf/${documentId}`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || "Failed to convert and upload file");
+  }
+  return res.json();
+}
+
 export function docQcAction(act: string, docids: string): Promise<{ ok: boolean }> {
   return postJson(`${API_BASE}/documents/qc-action`, { act, docids });
 }
