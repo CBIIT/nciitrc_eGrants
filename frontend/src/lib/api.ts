@@ -86,6 +86,26 @@ export function renameLabel(applId: number, label: string): Promise<{ ok: boolea
   return postJson(`${API_BASE}/search/rename-label`, { appl_id: applId, label });
 }
 
+export function getAllApplsList(
+  adminCode: string,
+  serialNum: string,
+): Promise<{ full_grant_num: string; appl_id: number }[]> {
+  const params = new URLSearchParams({ admin_code: adminCode, serial_num: serialNum });
+  return fetchJson(`${API_BASE}/search/appls-list?${params}`);
+}
+
+export function createGrantYear(data: {
+  grant_id: number;
+  appl_type_code: number;
+  activity_code: string;
+  admin_code: string;
+  serial_num: string;
+  support_year: string;
+  suffix_code?: string;
+}): Promise<{ appl_id: number; full_grant_num: string }> {
+  return postJson(`${API_BASE}/search/create-grant-year`, data);
+}
+
 export function getStopNotice(grantId: number): Promise<Record<string, unknown>[]> {
   return fetchJson(`${API_BASE}/search/stop-notice/${grantId}`);
 }

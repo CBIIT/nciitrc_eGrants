@@ -12,6 +12,17 @@ class RenameLabelRequest(BaseModel):
     appl_id: int
     label: str = Field(default="", max_length=10)
 
+
+class CreateGrantYearRequest(BaseModel):
+    grant_id: int
+    appl_type_code: int
+    activity_code: str
+    admin_code: str
+    serial_num: str
+    support_year: str
+    suffix_code: str = ""
+
+
 router = APIRouter(prefix="/api/search", tags=["search"])
 
 
@@ -137,6 +148,28 @@ def autocomplete_serial_num(
     user: UserInfo = Depends(require_authorized),
 ):
     return search_service.autocomplete_serial_num(db, term, fy, mechanism, admin_code, serial_num)
+
+
+@router.get("/appls-list")
+def get_appls_list(
+    admin_code: str = Query(..., min_length=1),
+    serial_num: str = Query(..., min_length=1),
+    db: Session = Depends(get_db),
+    user: UserInfo = Depends(require_authorized),
+):
+    return search_service.get_all_appls_list(db, admin_code, serial_num)
+
+
+@router.post("/create-grant-year")
+def create_grant_year(
+    body: CreateGrantYearRequest,
+    db: Session = Depends(get_db),
+    user: UserInfo = Depends(require_authorized),
+):
+    return search_service.create_grant_year(
+        db, body.grant_id, body.appl_type_code, body.activity_code,
+        body.admin_code, body.serial_num, body.support_year, body.suffix_code,
+    )
 
 
 @router.post("/rename-label")

@@ -43,7 +43,7 @@ def modify_document(
 ):
     return document_service.modify_document(
         db, "modify", data.appl_id, data.category_id,
-        data.sub_category, data.document_date, data.document_id,
+        data.sub_category, data.document_date, str(data.document_id),
         "", user.ic, user.userid,
     )
 
@@ -61,14 +61,28 @@ def qc_action(
 async def upload_file(
     document_id: int,
     file: UploadFile = File(...),
+    db: Session = Depends(get_db),
     user: UserInfo = Depends(require_authorized),
 ):
+    """Save uploaded file to disk.
+
+    Old system flow for NEW documents (doc_create_by_file):
+      sp_web_egrants_doc_create → save file to funded2/nci/main/ → done.
+      The create SP already sets the url column. No modify call.
+
+    Old system flow for EXISTING docs (doc_upload_by_file):
+      sp_web_egrants_doc_modify("to_upload") → save file to funded/nci/modify/.
+      The modify SP updates the url column to the modify path.
+    """
     file_bytes = await file.read()
     ext = ""
     if file.filename and "." in file.filename:
         ext = "." + file.filename.rsplit(".", 1)[1].lower()
 
+    # New documents already have their url set by sp_web_egrants_doc_create;
+    # just save the file to the "main" directory (funded2/nci/main/).
     filename = document_service.save_uploaded_file(document_id, file_bytes, ext)
+
     return {"document_id": document_id, "filename": filename}
 
 

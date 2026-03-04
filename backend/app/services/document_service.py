@@ -37,16 +37,20 @@ def create_document(
     """Create a new document record via stored procedure.
 
     Returns the document_id from the OUTPUT parameter.
+    Exact SP param names from old EgrantsDoc.GetDocID():
+      @ApplID, @CategoryID, @SubCategory, @DocDate (PascalCase)
+      @file_type, @ic, @operator (snake_case/lowercase)
+      @DocumentID OUTPUT (PascalCase)
     """
     rows = exec_sp(
         db,
-        "DECLARE @document_id INT; "
+        "DECLARE @DocumentID INT; "
         "EXEC sp_web_egrants_doc_create "
-        "@appl_id=:appl_id, @category_id=:category_id, "
-        "@sub_category=:sub_category, @doc_date=:doc_date, "
+        "@ApplID=:appl_id, @CategoryID=:category_id, "
+        "@SubCategory=:sub_category, @DocDate=:doc_date, "
         "@file_type=:file_type, @ic=:ic, @operator=:operator, "
-        "@document_id=@document_id OUTPUT; "
-        "SELECT @document_id AS document_id;",
+        "@DocumentID=@DocumentID OUTPUT; "
+        "SELECT @DocumentID AS document_id;",
         {
             "appl_id": appl_id,
             "category_id": category_id,
@@ -66,32 +70,37 @@ def create_document(
 
 def modify_document(
     db: Session, act: str, appl_id: int, category_id: int,
-    sub_category: str, document_date: str, document_id: int,
-    file_ext: str, ic: str, operator: str,
+    sub_category: str, doc_date: str, docid_str: str,
+    file_type: str, ic: str, operator: str,
 ) -> dict:
-    """Modify an existing document via stored procedure."""
+    """Modify an existing document via stored procedure.
+
+    Exact SP param names from old EgrantsDoc.doc_modify() (all snake_case):
+      @act, @appl_id, @category_id, @sub_category, @doc_date,
+      @docid_str (VARCHAR - document ID(s) as string), @file_type, @ic, @operator
+    """
     exec_sp(
         db,
         "EXEC sp_web_egrants_doc_modify "
         "@act=:act, @appl_id=:appl_id, @category_id=:category_id, "
-        "@sub_category=:sub_category, @document_date=:document_date, "
-        "@document_id=:document_id, @file_ext=:file_ext, "
+        "@sub_category=:sub_category, @doc_date=:doc_date, "
+        "@docid_str=:docid_str, @file_type=:file_type, "
         "@ic=:ic, @operator=:operator",
         {
             "act": act,
             "appl_id": appl_id,
             "category_id": category_id,
             "sub_category": sub_category,
-            "document_date": document_date,
-            "document_id": document_id,
-            "file_ext": file_ext,
+            "doc_date": doc_date,
+            "docid_str": docid_str,
+            "file_type": file_type,
             "ic": ic,
             "operator": operator,
         },
     )
     db.commit()
 
-    return {"document_id": document_id, "status": "modified"}
+    return {"docid_str": docid_str, "status": "modified"}
 
 
 def qc_action(db: Session, act: str, docids: str, ic: str, operator: str) -> dict:
@@ -103,13 +112,15 @@ def qc_action(db: Session, act: str, docids: str, ic: str, operator: str) -> dic
         db,
         "EXEC sp_web_egrants_doc_modify "
         "@act=:act, @appl_id=0, @category_id=0, "
-        "@sub_category=:empty, @document_date=:empty, "
-        "@document_id=0, @file_ext=:empty, "
-        "@ic=:ic, @operator=:operator, @docid_str=:docids",
+        "@sub_category=:sub_category, @doc_date=:doc_date, "
+        "@docid_str=:docids, @file_type=:file_type, "
+        "@ic=:ic, @operator=:operator",
         {
             "act": act,
-            "empty": "",
+            "sub_category": "",
+            "doc_date": "",
             "docids": docids,
+            "file_type": "",
             "ic": ic,
             "operator": operator,
         },

@@ -8,6 +8,7 @@ import {
   CompetingIcon, UmbrellaIcon, FlaskIcon, RocketIcon,
   GovernmentIcon, StopIcon, FlagBadge,
 } from "./FlagIcons";
+import AddDocumentDialog from "./AddDocumentDialog";
 
 /* ── Types ── */
 
@@ -263,6 +264,9 @@ export default function DocumentCard({ application, searchType, categoryList }: 
   const [renameSaving, setRenameSaving] = useState(false);
   const renameInputRef = useRef<HTMLInputElement>(null);
 
+  // Add document dialog state
+  const [showAddDocDialog, setShowAddDocDialog] = useState(false);
+
   const appl = application as unknown as Record<string, unknown>;
   const applId = application.appl_id;
   const fullGrantNum = application.full_grant_num || `#${applId}`;
@@ -475,6 +479,15 @@ export default function DocumentCard({ application, searchType, categoryList }: 
         />
       )}
 
+      {/* ── Add Document dialog ── */}
+      {showAddDocDialog && (
+        <AddDocumentDialog
+          application={application}
+          onClose={() => setShowAddDocDialog(false)}
+          onSuccess={fetchDocs}
+        />
+      )}
+
       {/* ── Header ── */}
       <div className="flex items-center gap-2 bg-[#f8fafc] px-4 py-2 border-b border-border-light flex-wrap">
         <FolderIcon />
@@ -566,7 +579,7 @@ export default function DocumentCard({ application, searchType, categoryList }: 
           </div>
         )}
         {canAddDoc && (
-          <button type="button" className="px-2 py-0.5 rounded text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors" title="Add Document">
+          <button type="button" onClick={() => setShowAddDocDialog(true)} className="px-2 py-0.5 rounded text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors" title="Add Document">
             Add Document
           </button>
         )}

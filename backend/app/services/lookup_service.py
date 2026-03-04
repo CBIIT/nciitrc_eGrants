@@ -12,7 +12,7 @@ def get_categories(db: Session, ic: str = "NCI") -> list[dict]:
         "SELECT c.category_id, c.category_name, c.package, "
         "c.input_type, c.input_constraint "
         "FROM categories c "
-        "LEFT JOIN categories_ic ci ON c.category_id = ci.category_id AND ci.ic = :ic "
+        "INNER JOIN categories_ic ci ON c.category_id = ci.category_id AND ci.ic = :ic "
         "WHERE ci.removed_date IS NULL "
         "ORDER BY c.category_name",
         {"ic": ic},

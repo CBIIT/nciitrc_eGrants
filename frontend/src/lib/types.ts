@@ -124,6 +124,8 @@ export interface Category {
   category_id: number;
   category_name: string;
   package: string | null;
+  input_type: string | null;      // "T" (text) or "D" (dropdown)
+  input_constraint: number | null; // 1 = required, 0 = optional
 }
 
 export interface SubCategory {

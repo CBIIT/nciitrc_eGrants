@@ -268,6 +268,52 @@ def autocomplete_serial_num(
     return [str(list(r.values())[0]) for r in rows]
 
 
+def get_all_appls_list(db: Session, admin_code: str, serial_num: str) -> list[dict]:
+    """Get applications list for grant year dropdown (matches old GetAllApplsList)."""
+    return exec_sp(
+        db,
+        "SELECT full_grant_num, appl_id FROM vw_appls "
+        "WHERE admin_phs_org_code = :admin_code AND serial_num = :serial_num "
+        "ORDER BY support_year DESC",
+        {"admin_code": admin_code, "serial_num": serial_num},
+    )
+
+
+def create_grant_year(
+    db: Session,
+    grant_id: int,
+    appl_type_code: int,
+    activity_code: str,
+    admin_code: str,
+    serial_num: str,
+    support_year: str,
+    suffix_code: str,
+) -> dict:
+    """Create a new grant year (appl record) for grants not found in IMPAC.
+
+    Builds full_grant_num and inserts directly into appls table,
+    matching the old system's 'Create Grant Year' forced-entry feature.
+    """
+    full_grant_num = f"{appl_type_code}{activity_code}{admin_code}{serial_num}-{support_year}{suffix_code}"
+
+    raw_conn = db.connection().connection.dbapi_connection
+    cursor = raw_conn.cursor()
+    cursor.execute(
+        "INSERT INTO [EIM].[dbo].[appls] "
+        "(grant_id, appl_type_code, full_grant_num, support_year, suffix_code) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (grant_id, appl_type_code, full_grant_num, support_year, suffix_code),
+    )
+    # Retrieve the identity value for the new row
+    cursor.execute("SELECT SCOPE_IDENTITY() AS appl_id")
+    row = cursor.fetchone()
+    appl_id = int(row[0]) if row and row[0] else None
+    cursor.close()
+    raw_conn.commit()
+
+    return {"appl_id": appl_id, "full_grant_num": full_grant_num}
+
+
 def set_grant_year_label(db: Session, appl_id: int, label: str) -> None:
     """Update the label (request name) for an application."""
     raw_conn = db.connection().connection.dbapi_connection
