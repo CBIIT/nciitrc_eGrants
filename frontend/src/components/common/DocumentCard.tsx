@@ -486,28 +486,28 @@ export default function DocumentCard({ application, searchType, categoryList }: 
 
         {currentLabel && <span className="text-xs text-text-muted italic ml-1">{currentLabel}</span>}
 
-        <div className="flex-1" />
-
-        {/* Filter input */}
+        {/* Filter input — next to label for visibility */}
         {!loading && documents.length > 0 && (
-          <div className="relative">
-            <svg className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-text-muted pointer-events-none" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <div className="relative ml-2">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary/50 pointer-events-none" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
             <input
               type="text"
               value={filter}
               onChange={(e) => handleFilterChange(e.target.value)}
-              placeholder="Filter..."
-              className="w-32 rounded border border-border pl-6 pr-2 py-0.5 text-[11px] focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+              placeholder="Filter documents..."
+              className="w-48 rounded-md border border-primary/30 bg-white pl-7 pr-7 py-1 text-xs text-text-primary placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-sm transition-colors"
             />
             {filter && (
-              <button type="button" onClick={() => handleFilterChange("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <button type="button" onClick={() => handleFilterChange("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors">
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             )}
           </div>
         )}
+
+        <div className="flex-1" />
 
         {/* Action buttons */}
         {canRenameLabel && (
