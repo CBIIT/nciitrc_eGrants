@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, Fragment, type ReactNode } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, Fragment, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { getDocumentGrid, getDownloadUrl, docQcAction } from "@/lib/api";
+import { getDocumentGrid, getDownloadUrl, docQcAction, renameLabel } from "@/lib/api";
 import type { ApplicationResult } from "@/lib/types";
 import {
   CompetingIcon, UmbrellaIcon, FlaskIcon, RocketIcon,
@@ -256,10 +256,17 @@ export default function DocumentCard({ application, searchType, categoryList }: 
   const [acting, setActing] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ act: string; ids: string } | null>(null);
 
+  // Rename label state
+  const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const [currentLabel, setCurrentLabel] = useState("");
+  const [renameSaving, setRenameSaving] = useState(false);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
   const appl = application as unknown as Record<string, unknown>;
   const applId = application.appl_id;
   const fullGrantNum = application.full_grant_num || `#${applId}`;
-  const label = String(appl.label ?? appl.request_name ?? "");
+  const initialLabel = String(appl.label ?? appl.request_name ?? "");
   const positionId = user?.position_id ?? 0;
   const hasQcAccess = positionId != null && positionId >= 2;
 
@@ -283,6 +290,45 @@ export default function DocumentCard({ application, searchType, categoryList }: 
   const canAddDoc = hasQcAccess && String(appl.can_add_doc ?? "") === "y" && !isDeleted;
   const canAddFunding = positionId != null && positionId > 2 && String(appl.can_add_funding ?? "") === "y" && !isDeleted;
   const canRenameLabel = hasQcAccess && String(appl.can_rename_label ?? "") === "y";
+
+  // Sync currentLabel from application data on mount
+  useEffect(() => { setCurrentLabel(initialLabel); }, [initialLabel]);
+
+  const openRenameDialog = useCallback(() => {
+    setRenameValue(currentLabel);
+    setShowRenameDialog(true);
+    setTimeout(() => renameInputRef.current?.focus(), 0);
+  }, [currentLabel]);
+
+  const closeRenameDialog = useCallback(() => {
+    setShowRenameDialog(false);
+  }, []);
+
+  const handleRenameSave = useCallback(async () => {
+    setRenameSaving(true);
+    try {
+      const res = await renameLabel(applId, renameValue.trim());
+      setCurrentLabel(res.label);
+      setShowRenameDialog(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRenameSaving(false);
+    }
+  }, [applId, renameValue]);
+
+  const handleRenameDelete = useCallback(async () => {
+    setRenameSaving(true);
+    try {
+      await renameLabel(applId, "");
+      setCurrentLabel("");
+      setShowRenameDialog(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRenameSaving(false);
+    }
+  }, [applId]);
 
   /* ── Fetch documents ── */
   const fetchDocs = useCallback(() => {
@@ -438,7 +484,7 @@ export default function DocumentCard({ application, searchType, categoryList }: 
           <FlagBadge key={f.label} label={f.label} color={f.color} icon={f.icon} title={f.title} small />
         ))}
 
-        {label && <span className="text-xs text-text-muted italic ml-1">{label}</span>}
+        {currentLabel && <span className="text-xs text-text-muted italic ml-1">{currentLabel}</span>}
 
         <div className="flex-1" />
 
@@ -465,9 +511,59 @@ export default function DocumentCard({ application, searchType, categoryList }: 
 
         {/* Action buttons */}
         {canRenameLabel && (
-          <button type="button" className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition-colors" title={label ? "Edit Request Name" : "Add Request Name"}>
-            {label ? "Edit Request Name" : "Add Request Name"}
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={openRenameDialog}
+              className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition-colors"
+              title={currentLabel ? "Edit Request Name" : "Add Request Name"}
+            >
+              {currentLabel ? "Edit Request Name" : "Add Request Name"}
+            </button>
+            {showRenameDialog && (
+              <div className="absolute right-0 top-full mt-1 z-30 bg-white rounded-lg shadow-lg border border-border p-3 w-56">
+                <label className="block text-[11px] font-semibold text-text-secondary mb-1">Request Name (max 10 chars)</label>
+                <input
+                  ref={renameInputRef}
+                  type="text"
+                  maxLength={10}
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleRenameSave(); if (e.key === "Escape") closeRenameDialog(); }}
+                  className="w-full rounded border border-border px-2 py-1 text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+                  disabled={renameSaving}
+                />
+                <div className="flex items-center gap-1.5 mt-2">
+                  <button
+                    type="button"
+                    onClick={handleRenameSave}
+                    disabled={renameSaving}
+                    className="px-2 py-0.5 rounded text-[11px] font-semibold bg-primary text-white hover:bg-primary-dark disabled:opacity-50 transition-colors"
+                  >
+                    Save
+                  </button>
+                  {currentLabel && (
+                    <button
+                      type="button"
+                      onClick={handleRenameDelete}
+                      disabled={renameSaving}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 disabled:opacity-50 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={closeRenameDialog}
+                    disabled={renameSaving}
+                    className="px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 text-text-secondary hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
         {canAddDoc && (
           <button type="button" className="px-2 py-0.5 rounded text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors" title="Add Document">

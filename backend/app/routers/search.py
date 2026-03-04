@@ -1,10 +1,16 @@
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user, require_authorized
 from ..database import get_db
 from ..schemas.auth import UserInfo
 from ..services import search_service
+
+
+class RenameLabelRequest(BaseModel):
+    appl_id: int
+    label: str = Field(default="", max_length=10)
 
 router = APIRouter(prefix="/api/search", tags=["search"])
 
@@ -131,3 +137,13 @@ def autocomplete_serial_num(
     user: UserInfo = Depends(require_authorized),
 ):
     return search_service.autocomplete_serial_num(db, term, fy, mechanism, admin_code, serial_num)
+
+
+@router.post("/rename-label")
+def rename_label(
+    body: RenameLabelRequest,
+    db: Session = Depends(get_db),
+    user: UserInfo = Depends(require_authorized),
+):
+    search_service.set_grant_year_label(db, body.appl_id, body.label)
+    return {"ok": True, "label": body.label}

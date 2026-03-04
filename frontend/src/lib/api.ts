@@ -82,6 +82,10 @@ export function getSupplement(
   return fetchJson(`${API_BASE}/search/supplement?${params}`);
 }
 
+export function renameLabel(applId: number, label: string): Promise<{ ok: boolean; label: string }> {
+  return postJson(`${API_BASE}/search/rename-label`, { appl_id: applId, label });
+}
+
 export function getStopNotice(grantId: number): Promise<Record<string, unknown>[]> {
   return fetchJson(`${API_BASE}/search/stop-notice/${grantId}`);
 }

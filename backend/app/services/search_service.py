@@ -35,7 +35,7 @@ def search_by_string(
         },
     )
 
-    return _parse_tagged_results(rows)
+    return _parse_tagged_results(rows, ic)
 
 
 def search_by_grant(
@@ -64,7 +64,7 @@ def search_by_grant(
         },
     )
 
-    return _parse_tagged_results(rows)
+    return _parse_tagged_results(rows, ic)
 
 
 def search_by_filters(
@@ -96,7 +96,7 @@ def search_by_filters(
         },
     )
 
-    return _parse_tagged_results(rows)
+    return _parse_tagged_results(rows, ic)
 
 
 def search_by_appl_id(
@@ -122,7 +122,7 @@ def search_by_appl_id(
         },
     )
 
-    return _parse_tagged_results(rows)
+    return _parse_tagged_results(rows, ic)
 
 
 def get_stop_notice(db: Session, grant_id: int, ic: str) -> list[dict]:
@@ -268,7 +268,19 @@ def autocomplete_serial_num(
     return [str(list(r.values())[0]) for r in rows]
 
 
-def _parse_tagged_results(rows: list[dict]) -> dict:
+def set_grant_year_label(db: Session, appl_id: int, label: str) -> None:
+    """Update the label (request name) for an application."""
+    raw_conn = db.connection().connection.dbapi_connection
+    cursor = raw_conn.cursor()
+    cursor.execute(
+        "UPDATE [EIM].[dbo].[appls] SET label=? WHERE appl_id=?",
+        (label, appl_id),
+    )
+    cursor.close()
+    raw_conn.commit()
+
+
+def _parse_tagged_results(rows: list[dict], ic: str = "") -> dict:
     """Parse the tagged result set from sp_web_egrants.
 
     The stored procedure returns rows with a 'tag' column:
@@ -293,6 +305,16 @@ def _parse_tagged_results(rows: list[dict]) -> dict:
 
         if "total_count" in row_dict and row_dict["total_count"]:
             total_count = row_dict["total_count"]
+
+    # Enrich application rows with can_rename_label permission
+    ic_lower = ic.lower()
+    for appl in applications:
+        support_year = str(appl.get("support_year", "")).lower()
+        appl["can_rename_label"] = "y" if (
+            ic_lower in ("ca", "nci")
+            and str(appl.get("appl_type_code", "")) == "3"
+            and any(c in support_year for c in ("s", "w"))
+        ) else "n"
 
     return {
         "grants": grants,
