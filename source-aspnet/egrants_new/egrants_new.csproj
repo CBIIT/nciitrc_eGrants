@@ -3223,6 +3223,7 @@
     <Compile Include="Egrants\Models\ApplLayerObject.cs" />
     <Compile Include="Egrants\Models\ApplModel.cs" />
     <Compile Include="Egrants\Models\ApplType.cs" />
+    <Compile Include="Egrants\Models\Correspondence.cs" />
     <Compile Include="Egrants\Models\DocAttachment.cs" />
     <Compile Include="Egrants\Models\doclayer.cs" />
     <Compile Include="Egrants\Models\DocsUnidentified.cs" />
@@ -3234,6 +3235,7 @@
     <Compile Include="Egrants\Models\EgrantsCategories.cs" />
     <Compile Include="Egrants\Models\EgrantsSubCategories.cs" />
     <Compile Include="Egrants\Models\former_appls.cs" />
+    <Compile Include="Egrants\Models\GrantCorrespondence.cs" />
     <Compile Include="Egrants\Models\GrantLayer.cs" />
     <Compile Include="Egrants\Models\IImpacDocs.cs" />
     <Compile Include="Egrants\Models\ImpacDocs.cs" />
@@ -3278,6 +3280,7 @@
     <Compile Include="Egrants_Funding\Models\FundingCategories.cs" />
     <Compile Include="Egrants_Funding\Models\FundingDocuments.cs" />
     <Compile Include="ExceptionUtility.cs" />
+    <Compile Include="Egrants\Models\GrantCorrespondenceRequest.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
