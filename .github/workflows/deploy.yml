@@ -56,9 +56,9 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE (KEEP ONLY MOST RECENT 5)
+      # ARCHIVE CURRENT SITE (KEEP ONLY MOST RECENT 5) — FAST LOCAL ZIP
       # ---------------------------------------------------------
-      - name: Archive existing destination directory
+      - name: Archive existing destination directory (local zip)
         shell: powershell
         run: |
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
@@ -72,21 +72,28 @@ jobs:
             New-Item -ItemType Directory -Path $archiveRoot | Out-Null
           }
       
-          # Create timestamped archive folder
+          # Timestamp for archive
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-          $archivePath = Join-Path $archiveRoot "backup_$timestamp"
+          $localTemp = Join-Path $env:TEMP "archive_$timestamp"
+          $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
+          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
       
-          New-Item -ItemType Directory -Path $archivePath | Out-Null
+          # Create local temp folder
+          New-Item -ItemType Directory -Path $localTemp | Out-Null
       
-          robocopy $destination $archivePath /MIR
-          if ($LASTEXITCODE -ge 8) { throw "Robocopy archive failed." }
+          Write-Host "Copying site to local temp folder: $localTemp"
+          robocopy $destination $localTemp /MIR
+          if ($LASTEXITCODE -ge 8) { throw "Robocopy local copy failed." }
       
-          # Zip the archive
-          $zipFile = "$archivePath.zip"
-          Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
+          Write-Host "Creating ZIP locally: $localZip"
+          Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
       
-          # Remove the uncompressed folder
-          Remove-Item -Path $archivePath -Recurse -Force
+          Write-Host "Copying ZIP back to archive share: $remoteZip"
+          Copy-Item -Path $localZip -Destination $remoteZip -Force
+      
+          # Cleanup local temp
+          Remove-Item -Path $localTemp -Recurse -Force
+          Remove-Item -Path $localZip -Force
       
           # ---------------------------------------------------------
           # PRUNE OLD ARCHIVES — KEEP ONLY MOST RECENT 5 ZIP FILES
@@ -102,6 +109,7 @@ jobs:
           }
       
           exit 0
+
 
       # ---------------------------------------------------------
       # STOP IIS (DEV LOCAL)
