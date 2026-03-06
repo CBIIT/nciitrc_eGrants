@@ -1,3 +1,4 @@
+
 name: eGrants Deployment Workflow
 
 on:
@@ -56,34 +57,60 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE
+      # ARCHIVE CURRENT SITE (KEEP ONLY MOST RECENT 5) — FAST LOCAL ZIP
       # ---------------------------------------------------------
-      - name: Archive existing destination directory
+      - name: Archive existing destination directory (local zip)
         shell: powershell
         run: |
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
           $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
-
+      
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
           }
-
+      
           if (-not (Test-Path $archiveRoot)) {
             New-Item -ItemType Directory -Path $archiveRoot | Out-Null
           }
-
+      
+          # Timestamp for archive
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-          $archivePath = Join-Path $archiveRoot "backup_$timestamp"
-
-          New-Item -ItemType Directory -Path $archivePath | Out-Null
-          robocopy $destination $archivePath /MIR
-          if ($LASTEXITCODE -ge 8) { throw "Robocopy archive failed." }
-
-          $zipFile = "$archivePath.zip"
-          Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
-          Remove-Item -Path $archivePath -Recurse -Force
-
+          $localTemp = Join-Path $env:TEMP "archive_$timestamp"
+          $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
+          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
+      
+          # Create local temp folder
+          New-Item -ItemType Directory -Path $localTemp | Out-Null
+      
+          Write-Host "Copying site to local temp folder: $localTemp"
+          robocopy $destination $localTemp /MIR
+          if ($LASTEXITCODE -ge 8) { throw "Robocopy local copy failed." }
+      
+          Write-Host "Creating ZIP locally: $localZip"
+          Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
+      
+          Write-Host "Copying ZIP back to archive share: $remoteZip"
+          Copy-Item -Path $localZip -Destination $remoteZip -Force
+      
+          # Cleanup local temp
+          Remove-Item -Path $localTemp -Recurse -Force
+          Remove-Item -Path $localZip -Force
+      
+          # ---------------------------------------------------------
+          # PRUNE OLD ARCHIVES — KEEP ONLY MOST RECENT 5 ZIP FILES
+          # ---------------------------------------------------------
+          $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.zip" |
+                      Sort-Object LastWriteTime -Descending
+      
+          $archivesToDelete = $archives | Select-Object -Skip 5
+      
+          foreach ($old in $archivesToDelete) {
+            Write-Host "Removing old archive: $($old.FullName)"
+            Remove-Item -Path $old.FullName -Force
+          }
+      
           exit 0
+
 
       # ---------------------------------------------------------
       # STOP IIS (DEV LOCAL)
@@ -117,40 +144,47 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # STOP IIS (NON-DEV REMOTE)
+      # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
       # ---------------------------------------------------------
-      - name: Stop IIS site and app pool (remote)
-        if: ${{ github.ref_name != 'dev' }}
+      - name: Stop IIS (SCM remote stop)
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-            param($siteName, $appPool)
-
-            Import-Module WebAdministration
-
-            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-              Stop-WebAppPool -Name $appPool -ErrorAction Stop
-            }
-
-            if ((Get-Website -Name $siteName).state -ne "Stopped") {
-              Stop-Website -Name $siteName -ErrorAction Stop
-            }
-
-            Start-Sleep -Seconds 3
-
-            if ((Get-Website -Name $siteName).state -ne "Stopped") {
-              throw "IIS site did not stop properly: $siteName"
-            }
-            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-              throw "IIS app pool did not stop properly: $appPool"
-            }
-          } -ArgumentList $siteName, $appPool
-
+          $remote = "${{ env.REMOTE_SERVER }}"
+      
+          Write-Host "Preparing credentials for SCM..."
+          $securePass  = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
+          $credential  = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
+      
+          # Extract plain password for sc.exe
+          $plainPass = $credential.GetNetworkCredential().Password
+      
+          Write-Host "Stopping IIS core services on $remote ..."
+      
+          # Stop W3SVC (IIS Web Server)
+          sc.exe \\$remote stop W3SVC
+      
+          # Stop WAS (App Pool Activation)
+          sc.exe \\$remote stop WAS
+      
+          Start-Sleep -Seconds 5
+      
+          # Validate
+          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
+          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
+      
+          if ($w3svcState -notmatch "STOPPED") {
+              throw "W3SVC did not stop properly"
+          }
+          if ($wasState -notmatch "STOPPED") {
+              throw "WAS did not stop properly"
+          }
+      
+          Write-Host "IIS successfully stopped via SCM."
           exit 0
+
 
       # ---------------------------------------------------------
       # DEPLOY FILES
@@ -193,34 +227,72 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # UPDATE APPSETTINGS.JSON (NON-DEV REMOTE)
+      # UPDATE APPSETTINGS.JSON (NON-DEV REMOTE) — UNC PATH ONLY
       # ---------------------------------------------------------
-      - name: Update GitHubToken in destination appsettings.json (remote)
+      - name: Update GitHubToken in destination appsettings.json (UNC path)
         if: ${{ github.ref_name != 'dev' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-          $token = "${{ secrets._GITHUB_TOKEN }}"
-          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $token       = "${{ secrets._GITHUB_TOKEN }}"
+          $remote      = "${{ steps.envmap.outputs.REMOTE_SERVER }}"   # KEEP FULL FQDN
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-            param($destination, $token)
-
-            $appSettingsPath = Join-Path $destination "appsettings.json"
-
-            if (-not (Test-Path $appSettingsPath)) {
-              throw "Destination appsettings.json not found: $appSettingsPath"
-            }
-
-            $content = Get-Content $appSettingsPath -Raw
-            $pattern = '"GitHubToken"\s*:\s*".*?"'
-            $replacement = '"GitHubToken": "' + $token + '"'
-            $newContent = [regex]::Replace($content, $pattern, $replacement)
-
-            Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
-          } -ArgumentList $destination, $token
-
+      
+          if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_PASS) {
+            throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
+          }
+      
+          # Extract short server name ONLY for stripping from DEST_PATH
+          $remoteShort = $remote.Split('.')[0]
+      
+          # Normalize DEST_PATH:
+          # 1. Remove leading slashes
+          # 2. Remove "nciws-q2409-v\" if present
+          $destinationClean = $destination `
+              -replace "^\\\\+", "" `
+              -replace "^$remoteShort\\", ""
+      
+          # Build UNC path using FULL FQDN
+          $uncPath = "\\$remote\$destinationClean"
+          Write-Host "Mapping remote UNC path: $uncPath"
+      
+          # Convert credentials
+          $securePass = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
+          $cred       = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
+      
+          # Map authenticated drive
+          $driveName = "Z"
+          if (Get-PSDrive -Name $driveName -ErrorAction SilentlyContinue) {
+            Remove-PSDrive -Name $driveName -Force
+          }
+      
+          New-PSDrive -Name $driveName -PSProvider FileSystem -Root $uncPath -Credential $cred -ErrorAction Stop | Out-Null
+      
+          $appSettingsPath = "Z:\appsettings.json"
+      
+          if (-not (Test-Path $appSettingsPath)) {
+            Remove-PSDrive -Name $driveName -Force
+            throw "Destination appsettings.json not found: $appSettingsPath"
+          }
+      
+          Write-Host "Updating GitHubToken in appsettings.json..."
+      
+          $content = Get-Content $appSettingsPath -Raw
+          $pattern = '"GitHubToken"\s*:\s*".*?"'
+          $replacement = '"GitHubToken": "' + $token + '"'
+          $newContent = [regex]::Replace($content, $pattern, $replacement)
+      
+          Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
+      
+          Write-Host "GitHubToken updated successfully."
+      
+          # Cleanup
+          Remove-PSDrive -Name $driveName -Force
+      
           exit 0
+
 
       # ---------------------------------------------------------
       # START IIS (DEV LOCAL)
@@ -254,37 +326,43 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # START IIS (NON-DEV REMOTE)
+      # START IIS (NON-DEV REMOTE) — DIRECT SCM (NO PSEXEC)
       # ---------------------------------------------------------
-      - name: Start IIS site and app pool (remote)
+      - name: Start IIS site and app pool (remote via SCM)
         if: ${{ github.ref_name != 'dev' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
           $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-            param($siteName, $appPool)
-
-            Import-Module WebAdministration
-
-            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
-              Start-WebAppPool -Name $appPool -ErrorAction Stop
-            }
-
-            if ((Get-Website -Name $siteName).state -ne "Started") {
-              Start-Website -Name $siteName -ErrorAction Stop
-            }
-
-            Start-Sleep -Seconds 3
-
-            if ((Get-Website -Name $siteName).state -ne "Started") {
-              throw "IIS site did not start properly: $siteName"
-            }
-            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
-              throw "IIS app pool did not start properly: $appPool"
-            }
-          } -ArgumentList $siteName, $appPool
-
+      
+          if ([string]::IsNullOrWhiteSpace($remote)) {
+            throw "REMOTE_SERVER is missing or empty."
+          }
+      
+          Write-Host "Starting IIS core services on $remote ..."
+      
+          # Start WAS (App Pool Activation)
+          sc.exe \\$remote start WAS
+      
+          # Start W3SVC (IIS Web Server)
+          sc.exe \\$remote start W3SVC
+      
+          Start-Sleep -Seconds 5
+      
+          # Validate
+          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
+          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
+      
+          if ($w3svcState -notmatch "RUNNING") {
+              throw "W3SVC did not start properly"
+          }
+          if ($wasState -notmatch "RUNNING") {
+              throw "WAS did not start properly"
+          }
+      
+          Write-Host "IIS core services successfully started via SCM."
           exit 0
