@@ -139,13 +139,27 @@ jobs:
 
           # Prepare the remote PowerShell script content
           $psCommand = @"
-Import-Module WebAdministration;
-if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Stopped'){ Stop-WebAppPool -Name '$appPool' -ErrorAction Stop; }
-if((Get-Website -Name '$siteName').state -ne 'Stopped'){ Stop-Website -Name '$siteName' -ErrorAction Stop; }
-Start-Sleep -Seconds 3;
-if((Get-Website -Name '$siteName').state -ne 'Stopped'){ throw 'IIS site did not stop properly: $siteName' }
-if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Stopped'){ throw 'IIS app pool did not stop properly: $appPool' }
-"@
+          Import-Module WebAdministration;
+          
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne 'Started') {
+              Start-WebAppPool -Name $appPool -ErrorAction Stop
+          }
+          
+          if ((Get-Website -Name $siteName).state -ne 'Started') {
+              Start-Website -Name $siteName -ErrorAction Stop
+          }
+          
+          Start-Sleep -Seconds 3
+          
+          if ((Get-Website -Name $siteName).state -ne 'Started') {
+              throw "IIS site did not start properly: $siteName"
+          }
+          
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne 'Started') {
+              throw "IIS app pool did not start properly: $appPool"
+          }
+          "@
+
 
           # Create a uniquely named temp script on the dev server
           $tmpFileName = "stop_iis_$((Get-Date).ToString('yyyyMMddHHmmss')).ps1"
@@ -229,14 +243,20 @@ if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Stopped'){ throw 'IIS app p
           $psexec = "psexec.exe"
 
           $psCommand = @"
-`$appSettingsPath = Join-Path '$destination' 'appsettings.json';
-if (-not (Test-Path `$appSettingsPath)) { throw 'Destination appsettings.json not found: ' + `$appSettingsPath }
-`$content = Get-Content `$appSettingsPath -Raw;
-`$pattern = '\"GitHubToken\"\\s*:\\s*\".*?\"';
-`$replacement = '\"GitHubToken\": \"{0}\"' -f '$token';
-`$newContent = [regex]::Replace(`$content, `$pattern, `$replacement);
-Set-Content -Path `$appSettingsPath -Value `$newContent -Encoding UTF8;
-"@
+          $appSettingsPath = Join-Path $destination 'appsettings.json'
+          
+          if (-not (Test-Path $appSettingsPath)) {
+              throw "Destination appsettings.json not found: $appSettingsPath"
+          }
+          
+          $content = Get-Content $appSettingsPath -Raw
+          $pattern = '"GitHubToken"\s*:\s*".*?"'
+          $replacement = '"GitHubToken": "{0}"' -f $token
+          
+          $newContent = [regex]::Replace($content, $pattern, $replacement)
+          
+          Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
+          "@
 
           $tmpFileName = "update_appsettings_$((Get-Date).ToString('yyyyMMddHHmmss')).ps1"
           $tmpScript = Join-Path $env:TEMP $tmpFileName
@@ -307,13 +327,26 @@ Set-Content -Path `$appSettingsPath -Value `$newContent -Encoding UTF8;
           $psexec = "psexec.exe"
 
           $psCommand = @"
-Import-Module WebAdministration;
-if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Started'){ Start-WebAppPool -Name '$appPool' -ErrorAction Stop; }
-if((Get-Website -Name '$siteName').state -ne 'Started'){ Start-Website -Name '$siteName' -ErrorAction Stop; }
-Start-Sleep -Seconds 3;
-if((Get-Website -Name '$siteName').state -ne 'Started'){ throw 'IIS site did not start properly: $siteName' }
-if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Started'){ throw 'IIS app pool did not start properly: $appPool' }
-"@
+          Import-Module WebAdministration
+          
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne 'Started') {
+              Start-WebAppPool -Name $appPool -ErrorAction Stop
+          }
+          
+          if ((Get-Website -Name $siteName).state -ne 'Started') {
+              Start-Website -Name $siteName -ErrorAction Stop
+          }
+          
+          Start-Sleep -Seconds 3
+          
+          if ((Get-Website -Name $siteName).state -ne 'Started') {
+              throw "IIS site did not start properly: $siteName"
+          }
+          
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne 'Started') {
+              throw "IIS app pool did not start properly: $appPool"
+          }
+          "@
 
           $tmpFileName = "start_iis_$((Get-Date).ToString('yyyyMMddHHmmss')).ps1"
           $tmpScript = Join-Path $env:TEMP $tmpFileName
