@@ -212,28 +212,21 @@ jobs:
           $token       = "${{ secrets._GITHUB_TOKEN }}"
           $remote      = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-      
-          if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_PASS) {
-            throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
-          }
-      
-          # Convert credentials
+          
+          # Normalize remote server (strip FQDN)
+          $remoteShort = $remote.Split('.')[0]
+          
+          # Normalize destination path (strip server prefix if present)
+          $destinationClean = $destination -replace "^[^\\]+\\", ""
+          
+          $uncPath = "\\$remoteShort\$destinationClean"
+          Write-Host "Mapping remote UNC path: $uncPath"
+          
           $securePass = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
           $cred       = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
-      
-          # Build UNC path (DEST_PATH is already a UNC path or local path on remote)
-          $uncPath = "\\$remote\$($destination.TrimStart('\'))"
-      
-          Write-Host "Mapping remote UNC path: $uncPath"
-      
-          # Map authenticated drive
-          $driveName = "Z"
-          if (Get-PSDrive -Name $driveName -ErrorAction SilentlyContinue) {
-            Remove-PSDrive -Name $driveName -Force
-          }
-      
-          New-PSDrive -Name $driveName -PSProvider FileSystem -Root $uncPath -Credential $cred -ErrorAction Stop | Out-Null
-      
+          
+          New-PSDrive -Name "Z" -PSProvider FileSystem -Root $uncPath -Credential $cred -ErrorAction Stop | Out-Null
+          
           $appSettingsPath = "Z:\appsettings.json"
       
           if (-not (Test-Path $appSettingsPath)) {
