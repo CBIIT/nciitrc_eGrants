@@ -210,23 +210,39 @@ jobs:
           DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
           $token       = "${{ secrets._GITHUB_TOKEN }}"
-          $remote      = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $remote      = "${{ steps.envmap.outputs.REMOTE_SERVER }}"   # KEEP FULL FQDN
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-          
-          # Normalize remote server (strip FQDN)
+      
+          if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_PASS) {
+            throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
+          }
+      
+          # Extract short server name ONLY for stripping from DEST_PATH
           $remoteShort = $remote.Split('.')[0]
-          
-          # Normalize destination path (strip server prefix if present)
-          $destinationClean = $destination -replace "^[^\\]+\\", ""
-          
-          $uncPath = "\\$remoteShort\$destinationClean"
+      
+          # Normalize DEST_PATH:
+          # 1. Remove leading slashes
+          # 2. Remove "nciws-q2409-v\" if present
+          $destinationClean = $destination `
+              -replace "^\\\\+", "" `
+              -replace "^$remoteShort\\", ""
+      
+          # Build UNC path using FULL FQDN
+          $uncPath = "\\$remote\$destinationClean"
           Write-Host "Mapping remote UNC path: $uncPath"
-          
+      
+          # Convert credentials
           $securePass = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
           $cred       = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
-          
-          New-PSDrive -Name "Z" -PSProvider FileSystem -Root $uncPath -Credential $cred -ErrorAction Stop | Out-Null
-          
+      
+          # Map authenticated drive
+          $driveName = "Z"
+          if (Get-PSDrive -Name $driveName -ErrorAction SilentlyContinue) {
+            Remove-PSDrive -Name $driveName -Force
+          }
+      
+          New-PSDrive -Name $driveName -PSProvider FileSystem -Root $uncPath -Credential $cred -ErrorAction Stop | Out-Null
+      
           $appSettingsPath = "Z:\appsettings.json"
       
           if (-not (Test-Path $appSettingsPath)) {
@@ -249,6 +265,7 @@ jobs:
           Remove-PSDrive -Name $driveName -Force
       
           exit 0
+
 
       # ---------------------------------------------------------
       # START IIS (DEV LOCAL)
