@@ -116,85 +116,85 @@ jobs:
 
           exit 0
 
-          # ---------------------------------------------------------
-          # STOP IIS (REMOTE) — WMI ONLY (NO PSREMOTING)
-          # ---------------------------------------------------------
-          - name: Stop IIS site and app pool (remote via WMI)
-            shell: powershell
-            env:
-              DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-              DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
-            run: |
-              $remote      = "${{ env.REMOTE_SERVER }}"
-              $siteName    = "${{ env.SITE_NAME }}"
-              $appPool     = "${{ env.APP_POOL }}"
-          
-              Write-Host "Preparing credentials for WMI..."
-              $securePass  = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
-              $credential  = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
-          
-              # region --- STOP APP POOL ---
-              Write-Host "Stopping IIS App Pool via WMI: $appPool"
-          
-              $appPoolObj = Get-WmiObject -Class "ApplicationPool" `
-                  -Namespace "root\WebAdministration" `
-                  -ComputerName $remote `
-                  -Credential $credential `
-                  -Filter "Name='$appPool'"
-          
-              if (-not $appPoolObj) {
-                  throw "App pool not found via WMI: $appPool"
-              }
-          
-              $result = $appPoolObj.InvokeMethod("Stop", $null)
-              if ($result -ne 0) {
-                  throw "Failed to stop app pool '$appPool' via WMI. Error code: $result"
-              }
-          
-              # region --- STOP SITE ---
-              Write-Host "Stopping IIS Site via WMI: $siteName"
-          
-              $siteObj = Get-WmiObject -Class "Site" `
-                  -Namespace "root\WebAdministration" `
-                  -ComputerName $remote `
-                  -Credential $credential `
-                  -Filter "Name='$siteName'"
-          
-              if (-not $siteObj) {
-                  throw "Site not found via WMI: $siteName"
-              }
-          
-              $result = $siteObj.InvokeMethod("Stop", $null)
-              if ($result -ne 0) {
-                  throw "Failed to stop site '$siteName' via WMI. Error code: $result"
-              }
-          
-              # region --- VALIDATION ---
-              Write-Host "Validating stop state via WMI..."
-          
-              $appPoolState = (Get-WmiObject -Class "ApplicationPool" `
-                  -Namespace "root\WebAdministration" `
-                  -ComputerName $remote `
-                  -Credential $credential `
-                  -Filter "Name='$appPool'").State
-          
-              $siteState = (Get-WmiObject -Class "Site" `
-                  -Namespace "root\WebAdministration" `
-                  -ComputerName $remote `
-                  -Credential $credential `
-                  -Filter "Name='$siteName'").State
-          
-              if ($appPoolState -ne 1) {  # 1 = Stopped
-                  throw "App pool did not stop: $appPool (State=$appPoolState)"
-              }
-          
-              if ($siteState -ne 1) {  # 1 = Stopped
-                  throw "Site did not stop: $siteName (State=$siteState)"
-              }
-          
-              Write-Host "IIS site and app pool successfully stopped via WMI."
-              exit 0
-
+      # ---------------------------------------------------------
+      # STOP IIS (REMOTE) — WMI ONLY (NO PSREMOTING)
+      # ---------------------------------------------------------
+      - name: Stop IIS site and app pool (remote via WMI)
+        if: ${{ github.ref_name != 'dev' }}
+        shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
+        run: |
+          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+      
+          Write-Host "Preparing credentials for WMI..."
+          $securePass  = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
+          $credential  = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
+      
+          # region --- STOP APP POOL ---
+          Write-Host "Stopping IIS App Pool via WMI: $appPool"
+      
+          $appPoolObj = Get-WmiObject -Class "ApplicationPool" `
+              -Namespace "root\WebAdministration" `
+              -ComputerName $remote `
+              -Credential $credential `
+              -Filter "Name='$appPool'"
+      
+          if (-not $appPoolObj) {
+              throw "App pool not found via WMI: $appPool"
+          }
+      
+          $result = $appPoolObj.InvokeMethod("Stop", $null)
+          if ($result -ne 0) {
+              throw "Failed to stop app pool '$appPool' via WMI. Error code: $result"
+          }
+      
+          # region --- STOP SITE ---
+          Write-Host "Stopping IIS Site via WMI: $siteName"
+      
+          $siteObj = Get-WmiObject -Class "Site" `
+              -Namespace "root\WebAdministration" `
+              -ComputerName $remote `
+              -Credential $credential `
+              -Filter "Name='$siteName'"
+      
+          if (-not $siteObj) {
+              throw "Site not found via WMI: $siteName"
+          }
+      
+          $result = $siteObj.InvokeMethod("Stop", $null)
+          if ($result -ne 0) {
+              throw "Failed to stop site '$siteName' via WMI. Error code: $result"
+          }
+      
+          # region --- VALIDATION ---
+          Write-Host "Validating stop state via WMI..."
+      
+          $appPoolState = (Get-WmiObject -Class "ApplicationPool" `
+              -Namespace "root\WebAdministration" `
+              -ComputerName $remote `
+              -Credential $credential `
+              -Filter "Name='$appPool'").State
+      
+          $siteState = (Get-WmiObject -Class "Site" `
+              -Namespace "root\WebAdministration" `
+              -ComputerName $remote `
+              -Credential $credential `
+              -Filter "Name='$siteName'").State
+      
+          if ($appPoolState -ne 1) {  # 1 = Stopped
+              throw "App pool did not stop: $appPool (State=$appPoolState)"
+          }
+      
+          if ($siteState -ne 1) {  # 1 = Stopped
+              throw "Site did not stop: $siteName (State=$siteState)"
+          }
+      
+          Write-Host "IIS site and app pool successfully stopped via WMI."
+          exit 0
 
       # ---------------------------------------------------------
       # DEPLOY FILES
