@@ -56,9 +56,9 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE (KEEP ONLY MOST RECENT 5) — FAST LOCAL ZIP
+      # ARCHIVE CURRENT SITE (KEEP ONLY MOST RECENT 5) — 7-ZIP VERSION
       # ---------------------------------------------------------
-      - name: Archive existing destination directory (local zip)
+      - name: Archive existing destination directory (7-zip)
         shell: powershell
         run: |
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
@@ -75,8 +75,8 @@ jobs:
           # Timestamp for archive
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $localTemp = Join-Path $env:TEMP "archive_$timestamp"
-          $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
+          $localZip  = Join-Path $env:TEMP "archive_$timestamp.7z"
+          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.7z"
       
           # Create local temp folder
           New-Item -ItemType Directory -Path $localTemp | Out-Null
@@ -85,10 +85,10 @@ jobs:
           robocopy $destination $localTemp /MIR
           if ($LASTEXITCODE -ge 8) { throw "Robocopy local copy failed." }
       
-          Write-Host "Creating ZIP locally: $localZip"
-          Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
+          Write-Host "Creating 7z archive locally: $localZip"
+          & 7z a -t7z -mx=9 "`"$localZip`"" "`"$localTemp\*`"" | Out-Null
       
-          Write-Host "Copying ZIP back to archive share: $remoteZip"
+          Write-Host "Copying 7z archive back to archive share: $remoteZip"
           Copy-Item -Path $localZip -Destination $remoteZip -Force
       
           # Cleanup local temp
@@ -96,9 +96,9 @@ jobs:
           Remove-Item -Path $localZip -Force
       
           # ---------------------------------------------------------
-          # PRUNE OLD ARCHIVES — KEEP ONLY MOST RECENT 5 ZIP FILES
+          # PRUNE OLD ARCHIVES — KEEP ONLY MOST RECENT 5
           # ---------------------------------------------------------
-          $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.zip" |
+          $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.7z" |
                       Sort-Object LastWriteTime -Descending
       
           $archivesToDelete = $archives | Select-Object -Skip 5
@@ -109,6 +109,7 @@ jobs:
           }
       
           exit 0
+
 
 
       # ---------------------------------------------------------
