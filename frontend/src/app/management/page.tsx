@@ -222,14 +222,7 @@ export default function ManagementPage() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabName>("QC Assignment Report");
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-  if (!user) return null;
+  if (loading || !user) return null;
 
   return (
     <AppShell user={user}>

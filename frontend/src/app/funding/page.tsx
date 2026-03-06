@@ -29,14 +29,7 @@ export default function FundingPage() {
   const [docs, setDocs] = useState<FundingDoc[]>([]);
   const [searching, setSearching] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
-      </div>
-    );
-  }
-  if (!user) return null;
+  if (loading || !user) return null;
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();

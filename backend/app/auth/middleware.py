@@ -38,8 +38,8 @@ logger = logging.getLogger(__name__)
 
 SKIP_AUTH_PATHS = {"/api/health", "/docs", "/openapi.json", "/redoc"}
 
-# In-memory cache: userid -> (UserInfo, timestamp)
-# TTL of 1 hour balances performance with permission-change propagation
+# In-memory cache for middleware auth checks only.
+# The /api/users/me endpoint bypasses this (frontend caches via sessionStorage).
 _user_cache: dict[str, tuple[UserInfo, float]] = {}
 _CACHE_TTL_SECONDS = 3600  # 1 hour
 
@@ -82,7 +82,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
             user_info, cached_at = cached
             if now - cached_at < _CACHE_TTL_SECONDS:
                 request.state.user_info = user_info
-                logger.debug("Cache hit for user %s", userid)
                 return await call_next(request)
 
         # Cache miss or expired — run full SP chain
@@ -91,9 +90,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             user_info = _authenticate_user(db, userid, ic)
             request.state.user_info = user_info
             _user_cache[userid] = (user_info, now)
-            logger.info(
-                "Session for user %s (authorized=%s, cached)", userid, user_info.authorized
-            )
+            logger.info("User %s authenticated (authorized=%s)", userid, user_info.authorized)
         finally:
             db.close()
 

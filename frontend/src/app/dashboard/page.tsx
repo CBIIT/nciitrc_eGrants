@@ -246,14 +246,7 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-text-muted">Loading...</p>
-      </div>
-    );
-  }
-  if (!user) return null;
+  if (loading || !user) return null;
 
   function handleToggleWidget(key: string) {
     setWidgetSelections((prev) => ({ ...prev, [key]: !prev[key] }));
