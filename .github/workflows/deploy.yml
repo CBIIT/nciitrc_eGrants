@@ -117,9 +117,9 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # STOP IIS (NON-DEV REMOTE)
+      # STOP IIS (NON-DEV REMOTE) — using PsExec from dev to test
       # ---------------------------------------------------------
-      - name: Stop IIS site and app pool (remote)
+      - name: Stop IIS site and app pool (remote via PsExec)
         if: ${{ github.ref_name != 'dev' }}
         shell: powershell
         env:
@@ -134,44 +134,38 @@ jobs:
             throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
           }
 
-          # Build secure credential object from secrets (password never echoed)
-          $securePass = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
-          $cred = New-Object System.Management.Automation.PSCredential ($env:DEPLOY_USER, $securePass)
+          # Path to psexec on the dev server (assumed in PATH). Change if required.
+          $psexec = "psexec.exe"
 
-          $session = $null
-          try {
-            # Create a remote session using the supplied credentials
-            $session = New-PSSession -ComputerName $remote -Credential $cred -ErrorAction Stop
+          # Prepare the remote PowerShell script content
+          $psCommand = @"
+Import-Module WebAdministration;
+if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Stopped'){ Stop-WebAppPool -Name '$appPool' -ErrorAction Stop; }
+if((Get-Website -Name '$siteName').state -ne 'Stopped'){ Stop-Website -Name '$siteName' -ErrorAction Stop; }
+Start-Sleep -Seconds 3;
+if((Get-Website -Name '$siteName').state -ne 'Stopped'){ throw 'IIS site did not stop properly: $siteName' }
+if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Stopped'){ throw 'IIS app pool did not stop properly: $appPool' }
+"@
 
-            Invoke-Command -Session $session -ScriptBlock {
-              param($siteName, $appPool)
+          # Create a uniquely named temp script on the dev server
+          $tmpFileName = "stop_iis_$((Get-Date).ToString('yyyyMMddHHmmss')).ps1"
+          $tmpScript = Join-Path $env:TEMP $tmpFileName
+          Set-Content -Path $tmpScript -Value $psCommand -Encoding UTF8
 
-              Import-Module WebAdministration
+          # Use PsExec to copy and execute the script on the remote host.
+          # The -c flag copies the file to the remote and executes it.
+          $psexecArgs = "\\$remote -u $env:DEPLOY_USER -p $env:DEPLOY_PASS -accepteula -h -c `"$tmpScript`" powershell -NoProfile -ExecutionPolicy Bypass -File `"$tmpFileName`""
+          Write-Host "Executing PsExec to stop IIS on $remote"
+          Write-Host $psexecArgs
 
-              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-                Stop-WebAppPool -Name $appPool -ErrorAction Stop
-              }
-
-              if ((Get-Website -Name $siteName).state -ne "Stopped") {
-                Stop-Website -Name $siteName -ErrorAction Stop
-              }
-
-              Start-Sleep -Seconds 3
-
-              if ((Get-Website -Name $siteName).state -ne "Stopped") {
-                throw "IIS site did not stop properly: $siteName"
-              }
-              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-                throw "IIS app pool did not stop properly: $appPool"
-              }
-            } -ArgumentList $siteName, $appPool -ErrorAction Stop
-
-          } finally {
-            if ($session) {
-              Remove-PSSession -Session $session -ErrorAction SilentlyContinue
-            }
+          $proc = Start-Process -FilePath $psexec -ArgumentList $psexecArgs -Wait -PassThru
+          if ($proc.ExitCode -ne 0) {
+            Remove-Item -Path $tmpScript -ErrorAction SilentlyContinue
+            throw "PsExec remote stop failed with exit code $($proc.ExitCode)"
           }
 
+          # Clean up the local temp script
+          Remove-Item -Path $tmpScript -Force -ErrorAction SilentlyContinue
           exit 0
 
       # ---------------------------------------------------------
@@ -215,33 +209,50 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # UPDATE APPSETTINGS.JSON (NON-DEV REMOTE)
+      # UPDATE APPSETTINGS.JSON (NON-DEV REMOTE) — using PsExec
       # ---------------------------------------------------------
-      - name: Update GitHubToken in destination appsettings.json (remote)
+      - name: Update GitHubToken in destination appsettings.json (remote via PsExec)
         if: ${{ github.ref_name != 'dev' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
           $token = "${{ secrets._GITHUB_TOKEN }}"
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-            param($destination, $token)
+          if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_PASS) {
+            throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
+          }
 
-            $appSettingsPath = Join-Path $destination "appsettings.json"
+          $psexec = "psexec.exe"
 
-            if (-not (Test-Path $appSettingsPath)) {
-              throw "Destination appsettings.json not found: $appSettingsPath"
-            }
+          $psCommand = @"
+`$appSettingsPath = Join-Path '$destination' 'appsettings.json';
+if (-not (Test-Path `$appSettingsPath)) { throw 'Destination appsettings.json not found: ' + `$appSettingsPath }
+`$content = Get-Content `$appSettingsPath -Raw;
+`$pattern = '\"GitHubToken\"\\s*:\\s*\".*?\"';
+`$replacement = '\"GitHubToken\": \"{0}\"' -f '$token';
+`$newContent = [regex]::Replace(`$content, `$pattern, `$replacement);
+Set-Content -Path `$appSettingsPath -Value `$newContent -Encoding UTF8;
+"@
 
-            $content = Get-Content $appSettingsPath -Raw
-            $pattern = '"GitHubToken"\s*:\s*".*?"'
-            $replacement = '"GitHubToken": "' + $token + '"'
-            $newContent = [regex]::Replace($content, $pattern, $replacement)
+          $tmpFileName = "update_appsettings_$((Get-Date).ToString('yyyyMMddHHmmss')).ps1"
+          $tmpScript = Join-Path $env:TEMP $tmpFileName
+          Set-Content -Path $tmpScript -Value $psCommand -Encoding UTF8
 
-            Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
-          } -ArgumentList $destination, $token
+          $psexecArgs = "\\$remote -u $env:DEPLOY_USER -p $env:DEPLOY_PASS -accepteula -h -c `"$tmpScript`" powershell -NoProfile -ExecutionPolicy Bypass -File `"$tmpFileName`""
+          Write-Host "Executing PsExec to update appsettings.json on $remote"
+          Write-Host $psexecArgs
 
+          $proc = Start-Process -FilePath $psexec -ArgumentList $psexecArgs -Wait -PassThru
+          if ($proc.ExitCode -ne 0) {
+            Remove-Item -Path $tmpScript -ErrorAction SilentlyContinue
+            throw "PsExec remote update failed with exit code $($proc.ExitCode)"
+          }
+
+          Remove-Item -Path $tmpScript -Force -ErrorAction SilentlyContinue
           exit 0
 
       # ---------------------------------------------------------
@@ -276,37 +287,47 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # START IIS (NON-DEV REMOTE)
+      # START IIS (NON-DEV REMOTE) — using PsExec
       # ---------------------------------------------------------
-      - name: Start IIS site and app pool (remote)
+      - name: Start IIS site and app pool (remote via PsExec)
         if: ${{ github.ref_name != 'dev' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
           $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          Invoke-Command -ComputerName $remote -ScriptBlock {
-            param($siteName, $appPool)
+          if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_PASS) {
+            throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
+          }
 
-            Import-Module WebAdministration
+          $psexec = "psexec.exe"
 
-            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
-              Start-WebAppPool -Name $appPool -ErrorAction Stop
-            }
+          $psCommand = @"
+Import-Module WebAdministration;
+if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Started'){ Start-WebAppPool -Name '$appPool' -ErrorAction Stop; }
+if((Get-Website -Name '$siteName').state -ne 'Started'){ Start-Website -Name '$siteName' -ErrorAction Stop; }
+Start-Sleep -Seconds 3;
+if((Get-Website -Name '$siteName').state -ne 'Started'){ throw 'IIS site did not start properly: $siteName' }
+if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Started'){ throw 'IIS app pool did not start properly: $appPool' }
+"@
 
-            if ((Get-Website -Name $siteName).state -ne "Started") {
-              Start-Website -Name $siteName -ErrorAction Stop
-            }
+          $tmpFileName = "start_iis_$((Get-Date).ToString('yyyyMMddHHmmss')).ps1"
+          $tmpScript = Join-Path $env:TEMP $tmpFileName
+          Set-Content -Path $tmpScript -Value $psCommand -Encoding UTF8
 
-            Start-Sleep -Seconds 3
+          $psexecArgs = "\\$remote -u $env:DEPLOY_USER -p $env:DEPLOY_PASS -accepteula -h -c `"$tmpScript`" powershell -NoProfile -ExecutionPolicy Bypass -File `"$tmpFileName`""
+          Write-Host "Executing PsExec to start IIS on $remote"
+          Write-Host $psexecArgs
 
-            if ((Get-Website -Name $siteName).state -ne "Started") {
-              throw "IIS site did not start properly: $siteName"
-            }
-            if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
-              throw "IIS app pool did not start properly: $appPool"
-            }
-          } -ArgumentList $siteName, $appPool
+          $proc = Start-Process -FilePath $psexec -ArgumentList $psexecArgs -Wait -PassThru
+          if ($proc.ExitCode -ne 0) {
+            Remove-Item -Path $tmpScript -ErrorAction SilentlyContinue
+            throw "PsExec remote start failed with exit code $($proc.ExitCode)"
+          }
 
+          Remove-Item -Path $tmpScript -Force -ErrorAction SilentlyContinue
           exit 0
