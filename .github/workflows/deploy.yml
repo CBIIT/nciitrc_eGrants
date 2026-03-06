@@ -56,33 +56,51 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE
+      # ARCHIVE CURRENT SITE (KEEP ONLY MOST RECENT 5)
       # ---------------------------------------------------------
       - name: Archive existing destination directory
         shell: powershell
         run: |
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
           $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
-
+      
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
           }
-
+      
           if (-not (Test-Path $archiveRoot)) {
             New-Item -ItemType Directory -Path $archiveRoot | Out-Null
           }
-
+      
+          # Create timestamped archive folder
           $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
           $archivePath = Join-Path $archiveRoot "backup_$timestamp"
-
+      
           New-Item -ItemType Directory -Path $archivePath | Out-Null
+      
           robocopy $destination $archivePath /MIR
           if ($LASTEXITCODE -ge 8) { throw "Robocopy archive failed." }
-
+      
+          # Zip the archive
           $zipFile = "$archivePath.zip"
           Compress-Archive -Path "$archivePath\*" -DestinationPath $zipFile -Force
+      
+          # Remove the uncompressed folder
           Remove-Item -Path $archivePath -Recurse -Force
-
+      
+          # ---------------------------------------------------------
+          # PRUNE OLD ARCHIVES — KEEP ONLY MOST RECENT 5 ZIP FILES
+          # ---------------------------------------------------------
+          $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.zip" |
+                      Sort-Object LastWriteTime -Descending
+      
+          $archivesToDelete = $archives | Select-Object -Skip 5
+      
+          foreach ($old in $archivesToDelete) {
+            Write-Host "Removing old archive: $($old.FullName)"
+            Remove-Item -Path $old.FullName -Force
+          }
+      
           exit 0
 
       # ---------------------------------------------------------
