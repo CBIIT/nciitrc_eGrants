@@ -180,12 +180,7 @@ jobs:
       
           Write-Host "IIS core services successfully stopped via SCM."
       
-          # NEW: Wait 10 seconds before continuing
-          Start-Sleep -Seconds 10
-      
           exit 0
-
-
 
       # ---------------------------------------------------------
       # DEPLOY FILES
