@@ -110,6 +110,7 @@ jobs:
       
           exit 0
 
+
       # ---------------------------------------------------------
       # STOP IIS (DEV LOCAL)
       # ---------------------------------------------------------
@@ -142,20 +143,22 @@ jobs:
           exit 0
 
       # ---------------------------------------------------------
-      # STOP IIS (NON-DEV REMOTE) — DIRECT SCM
+      # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
       # ---------------------------------------------------------
-      - name: Stop IIS site and app pool (remote via SCM)
-        if: ${{ github.ref_name != 'dev' }}
+      - name: Stop IIS (SCM remote stop)
         shell: powershell
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $remote = "${{ env.REMOTE_SERVER }}"
       
-          if ([string]::IsNullOrWhiteSpace($remote)) {
-            throw "REMOTE_SERVER is missing or empty."
-          }
+          Write-Host "Preparing credentials for SCM..."
+          $securePass  = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
+          $credential  = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
+      
+          # Extract plain password for sc.exe
+          $plainPass = $credential.GetNetworkCredential().Password
       
           Write-Host "Stopping IIS core services on $remote ..."
       
@@ -178,9 +181,9 @@ jobs:
               throw "WAS did not stop properly"
           }
       
-          Write-Host "IIS core services successfully stopped via SCM."
-      
+          Write-Host "IIS successfully stopped via SCM."
           exit 0
+
 
       # ---------------------------------------------------------
       # DEPLOY FILES
@@ -362,4 +365,3 @@ jobs:
       
           Write-Host "IIS core services successfully started via SCM."
           exit 0
-
