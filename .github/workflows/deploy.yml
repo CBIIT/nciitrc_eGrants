@@ -147,12 +147,13 @@ jobs:
       # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
       # ---------------------------------------------------------
       - name: Stop IIS (SCM remote stop)
+        if: ${{ github.ref_name != 'dev' }}
         shell: powershell
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-          $remote = "${{ env.REMOTE_SERVER }}"
+          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
       
           Write-Host "Preparing credentials for SCM..."
           $securePass  = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
