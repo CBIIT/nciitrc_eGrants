@@ -125,6 +125,7 @@ jobs:
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
+          PSEXEC_PATH: ${{ secrets.PSEXEC_PATH }} # optional: full path to psexec.exe if not in PATH
         run: |
           $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
@@ -134,52 +135,65 @@ jobs:
             throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
           }
 
-          # Path to psexec on the dev server (assumed in PATH). Change if required.
-          $psexec = "psexec.exe"
+          # Locate psexec: prefer explicit secret, then PATH, then common locations
+          $psexecPath = $null
+          if ($env:PSEXEC_PATH) {
+            $psexecPath = $env:PSEXEC_PATH
+          } else {
+            $cmd = Get-Command psexec.exe -ErrorAction SilentlyContinue
+            if ($cmd) { $psexecPath = $cmd.Source }
+            else {
+              $candidates = @(
+                "$env:ProgramFiles\PsTools\PsExec.exe",
+                "$env:ProgramFiles(x86)\PsTools\PsExec.exe",
+                "C:\PsTools\PsExec.exe",
+                "C:\Tools\PsExec.exe"
+              )
+              foreach ($c in $candidates) { if (Test-Path $c) { $psexecPath = $c; break } }
+            }
+          }
 
-          # Prepare the remote PowerShell script content
+          if (-not $psexecPath -or -not (Test-Path $psexecPath)) {
+            throw "psexec.exe not found. Put PsExec on the runner PATH or set secret PSEXEC_PATH with the full path to psexec.exe."
+          }
+
+          Write-Host "Using PsExec at: $psexecPath"
+
+          # Prepare remote script content
           $psCommand = @"
           Import-Module WebAdministration;
-          
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne 'Started') {
-              Start-WebAppPool -Name $appPool -ErrorAction Stop
-          }
-          
-          if ((Get-Website -Name $siteName).state -ne 'Started') {
-              Start-Website -Name $siteName -ErrorAction Stop
-          }
-          
-          Start-Sleep -Seconds 3
-          
-          if ((Get-Website -Name $siteName).state -ne 'Started') {
-              throw "IIS site did not start properly: $siteName"
-          }
-          
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne 'Started') {
-              throw "IIS app pool did not start properly: $appPool"
-          }
+          if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Stopped'){ Stop-WebAppPool -Name '$appPool' -ErrorAction Stop; }
+          if((Get-Website -Name '$siteName').state -ne 'Stopped'){ Stop-Website -Name '$siteName' -ErrorAction Stop; }
+          Start-Sleep -Seconds 3;
+          if((Get-Website -Name '$siteName').state -ne 'Stopped'){ throw 'IIS site did not stop properly: $siteName' }
+          if((Get-WebAppPoolState -Name '$appPool').Value -ne 'Stopped'){ throw 'IIS app pool did not stop properly: $appPool' }
           "@
 
-
-          # Create a uniquely named temp script on the dev server
           $tmpFileName = "stop_iis_$((Get-Date).ToString('yyyyMMddHHmmss')).ps1"
-          $tmpScript = Join-Path $env:TEMP $tmpFileName
-          Set-Content -Path $tmpScript -Value $psCommand -Encoding UTF8
+          $localTmp = Join-Path $env:TEMP $tmpFileName
+          Set-Content -Path $localTmp -Value $psCommand -Encoding UTF8
 
-          # Use PsExec to copy and execute the script on the remote host.
-          # The -c flag copies the file to the remote and executes it.
-          $psexecArgs = "\\$remote -u $env:DEPLOY_USER -p $env:DEPLOY_PASS -accepteula -h -c `"$tmpScript`" powershell -NoProfile -ExecutionPolicy Bypass -File `"$tmpFileName`""
+          # Build PsExec argument array: -c copies local file to remote and executes it
+          $args = @(
+            "\\$remote",
+            "-u", $env:DEPLOY_USER,
+            "-p", $env:DEPLOY_PASS,
+            "-accepteula",
+            "-h",
+            "-c", $localTmp,
+            "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $tmpFileName
+          )
+
           Write-Host "Executing PsExec to stop IIS on $remote"
-          Write-Host $psexecArgs
+          $proc = Start-Process -FilePath $psexecPath -ArgumentList $args -Wait -PassThru
 
-          $proc = Start-Process -FilePath $psexec -ArgumentList $psexecArgs -Wait -PassThru
+          # Cleanup local temp script
+          try { Remove-Item -Path $localTmp -Force -ErrorAction SilentlyContinue } catch {}
+
           if ($proc.ExitCode -ne 0) {
-            Remove-Item -Path $tmpScript -ErrorAction SilentlyContinue
-            throw "PsExec remote stop failed with exit code $($proc.ExitCode)"
+            throw "PsExec remote stop failed with exit code $($proc.ExitCode)."
           }
 
-          # Clean up the local temp script
-          Remove-Item -Path $tmpScript -Force -ErrorAction SilentlyContinue
           exit 0
 
       # ---------------------------------------------------------
