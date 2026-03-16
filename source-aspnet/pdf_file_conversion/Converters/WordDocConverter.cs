@@ -76,12 +76,12 @@ namespace EmailConcatenation.Converters
             var processInfo = new ProcessStartInfo
             {
                 FileName = _libreOfficePath,
-                //Arguments =
-                //    "--headless --nologo --nofirststartwizard " +
-                //    $"--convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\"",
-                Arguments = $"--headless --nologo --nofirststartwizard " +
-                $"--convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\" " +
-                "-env:UserInstallation=file:///C:/LibreOfficeProfile",
+                Arguments =
+                    "--headless --nologo --nofirststartwizard " +
+                    $"--convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\"",
+                //Arguments = $"--headless --nologo --nofirststartwizard " +
+                //$"--convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\" " +
+                //"-env:UserInstallation=file:///C:/LibreOfficeProfile",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
