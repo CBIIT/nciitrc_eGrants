@@ -58,109 +58,64 @@ namespace EmailConcatenation.Converters
             if (content.GetBytes().Length == 0)
                 return null;
 
-            string tempDir = Path.GetTempPath().TrimEnd('\\');
-
-            // Determine original extension
-            string originalExt = Path.GetExtension(content.SingleFileFileName)
-                                        .ToLowerInvariant();
-
-            // 1. Write original file to temp
-            string tempInputPath = Path.Combine(tempDir, content.SingleFileFileName);
-            File.WriteAllBytes(tempInputPath, content.GetBytes());
+            // 1. Write input DOC to temp
+            string tempInputPath = Path.Combine(Path.GetTempPath(), content.SingleFileFileName);
             Log.Information("tempInputPath: " + tempInputPath);
+            File.WriteAllBytes(tempInputPath, content.GetBytes());
 
-            // 2. Ensure we have a DOCX file to convert to PDF
-            string tempDocxPath;
+            // 2. Determine output PDF path
+            string tempOutputDir = Path.GetTempPath().TrimEnd('\\');
+            string tempOutputPath = Path.Combine(
+                tempOutputDir,
+                Path.GetFileNameWithoutExtension(content.SingleFileFileName) + ".pdf"
+            );
 
-            if (originalExt == ".doc")
-            {
-                // Build DOCX output path
-                string docxFileName = Path.GetFileNameWithoutExtension(tempInputPath) + ".docx";
-                tempDocxPath = Path.Combine(tempDir, docxFileName);
-                Log.Information("Converting .doc → .docx: " + tempDocxPath);
+            Log.Information("tempOutputDir: " + tempOutputDir);
 
-                // Convert DOC → DOCX
-                var toDocx = new ProcessStartInfo
-                {
-                    FileName = _libreOfficePath,
-                    Arguments =
-                        "--headless --nologo --nofirststartwizard " +
-                        $"--convert-to docx \"{tempInputPath}\" --outdir \"{tempDir}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using (var process = Process.Start(toDocx))
-                {
-                    string stdout = process.StandardOutput.ReadToEnd();
-                    string stderr = process.StandardError.ReadToEnd();
-                    process.WaitForExit();
-
-                    Log.Information("DOC→DOCX stdout: {Stdout}", stdout);
-                    Log.Information("DOC→DOCX stderr: {Stderr}", stderr);
-
-                    if (process.ExitCode != 0)
-                        throw new Exception($"DOC→DOCX conversion failed. ExitCode={process.ExitCode}. Error: {stderr}");
-                }
-
-                if (!File.Exists(tempDocxPath))
-                    throw new Exception("DOC→DOCX conversion reported success but no DOCX was created.");
-            }
-            else if (originalExt == ".docx")
-            {
-                // Already DOCX — use it directly
-                tempDocxPath = tempInputPath;
-                Log.Information("Input is already .docx, skipping conversion.");
-            }
-            else
-            {
-                throw new Exception("Unsupported file type. Only .doc and .docx are supported.");
-            }
-
-            // 3. Convert DOCX → PDF
-            string pdfFileName = Path.GetFileNameWithoutExtension(tempDocxPath) + ".pdf";
-            string tempPdfPath = Path.Combine(tempDir, pdfFileName);
-            Log.Information("tempPdfPath: " + tempPdfPath);
-
-            var toPdf = new ProcessStartInfo
+            // 3. Build LibreOffice process info
+            var processInfo = new ProcessStartInfo
             {
                 FileName = _libreOfficePath,
                 Arguments =
                     "--headless --nologo --nofirststartwizard " +
-                    $"--convert-to pdf \"{tempDocxPath}\" --outdir \"{tempDir}\"",
+                    $"--convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\"",
+                //Arguments = $"--headless --nologo --nofirststartwizard " +
+                //$"--convert-to pdf \"{tempInputPath}\" --outdir \"{tempOutputDir}\" " +
+                //"-env:UserInstallation=file:///C:/LibreOfficeProfile",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
 
-            using (var process = Process.Start(toPdf))
+            // 4. Execute conversion
+            using (var process = Process.Start(processInfo))
             {
                 string stdout = process.StandardOutput.ReadToEnd();
                 string stderr = process.StandardError.ReadToEnd();
+
                 process.WaitForExit();
 
-                Log.Information("DOCX→PDF stdout: {Stdout}", stdout);
-                Log.Information("DOCX→PDF stderr: {Stderr}", stderr);
+                Log.Information("LibreOffice stdout: {Stdout}", stdout);
+                Log.Information("LibreOffice stderr: {Stderr}", stderr);
 
                 if (process.ExitCode != 0)
-                    throw new Exception($"DOCX→PDF conversion failed. ExitCode={process.ExitCode}. Error: {stderr}");
+                {
+                    throw new Exception($"LibreOffice conversion failed. ExitCode={process.ExitCode}. Error: {stderr}");
+                }
             }
 
-            if (!File.Exists(tempPdfPath))
-                throw new Exception("DOCX→PDF conversion reported success but no PDF was created.");
+            // 5. Load PDF
+            if (!File.Exists(tempOutputPath))
+                throw new Exception("LibreOffice reported success but no PDF was created.");
 
-            // 4. Load PDF
-            PdfDocument pdfDocument = PdfDocument.FromFile(tempPdfPath);
+            PdfDocument pdfDocument = PdfDocument.FromFile(tempOutputPath);
 
-            // 5. Cleanup
+            // 6. Cleanup
             try
             {
                 File.Delete(tempInputPath);
-                if (originalExt == ".doc") File.Delete(tempDocxPath);
-                File.Delete(tempPdfPath);
+                File.Delete(tempOutputPath);
             }
             catch { }
 
