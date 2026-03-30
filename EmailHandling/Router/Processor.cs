@@ -922,14 +922,14 @@ namespace Router
                         Send(outmail);
                     }
                 }
-                else if (v_SubLine.ToLower().Contains("closeout action required"))
+                else if (v_SubLine.ToLower().Contains("urgent: closeout reports overdue"))
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($"Hello you are closing out a thing ...", verbose);
                     var applId = string.Empty;
 
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
-                        var isolated = GetNthWord(v_SubLine, 4);
+                        var isolated = GetNthWord(v_SubLine, 6);
                         CommonUtilities.ShowDiagnosticIfVerbose($"Isolated : {isolated}", verbose);
                         applId = GetApplId(RemoveSpCharacters(isolated), con);
                         CommonUtilities.ShowDiagnosticIfVerbose($"Appl Id : {applId}", verbose);
