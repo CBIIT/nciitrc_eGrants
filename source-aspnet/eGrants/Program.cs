@@ -283,6 +283,7 @@ app.Use(async (context, next) =>
         context.Session.SetString("CertPass", builder.Configuration["AppSettings:certPass"] ?? string.Empty);
         context.Session.SetString("EraUrlBase", builder.Configuration["AppSettings:eraUrlBase"] ?? string.Empty);
 
+        egrantsCommon.UpdateUsersLastLoginDate(userId);
         string token = context.Session.GetString("GitHubToken").ToString();
         var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
         var latestRelease = latestReleaseFull.Split(' ')[0];
