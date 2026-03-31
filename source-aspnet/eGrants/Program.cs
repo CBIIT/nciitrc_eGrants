@@ -12,7 +12,7 @@ using Serilog;
 using SimpleECommerceCore.Middleware;
 
 // Enable Serilog internal diagnostics. 
-// This logs Serilog’s own configuration or sink failures (not application logs) 
+// This logs Serilogâ€™s own configuration or sink failures (not application logs) 
 // Useful only for troubleshooting when logs are not appearing as expected.
 var selfLogPath = Path.Combine(AppContext.BaseDirectory, "serilog-selflog.txt");
 
@@ -174,11 +174,11 @@ app.UseSession(); // Enable session middleware
 //
 // - Strips server-identifying response headers.
 // - If no session user exists:
-//      • Resolve user ID from SiteMinder, Windows identity, or machine account.
-//      • Store IC code, browser type, and default view.
-//      • Load user type and profile via EgrantsCommon; redirect if invalid.
-//      • Populate session with user details and app configuration values.
-//      • Fetch latest GitHub release tag and store cookies.
+//      â€¢ Resolve user ID from SiteMinder, Windows identity, or machine account.
+//      â€¢ Store IC code, browser type, and default view.
+//      â€¢ Load user type and profile via EgrantsCommon; redirect if invalid.
+//      â€¢ Populate session with user details and app configuration values.
+//      â€¢ Fetch latest GitHub release tag and store cookies.
 // - Continues request pipeline afterward.
 app.Use(async (context, next) =>
 {
@@ -283,6 +283,7 @@ app.Use(async (context, next) =>
         context.Session.SetString("CertPass", builder.Configuration["AppSettings:certPass"] ?? string.Empty);
         context.Session.SetString("EraUrlBase", builder.Configuration["AppSettings:eraUrlBase"] ?? string.Empty);
 
+        egrantsCommon.UpdateUsersLastLoginDate(userId);
         string token = context.Session.GetString("GitHubToken").ToString();
         var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
         var latestRelease = latestReleaseFull.Split(' ')[0];
