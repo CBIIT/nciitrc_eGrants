@@ -77,57 +77,56 @@ namespace eGrants.Common
             public const string CONTROLLER_TEST_EXCEPTION = "This is a test exception from the controller.";
         }
 
-        ///// <summary>
-        ///// Update the logged in users last_login_date to the value of Sql Sever GETDATE().
-        ///// </summary>
-        ///// <param name="userId"></param>
-        ///// <returns></returns>
-        //public static bool UpdateUsersLastLoginDate(string userId)
-        //{
-        //    bool count = false;
+        /// <summary>
+        /// Update the logged in users last_login_date to the value of Sql Sever GETDATE().
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public bool UpdateUsersLastLoginDate(string userId)
+        {
+            bool count = false;
 
-        //    using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
-        //    {
-        //        var cmd = new SqlCommand(
-        //            "UPDATE people SET last_login_date = GETDATE() where userid = @userId",
-        //            conn);
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand(
+                    "UPDATE people SET last_login_date = GETDATE() where userid = @userId",
+                    conn);
 
-        //        cmd.CommandType = CommandType.Text;
-        //        cmd.Parameters.Add("@userId", SqlDbType.VarChar).Value = userId;
-        //        conn.Open();
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userId", SqlDbType.VarChar).Value = userId;
+                conn.Open();
 
+                int i = cmd.ExecuteNonQuery();
+            }
 
-        //        int i = cmd.ExecuteNonQuery();
-        //    }
+            UpdateUsersEmailSentFlag(userId);
 
-        //    UpdateUsersEmailSentFlag(userId);
+            return true;
+        }
 
-        //    return true;
-        //}
+        /// <summary>
+        /// Update the logged in users email_sent flag from the 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public bool UpdateUsersEmailSentFlag(string userId)
+        {
+            bool count = false;
 
-        ///// <summary>
-        ///// Update the logged in users email_sent flag from the 
-        ///// </summary>
-        ///// <param name="userId"></param>
-        ///// <returns></returns>
-        //public static bool UpdateUsersEmailSentFlag(string userId)
-        //{
-        //    bool count = false;
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand(
+                    "UPDATE people_sent_warning SET email_sent = 0 where userid = @userId",
+                    conn);
 
-        //    using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EgrantsDB"].ConnectionString))
-        //    {
-        //        var cmd = new SqlCommand(
-        //            "UPDATE people_sent_warning SET email_sent = 0 where userid = @userId",
-        //            conn);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.Add("@userId", SqlDbType.VarChar).Value = userId;
+                conn.Open();
+                int i = cmd.ExecuteNonQuery();
+            }
 
-        //        cmd.CommandType = CommandType.Text;
-        //        cmd.Parameters.Add("@userId", SqlDbType.VarChar).Value = userId;
-        //        conn.Open();
-        //        int i = cmd.ExecuteNonQuery();
-        //    }
-
-        //    return true;
-        //}
+            return true;
+        }
 
         // check user validation
         /// <summary>
