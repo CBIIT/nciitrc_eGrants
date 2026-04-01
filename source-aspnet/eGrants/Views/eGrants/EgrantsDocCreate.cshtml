@@ -457,7 +457,7 @@
         <input type="text" hidden id="hidEgrantsemail" name="egrants_email" value=@Context.Session.GetString("EgrantsDocEmail")>
         <input type="text" hidden id="hidMax_Categoryid" name="max_categoryid" value="@Model.MaxCategoryId" />
         <input type="text" hidden id="hidPrevious_url" name="previous_url" value="@Model.PreviousUrl" />
-        <input type="text" hidden id="hidPossionID" name="position_id" value=@Context.Session.GetString("position_id") />
+        <input type="text" hidden id="hidPossionID" name="position_id" value=@Context.Session.GetInt32("position_id") />
     </form>
 
     <!--start search form to create or update-->
