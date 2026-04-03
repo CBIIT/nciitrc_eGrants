@@ -1302,7 +1302,7 @@ namespace eGrants.Controllers.Egrants
             int appl_type,
             string activity_code,
             int support_year,
-            string suffix_code)
+            string suffix_code = "")
         {
             this.ViewBag.admincode = admin_code;
             this.ViewBag.serialnum = serial_num;
