@@ -1,4 +1,4 @@
-#region FileHeader
+﻿#region FileHeader
 
 // /****************************** Module Header ******************************\
 // Module Name:  InstitutionalFilesController.cs
@@ -376,68 +376,7 @@ namespace eGrant.Controllers
         /// The comments.
         /// </param>
         [HttpPost]
-        //public async Task Create_Doc_by_File(
-        //    IFormFile file,
-        //    int category_id,
-        //    string org_name,
-        //    string start_date,
-        //    string end_date,
-        //    int org_id,
-        //    string comments)
-        //{
-        //    string url = null;
-        //    string mssg = null;
-
-        //    try
-        //    {
-        //        if (file != null && file.Length > 0 && category_id != 0)
-        //        {
-        //            // get file name and file Extension
-        //            var fileName = Path.GetFileName(file.FileName);
-        //            var fileExtension = Path.GetExtension(fileName);
-
-        //            // get document id and create new document name 
-        //            var docID = await _institutionalFilesService.GetDocID(
-        //                org_id,
-        //                category_id,
-        //                fileExtension,
-        //                start_date ?? "",
-        //                end_date ?? "",
-        //                sessionInfo.Ic,
-        //                sessionInfo.UserId,
-        //                comments ?? "");
-
-        //            var docName = Convert.ToString(docID) + fileExtension;
-
-        //            try
-        //            {
-        //                var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
-        //                Log.Information("fileFolder: " + fileFolder);
-        //                var filePath = Path.Combine(fileFolder, docName);
-        //                // save file asynchronously
-        //                await using var stream = new FileStream(filePath, FileMode.Create);
-        //                await file.CopyToAsync(stream);
-        //                Log.Information("Successfully copyied file to " + fileFolder);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Log.Error("Error in saving Institutional file: " + ex.Message);
-        //            }
-
-        //        }
-        //        else
-        //        {
-        //            ViewBag.Message = "You have not specified information correctly.";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ViewBag.Message = "ERROR:" + ex.Message;
-        //    }
-        //}
-
-        [HttpPost]
-        public async Task<IActionResult> Create_Doc_by_File(
+        public async Task Create_Doc_by_File(
             IFormFile file,
             int category_id,
             string org_name,
@@ -446,43 +385,55 @@ namespace eGrant.Controllers
             int org_id,
             string comments)
         {
-            if (file == null || file.Length == 0 || category_id == 0)
-            {
-                ViewBag.Message = "You have not specified information correctly.";
-                return RedirectToAction("Show_Docs", new { org_id, org_name });
-            }
+            string url = null;
+            string mssg = null;
 
             try
             {
-                var fileName = Path.GetFileName(file.FileName);
-                var fileExtension = Path.GetExtension(fileName);
+                if (file != null && file.Length > 0 && category_id != 0)
+                {
+                    // get file name and file Extension
+                    var fileName = Path.GetFileName(file.FileName);
+                    var fileExtension = Path.GetExtension(fileName);
 
-                // This MUST insert the DB row or you need another call to insert it
-                var docID = await _institutionalFilesService.GetDocID(
-                    org_id,
-                    category_id,
-                    fileExtension,
-                    start_date ?? "",
-                    end_date ?? "",
-                    sessionInfo.Ic,
-                    sessionInfo.UserId,
-                    comments ?? "");
+                    // get document id and create new document name 
+                    var docID = await _institutionalFilesService.GetDocID(
+                        org_id,
+                        category_id,
+                        fileExtension,
+                        start_date ?? "",
+                        end_date ?? "",
+                        sessionInfo.Ic,
+                        sessionInfo.UserId,
+                        comments ?? "");
 
-                var docName = $"{docID}{fileExtension}";
+                    var docName = Convert.ToString(docID) + fileExtension;
 
-                var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
-                var filePath = Path.Combine(fileFolder, docName);
+                    try
+                    {
+                        var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+                        Log.Information("fileFolder: " + fileFolder);
+                        var filePath = Path.Combine(fileFolder, docName);
+                        // save file asynchronously
+                        await using var stream = new FileStream(filePath, FileMode.Create);
+                        await file.CopyToAsync(stream);
+                        Log.Information("Successfully copyied file to " + fileFolder);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Error in saving Institutional file: " + ex.Message);
+                    }
 
-                await using var stream = new FileStream(filePath, FileMode.Create);
-                await file.CopyToAsync(stream);
+                }
+                else
+                {
+                    ViewBag.Message = "You have not specified information correctly.";
+                }
             }
             catch (Exception ex)
             {
-                Log.Error("Error in saving Institutional file: " + ex.Message);
+                ViewBag.Message = "ERROR:" + ex.Message;
             }
-
-            // 🔥 THIS FIXES THE PROBLEM
-            return RedirectToAction("Show_Docs", new { org_id, org_name });
         }
 
         /// <summary>
