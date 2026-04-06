@@ -65,7 +65,9 @@
    }
 
    function refresh_after_upload(org_id, org_name) {
-      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
+      // Add cache-busting timestamp parameter to prevent browser caching issues (especially in Firefox)
+      var timestamp = new Date().getTime();
+      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + encodeURIComponent(org_name) + "&_=" + timestamp;
       window.document.location.href = url;
    }
 
