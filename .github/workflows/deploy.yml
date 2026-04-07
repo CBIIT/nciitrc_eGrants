@@ -301,9 +301,6 @@ jobs:
       - name: Start IIS site and app pool (dev/local)
         if: ${{ github.ref_name == 'dev' }}
         shell: powershell
-        env:
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
