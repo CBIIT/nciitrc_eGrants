@@ -1379,9 +1379,9 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public ActionResult closeout_notif(string applid, string notifName)
+        public async Task<ActionResult> closeout_notif(string applid, string notifName)
         {
-            ViewBag.notification = _documentService.GetCloseoutNotificationAsync(applid, notifName, sessionInfo);
+            ViewBag.notification = await _documentService.GetCloseoutNotificationAsync(applid, notifName, sessionInfo);
             ViewBag.applid = applid;
 
             return this.View("~/Views/Egrants/CloseoutNotif.cshtml");
