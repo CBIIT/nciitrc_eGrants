@@ -1,7 +1,6 @@
 ﻿using System.Data;
-using System.Security;
 using System.Security.Cryptography.X509Certificates;
-using System.Xml.Linq;
+using System.Text;
 
 using eGrants.DAL;
 using eGrants.DTOs;
@@ -13,6 +12,8 @@ using eGrants.ViewModels;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+
+using Newtonsoft.Json;
 
 using Serilog;
 
@@ -1124,59 +1125,45 @@ namespace eGrants.Services
                 Log.Warning("Certificate not found at path: {CertPath}", cerUri);
                 return null;
             }
-            var eraUrl = sessionInfo.EraUrlBase;
-
-            // Create HttpClientHandler with certificate
-            
+            var eraUrlBase = sessionInfo.EraUrlBase?.TrimEnd('/');
+            if (string.IsNullOrEmpty(eraUrlBase))
+            {
+                Log.Warning("ERA URL base is not configured");
+                return null;
+            }
+            var url = $"{eraUrlBase}/grantfolder/api/gfdocuments/getGrantCorrespondence";
 
             using var client = new HttpClient(handler);
+            client.DefaultRequestHeaders.Accept.Add(
+                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-            var escapedApplid = SecurityElement.Escape(applid);
-            var soapRequest = $@"<?xml version=""1.0"" encoding=""utf-8""?>  
-                <soap:Envelope xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
-                xmlns:mes=""http://era.nih.gov/grantDocumentInfo/message""> 
-                <soap:Header/> 
-                <soap:Body>
-                <mes:GrantCorrespondenceRequest>
-                <mes:applId>{escapedApplid}</mes:applId>               
-                </mes:GrantCorrespondenceRequest> 
-                </soap:Body>
-                </soap:Envelope>";
+            var requestDto = new GrantCorrespondenceRequest { ApplId = applid };
+            var jsonBody = JsonConvert.SerializeObject(requestDto);
+            var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-            var content = new StringContent(soapRequest, System.Text.Encoding.UTF8, "application/xml");
-
-            var response = await client.PostAsync($"{eraUrl}grantfolder/services/GrantDocumentInfo", content);
+            var response = await client.PostAsync(url, content);
             response.EnsureSuccessStatusCode();
 
-            var serviceResult = await response.Content.ReadAsStringAsync();
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var dto = JsonConvert.DeserializeObject<GrantCorrespondenceResponse>(responseJson);
 
-            var pos = serviceResult.IndexOf("apache.org>") + "apache.org>".Length;
-            serviceResult = serviceResult.Substring(pos);
-            pos = serviceResult.IndexOf("--uuid:");
-            serviceResult = serviceResult.Substring(0, pos);
-
-            var doc = XDocument.Parse(serviceResult);
-
-            XNamespace ns2 = "http://era.nih.gov/grantDocumentInfo/domain";
-            var responses = doc.Descendants(ns2 + "correspondenceData");
-            
-
-            foreach (var resp in responses)
+            if (dto?.CorrespondenceData != null)
             {
-                var notif_name = (string)resp.Element(ns2 + "notificationName");
-
-                if (notif_name?.ToLower() == notifName.ToLower())
+                foreach (var cd in dto.CorrespondenceData)
                 {
-                    notif.notificationName = notif_name;
-                    notif.description = (string)resp.Element(ns2 + "description");
-                    notif.sentDate = (string)resp.Element(ns2 + "sentDate");
-                    notif.fromAddress = (string)resp.Element(ns2 + "fromAddress");
-                    notif.toAddress = (string)resp.Element(ns2 + "toAddress");
-                    notif.ccAddress = (string)resp.Element(ns2 + "ccAddress");
-                    notif.subject = (string)resp.Element(ns2 + "subject");
-                    var mailbody = (string)resp.Element(ns2 + "emailContent");
-                    notif.emailContent = mailbody;
-                    break; // Exit loop once found
+                    if (!string.IsNullOrWhiteSpace(cd.NotificationName) &&
+                        cd.NotificationName.Equals(notifName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        notif.notificationName = cd.NotificationName;
+                        notif.description = cd.Description;
+                        notif.sentDate = cd.SentDate;
+                        notif.fromAddress = cd.FromAddress;
+                        notif.toAddress = cd.ToAddress;
+                        notif.ccAddress = cd.CcAddress;
+                        notif.subject = cd.Subject;
+                        notif.emailContent = cd.EmailContent;
+                        break;
+                    }
                 }
             }
 
