@@ -5,7 +5,7 @@
         public int? Serial_num { get; set; }
 	    public int? Supp_appl_id { get; set; }
 	    public string? Full_grant_num { get; set; }
-	    public int? Former_num { get; set; }
+	    public string? Former_num { get; set; }
 	    public int? Former_appl_id { get; set; }
 	    public DateTime Submitted_date { get; set; }
 	    public int? movedto_appl_id { get; set; }
