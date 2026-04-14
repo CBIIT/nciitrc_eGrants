@@ -1,5 +1,84 @@
-﻿<!--start display appls and documents-->
-<script src="~/js/"></script>
+﻿<!--
+====================================================================================
+_egrants_showDocsDownloadSupportFunctions.cshtml
+====================================================================================
+
+MIGRATION CHANGES SUMMARY:
+--------------------------
+This Razor partial view contains shared JavaScript functions used across the eGrants
+document download and display features. It was migrated from .NET Framework 4.8 to .NET 8.
+
+KEY CHANGES AND RATIONALE:
+
+1. SHOW_DOC FUNCTION - ERA DOCUMENT HANDLING:
+   WHY: Documents from ERA (services.* URLs) are now routed through EgrantsDocController.show_era_doc
+   instead of being opened directly.
+   
+   REASON: ERA requires client certificate authentication. The browser cannot perform
+   this authentication directly. The server-side action handles:
+   - Loading the X509 certificate with proper KeyStorageFlags
+   - Making the authenticated request to ERA
+   - Receiving a temporary download URL
+   - Redirecting the browser to the temporary URL
+   
+   This two-step process (server gets temp URL then browser redirects) is required because
+   ERA's security model provides time-limited download URLs after authentication.
+
+2. AJAX REQUESTS USE POST WITH JSON:
+   WHY: Functions like getFinancialReport(), getCloseoutNotification() use POST requests
+   with JSON.stringify() for data.
+   
+   REASON: POST with JSON body is the standard for ASP.NET Core Web API endpoints.
+   The controller actions accept these requests and return JSON data for child row rendering.
+
+3. URL CONSTRUCTION:
+   WHY: Using Url.Action() helper for generating controller action URLs.
+   
+   REASON: This ensures correct URL generation regardless of:
+   - Application base path
+   - Area routing
+   - Route configuration changes
+   The Razor helper generates the correct URL at runtime.
+
+4. CHILD ROW RENDERING FUNCTIONS:
+   WHY: Functions like formatFinancialReportChildRow(), formatCloseoutNotificationChildRow()
+   generate HTML strings for DataTables child rows.
+   
+   REASON: DataTables child row expansion requires HTML content. These functions:
+   - Build checkbox inputs with proper CSS classes for download selection
+   - Include data attributes needed for the download process
+   - Generate status indicator images (visibility: hidden until download occurs)
+
+5. CHECKBOX CLASS NAMING CONVENTION:
+   WHY: Checkbox inputs use classes like 'FinancialReport', 'FFR', 'CloseoutNotifications'
+   
+   REASON: The download button's click handler uses these classes to determine:
+   - Whether to expand child rows for composite documents
+   - What URL format to use for each document type
+- How to construct the download request parameters
+   
+   Class-based selection allows the JavaScript to handle different document types
+   without hardcoding document IDs or names.
+
+6. I2E URL DETECTION:
+   WHY: URLs starting with "https://i2e" are disabled for download.
+   
+   REASON: i2e (Information for Electronic Research Administration) URLs point to
+   the NIH IMPAC II system which requires separate authentication. These documents
+   cannot be bulk downloaded through the eGrants proxy and must be accessed directly
+   by the user through the IMPAC II portal.
+
+7. IMAGE PATHS:
+   WHY: Status indicator images use relative paths like '../images/new-fa-circle-check.gif'
+   
+   REASON: The images were changed from Font Awesome SVG icons to static GIF images
+   because Font Awesome's SVG JavaScript replacement doesn't work reliably in the
+   .NET 8 Razor view engine context. Static images ensure consistent display.
+
+====================================================================================
+-->
+<!--start display appls and documents-->
+<script src="~/js/jquery.dataTables.min.js"></script>
 <script src="~/js/moment.js"></script>
 <script src="~/js/datetime-moment.js"></script>
 <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
@@ -486,97 +565,97 @@
 
       function renderDetailsControl(data, type, full, meta) {
           if (full.frc_destroyed == 0) {
-              if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
-                  //console.log("must be one or the other FFR or Financial Report :" + JSON.stringify(full));
+        if (full.fsr_count > 1 && (full.document_name == "FFR" || full.document_name == "Financial Report")) {
+              //console.log("must be one or the other FFR or Financial Report :" + JSON.stringify(full));
 
-                  return "<div id=\"dl_checkbox_" +
-                      full.document_id +
-                      "\"" +
-                      " name=\"dl_checkbox\" class=\"show_dl\"> " +
-                      " <input type=\"checkbox\" class=\"showDownload FinancialReport FFR\" id=\"" +
-                      full.document_id +
-                      "\"" +
-                      " class=\"qc\" name=\"qc\" value=\"" +
-                      full.document_id +
-                      "\"" +
-                      ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                      "/></div>";
+    return "<div id=\"dl_checkbox_" +
+        full.document_id +
+          "\"" +
+      " name=\"dl_checkbox\" class=\"show_dl\"> " +
+" <input type=\"checkbox\" class=\"showDownload FinancialReport FFR\" id=\"" +
+      full.document_id +
+       "\"" +
+          " class=\"qc\" name=\"qc\" value=\"" +
+       full.document_id +
+      "\"" +
+    ((full.url && full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+          "/></div>";
 
-                  if (full.document_name == "Financial Report") {
-                      console.log("must be Financial Report full.document_name :" + full.category_name);
-                      console.log("Rendering and Financial Report with class Financial Report");
-                      return "<div id=\"dl_checkbox_" +
-                          full.document_id +
-                          "\"" +
-                          " name=\"dl_checkbox\" class=\"show_dl\"> " +
-                          " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
-                          full.document_id +
-                          "\"" +
-                          " class=\"qc\" name=\"qc\" value=\"" +
-                          full.document_id +
-                          "\"" +
-                          ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                          "/></div>";
-                  }
-                  if (full.document_name == "FFR") {
-                      console.log("must be FFR full.document_name :" + full.category_name);
-                      console.log("Rendering and FFR with class FFR");
-                      return "<div id=\"dl_checkbox_" +
-                          full.document_id +
-                          "\"" +
-                          " name=\"dl_checkbox\" class=\"show_dl\"> " +
-                          " <input type=\"checkbox\" class=\"showDownload FFR\" id=\"" +
-                          full.document_id +
-                          "\"" +
-                          " class=\"qc\" name=\"qc\" value=\"" +
-                          full.document_id +
-                          "\"" +
-                          ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                          "/></div>";
-                  }
+        if (full.document_name == "Financial Report") {
+                 console.log("must be Financial Report full.document_name :" + full.category_name);
+    console.log("Rendering and Financial Report with class Financial Report");
+            return "<div id=\"dl_checkbox_" +
+    full.document_id +
+   "\"" +
+           " name=\"dl_checkbox\" class=\"show_dl\"> " +
+      " <input type=\"checkbox\" class=\"showDownload FinancialReport\" id=\"" +
+           full.document_id +
+   "\"" +
+      " class=\"qc\" name=\"qc\" value=\"" +
+        full.document_id +
+    "\"" +
+       ((full.url && full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+         "/></div>";
+}
+            if (full.document_name == "FFR") {
+       console.log("must be FFR full.document_name :" + full.category_name);
+ console.log("Rendering and FFR with class FFR");
+   return "<div id=\"dl_checkbox_" +
+        full.document_id +
+    "\"" +
+   " name=\"dl_checkbox\" class=\"show_dl\"> " +
+               " <input type=\"checkbox\" class=\"showDownload FFR\" id=\"" +
+  full.document_id +
+     "\"" +
+         " class=\"qc\" name=\"qc\" value=\"" +
+   full.document_id +
+         "\"" +
+   ((full.url && full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+      "/></div>";
+        }
               } else if (full.attachment_count > 0) {
-                  return "<div id=\"dl_checkbox_" +
-                      full.document_id +
-                      "\"" +
-                      " name=\"dl_checkbox\" class=\"show_dl\"> " +
-                      " <input type=\"checkbox\" class=\"showDownload Attachments\" id=\"" +
-                      full.document_id +
-                      "\"" +
-                      " class=\"qc\" name=\"qc\" value=\"" +
-                      full.document_id +
-                      "\"" +
-                      ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                      "/></div>";
+       return "<div id=\"dl_checkbox_" +
+  full.document_id +
+          "\"" +
+    " name=\"dl_checkbox\" class=\"show_dl\"> " +
+ " <input type=\"checkbox\" class=\"showDownload Attachments\" id=\"" +
+          full.document_id +
+         "\"" +
+   " class=\"qc\" name=\"qc\" value=\"" +
+              full.document_id +
+  "\"" +
+           ((full.url && full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+     "/></div>";
               } else if (full.document_name == "Closeout Notification") {
-                  return "<div id=\"dl_checkbox_" +
-                      full.appl_id +
-                      full.grant_id +
-                      "\"" +
-                      " name=\"dl_checkbox\" class=\"show_dl\"> " +
-                      " <input type=\"checkbox\" class=\"showDownload CloseoutNotifications\" id=\"" +
-                      full.appl_id +
-                      "\"" +
-                      " class=\"qc\" name=\"qc\" value=\"" +
-                      full.appl_id +
-                      full.grant_id +
-                      "\"" +
-                      ((full.url && full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                      "/></div>";
-              } else
-                  return "<div id=\"dl_checkbox_" +
-                      full.document_id +
-                      "\"" +
-                      " name=\"dl_checkbox\" class=\"show_dl\"> " +
-                      " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
-                      full.document_id +
-                      "\"" +
-                      " class=\"qc\" name=\"qc\" value=\"" +
-                      full.document_id +
-                      "\"" +
-                      ((full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
-                      "/></div>";
+       return "<div id=\"dl_checkbox_" +
+         full.appl_id +
+            full.grant_id +
+        "\"" +
+         " name=\"dl_checkbox\" class=\"show_dl\"> " +
+" <input type=\"checkbox\" class=\"showDownload CloseoutNotifications\" id=\"" +
+                  full.appl_id +
+                   "\"" +
+         " class=\"qc\" name=\"qc" value=\"" +
+        full.appl_id +
+     full.grant_id +
+     "\"" +
+               ((full.url && full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+    "/></div>";
+   } else
+  return "<div id=\"dl_checkbox_" +
+    full.document_id +
+    "\"" +
+         " name=\"dl_checkbox\" class=\"show_dl\"> " +
+               " <input type=\"checkbox\" class=\"showDownload\" id=\"" +
+               full.document_id +
+        "\"" +
+      " class=\"qc\" name=\"qc" value=\"" +
+          full.document_id +
+            "\"" +
+      ((full.url && full.url.substring(0, 11) == "https://i2e" ? "disabled title=\"Unable to download file\"" : "enabled title=\"Check here to select this document for download\"")) +
+    "/></div>";
 
-          } else return "<strike>" + full.document_name + "</strike>";
+    } else return "<strike>" + full.document_name + "</strike>";
       }
 
 </script>

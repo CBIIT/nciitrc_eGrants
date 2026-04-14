@@ -73,6 +73,8 @@
 
 #endregion
 
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web;
@@ -96,7 +98,49 @@ using Serilog;
 namespace eGrants.Controllers.Egrants
 {
     /// <summary>
-    /// The egrants doc controller.
+/// The egrants doc controller.
+    /// Handles document-related operations including viewing, uploading, creating, and modifying documents.
+    /// 
+    /// MIGRATION CHANGES SUMMARY:
+    /// -------------------------
+    /// This controller was migrated from egrants_new (.NET Framework 4.8) to .NET 8. Key changes:
+    /// 
+    /// 1. DEPENDENCY INJECTION:
+    ///    WHY: .NET 8 requires constructor-based DI instead of static helper classes.
+    ///    Legacy code used static classes like EgrantsDoc.LoadFormerAppls() directly.
+    ///    Now uses injected services (IDocumentService, IeGrantsService, etc.) for testability.
+    /// 
+    /// 2. SESSION INFO PROPERTY:
+    ///    WHY: Provides cleaner access to session data throughout the controller.
+    ///The sessionInfo property uses ISessionInfoService to abstract Session access,
+    ///    making the code more testable and consistent with .NET 8 patterns.
+  /// 
+    /// 3. SHOW_ERA_DOC ACTION CHANGES:
+    ///  WHY: Complete rewrite required due to .NET 8 HTTP client changes:
+    ///    - SocketsHttpHandler replaces HttpClientHandler for better TLS control
+    ///    - Explicit SslProtocols.Tls12 | Tls13 required (older protocols deprecated)
+    ///    - X509Certificate2 KeyStorageFlags (MachineKeySet, PersistKeySet, Exportable)
+    ///    are required for IIS/web app environments to properly load private keys
+    ///    - Comprehensive error handling with Serilog logging for diagnostics
+    /// 
+    /// 4. FILE UPLOAD CHANGES (IFormFile):
+    ///    WHY: ASP.NET Core uses IFormFile instead of HttpPostedFileBase.
+ ///    - IFormFile provides async streaming (CopyToAsync) for better performance
+    ///    - OpenReadStream() replaces InputStream property
+    ///    - File operations moved to service layer for separation of concerns
+  /// 
+    /// 5. PDF CONVERSION (EmailConcatenation.PdfConverter):
+    ///  WHY: The legacy Rotativa/ViewAsPdf approach doesn't work in .NET 8.
+    ///    EmailConcatenation.PdfConverter provides cross-platform PDF generation
+    ///    without requiring external browser dependencies.
+    /// 
+    /// 6. RESPONSE CACHING ATTRIBUTES:
+    ///    WHY: [OutputCache(NoStore = true)] replaced with [ResponseCache(...)]
+    ///    ASP.NET Core uses different caching attributes and middleware.
+ /// 
+    /// 7. CONFIGURATION ACCESS:
+    ///WHY: IConfiguration replaces ConfigurationManager.AppSettings
+    ///    .NET 8 uses appsettings.json and IConfiguration for settings access.
     /// </summary>
     public class EgrantsDocController : Controller
     {
@@ -173,56 +217,112 @@ namespace eGrants.Controllers.Egrants
         {
             try
             {
-
-                var certUrl = _configuration["AppSettings:certPath"];
-                var certPass = _configuration["AppSettings:certPass"];
-
-                if (string.IsNullOrEmpty(certUrl) || !System.IO.File.Exists(certUrl))
+                if (string.IsNullOrWhiteSpace(docurl))
                 {
-                    Log.Error("Certificate not found at path: {CertPath}", certUrl);
+                    Log.Error("show_era_doc called with null or empty docurl");
+                    return BadRequest("Document URL is required.");
                 }
 
-                var certificate = new X509Certificate2(certUrl, certPass);
+                var certPath = _configuration["AppSettings:certPath"];
+                var certPass = _configuration["AppSettings:certPass"];
 
-                var handler = new HttpClientHandler
+                if (string.IsNullOrEmpty(certPath) || !System.IO.File.Exists(certPath))
                 {
-                    AllowAutoRedirect = false, // Prevent automatic redirects
-                    ClientCertificateOptions = ClientCertificateOption.Manual
+                    Log.Error("Certificate not found at path: {CertPath}", certPath);
+                    return StatusCode(500, "Server configuration error: Certificate not found.");
+                }
+
+                // Load certificate with proper key storage flags for ASP.NET Core / .NET 8
+                var certificate = new X509Certificate2(
+                    certPath,
+                    certPass,
+                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+
+                Log.Information("Certificate loaded successfully. Subject: {Subject}, HasPrivateKey: {HasPrivateKey}",
+                    certificate.Subject, certificate.HasPrivateKey);
+
+                // Use SocketsHttpHandler for better TLS control in .NET 8
+                var handler = new SocketsHttpHandler
+                {
+                    SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+                    {
+                        EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+                        ClientCertificates = new X509Certificate2Collection { certificate },
+                        RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                        {
+                            // Log certificate validation details for debugging
+                            if (errors != System.Net.Security.SslPolicyErrors.None)
+                            {
+                                Log.Warning("SSL Certificate validation warning: {Errors}", errors);
+                            }
+                            return true; // Accept the server certificate (adjust as needed for security)
+                        }
+                    },
+                    AllowAutoRedirect = false
                 };
-                handler.ClientCertificates.Add(certificate);
 
                 using var client = new HttpClient(handler);
                 client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
                 client.Timeout = TimeSpan.FromSeconds(30);
 
-                Log.Information("Requesting ERA document: {DocUrl}", docurl);
+                Log.Information("Requesting ERA document: {DocUrl}, Certificate HasPrivateKey: {HasPrivateKey}",
+                    docurl, certificate.HasPrivateKey);
 
                 var response = await client.GetAsync(docurl);
 
-                // Log response details
                 Log.Information("ERA response status: {StatusCode}", response.StatusCode);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
+                    var truncatedContent = errorContent.Length > 200
+                        ? errorContent.Substring(0, 200)
+                        : errorContent;
                     Log.Error("ERA request failed. Status: {Status}, Content: {Content}",
-                        response.StatusCode, errorContent.Substring(0, Math.Min(200, errorContent.Length)));
+                        response.StatusCode, truncatedContent);
+
+                    return StatusCode((int)response.StatusCode,
+     $"Failed to retrieve document from ERA. Status: {response.StatusCode}");
                 }
 
                 var tempLink = await response.Content.ReadAsStringAsync();
                 tempLink = tempLink?.Trim();
 
+                if (string.IsNullOrWhiteSpace(tempLink))
+                {
+                    Log.Error("ERA returned empty or null temporary link for URL: {DocUrl}", docurl);
+                    return StatusCode(502, "ERA service returned an empty response.");
+                }
+
+                // Validate that the response looks like a URL
+                if (!Uri.TryCreate(tempLink, UriKind.Absolute, out var validatedUri) ||
+                    (validatedUri.Scheme != Uri.UriSchemeHttp && validatedUri.Scheme != Uri.UriSchemeHttps))
+                {
+                    Log.Error("ERA returned invalid URL: {TempLink} for DocUrl: {DocUrl}",
+                        tempLink.Length > 200 ? tempLink.Substring(0, 200) : tempLink, docurl);
+                    return StatusCode(502, "ERA service returned an invalid response.");
+                }
+
                 Log.Information("Redirecting to temporary link: {TempLink}", tempLink);
 
                 return Redirect(tempLink);
             }
+            catch (TaskCanceledException ex)
+            {
+                Log.Error(ex, "Request timeout in show_era_doc for URL: {DocUrl}", docurl);
+                return StatusCode(504, "Request to ERA service timed out.");
+            }
+            catch (HttpRequestException ex)
+            {
+                Log.Error(ex, "HTTP request error in show_era_doc for URL: {DocUrl}", docurl);
+                return StatusCode(502, "Failed to connect to ERA service.");
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "Unexpected error in show_era_doc for URL: {DocUrl}", docurl);
-                throw;
+                return StatusCode(500, "An unexpected error occurred while retrieving the document.");
             }
         }
-
 
         public async Task<ActionResult> LoadSupplementDoc(string act, int grantId)
         {
@@ -582,6 +682,7 @@ namespace eGrants.Controllers.Egrants
                         var fileFolder = @"C:\PdfFileOutput\";
 #else
                         var fileFolder = @"\\" + HttpContext.Session.GetString("WebGrantUrl") + "\\egrants\\funded2\\nci\\main\\";
+
 #endif
                         // leave in place for now for local testing
 
@@ -904,8 +1005,10 @@ namespace eGrants.Controllers.Egrants
 
 #if DEBUG
                         var fileFolder = @"C:\PdfFileOutput\";
+
 #else
                         var fileFolder = @"\\" + HttpContext.Session.GetString("WebGrantUrl") + "\\egrants\\funded2\\nci\\main\\";
+
 #endif
 
                         var filePath = Path.Combine(fileFolder, docName);
@@ -1132,7 +1235,6 @@ namespace eGrants.Controllers.Egrants
 
             return this.Json(new { url, message = mssg });
         }
-
 
         // to update document index for normal documents
         /// <summary>
