@@ -66,7 +66,7 @@
                 return false;
             } else var serialnum = document.getElementById("txtSerialnum").value;
 
-            var url = "@Url.Action("ApplCreateDefault", "EgrantsDoc")?adminCode=" + admincode + "&serialNum=" + serialnum;
+            var url = "@Url.Action("appl_create_default", "EgrantsDoc")?admin_code=" + admincode + "&serial_num=" + serialnum;
             window.open(url, "NewAPPL", "toolbar=0,menubar=0,location=0,status=0,width=850,height=400,scrollbars=yes,left=200,top=200");
         }
     }
