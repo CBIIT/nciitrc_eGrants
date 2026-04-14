@@ -1,4 +1,72 @@
-﻿<!--start display appls and documents-->
+﻿<!--
+====================================================================================
+_egrants_showDocsDownload.cshtml
+====================================================================================
+
+MIGRATION CHANGES SUMMARY:
+--------------------------
+This Razor partial view handles the document download grid display and user interaction
+for the Audit File Download feature. It was migrated from .NET Framework 4.8 to .NET 8.
+
+KEY CHANGES AND RATIONALE:
+
+1. AJAX POST REQUEST FORMAT:
+   WHY: The download request now uses 'application/x-www-form-urlencoded' content type
+   with $.param() serialization instead of JSON.stringify().
+   
+   REASON: ASP.NET Core's [FromForm] attribute expects form-encoded data, not JSON.
+   This change was necessary because:
+   - The controller action uses [FromForm] for parameter binding
+   - Large lists of URLs can exceed GET URL length limits (was previously using GET)
+   - Form encoding handles arrays (listOfUrl) correctly with ASP.NET Core model binding
+   
+   LEGACY CODE:
+   $.ajax({
+       contentType: 'application/json; charset=utf-8',
+   data: JSON.stringify(dataToSend),
+       url: "/Egrants/IsDownloadForm?" + urlParams
+   });
+   
+   .NET 8 CODE:
+   $.ajax({
+       contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+       data: $.param(dataToSend, true),
+ url: "/Egrants/IsDownloadForm"
+   });
+
+2. URL PARAMETER HANDLING:
+   WHY: Data is now sent in the request body instead of URL query string.
+   
+   REASON: URL length limitations (typically 2048 characters) caused failures
+   when downloading many documents. Moving data to POST body removes this limit.
+
+3. SESSION-BASED FILE RETRIEVAL:
+   WHY: The Download action now retrieves zip files from Session instead of TempData.
+   
+   REASON: ASP.NET Core TempData has size limitations due to cookie-based storage
+   by default. Session storage handles large byte arrays (zip files) more reliably.
+
+4. ICON/STATUS DISPLAY:
+   WHY: Using static GIF images instead of Font Awesome SVG icons for status indicators.
+   
+   REASON: Font Awesome's SVG replacement (data-auto-replace-svg) doesn't work reliably
+   in .NET 8 Razor views. Static images provide consistent cross-browser display.
+
+5. DataTables AJAX URL:
+   WHY: Using relative URLs (/Egrants/LoadDocsGrid) instead of Url.Action helpers.
+   
+   REASON: Ensures compatibility with both local development and deployed environments
+   without requiring Razor URL generation for client-side JavaScript.
+
+6. FIREFOX WARNING:
+ WHY: Added warning for Firefox users about icon status not being supported.
+ 
+   REASON: Firefox handles CSS visibility and SVG rendering differently than
+   Chrome/Edge. The download status icons may not display correctly in Firefox.
+
+====================================================================================
+-->
+<!--start display appls and documents-->
 <script src="~/js/jquery.datatables.min.js"></script>
 <script src="~/js/moment.js"></script>
 <script src="~/js/datetime-moment.js"></script>
@@ -668,26 +736,19 @@
 
                         dataToSend.listOfUrl = list;
 
-                        var urlParams = new URLSearchParams();
-                        urlParams.append('appl', @appl_id);
-                        urlParams.append('fullGrantNumber', '@fullGrantNumber');
-
-                        // Add each item in the list as a separate parameter
-                        for (var i = 0; i < dataToSend.listOfUrl.length; i++) {
-                            urlParams.append('listOfUrl', dataToSend.listOfUrl[i]);
-                        }
-
-                        // post the data to the server
-                        $.ajax(
-                            {
-                                cache: false,
-                                async: true,
-                                type: 'POST',
-                                dataType: 'JSON',
-                                contentType: 'application/json; charset=utf-8',                 
-                                url: "/Egrants/IsDownloadForm?" + urlParams.toString(), 
-                                timeout: 600000,
-                                success: function(data) {
+       // post the data to the server using form data in the request body
+   // This avoids URL length limitations when downloading many documents
+          $.ajax(
+  {
+    cache: false,
+    async: true,
+ type: 'POST',
+           dataType: 'JSON',
+    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+       data: $.param(dataToSend, true),
+          url: "/Egrants/IsDownloadForm",
+    timeout: 600000,
+         success: function(data) {
                                     console.log("SUCCESS: ");
 
                                     var countSuccess = 0;
@@ -725,7 +786,7 @@
                                                                     } else {
                                                                         $(this).find('img').attr('src', '../images/new-fa-circle-exclamation.gif');
                                                                         $(this).find('img').attr('title', 'File Not Found.');
-                                                                        $(this).find('img').css('visibility', 'visible');
+$(this).find('img').css('visibility', 'visible');
 
                                                                         trSvg.attr("title", found[0].error);
                                                                     }
@@ -758,7 +819,7 @@
                                                                 } else {
                                                                     $(this).find('img').attr('src', '../images/new-fa-circle-exclamation.gif');
                                                                     $(this).find('img').attr('title', 'File Not Found.');
-                                                                    $(this).find('img').css('visibility', 'visible');
+$(this).find('img').css('visibility', 'visible');
 
                                                                     trSvg.attr("title", found[0].error);
                                                                 }
