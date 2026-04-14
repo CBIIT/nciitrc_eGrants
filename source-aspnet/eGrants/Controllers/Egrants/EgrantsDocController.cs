@@ -34,45 +34,6 @@
 #endregion
 
 #region
-
-//using System;
-//using System.Collections.Generic;
-//using System.Configuration;
-//using System.Diagnostics;
-//using System.IO;
-//using System.Linq;
-//using System.Net;
-//using System.Security.Cryptography.X509Certificates;
-//using System.Text;
-//using System.Web;
-//using System.Web.Mvc;
-
-//using DocumentFormat.OpenXml.Wordprocessing;
-
-//using eGrants.Services.Interfaces;
-
-//using egrants_new.Egrants.Functions;
-//using egrants_new.Functions;
-//using egrants_new.Integration.WebServices;
-//using egrants_new.Models;
-
-//using EmailConcatenation;
-
-//using IronPdf;
-
-//using Microsoft.AspNetCore.Mvc;
-
-//using MsgReader.Outlook;
-
-//using Newtonsoft.Json;
-
-//using WebGrease.Activities;
-
-//using static System.Net.WebRequestMethods;
-//using static egrants_new.Egrants_Admin.Models.Supplement;
-
-#endregion
-
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -94,11 +55,12 @@ using Microsoft.AspNetCore.OutputCaching;
 using MsgReader.Outlook;
 
 using Serilog;
+#endregion
 
 namespace eGrants.Controllers.Egrants
 {
     /// <summary>
-/// The egrants doc controller.
+    /// The egrants doc controller.
     /// Handles document-related operations including viewing, uploading, creating, and modifying documents.
     /// 
     /// MIGRATION CHANGES SUMMARY:
@@ -114,7 +76,7 @@ namespace eGrants.Controllers.Egrants
     ///    WHY: Provides cleaner access to session data throughout the controller.
     ///The sessionInfo property uses ISessionInfoService to abstract Session access,
     ///    making the code more testable and consistent with .NET 8 patterns.
-  /// 
+    /// 
     /// 3. SHOW_ERA_DOC ACTION CHANGES:
     ///  WHY: Complete rewrite required due to .NET 8 HTTP client changes:
     ///    - SocketsHttpHandler replaces HttpClientHandler for better TLS control
@@ -125,10 +87,10 @@ namespace eGrants.Controllers.Egrants
     /// 
     /// 4. FILE UPLOAD CHANGES (IFormFile):
     ///    WHY: ASP.NET Core uses IFormFile instead of HttpPostedFileBase.
- ///    - IFormFile provides async streaming (CopyToAsync) for better performance
+    ///    - IFormFile provides async streaming (CopyToAsync) for better performance
     ///    - OpenReadStream() replaces InputStream property
     ///    - File operations moved to service layer for separation of concerns
-  /// 
+    /// 
     /// 5. PDF CONVERSION (EmailConcatenation.PdfConverter):
     ///  WHY: The legacy Rotativa/ViewAsPdf approach doesn't work in .NET 8.
     ///    EmailConcatenation.PdfConverter provides cross-platform PDF generation
@@ -137,7 +99,7 @@ namespace eGrants.Controllers.Egrants
     /// 6. RESPONSE CACHING ATTRIBUTES:
     ///    WHY: [OutputCache(NoStore = true)] replaced with [ResponseCache(...)]
     ///    ASP.NET Core uses different caching attributes and middleware.
- /// 
+    /// 
     /// 7. CONFIGURATION ACCESS:
     ///WHY: IConfiguration replaces ConfigurationManager.AppSettings
     ///    .NET 8 uses appsettings.json and IConfiguration for settings access.
@@ -370,7 +332,7 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public async Task <ActionResult> ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
+        public async Task<ActionResult> ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
         {
             ViewBag.Status = "Done";
             ViewBag.GrantID = grant_id;
@@ -567,7 +529,7 @@ namespace eGrants.Controllers.Egrants
         [HttpPost]
         public async Task<ActionResult> doc_create_by_file(IFormFile file, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         {
-            var result = await _documentService.DocCreateByFileAsync(file, appl_id, category_id, 
+            var result = await _documentService.DocCreateByFileAsync(file, appl_id, category_id,
                 sub_category, doc_date, admin_code, serial_num, sessionInfo);
 
             return Json(new { url = result.Url, message = result.Message });
@@ -910,7 +872,7 @@ namespace eGrants.Controllers.Egrants
         /// <param name="doc_id">The document ID.</param>
         /// <returns>JSON result with upload status.</returns>
         [HttpPost]
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]        
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> doc_upload_by_file(IFormFile file, int doc_id)
         {
             var result = await _documentService.DocUploadByFileAsync(file, doc_id, sessionInfo);
@@ -1084,7 +1046,7 @@ namespace eGrants.Controllers.Egrants
         public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         {
             var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
-            
+
             return Json(new { url = result.Url, message = result.Message });
         }
 
@@ -1294,7 +1256,7 @@ namespace eGrants.Controllers.Egrants
         /// <param name="document_date">The document_date.</param>
         /// <param name="previous_url">The previous_url.</param>
         /// <returns>The <see cref="ActionResult"/>.</returns>
-        public async Task<ActionResult> doc_index_modify(string act = "", int appl_id = 0, int document_id = 0, 
+        public async Task<ActionResult> doc_index_modify(string act = "", int appl_id = 0, int document_id = 0,
             int category_id = 0, string sub_category = "", string document_date = "", string previous_url = "")
         {
             var docids = Convert.ToString(document_id);
