@@ -79,11 +79,11 @@ namespace eGrants.Controllers.Egrants
     ///    .NET 8: HttpContext.Session.GetString("key") or via ISessionInfoService abstraction
     ///    This abstraction also improves testability by allowing mock sessions in unit tests.
     /// 
-  /// 3. ASYNC/AWAIT PATTERN:
+    /// 3. ASYNC/AWAIT PATTERN:
     ///    WHY: .NET 8 emphasizes async patterns for better scalability and thread utilization.
     ///    Synchronous I/O operations can block threads, reducing server throughput.
     ///    Most actions are now async Task<IActionResult> instead of ActionResult.
-  /// 
+    /// 
     /// 4. DOWNLOAD MECHANISM REWRITE (IsDownloadForm & Download actions):
     ///    WHY: Multiple breaking changes required a complete rewrite:
     ///    - TempData size limits: ASP.NET Core TempData has serialization overhead and size constraints.
@@ -100,21 +100,21 @@ namespace eGrants.Controllers.Egrants
     public class EgrantsController : Controller
     {
         const int MAX_RETRIES = 3;
-        
+
         // .NET 8 Migration: Services are now injected via constructor instead of using static classes
         // This enables better testability and follows SOLID principles
         private readonly IeGrantsService _eGrantsService;
-  private readonly IDocumentService _documentService;
+        private readonly IDocumentService _documentService;
         private readonly ICommonService _commonService;
         private readonly ISessionInfoService _sessionInfoService;
 
         public EgrantsController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService)
         {
-          _eGrantsService = eGrantsService;
-     _commonService = commonService;
- _sessionInfoService = sessionInfoService;
-    _documentService = documentService;
- }
+            _eGrantsService = eGrantsService;
+            _commonService = commonService;
+            _sessionInfoService = sessionInfoService;
+            _documentService = documentService;
+        }
 
         // go to default 
         /// <summary>
@@ -157,66 +157,66 @@ namespace eGrants.Controllers.Egrants
         /// - Parameters bound implicitly from form/query
         /// - Created HttpWebRequest for ERA files with certificate
         /// - Used WebClient for standard file downloads
-    /// - Stored zip bytes in TempData[handle]
+        /// - Stored zip bytes in TempData[handle]
         /// - Used ViewAsPdf (Rotativa) for closeout notifications
-  /// 
- /// .NET 8:
+        /// 
+        /// .NET 8:
         /// - Uses async Task<IActionResult> for non-blocking I/O
         /// - [FromForm] attributes explicitly bind parameters from POST body
         /// - Download logic moved to DocumentService.ProcessDocumentDownloadAsync()
         /// - Uses HttpClient with HttpClientHandler for all HTTP requests
- /// - Stores zip bytes in Session (TempData has size limits in .NET Core)
+        /// - Stores zip bytes in Session (TempData has size limits in .NET Core)
         /// - Uses EmailConcatenation.PdfConverter for closeout notification PDFs
         /// - Certificate handling uses X509Certificate2 with SslProtocols.Tls12 | Tls13
         /// </summary>
         /// <param name="appl">The application ID</param>
         /// <param name="fullGrantNumber">The full grant number</param>
-    /// <param name="listOfUrl">List of URLs to download (pipe-delimited format: url|category|subcategory|docId|docName|docDate)</param>
-      /// <returns>JSON result with download model containing success/failure status and zip file handle</returns>
+        /// <param name="listOfUrl">List of URLs to download (pipe-delimited format: url|category|subcategory|docId|docName|docDate)</param>
+        /// <returns>JSON result with download model containing success/failure status and zip file handle</returns>
         [HttpPost]
- public async Task<IActionResult> IsDownloadForm([FromForm] string appl, [FromForm] string fullGrantNumber, [FromForm] IList<string> listOfUrl)
+        public async Task<IActionResult> IsDownloadForm([FromForm] string appl, [FromForm] string fullGrantNumber, [FromForm] IList<string> listOfUrl)
         {
-    // .NET 8 Migration: SessionInfo retrieved via service instead of direct Session access
+            // .NET 8 Migration: SessionInfo retrieved via service instead of direct Session access
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-     // .NET 8 Migration: Request object encapsulates all download parameters
-        // This replaces the inline parameter handling in the legacy controller
-       var request = new DownloadRequest
+            // .NET 8 Migration: Request object encapsulates all download parameters
+            // This replaces the inline parameter handling in the legacy controller
+            var request = new DownloadRequest
             {
- ApplId = appl,
-          FullGrantNumber = fullGrantNumber,
-    ListOfUrl = listOfUrl,
-             SessionInfo = sessionInfo
-         };
+                ApplId = appl,
+                FullGrantNumber = fullGrantNumber,
+                ListOfUrl = listOfUrl,
+                SessionInfo = sessionInfo
+            };
 
-   // .NET 8 Migration: Download processing moved to service layer
-    // Legacy had all download logic inline in the controller action
-  var downloadModel = await _documentService.ProcessDocumentDownloadAsync(request);
+            // .NET 8 Migration: Download processing moved to service layer
+            // Legacy had all download logic inline in the controller action
+            var downloadModel = await _documentService.ProcessDocumentDownloadAsync(request);
 
-      // .NET 8 Migration: Store zip bytes in Session instead of TempData
-         // TempData in ASP.NET Core has size limitations and requires serialization
-     // Session.Set() handles byte arrays directly
+            // .NET 8 Migration: Store zip bytes in Session instead of TempData
+            // TempData in ASP.NET Core has size limitations and requires serialization
+            // Session.Set() handles byte arrays directly
             if (downloadModel.ZipFileBytes != null)
- {
-        HttpContext.Session.Set(downloadModel.Handle, downloadModel.ZipFileBytes);
+            {
+                HttpContext.Session.Set(downloadModel.Handle, downloadModel.ZipFileBytes);
             }
 
-        return Json(downloadModel);
-  }
+            return Json(downloadModel);
+        }
 
         /// <summary>
         /// Download action to serve the zip file
         /// 
         /// MIGRATION NOTES:
-      /// ----------------
+        /// ----------------
         /// Legacy (.NET Framework):
         /// - Retrieved byte[] from TempData[fileGuid]
         /// - Manually set Content-Disposition header via Response.AppendHeader()
         /// - Used ContentDisposition class for header formatting
         /// 
         /// .NET 8:
-     /// - Retrieves byte[] from HttpContext.Session.Get()
-   /// - File() method automatically sets Content-Disposition header
+        /// - Retrieves byte[] from HttpContext.Session.Get()
+        /// - File() method automatically sets Content-Disposition header
         /// - Returns NotFound() instead of EmptyResult for missing files
         /// </summary>
         /// <param name="fileGuid">The file GUID (handle) stored in session</param>
@@ -224,21 +224,21 @@ namespace eGrants.Controllers.Egrants
         /// <returns>File result with zip content or NotFound</returns>
         public virtual IActionResult Download(string fileGuid, string fileName)
         {
-  // .NET 8 Migration: Retrieve from Session instead of TempData
-  var data = HttpContext.Session.Get(fileGuid);
+            // .NET 8 Migration: Retrieve from Session instead of TempData
+            var data = HttpContext.Session.Get(fileGuid);
 
             if (data != null)
             {
-     // Clean up session after retrieving the file
-  HttpContext.Session.Remove(fileGuid);
-          
-       // .NET 8 Migration: File() method handles Content-Disposition automatically
+                // Clean up session after retrieving the file
+                HttpContext.Session.Remove(fileGuid);
+
+                // .NET 8 Migration: File() method handles Content-Disposition automatically
                 // Third parameter (fileName) triggers attachment disposition
-       return File(data, "application/zip", fileName);
-        }
+                return File(data, "application/zip", fileName);
+            }
 
             // .NET 8 Migration: Return proper 404 instead of EmptyResult
-       return NotFound();
+            return NotFound();
         }
 
         // get appls list with documents by (admin_code and serial_num) added by Ayu at 3/15/2019
