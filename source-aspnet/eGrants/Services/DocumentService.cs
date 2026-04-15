@@ -1260,89 +1260,74 @@ var htmlBytes = System.Text.Encoding.UTF8.GetBytes(htmlContent);
         /// <summary>
       /// Get closeout notification data from ERA SOAP service
         /// </summary>
-     public async Task<Notification> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
-      {
-   var cerUri = sessionInfo.CertPath;
+     public async Task<Notification?> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
+{
+    var cerUri = sessionInfo.CertPath;
     var certPass = sessionInfo.CertPass;
-            var notif = new Notification();
 
     if (string.IsNullOrEmpty(cerUri) || !System.IO.File.Exists(cerUri))
-            {
-      Log.Warning("Certificate not found at path: {CertPath}", cerUri);
- return null;
-            }
-            else
-            {
-                Log.Warning("Certificate not found at path: {CertPath}", cerUri);
-                return null;
-            }
-            var eraUrlBase = sessionInfo.EraUrlBase?.TrimEnd('/');
-            if (string.IsNullOrEmpty(eraUrlBase))
-            {
-                Log.Warning("ERA URL base is not configured");
-                return null;
-            }
-            var url = $"{eraUrlBase}/grantfolder/api/gfdocuments/getGrantCorrespondence";
-
-            using var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.Accept.Add(
-                new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-            var requestDto = new GrantCorrespondenceRequest { ApplId = applid };
-            var jsonBody = JsonConvert.SerializeObject(requestDto);
-            var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-
-            var response = await client.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
-
-            var responseJson = await response.Content.ReadAsStringAsync();
-            var dto = JsonConvert.DeserializeObject<GrantCorrespondenceResponse>(responseJson);
-
-            if (dto?.CorrespondenceData != null)
-            {
-                foreach (var cd in dto.CorrespondenceData)
-                {
-                    if (!string.IsNullOrWhiteSpace(cd.NotificationName) &&
-                        cd.NotificationName.Equals(notifName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        notif.notificationName = cd.NotificationName;
-                        notif.description = cd.Description;
-                        notif.sentDate = cd.SentDate;
-                        notif.fromAddress = cd.FromAddress;
-                        notif.toAddress = cd.ToAddress;
-                        notif.ccAddress = cd.CcAddress;
-                        notif.subject = cd.Subject;
-                        notif.emailContent = cd.EmailContent;
-                        break;
-                    }
-                }
-            }
-
-  if (lastException != null)
-       {
-      Log.Error(lastException, "Failed to get closeout notification after {MaxRetries} attempts", maxRetries);
-      }
+    {
+        Log.Warning("Certificate not found at path: {CertPath}", cerUri);
         return null;
-        }
+    }
 
-        private string ReplaceInvalidChars(string filename, string replacementCharacter)
+    var eraUrlBase = sessionInfo.EraUrlBase?.TrimEnd('/');
+    if (string.IsNullOrEmpty(eraUrlBase))
+    {
+        Log.Warning("ERA URL base is not configured");
+        return null;
+    }
+
+    // Load cert
+    var certificate = new X509Certificate2(
+        cerUri,
+        certPass,
+        X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+
+    // Define handler (this is what was missing)
+    using var handler = new HttpClientHandler();
+    handler.ClientCertificates.Add(certificate);
+
+    using var client = new HttpClient(handler);
+    client.DefaultRequestHeaders.Accept.Add(
+        new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+    var url = $"{eraUrlBase}/grantfolder/api/gfdocuments/getGrantCorrespondence";
+
+    var requestDto = new GrantCorrespondenceRequest { ApplId = applid };
+    var jsonBody = JsonConvert.SerializeObject(requestDto);
+    using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+    var response = await client.PostAsync(url, content);
+    response.EnsureSuccessStatusCode();
+
+    var responseJson = await response.Content.ReadAsStringAsync();
+    var dto = JsonConvert.DeserializeObject<GrantCorrespondenceResponse>(responseJson);
+
+    if (dto?.CorrespondenceData != null)
+    {
+        foreach (var cd in dto.CorrespondenceData)
         {
-      return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));
+            if (!string.IsNullOrWhiteSpace(cd.NotificationName) &&
+                cd.NotificationName.Equals(notifName, StringComparison.OrdinalIgnoreCase))
+            {
+                return new Notification
+                {
+                    notificationName = cd.NotificationName,
+                    description = cd.Description,
+                    sentDate = cd.SentDate,
+                    fromAddress = cd.FromAddress,
+                    toAddress = cd.ToAddress,
+                    ccAddress = cd.CcAddress,
+                    subject = cd.Subject,
+                    emailContent = cd.EmailContent
+                };
+            }
         }
+    }
 
-        private Uri CreateUri(string url, string imageServerUrl, System.Text.StringBuilder diagnostics)
-        {
-  diagnostics.Append($"Creating w/ this url : {url} ");
-            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
-  {
-                var imageServer = new Uri(imageServerUrl);
-      diagnostics.Append($"image server : {imageServer} ");
-uri = new Uri(imageServer, url);
-                diagnostics.Append("Created img server uri. ");
-      }
-          return uri;
-      }
-
+    return null;
+}
         public async Task<List<DocAttachment>> LoadDocAttachmentsAsync(int document_id)
         {
     var list = new List<DocAttachment>();
