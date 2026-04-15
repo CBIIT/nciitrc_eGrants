@@ -1205,14 +1205,14 @@ namespace eGrants.Services
             return notif;
         }
 
-        /// <summary>
-        /// Replace invalid file name characters
-        /// </summary>
         //private string ReplaceInvalidChars(string filename, string replacementCharacter)
         //{
         //    return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));
         //}
 
+        /// <summary>
+        /// Replace invalid file name characters
+        /// </summary>
         private static string ReplaceInvalidChars(string filename, string replacement)
         {
             if (filename == null) return string.Empty;
