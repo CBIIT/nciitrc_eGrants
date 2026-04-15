@@ -131,6 +131,7 @@ jobs:
           if ((Get-Website -Name $siteName).state -ne "Stopped") {
             Stop-Website -Name $siteName -ErrorAction Stop
           }
+
           Start-Sleep -Seconds 3
 
           if ((Get-Website -Name $siteName).state -ne "Stopped") {
@@ -141,7 +142,6 @@ jobs:
           }
 
           exit 0
-
 
       # ---------------------------------------------------------
       # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
@@ -226,6 +226,7 @@ jobs:
 
           Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
           exit 0
+
       # ---------------------------------------------------------
       # UPDATE APPSETTINGS.JSON (NON-DEV REMOTE) — UNC PATH ONLY
       # ---------------------------------------------------------
@@ -313,6 +314,7 @@ jobs:
           if ((Get-Website -Name $siteName).state -ne "Started") {
             Start-Website -Name $siteName -ErrorAction Stop
           }
+
           Start-Sleep -Seconds 3
 
           if ((Get-Website -Name $siteName).state -ne "Started") {
