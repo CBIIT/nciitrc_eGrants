@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Xml.Linq;
 
 using eGrants.DAL;
@@ -797,21 +798,42 @@ namespace eGrants.Services
         /// <summary>
         /// Create URI from URL string
         /// </summary>
-        private Uri CreateUri(string url, string imageServerUrl, System.Text.StringBuilder diagnostics)
+        //private Uri CreateUri(string url, string imageServerUrl, System.Text.StringBuilder diagnostics)
+        //{
+        //    diagnostics.Append($"Creating w/ this url : {url} ");
+
+        //    if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        //    {
+        //        return uri;
+        //    }
+
+        //    var imageServer = new Uri(imageServerUrl);
+        //    diagnostics.Append($"image server : {imageServer} ");
+        //    uri = new Uri(imageServer, url);
+        //    diagnostics.Append("Created img server uri. ");
+
+        //    return uri;
+        //}
+
+        private static Uri CreateUri(string url, string imageServerUrl, StringBuilder diagnostics)
         {
-            diagnostics.Append($"Creating w/ this url : {url} ");
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentNullException(nameof(url));
 
-            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            {
-                return uri;
-            }
+            // If already absolute, use as-is.
+            if (Uri.TryCreate(url, UriKind.Absolute, out var absolute))
+                return absolute;
 
-            var imageServer = new Uri(imageServerUrl);
-            diagnostics.Append($"image server : {imageServer} ");
-            uri = new Uri(imageServer, url);
-            diagnostics.Append("Created img server uri. ");
+            // Otherwise, combine with base image server URL.
+            if (string.IsNullOrWhiteSpace(imageServerUrl))
+                throw new ArgumentNullException(nameof(imageServerUrl));
 
-            return uri;
+            if (!Uri.TryCreate(imageServerUrl.TrimEnd('/') + "/", UriKind.Absolute, out var baseUri))
+                throw new ArgumentException("Invalid ImageServerUrl", nameof(imageServerUrl));
+
+            diagnostics?.Append($"CreateUri: combined '{imageServerUrl}' + '{url}'. ");
+
+            return new Uri(baseUri, url.TrimStart('/'));
         }
 
         /// <summary>
@@ -1186,9 +1208,24 @@ namespace eGrants.Services
         /// <summary>
         /// Replace invalid file name characters
         /// </summary>
-        private string ReplaceInvalidChars(string filename, string replacementCharacter)
+        //private string ReplaceInvalidChars(string filename, string replacementCharacter)
+        //{
+        //    return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));
+        //}
+
+        private static string ReplaceInvalidChars(string filename, string replacement)
         {
-            return string.Join(replacementCharacter, filename.Split(Path.GetInvalidFileNameChars()));
+            if (filename == null) return string.Empty;
+            replacement ??= "_";
+
+            foreach (var c in Path.GetInvalidFileNameChars())
+                filename = filename.Replace(c.ToString(), replacement);
+
+            // Optionally also guard against invalid path chars (extra safety)
+            foreach (var c in Path.GetInvalidPathChars())
+                filename = filename.Replace(c.ToString(), replacement);
+
+            return filename;
         }
 
         // load doc attachments
