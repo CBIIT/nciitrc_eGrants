@@ -502,7 +502,13 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
+        /// <remarks>
+        /// MIGRATION NOTE: Added [RequestSizeLimit] and [RequestFormLimits] attributes to support 
+        /// large file uploads (1MB+). Without these, uploads fail with ERR_HTTP2_PROTOCOL_ERROR.
+        /// </remarks>
         [HttpPost]
+        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public ActionResult doc_create_pdf_by_file(
             IEnumerable<IFormFile> files,
             int appl_id,
@@ -654,15 +660,23 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
+        /// <remarks>
+        /// MIGRATION NOTE: Added [RequestSizeLimit] and [RequestFormLimits] attributes to support 
+        /// large file uploads (1MB+). Without these, uploads fail with ERR_HTTP2_PROTOCOL_ERROR.
+        /// The .NET Framework version didn't need these because web.config handled the limits globally.
+        /// In ASP.NET Core, these limits must be configured both globally (Program.cs) and per-action.
+        /// </remarks>
         [HttpPost]
+        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public ActionResult convert_to_pdf_by_ddrop(
             IEnumerable<IFormFile> dropedfiles,
             int appl_id,
-            int category_id,
+          int category_id,
             string sub_category,
-            DateTime doc_date,
-            string admin_code,
-            int serial_num)
+        DateTime doc_date,
+      string admin_code,
+      int serial_num)
         {
 
             var docName = string.Empty;
@@ -767,254 +781,14 @@ namespace eGrants.Controllers.Egrants
             return this.Json(new { url, message = mssg });
         }
 
-        // string full_grant_num, int appl_id, string full_grant_num, int appl_id, 
-        /// <summary>
-        /// The doc_upload_default.
-        /// </summary>
-        /// <param name="docId">
-        /// The docId.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> doc_upload_default(int docId)
-        {
-            eGrantsDocUploadViewModel eDocViewModel = await _documentService.DocUploadDefaultAsync(docId);
-
-            return View("~/Views/Egrants/EgrantsDocUpload.cshtml", eDocViewModel);
-        }
-
-        // to show doc upload modal default
-        /// <summary>
-        /// The doc_upload_modal.
-        /// </summary>
-        /// <param name="doc_id">
-        /// The doc_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> doc_upload_modal(int doc_id)
-        {
-            this.ViewBag.DocId = doc_id;
-            this.ViewBag.DocInfo = await _documentService.GetDocInfo(doc_id);
-
-            return this.View("~/Views/Egrants/_Modal_Doc_Upload.cshtml");
-        }
-
-        /// <summary>
-        /// Upload document by file.
-        /// </summary>
-        /// <param name="file">The file to upload.</param>
-        /// <param name="doc_id">The document ID.</param>
-        /// <returns>JSON result with upload status.</returns>
-        [HttpPost]
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]        
-        public async Task<IActionResult> doc_upload_by_file(IFormFile file, int doc_id)
-        {
-            var result = await _documentService.DocUploadByFileAsync(file, doc_id, sessionInfo);
-
-            return Json(new { url = result.Url, message = result.Message });
-        }
-
-        // to upload doc by pdf file --added at 4/15/2019 FOR REFRESH AFTER UPLOAD
-        /// <summary>
-        /// The doc_upload_pdf_by_file.
-        /// </summary>
-        /// <param name="file">
-        /// The file.
-        /// </param>
-        /// <param name="doc_id">
-        /// The doc_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        [OutputCache(NoStore = true)]
-        [HttpPost]
-        public ActionResult doc_upload_pdf_by_file(IEnumerable<IFormFile> files, int doc_id)
-        {
-            var docName = string.Empty;
-            string url = null;
-            string mssg = null;
-            string fileExtension = string.Empty;
-            var pdfDocs = new List<PdfDocument>();
-            var converter = new EmailConcatenation.PdfConverter();
-
-            if (files != null && files.Any())
-                try
-                {
-                    var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(files);
-
-                    foreach (var file in files)
-                    {
-                        // get file name and file Extension
-                        var fileName = Path.GetFileName(file.FileName);
-                        fileExtension = Path.GetExtension(fileName);
-
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(file.OpenReadStream()))
-                        {
-                            fileData = binaryReader.ReadBytes((int)file.Length);
-                        }
-
-                        PdfDocument pdfResult = null;
-
-                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                var emailFile = new Storage.Message(memoryStream);
-                                pdfResult = converter.Convert(emailFile);
-                            }
-                        }
-                        else
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                pdfResult = converter.Convert(memoryStream, file.FileName);
-                            }
-                        }
-
-                        if (pdfResult != null)
-                        {
-                            pdfDocs.Add(pdfResult);
-                        }
-                    }
-
-                    fileExtension = ".pdf";
-
-                    var sb = new StringBuilder();
-                    if (pdfDocs.Any())
-                    {
-                        // update url for document
-                        _documentService.DocModify(
-                            "to_upload",
-                            0,
-                            0,
-                            string.Empty,
-                            string.Empty,
-                            Convert.ToString(doc_id),
-                            fileExtension,
-                            sessionInfo.Ic,
-                            sessionInfo.UserId);
-
-                        // get document id and create new document name       
-                        docName = Convert.ToString(doc_id) + fileExtension;
-
-#if DEBUG
-                        var fileFolder = @"C:\PdfFileOutput\";
-#else
-                        var fileFolder = @"\\" + HttpContext.Session.GetString("WebGrantUrl") + "\\egrants\\funded2\\nci\\main\\";
-#endif
-
-                        var filePath = Path.Combine(fileFolder, docName);
-
-                        var pdfDoc = PdfDocument.Merge(pdfDocs);
-                        pdfDoc.SaveAs(filePath);
-
-                        // create review url
-                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath") + Convert.ToString(docName);
-
-                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
-                    }
-                    else
-                    {
-                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
-                    }
-
-                    if (unsupportedFilesList.Count > 0)
-                    {
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-                        foreach (var unsupportedFile in unsupportedFilesList)
-                        {
-                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-                        }
-                    }
-
-                    url = this.ViewBag.FileUrl;
-                    mssg = sb.ToString();
-
-                }
-                catch (Exception ex)
-                {
-                    this.ViewBag.Message = "ERROR: The file could not be converted!";
-                }
-            else
-                this.ViewBag.Message = "Error while uploading the files.";
-
-            return this.Json(new { url, message = mssg });
-        }
-
-        // to create doc by dragdrop
-        /// <summary>
-        /// The doc_create_by_ddrop.
-        /// </summary>
-        /// <param name="dropedfile">
-        /// The dropedfile.
-        /// </param>
-        /// <param name="appl_id">
-        /// The appl_id.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="sub_category">
-        /// The sub_category.
-        /// </param>
-        /// <param name="doc_date">
-        /// The doc_date.
-        /// </param>
-        /// <param name="admin_code">
-        /// The admin_code.
-        /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        /// 
-        /// 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        [HttpPost]
-        public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
-        {
-            var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
-            
-            return Json(new { url = result.Url, message = result.Message });
-        }
-
         // to upload pdf docs by dragdrop
         /// <summary>
-        /// The doc_upload_by_ddrop.
+        /// The doc_upload_pdf_by_ddrop.
         /// </summary>
         /// <param name="dropedfile">
         /// The dropedfile.
         /// </param>
         /// <param name="docId">
-        /// The doc_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        [HttpPost]
-        public async Task<ActionResult> doc_upload_by_ddrop(IFormFile dropedfile, int docId)
-        {
-            var result = await _documentService.DocUploadByDdropAsync(dropedfile, docId, sessionInfo);
-
-            return Json(new { url = result.Url, message = result.Message });
-        }
-
-        // to upload pdf docs by dragdrop
-        /// <summary>
-        /// The doc_upload_by_ddrop.
-        /// </summary>
-        /// <param name="dropedfile">
-        /// The dropedfile.
-        /// </param>
-        /// <param name="doc_id">
         /// The doc_id.
         /// </param>
         /// <returns>
@@ -1022,6 +796,8 @@ namespace eGrants.Controllers.Egrants
         /// </returns>
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         [HttpPost]
+        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public async Task<ActionResult> doc_upload_pdf_by_ddrop(IEnumerable<IFormFile> dropedfiles, int doc_id)
         {
             var docName = string.Empty;

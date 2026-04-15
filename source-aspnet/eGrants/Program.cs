@@ -5,6 +5,8 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 
 using Serilog;
@@ -40,6 +42,64 @@ var finalConnectionString = raw
 // Use the final connection string
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(finalConnectionString));
+#endregion
+
+#region Request Size Limits Configuration
+// ====================================================================================
+// LARGE FILE UPLOAD SUPPORT
+// ====================================================================================
+// These settings are required for the "Convert to PDF & Add" functionality which
+// processes files that can be 1MB+ in size. Without these limits, uploads fail with:
+//   ERR_HTTP2_PROTOCOL_ERROR
+//
+// The default limits in ASP.NET Core are:
+// - Kestrel MaxRequestBodySize: ~28.6 MB
+// - Form MultipartBodyLengthLimit: 128 MB
+// - Form ValueLengthLimit: 4 MB
+//
+// We set these to 2GB to match the original .NET Framework 4.8 configuration in web.config:
+//   <httpRuntime maxRequestLength="2097152" /> (2GB in KB)
+//   <requestLimits maxAllowedContentLength="2147483648" /> (2GB in bytes)
+// ====================================================================================
+
+// Configure Kestrel server limits for large file uploads
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    // Maximum request body size (2GB)
+  // This is the total size of the HTTP request body including file uploads
+    options.Limits.MaxRequestBodySize = 2147483648; // 2GB
+});
+
+// Configure IIS server limits (when hosted in IIS)
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    // Maximum request body size (2GB)
+    options.MaxRequestBodySize = 2147483648; // 2GB
+});
+
+// Configure form options for multipart uploads (file uploads via form data)
+builder.Services.Configure<FormOptions>(options =>
+{
+    // Maximum length of the entire multipart body (2GB)
+    options.MultipartBodyLengthLimit = 2147483648; // 2GB
+    
+    // Maximum length of individual form values (50MB for large text fields)
+    options.ValueLengthLimit = 52428800; // 50MB
+    
+    // Maximum length of form key names
+    options.KeyLengthLimit = 2048;
+    
+    // Maximum number of form entries (files + form fields)
+    options.ValueCountLimit = 1024;
+    
+    // Buffer threshold before writing to disk (64KB)
+    // Files larger than this are buffered to disk rather than memory
+    options.MultipartBoundaryLengthLimit = 128;
+    
+    // Maximum header section size
+    options.MultipartHeadersLengthLimit = 16384;
+});
+
 #endregion
 
 #region Service Configuration
