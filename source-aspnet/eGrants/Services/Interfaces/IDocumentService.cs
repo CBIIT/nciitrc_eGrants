@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using System.Security.Cryptography.X509Certificates;
+using System.Web;
 
 using eGrants.DTOs;
 using eGrants.Models;
@@ -219,7 +220,7 @@ namespace eGrants.Services.Interfaces
 
         Task report_doc_error(string errormsg, int docId, string ic, string userId);
 
-        public Task<Notification> GetCloseoutNotificationAsync(string appl, string documentName, SessionInfo sessionInfo);
+        public Task<Notification> GetCloseoutNotificationAsync(string appl, string documentName, SessionInfo sessionInfo, X509Certificate2 certificate);
 
         public Task<List<DocumentInformation>> GetDocInfo(int docId);
     }
