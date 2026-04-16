@@ -1325,8 +1325,6 @@ string admin_code,
             client.DefaultRequestHeaders.Accept.Add(
                 new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-            var url = $"{eraUrlBase}/grantfolder/api/gfdocuments/getGrantCorrespondence";
-
             var requestDto = new GrantCorrespondenceRequest { ApplId = applid };
             var jsonBody = JsonConvert.SerializeObject(requestDto);
             Log.Debug("GetCloseoutNotificationAsync: Request body: {RequestBody}", jsonBody);
