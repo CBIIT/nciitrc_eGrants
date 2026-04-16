@@ -194,9 +194,9 @@ left: 0px;
 
     // Load Closeout Notification child data via AJAX
     function getCloseoutNotification(row, appl_id) {
-        var dataToSend = {};
-   dataToSend.act = "closeout";
-        dataToSend.appl_id = appl_id;
+        var urlParams = new URLSearchParams();
+        urlParams.append('appl_id', appl_id);
+        urlParams.append('act', "closeout");
 
     $.ajax({
       cache: false,
@@ -204,8 +204,7 @@ left: 0px;
      type: 'POST',
           dataType: 'JSON',
             contentType: 'application/json; charset=utf=8',
-            url: '/Egrants/impac_docs_data',
-       data: JSON.stringify(dataToSend),
+            url: '/Egrants/impac_docs_data?' + urlParams.toString(),
     success: function(data) {
     console.log("closeout going in....");
       row.child(formatCloseoutNotificationChildRow(data, appl_id)).show();

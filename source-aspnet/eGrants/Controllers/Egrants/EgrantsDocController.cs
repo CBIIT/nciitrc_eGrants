@@ -1467,7 +1467,19 @@ namespace eGrants.Controllers.Egrants
         /// </returns>
         public async Task<ActionResult> closeout_notif(string applid, string notifName)
         {
-            ViewBag.notification = await _documentService.GetCloseoutNotificationAsync(applid, notifName, sessionInfo);
+            // Load certificate from session info
+            X509Certificate2 certificate = null;
+            var cerUri = sessionInfo.CertPath;
+            var certPass = sessionInfo.CertPass;
+
+            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
+            {
+                certificate = new X509Certificate2(cerUri, certPass,
+                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            }
+
+            var notification = await _documentService.GetCloseoutNotificationAsync(applid, notifName, sessionInfo, certificate);
+            ViewBag.notification = notification;
             ViewBag.applid = applid;
 
             return this.View("~/Views/Egrants/CloseoutNotif.cshtml");
