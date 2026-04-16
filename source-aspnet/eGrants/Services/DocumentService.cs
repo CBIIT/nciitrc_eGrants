@@ -1285,7 +1285,7 @@ string admin_code,
         }
 
         /// <summary>
-        /// Get closeout notification data from ERA SOAP service
+        /// Get closeout notification data from ERA REST service
         /// </summary>
         public async Task<Notification> GetCloseoutNotificationAsync(
              string applid,
