@@ -922,26 +922,9 @@ string admin_code,
 
                     if (category == "CloseoutNotification" || category == "FFR_REJECTION")
                     {
-                        // Parse applId from the URL query string if present (e.g., /EgrantsDoc/closeout_notif?applid=12345&notifName=...)
-                        // The URL in the request data contains the actual applId for this specific notification.
-                        var closeoutApplId = applId;
-                        if (Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var closeoutUri))
-                        {
-                            var queryString = closeoutUri.IsAbsoluteUri
-                                ? closeoutUri.Query
-                                : url.Contains('?') ? url.Substring(url.IndexOf('?')) : string.Empty;
-
-                            var queryParams = System.Web.HttpUtility.ParseQueryString(queryString);
-                            var parsedApplId = queryParams["applid"];
-                            if (!string.IsNullOrEmpty(parsedApplId))
-                            {
-                                closeoutApplId = parsedApplId;
-                            }
-                        }
-
                         success = success = await HandleCloseoutNotificationAsync(
                             category,
-                            closeoutApplId,
+                            applId,
                             documentName,
                             tmpFileName,
                             downloadDirectory,
@@ -1162,7 +1145,7 @@ string admin_code,
 
             var notification = await GetCloseoutNotificationAsync(appl, documentName, sessionInfo, certificate);
 
-            if (!string.IsNullOrEmpty(notification?.notificationName))
+            if (notification != null)
             {
                 diagnostics.Append("Got notification. ");
                 byte[] bytes = GenerateCloseoutNotificationPdf(notification, appl);
@@ -1368,7 +1351,6 @@ string admin_code,
             }
 
             var responseJson = await response.Content.ReadAsStringAsync();
-            Log.Debug("GetCloseoutNotificationAsync: Response body: {ResponseBody}", responseJson);
             var dto = JsonConvert.DeserializeObject<GrantCorrespondenceResponse>(responseJson);
 
             if (dto?.CorrespondenceData == null || dto.CorrespondenceData.Count == 0)
