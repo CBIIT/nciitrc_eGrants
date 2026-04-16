@@ -564,7 +564,13 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
+        /// <remarks>
+        /// MIGRATION NOTE: Added [RequestSizeLimit] and [RequestFormLimits] attributes to support 
+        /// large file uploads (1MB+). Without these, uploads fail with ERR_HTTP2_PROTOCOL_ERROR.
+        /// </remarks>
         [HttpPost]
+        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public ActionResult doc_create_pdf_by_file(
             IEnumerable<IFormFile> files,
             int appl_id,
@@ -717,7 +723,15 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
+        /// <remarks>
+        /// MIGRATION NOTE: Added [RequestSizeLimit] and [RequestFormLimits] attributes to support 
+        /// large file uploads (1MB+). Without these, uploads fail with ERR_HTTP2_PROTOCOL_ERROR.
+        /// The .NET Framework version didn't need these because web.config handled the limits globally.
+        /// In ASP.NET Core, these limits must be configured both globally (Program.cs) and per-action.
+        /// </remarks>
         [HttpPost]
+        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public ActionResult convert_to_pdf_by_ddrop(
             IEnumerable<IFormFile> dropedfiles,
             int appl_id,
@@ -746,15 +760,34 @@ namespace eGrants.Controllers.Egrants
                         var fileName = Path.GetFileName(dropedfile.FileName);
                         fileExtension = Path.GetExtension(fileName);
 
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
+                        if (dropedfile.Length <= 0)
                         {
-                            fileData = binaryReader.ReadBytes((int)dropedfile.Length);
+                            Log.Warning("convert_to_pdf_by_ddrop received empty file: {File}", fileName);
+                            continue;
                         }
 
                         PdfDocument pdfResult = null;
+
+                        // ====================================================================================
+                        // PERFORMANCE/RELIABILITY CHANGE:
+                        // ------------------------------------------------------------------------------------
+                        // The previous implementation read the entire upload into a byte[] first.
+                        // For larger files this:
+                        // - increases memory pressure
+                        // - increases time spent before the server responds
+                        // - can contribute to client/proxy disconnects (ERR_HTTP2_PROTOCOL_ERROR)
+                        //
+                        // For non-.msg files, stream directly from the uploaded request body.
+                        // For .msg we still materialize into memory because MsgReader requires a seekable stream.
+                        // ====================================================================================
                         if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                         {
+                            byte[] fileData;
+                            using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
+                            {
+                                fileData = binaryReader.ReadBytes((int)dropedfile.Length);
+                            }
+
                             using (var memoryStream = new MemoryStream(fileData))
                             {
                                 var emailFile = new Storage.Message(memoryStream);
@@ -763,16 +796,24 @@ namespace eGrants.Controllers.Egrants
                         }
                         else
                         {
-                            using (var memoryStream = new MemoryStream(fileData))
+                            // PdfConverter.Convert expects a MemoryStream for binary documents.
+                            // We still avoid BinaryReader.ReadBytes() (which can allocate large arrays and be slower)
+                            // and instead copy the request stream into a MemoryStream.
+                            using var memoryStream = new MemoryStream(capacity: (int)Math.Min(dropedfile.Length, int.MaxValue));
+                            using (var uploadStream = dropedfile.OpenReadStream())
                             {
-                                pdfResult = converter.Convert(memoryStream, fileName);
+                                uploadStream.CopyTo(memoryStream);
                             }
+                            memoryStream.Position = 0;
+                            pdfResult = converter.Convert(memoryStream, fileName);
                         }
+
                         if (pdfResult != null)
                         {
                             pdfDocs.Add(pdfResult);
                         }
                     }
+
                     fileExtension = ".pdf";
 
                     var sb = new StringBuilder();
@@ -790,17 +831,17 @@ namespace eGrants.Controllers.Egrants
 
                         docName = Convert.ToString(document_id) + fileExtension;
 
-
                         var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded2\\nci\\main\\";
-
                         var filePath = Path.Combine(fileFolder, docName);
+
+                        Log.Information("Saving merged PDF. ApplId={ApplId}, DocId={DocId}, Path={Path}", appl_id, document_id, filePath);
 
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
                         // create review url
                         this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath")
-                                                                                                + Convert.ToString(docName);
+ + Convert.ToString(docName);
                         sb.Append("Done! New document has been created**#7|n3br3@k#**");
                     }
                     else
@@ -822,6 +863,7 @@ namespace eGrants.Controllers.Egrants
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex, "convert_to_pdf_by_ddrop failed. ApplId={ApplId}, CategoryId={CategoryId}", appl_id, category_id);
                     mssg = "ERROR: The file could not be converted!";
                 }
             else
@@ -1052,7 +1094,7 @@ namespace eGrants.Controllers.Egrants
 
         // to upload pdf docs by dragdrop
         /// <summary>
-        /// The doc_upload_by_ddrop.
+        /// The doc_upload_pdf_by_ddrop.
         /// </summary>
         /// <param name="dropedfile">
         /// The dropedfile.
@@ -1063,30 +1105,10 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        [HttpPost]
-        public async Task<ActionResult> doc_upload_by_ddrop(IFormFile dropedfile, int docId)
-        {
-            var result = await _documentService.DocUploadByDdropAsync(dropedfile, docId, sessionInfo);
-
-            return Json(new { url = result.Url, message = result.Message });
-        }
-
-        // to upload pdf docs by dragdrop
-        /// <summary>
-        /// The doc_upload_by_ddrop.
-        /// </summary>
-        /// <param name="dropedfile">
-        /// The dropedfile.
-        /// </param>
-        /// <param name="doc_id">
-        /// The doc_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         [HttpPost]
+        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public async Task<ActionResult> doc_upload_pdf_by_ddrop(IEnumerable<IFormFile> dropedfiles, int doc_id)
         {
             var docName = string.Empty;
@@ -1445,7 +1467,19 @@ namespace eGrants.Controllers.Egrants
         /// </returns>
         public async Task<ActionResult> closeout_notif(string applid, string notifName)
         {
-            ViewBag.notification = await _documentService.GetCloseoutNotificationAsync(applid, notifName, sessionInfo);
+            // Load certificate from session info
+            X509Certificate2 certificate = null;
+            var cerUri = sessionInfo.CertPath;
+            var certPass = sessionInfo.CertPass;
+
+            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
+            {
+                certificate = new X509Certificate2(cerUri, certPass,
+                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            }
+
+            var notification = await _documentService.GetCloseoutNotificationAsync(applid, notifName, sessionInfo, certificate);
+            ViewBag.notification = notification;
             ViewBag.applid = applid;
 
             return this.View("~/Views/Egrants/CloseoutNotif.cshtml");

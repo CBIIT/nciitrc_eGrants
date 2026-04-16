@@ -798,7 +798,7 @@ string admin_code,
             foreach (var dataInput in request.ListOfUrl)
             {
                 // Create download task (doesn't start execution until awaited)
-                var task = ProcessSingleDownloadAsync(dataInput, certificate, downloadDirectory, request.FullGrantNumber, request.SessionInfo);
+                var task = ProcessSingleDownloadAsync(dataInput, certificate, downloadDirectory, request.FullGrantNumber, request.SessionInfo, request.ApplId);
                 tasks.Add(task);
 
                 // When batch is full, process all tasks in parallel
@@ -867,7 +867,8 @@ string admin_code,
             X509Certificate2 certificate,
             string downloadDirectory,
          string fullGrantNumber,
-   SessionInfo sessionInfo)
+   SessionInfo sessionInfo,
+            string applId)
         {
             var downloadData = new DownloadData();
             var diagnostics = new System.Text.StringBuilder();
@@ -921,8 +922,18 @@ string admin_code,
 
                     if (category == "CloseoutNotification" || category == "FFR_REJECTION")
                     {
-                        success = await HandleCloseoutNotificationAsync(category, sessionInfo.UserId, documentName, tmpFileName,
-                                   downloadDirectory, fullGrantNumber, documentDate, downloadData, diagnostics, sessionInfo);
+                        success = success = await HandleCloseoutNotificationAsync(
+                            category,
+                            applId,
+                            documentName,
+                            tmpFileName,
+                            downloadDirectory,
+                            fullGrantNumber,
+                            documentDate,
+                            downloadData,
+                            diagnostics,
+                            sessionInfo,
+                            certificate);
                     }
                     else
                     {
@@ -1120,18 +1131,19 @@ string admin_code,
         private async Task<bool> HandleCloseoutNotificationAsync(
             string category,
             string appl,
-    string documentName,
-string tmpFileName,
-     string downloadDirectory,
-string fullGrantNumber,
+            string documentName,
+            string tmpFileName,
+            string downloadDirectory,
+            string fullGrantNumber,
             string documentDate,
-     DownloadData downloadData,
+            DownloadData downloadData,
             System.Text.StringBuilder diagnostics,
-            SessionInfo sessionInfo)
+            SessionInfo sessionInfo,
+            X509Certificate2 certificate)
         {
             diagnostics.Append("Closeout or FFR_Rej. ");
 
-            var notification = await GetCloseoutNotificationAsync(appl, documentName, sessionInfo);
+            var notification = await GetCloseoutNotificationAsync(appl, documentName, sessionInfo, certificate);
 
             if (notification != null)
             {
@@ -1142,14 +1154,14 @@ string fullGrantNumber,
                 if (category == "CloseoutNotification")
                 {
                     newFileName = ReplaceInvalidChars(
-                      $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
-              "_");
+                        $"{fullGrantNumber.Remove(0, 4)}-{category}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
+                        "_");
                 }
                 else
                 {
                     newFileName = ReplaceInvalidChars(
-                      $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
-                     "_");
+                        $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{Convert.ToDateTime(documentDate):MM-dd-yyyy}.pdf",
+                        "_");
                 }
 
                 await System.IO.File.WriteAllBytesAsync(tmpFileName, bytes);
@@ -1157,11 +1169,9 @@ string fullGrantNumber,
                 downloadData.FileDownloaded = newFileName;
                 return true;
             }
-            else
-            {
-                Log.Warning("Notification not found - Check certificate at:" + sessionInfo.CertPath);
-                return false;
-            }
+
+            Log.Warning("Notification not found for appl={ApplId}, notifName={NotifName}", appl, documentName);
+            return false;
         }
 
         /// <summary>
@@ -1258,75 +1268,122 @@ string fullGrantNumber,
         }
 
         /// <summary>
-        /// Get closeout notification data from ERA SOAP service
+        /// Get closeout notification data from ERA REST service
         /// </summary>
-        public async Task<Notification?> GetCloseoutNotificationAsync(string applid, string notifName, SessionInfo sessionInfo)
+        public async Task<Notification> GetCloseoutNotificationAsync(
+             string applid,
+             string notifName,
+             SessionInfo sessionInfo,
+             X509Certificate2 certificate)
         {
-            var cerUri = sessionInfo.CertPath;
-            var certPass = sessionInfo.CertPass;
+            Log.Information("GetCloseoutNotificationAsync called: applid={ApplId}, notifName={NotifName}, certProvided={CertProvided}",
+                applid, notifName, certificate != null);
 
-            if (string.IsNullOrEmpty(cerUri) || !System.IO.File.Exists(cerUri))
+            if (certificate == null)
             {
-                Log.Warning("Certificate not found at path: {CertPath}", cerUri);
-                return null;
+                Log.Warning("Certificate was not provided; cannot call ERA correspondence endpoint.");
+                return new Notification();
             }
 
             var eraUrlBase = sessionInfo.EraUrlBase?.TrimEnd('/');
             if (string.IsNullOrEmpty(eraUrlBase))
             {
                 Log.Warning("ERA URL base is not configured");
-                return null;
+                return new Notification();
             }
 
-            // Load cert
-            var certificate = new X509Certificate2(
-                cerUri,
-                certPass,
-                X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            var url = $"{eraUrlBase}/grantfolder/api/gfdocuments/getGrantCorrespondence";
+            Log.Information("GetCloseoutNotificationAsync: POST to {Url} for applid={ApplId}", url, applid);
 
-            // Define handler (this is what was missing)
-            using var handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(certificate);
+            // Match ProcessDocumentDownloadAsync style: reuse the already-loaded cert instance.
+            var handler = new SocketsHttpHandler
+            {
+                SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+                {
+                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+                    ClientCertificates = new X509Certificate2Collection { certificate },
+                    RemoteCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) =>
+                    {
+                        if (sslPolicyErrors != System.Net.Security.SslPolicyErrors.None)
+                        {
+                            Log.Warning("ERA SSL Certificate Warning: {SslErrors}", sslPolicyErrors);
+                        }
+                        return true;
+                    }
+                },
+                MaxConnectionsPerServer = 20,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+                ConnectTimeout = TimeSpan.FromSeconds(30)
+            };
 
-            using var client = new HttpClient(handler);
+            using var client = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromMinutes(2)
+            };
+            client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
             client.DefaultRequestHeaders.Accept.Add(
                 new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-            var url = $"{eraUrlBase}/grantfolder/api/gfdocuments/getGrantCorrespondence";
-
             var requestDto = new GrantCorrespondenceRequest { ApplId = applid };
             var jsonBody = JsonConvert.SerializeObject(requestDto);
+            Log.Debug("GetCloseoutNotificationAsync: Request body: {RequestBody}", jsonBody);
             using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
+            HttpResponseMessage response;
+            try
+            {
+                response = await client.PostAsync(url, content);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "GetCloseoutNotificationAsync: HTTP request failed for applid={ApplId}", applid);
+                return new Notification();
+            }
+
+            Log.Information("GetCloseoutNotificationAsync: ERA responded {StatusCode} for applid={ApplId}", (int)response.StatusCode, applid);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                Log.Warning("GetCloseoutNotificationAsync: ERA error response: {ErrorBody}", errorBody);
+                return new Notification();
+            }
 
             var responseJson = await response.Content.ReadAsStringAsync();
             var dto = JsonConvert.DeserializeObject<GrantCorrespondenceResponse>(responseJson);
 
-            if (dto?.CorrespondenceData != null)
+            if (dto?.CorrespondenceData == null || dto.CorrespondenceData.Count == 0)
             {
-                foreach (var cd in dto.CorrespondenceData)
+                Log.Warning("GetCloseoutNotificationAsync: No correspondence data returned for applid={ApplId}", applid);
+                return new Notification();
+            }
+
+            Log.Information("GetCloseoutNotificationAsync: {Count} correspondence records for applid={ApplId}", dto.CorrespondenceData.Count, applid);
+
+            foreach (var cd in dto.CorrespondenceData)
+            {
+                if (!string.IsNullOrWhiteSpace(cd.NotificationName) &&
+                    cd.NotificationName.Equals(notifName, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (!string.IsNullOrWhiteSpace(cd.NotificationName) &&
-                        cd.NotificationName.Equals(notifName, StringComparison.OrdinalIgnoreCase))
+                    Log.Information("GetCloseoutNotificationAsync: Matched notification '{NotifName}' for applid={ApplId}", notifName, applid);
+                    return new Notification
                     {
-                        return new Notification
-                        {
-                            notificationName = cd.NotificationName,
-                            description = cd.Description,
-                            sentDate = cd.SentDate,
-                            fromAddress = cd.FromAddress,
-                            toAddress = cd.ToAddress,
-                            ccAddress = cd.CcAddress,
-                            subject = cd.Subject,
-                            emailContent = cd.EmailContent
-                        };
-                    }
+                        notificationName = cd.NotificationName,
+                        description = cd.Description,
+                        sentDate = cd.SentDate,
+                        fromAddress = cd.FromAddress,
+                        toAddress = cd.ToAddress,
+                        ccAddress = cd.CcAddress,
+                        subject = cd.Subject,
+                        emailContent = cd.EmailContent
+                    };
                 }
             }
 
-            return null;
+            Log.Warning("GetCloseoutNotificationAsync: No matching notification for notifName='{NotifName}' in applid={ApplId}. Available: [{Available}]",
+                notifName, applid, string.Join(", ", dto.CorrespondenceData.Select(c => c.NotificationName)));
+            return new Notification();
         }
 
         private string ReplaceInvalidChars(string filename, string replacementCharacter)
