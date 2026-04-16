@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.Net.Http;
 using System.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -1324,6 +1324,8 @@ string admin_code,
             client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
             client.DefaultRequestHeaders.Accept.Add(
                 new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+            var url = $"{eraUrlBase}/grantfolder/api/gfdocuments/getGrantCorrespondence";
 
             var requestDto = new GrantCorrespondenceRequest { ApplId = applid };
             var jsonBody = JsonConvert.SerializeObject(requestDto);
