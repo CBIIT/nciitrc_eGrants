@@ -1,4 +1,3 @@
-
 name: eGrants Deployment Workflow
 
 on:
@@ -54,7 +53,6 @@ jobs:
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             -o ./build_output
-          exit 0
 
       # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE (KEEP ONLY MOST RECENT 5) — FAST LOCAL ZIP
