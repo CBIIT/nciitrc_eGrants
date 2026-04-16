@@ -270,7 +270,7 @@ namespace eGrants.Controllers.Egrants
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
-        public async Task <ActionResult> ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
+        public async Task<ActionResult> ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
         {
             ViewBag.Status = "Done";
             ViewBag.GrantID = grant_id;
@@ -467,7 +467,7 @@ namespace eGrants.Controllers.Egrants
         [HttpPost]
         public async Task<ActionResult> doc_create_by_file(IFormFile file, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         {
-            var result = await _documentService.DocCreateByFileAsync(file, appl_id, category_id, 
+            var result = await _documentService.DocCreateByFileAsync(file, appl_id, category_id,
                 sub_category, doc_date, admin_code, serial_num, sessionInfo);
 
             return Json(new { url = result.Url, message = result.Message });
@@ -672,11 +672,11 @@ namespace eGrants.Controllers.Egrants
         public ActionResult convert_to_pdf_by_ddrop(
             IEnumerable<IFormFile> dropedfiles,
             int appl_id,
-          int category_id,
+            int category_id,
             string sub_category,
-        DateTime doc_date,
-      string admin_code,
-      int serial_num)
+            DateTime doc_date,
+            string admin_code,
+            int serial_num)
         {
 
             var docName = string.Empty;
@@ -697,15 +697,34 @@ namespace eGrants.Controllers.Egrants
                         var fileName = Path.GetFileName(dropedfile.FileName);
                         fileExtension = Path.GetExtension(fileName);
 
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
+                        if (dropedfile.Length <= 0)
                         {
-                            fileData = binaryReader.ReadBytes((int)dropedfile.Length);
+                            Log.Warning("convert_to_pdf_by_ddrop received empty file: {File}", fileName);
+                            continue;
                         }
 
                         PdfDocument pdfResult = null;
+
+                        // ====================================================================================
+                        // PERFORMANCE/RELIABILITY CHANGE:
+                        // ------------------------------------------------------------------------------------
+                        // The previous implementation read the entire upload into a byte[] first.
+                        // For larger files this:
+                        // - increases memory pressure
+                        // - increases time spent before the server responds
+                        // - can contribute to client/proxy disconnects (ERR_HTTP2_PROTOCOL_ERROR)
+                        //
+                        // For non-.msg files, stream directly from the uploaded request body.
+                        // For .msg we still materialize into memory because MsgReader requires a seekable stream.
+                        // ====================================================================================
                         if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                         {
+                            byte[] fileData;
+                            using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
+                            {
+                                fileData = binaryReader.ReadBytes((int)dropedfile.Length);
+                            }
+
                             using (var memoryStream = new MemoryStream(fileData))
                             {
                                 var emailFile = new Storage.Message(memoryStream);
@@ -714,16 +733,24 @@ namespace eGrants.Controllers.Egrants
                         }
                         else
                         {
-                            using (var memoryStream = new MemoryStream(fileData))
+                            // PdfConverter.Convert expects a MemoryStream for binary documents.
+                            // We still avoid BinaryReader.ReadBytes() (which can allocate large arrays and be slower)
+                            // and instead copy the request stream into a MemoryStream.
+                            using var memoryStream = new MemoryStream(capacity: (int)Math.Min(dropedfile.Length, int.MaxValue));
+                            using (var uploadStream = dropedfile.OpenReadStream())
                             {
-                                pdfResult = converter.Convert(memoryStream, fileName);
+                                uploadStream.CopyTo(memoryStream);
                             }
+                            memoryStream.Position = 0;
+                            pdfResult = converter.Convert(memoryStream, fileName);
                         }
+
                         if (pdfResult != null)
                         {
                             pdfDocs.Add(pdfResult);
                         }
                     }
+
                     fileExtension = ".pdf";
 
                     var sb = new StringBuilder();
@@ -741,17 +768,17 @@ namespace eGrants.Controllers.Egrants
 
                         docName = Convert.ToString(document_id) + fileExtension;
 
-
                         var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded2\\nci\\main\\";
-
                         var filePath = Path.Combine(fileFolder, docName);
+
+                        Log.Information("Saving merged PDF. ApplId={ApplId}, DocId={DocId}, Path={Path}", appl_id, document_id, filePath);
 
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
                         // create review url
                         this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath")
-                                                                                                + Convert.ToString(docName);
+ + Convert.ToString(docName);
                         sb.Append("Done! New document has been created**#7|n3br3@k#**");
                     }
                     else
@@ -773,6 +800,7 @@ namespace eGrants.Controllers.Egrants
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex, "convert_to_pdf_by_ddrop failed. ApplId={ApplId}, CategoryId={CategoryId}", appl_id, category_id);
                     mssg = "ERROR: The file could not be converted!";
                 }
             else
@@ -780,7 +808,6 @@ namespace eGrants.Controllers.Egrants
 
             return this.Json(new { url, message = mssg });
         }
-
         // to upload pdf docs by dragdrop
         /// <summary>
         /// The doc_upload_pdf_by_ddrop.
@@ -968,7 +995,7 @@ namespace eGrants.Controllers.Egrants
         /// <param name="document_date">The document_date.</param>
         /// <param name="previous_url">The previous_url.</param>
         /// <returns>The <see cref="ActionResult"/>.</returns>
-        public async Task<ActionResult> doc_index_modify(string act = "", int appl_id = 0, int document_id = 0, 
+        public async Task<ActionResult> doc_index_modify(string act = "", int appl_id = 0, int document_id = 0,
             int category_id = 0, string sub_category = "", string document_date = "", string previous_url = "")
         {
             var docids = Convert.ToString(document_id);
