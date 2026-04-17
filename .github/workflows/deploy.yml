@@ -133,42 +133,42 @@ jobs:
           exit 0
 
 
-      # ---------------------------------------------------------
-      # STOP IIS (DEV LOCAL)
-      # ---------------------------------------------------------
-      - name: Stop IIS site and app pool (dev/local)
-        if: ${{ github.ref_name == 'dev' }}
-        shell: powershell
-        run: |
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          Import-Module WebAdministration
-
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-            Stop-WebAppPool -Name $appPool -ErrorAction Stop
-          }
-
-          if ((Get-Website -Name $siteName).state -ne "Stopped") {
-            Stop-Website -Name $siteName -ErrorAction Stop
-          }
-
-          Start-Sleep -Seconds 3
-
-          if ((Get-Website -Name $siteName).state -ne "Stopped") {
-            throw "IIS site did not stop properly: $siteName"
-          }
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-            throw "IIS app pool did not stop properly: $appPool"
-          }
-
-          exit 0
+          # ---------------------------------------------------------
+          # STOP IIS (DEV or STAGE LOCAL)
+          # ---------------------------------------------------------
+          - name: Stop IIS site and app pool (dev/stage local)
+            if: ${{ github.ref_name == 'dev' || github.ref_name == 'stage' }}
+            shell: powershell
+            run: |
+              $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+              $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+          
+              Import-Module WebAdministration
+          
+              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+                Stop-WebAppPool -Name $appPool -ErrorAction Stop
+              }
+          
+              if ((Get-Website -Name $siteName).state -ne "Stopped") {
+                Stop-Website -Name $siteName -ErrorAction Stop
+              }
+          
+              Start-Sleep -Seconds 3
+          
+              if ((Get-Website -Name $siteName).state -ne "Stopped") {
+                throw "IIS site did not stop properly: $siteName"
+              }
+              if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+                throw "IIS app pool did not stop properly: $appPool"
+              }
+          
+              exit 0
 
       # ---------------------------------------------------------
       # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
       # ---------------------------------------------------------
       - name: Stop IIS (SCM remote stop)
-        if: ${{ github.ref_name != 'dev' }}
+        if: ${{ github.ref_name != 'dev' && github.ref_name != 'stage' }}
         shell: powershell
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -229,7 +229,7 @@ jobs:
       # UPDATE APPSETTINGS.JSON (DEV LOCAL)
       # ---------------------------------------------------------
       - name: Update GitHubToken in destination appsettings.json (dev/local)
-        if: ${{ github.ref_name == 'dev' }}
+        if: ${{ github.ref_name == 'dev' || github.ref_name == 'stage' }}
         shell: powershell
         run: |
           $token = "${{ secrets._GITHUB_TOKEN }}"
@@ -252,7 +252,7 @@ jobs:
       # UPDATE APPSETTINGS.JSON (NON-DEV REMOTE) — UNC PATH ONLY
       # ---------------------------------------------------------
       - name: Update GitHubToken in destination appsettings.json (UNC path)
-        if: ${{ github.ref_name != 'dev' }}
+        if: ${{ github.ref_name != 'dev' && github.ref_name != 'stage' }}
         shell: powershell
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -320,7 +320,7 @@ jobs:
       # START IIS (DEV LOCAL)
       # ---------------------------------------------------------
       - name: Start IIS site and app pool (dev/local)
-        if: ${{ github.ref_name == 'dev' }}
+        if: ${{ github.ref_name == 'dev' || github.ref_name == 'stage' }}
         shell: powershell
         run: |
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
@@ -351,7 +351,7 @@ jobs:
       # START IIS (NON-DEV REMOTE) — DIRECT SCM (NO PSEXEC)
       # ---------------------------------------------------------
       - name: Start IIS site and app pool (remote via SCM)
-        if: ${{ github.ref_name != 'dev' }}
+        if: ${{ github.ref_name != 'dev' && github.ref_name != 'stage' }}
         shell: powershell
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
