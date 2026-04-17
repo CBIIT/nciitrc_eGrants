@@ -279,159 +279,135 @@ namespace eGrant.Controllers
         /// <summary>
         /// The create_ doc_by_ d drop.
         /// </summary>
-        /// <param name="dropedfile">
-        /// The dropedfile.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="org_name">
-        /// The org_name.
-        /// </param>
-        /// <param name="start_date">
-        /// The start_date.
-        /// </param>
-        /// <param name="end_date">
-        /// The end_date.
-        /// </param>
-        /// <param name="org_id">
-        /// The org_id.
-        /// </param>
-        /// <param name="comments">
-        /// The comments.
-        /// </param>
         [HttpPost]
-        public async Task Create_Doc_by_DDrop(
+        public async Task<IActionResult> Create_Doc_by_DDrop(
             IFormFile dropedfile,
             int category_id,
             string org_name,
             string start_date,
-            string end_date,
-            int org_id,
+     string end_date,
+     int org_id,
             string comments)
         {
+       if (dropedfile == null || dropedfile.Length == 0)
+       {
+   return Json(new { success = false, message = "You have not specified a file." });
+            }
 
             try
+   {
+     var fileName = Path.GetFileName(dropedfile.FileName);
+     var fileExtension = Path.GetExtension(fileName);
+
+         var docID = await _institutionalFilesService.GetDocID(
+          org_id,
+             category_id,
+              fileExtension,
+            start_date ?? "",
+         end_date ?? "",
+       sessionInfo.Ic,
+       sessionInfo.UserId,
+     comments ?? "");
+
+          var docName = Convert.ToString(docID) + fileExtension;
+
+    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+     var filePath = Path.Combine(fileFolder, docName);
+
+          await using var stream = new FileStream(filePath, FileMode.Create);
+      await dropedfile.CopyToAsync(stream);
+
+    return Json(new { success = true, message = "Done! Document has been uploaded.", org_id, org_name });
+          }
+            catch (UnauthorizedAccessException ex)
             {
-                if (dropedfile != null && dropedfile.Length > 0)
-                {
-                    // get file name and file Extension
-                    var fileName = Path.GetFileName(dropedfile.FileName);
-                    var fileExtension = Path.GetExtension(fileName);
-
-                    // get document id and create new document name 
-                    var docID = await _institutionalFilesService.GetDocID(
-                        org_id,
-                        category_id,
-                        fileExtension,
-                        start_date ?? "",
-                        end_date ?? "",
-                        sessionInfo.Ic,
-                        sessionInfo.UserId,
-                        comments ?? "");
-
-                    var docName = Convert.ToString(docID) + fileExtension;
-
-                    // upload to image sever 
-                    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
-                    var filePath = Path.Combine(fileFolder, docName);
-                    // save file asynchronously
-                    await using var stream = new FileStream(filePath, FileMode.Create);
-                    await dropedfile.CopyToAsync(stream);
-
-                }
-                else
-                {
-                    ViewBag.Message = "You have not specified a file.";
-                }
-            }
-            catch (Exception ex)
+    Log.Error($"Access denied to network share: {ex.Message}");
+          return Json(new { 
+     success = false, 
+        message = "Access denied to file storage location. Please contact your system administrator to verify network share permissions." 
+     });
+        }
+ catch (IOException ex) when (ex.Message.Contains("security policies") || ex.Message.Contains("guest access"))
             {
-                this.ViewBag.Message = "ERROR:" + ex.Message;
-            }
+   Log.Error($"Network security policy error: {ex.Message}");
+        return Json(new { 
+        success = false, 
+    message = "Network security policy is blocking access to file storage. Please contact your IT administrator to grant access to the network share." 
+           });
+         }
+      catch (Exception ex)
+        {
+      Log.Error("Error in saving Institutional file: " + ex.Message);
+        return Json(new { success = false, message = "ERROR: " + ex.Message });
+     }
         }
 
-        /// <summary>
+ /// <summary>
         /// The create_ doc_by_ file.
-        /// </summary>
-        /// <param name="file">
-        /// The file.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="org_name">
-        /// The org_name.
-        /// </param>
-        /// <param name="start_date">
-        /// The start_date.
-        /// </param>
-        /// <param name="end_date">
-        /// The end_date.
-        /// </param>
-        /// <param name="org_id">
-        /// The org_id.
-        /// </param>
-        /// <param name="comments">
-        /// The comments.
-        /// </param>
+   /// </summary>
         [HttpPost]
-        public async Task Create_Doc_by_File(
-            IFormFile file,
+  public async Task<IActionResult> Create_Doc_by_File(
+     IFormFile file,
             int category_id,
-            string org_name,
-            string start_date,
-            string end_date,
+         string org_name,
+     string start_date,
+       string end_date,
             int org_id,
-            string comments)
+      string comments)
+     {
+         if (file == null || file.Length == 0 || category_id == 0)
+            {
+        return Json(new { success = false, message = "You have not specified information correctly." });
+    }
+
+        try
         {
-            string url = null;
-            string mssg = null;
+       var fileName = Path.GetFileName(file.FileName);
+                var fileExtension = Path.GetExtension(fileName);
 
-            try
-            {
-                if (file != null && file.Length > 0 && category_id != 0)
-                {
-                    // get file name and file Extension
-                    var fileName = Path.GetFileName(file.FileName);
-                    var fileExtension = Path.GetExtension(fileName);
+    var docID = await _institutionalFilesService.GetDocID(
+        org_id,
+    category_id,
+   fileExtension,
+    start_date ?? "",
+      end_date ?? "",
+        sessionInfo.Ic,
+             sessionInfo.UserId,
+        comments ?? "");
 
-                    // get document id and create new document name 
-                    var docID = await _institutionalFilesService.GetDocID(
-                        org_id,
-                        category_id,
-                        fileExtension,
-                        start_date ?? "",
-                        end_date ?? "",
-                        sessionInfo.Ic,
-                        sessionInfo.UserId,
-                        comments ?? "");
+         var docName = Convert.ToString(docID) + fileExtension;
 
-                    var docName = Convert.ToString(docID) + fileExtension;
+                var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+      Log.Information("fileFolder: " + fileFolder);
+  var filePath = Path.Combine(fileFolder, docName);
 
-                    try
-                    {
-                        var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
-                        var filePath = Path.Combine(fileFolder, docName);
-                        // save file asynchronously
-                        await using var stream = new FileStream(filePath, FileMode.Create);
-                        await file.CopyToAsync(stream);
-                        Log.Information("Successfully copyied file to " + fileFolder);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error("Error in saving Institutional file: " + ex.Message);
-                    }
+     // save file asynchronously
+  await using var stream = new FileStream(filePath, FileMode.Create);
+          await file.CopyToAsync(stream);
+                Log.Information("Successfully copied file to " + fileFolder);
 
-                }
-                else
-                {
-                    ViewBag.Message = "You have not specified information correctly.";
-                }
+  return Json(new { success = true, message = "Done! Document has been uploaded.", org_id, org_name });
             }
-            catch (Exception ex)
+            catch (UnauthorizedAccessException ex)
+  {
+           Log.Error($"Access denied to network share: {ex.Message}");
+  return Json(new { 
+ success = false, 
+       message = "Access denied to file storage location. Please contact your system administrator to verify network share permissions." 
+   });
+       }
+   catch (IOException ex) when (ex.Message.Contains("security policies") || ex.Message.Contains("guest access"))
+  {
+    Log.Error($"Network security policy error: {ex.Message}");
+        return Json(new { 
+      success = false, 
+    message = "Network security policy is blocking access to file storage. Please contact your IT administrator to grant access to the network share." 
+        });
+ }
+   catch (Exception ex)
             {
-                ViewBag.Message = "ERROR:" + ex.Message;
+       Log.Error("Error in saving Institutional file: " + ex.Message);
+              return Json(new { success = false, message = "ERROR: " + ex.Message });
             }
         }
 
