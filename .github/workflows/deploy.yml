@@ -6,11 +6,11 @@ on:
       - dev
       - test
       - stage
-      - eGrants-Core-Main
+      - master
 
 jobs:
   build-and-deploy:
-    runs-on: egrants_fcas-oasys_runner
+    runs-on: ${{ (github.ref_name == 'dev' || github.ref_name == 'test') && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
     environment: ${{ github.ref_name }}
 
     steps:
@@ -21,16 +21,39 @@ jobs:
         uses: actions/checkout@v4
 
       # ---------------------------------------------------------
-      # LOAD ENVIRONMENT VARIABLES
+      # LOAD ENVIRONMENT VARIABLES (BRANCH-AWARE)
       # ---------------------------------------------------------
       - name: Load environment variables
         id: envmap
         shell: powershell
         run: |
-          echo "DEST_PATH=${{ vars.DEST_PATH }}" >> $env:GITHUB_OUTPUT
-          echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
-          echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
-          echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
+          $branch = "${{ github.ref_name }}"
+
+          Write-Host "Branch detected: $branch"
+
+          switch ($branch) {
+            "dev" {
+              echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
+              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
+              echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
+              echo "APP_POOL=${{ vars.APP_POOL_DEV }}" >> $env:GITHUB_OUTPUT
+            }
+            "test" {
+              echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "APP_POOL=${{ vars.APP_POOL_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_TEST }}" >> $env:GITHUB_OUTPUT              
+            }
+            default {
+              echo "DEST_PATH=${{ vars.DEST_PATH }}" >> $env:GITHUB_OUTPUT
+              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
+              echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
+              echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
+            }
+          }
+
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
