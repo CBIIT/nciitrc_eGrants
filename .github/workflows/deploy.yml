@@ -8,6 +8,19 @@ on:
       - stage
       - master
 
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Select environment to deploy"
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - stage
+          - master
+        default: dev
+
 jobs:
   build-and-deploy:
     runs-on: ${{ (github.ref_name == 'dev' || github.ref_name == 'test') && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
