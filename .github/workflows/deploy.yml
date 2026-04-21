@@ -36,6 +36,23 @@ jobs:
 
 
       # ---------------------------------------------------------
+      # DIAGNOSTIC: SHOW RUNNER IDENTITY
+      # ---------------------------------------------------------
+      - name: Show runner identity
+        shell: powershell
+        run: |
+          Write-Host "======================================="
+          Write-Host " RUNNER IDENTITY DIAGNOSTIC"
+          Write-Host "======================================="
+          Write-Host "whoami:"
+          whoami
+          Write-Host ""
+          Write-Host "User SID:"
+          whoami /user
+          Write-Host "======================================="
+
+
+      # ---------------------------------------------------------
       # LOAD ENVIRONMENT VARIABLES
       # ---------------------------------------------------------
       - name: Load environment variables
