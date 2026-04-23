@@ -950,15 +950,21 @@ string admin_code,
             catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 downloadData.Error = "Internal Server Error! Notify Dev Team!";
+                Log.Error(Convert.ToString(ex.InnerException));
             }
-            catch (ArgumentNullException)
+            catch (ArgumentNullException err)
             {
                 downloadData.Error = "A value is null which should not be.";
+                Log.Error(Convert.ToString(err.InnerException));
             }
             catch (Exception err)
             {
                 downloadData.Error = "General Exception! Screenshot this message and notify the Development Team: " + Environment.NewLine + err.Message + diagnostics.ToString();
                 Log.Error(Convert.ToString(err.InnerException));
+            }
+            finally
+            {
+                Log.Information(diagnostics.ToString());
             }
 
             return (downloadData, success);
@@ -1252,8 +1258,10 @@ string admin_code,
             // PERFORMANCE: Use cached HttpClient for connection reuse
             var client = GetStandardHttpClient();
 
+            diagnostics.Append("Awaiting response ");
             var response = await client.GetAsync(uri);
             response.EnsureSuccessStatusCode();
+            diagnostics.Append("Response Succesful");
 
             await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
             await response.Content.CopyToAsync(fileStream);
@@ -1262,6 +1270,8 @@ string admin_code,
             var filename = Path.GetFileName(uri.LocalPath);
             var fi = new FileInfo(filename);
             var newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}", "_");
+
+            diagnostics.Append("File temporarily saved");
 
             System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName), true);
             downloadData.FileDownloaded = newFileName;
