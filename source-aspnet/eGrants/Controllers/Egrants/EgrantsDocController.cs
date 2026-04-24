@@ -741,85 +741,87 @@ namespace eGrants.Controllers.Egrants
             string admin_code,
             int serial_num)
         {
-
-            var docName = string.Empty;
             string url = null;
             string mssg = null;
-            string fileExtension = string.Empty;
-            var pdfDocs = new List<PdfDocument>();
+            string fileExtension = ".pdf";
+            var sb = new StringBuilder();
+
             var converter = new EmailConcatenation.PdfConverter();
 
+            // Track temp files for cleanup
+            var tempPdfPaths = new List<string>();
+
             if (dropedfiles != null && dropedfiles.Any())
+            {
                 try
                 {
                     var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(dropedfiles);
 
                     foreach (var dropedfile in dropedfiles)
                     {
-                        // get file name and file Extension
                         var fileName = Path.GetFileName(dropedfile.FileName);
-                        fileExtension = Path.GetExtension(fileName);
+                        var ext = Path.GetExtension(fileName);
 
                         if (dropedfile.Length <= 0)
                         {
-                            Log.Warning("convert_to_pdf_by_ddrop received empty file: {File}", fileName);
+                            Log.Warning("Empty file skipped: {File}", fileName);
                             continue;
                         }
 
                         PdfDocument pdfResult = null;
 
-                        // ====================================================================================
-                        // PERFORMANCE/RELIABILITY CHANGE:
-                        // ------------------------------------------------------------------------------------
-                        // The previous implementation read the entire upload into a byte[] first.
-                        // For larger files this:
-                        // - increases memory pressure
-                        // - increases time spent before the server responds
-                        // - can contribute to client/proxy disconnects (ERR_HTTP2_PROTOCOL_ERROR)
-                        //
-                        // For non-.msg files, stream directly from the uploaded request body.
-                        // For .msg we still materialize into memory because MsgReader requires a seekable stream.
-                        // ====================================================================================
-                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                        // =========================
+                        // HANDLE .MSG FILES
+                        // =========================
+                        if (ext.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            byte[] fileData;
-                            using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
-                            {
-                                fileData = binaryReader.ReadBytes((int)dropedfile.Length);
-                            }
-
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                var emailFile = new Storage.Message(memoryStream);
-                                pdfResult = converter.Convert(emailFile);
-                            }
-                        }
-                        else
-                        {
-                            // PdfConverter.Convert expects a MemoryStream for binary documents.
-                            // We still avoid BinaryReader.ReadBytes() (which can allocate large arrays and be slower)
-                            // and instead copy the request stream into a MemoryStream.
-                            using var memoryStream = new MemoryStream(capacity: (int)Math.Min(dropedfile.Length, int.MaxValue));
+                            using var memoryStream = new MemoryStream();
                             using (var uploadStream = dropedfile.OpenReadStream())
                             {
                                 uploadStream.CopyTo(memoryStream);
                             }
+
                             memoryStream.Position = 0;
+
+                            var emailFile = new Storage.Message(memoryStream);
+                            pdfResult = converter.Convert(emailFile);
+                        }
+                        else
+                        {
+                            // =========================
+                            // HANDLE ALL OTHER FILES
+                            // =========================
+                            using var memoryStream = new MemoryStream();
+
+                            using (var uploadStream = dropedfile.OpenReadStream())
+                            {
+                                uploadStream.CopyTo(memoryStream);
+                            }
+
+                            memoryStream.Position = 0;
+
                             pdfResult = converter.Convert(memoryStream, fileName);
                         }
 
+                        // =========================
+                        // SAVE EACH PDF IMMEDIATELY TO DISK
+                        // =========================
                         if (pdfResult != null)
                         {
-                            pdfDocs.Add(pdfResult);
+                            var tempPdfPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pdf");
+
+                            pdfResult.SaveAs(tempPdfPath);
+                            pdfResult.Dispose();
+
+                            tempPdfPaths.Add(tempPdfPath);
                         }
                     }
 
-                    fileExtension = ".pdf";
-
-                    var sb = new StringBuilder();
-                    if (pdfDocs.Any())
+                    if (tempPdfPaths.Any())
                     {
-                        // get document_id and creat a new docName
+                        // =========================
+                        // CREATE FINAL DOCUMENT NAME
+                        // =========================
                         var document_id = _documentService.GetDocID(
                             appl_id,
                             category_id,
@@ -829,19 +831,45 @@ namespace eGrants.Controllers.Egrants
                             sessionInfo.Ic,
                             sessionInfo.UserId);
 
-                        docName = Convert.ToString(document_id) + fileExtension;
+                        var docName = $"{document_id}.pdf";
 
-                        var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded2\\nci\\main\\";
+#if DEBUG
+                        var fileFolder = "C:\\PdfFileOutput\\";
+#else
+                        var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) +
+                 "\\egrants\\funded2\\nci\\main\\";
+#endif
+
                         var filePath = Path.Combine(fileFolder, docName);
 
-                        Log.Information("Saving merged PDF. ApplId={ApplId}, DocId={DocId}, Path={Path}", appl_id, document_id, filePath);
+                        Log.Information("Merging PDFs. ApplId={ApplId}, DocId={DocId}, Count={Count}",
+                            appl_id, document_id, tempPdfPaths.Count);
 
-                        var pdfDoc = PdfDocument.Merge(pdfDocs);
-                        pdfDoc.SaveAs(filePath);
+                        // =========================
+                        // MERGE FROM FILES (NOT MEMORY)
+                        // =========================
+                        var pdfDocs = tempPdfPaths
+                            .Select(path => PdfDocument.FromFile(path))
+                            .ToList();
 
-                        // create review url
-                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath")
- + Convert.ToString(docName);
+                        var mergedPdf = PdfDocument.Merge(pdfDocs);
+                        mergedPdf.SaveAs(filePath);
+
+                        // Cleanup merged objects
+                        mergedPdf.Dispose();
+                        foreach (var doc in pdfDocs)
+                        {
+                            doc.Dispose();
+                        }
+
+                        // =========================
+                        // BUILD RESPONSE
+                        // =========================
+                        this.ViewBag.FileUrl =
+                            sessionInfo.ImageServerUrl +
+                            HttpContext.Session.GetString("EgrantsDocNewRelativePath") +
+                            docName;
+
                         sb.Append("Done! New document has been created**#7|n3br3@k#**");
                     }
                     else
@@ -849,9 +877,13 @@ namespace eGrants.Controllers.Egrants
                         sb.Append("No documents were found to convert**#7|n3br3@k#**");
                     }
 
+                    // =========================
+                    // UNSUPPORTED FILES MESSAGE
+                    // =========================
                     if (unsupportedFilesList.Count > 0)
                     {
                         sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
+
                         foreach (var unsupportedFile in unsupportedFilesList)
                         {
                             sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
@@ -863,11 +895,35 @@ namespace eGrants.Controllers.Egrants
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "convert_to_pdf_by_ddrop failed. ApplId={ApplId}, CategoryId={CategoryId}", appl_id, category_id);
+                    Log.Error(ex,
+                        "convert_to_pdf_by_ddrop failed. ApplId={ApplId}, CategoryId={CategoryId}",
+                        appl_id, category_id);
+
                     mssg = "ERROR: The file could not be converted!";
                 }
+                finally
+                {
+                    // =========================
+                    // CLEAN UP TEMP FILES
+                    // =========================
+                    foreach (var path in tempPdfPaths)
+                    {
+                        try
+                        {
+                            if (System.IO.File.Exists(path))
+                                System.IO.File.Delete(path);
+                        }
+                        catch (Exception cleanupEx)
+                        {
+                            Log.Warning(cleanupEx, "Failed to delete temp file: {Path}", path);
+                        }
+                    }
+                }
+            }
             else
+            {
                 mssg = "You have not specified a file.";
+            }
 
             return this.Json(new { url, message = mssg });
         }
