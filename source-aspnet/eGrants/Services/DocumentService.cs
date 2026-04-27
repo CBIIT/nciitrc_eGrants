@@ -1235,46 +1235,139 @@ string admin_code,
 
             return Array.Empty<byte>();
         }
-
         /// <summary>
-        /// Handle standard file download
-        /// 
-        /// PERFORMANCE OPTIMIZATION: Uses cached HttpClient via GetStandardHttpClient()
-        /// instead of creating new HttpClient/WebClient per request.
+        /// Handle standard file download with SiteMinder authentication (cookie passthrough)
         /// </summary>
-        private async Task HandleStandardFileAsync(
-          Uri uri,
-            string tmpFileName,
-  string downloadDirectory,
-         string fullGrantNumber,
-       string documentName,
-    string documentId,
-            DownloadData downloadData,
-            System.Text.StringBuilder diagnostics,
-            SessionInfo sessionInfo)
+        private async Task HandleStandardFileAsync(Uri uri, string tmpFileName, string downloadDirectory,
+            string fullGrantNumber, string documentName, string documentId, DownloadData downloadData,
+            System.Text.StringBuilder diagnostics, SessionInfo sessionInfo)
         {
             diagnostics.Append("Not closeout or FFR Rejection. ");
 
-            // PERFORMANCE: Use cached HttpClient for connection reuse
-            var client = GetStandardHttpClient();
+            // Create HttpClientHandler with same settings as legacy WebClient
+            var handler = new HttpClientHandler
+            {
+                UseDefaultCredentials = true,
+                Credentials = System.Net.CredentialCache.DefaultNetworkCredentials,
+                UseCookies = true,
+                CookieContainer = new System.Net.CookieContainer()
+            };
 
-            diagnostics.Append("Awaiting response ");
-            var response = await client.GetAsync(uri);
-            response.EnsureSuccessStatusCode();
-            diagnostics.Append("Response Succesful");
+            using var client = new HttpClient(handler);
 
-            await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
-            await response.Content.CopyToAsync(fileStream);
-            fileStream.Close();
+            // Add User-Agent header
+            client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
 
-            var filename = Path.GetFileName(uri.LocalPath);
-            var fi = new FileInfo(filename);
-            var newFileName = ReplaceInvalidChars($"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}", "_");
+            if (!string.IsNullOrEmpty(sessionInfo.BrowserCookies))
+            {
+                // Parse and add cookies to the container
+                var cookieHeader = sessionInfo.BrowserCookies;
+                var cookies = cookieHeader.Split(';');
 
-            diagnostics.Append("File temporarily saved");
+                foreach (var cookie in cookies)
+                {
+                    var trimmedCookie = cookie.Trim();
+                    if (string.IsNullOrEmpty(trimmedCookie)) continue;
 
-            System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName), true);
-            downloadData.FileDownloaded = newFileName;
+                    var parts = trimmedCookie.Split('=', 2);
+                    if (parts.Length == 2)
+                    {
+                        try
+                        {
+                            var cookieName = parts[0].Trim();
+                            var cookieValue = parts[1].Trim();
+                            handler.CookieContainer.Add(uri, new System.Net.Cookie(cookieName, cookieValue));
+                            diagnostics.Append($"Added cookie: {cookieName}. ");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "Failed to add cookie: {Cookie}", trimmedCookie);
+                        }
+                    }
+                }
+
+                diagnostics.Append($"Forwarded {cookies.Length} cookies for SiteMinder auth. ");
+            }
+            else
+            {
+                Log.Warning("No browser cookies available to forward for SiteMinder authentication");
+                diagnostics.Append("WARNING: No cookies to forward! ");
+            }
+
+            diagnostics.Append($"Downloading from: {uri}. ");
+
+            try
+            {
+                var response = await client.GetAsync(uri);
+
+                // Log response details
+                diagnostics.Append($"Response status: {response.StatusCode}. ");
+                var contentType = response.Content.Headers.ContentType?.MediaType;
+                diagnostics.Append($"Content-Type: {contentType}. ");
+
+                // Check if we got an HTML response (likely auth page) instead of the file
+                if (contentType != null && contentType.Contains("text/html", StringComparison.OrdinalIgnoreCase))
+                {
+                    var htmlPreview = await response.Content.ReadAsStringAsync();
+                    diagnostics.Append("RECEIVED HTML INSTEAD OF FILE! ");
+
+                    Log.Error("Downloaded authentication page instead of file. URL: {Url}, User: {User}, HTML Preview: {Html}",
+                        uri, sessionInfo.UserId, htmlPreview.Substring(0, Math.Min(500, htmlPreview.Length)));
+
+                    throw new UnauthorizedAccessException("SiteMinder authentication failed - received login page instead of file");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    diagnostics.Append($"Error: {errorContent.Substring(0, Math.Min(200, errorContent.Length))}. ");
+                }
+
+                response.EnsureSuccessStatusCode();
+
+                // Download the file
+                await using var fileStream = new FileStream(tmpFileName, FileMode.Create);
+                await response.Content.CopyToAsync(fileStream);
+                fileStream.Close();
+
+                diagnostics.Append($"Downloaded {new FileInfo(tmpFileName).Length} bytes. ");
+
+                // Get filename and create new filename (matching legacy logic)
+                var filename = Path.GetFileName(uri.LocalPath);
+                var fi = new FileInfo(filename);
+
+                // Match legacy naming: remove first 4 characters from grant number, add document name and ID
+                var newFileName = ReplaceInvalidChars(
+                    $"{fullGrantNumber.Remove(0, 4)}-{documentName}-{documentId}{fi.Extension}",
+                    "_");
+
+                // Move the file from temp to download directory
+                System.IO.File.Move(tmpFileName, Path.Combine(downloadDirectory, newFileName), true);
+                downloadData.FileDownloaded = newFileName;
+
+                diagnostics.Append($"File saved as: {newFileName}. ");
+                Log.Information("File downloaded successfully: {FileName}, Size: {Size} bytes, User: {User}",
+                    newFileName, new FileInfo(Path.Combine(downloadDirectory, newFileName)).Length, sessionInfo.UserId);
+                Log.Information("Download diagnostics: {Diagnostics}", diagnostics.ToString());
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                diagnostics.Append("HTTP 401 - Authentication failed. ");
+                Log.Error(ex, "SiteMinder authentication failed for {Url}, User: {User}", uri, sessionInfo.UserId);
+                throw new UnauthorizedAccessException("HTTP 401 - SiteMinder authentication failed", ex);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                diagnostics.Append("HTTP 403 - Authorization failed. ");
+                Log.Error(ex, "SiteMinder authorization failed for {Url}, User: {User}", uri, sessionInfo.UserId);
+                throw new UnauthorizedAccessException("HTTP 403 - User not authorized to access this resource", ex);
+            }
+            catch (Exception ex)
+            {
+                diagnostics.Append($"Exception: {ex.Message}. ");
+                Log.Error(ex, "File download failed for {Url}", uri);
+                throw;
+            }
         }
 
         /// <summary>
