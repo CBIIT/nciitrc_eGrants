@@ -81,7 +81,6 @@ jobs:
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-
       # ---------------------------------------------------------
       # BUILD
       # ---------------------------------------------------------
@@ -94,6 +93,28 @@ jobs:
             -c Release `
             -o ./build_output
 
+      # ---------------------------------------------------------
+      # REPLACE TOKEN IN APPSETTINGS.JSON
+      # ---------------------------------------------------------
+      - name: Replace GitHubToken placeholder
+        shell: powershell
+        run: |
+          $file = "$(Get-Location)\build_output\appsettings.json"
+          $token = "${{ secrets.GITHUB_TOKEN }}"
+      
+          if (-not (Test-Path $file)) {
+            throw "appsettings.json not found at: $file"
+          }
+      
+          $json = Get-Content $file -Raw
+      
+          # Use parentheses so PowerShell sees exactly 2 arguments
+          $pattern = '"GitHubToken"\s*:\s*"_GITHUB_TOKEN"'
+          $replacement = '"GitHubToken": "' + $token + '"'
+      
+          $json = $json -replace $pattern, $replacement
+      
+          Set-Content -Path $file -Value $json -Encoding UTF8
 
       # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE
