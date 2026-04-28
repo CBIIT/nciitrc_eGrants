@@ -735,6 +735,11 @@ namespace eGrants.Controllers.Egrants
         /// - Streams files directly to temp disk storage instead of memory buffers
         /// - Combines unsupported file detection with conversion in single pass
         /// - Uses file-based PDF merging to reduce memory pressure for large files
+        /// 
+        /// LARGE FILE HANDLING (2025):
+        /// - Files over 100MB are processed with reduced parallelism to avoid memory exhaustion
+        /// - Aggressive garbage collection after processing each large file
+        /// - Server-side timeout and memory configurations may need adjustment for 500MB+ files
         /// </remarks>
         [HttpPost]
         [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
@@ -753,145 +758,187 @@ namespace eGrants.Controllers.Egrants
             string fileExtension = ".pdf";
             var sb = new StringBuilder();
 
-            // Thread-safe collections for parallel processing
-            var tempPdfPaths = new System.Collections.Concurrent.ConcurrentBag<(string Path, int Index)>();
+       // Thread-safe collections for parallel processing
+       var tempPdfPaths = new System.Collections.Concurrent.ConcurrentBag<(string Path, int Index)>();
             var unsupportedFilesList = new System.Collections.Concurrent.ConcurrentBag<string>();
 
             if (dropedfiles == null || !dropedfiles.Any())
             {
-                return Json(new { url, message = "You have not specified a file." });
-            }
+     return Json(new { url, message = "You have not specified a file." });
+   }
 
-            try
+     try
             {
-                // Convert to list to allow indexed access for ordering
-                var filesList = dropedfiles.ToList();
+         // Convert to list to allow indexed access for ordering
+ var filesList = dropedfiles.ToList();
+      
+        // Calculate total size and check for very large files
+  var totalSize = filesList.Sum(f => f.Length);
+                var hasLargeFiles = filesList.Any(f => f.Length > 100 * 1024 * 1024); // 100MB threshold
+ 
+                Log.Information("Starting PDF conversion. FileCount={Count}, TotalSize={TotalSizeMB}MB, HasLargeFiles={HasLarge}",
+            filesList.Count, totalSize / (1024 * 1024), hasLargeFiles);
 
-                // Process files in parallel with controlled concurrency
-                // Use MaxDegreeOfParallelism to prevent overwhelming system resources
+           // Process files in parallel with controlled concurrency
+       // Reduce parallelism for large files to prevent memory exhaustion
+     var maxParallelism = hasLargeFiles ? 1 : Math.Min(Environment.ProcessorCount, 4);
                 var parallelOptions = new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = Math.Min(Environment.ProcessorCount, 4)
-                };
+        {
+ MaxDegreeOfParallelism = maxParallelism
+      };
 
-                await Task.Run(() =>
-           {
-               Parallel.ForEach(filesList.Select((file, index) => (file, index)), parallelOptions, item =>
-   {
-       var (dropedfile, fileIndex) = item;
-       var fileName = Path.GetFileName(dropedfile.FileName);
-       var ext = Path.GetExtension(fileName);
+    Log.Information("Using MaxDegreeOfParallelism={MaxParallelism}", maxParallelism);
+
+  await Task.Run(() =>
+    {
+           Parallel.ForEach(filesList.Select((file, index) => (file, index)), parallelOptions, item =>
+    {
+    var (dropedfile, fileIndex) = item;
+    var fileName = Path.GetFileName(dropedfile.FileName);
+    var ext = Path.GetExtension(fileName);
+        var fileSizeMB = dropedfile.Length / (1024 * 1024);
+
+        Log.Information("Processing file: {FileName}, Size={SizeMB}MB, Index={Index}",
+       fileName, fileSizeMB, fileIndex);
 
        if (dropedfile.Length <= 0)
-       {
-           Log.Warning("Empty file skipped: {File}", fileName);
-           return;
-       }
+  {
+     Log.Warning("Empty file skipped: {File}", fileName);
+  return;
+        }
 
-       // Check for unsupported file types inline (avoid double-read)
-       if (!IsSupportedFileType(ext))
-       {
-           unsupportedFilesList.Add(fileName);
-           return;
-       }
+             // Check for unsupported file types inline (avoid double-read)
+            if (!IsSupportedFileType(ext))
+     {
+         unsupportedFilesList.Add(fileName);
+         return;
+  }
+
+   try
+    {
+          // Create a thread-local converter (PdfConverter may not be thread-safe)
+         var converter = new EmailConcatenation.PdfConverter();
+               PdfDocument pdfResult = null;
+
+  // Stream file to temp location to minimize memory usage for large files
+                var tempInputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{ext}");
 
        try
+          {
+ // For large files (>10MB), always stream to disk first
+       // This prevents ASP.NET from holding the entire upload in memory
+    if (dropedfile.Length > 10 * 1024 * 1024) // 10MB threshold
+   {
+   Log.Debug("Streaming large file to temp: {FileName}", fileName);
+     
+           using (var fileStream = new FileStream(tempInputPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: false))
+   {
+       using var uploadStream = dropedfile.OpenReadStream();
+             uploadStream.CopyTo(fileStream);
+             }
+
+        // Convert from file - need to read back into memory for converter
+          if (ext.Equals(".msg", StringComparison.OrdinalIgnoreCase))
+               {
+         using var msgStream = new FileStream(tempInputPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+    var emailFile = new Storage.Message(msgStream);
+
+  // Check for unsupported attachments in MSG files
+     CollectUnsupportedAttachments(emailFile, unsupportedFilesList);
+
+      pdfResult = converter.Convert(emailFile);
+    }
+              else
+          {
+                 // PdfConverter requires MemoryStream, so read file back into memory
+       // For very large files (>100MB), this can cause memory pressure
+    // Consider chunked processing or alternative converters for such files
+       if (dropedfile.Length > 500 * 1024 * 1024) // 500MB
+  {
+       Log.Warning("Very large file detected: {FileName} ({SizeMB}MB). May require significant memory.",
+ fileName, fileSizeMB);
+    }
+            
+          var fileBytes = System.IO.File.ReadAllBytes(tempInputPath);
+     using var memStream = new MemoryStream(fileBytes);
+    pdfResult = converter.Convert(memStream, fileName);
+            
+        // Explicitly release the byte array for GC
+            fileBytes = null;
+  }
+          }
+       else
        {
-           // Create a thread-local converter (PdfConverter may not be thread-safe)
-           var converter = new EmailConcatenation.PdfConverter();
-           PdfDocument pdfResult = null;
+    // For smaller files, use memory stream (faster for small files)
+             using var memoryStream = new MemoryStream();
+  using (var uploadStream = dropedfile.OpenReadStream())
+  {
+   uploadStream.CopyTo(memoryStream);
+            }
+      memoryStream.Position = 0;
 
-           // Stream file to temp location to minimize memory usage for large files
-           var tempInputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{ext}");
+           if (ext.Equals(".msg", StringComparison.OrdinalIgnoreCase))
+          {
+         var emailFile = new Storage.Message(memoryStream);
 
-           try
+       // Check for unsupported attachments in MSG files
+            CollectUnsupportedAttachments(emailFile, unsupportedFilesList);
+
+      pdfResult = converter.Convert(emailFile);
+ }
+    else
            {
-               // Stream directly to disk for large files (>10MB), otherwise use memory
-               if (dropedfile.Length > 10 * 1024 * 1024) // 10MB threshold
-               {
-                   using (var fileStream = new FileStream(tempInputPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: false))
-                   {
-                       using var uploadStream = dropedfile.OpenReadStream();
-                       uploadStream.CopyTo(fileStream);
-                   }
+       pdfResult = converter.Convert(memoryStream, fileName);
+  }
+             }
 
-                   // Convert from file - need to read back into memory for converter
-                   if (ext.Equals(".msg", StringComparison.OrdinalIgnoreCase))
-                   {
-                       using var msgStream = new FileStream(tempInputPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                       var emailFile = new Storage.Message(msgStream);
+       // Save PDF to temp file immediately to free memory
+        if (pdfResult != null)
+     {
+      var tempPdfPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.pdf");
+      pdfResult.SaveAs(tempPdfPath);
+     pdfResult.Dispose();
+             pdfResult = null;
 
-                       // Check for unsupported attachments in MSG files
-                       CollectUnsupportedAttachments(emailFile, unsupportedFilesList);
-
-                       pdfResult = converter.Convert(emailFile);
-                   }
-                   else
-                   {
-                       // PdfConverter requires MemoryStream, so read file back into memory
-                       // This is still more efficient for very large files as we stream to disk first
-                       // which prevents ASP.NET from buffering the entire upload in memory
-                       var fileBytes = System.IO.File.ReadAllBytes(tempInputPath);
-                       using var memStream = new MemoryStream(fileBytes);
-                       pdfResult = converter.Convert(memStream, fileName);
-                   }
-               }
-               else
-               {
-                   // For smaller files, use memory stream (faster for small files)
-                   using var memoryStream = new MemoryStream();
-                   using (var uploadStream = dropedfile.OpenReadStream())
-                   {
-                       uploadStream.CopyTo(memoryStream);
-                   }
-                   memoryStream.Position = 0;
-
-                   if (ext.Equals(".msg", StringComparison.OrdinalIgnoreCase))
-                   {
-                       var emailFile = new Storage.Message(memoryStream);
-
-                       // Check for unsupported attachments in MSG files
-                       CollectUnsupportedAttachments(emailFile, unsupportedFilesList);
-
-                       pdfResult = converter.Convert(emailFile);
-                   }
-                   else
-                   {
-                       pdfResult = converter.Convert(memoryStream, fileName);
-                   }
-               }
-
-               // Save PDF to temp file immediately to free memory
-               if (pdfResult != null)
-               {
-                   var tempPdfPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.pdf");
-                   pdfResult.SaveAs(tempPdfPath);
-                   pdfResult.Dispose();
-
-                   // Store with index to maintain original order
-                   tempPdfPaths.Add((tempPdfPath, fileIndex));
-               }
-           }
-           finally
+    // Store with index to maintain original order
+        tempPdfPaths.Add((tempPdfPath, fileIndex));
+        
+        Log.Information("Successfully converted file: {FileName}", fileName);
+        }
+                     
+        // Force garbage collection for very large files to free memory
+          if (dropedfile.Length > 100 * 1024 * 1024)
+              {
+   GC.Collect();
+        GC.WaitForPendingFinalizers();
+    }
+            }
+     finally
+    {
+     // Clean up temp input file
+             if (System.IO.File.Exists(tempInputPath))
+     {
+             try { System.IO.File.Delete(tempInputPath); }
+    catch { /* Ignore cleanup errors */ }
+        }
+         }
+  }
+    catch (OutOfMemoryException ex)
+            {
+   Log.Error(ex, "Out of memory converting file: {FileName} ({SizeMB}MB). Server may need more memory or file is too large.",
+          fileName, fileSizeMB);
+       unsupportedFilesList.Add($"{fileName} (out of memory - file too large)");
+      }
+            catch (Exception ex)
            {
-               // Clean up temp input file
-               if (System.IO.File.Exists(tempInputPath))
-               {
-                   try { System.IO.File.Delete(tempInputPath); }
-                   catch { /* Ignore cleanup errors */ }
-               }
-           }
-       }
-       catch (Exception ex)
-       {
-           Log.Warning(ex, "Failed to convert file: {FileName}", fileName);
-           unsupportedFilesList.Add($"{fileName} (conversion failed)");
-       }
-   });
-           });
+        Log.Warning(ex, "Failed to convert file: {FileName}", fileName);
+ unsupportedFilesList.Add($"{fileName} (conversion failed)");
+  }
+});
+        });
 
-                // Sort by original index to maintain file order
-                var orderedPdfPaths = tempPdfPaths.OrderBy(x => x.Index).Select(x => x.Path).ToList();
+              // Sort by original index to maintain file order
+   var orderedPdfPaths = tempPdfPaths.OrderBy(x => x.Index).Select(x => x.Path).ToList();
 
                 if (orderedPdfPaths.Any())
                 {
