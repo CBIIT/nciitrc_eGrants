@@ -96,11 +96,11 @@ jobs:
       # ---------------------------------------------------------
       # REPLACE TOKEN IN APPSETTINGS.JSON
       # ---------------------------------------------------------
-      - name: Replace GitHubToken placeholder
+      - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
           $file = "$(Get-Location)\build_output\appsettings.json"
-          $token = "${{ secrets.GITHUB_TOKEN }}"
+          $token = "${{ secrets._GITHUB_TOKEN }}"
       
           if (-not (Test-Path $file)) {
             throw "appsettings.json not found at: $file"
@@ -108,8 +108,8 @@ jobs:
       
           $json = Get-Content $file -Raw
       
-          # Use parentheses so PowerShell sees exactly 2 arguments
-          $pattern = '"GitHubToken"\s*:\s*"_GITHUB_TOKEN"'
+          # Match ANY value for GitHubToken
+          $pattern = '"GitHubToken"\s*:\s*".*?"'
           $replacement = '"GitHubToken": "' + $token + '"'
       
           $json = $json -replace $pattern, $replacement
