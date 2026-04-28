@@ -81,6 +81,14 @@ jobs:
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
+      # ---------------------------------------------------------
+      # LOAD GITHUB TOKEN (kept as-is)
+      # ---------------------------------------------------------
+      - name: Load GitHub token
+        id: token
+        shell: powershell
+        run: |
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $env:GITHUB_OUTPUT          
 
       # ---------------------------------------------------------
       # BUILD
