@@ -337,16 +337,43 @@ jobs:
 
 
       # ---------------------------------------------------------
-      # START IIS REMOTE
+      # START IIS (NON-DEV REMOTE) — DIRECT SCM (NO PSEXEC)
       # ---------------------------------------------------------
-      - name: Start IIS remote
-        if: ${{ github.ref_name != 'dev' && github.ref_name != 'stage' }}
+      - name: Start IIS site and app pool (remote via SCM)
+        if: ${{ github.ref_name != 'dev' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-
-          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-
+          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+      
+          if ([string]::IsNullOrWhiteSpace($remote)) {
+            throw "REMOTE_SERVER is missing or empty."
+          }
+      
+          Write-Host "Starting IIS core services on $remote ..."
+      
+          # Start WAS (App Pool Activation)
           sc.exe \\$remote start WAS
+      
+          # Start W3SVC (IIS Web Server)
           sc.exe \\$remote start W3SVC
-
+      
+          Start-Sleep -Seconds 5
+      
+          # Validate
+          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
+          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
+      
+          if ($w3svcState -notmatch "RUNNING") {
+              throw "W3SVC did not start properly"
+          }
+          if ($wasState -notmatch "RUNNING") {
+              throw "WAS did not start properly"
+          }
+      
+          Write-Host "IIS core services successfully started via SCM."
           exit 0
