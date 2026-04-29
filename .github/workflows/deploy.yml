@@ -129,45 +129,54 @@ jobs:
           $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
           Write-Host "Branch: $branch"
-          Write-Host "Destination: $destination"
-          Write-Host "Archive root: $archiveRoot"
+          Write-Host "Destination UNC: $destination"
+          Write-Host "Archive UNC: $archiveRoot"
+
+          # -------------------------------
+          # DRIVE LETTERS
+          # -------------------------------
+          $destDrive = 'Z:'
+          $archDrive = 'Y:'
 
           # -------------------------------
           # AUTHENTICATE ONLY IF REMOTE
           # -------------------------------
-          $drive = 'Z:'
-
           if ($branch -ne 'dev') {
-            Write-Host 'Mapping remote share using credentials...'
 
-            # Extract the share root (\\server\share)
-            $parts = $destination -split '\\'
-            $shareRoot = '\\' + $parts[2] + '\' + $parts[3]
+            Write-Host 'Mapping remote shares using credentials...'
 
-            Write-Host "Share root resolved to: $shareRoot"
+            # Extract share roots
+            $destParts = $destination -split '\\'
+            $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
 
-            # Map drive Z: to the share root
-            cmd.exe /c "net use $drive `"$shareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+            $archParts = $archiveRoot -split '\\'
+            $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+
+            Write-Host "Destination share root: $destShareRoot"
+            Write-Host "Archive share root: $archShareRoot"
+
+            # Map Z: to destination server
+            cmd.exe /c "net use $destDrive `"$destShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+
+            # Map Y: to archive server
+            cmd.exe /c "net use $archDrive `"$archShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+
+            # Convert UNC → drive paths
+            $mappedDest = $destination.Replace($destShareRoot, $destDrive)
+            $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
           }
           else {
             Write-Host 'DEV environment detected — no credentialed net use required.'
-          }
-
-          # -------------------------------
-          # VALIDATE DESTINATION
-          # -------------------------------
-          if ($branch -ne 'dev') {
-            $mappedDest = $drive + ($destination.Substring($shareRoot.Length))
-            $mappedArchive = $drive + ($archiveRoot.Substring($shareRoot.Length))
-          }
-          else {
             $mappedDest = $destination
             $mappedArchive = $archiveRoot
           }
 
-          Write-Host "Mapped destination: $mappedDest"
-          Write-Host "Mapped archive root: $mappedArchive"
+          Write-Host "Mapped destination path: $mappedDest"
+          Write-Host "Mapped archive path: $mappedArchive"
 
+          # -------------------------------
+          # VALIDATE PATHS
+          # -------------------------------
           if (-not (Test-Path $mappedDest)) {
             throw "Destination share not reachable: $mappedDest"
           }
@@ -216,10 +225,11 @@ jobs:
           }
 
           # -------------------------------
-          # UNMAP DRIVE
+          # UNMAP DRIVES
           # -------------------------------
           if ($branch -ne 'dev') {
-            cmd.exe /c "net use $drive /delete /y"
+            cmd.exe /c "net use $destDrive /delete /y"
+            cmd.exe /c "net use $archDrive /delete /y"
           }
 
           exit 0
