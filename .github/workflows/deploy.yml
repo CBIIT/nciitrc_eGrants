@@ -162,6 +162,18 @@ jobs:
 
           exit 0
 
+      # ---------------------------------------------------------
+      # DIAGNOSTIC: CHECK RUNNER IDENTITY & TOKEN
+      # ---------------------------------------------------------
+      - name: Diagnostic – Check runner identity and token
+        shell: powershell
+        run: |
+          Write-Host "=== WHOAMI ==="
+          whoami
+          Write-Host "=== GROUPS ==="
+          whoami /groups
+          Write-Host "=== INTEGRITY LEVEL ==="
+          whoami /priv
 
       # ---------------------------------------------------------
       # STOP IIS LOCAL
