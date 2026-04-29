@@ -265,6 +265,7 @@ jobs:
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
 
           sc.exe \\$remote stop W3SVC
+          sc.exe \\$remote stop WAS
 
           Start-Sleep -Seconds 5
 
