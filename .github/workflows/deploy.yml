@@ -136,7 +136,7 @@ jobs:
           # -------------------------------
           if ($branch -ne "dev") {
             Write-Host "Mapping remote share using credentials..."
-            cmd.exe /c "net use $destination /user:$deployUser $deployPass"
+            cmd.exe /c "net use `"$destination`" /user:`"$deployUser`" `"$deployPass`""
           } else {
             Write-Host "DEV environment detected — no credentialed net use required."
           }
@@ -185,12 +185,15 @@ jobs:
           # -------------------------------
           $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.zip" |
                       Sort-Object LastWriteTime -Descending
+
           $archivesToDelete = $archives | Select-Object -Skip 5
+
           foreach ($old in $archivesToDelete) {
             Remove-Item -Path $old.FullName -Force
           }
 
           exit 0
+
 
       # ---------------------------------------------------------
       # STOP IIS LOCAL
