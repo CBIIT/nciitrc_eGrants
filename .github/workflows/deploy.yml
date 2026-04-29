@@ -135,6 +135,8 @@ jobs:
           # -------------------------------
           # AUTHENTICATE ONLY IF REMOTE
           # -------------------------------
+          $drive = 'Z:'
+
           if ($branch -ne 'dev') {
             Write-Host 'Mapping remote share using credentials...'
 
@@ -144,8 +146,8 @@ jobs:
 
             Write-Host "Share root resolved to: $shareRoot"
 
-            # Map the share root using credentials
-            cmd.exe /c "net use `"$shareRoot`" /user:`"$deployUser`" `"$deployPass`""
+            # Map drive Z: to the share root
+            cmd.exe /c "net use $drive `"$shareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
           }
           else {
             Write-Host 'DEV environment detected — no credentialed net use required.'
@@ -154,28 +156,40 @@ jobs:
           # -------------------------------
           # VALIDATE DESTINATION
           # -------------------------------
-          if (-not (Test-Path $destination)) {
-            throw "Destination share not reachable: $destination"
+          if ($branch -ne 'dev') {
+            $mappedDest = $drive + ($destination.Substring($shareRoot.Length))
+            $mappedArchive = $drive + ($archiveRoot.Substring($shareRoot.Length))
+          }
+          else {
+            $mappedDest = $destination
+            $mappedArchive = $archiveRoot
+          }
+
+          Write-Host "Mapped destination: $mappedDest"
+          Write-Host "Mapped archive root: $mappedArchive"
+
+          if (-not (Test-Path $mappedDest)) {
+            throw "Destination share not reachable: $mappedDest"
+          }
+
+          if (-not (Test-Path $mappedArchive)) {
+            New-Item -ItemType Directory -Path $mappedArchive | Out-Null
           }
 
           # -------------------------------
           # PREP ARCHIVE FOLDERS
           # -------------------------------
-          if (-not (Test-Path $archiveRoot)) {
-            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
-          }
-
           $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
           $localTemp = Join-Path $env:TEMP "archive_$timestamp"
           $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
+          $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
 
           New-Item -ItemType Directory -Path $localTemp | Out-Null
 
           # -------------------------------
           # ROBOCOPY (LOCAL OR REMOTE)
           # -------------------------------
-          robocopy $destination $localTemp /MIR
+          robocopy $mappedDest $localTemp /MIR
           if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
           # -------------------------------
@@ -193,12 +207,19 @@ jobs:
           # -------------------------------
           # RETAIN ONLY 5 MOST RECENT
           # -------------------------------
-          $archives = Get-ChildItem -Path $archiveRoot -Filter 'backup_*.zip'
+          $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip'
           $archives = $archives | Sort-Object LastWriteTime -Descending
 
           $archivesToDelete = $archives | Select-Object -Skip 5
           foreach ($old in $archivesToDelete) {
             Remove-Item -Path $old.FullName -Force
+          }
+
+          # -------------------------------
+          # UNMAP DRIVE
+          # -------------------------------
+          if ($branch -ne 'dev') {
+            cmd.exe /c "net use $drive /delete /y"
           }
 
           exit 0
