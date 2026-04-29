@@ -128,17 +128,39 @@ jobs:
           $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
           $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
+          Write-Host "Branch: $branch"
+          Write-Host "Destination: $destination"
+          Write-Host "Archive root: $archiveRoot"
+
+          # -------------------------------
+          # AUTHENTICATE ONLY IF REMOTE
+          # -------------------------------
           if ($branch -ne 'dev') {
             Write-Host 'Mapping remote share using credentials...'
-            cmd.exe /c "net use `"$destination`" /user:`"$deployUser`" `"$deployPass`""
-          } else {
+
+            # Extract the share root (\\server\share)
+            $parts = $destination -split '\\'
+            $shareRoot = '\\' + $parts[2] + '\' + $parts[3]
+
+            Write-Host "Share root resolved to: $shareRoot"
+
+            # Map the share root using credentials
+            cmd.exe /c "net use `"$shareRoot`" /user:`"$deployUser`" `"$deployPass`""
+          }
+          else {
             Write-Host 'DEV environment detected — no credentialed net use required.'
           }
 
+          # -------------------------------
+          # VALIDATE DESTINATION
+          # -------------------------------
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
           }
 
+          # -------------------------------
+          # PREP ARCHIVE FOLDERS
+          # -------------------------------
           if (-not (Test-Path $archiveRoot)) {
             New-Item -ItemType Directory -Path $archiveRoot | Out-Null
           }
@@ -150,16 +172,27 @@ jobs:
 
           New-Item -ItemType Directory -Path $localTemp | Out-Null
 
+          # -------------------------------
+          # ROBOCOPY (LOCAL OR REMOTE)
+          # -------------------------------
           robocopy $destination $localTemp /MIR
           if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
+          # -------------------------------
+          # ZIP + COPY BACK
+          # -------------------------------
           Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
           Copy-Item -Path $localZip -Destination $remoteZip -Force
 
+          # -------------------------------
+          # CLEANUP
+          # -------------------------------
           Remove-Item -Path $localTemp -Recurse -Force
           Remove-Item -Path $localZip -Force
 
-          # YAML‑safe version — NO double quotes
+          # -------------------------------
+          # RETAIN ONLY 5 MOST RECENT
+          # -------------------------------
           $archives = Get-ChildItem -Path $archiveRoot -Filter 'backup_*.zip'
           $archives = $archives | Sort-Object LastWriteTime -Descending
 
@@ -169,7 +202,6 @@ jobs:
           }
 
           exit 0
-
       # ---------------------------------------------------------
       # STOP IIS LOCAL
       # ---------------------------------------------------------
