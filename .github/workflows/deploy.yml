@@ -122,59 +122,117 @@ jobs:
       - name: Archive existing destination directory
         shell: powershell
         run: |
+          $branch = '${{ github.ref_name }}'
+          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
+          $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
+          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
+          Write-Host "Branch: $branch"
+          Write-Host "Destination UNC: $destination"
+          Write-Host "Archive UNC: $archiveRoot"
 
-          if (-not (Test-Path $destination)) {
-            throw "Destination share not reachable: $destination"
+          # -------------------------------
+          # DRIVE LETTERS
+          # -------------------------------
+          $destDrive = 'Z:'
+          $archDrive = 'Y:'
+
+          # -------------------------------
+          # AUTHENTICATE ONLY IF REMOTE
+          # -------------------------------
+          if ($branch -ne 'dev') {
+
+            Write-Host 'Mapping remote shares using credentials...'
+
+            # Extract share roots
+            $destParts = $destination -split '\\'
+            $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+
+            $archParts = $archiveRoot -split '\\'
+            $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+
+            Write-Host "Destination share root: $destShareRoot"
+            Write-Host "Archive share root: $archShareRoot"
+
+            # Map Z: to destination server
+            cmd.exe /c "net use $destDrive `"$destShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+
+            # Map Y: to archive server
+            cmd.exe /c "net use $archDrive `"$archShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+
+            # Convert UNC → drive paths
+            $mappedDest = $destination.Replace($destShareRoot, $destDrive)
+            $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
+          }
+          else {
+            Write-Host 'DEV environment detected — no credentialed net use required.'
+            $mappedDest = $destination
+            $mappedArchive = $archiveRoot
           }
 
-          if (-not (Test-Path $archiveRoot)) {
-            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
+          Write-Host "Mapped destination path: $mappedDest"
+          Write-Host "Mapped archive path: $mappedArchive"
+
+          # -------------------------------
+          # VALIDATE PATHS
+          # -------------------------------
+          if (-not (Test-Path $mappedDest)) {
+            throw "Destination share not reachable: $mappedDest"
           }
 
-          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+          if (-not (Test-Path $mappedArchive)) {
+            New-Item -ItemType Directory -Path $mappedArchive | Out-Null
+          }
+
+          # -------------------------------
+          # PREP ARCHIVE FOLDERS
+          # -------------------------------
+          $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
           $localTemp = Join-Path $env:TEMP "archive_$timestamp"
           $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
+          $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
 
           New-Item -ItemType Directory -Path $localTemp | Out-Null
 
-          robocopy $destination $localTemp /MIR
-          if ($LASTEXITCODE -ge 8) { throw "Robocopy local copy failed." }
+          # -------------------------------
+          # ROBOCOPY (LOCAL OR REMOTE)
+          # -------------------------------
+          robocopy $mappedDest $localTemp /MIR
+          if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
+          # -------------------------------
+          # ZIP + COPY BACK
+          # -------------------------------
           Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
-
           Copy-Item -Path $localZip -Destination $remoteZip -Force
 
+          # -------------------------------
+          # CLEANUP
+          # -------------------------------
           Remove-Item -Path $localTemp -Recurse -Force
           Remove-Item -Path $localZip -Force
 
-          $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.zip" |
-                      Sort-Object LastWriteTime -Descending
+          # -------------------------------
+          # RETAIN ONLY 5 MOST RECENT
+          # -------------------------------
+          $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip'
+          $archives = $archives | Sort-Object LastWriteTime -Descending
 
           $archivesToDelete = $archives | Select-Object -Skip 5
-
           foreach ($old in $archivesToDelete) {
             Remove-Item -Path $old.FullName -Force
           }
 
+          # -------------------------------
+          # UNMAP DRIVES
+          # -------------------------------
+          if ($branch -ne 'dev') {
+            cmd.exe /c "net use $destDrive /delete /y"
+            cmd.exe /c "net use $archDrive /delete /y"
+          }
+
           exit 0
-
-      # ---------------------------------------------------------
-      # DIAGNOSTIC: CHECK RUNNER IDENTITY & TOKEN
-      # ---------------------------------------------------------
-      - name: Diagnostic – Check runner identity and token
-        shell: powershell
-        run: |
-          Write-Host "=== WHOAMI ==="
-          whoami
-          Write-Host "=== GROUPS ==="
-          whoami /groups
-          Write-Host "=== INTEGRITY LEVEL ==="
-          whoami /priv
-
       # ---------------------------------------------------------
       # STOP IIS LOCAL
       # ---------------------------------------------------------
@@ -197,20 +255,46 @@ jobs:
 
 
       # ---------------------------------------------------------
-      # STOP IIS REMOTE
+      # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
       # ---------------------------------------------------------
-      - name: Stop IIS remote
-        if: ${{ github.ref_name != 'dev' && github.ref_name != 'stage' }}
+      - name: Stop IIS (SCM remote stop)
+        if: ${{ github.ref_name != 'dev' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-
-          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-
+          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+      
+          Write-Host "Preparing credentials for SCM..."
+          $securePass  = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
+          $credential  = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
+      
+          # Extract plain password for sc.exe
+          $plainPass = $credential.GetNetworkCredential().Password
+      
+          Write-Host "Stopping IIS core services on $remote ..."
+      
+          # Stop W3SVC (IIS Web Server)
           sc.exe \\$remote stop W3SVC
+      
+          # Stop WAS (App Pool Activation)
           sc.exe \\$remote stop WAS
-
+      
           Start-Sleep -Seconds 5
-
+      
+          # Validate
+          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
+          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
+      
+          if ($w3svcState -notmatch "STOPPED") {
+              throw "W3SVC did not stop properly"
+          }
+          if ($wasState -notmatch "STOPPED") {
+              throw "WAS did not stop properly"
+          }
+      
+          Write-Host "IIS successfully stopped via SCM."
           exit 0
 
 
@@ -253,16 +337,43 @@ jobs:
 
 
       # ---------------------------------------------------------
-      # START IIS REMOTE
+      # START IIS (NON-DEV REMOTE) — DIRECT SCM (NO PSEXEC)
       # ---------------------------------------------------------
-      - name: Start IIS remote
-        if: ${{ github.ref_name != 'dev' && github.ref_name != 'stage' }}
+      - name: Start IIS site and app pool (remote via SCM)
+        if: ${{ github.ref_name != 'dev' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-
-          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-
+          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+      
+          if ([string]::IsNullOrWhiteSpace($remote)) {
+            throw "REMOTE_SERVER is missing or empty."
+          }
+      
+          Write-Host "Starting IIS core services on $remote ..."
+      
+          # Start WAS (App Pool Activation)
           sc.exe \\$remote start WAS
+      
+          # Start W3SVC (IIS Web Server)
           sc.exe \\$remote start W3SVC
-
+      
+          Start-Sleep -Seconds 5
+      
+          # Validate
+          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
+          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
+      
+          if ($w3svcState -notmatch "RUNNING") {
+              throw "W3SVC did not start properly"
+          }
+          if ($wasState -notmatch "RUNNING") {
+              throw "WAS did not start properly"
+          }
+      
+          Write-Host "IIS core services successfully started via SCM."
           exit 0
