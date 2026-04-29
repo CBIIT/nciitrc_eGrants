@@ -183,8 +183,8 @@ jobs:
           # -------------------------------
           # RETAIN ONLY 5 MOST RECENT
           # -------------------------------
-          $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.zip" |
-                      Sort-Object LastWriteTime -Descending
+          $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.zip"
+          $archives = $archives | Sort-Object LastWriteTime -Descending
 
           $archivesToDelete = $archives | Select-Object -Skip 5
 
