@@ -233,6 +233,84 @@ jobs:
           }
 
           exit 0
+
+      # ---------------------------------------------------------
+      # DIAGNOSTICS (RUNNER / HOST / IIS CONTEXT)
+      # ---------------------------------------------------------
+      - name: Diagnostics (runner host + IIS visibility)
+        shell: powershell
+        run: |
+          Write-Host "=== BASIC CONTEXT ==="
+          Write-Host "github.ref_name           = ${{ github.ref_name }}"
+          Write-Host "github.repository         = ${{ github.repository }}"
+          Write-Host "github.run_id             = ${{ github.run_id }}"
+          Write-Host "github.run_number         = ${{ github.run_number }}"
+          Write-Host "runner.name               = ${{ runner.name }}"
+          Write-Host "runner.os                 = ${{ runner.os }}"
+          Write-Host "runner.arch               = ${{ runner.arch }}"
+          Write-Host "COMPUTERNAME              = $env:COMPUTERNAME"
+          Write-Host "USERNAME                  = $env:USERNAME"
+          Write-Host "USERDOMAIN                = $env:USERDOMAIN"
+          Write-Host "PROCESS whoami            = $(whoami)"
+          Write-Host "PowerShell version        = $($PSVersionTable.PSVersion)"
+          Write-Host ""
+
+          Write-Host "=== ENV OUTPUTS (FROM envmap) ==="
+          Write-Host "SITE_NAME                 = '${{ steps.envmap.outputs.SITE_NAME }}'"
+          Write-Host "APP_POOL                  = '${{ steps.envmap.outputs.APP_POOL }}'"
+          Write-Host "DEST_PATH                 = '${{ steps.envmap.outputs.DEST_PATH }}'"
+          Write-Host "ARCHIVE_PATH              = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'"
+          Write-Host "REMOTE_SERVER             = '${{ steps.envmap.outputs.REMOTE_SERVER }}'"
+          Write-Host ""
+
+          Write-Host "=== IIS SERVICES (LOCAL MACHINE) ==="
+          try {
+            Get-Service W3SVC, WAS -ErrorAction Stop | Format-Table Name, Status, StartType
+          } catch {
+            Write-Host "Unable to query W3SVC/WAS services: $($_.Exception.Message)"
+          }
+          Write-Host ""
+
+          Write-Host "=== IIS PROVIDER CHECK ==="
+          try {
+            Import-Module WebAdministration -ErrorAction Stop
+            Write-Host "WebAdministration module imported OK."
+            Write-Host "IIS drive exists? " -NoNewline
+            Write-Host (Test-Path "IIS:\")
+          } catch {
+            Write-Host "Failed to import WebAdministration: $($_.Exception.Message)"
+          }
+          Write-Host ""
+
+          Write-Host "=== IIS OBJECT LOOKUP (LOCAL MACHINE) ==="
+          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          try {
+            if (Test-Path "IIS:\Sites\$siteName") {
+              Write-Host "Found site: IIS:\Sites\$siteName"
+              Get-Item "IIS:\Sites\$siteName" | Select-Object Name, State, PhysicalPath | Format-List
+            } else {
+              Write-Host "Site NOT found on this machine: IIS:\Sites\$siteName"
+            }
+          } catch {
+            Write-Host "Error looking up site: $($_.Exception.Message)"
+          }
+
+          try {
+            if (Test-Path "IIS:\AppPools\$appPool") {
+              Write-Host "Found app pool: IIS:\AppPools\$appPool"
+              Get-Item "IIS:\AppPools\$appPool" | Select-Object Name, State, AutoStart, ManagedRuntimeVersion | Format-List
+            } else {
+              Write-Host "App pool NOT found on this machine: IIS:\AppPools\$appPool"
+            }
+          } catch {
+            Write-Host "Error looking up app pool: $($_.Exception.Message)"
+          }
+
+          Write-Host ""
+          Write-Host "=== END DIAGNOSTICS ==="
+          
       # ---------------------------------------------------------
       # STOP IIS LOCAL
       # ---------------------------------------------------------
