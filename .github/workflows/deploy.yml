@@ -251,9 +251,6 @@ jobs:
 
           Start-Sleep -Seconds 3
 
-          exit 0
-
-
       # ---------------------------------------------------------
       # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
       # ---------------------------------------------------------
@@ -332,9 +329,6 @@ jobs:
 
           Start-WebAppPool -Name $appPool
           Start-Website -Name $siteName
-
-          exit 0
-
 
       # ---------------------------------------------------------
       # START IIS (NON-DEV REMOTE) — DIRECT SCM (NO PSEXEC)
