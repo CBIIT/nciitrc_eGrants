@@ -6,7 +6,7 @@ on:
       - dev
       - test
       - stage
-      - master
+      - prod
 
   workflow_dispatch:
     inputs:
