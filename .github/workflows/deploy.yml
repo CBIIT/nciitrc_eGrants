@@ -18,7 +18,7 @@ on:
           - dev
           - test
           - stage
-          - master
+          - prod
         default: dev
 
 jobs:
@@ -141,7 +141,7 @@ jobs:
           # -------------------------------
           # AUTHENTICATE ONLY IF REMOTE
           # -------------------------------
-          if ($branch -ne 'dev') {
+          if ($branch -ne 'dev' -and $branch -ne 'stage') {
 
             Write-Host 'Mapping remote shares using credentials...'
 
@@ -166,7 +166,7 @@ jobs:
             $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
           }
           else {
-            Write-Host 'DEV environment detected — no credentialed net use required.'
+            Write-Host 'DEV or STAGE environment detected — no credentialed net use required.'
             $mappedDest = $destination
             $mappedArchive = $archiveRoot
           }
@@ -227,7 +227,7 @@ jobs:
           # -------------------------------
           # UNMAP DRIVES
           # -------------------------------
-          if ($branch -ne 'dev') {
+          if ($branch -ne 'dev' -and $branch -ne 'stage') {
             cmd.exe /c "net use $destDrive /delete /y"
             cmd.exe /c "net use $archDrive /delete /y"
           }
