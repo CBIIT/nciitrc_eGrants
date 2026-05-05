@@ -336,7 +336,7 @@ jobs:
       # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
       # ---------------------------------------------------------
       - name: Stop IIS (SCM remote stop)
-        if: ${{ github.ref_name != 'dev' }}
+        if: ${{ github.ref_name == 'test' || github.ref_name == 'prod' }}
         shell: powershell
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -418,7 +418,7 @@ jobs:
       # START IIS (NON-DEV REMOTE) — DIRECT SCM (NO PSEXEC)
       # ---------------------------------------------------------
       - name: Start IIS site and app pool (remote via SCM)
-        if: ${{ github.ref_name != 'dev' }}
+        if: ${{ github.ref_name == 'test' || github.ref_name == 'prod' }}
         shell: powershell
         env:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
