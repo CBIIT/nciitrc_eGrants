@@ -324,8 +324,11 @@ jobs:
 
           Import-Module WebAdministration
 
-          Stop-WebAppPool -Name $appPool -ErrorAction SilentlyContinue
-          Stop-Website -Name $siteName -ErrorAction SilentlyContinue
+          & "$env:SystemRoot\System32\inetsrv\appcmd.exe" stop apppool /apppool.name:"$appPool"
+          Write-Host "appcmd exit code: $LASTEXITCODE"
+          
+          & "$env:SystemRoot\System32\inetsrv\appcmd.exe" stop site /site.name:"$siteName"
+          Write-Host "appcmd exit code: $LASTEXITCODE"
 
           Start-Sleep -Seconds 3
 
