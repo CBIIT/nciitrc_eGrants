@@ -5,8 +5,6 @@ on:
     branches:
       - dev
       - test
-      - stage
-      - prod
 
   workflow_dispatch:
     inputs:
@@ -21,19 +19,21 @@ on:
           - prod
         default: dev
 
+env:
+  DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
+
 jobs:
   build-and-deploy:
-    runs-on: ${{ (github.ref_name == 'dev' || github.ref_name == 'test') && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
-    environment: ${{ github.ref_name }}
+    name: Build and deploy to ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
+    runs-on: ${{ (github.event_name == 'workflow_dispatch' && (inputs.target_branch == 'stage' || inputs.target_branch == 'prod')) && 'egrants_fcas-oasys_runner_prod' || 'egrants_fcas-oasys_runner' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
-
       # ---------------------------------------------------------
       # CHECKOUT
       # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
-
 
       # ---------------------------------------------------------
       # LOAD ENVIRONMENT VARIABLES
@@ -42,16 +42,17 @@ jobs:
         id: envmap
         shell: powershell
         run: |
-          $branch = "${{ github.ref_name }}"
-          Write-Host "Branch detected: $branch"
+          $branch = "${{ env.DEPLOY_ENV }}"
+          Write-Host "Deployment target resolved to: $branch"
 
           switch ($branch) {
-
             "dev" {
               echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_DEV }}" >> $env:GITHUB_OUTPUT
+              echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER_DEV }}" >> $env:GITHUB_OUTPUT
+              echo "IS_REMOTE=false" >> $env:GITHUB_OUTPUT
             }
 
             "test" {
@@ -59,8 +60,10 @@ jobs:
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER_TEST }}" >> $env:GITHUB_OUTPUT
               echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_TEST }}" >> $env:GITHUB_OUTPUT
               echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "IS_REMOTE=true" >> $env:GITHUB_OUTPUT
             }
 
             "stage" {
@@ -68,18 +71,80 @@ jobs:
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_STAGE }}" >> $env:GITHUB_OUTPUT
+              echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER_STAGE }}" >> $env:GITHUB_OUTPUT
+              echo "IS_REMOTE=false" >> $env:GITHUB_OUTPUT
+            }
+
+            "prod" {
+              echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "APP_POOL=${{ vars.APP_POOL_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "IS_REMOTE=true" >> $env:GITHUB_OUTPUT
             }
 
             default {
-              echo "DEST_PATH=${{ vars.DEST_PATH }}" >> $env:GITHUB_OUTPUT
-              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
-              echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
-              echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
+              throw "Unsupported deployment target: '$branch'"
             }
           }
 
-          echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
-          exit 0
+      # ---------------------------------------------------------
+      # VALIDATE RESOLVED VARIABLES EARLY
+      # ---------------------------------------------------------
+      - name: Validate deployment settings
+        shell: powershell
+        run: |
+          $branch      = "${{ env.DEPLOY_ENV }}"
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
+          $siteName    = "${{ steps.envmap.outputs.SITE_NAME }}"
+          $appPool     = "${{ steps.envmap.outputs.APP_POOL }}"
+          $isRemote    = "${{ steps.envmap.outputs.IS_REMOTE }}"
+          $remote      = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+
+          Write-Host "Validating deployment settings for: $branch"
+
+          if ([string]::IsNullOrWhiteSpace($branch)) {
+            throw "DEPLOY_ENV is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($destination)) {
+            throw "DEST_PATH is empty for deployment target '$branch'."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($archiveRoot)) {
+            throw "ARCHIVE_PATH is empty for deployment target '$branch'."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($siteName)) {
+            throw "SITE_NAME is empty for deployment target '$branch'."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($appPool)) {
+            throw "APP_POOL is empty for deployment target '$branch'."
+          }
+
+          if ($isRemote -eq "true") {
+            $deployUser = "${{ steps.envmap.outputs.DEPLOY_USER }}"
+            $deployPass = "${{ steps.envmap.outputs.DEPLOY_PASS }}"
+
+            if ([string]::IsNullOrWhiteSpace($remote)) {
+              throw "REMOTE_SERVER is empty for remote deployment target '$branch'."
+            }
+
+            if ([string]::IsNullOrWhiteSpace($deployUser)) {
+              throw "DEPLOY_USER is empty for remote deployment target '$branch'."
+            }
+
+            if ([string]::IsNullOrWhiteSpace($deployPass)) {
+              throw "DEPLOY_PASS is empty for remote deployment target '$branch'."
+            }
+          }
+
+          Write-Host "Deployment settings validation passed."
 
       # ---------------------------------------------------------
       # BUILD
@@ -101,19 +166,18 @@ jobs:
         run: |
           $file = "$(Get-Location)\build_output\appsettings.json"
           $token = "${{ secrets._GITHUB_TOKEN }}"
-      
+
           if (-not (Test-Path $file)) {
             throw "appsettings.json not found at: $file"
           }
-      
+
           $json = Get-Content $file -Raw
-      
-          # Match ANY value for GitHubToken
+
           $pattern = '"GitHubToken"\s*:\s*".*?"'
           $replacement = '"GitHubToken": "' + $token + '"'
-      
+
           $json = $json -replace $pattern, $replacement
-      
+
           Set-Content -Path $file -Value $json -Encoding UTF8
 
       # ---------------------------------------------------------
@@ -122,117 +186,119 @@ jobs:
       - name: Archive existing destination directory
         shell: powershell
         run: |
-          $branch = '${{ github.ref_name }}'
-          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
-          $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
-          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
-          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
+          $branch      = "${{ env.DEPLOY_ENV }}"
+          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
+          $deployUser  = "${{ steps.envmap.outputs.DEPLOY_USER }}"
+          $deployPass  = "${{ steps.envmap.outputs.DEPLOY_PASS }}"
+          $isRemote    = "${{ steps.envmap.outputs.IS_REMOTE }}"
 
-          Write-Host "Branch: $branch"
+          Write-Host "Deployment target: $branch"
           Write-Host "Destination UNC: $destination"
           Write-Host "Archive UNC: $archiveRoot"
+          Write-Host "Remote deployment: $isRemote"
 
-          # -------------------------------
-          # DRIVE LETTERS
-          # -------------------------------
-          $destDrive = 'Z:'
-          $archDrive = 'Y:'
-
-          # -------------------------------
-          # AUTHENTICATE ONLY IF REMOTE
-          # -------------------------------
-          if ($branch -ne 'dev' -and $branch -ne 'stage') {
-
-            Write-Host 'Mapping remote shares using credentials...'
-
-            # Extract share roots
-            $destParts = $destination -split '\\'
-            $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
-
-            $archParts = $archiveRoot -split '\\'
-            $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
-
-            Write-Host "Destination share root: $destShareRoot"
-            Write-Host "Archive share root: $archShareRoot"
-
-            # Map Z: to destination server
-            cmd.exe /c "net use $destDrive `"$destShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
-
-            # Map Y: to archive server
-            cmd.exe /c "net use $archDrive `"$archShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
-
-            # Convert UNC → drive paths
-            $mappedDest = $destination.Replace($destShareRoot, $destDrive)
-            $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
-          }
-          else {
-            Write-Host 'DEV or STAGE environment detected — no credentialed net use required.'
-            $mappedDest = $destination
-            $mappedArchive = $archiveRoot
+          if ([string]::IsNullOrWhiteSpace($destination)) {
+            throw "Destination path is empty."
           }
 
-          Write-Host "Mapped destination path: $mappedDest"
-          Write-Host "Mapped archive path: $mappedArchive"
-
-          # -------------------------------
-          # VALIDATE PATHS
-          # -------------------------------
-          if (-not (Test-Path $mappedDest)) {
-            throw "Destination share not reachable: $mappedDest"
+          if ([string]::IsNullOrWhiteSpace($archiveRoot)) {
+            throw "Archive path is empty."
           }
 
-          if (-not (Test-Path $mappedArchive)) {
-            New-Item -ItemType Directory -Path $mappedArchive | Out-Null
+          $destDrive = "Z:"
+          $archDrive = "Y:"
+
+          try {
+            if ($isRemote -eq "true") {
+              Write-Host "Mapping remote shares using credentials..."
+
+              $destParts = $destination -split '\\'
+              $archParts = $archiveRoot -split '\\'
+
+              if ($destParts.Count -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+
+              if ($archParts.Count -lt 4) {
+                throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
+              }
+
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+              $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+              Write-Host "Archive share root: $archShareRoot"
+
+              cmd.exe /c "net use $destDrive `"$destShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+              if ($LASTEXITCODE -ne 0) {
+                throw "Failed to map destination share: $destShareRoot"
+              }
+
+              cmd.exe /c "net use $archDrive `"$archShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+              if ($LASTEXITCODE -ne 0) {
+                throw "Failed to map archive share: $archShareRoot"
+              }
+
+              $mappedDest    = $destination.Replace($destShareRoot, $destDrive)
+              $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
+            }
+            else {
+              Write-Host "Local deployment detected — no credentialed net use required."
+              $mappedDest    = $destination
+              $mappedArchive = $archiveRoot
+            }
+
+            Write-Host "Mapped destination path: $mappedDest"
+            Write-Host "Mapped archive path: $mappedArchive"
+
+            if ([string]::IsNullOrWhiteSpace($mappedDest)) {
+              throw "Mapped destination path is empty."
+            }
+
+            if ([string]::IsNullOrWhiteSpace($mappedArchive)) {
+              throw "Mapped archive path is empty."
+            }
+
+            if (-not (Test-Path $mappedDest)) {
+              throw "Destination share not reachable: $mappedDest"
+            }
+
+            if (-not (Test-Path $mappedArchive)) {
+              New-Item -ItemType Directory -Path $mappedArchive -Force | Out-Null
+            }
+
+            $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+            $localTemp = Join-Path $env:TEMP "archive_$timestamp"
+            $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
+            $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
+
+            New-Item -ItemType Directory -Path $localTemp -Force | Out-Null
+
+            robocopy $mappedDest $localTemp /MIR
+            if ($LASTEXITCODE -ge 8) {
+              throw "Robocopy archive copy failed."
+            }
+
+            Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
+            Copy-Item -Path $localZip -Destination $remoteZip -Force
+
+            Remove-Item -Path $localTemp -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $localZip -Force -ErrorAction SilentlyContinue
+
+            $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' | Sort-Object LastWriteTime -Descending
+            $archivesToDelete = $archives | Select-Object -Skip 5
+
+            foreach ($old in $archivesToDelete) {
+              Remove-Item -Path $old.FullName -Force
+            }
           }
-
-          # -------------------------------
-          # PREP ARCHIVE FOLDERS
-          # -------------------------------
-          $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-          $localTemp = Join-Path $env:TEMP "archive_$timestamp"
-          $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-          $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
-
-          New-Item -ItemType Directory -Path $localTemp | Out-Null
-
-          # -------------------------------
-          # ROBOCOPY (LOCAL OR REMOTE)
-          # -------------------------------
-          robocopy $mappedDest $localTemp /MIR
-          if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
-
-          # -------------------------------
-          # ZIP + COPY BACK
-          # -------------------------------
-          Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
-          Copy-Item -Path $localZip -Destination $remoteZip -Force
-
-          # -------------------------------
-          # CLEANUP
-          # -------------------------------
-          Remove-Item -Path $localTemp -Recurse -Force
-          Remove-Item -Path $localZip -Force
-
-          # -------------------------------
-          # RETAIN ONLY 5 MOST RECENT
-          # -------------------------------
-          $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip'
-          $archives = $archives | Sort-Object LastWriteTime -Descending
-
-          $archivesToDelete = $archives | Select-Object -Skip 5
-          foreach ($old in $archivesToDelete) {
-            Remove-Item -Path $old.FullName -Force
+          finally {
+            if ($isRemote -eq "true") {
+              cmd.exe /c "net use $destDrive /delete /y" | Out-Null
+              cmd.exe /c "net use $archDrive /delete /y" | Out-Null
+            }
           }
-
-          # -------------------------------
-          # UNMAP DRIVES
-          # -------------------------------
-          if ($branch -ne 'dev' -and $branch -ne 'stage') {
-            cmd.exe /c "net use $destDrive /delete /y"
-            cmd.exe /c "net use $archDrive /delete /y"
-          }
-
-          exit 0
 
       # ---------------------------------------------------------
       # DIAGNOSTICS (RUNNER / HOST / IIS CONTEXT)
@@ -241,7 +307,10 @@ jobs:
         shell: powershell
         run: |
           Write-Host "=== BASIC CONTEXT ==="
+          Write-Host "github.event_name         = ${{ github.event_name }}"
           Write-Host "github.ref_name           = ${{ github.ref_name }}"
+          Write-Host "workflow input target     = ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || '' }}"
+          Write-Host "resolved deploy env       = ${{ env.DEPLOY_ENV }}"
           Write-Host "github.repository         = ${{ github.repository }}"
           Write-Host "github.run_id             = ${{ github.run_id }}"
           Write-Host "github.run_number         = ${{ github.run_number }}"
@@ -261,6 +330,7 @@ jobs:
           Write-Host "DEST_PATH                 = '${{ steps.envmap.outputs.DEST_PATH }}'"
           Write-Host "ARCHIVE_PATH              = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'"
           Write-Host "REMOTE_SERVER             = '${{ steps.envmap.outputs.REMOTE_SERVER }}'"
+          Write-Host "IS_REMOTE                 = '${{ steps.envmap.outputs.IS_REMOTE }}'"
           Write-Host ""
 
           Write-Host "=== IIS SERVICES (LOCAL MACHINE) ==="
@@ -310,15 +380,14 @@ jobs:
 
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
-          
+
       # ---------------------------------------------------------
       # STOP IIS LOCAL
       # ---------------------------------------------------------
-      - name: Stop IIS site and app pool (dev/stage local)
-        if: ${{ github.ref_name == 'dev' || github.ref_name == 'stage' }}
+      - name: Stop IIS site and app pool (local)
+        if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
         run: |
-
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
 
@@ -329,52 +398,38 @@ jobs:
 
           Start-Sleep -Seconds 3
 
-          exit 0
-
-
       # ---------------------------------------------------------
-      # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
+      # STOP IIS REMOTE
       # ---------------------------------------------------------
       - name: Stop IIS (SCM remote stop)
-        if: ${{ github.ref_name == 'test' || github.ref_name == 'prod' }}
+        if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
-        env:
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-      
-          Write-Host "Preparing credentials for SCM..."
-          $securePass  = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
-          $credential  = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
-      
-          # Extract plain password for sc.exe
-          $plainPass = $credential.GetNetworkCredential().Password
-      
-          Write-Host "Stopping IIS core services on $remote ..."
-      
-          # Stop W3SVC (IIS Web Server)
-          sc.exe \\$remote stop W3SVC
-      
-          # Stop WAS (App Pool Activation)
-          sc.exe \\$remote stop WAS
-      
-          Start-Sleep -Seconds 5
-      
-          # Validate
-          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
-      
-          if ($w3svcState -notmatch "STOPPED") {
-              throw "W3SVC did not stop properly"
-          }
-          if ($wasState -notmatch "STOPPED") {
-              throw "WAS did not stop properly"
-          }
-      
-          Write-Host "IIS successfully stopped via SCM."
-          exit 0
+          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
 
+          if ([string]::IsNullOrWhiteSpace($remote)) {
+            throw "REMOTE_SERVER is missing or empty."
+          }
+
+          Write-Host "Stopping IIS core services on $remote ..."
+
+          sc.exe \\$remote stop W3SVC
+          sc.exe \\$remote stop WAS
+
+          Start-Sleep -Seconds 5
+
+          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
+          $wasState   = sc.exe \\$remote query WAS | Select-String "STATE"
+
+          if ($w3svcState -notmatch "STOPPED") {
+            throw "W3SVC did not stop properly on $remote"
+          }
+
+          if ($wasState -notmatch "STOPPED") {
+            throw "WAS did not stop properly on $remote"
+          }
+
+          Write-Host "IIS successfully stopped via SCM."
 
       # ---------------------------------------------------------
       # DEPLOY
@@ -382,9 +437,16 @@ jobs:
       - name: Deploy build output
         shell: powershell
         run: |
-
-          $source = "$(Get-Location)\build_output"
+          $source      = "$(Get-Location)\build_output"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+
+          if (-not (Test-Path $source)) {
+            throw "Build output not found: $source"
+          }
+
+          if ([string]::IsNullOrWhiteSpace($destination)) {
+            throw "Deployment destination path is empty."
+          }
 
           robocopy $source $destination /MIR /XF web.config
 
@@ -392,17 +454,13 @@ jobs:
             throw "Robocopy deployment failed."
           }
 
-          exit 0
-
-
       # ---------------------------------------------------------
       # START IIS LOCAL
       # ---------------------------------------------------------
       - name: Start IIS local
-        if: ${{ github.ref_name == 'dev' || github.ref_name == 'stage' }}
+        if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
         run: |
-
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
 
@@ -411,47 +469,35 @@ jobs:
           Start-WebAppPool -Name $appPool
           Start-Website -Name $siteName
 
-          exit 0
-
-
       # ---------------------------------------------------------
-      # START IIS (NON-DEV REMOTE) — DIRECT SCM (NO PSEXEC)
+      # START IIS REMOTE
       # ---------------------------------------------------------
       - name: Start IIS site and app pool (remote via SCM)
-        if: ${{ github.ref_name == 'test' || github.ref_name == 'prod' }}
+        if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
-        env:
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
         run: |
-          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-      
+          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
+
           if ([string]::IsNullOrWhiteSpace($remote)) {
             throw "REMOTE_SERVER is missing or empty."
           }
-      
+
           Write-Host "Starting IIS core services on $remote ..."
-      
-          # Start WAS (App Pool Activation)
+
           sc.exe \\$remote start WAS
-      
-          # Start W3SVC (IIS Web Server)
           sc.exe \\$remote start W3SVC
-      
+
           Start-Sleep -Seconds 5
-      
-          # Validate
+
           $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
-      
+          $wasState   = sc.exe \\$remote query WAS | Select-String "STATE"
+
           if ($w3svcState -notmatch "RUNNING") {
-              throw "W3SVC did not start properly"
+            throw "W3SVC did not start properly on $remote"
           }
+
           if ($wasState -notmatch "RUNNING") {
-              throw "WAS did not start properly"
+            throw "WAS did not start properly on $remote"
           }
-      
+
           Write-Host "IIS core services successfully started via SCM."
-          exit 0
