@@ -172,10 +172,8 @@ jobs:
           }
 
           $json = Get-Content $file -Raw
-
           $pattern = '"GitHubToken"\s*:\s*".*?"'
           $replacement = '"GitHubToken": "' + $token + '"'
-
           $json = $json -replace $pattern, $replacement
 
           Set-Content -Path $file -Value $json -Encoding UTF8
@@ -186,12 +184,12 @@ jobs:
       - name: Archive existing destination directory
         shell: powershell
         run: |
-          $branch      = "${{ env.DEPLOY_ENV }}"
-          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
-          $deployUser  = "${{ steps.envmap.outputs.DEPLOY_USER }}"
-          $deployPass  = "${{ steps.envmap.outputs.DEPLOY_PASS }}"
-          $isRemote    = "${{ steps.envmap.outputs.IS_REMOTE }}"
+          $branch       = "${{ env.DEPLOY_ENV }}"
+          $destination  = "${{ steps.envmap.outputs.DEST_PATH }}"
+          $archiveRoot  = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
+          $deployUser   = "${{ steps.envmap.outputs.DEPLOY_USER }}"
+          $deployPass   = "${{ steps.envmap.outputs.DEPLOY_PASS }}"
+          $isRemote     = "${{ steps.envmap.outputs.IS_REMOTE }}"
 
           Write-Host "Deployment target: $branch"
           Write-Host "Destination UNC: $destination"
@@ -208,6 +206,8 @@ jobs:
 
           $destDrive = "Z:"
           $archDrive = "Y:"
+          $mappedDest = $null
+          $mappedArchive = $null
 
           try {
             if ($isRemote -eq "true") {
@@ -230,22 +230,22 @@ jobs:
               Write-Host "Destination share root: $destShareRoot"
               Write-Host "Archive share root: $archShareRoot"
 
-              cmd.exe /c "net use $destDrive `"$destShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+              & cmd.exe /c net use $destDrive $destShareRoot /user:$deployUser $deployPass /persistent:no
               if ($LASTEXITCODE -ne 0) {
                 throw "Failed to map destination share: $destShareRoot"
               }
 
-              cmd.exe /c "net use $archDrive `"$archShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+              & cmd.exe /c net use $archDrive $archShareRoot /user:$deployUser $deployPass /persistent:no
               if ($LASTEXITCODE -ne 0) {
                 throw "Failed to map archive share: $archShareRoot"
               }
 
-              $mappedDest    = $destination.Replace($destShareRoot, $destDrive)
+              $mappedDest = $destination.Replace($destShareRoot, $destDrive)
               $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
             }
             else {
               Write-Host "Local deployment detected — no credentialed net use required."
-              $mappedDest    = $destination
+              $mappedDest = $destination
               $mappedArchive = $archiveRoot
             }
 
@@ -270,7 +270,7 @@ jobs:
 
             $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
             $localTemp = Join-Path $env:TEMP "archive_$timestamp"
-            $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
+            $localZip = Join-Path $env:TEMP "archive_$timestamp.zip"
             $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
 
             New-Item -ItemType Directory -Path $localTemp -Force | Out-Null
@@ -295,13 +295,13 @@ jobs:
           }
           finally {
             if ($isRemote -eq "true") {
-              cmd.exe /c "net use $destDrive /delete /y" | Out-Null
-              cmd.exe /c "net use $archDrive /delete /y" | Out-Null
+              & cmd.exe /c net use $destDrive /delete /y | Out-Null
+              & cmd.exe /c net use $archDrive /delete /y | Out-Null
             }
           }
 
       # ---------------------------------------------------------
-      # DIAGNOSTICS (RUNNER / HOST / IIS CONTEXT)
+      # DIAGNOSTICS
       # ---------------------------------------------------------
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
@@ -354,13 +354,14 @@ jobs:
 
           Write-Host "=== IIS OBJECT LOOKUP (LOCAL MACHINE) ==="
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
           try {
             if (Test-Path "IIS:\Sites\$siteName") {
               Write-Host "Found site: IIS:\Sites\$siteName"
               Get-Item "IIS:\Sites\$siteName" | Select-Object Name, State, PhysicalPath | Format-List
-            } else {
+            }
+            else {
               Write-Host "Site NOT found on this machine: IIS:\Sites\$siteName"
             }
           } catch {
@@ -371,7 +372,8 @@ jobs:
             if (Test-Path "IIS:\AppPools\$appPool") {
               Write-Host "Found app pool: IIS:\AppPools\$appPool"
               Get-Item "IIS:\AppPools\$appPool" | Select-Object Name, State, AutoStart, ManagedRuntimeVersion | Format-List
-            } else {
+            }
+            else {
               Write-Host "App pool NOT found on this machine: IIS:\AppPools\$appPool"
             }
           } catch {
@@ -389,7 +391,7 @@ jobs:
         shell: powershell
         run: |
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
           Import-Module WebAdministration
 
@@ -419,7 +421,7 @@ jobs:
           Start-Sleep -Seconds 5
 
           $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS | Select-String "STATE"
+          $wasState = sc.exe \\$remote query WAS | Select-String "STATE"
 
           if ($w3svcState -notmatch "STOPPED") {
             throw "W3SVC did not stop properly on $remote"
@@ -437,7 +439,7 @@ jobs:
       - name: Deploy build output
         shell: powershell
         run: |
-          $source      = "$(Get-Location)\build_output"
+          $source = "$(Get-Location)\build_output"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
           if (-not (Test-Path $source)) {
@@ -462,7 +464,7 @@ jobs:
         shell: powershell
         run: |
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+          $appPool = "${{ steps.envmap.outputs.APP_POOL }}"
 
           Import-Module WebAdministration
 
@@ -490,7 +492,7 @@ jobs:
           Start-Sleep -Seconds 5
 
           $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS | Select-String "STATE"
+          $wasState = sc.exe \\$remote query WAS | Select-String "STATE"
 
           if ($w3svcState -notmatch "RUNNING") {
             throw "W3SVC did not start properly on $remote"
