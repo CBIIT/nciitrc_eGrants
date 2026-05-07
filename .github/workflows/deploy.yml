@@ -24,8 +24,8 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ${{ (env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'test') && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
-    environment: ${{ env.DEPLOY_ENV }}
+    runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
       # ---------------------------------------------------------
@@ -135,15 +135,9 @@ jobs:
           Write-Host "Destination UNC: $destination"
           Write-Host "Archive UNC: $archiveRoot"
 
-          # -------------------------------
-          # DRIVE LETTERS
-          # -------------------------------
           $destDrive = 'Z:'
           $archDrive = 'Y:'
 
-          # -------------------------------
-          # AUTHENTICATE ONLY IF REMOTE
-          # -------------------------------
           if ($branch -eq 'test' -or $branch -eq 'prod') {
             Write-Host 'Mapping remote shares using credentials...'
 
@@ -171,9 +165,6 @@ jobs:
           Write-Host "Mapped destination path: $mappedDest"
           Write-Host "Mapped archive path: $mappedArchive"
 
-          # -------------------------------
-          # VALIDATE PATHS
-          # -------------------------------
           if (-not (Test-Path $mappedDest)) {
             throw "Destination share not reachable: $mappedDest"
           }
@@ -182,9 +173,6 @@ jobs:
             New-Item -ItemType Directory -Path $mappedArchive | Out-Null
           }
 
-          # -------------------------------
-          # PREP ARCHIVE FOLDERS
-          # -------------------------------
           $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
           $localTemp = Join-Path $env:TEMP "archive_$timestamp"
           $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
@@ -192,27 +180,15 @@ jobs:
 
           New-Item -ItemType Directory -Path $localTemp | Out-Null
 
-          # -------------------------------
-          # ROBOCOPY (LOCAL OR REMOTE)
-          # -------------------------------
           robocopy $mappedDest $localTemp /MIR
           if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
-          # -------------------------------
-          # ZIP + COPY BACK
-          # -------------------------------
           Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
           Copy-Item -Path $localZip -Destination $remoteZip -Force
 
-          # -------------------------------
-          # CLEANUP
-          # -------------------------------
           Remove-Item -Path $localTemp -Recurse -Force
           Remove-Item -Path $localZip -Force
 
-          # -------------------------------
-          # RETAIN ONLY 5 MOST RECENT
-          # -------------------------------
           $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
             Sort-Object LastWriteTime -Descending
 
@@ -221,9 +197,6 @@ jobs:
             Remove-Item -Path $old.FullName -Force
           }
 
-          # -------------------------------
-          # UNMAP DRIVES
-          # -------------------------------
           if ($branch -eq 'test' -or $branch -eq 'prod') {
             cmd.exe /c "net use $destDrive /delete /y"
             cmd.exe /c "net use $archDrive /delete /y"
