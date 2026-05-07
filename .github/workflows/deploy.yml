@@ -1,11 +1,16 @@
 name: eGrants Deployment Workflow
 
 on:
+  # Automatic deployments only happen from these branches.
+  # A push to dev deploys to dev.
+  # A push to test deploys to test.
   push:
     branches:
       - dev
       - test
 
+  # Manual deployments are used when we want to target an environment
+  # that is not tied directly to the pushed branch, such as stage or prod.
   workflow_dispatch:
     inputs:
       target_branch:
@@ -19,33 +24,71 @@ on:
           - prod
         default: dev
 
+# Single workflow-level variable used throughout step scripts.
+#
+# How it works:
+# - If the workflow was started manually (workflow_dispatch),
+#   use the selected dropdown value from target_branch.
+# - Otherwise, for normal push-triggered runs, use github.ref_name.
+#
+# Result:
+# - push to dev   => DEPLOY_ENV = dev
+# - push to test  => DEPLOY_ENV = test
+# - manual stage  => DEPLOY_ENV = stage
+# - manual prod   => DEPLOY_ENV = prod
 env:
   DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
 jobs:
   build-and-deploy:
+    # runs-on cannot use env.DEPLOY_ENV directly at this level,
+    # so we repeat the environment resolution logic here.
+    #
+    # dev/test use the non-prod runner
+    # stage/prod use the prod runner
     runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
+
+    # Same note as runs-on:
+    # job.environment cannot use env.DEPLOY_ENV directly here,
+    # so we resolve it inline.
+    #
+    # This ties the job to the matching GitHub Environment so that
+    # environment-specific secrets/approvals/protections can apply.
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
       # ---------------------------------------------------------
       # CHECKOUT
       # ---------------------------------------------------------
+      # Pull the repository contents onto the runner so the project
+      # can be restored, built, and published.
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # ---------------------------------------------------------
       # LOAD ENVIRONMENT VARIABLES
       # ---------------------------------------------------------
+      # This step maps the selected deployment environment to the
+      # correct path/site/app pool/credential values.
+      #
+      # We write the resolved values to GITHUB_OUTPUT so later steps
+      # can use them consistently as:
+      #   steps.envmap.outputs.DEST_PATH
+      #   steps.envmap.outputs.SITE_NAME
+      #   steps.envmap.outputs.APP_POOL
+      #   etc.
       - name: Load environment variables
         id: envmap
         shell: powershell
         run: |
+          # Read the single workflow variable that determines where we deploy.
           $branch = "${{ env.DEPLOY_ENV }}"
           Write-Host "Environment detected: $branch"
 
+          # Map the chosen environment to the correct variables/secrets.
           switch ($branch) {
             "dev" {
+              # Local/non-credentialed deployment target values for dev
               echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
@@ -53,15 +96,19 @@ jobs:
             }
 
             "test" {
+              # Remote deployment target values for test
               echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_TEST }}" >> $env:GITHUB_OUTPUT
+
+              # Credentials used for remote share / remote service access
               echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_TEST }}" >> $env:GITHUB_OUTPUT
               echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_TEST }}" >> $env:GITHUB_OUTPUT
             }
 
             "stage" {
+              # Local/non-credentialed deployment target values for stage
               echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
@@ -69,25 +116,32 @@ jobs:
             }
 
             "prod" {
+              # Remote deployment target values for prod
               echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_PROD }}" >> $env:GITHUB_OUTPUT
+
+              # Credentials used for remote share / remote service access
               echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_PROD }}" >> $env:GITHUB_OUTPUT
               echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_PROD }}" >> $env:GITHUB_OUTPUT
             }
 
             default {
+              # Fail fast if someone adds an unexpected environment name.
               throw "Unsupported deployment environment: $branch"
             }
           }
 
+          # Shared variable used by remote IIS operations.
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
       # ---------------------------------------------------------
       # BUILD
       # ---------------------------------------------------------
+      # Restore NuGet packages and publish the ASP.NET application
+      # into a deployable folder.
       - name: Build project
         shell: powershell
         run: |
@@ -100,6 +154,10 @@ jobs:
       # ---------------------------------------------------------
       # REPLACE TOKEN IN APPSETTINGS.JSON
       # ---------------------------------------------------------
+      # After publish, update appsettings.json in the build output
+      # so the deployment package contains the correct GitHub token.
+      #
+      # This replaces whatever value currently exists for GitHubToken.
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
@@ -112,6 +170,7 @@ jobs:
 
           $json = Get-Content $file -Raw
 
+          # Replace any current GitHubToken value in the JSON.
           $pattern = '"GitHubToken"\s*:\s*".*?"'
           $replacement = '"GitHubToken": "' + $token + '"'
 
@@ -122,6 +181,16 @@ jobs:
       # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE
       # ---------------------------------------------------------
+      # Before deploying new files, take a backup of the current
+      # deployed site contents.
+      #
+      # Process:
+      # 1. Resolve deployment/archive locations
+      # 2. If remote env (test/prod), map network shares with creds
+      # 3. Copy current deployed files to a temp folder
+      # 4. Zip them
+      # 5. Store the zip in the archive location
+      # 6. Keep only the 5 most recent backups
       - name: Archive existing destination directory
         shell: powershell
         run: |
@@ -135,12 +204,21 @@ jobs:
           Write-Host "Destination UNC: $destination"
           Write-Host "Archive UNC: $archiveRoot"
 
+          # Temporary drive letters used only when remote shares need
+          # to be mounted with credentials.
           $destDrive = 'Z:'
           $archDrive = 'Y:'
 
+          # test/prod are treated as remote deployments that require
+          # explicit credentialed share access.
           if ($branch -eq 'test' -or $branch -eq 'prod') {
             Write-Host 'Mapping remote shares using credentials...'
 
+            # Extract the share root from the UNC path
+            # Example:
+            # \\server\share\folder1\folder2
+            # becomes:
+            # \\server\share
             $destParts = $destination -split '\\'
             $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
 
@@ -150,13 +228,18 @@ jobs:
             Write-Host "Destination share root: $destShareRoot"
             Write-Host "Archive share root: $archShareRoot"
 
+            # Map the shares to local drive letters so robocopy/copy operations
+            # can work using the supplied credentials.
             cmd.exe /c "net use $destDrive `"$destShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
             cmd.exe /c "net use $archDrive `"$archShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
 
+            # Convert full UNC paths to mapped drive paths.
             $mappedDest = $destination.Replace($destShareRoot, $destDrive)
             $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
           }
           else {
+            # dev/stage are assumed to be reachable directly from the runner
+            # without mapping credentialed shares.
             Write-Host 'DEV or STAGE environment detected — no credentialed net use required.'
             $mappedDest = $destination
             $mappedArchive = $archiveRoot
@@ -165,14 +248,17 @@ jobs:
           Write-Host "Mapped destination path: $mappedDest"
           Write-Host "Mapped archive path: $mappedArchive"
 
+          # Confirm the live deployment folder is reachable.
           if (-not (Test-Path $mappedDest)) {
             throw "Destination share not reachable: $mappedDest"
           }
 
+          # Create archive folder if it does not already exist.
           if (-not (Test-Path $mappedArchive)) {
             New-Item -ItemType Directory -Path $mappedArchive | Out-Null
           }
 
+          # Build temp and archive filenames with a timestamp.
           $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
           $localTemp = Join-Path $env:TEMP "archive_$timestamp"
           $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
@@ -180,15 +266,20 @@ jobs:
 
           New-Item -ItemType Directory -Path $localTemp | Out-Null
 
+          # Copy the existing deployed site to a local temp folder.
+          # /MIR mirrors the directory structure/content.
           robocopy $mappedDest $localTemp /MIR
           if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
+          # Zip the backup and copy it to the archive location.
           Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
           Copy-Item -Path $localZip -Destination $remoteZip -Force
 
+          # Remove local temp artifacts.
           Remove-Item -Path $localTemp -Recurse -Force
           Remove-Item -Path $localZip -Force
 
+          # Keep only the 5 newest backups to avoid unbounded storage growth.
           $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
             Sort-Object LastWriteTime -Descending
 
@@ -197,6 +288,7 @@ jobs:
             Remove-Item -Path $old.FullName -Force
           }
 
+          # Disconnect mapped shares after archive completes.
           if ($branch -eq 'test' -or $branch -eq 'prod') {
             cmd.exe /c "net use $destDrive /delete /y"
             cmd.exe /c "net use $archDrive /delete /y"
@@ -207,6 +299,14 @@ jobs:
       # ---------------------------------------------------------
       # DIAGNOSTICS (RUNNER / HOST / IIS CONTEXT)
       # ---------------------------------------------------------
+      # Helpful diagnostics for troubleshooting:
+      # - which environment GitHub resolved
+      # - which runner is being used
+      # - whether IIS is visible from this runner
+      # - whether the expected site/app pool exist locally
+      #
+      # This is especially useful when debugging self-hosted runner /
+      # IIS connectivity and permissions issues.
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
@@ -286,6 +386,8 @@ jobs:
       # ---------------------------------------------------------
       # STOP IIS LOCAL
       # ---------------------------------------------------------
+      # For local-style deployments (dev/stage), stop the app pool and site
+      # directly on the machine where the runner is executing.
       - name: Stop IIS site and app pool (dev/stage local)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -298,12 +400,21 @@ jobs:
           Stop-WebAppPool -Name $appPool -ErrorAction SilentlyContinue
           Stop-Website -Name $siteName -ErrorAction SilentlyContinue
 
+          # Short delay to give IIS time to finish stopping.
           Start-Sleep -Seconds 3
           exit 0
 
       # ---------------------------------------------------------
       # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
       # ---------------------------------------------------------
+      # For remote-style deployments (test/prod), stop IIS services
+      # on the remote server via sc.exe.
+      #
+      # This stops core IIS services:
+      # - W3SVC = World Wide Web Publishing Service
+      # - WAS   = Windows Process Activation Service
+      #
+      # Note: this is broader than stopping a single site/app pool.
       - name: Stop IIS (SCM remote stop)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -344,6 +455,10 @@ jobs:
       # ---------------------------------------------------------
       # DEPLOY
       # ---------------------------------------------------------
+      # Copy the newly published application files to the destination.
+      #
+      # /MIR mirrors the source folder to the destination.
+      # web.config is excluded to preserve environment-specific server config.
       - name: Deploy build output
         shell: powershell
         run: |
@@ -361,6 +476,8 @@ jobs:
       # ---------------------------------------------------------
       # START IIS LOCAL
       # ---------------------------------------------------------
+      # For local-style deployments (dev/stage), bring the app pool
+      # and website back online directly on the runner host.
       - name: Start IIS local
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -378,6 +495,12 @@ jobs:
       # ---------------------------------------------------------
       # START IIS (NON-DEV REMOTE) — DIRECT SCM
       # ---------------------------------------------------------
+      # For remote-style deployments (test/prod), start IIS core services
+      # again on the remote server.
+      #
+      # Note: starting WAS and W3SVC brings IIS back online, but this does
+      # not individually target a specific site/app pool. It assumes normal
+      # IIS startup behavior on that server.
       - name: Start IIS site and app pool (remote via SCM)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
