@@ -205,23 +205,6 @@ namespace Router
         {
             string objPath = string.Format("Win32_Service.Name='{0}'", svcName);
             throw new NotSupportedException("ManagementObject is not available in this project. StartService functionality is not supported on this platform.");
-            {
-                try
-                {
-                    // ManagementBaseObject and related WMI functionality are not available in this project or platform.
-                    return (string)Enum.Parse(typeof(string),
-                        // outParams is not defined; ManagementObject and related WMI functionality are not available in this project or platform.
-                        throw new NotSupportedException("outParams is not available. StartService functionality is not supported on this platform.");
-                }
-                catch (Exception ex)
-                {
-                    if (ex.Message.ToLower().Trim() == "not found" ||
-                        ex.GetHashCode() == 41149443)
-                        return "Service not found.";
-                    else
-                        throw ex;
-                }
-            }
         }
 
 
