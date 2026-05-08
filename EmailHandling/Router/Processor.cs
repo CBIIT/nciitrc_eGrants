@@ -13,7 +13,6 @@ using System.Xml.Linq;
 using Exception = System.Exception;
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-using System.Management;
 using System.Security.Cryptography;
 using System.Data;
 using System.Threading;
@@ -205,7 +204,7 @@ namespace Router
         public static string StartService(string svcName)
         {
             string objPath = string.Format("Win32_Service.Name='{0}'", svcName);
-            using (ManagementObject service = new ManagementObject(new ManagementPath(objPath)))
+            throw new NotSupportedException("ManagementObject is not available in this project. StartService functionality is not supported on this platform.");
             {
                 try
                 {
