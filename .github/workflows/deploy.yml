@@ -1,16 +1,13 @@
 name: eGrants Deployment Workflow
 
 on:
-  # Automatic deployments only happen from these branches.
-  # A push to dev deploys to dev.
-  # A push to test deploys to test.
+  # Automatically deploy when code is pushed to dev or test.
   push:
     branches:
       - dev
       - test
 
-  # Manual deployments are used when we want to target an environment
-  # that is not tied directly to the pushed branch, such as stage or prod.
+  # Allow manual deployments to any supported environment.
   workflow_dispatch:
     inputs:
       target_branch:
@@ -24,71 +21,39 @@ on:
           - prod
         default: dev
 
-# Single workflow-level variable used throughout step scripts.
-#
-# How it works:
-# - If the workflow was started manually (workflow_dispatch),
-#   use the selected dropdown value from target_branch.
-# - Otherwise, for normal push-triggered runs, use github.ref_name.
-#
-# Result:
-# - push to dev   => DEPLOY_ENV = dev
-# - push to test  => DEPLOY_ENV = test
-# - manual stage  => DEPLOY_ENV = stage
-# - manual prod   => DEPLOY_ENV = prod
 env:
+  # Resolve the target environment.
+  # - For manual runs, use the selected workflow input.
+  # - For push runs, use the branch name that triggered the workflow.
   DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
 jobs:
   build-and-deploy:
-    # runs-on cannot use env.DEPLOY_ENV directly at this level,
-    # so we repeat the environment resolution logic here.
-    #
-    # dev/test use the non-prod runner
-    # stage/prod use the prod runner
+    # Choose the runner label based on the environment:
+    # - dev/test use the non-prod runner
+    # - stage/prod use the prod runner
     runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
 
-    # Same note as runs-on:
-    # job.environment cannot use env.DEPLOY_ENV directly here,
-    # so we resolve it inline.
-    #
-    # This ties the job to the matching GitHub Environment so that
-    # environment-specific secrets/approvals/protections can apply.
+    # Attach the deployment to the matching GitHub environment.
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
-      # ---------------------------------------------------------
-      # CHECKOUT
-      # ---------------------------------------------------------
-      # Pull the repository contents onto the runner so the project
-      # can be restored, built, and published.
+      # Pull down the repository source so the runner can build it.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # LOAD ENVIRONMENT VARIABLES
-      # ---------------------------------------------------------
-      # This step maps the selected deployment environment to the
-      # correct path/site/app pool/credential values.
-      #
-      # We write the resolved values to GITHUB_OUTPUT so later steps
-      # can use them consistently as:
-      #   steps.envmap.outputs.DEST_PATH
-      #   steps.envmap.outputs.SITE_NAME
-      #   steps.envmap.outputs.APP_POOL
-      #   etc.
+      # Load environment-specific values from GitHub environment variables and secrets.
+      # This step writes reusable outputs for later steps.
       - name: Load environment variables
         id: envmap
         shell: powershell
         run: |
-          # Read the single workflow variable that determines where we deploy.
           $branch = "${{ env.DEPLOY_ENV }}"
           Write-Host "Environment detected: $branch"
 
-          # Map the chosen environment to the correct variables/secrets.
           switch ($branch) {
             "dev" {
-              # Local/non-credentialed deployment target values for dev
+              # Dev uses local paths/settings and does not require remote deployment credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
@@ -96,19 +61,17 @@ jobs:
             }
 
             "test" {
-              # Remote deployment target values for test
+              # Test uses remote share credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_TEST }}" >> $env:GITHUB_OUTPUT
-
-              # Credentials used for remote share / remote service access
               echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_TEST }}" >> $env:GITHUB_OUTPUT
               echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_TEST }}" >> $env:GITHUB_OUTPUT
             }
 
             "stage" {
-              # Local/non-credentialed deployment target values for stage
+              # Stage uses local IIS control on its runner and local paths/settings.
               echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
@@ -116,32 +79,26 @@ jobs:
             }
 
             "prod" {
-              # Remote deployment target values for prod
+              # Prod uses remote share credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_PROD }}" >> $env:GITHUB_OUTPUT
-
-              # Credentials used for remote share / remote service access
               echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_PROD }}" >> $env:GITHUB_OUTPUT
               echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_PROD }}" >> $env:GITHUB_OUTPUT
             }
 
             default {
-              # Fail fast if someone adds an unexpected environment name.
               throw "Unsupported deployment environment: $branch"
             }
           }
 
-          # Shared variable used by remote IIS operations.
+          # Left here for visibility/diagnostics, even though remote IIS service control
+          # is no longer used in this version of the workflow.
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-      # ---------------------------------------------------------
-      # BUILD
-      # ---------------------------------------------------------
-      # Restore NuGet packages and publish the ASP.NET application
-      # into a deployable folder.
+      # Restore NuGet packages and publish the application into a deployment-ready folder.
       - name: Build project
         shell: powershell
         run: |
@@ -151,13 +108,8 @@ jobs:
             -c Release `
             -o ./build_output
 
-      # ---------------------------------------------------------
-      # REPLACE TOKEN IN APPSETTINGS.JSON
-      # ---------------------------------------------------------
-      # After publish, update appsettings.json in the build output
-      # so the deployment package contains the correct GitHub token.
-      #
-      # This replaces whatever value currently exists for GitHubToken.
+      # Replace the placeholder GitHubToken value inside the published appsettings.json
+      # with the real secret value from GitHub Actions secrets.
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
@@ -169,144 +121,173 @@ jobs:
           }
 
           $json = Get-Content $file -Raw
-
-          # Replace any current GitHubToken value in the JSON.
           $pattern = '"GitHubToken"\s*:\s*".*?"'
           $replacement = '"GitHubToken": "' + $token + '"'
-
           $json = $json -replace $pattern, $replacement
-
           Set-Content -Path $file -Value $json -Encoding UTF8
 
-      # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE
-      # ---------------------------------------------------------
-      # Before deploying new files, take a backup of the current
-      # deployed site contents.
-      #
-      # Process:
-      # 1. Resolve deployment/archive locations
-      # 2. If remote env (test/prod), map network shares with creds
-      # 3. Copy current deployed files to a temp folder
-      # 4. Zip them
-      # 5. Store the zip in the archive location
-      # 6. Keep only the 5 most recent backups
+      # Archive the currently deployed application before copying in the new build.
+      # This creates a timestamped zip backup and keeps only the 5 newest backups.
       - name: Archive existing destination directory
         shell: powershell
         run: |
+          function Invoke-NetUse {
+            param(
+              [Parameter(Mandatory = $true)][string]$Drive,
+              [Parameter(Mandatory = $true)][string]$Share,
+              [Parameter(Mandatory = $true)][string]$Username,
+              [Parameter(Mandatory = $true)][string]$Password
+            )
+
+            # Map a network share using net.exe through a safely constructed process call.
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive `"$Share`" `"$Password`" /user:`"$Username`" /persistent:no"
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.UseShellExecute = $false
+            $psi.CreateNoWindow = $true
+
+            $proc = New-Object System.Diagnostics.Process
+            $proc.StartInfo = $psi
+            [void]$proc.Start()
+
+            $stdout = $proc.StandardOutput.ReadToEnd()
+            $stderr = $proc.StandardError.ReadToEnd()
+            $proc.WaitForExit()
+
+            if ($stdout) { Write-Host $stdout.Trim() }
+            if ($stderr) { Write-Host $stderr.Trim() }
+
+            if ($proc.ExitCode -ne 0) {
+              throw "net use failed for drive $Drive -> $Share (exit code $($proc.ExitCode))"
+            }
+          }
+
+          function Remove-NetUse {
+            param([Parameter(Mandatory = $true)][string]$Drive)
+
+            # Always try to remove any existing drive mapping first.
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive /delete /y"
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.UseShellExecute = $false
+            $psi.CreateNoWindow = $true
+
+            $proc = New-Object System.Diagnostics.Process
+            $proc.StartInfo = $psi
+            [void]$proc.Start()
+
+            $null = $proc.StandardOutput.ReadToEnd()
+            $null = $proc.StandardError.ReadToEnd()
+            $proc.WaitForExit()
+          }
+
           $branch = '${{ env.DEPLOY_ENV }}'
           $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
           $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
           $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
           $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          Write-Host "Environment: $branch"
-          Write-Host "Destination UNC: $destination"
-          Write-Host "Archive UNC: $archiveRoot"
-
-          # Temporary drive letters used only when remote shares need
-          # to be mounted with credentials.
           $destDrive = 'Z:'
           $archDrive = 'Y:'
 
-          # test/prod are treated as remote deployments that require
-          # explicit credentialed share access.
-          if ($branch -eq 'test' -or $branch -eq 'prod') {
-            Write-Host 'Mapping remote shares using credentials...'
+          try {
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Write-Host 'Mapping remote shares using net.exe with safe process invocation...'
 
-            # Extract the share root from the UNC path
-            # Example:
-            # \\server\share\folder1\folder2
-            # becomes:
-            # \\server\share
-            $destParts = $destination -split '\\'
-            $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+              if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
+                throw "DEPLOY_USER or DEPLOY_PASS is missing."
+              }
 
-            $archParts = $archiveRoot -split '\\'
-            $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+              if (-not $destination.StartsWith('\\') -or -not $archiveRoot.StartsWith('\\')) {
+                throw "DEST_PATH and ARCHIVE_PATH must be UNC paths for test/prod."
+              }
 
-            Write-Host "Destination share root: $destShareRoot"
-            Write-Host "Archive share root: $archShareRoot"
+              $destParts = $destination -split '\\'
+              $archParts = $archiveRoot -split '\\'
 
-            # Map the shares to local drive letters so robocopy/copy operations
-            # can work using the supplied credentials.
-            cmd.exe /c "net use $destDrive `"$destShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
-            cmd.exe /c "net use $archDrive `"$archShareRoot`" /user:`"$deployUser`" `"$deployPass`" /persistent:no"
+              if ($destParts.Length -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+              if ($archParts.Length -lt 4) {
+                throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
+              }
 
-            # Convert full UNC paths to mapped drive paths.
-            $mappedDest = $destination.Replace($destShareRoot, $destDrive)
-            $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
+              # Map only the share root, then translate the full UNC path to the mapped drive.
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+              $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+              Write-Host "Archive share root: $archShareRoot"
+
+              Remove-NetUse -Drive $destDrive
+              Remove-NetUse -Drive $archDrive
+
+              Invoke-NetUse -Drive $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
+              Invoke-NetUse -Drive $archDrive -Share $archShareRoot -Username $deployUser -Password $deployPass
+
+              $mappedDest = $destination.Replace($destShareRoot, $destDrive)
+              $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
+            }
+            else {
+              Write-Host 'DEV or STAGE environment detected — no credentialed share mapping required.'
+              $mappedDest = $destination
+              $mappedArchive = $archiveRoot
+            }
+
+            Write-Host "Environment: $branch"
+            Write-Host "Destination path: $mappedDest"
+            Write-Host "Archive path: $mappedArchive"
+
+            if (-not (Test-Path $mappedDest)) {
+              throw "Destination path not reachable: $mappedDest"
+            }
+
+            if (-not (Test-Path $mappedArchive)) {
+              New-Item -ItemType Directory -Path $mappedArchive | Out-Null
+            }
+
+            $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+            $localTemp = Join-Path $env:TEMP "archive_$timestamp"
+            $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
+            $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
+
+            New-Item -ItemType Directory -Path $localTemp | Out-Null
+
+            # Copy current deployed content to a temporary local folder before zipping it.
+            robocopy $mappedDest $localTemp /MIR
+            if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
+
+            Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
+            Copy-Item -Path $localZip -Destination $remoteZip -Force
+
+            Remove-Item -Path $localTemp -Recurse -Force
+            Remove-Item -Path $localZip -Force
+
+            # Keep only the most recent 5 backups.
+            $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
+              Sort-Object LastWriteTime -Descending
+
+            $archivesToDelete = $archives | Select-Object -Skip 5
+            foreach ($old in $archivesToDelete) {
+              Remove-Item -Path $old.FullName -Force
+            }
+
+            exit 0
           }
-          else {
-            # dev/stage are assumed to be reachable directly from the runner
-            # without mapping credentialed shares.
-            Write-Host 'DEV or STAGE environment detected — no credentialed net use required.'
-            $mappedDest = $destination
-            $mappedArchive = $archiveRoot
+          finally {
+            # Always clean up mapped drives after archive processing.
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Remove-NetUse -Drive $destDrive
+              Remove-NetUse -Drive $archDrive
+            }
           }
 
-          Write-Host "Mapped destination path: $mappedDest"
-          Write-Host "Mapped archive path: $mappedArchive"
-
-          # Confirm the live deployment folder is reachable.
-          if (-not (Test-Path $mappedDest)) {
-            throw "Destination share not reachable: $mappedDest"
-          }
-
-          # Create archive folder if it does not already exist.
-          if (-not (Test-Path $mappedArchive)) {
-            New-Item -ItemType Directory -Path $mappedArchive | Out-Null
-          }
-
-          # Build temp and archive filenames with a timestamp.
-          $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-          $localTemp = Join-Path $env:TEMP "archive_$timestamp"
-          $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-          $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
-
-          New-Item -ItemType Directory -Path $localTemp | Out-Null
-
-          # Copy the existing deployed site to a local temp folder.
-          # /MIR mirrors the directory structure/content.
-          robocopy $mappedDest $localTemp /MIR
-          if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
-
-          # Zip the backup and copy it to the archive location.
-          Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
-          Copy-Item -Path $localZip -Destination $remoteZip -Force
-
-          # Remove local temp artifacts.
-          Remove-Item -Path $localTemp -Recurse -Force
-          Remove-Item -Path $localZip -Force
-
-          # Keep only the 5 newest backups to avoid unbounded storage growth.
-          $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
-            Sort-Object LastWriteTime -Descending
-
-          $archivesToDelete = $archives | Select-Object -Skip 5
-          foreach ($old in $archivesToDelete) {
-            Remove-Item -Path $old.FullName -Force
-          }
-
-          # Disconnect mapped shares after archive completes.
-          if ($branch -eq 'test' -or $branch -eq 'prod') {
-            cmd.exe /c "net use $destDrive /delete /y"
-            cmd.exe /c "net use $archDrive /delete /y"
-          }
-
-          exit 0
-
-      # ---------------------------------------------------------
-      # DIAGNOSTICS (RUNNER / HOST / IIS CONTEXT)
-      # ---------------------------------------------------------
-      # Helpful diagnostics for troubleshooting:
-      # - which environment GitHub resolved
-      # - which runner is being used
-      # - whether IIS is visible from this runner
-      # - whether the expected site/app pool exist locally
-      #
-      # This is especially useful when debugging self-hosted runner /
-      # IIS connectivity and permissions issues.
+      # Helpful diagnostics for confirming which runner executed the job and
+      # whether IIS objects are visible on that machine.
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
@@ -383,11 +364,7 @@ jobs:
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
 
-      # ---------------------------------------------------------
-      # STOP IIS LOCAL
-      # ---------------------------------------------------------
-      # For local-style deployments (dev/stage), stop the app pool and site
-      # directly on the machine where the runner is executing.
+      # For dev/stage, the runner is on the IIS server, so we can stop the app pool and site locally.
       - name: Stop IIS site and app pool (dev/stage local)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -400,84 +377,160 @@ jobs:
           Stop-WebAppPool -Name $appPool -ErrorAction SilentlyContinue
           Stop-Website -Name $siteName -ErrorAction SilentlyContinue
 
-          # Short delay to give IIS time to finish stopping.
           Start-Sleep -Seconds 3
           exit 0
 
-      # ---------------------------------------------------------
-      # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
-      # ---------------------------------------------------------
-      # For remote-style deployments (test/prod), stop IIS services
-      # on the remote server via sc.exe.
-      #
-      # This stops core IIS services:
-      # - W3SVC = World Wide Web Publishing Service
-      # - WAS   = Windows Process Activation Service
-      #
-      # Note: this is broader than stopping a single site/app pool.
-      - name: Stop IIS (SCM remote stop)
-        if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
-        shell: powershell
-        env:
-          DEPLOY_USER: ${{ steps.envmap.outputs.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ steps.envmap.outputs.DEPLOY_PASS }}
-        run: |
-          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-
-          if ([string]::IsNullOrWhiteSpace($remote)) {
-            throw "REMOTE_SERVER is missing or empty."
-          }
-
-          if ([string]::IsNullOrWhiteSpace($env:DEPLOY_USER) -or [string]::IsNullOrWhiteSpace($env:DEPLOY_PASS)) {
-            throw "DEPLOY_USER or DEPLOY_PASS is missing for remote stop operation."
-          }
-
-          Write-Host "Stopping IIS core services on $remote ..."
-
-          sc.exe \\$remote stop W3SVC
-          sc.exe \\$remote stop WAS
-
-          Start-Sleep -Seconds 5
-
-          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
-
-          if ($w3svcState -notmatch "STOPPED") {
-            throw "W3SVC did not stop properly"
-          }
-          if ($wasState -notmatch "STOPPED") {
-            throw "WAS did not stop properly"
-          }
-
-          Write-Host "IIS successfully stopped via SCM."
-          exit 0
-
-      # ---------------------------------------------------------
-      # DEPLOY
-      # ---------------------------------------------------------
-      # Copy the newly published application files to the destination.
-      #
-      # /MIR mirrors the source folder to the destination.
-      # web.config is excluded to preserve environment-specific server config.
+      # Deploy the published build output.
+      # For test/prod, use app_offline.htm to temporarily take the application offline
+      # while files are copied, instead of trying to stop IIS remotely.
       - name: Deploy build output
         shell: powershell
         run: |
-          $source = "$(Get-Location)\build_output"
-          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+          function Invoke-NetUse {
+            param(
+              [Parameter(Mandatory = $true)][string]$Drive,
+              [Parameter(Mandatory = $true)][string]$Share,
+              [Parameter(Mandatory = $true)][string]$Username,
+              [Parameter(Mandatory = $true)][string]$Password
+            )
 
-          robocopy $source $destination /MIR /XF web.config
+            # Map a network share using net.exe through a safely constructed process call.
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive `"$Share`" `"$Password`" /user:`"$Username`" /persistent:no"
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.UseShellExecute = $false
+            $psi.CreateNoWindow = $true
 
-          if ($LASTEXITCODE -ge 8) {
-            throw "Robocopy deployment failed."
+            $proc = New-Object System.Diagnostics.Process
+            $proc.StartInfo = $psi
+            [void]$proc.Start()
+
+            $stdout = $proc.StandardOutput.ReadToEnd()
+            $stderr = $proc.StandardError.ReadToEnd()
+            $proc.WaitForExit()
+
+            if ($stdout) { Write-Host $stdout.Trim() }
+            if ($stderr) { Write-Host $stderr.Trim() }
+
+            if ($proc.ExitCode -ne 0) {
+              throw "net use failed for drive $Drive -> $Share (exit code $($proc.ExitCode))"
+            }
           }
 
-          exit 0
+          function Remove-NetUse {
+            param([Parameter(Mandatory = $true)][string]$Drive)
 
-      # ---------------------------------------------------------
-      # START IIS LOCAL
-      # ---------------------------------------------------------
-      # For local-style deployments (dev/stage), bring the app pool
-      # and website back online directly on the runner host.
+            # Always try to remove any existing drive mapping first.
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive /delete /y"
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.UseShellExecute = $false
+            $psi.CreateNoWindow = $true
+
+            $proc = New-Object System.Diagnostics.Process
+            $proc.StartInfo = $psi
+            [void]$proc.Start()
+
+            $null = $proc.StandardOutput.ReadToEnd()
+            $null = $proc.StandardError.ReadToEnd()
+            $proc.WaitForExit()
+          }
+
+          $branch = '${{ env.DEPLOY_ENV }}'
+          $source = "$(Get-Location)\build_output"
+          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
+          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
+
+          $destDrive = 'Z:'
+          $appOffline = $null
+
+          try {
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Write-Host 'Mapping deployment share using net.exe with safe process invocation...'
+
+              if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
+                throw "DEPLOY_USER or DEPLOY_PASS is missing."
+              }
+
+              if (-not $destination.StartsWith('\\')) {
+                throw "DEST_PATH must be a UNC path for test/prod."
+              }
+
+              $destParts = $destination -split '\\'
+              if ($destParts.Length -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+
+              # Map only the share root, then translate the full UNC path to the mapped drive.
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+
+              Remove-NetUse -Drive $destDrive
+              Invoke-NetUse -Drive $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
+
+              $mappedDest = $destination.Replace($destShareRoot, $destDrive)
+            }
+            else {
+              $mappedDest = $destination
+            }
+
+            Write-Host "Deploying from: $source"
+            Write-Host "Deploying to:   $mappedDest"
+
+            if (-not (Test-Path $mappedDest)) {
+              throw "Destination path not reachable: $mappedDest"
+            }
+
+            # Create app_offline.htm so IIS serves a maintenance page and releases file locks.
+            $appOffline = Join-Path $mappedDest "app_offline.htm"
+
+            @"
+          <html>
+            <body>
+              <h1>Temporarily unavailable</h1>
+              <p>The application is currently being updated. Please try again in a few minutes.</p>
+            </body>
+          </html>
+          "@ | Set-Content -Path $appOffline -Encoding UTF8
+
+            Write-Host "Created app_offline.htm at $appOffline"
+
+            # Give IIS a moment to recognize the offline file and unload the app.
+            Start-Sleep -Seconds 3
+
+            # Mirror the new build into the target directory.
+            # Exclude:
+            # - web.config because the environment keeps its own deployed copy
+            # - app_offline.htm so robocopy does not delete it mid-deployment
+            robocopy $source $mappedDest /MIR /XF web.config app_offline.htm
+
+            if ($LASTEXITCODE -ge 8) {
+              throw "Robocopy deployment failed."
+            }
+
+            Write-Host "Deployment copy completed successfully."
+            exit 0
+          }
+          finally {
+            # Always remove app_offline.htm at the end so the application comes back online.
+            if ($appOffline -and (Test-Path $appOffline)) {
+              Remove-Item -Path $appOffline -Force -ErrorAction SilentlyContinue
+              Write-Host "Removed app_offline.htm"
+            }
+
+            # Always remove mapped drives after deployment.
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Remove-NetUse -Drive $destDrive
+            }
+          }
+
+      # For dev/stage, bring the site back online locally after deployment finishes.
       - name: Start IIS local
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -490,50 +543,4 @@ jobs:
           Start-WebAppPool -Name $appPool
           Start-Website -Name $siteName
 
-          exit 0
-
-      # ---------------------------------------------------------
-      # START IIS (NON-DEV REMOTE) — DIRECT SCM
-      # ---------------------------------------------------------
-      # For remote-style deployments (test/prod), start IIS core services
-      # again on the remote server.
-      #
-      # Note: starting WAS and W3SVC brings IIS back online, but this does
-      # not individually target a specific site/app pool. It assumes normal
-      # IIS startup behavior on that server.
-      - name: Start IIS site and app pool (remote via SCM)
-        if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
-        shell: powershell
-        env:
-          DEPLOY_USER: ${{ steps.envmap.outputs.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ steps.envmap.outputs.DEPLOY_PASS }}
-        run: |
-          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          if ([string]::IsNullOrWhiteSpace($remote)) {
-            throw "REMOTE_SERVER is missing or empty."
-          }
-
-          Write-Host "Starting IIS core services on $remote ..."
-          Write-Host "Target site: $siteName"
-          Write-Host "Target app pool: $appPool"
-
-          sc.exe \\$remote start WAS
-          sc.exe \\$remote start W3SVC
-
-          Start-Sleep -Seconds 5
-
-          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
-
-          if ($w3svcState -notmatch "RUNNING") {
-            throw "W3SVC did not start properly"
-          }
-          if ($wasState -notmatch "RUNNING") {
-            throw "WAS did not start properly"
-          }
-
-          Write-Host "IIS core services successfully started via SCM."
           exit 0
