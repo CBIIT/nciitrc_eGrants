@@ -1,16 +1,11 @@
 name: eGrants Deployment Workflow
 
 on:
-  # Automatic deployments only happen from these branches.
-  # A push to dev deploys to dev.
-  # A push to test deploys to test.
   push:
     branches:
       - dev
       - test
 
-  # Manual deployments are used when we want to target an environment
-  # that is not tied directly to the pushed branch, such as stage or prod.
   workflow_dispatch:
     inputs:
       target_branch:
@@ -29,24 +24,14 @@ env:
 
 jobs:
   build-and-deploy:
-    # dev/test use the non-prod runner
-    # stage/prod use the prod runner
     runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
 
-    # Tie the job to the matching GitHub Environment so that
-    # environment-specific secrets/approvals/protections can apply.
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
-      # ---------------------------------------------------------
-      # CHECKOUT
-      # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # LOAD ENVIRONMENT VARIABLES
-      # ---------------------------------------------------------
       - name: Load environment variables
         id: envmap
         shell: powershell
@@ -95,9 +80,6 @@ jobs:
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-      # ---------------------------------------------------------
-      # BUILD
-      # ---------------------------------------------------------
       - name: Build project
         shell: powershell
         run: |
@@ -107,9 +89,6 @@ jobs:
             -c Release `
             -o ./build_output
 
-      # ---------------------------------------------------------
-      # REPLACE TOKEN IN APPSETTINGS.JSON
-      # ---------------------------------------------------------
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
@@ -126,9 +105,6 @@ jobs:
           $json = $json -replace $pattern, $replacement
           Set-Content -Path $file -Value $json -Encoding UTF8
 
-      # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE
-      # ---------------------------------------------------------
       - name: Archive existing destination directory
         shell: powershell
         run: |
@@ -140,21 +116,15 @@ jobs:
               [Parameter(Mandatory = $true)][string]$Password
             )
 
-            $psi = [System.Diagnostics.ProcessStartInfo]::new()
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
             $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive `"$Share`" `"$Password`" /user:`"$Username`" /persistent:no"
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
             $psi.UseShellExecute = $false
             $psi.CreateNoWindow = $true
 
-            $null = $psi.ArgumentList.Add("use")
-            $null = $psi.ArgumentList.Add($Drive)
-            $null = $psi.ArgumentList.Add($Share)
-            $null = $psi.ArgumentList.Add($Password)
-            $null = $psi.ArgumentList.Add("/user:$Username")
-            $null = $psi.ArgumentList.Add("/persistent:no")
-
-            $proc = [System.Diagnostics.Process]::new()
+            $proc = New-Object System.Diagnostics.Process
             $proc.StartInfo = $psi
             [void]$proc.Start()
 
@@ -171,32 +141,23 @@ jobs:
           }
 
           function Remove-NetUse {
-            param(
-              [Parameter(Mandatory = $true)][string]$Drive
-            )
+            param([Parameter(Mandatory = $true)][string]$Drive)
 
-            $psi = [System.Diagnostics.ProcessStartInfo]::new()
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
             $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive /delete /y"
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
             $psi.UseShellExecute = $false
             $psi.CreateNoWindow = $true
 
-            $null = $psi.ArgumentList.Add("use")
-            $null = $psi.ArgumentList.Add($Drive)
-            $null = $psi.ArgumentList.Add("/delete")
-            $null = $psi.ArgumentList.Add("/y")
-
-            $proc = [System.Diagnostics.Process]::new()
+            $proc = New-Object System.Diagnostics.Process
             $proc.StartInfo = $psi
             [void]$proc.Start()
 
-            $stdout = $proc.StandardOutput.ReadToEnd()
-            $stderr = $proc.StandardError.ReadToEnd()
+            $null = $proc.StandardOutput.ReadToEnd()
+            $null = $proc.StandardError.ReadToEnd()
             $proc.WaitForExit()
-
-            if ($stdout) { Write-Host $stdout.Trim() }
-            if ($stderr) { Write-Host $stderr.Trim() }
           }
 
           $branch = '${{ env.DEPLOY_ENV }}'
@@ -210,7 +171,7 @@ jobs:
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Write-Host 'Mapping remote shares using net.exe with ArgumentList...'
+              Write-Host 'Mapping remote shares using net.exe with safe process invocation...'
 
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
@@ -296,9 +257,6 @@ jobs:
             }
           }
 
-      # ---------------------------------------------------------
-      # DIAGNOSTICS
-      # ---------------------------------------------------------
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
@@ -375,9 +333,6 @@ jobs:
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
 
-      # ---------------------------------------------------------
-      # STOP IIS LOCAL
-      # ---------------------------------------------------------
       - name: Stop IIS site and app pool (dev/stage local)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -386,15 +341,13 @@ jobs:
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
 
           Import-Module WebAdministration
+
           Stop-WebAppPool -Name $appPool -ErrorAction SilentlyContinue
           Stop-Website -Name $siteName -ErrorAction SilentlyContinue
 
           Start-Sleep -Seconds 3
           exit 0
 
-      # ---------------------------------------------------------
-      # STOP IIS REMOTE
-      # ---------------------------------------------------------
       - name: Stop IIS (SCM remote stop)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -428,9 +381,6 @@ jobs:
           Write-Host "IIS successfully stopped via SCM."
           exit 0
 
-      # ---------------------------------------------------------
-      # DEPLOY
-      # ---------------------------------------------------------
       - name: Deploy build output
         shell: powershell
         run: |
@@ -442,21 +392,15 @@ jobs:
               [Parameter(Mandatory = $true)][string]$Password
             )
 
-            $psi = [System.Diagnostics.ProcessStartInfo]::new()
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
             $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive `"$Share`" `"$Password`" /user:`"$Username`" /persistent:no"
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
             $psi.UseShellExecute = $false
             $psi.CreateNoWindow = $true
 
-            $null = $psi.ArgumentList.Add("use")
-            $null = $psi.ArgumentList.Add($Drive)
-            $null = $psi.ArgumentList.Add($Share)
-            $null = $psi.ArgumentList.Add($Password)
-            $null = $psi.ArgumentList.Add("/user:$Username")
-            $null = $psi.ArgumentList.Add("/persistent:no")
-
-            $proc = [System.Diagnostics.Process]::new()
+            $proc = New-Object System.Diagnostics.Process
             $proc.StartInfo = $psi
             [void]$proc.Start()
 
@@ -473,32 +417,23 @@ jobs:
           }
 
           function Remove-NetUse {
-            param(
-              [Parameter(Mandatory = $true)][string]$Drive
-            )
+            param([Parameter(Mandatory = $true)][string]$Drive)
 
-            $psi = [System.Diagnostics.ProcessStartInfo]::new()
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
             $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive /delete /y"
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
             $psi.UseShellExecute = $false
             $psi.CreateNoWindow = $true
 
-            $null = $psi.ArgumentList.Add("use")
-            $null = $psi.ArgumentList.Add($Drive)
-            $null = $psi.ArgumentList.Add("/delete")
-            $null = $psi.ArgumentList.Add("/y")
-
-            $proc = [System.Diagnostics.Process]::new()
+            $proc = New-Object System.Diagnostics.Process
             $proc.StartInfo = $psi
             [void]$proc.Start()
 
-            $stdout = $proc.StandardOutput.ReadToEnd()
-            $stderr = $proc.StandardError.ReadToEnd()
+            $null = $proc.StandardOutput.ReadToEnd()
+            $null = $proc.StandardError.ReadToEnd()
             $proc.WaitForExit()
-
-            if ($stdout) { Write-Host $stdout.Trim() }
-            if ($stderr) { Write-Host $stderr.Trim() }
           }
 
           $branch = '${{ env.DEPLOY_ENV }}'
@@ -511,7 +446,7 @@ jobs:
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Write-Host 'Mapping deployment share using net.exe with ArgumentList...'
+              Write-Host 'Mapping deployment share using net.exe with safe process invocation...'
 
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
@@ -556,9 +491,6 @@ jobs:
             }
           }
 
-      # ---------------------------------------------------------
-      # START IIS LOCAL
-      # ---------------------------------------------------------
       - name: Start IIS local
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -567,14 +499,12 @@ jobs:
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
 
           Import-Module WebAdministration
+
           Start-WebAppPool -Name $appPool
           Start-Website -Name $siteName
 
           exit 0
 
-      # ---------------------------------------------------------
-      # START IIS REMOTE
-      # ---------------------------------------------------------
       - name: Start IIS site and app pool (remote via SCM)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
