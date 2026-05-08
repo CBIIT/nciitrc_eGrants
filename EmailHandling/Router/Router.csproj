@@ -2,6 +2,12 @@
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
+    <AssemblyTitle>Router</AssemblyTitle>
+    <Company>National Cancer Institute</Company>
+    <Product>Router</Product>
+    <Copyright>Copyright © National Cancer Institute 2024</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Management" />
