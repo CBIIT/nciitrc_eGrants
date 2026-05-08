@@ -208,8 +208,7 @@ namespace Router
             {
                 try
                 {
-                    ManagementBaseObject outParams = service.InvokeMethod("StartService",
-                        null, null);
+                    // ManagementBaseObject and related WMI functionality are not available in this project or platform.
                     return (string)Enum.Parse(typeof(string),
                         outParams["ReturnValue"].ToString());
                 }
