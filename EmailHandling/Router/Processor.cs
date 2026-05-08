@@ -210,7 +210,8 @@ namespace Router
                 {
                     // ManagementBaseObject and related WMI functionality are not available in this project or platform.
                     return (string)Enum.Parse(typeof(string),
-                        outParams["ReturnValue"].ToString());
+                        // outParams is not defined; ManagementObject and related WMI functionality are not available in this project or platform.
+                        throw new NotSupportedException("outParams is not available. StartService functionality is not supported on this platform.");
                 }
                 catch (Exception ex)
                 {
