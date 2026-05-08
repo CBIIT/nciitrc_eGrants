@@ -2,6 +2,12 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
+    <AssemblyTitle>LoadSuppPfr</AssemblyTitle>
+    <Description>Load Supplement PFR - Supplement Progress/Final Report Loader</Description>
+    <Company>NCI</Company>
+    <Product>LoadSuppPfr</Product>
+    <Copyright>Copyright © NCI 2024</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommonUtilties\CommonUtilties.csproj" />
