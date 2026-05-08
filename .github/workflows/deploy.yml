@@ -1,15 +1,11 @@
 name: eGrants Deployment Workflow
 
 on:
-  # Automatic deployments only happen from these branches.
-  # A push to dev deploys to dev.
-  # A push to test deploys to test.
   push:
     branches:
       - dev
       - test
 
-  # Manual deployments allow targeting stage or prod.
   workflow_dispatch:
     inputs:
       target_branch:
@@ -33,15 +29,9 @@ jobs:
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
-      # ---------------------------------------------------------
-      # CHECKOUT
-      # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # LOAD ENVIRONMENT VARIABLES
-      # ---------------------------------------------------------
       - name: Load environment variables
         id: envmap
         shell: powershell
@@ -89,9 +79,6 @@ jobs:
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-      # ---------------------------------------------------------
-      # BUILD
-      # ---------------------------------------------------------
       - name: Build project
         shell: powershell
         run: |
@@ -104,9 +91,6 @@ jobs:
             -c Release `
             -o ./build_output
 
-      # ---------------------------------------------------------
-      # REPLACE TOKEN IN APPSETTINGS.JSON
-      # ---------------------------------------------------------
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
@@ -127,9 +111,6 @@ jobs:
 
           Set-Content -Path $file -Value $json -Encoding UTF8
 
-      # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE (DEV/STAGE)
-      # ---------------------------------------------------------
       - name: Archive existing destination directory (dev/stage)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -206,9 +187,6 @@ jobs:
 
           exit 0
 
-      # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE (TEST/PROD)
-      # ---------------------------------------------------------
       - name: Archive existing destination directory (test/prod)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -367,9 +345,6 @@ jobs:
 
           exit 0
 
-      # ---------------------------------------------------------
-      # DIAGNOSTICS
-      # ---------------------------------------------------------
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
@@ -449,9 +424,6 @@ jobs:
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
 
-      # ---------------------------------------------------------
-      # STOP IIS LOCAL
-      # ---------------------------------------------------------
       - name: Stop IIS site and app pool (dev/stage local)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -473,63 +445,15 @@ jobs:
           Start-Sleep -Seconds 3
           exit 0
 
-      # ---------------------------------------------------------
-      # STOP IIS REMOTE
-      # ---------------------------------------------------------
       - name: Stop IIS (SCM remote stop)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_USER_TEST || secrets.DEPLOY_USER_PROD }}
+          DEPLOY_PASS: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_PASS_TEST || secrets.DEPLOY_PASS_PROD }}
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
-
-          function Invoke-ScChecked {
-            param(
-              [Parameter(Mandatory = $true)][string]$RemoteServer,
-              [Parameter(Mandatory = $true)][ValidateSet('query','start','stop')][string]$Action,
-              [Parameter(Mandatory = $true)][string]$ServiceName
-            )
-
-            $output = & sc.exe "\\$RemoteServer" $Action $ServiceName 2>&1
-            $code = $LASTEXITCODE
-            $outputText = ($output | Out-String).Trim()
-
-            if ($outputText) {
-              Write-Host $outputText
-            }
-
-            if ($code -ne 0) {
-              throw "sc.exe $Action $ServiceName failed on $RemoteServer with exit code $code"
-            }
-
-            return $outputText
-          }
-
-          function Wait-ForServiceState {
-            param(
-              [Parameter(Mandatory = $true)][string]$RemoteServer,
-              [Parameter(Mandatory = $true)][string]$ServiceName,
-              [Parameter(Mandatory = $true)][ValidateSet('RUNNING','STOPPED')][string]$DesiredState,
-              [Parameter(Mandatory = $false)][int]$MaxAttempts = 12,
-              [Parameter(Mandatory = $false)][int]$DelaySeconds = 5
-            )
-
-            for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-              $queryOutput = Invoke-ScChecked -RemoteServer $RemoteServer -Action query -ServiceName $ServiceName
-
-              if ($queryOutput -match "STATE\s*:\s*\d+\s+$DesiredState") {
-                Write-Host "$ServiceName reached state $DesiredState on $RemoteServer."
-                return
-              }
-
-              if ($attempt -lt $MaxAttempts) {
-                Write-Host "$ServiceName not yet $DesiredState on $RemoteServer. Waiting $DelaySeconds seconds (attempt $attempt of $MaxAttempts)..."
-                Start-Sleep -Seconds $DelaySeconds
-              } else {
-                throw "$ServiceName did not reach state $DesiredState on $RemoteServer after $MaxAttempts attempts."
-              }
-            }
-          }
 
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
 
@@ -537,20 +461,30 @@ jobs:
             throw "REMOTE_SERVER is missing or empty."
           }
 
+          if ([string]::IsNullOrWhiteSpace($env:DEPLOY_USER) -or [string]::IsNullOrWhiteSpace($env:DEPLOY_PASS)) {
+            throw "DEPLOY_USER or DEPLOY_PASS is missing for remote stop operation."
+          }
+
           Write-Host "Stopping IIS core services on $remote ..."
 
-          Invoke-ScChecked -RemoteServer $remote -Action stop -ServiceName W3SVC
-          Wait-ForServiceState -RemoteServer $remote -ServiceName W3SVC -DesiredState STOPPED
+          sc.exe \\$remote stop W3SVC
+          sc.exe \\$remote stop WAS
 
-          Invoke-ScChecked -RemoteServer $remote -Action stop -ServiceName WAS
-          Wait-ForServiceState -RemoteServer $remote -ServiceName WAS -DesiredState STOPPED
+          Start-Sleep -Seconds 5
+
+          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
+          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
+
+          if ($w3svcState -notmatch "STOPPED") {
+            throw "W3SVC did not stop properly"
+          }
+          if ($wasState -notmatch "STOPPED") {
+            throw "WAS did not stop properly"
+          }
 
           Write-Host "IIS successfully stopped via SCM."
           exit 0
 
-      # ---------------------------------------------------------
-      # DEPLOY
-      # ---------------------------------------------------------
       - name: Deploy build output (dev/stage)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -712,9 +646,6 @@ jobs:
 
           exit 0
 
-      # ---------------------------------------------------------
-      # START IIS LOCAL
-      # ---------------------------------------------------------
       - name: Start IIS local
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -735,63 +666,15 @@ jobs:
 
           exit 0
 
-      # ---------------------------------------------------------
-      # START IIS REMOTE
-      # ---------------------------------------------------------
       - name: Start IIS site and app pool (remote via SCM)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
+        env:
+          DEPLOY_USER: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_USER_TEST || secrets.DEPLOY_USER_PROD }}
+          DEPLOY_PASS: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_PASS_TEST || secrets.DEPLOY_PASS_PROD }}
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
-
-          function Invoke-ScChecked {
-            param(
-              [Parameter(Mandatory = $true)][string]$RemoteServer,
-              [Parameter(Mandatory = $true)][ValidateSet('query','start','stop')][string]$Action,
-              [Parameter(Mandatory = $true)][string]$ServiceName
-            )
-
-            $output = & sc.exe "\\$RemoteServer" $Action $ServiceName 2>&1
-            $code = $LASTEXITCODE
-            $outputText = ($output | Out-String).Trim()
-
-            if ($outputText) {
-              Write-Host $outputText
-            }
-
-            if ($code -ne 0) {
-              throw "sc.exe $Action $ServiceName failed on $RemoteServer with exit code $code"
-            }
-
-            return $outputText
-          }
-
-          function Wait-ForServiceState {
-            param(
-              [Parameter(Mandatory = $true)][string]$RemoteServer,
-              [Parameter(Mandatory = $true)][string]$ServiceName,
-              [Parameter(Mandatory = $true)][ValidateSet('RUNNING','STOPPED')][string]$DesiredState,
-              [Parameter(Mandatory = $false)][int]$MaxAttempts = 12,
-              [Parameter(Mandatory = $false)][int]$DelaySeconds = 5
-            )
-
-            for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-              $queryOutput = Invoke-ScChecked -RemoteServer $RemoteServer -Action query -ServiceName $ServiceName
-
-              if ($queryOutput -match "STATE\s*:\s*\d+\s+$DesiredState") {
-                Write-Host "$ServiceName reached state $DesiredState on $RemoteServer."
-                return
-              }
-
-              if ($attempt -lt $MaxAttempts) {
-                Write-Host "$ServiceName not yet $DesiredState on $RemoteServer. Waiting $DelaySeconds seconds (attempt $attempt of $MaxAttempts)..."
-                Start-Sleep -Seconds $DelaySeconds
-              } else {
-                throw "$ServiceName did not reach state $DesiredState on $RemoteServer after $MaxAttempts attempts."
-              }
-            }
-          }
 
           $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
@@ -805,11 +688,20 @@ jobs:
           Write-Host "Target site: $siteName"
           Write-Host "Target app pool: $appPool"
 
-          Invoke-ScChecked -RemoteServer $remote -Action start -ServiceName WAS
-          Wait-ForServiceState -RemoteServer $remote -ServiceName WAS -DesiredState RUNNING
+          sc.exe \\$remote start WAS
+          sc.exe \\$remote start W3SVC
 
-          Invoke-ScChecked -RemoteServer $remote -Action start -ServiceName W3SVC
-          Wait-ForServiceState -RemoteServer $remote -ServiceName W3SVC -DesiredState RUNNING
+          Start-Sleep -Seconds 5
+
+          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
+          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
+
+          if ($w3svcState -notmatch "RUNNING") {
+            throw "W3SVC did not start properly"
+          }
+          if ($wasState -notmatch "RUNNING") {
+            throw "WAS did not start properly"
+          }
 
           Write-Host "IIS core services successfully started via SCM."
           exit 0
