@@ -59,19 +59,14 @@ jobs:
       # ---------------------------------------------------------
       # CHECKOUT REPOSITORY
       # ---------------------------------------------------------
-      # Pull the repository contents onto the runner.
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # ---------------------------------------------------------
       # LOAD ENVIRONMENT VARIABLES
       # ---------------------------------------------------------
-      # This step resolves the deployment-specific configuration
-      # such as target path, archive path, IIS site name, app pool,
-      # and remote server name.
-      #
-      # Secrets are NOT written to GITHUB_OUTPUT.
-      # Remote credentials are passed only to the steps that need them.
+      # Resolve the environment-specific values used later in the job.
+      # Note: secrets are intentionally NOT written to GITHUB_OUTPUT.
       - name: Load environment variables
         id: envmap
         shell: powershell
@@ -79,7 +74,6 @@ jobs:
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
 
-          # Resolve the environment selected for this run.
           $branch = "${{ env.DEPLOY_ENV }}"
           if ([string]::IsNullOrWhiteSpace($branch)) {
             throw "DEPLOY_ENV resolved to an empty value."
@@ -87,7 +81,6 @@ jobs:
 
           Write-Host "Environment detected: $branch"
 
-          # Map each deployment environment to its variables.
           switch ($branch) {
             "dev" {
               echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
@@ -118,14 +111,12 @@ jobs:
             }
           }
 
-          # Shared variable for remote IIS operations.
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
       # ---------------------------------------------------------
       # BUILD APPLICATION
       # ---------------------------------------------------------
-      # Restore packages and publish the ASP.NET app into build_output.
       - name: Build project
         shell: powershell
         run: |
@@ -141,8 +132,6 @@ jobs:
       # ---------------------------------------------------------
       # REPLACE GITHUB TOKEN IN APPSETTINGS
       # ---------------------------------------------------------
-      # Update the published appsettings.json so the deployed build
-      # contains the correct GitHub token.
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
@@ -167,7 +156,7 @@ jobs:
       # ARCHIVE CURRENT SITE (DEV/STAGE)
       # ---------------------------------------------------------
       # For dev/stage, the destination is assumed to be reachable
-      # directly from the runner without credentialed net use mapping.
+      # directly from the runner without mapping a credentialed share.
       - name: Archive existing destination directory (dev/stage)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -175,7 +164,6 @@ jobs:
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
 
-          # Helper to run robocopy and treat exit codes < 8 as success.
           function Invoke-RobocopyChecked {
             param(
               [Parameter(Mandatory = $true)][string]$Source,
@@ -214,17 +202,14 @@ jobs:
           Write-Host "Archive UNC: $archiveRoot"
           Write-Host "DEV or STAGE environment detected — no credentialed net use required."
 
-          # Confirm the live destination exists.
           if (-not (Test-Path $destination)) {
             throw "Destination share not reachable: $destination"
           }
 
-          # Create the archive folder if needed.
           if (-not (Test-Path $archiveRoot)) {
             New-Item -ItemType Directory -Path $archiveRoot -Force | Out-Null
           }
 
-          # Build local and remote archive paths.
           $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
           $localTemp = Join-Path $env:TEMP "archive_$timestamp"
           $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
@@ -232,17 +217,14 @@ jobs:
 
           New-Item -ItemType Directory -Path $localTemp -Force | Out-Null
 
-          # Copy current deployed site locally, zip it, then store the zip remotely.
           Invoke-RobocopyChecked -Source $destination -Destination $localTemp -Arguments @('/MIR')
 
           Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
           Copy-Item -Path $localZip -Destination $remoteZip -Force
 
-          # Clean up local temp files.
           Remove-Item -Path $localTemp -Recurse -Force
           Remove-Item -Path $localZip -Force
 
-          # Keep only the 5 most recent backups.
           $archives = Get-ChildItem -Path $archiveRoot -Filter 'backup_*.zip' | Sort-Object LastWriteTime -Descending
           $archivesToDelete = $archives | Select-Object -Skip 5
           foreach ($old in $archivesToDelete) {
@@ -254,11 +236,8 @@ jobs:
       # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE (TEST/PROD)
       # ---------------------------------------------------------
-      # For test/prod, remote shares are mapped with credentials.
-      # This version keeps the safer password handling:
-      # - drive cleanup uses cmd.exe without credentials
-      # - drive mapping uses direct net use invocation so passwords
-      #   containing special characters like % are not mangled
+      # For test/prod, remote shares are mapped using credentials.
+      # Password handling remains hardened against special characters.
       - name: Archive existing destination directory (test/prod)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -269,15 +248,14 @@ jobs:
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
 
-          # Cleanup helper. Safe to use cmd.exe here because no password
-          # is included in the command.
           function Remove-NetworkDriveIfExists {
             param([Parameter(Mandatory = $true)][string]$DriveLetter)
+
+            # Cleanup only. No password is passed here, so cmd.exe is safe.
             cmd.exe /d /c "net use $DriveLetter /delete /y >nul 2>&1"
             $global:LASTEXITCODE = 0
           }
 
-          # Extract \\server\share from a full UNC path.
           function Get-ShareRootFromUnc {
             param([Parameter(Mandatory = $true)][string]$UncPath)
 
@@ -293,9 +271,6 @@ jobs:
             return '\\' + $parts[2] + '\' + $parts[3]
           }
 
-          # Map a network drive with retries.
-          # This uses direct net use invocation so special characters
-          # in the password are handled correctly.
           function Mount-NetworkDrive {
             param(
               [Parameter(Mandatory = $true)][string]$DriveLetter,
@@ -309,6 +284,8 @@ jobs:
             Remove-NetworkDriveIfExists $DriveLetter
 
             for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+              # Direct net use invocation avoids cmd.exe mangling special characters
+              # in the password, such as %.
               & net use $DriveLetter "$ShareRoot" /user:"$Username" "$Password" /persistent:no
               $code = $LASTEXITCODE
 
@@ -326,7 +303,6 @@ jobs:
             }
           }
 
-          # Helper to run robocopy and treat exit codes < 8 as success.
           function Invoke-RobocopyChecked {
             param(
               [Parameter(Mandatory = $true)][string]$Source,
@@ -378,7 +354,6 @@ jobs:
           Write-Host "Destination share root: $destShareRoot"
           Write-Host "Archive share root: $archShareRoot"
 
-          # Map destination and archive roots to local drive letters.
           Mount-NetworkDrive -DriveLetter $destDrive -ShareRoot $destShareRoot -Username $deployUser -Password $deployPass
           Mount-NetworkDrive -DriveLetter $archDrive -ShareRoot $archShareRoot -Username $deployUser -Password $deployPass
 
@@ -428,7 +403,8 @@ jobs:
       # ---------------------------------------------------------
       # DIAGNOSTICS
       # ---------------------------------------------------------
-      # Provides useful context when troubleshooting runner/IIS issues.
+      # Useful for troubleshooting runner identity, IIS visibility,
+      # and environment resolution.
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
@@ -511,7 +487,6 @@ jobs:
       # ---------------------------------------------------------
       # STOP IIS LOCAL (DEV/STAGE)
       # ---------------------------------------------------------
-      # Stop the site and app pool directly on the runner host.
       - name: Stop IIS site and app pool (dev/stage local)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -536,10 +511,9 @@ jobs:
       # ---------------------------------------------------------
       # STOP IIS REMOTE (TEST/PROD)
       # ---------------------------------------------------------
-      # This uses the older SCM stop/query logic you asked to keep.
-      # Note: this can still display Access Denied from sc.exe and later
-      # report success based on the query logic, matching the behavior
-      # you saw previously.
+      # Intentionally uses the older SCM logic you asked to keep.
+      # This means it may still display Access Denied from sc.exe and
+      # later report success based on the query output.
       - name: Stop IIS (SCM remote stop)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -562,14 +536,11 @@ jobs:
 
           Write-Host "Stopping IIS core services on $remote ..."
 
-          # Older behavior: stop the core IIS services via SCM without
-          # explicitly checking sc.exe exit codes.
           sc.exe \\$remote stop W3SVC
           sc.exe \\$remote stop WAS
 
           Start-Sleep -Seconds 5
 
-          # Older behavior: determine success based on later query output.
           $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
           $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
 
@@ -586,8 +557,6 @@ jobs:
       # ---------------------------------------------------------
       # DEPLOY BUILD OUTPUT (DEV/STAGE)
       # ---------------------------------------------------------
-      # Mirror the local build output to the destination.
-      # Exclude web.config so environment-specific server config remains.
       - name: Deploy build output (dev/stage)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -633,7 +602,6 @@ jobs:
       # ---------------------------------------------------------
       # DEPLOY BUILD OUTPUT (TEST/PROD)
       # ---------------------------------------------------------
-      # Map the remote destination share, deploy the files, then clean up.
       - name: Deploy build output (test/prod)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -756,7 +724,6 @@ jobs:
       # ---------------------------------------------------------
       # START IIS LOCAL (DEV/STAGE)
       # ---------------------------------------------------------
-      # Start the site and app pool directly on the runner host.
       - name: Start IIS local
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -780,7 +747,7 @@ jobs:
       # ---------------------------------------------------------
       # START IIS REMOTE (TEST/PROD)
       # ---------------------------------------------------------
-      # This also uses the older SCM start/query behavior you asked to keep.
+      # Intentionally uses the older SCM logic you asked to keep.
       - name: Start IIS site and app pool (remote via SCM)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -803,14 +770,11 @@ jobs:
           Write-Host "Target site: $siteName"
           Write-Host "Target app pool: $appPool"
 
-          # Older behavior: start the services without checking sc.exe
-          # exit codes directly.
           sc.exe \\$remote start WAS
           sc.exe \\$remote start W3SVC
 
           Start-Sleep -Seconds 5
 
-          # Older behavior: infer success from the query output.
           $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
           $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
 
