@@ -108,81 +108,68 @@ jobs:
       - name: Archive existing destination directory
         shell: powershell
         run: |
-          $branch = '${{ env.DEPLOY_ENV }}'
+          $branch      = '${{ env.DEPLOY_ENV }}'
           $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
           $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
-          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
-          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
+          $deployUser  = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass  = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          $destDriveName = 'DESTDRV'
-          $archDriveName = 'ARCHDRV'
+          $destTarget = $null
+          $archTarget = $null
+
+          function Get-UncHost([string]$uncPath) {
+            if ([string]::IsNullOrWhiteSpace($uncPath) -or -not $uncPath.StartsWith('\\')) {
+              throw "Path is not a UNC path: $uncPath"
+            }
+
+            $parts = $uncPath -split '\\'
+            if ($parts.Length -lt 3 -or [string]::IsNullOrWhiteSpace($parts[2])) {
+              throw "Unable to extract host from UNC path: $uncPath"
+            }
+
+            return $parts[2]
+          }
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Write-Host 'Mapping remote shares with New-PSDrive...'
-
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
               }
 
-              if (-not $destination.StartsWith('\\') -or -not $archiveRoot.StartsWith('\\')) {
-                throw "DEST_PATH and ARCHIVE_PATH must be UNC paths for test/prod."
+              $destTarget = Get-UncHost $destination
+              $archTarget = Get-UncHost $archiveRoot
+
+              Write-Host "Adding stored credentials for destination host: $destTarget"
+              cmdkey /add:$destTarget /user:$deployUser /pass:$deployPass | Out-Null
+              if ($LASTEXITCODE -ne 0) { throw "Failed to add cmdkey credential for $destTarget" }
+
+              if ($archTarget -ne $destTarget) {
+                Write-Host "Adding stored credentials for archive host: $archTarget"
+                cmdkey /add:$archTarget /user:$deployUser /pass:$deployPass | Out-Null
+                if ($LASTEXITCODE -ne 0) { throw "Failed to add cmdkey credential for $archTarget" }
               }
-
-              $destParts = $destination -split '\\'
-              $archParts = $archiveRoot -split '\\'
-
-              if ($destParts.Length -lt 4) {
-                throw "DEST_PATH is not a valid UNC path: $destination"
-              }
-              if ($archParts.Length -lt 4) {
-                throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
-              }
-
-              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
-              $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
-
-              Write-Host "Destination share root: $destShareRoot"
-              Write-Host "Archive share root: $archShareRoot"
-
-              $securePass = ConvertTo-SecureString $deployPass -AsPlainText -Force
-              $cred = New-Object System.Management.Automation.PSCredential($deployUser, $securePass)
-
-              Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
-              Remove-PSDrive -Name $archDriveName -Force -ErrorAction SilentlyContinue
-
-              New-PSDrive -Name $destDriveName -PSProvider FileSystem -Root $destShareRoot -Credential $cred -ErrorAction Stop | Out-Null
-              New-PSDrive -Name $archDriveName -PSProvider FileSystem -Root $archShareRoot -Credential $cred -ErrorAction Stop | Out-Null
-
-              $mappedDest = $destination.Replace($destShareRoot, "${destDriveName}:\")
-              $mappedArchive = $archiveRoot.Replace($archShareRoot, "${archDriveName}:\")
-            }
-            else {
-              Write-Host 'DEV or STAGE environment detected — no credentialed share mapping required.'
-              $mappedDest = $destination
-              $mappedArchive = $archiveRoot
             }
 
             Write-Host "Environment: $branch"
-            Write-Host "Destination path: $mappedDest"
-            Write-Host "Archive path: $mappedArchive"
+            Write-Host "Destination path: $destination"
+            Write-Host "Archive path: $archiveRoot"
 
-            if (-not (Test-Path $mappedDest)) {
-              throw "Destination path not reachable: $mappedDest"
+            if (-not (Test-Path $destination)) {
+              throw "Destination path not reachable: $destination"
             }
 
-            if (-not (Test-Path $mappedArchive)) {
-              New-Item -ItemType Directory -Path $mappedArchive | Out-Null
+            if (-not (Test-Path $archiveRoot)) {
+              New-Item -ItemType Directory -Path $archiveRoot | Out-Null
             }
 
             $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
             $localTemp = Join-Path $env:TEMP "archive_$timestamp"
             $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-            $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
+            $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
 
             New-Item -ItemType Directory -Path $localTemp | Out-Null
 
-            robocopy $mappedDest $localTemp /MIR
+            robocopy $destination $localTemp /MIR
             if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
             Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
@@ -191,7 +178,7 @@ jobs:
             Remove-Item -Path $localTemp -Recurse -Force
             Remove-Item -Path $localZip -Force
 
-            $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
+            $archives = Get-ChildItem -Path $archiveRoot -Filter 'backup_*.zip' |
               Sort-Object LastWriteTime -Descending
 
             $archivesToDelete = $archives | Select-Object -Skip 5
@@ -203,8 +190,12 @@ jobs:
           }
           finally {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
-              Remove-PSDrive -Name $archDriveName -Force -ErrorAction SilentlyContinue
+              if ($destTarget) {
+                cmdkey /delete:$destTarget | Out-Null
+              }
+              if ($archTarget -and $archTarget -ne $destTarget) {
+                cmdkey /delete:$archTarget | Out-Null
+              }
             }
           }
 
@@ -312,10 +303,6 @@ jobs:
             throw "REMOTE_SERVER is missing or empty."
           }
 
-          if ([string]::IsNullOrWhiteSpace($env:DEPLOY_USER) -or [string]::IsNullOrWhiteSpace($env:DEPLOY_PASS)) {
-            throw "DEPLOY_USER or DEPLOY_PASS is missing for remote stop operation."
-          }
-
           Write-Host "Stopping IIS core services on $remote ..."
 
           sc.exe \\$remote stop W3SVC
@@ -339,51 +326,44 @@ jobs:
       - name: Deploy build output
         shell: powershell
         run: |
-          $branch = '${{ env.DEPLOY_ENV }}'
-          $source = "$(Get-Location)\build_output"
+          $branch      = '${{ env.DEPLOY_ENV }}'
+          $source      = "$(Get-Location)\build_output"
           $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
-          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
-          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
+          $deployUser  = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass  = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          $destDriveName = 'DESTDRV'
+          $destTarget = $null
+
+          function Get-UncHost([string]$uncPath) {
+            if ([string]::IsNullOrWhiteSpace($uncPath) -or -not $uncPath.StartsWith('\\')) {
+              throw "Path is not a UNC path: $uncPath"
+            }
+
+            $parts = $uncPath -split '\\'
+            if ($parts.Length -lt 3 -or [string]::IsNullOrWhiteSpace($parts[2])) {
+              throw "Unable to extract host from UNC path: $uncPath"
+            }
+
+            return $parts[2]
+          }
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Write-Host 'Mapping deployment share with New-PSDrive...'
-
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
               }
 
-              if (-not $destination.StartsWith('\\')) {
-                throw "DEST_PATH must be a UNC path for test/prod."
-              }
+              $destTarget = Get-UncHost $destination
 
-              $destParts = $destination -split '\\'
-              if ($destParts.Length -lt 4) {
-                throw "DEST_PATH is not a valid UNC path: $destination"
-              }
-
-              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
-
-              Write-Host "Destination share root: $destShareRoot"
-
-              $securePass = ConvertTo-SecureString $deployPass -AsPlainText -Force
-              $cred = New-Object System.Management.Automation.PSCredential($deployUser, $securePass)
-
-              Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
-              New-PSDrive -Name $destDriveName -PSProvider FileSystem -Root $destShareRoot -Credential $cred -ErrorAction Stop | Out-Null
-
-              $mappedDest = $destination.Replace($destShareRoot, "${destDriveName}:\")
-            }
-            else {
-              $mappedDest = $destination
+              Write-Host "Adding stored credentials for destination host: $destTarget"
+              cmdkey /add:$destTarget /user:$deployUser /pass:$deployPass | Out-Null
+              if ($LASTEXITCODE -ne 0) { throw "Failed to add cmdkey credential for $destTarget" }
             }
 
             Write-Host "Deploying from: $source"
-            Write-Host "Deploying to:   $mappedDest"
+            Write-Host "Deploying to:   $destination"
 
-            robocopy $source $mappedDest /MIR /XF web.config
+            robocopy $source $destination /MIR /XF web.config
 
             if ($LASTEXITCODE -ge 8) {
               throw "Robocopy deployment failed."
@@ -393,7 +373,9 @@ jobs:
           }
           finally {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
+              if ($destTarget) {
+                cmdkey /delete:$destTarget | Out-Null
+              }
             }
           }
 
