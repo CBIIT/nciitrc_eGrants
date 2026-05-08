@@ -108,68 +108,130 @@ jobs:
       - name: Archive existing destination directory
         shell: powershell
         run: |
-          $branch      = '${{ env.DEPLOY_ENV }}'
+          function Invoke-NetUse {
+            param(
+              [Parameter(Mandatory = $true)][string]$Drive,
+              [Parameter(Mandatory = $true)][string]$Share,
+              [Parameter(Mandatory = $true)][string]$Username,
+              [Parameter(Mandatory = $true)][string]$Password
+            )
+
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive `"$Share`" `"$Password`" /user:`"$Username`" /persistent:no"
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.UseShellExecute = $false
+            $psi.CreateNoWindow = $true
+
+            $proc = New-Object System.Diagnostics.Process
+            $proc.StartInfo = $psi
+            [void]$proc.Start()
+
+            $stdout = $proc.StandardOutput.ReadToEnd()
+            $stderr = $proc.StandardError.ReadToEnd()
+            $proc.WaitForExit()
+
+            if ($stdout) { Write-Host $stdout.Trim() }
+            if ($stderr) { Write-Host $stderr.Trim() }
+
+            if ($proc.ExitCode -ne 0) {
+              throw "net use failed for drive $Drive -> $Share (exit code $($proc.ExitCode))"
+            }
+          }
+
+          function Remove-NetUse {
+            param([Parameter(Mandatory = $true)][string]$Drive)
+
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive /delete /y"
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.UseShellExecute = $false
+            $psi.CreateNoWindow = $true
+
+            $proc = New-Object System.Diagnostics.Process
+            $proc.StartInfo = $psi
+            [void]$proc.Start()
+
+            $null = $proc.StandardOutput.ReadToEnd()
+            $null = $proc.StandardError.ReadToEnd()
+            $proc.WaitForExit()
+          }
+
+          $branch = '${{ env.DEPLOY_ENV }}'
           $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
           $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
-          $deployUser  = '${{ steps.envmap.outputs.DEPLOY_USER }}'
-          $deployPass  = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
+          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          $destTarget = $null
-          $archTarget = $null
-
-          function Get-UncHost([string]$uncPath) {
-            if ([string]::IsNullOrWhiteSpace($uncPath) -or -not $uncPath.StartsWith('\\')) {
-              throw "Path is not a UNC path: $uncPath"
-            }
-
-            $parts = $uncPath -split '\\'
-            if ($parts.Length -lt 3 -or [string]::IsNullOrWhiteSpace($parts[2])) {
-              throw "Unable to extract host from UNC path: $uncPath"
-            }
-
-            return $parts[2]
-          }
+          $destDrive = 'Z:'
+          $archDrive = 'Y:'
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Write-Host 'Mapping remote shares using net.exe with safe process invocation...'
+
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
               }
 
-              $destTarget = Get-UncHost $destination
-              $archTarget = Get-UncHost $archiveRoot
-
-              Write-Host "Adding stored credentials for destination host: $destTarget"
-              cmdkey /add:$destTarget /user:$deployUser /pass:$deployPass | Out-Null
-              if ($LASTEXITCODE -ne 0) { throw "Failed to add cmdkey credential for $destTarget" }
-
-              if ($archTarget -ne $destTarget) {
-                Write-Host "Adding stored credentials for archive host: $archTarget"
-                cmdkey /add:$archTarget /user:$deployUser /pass:$deployPass | Out-Null
-                if ($LASTEXITCODE -ne 0) { throw "Failed to add cmdkey credential for $archTarget" }
+              if (-not $destination.StartsWith('\\') -or -not $archiveRoot.StartsWith('\\')) {
+                throw "DEST_PATH and ARCHIVE_PATH must be UNC paths for test/prod."
               }
+
+              $destParts = $destination -split '\\'
+              $archParts = $archiveRoot -split '\\'
+
+              if ($destParts.Length -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+              if ($archParts.Length -lt 4) {
+                throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
+              }
+
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+              $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+              Write-Host "Archive share root: $archShareRoot"
+
+              Remove-NetUse -Drive $destDrive
+              Remove-NetUse -Drive $archDrive
+
+              Invoke-NetUse -Drive $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
+              Invoke-NetUse -Drive $archDrive -Share $archShareRoot -Username $deployUser -Password $deployPass
+
+              $mappedDest = $destination.Replace($destShareRoot, $destDrive)
+              $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
+            }
+            else {
+              Write-Host 'DEV or STAGE environment detected — no credentialed share mapping required.'
+              $mappedDest = $destination
+              $mappedArchive = $archiveRoot
             }
 
             Write-Host "Environment: $branch"
-            Write-Host "Destination path: $destination"
-            Write-Host "Archive path: $archiveRoot"
+            Write-Host "Destination path: $mappedDest"
+            Write-Host "Archive path: $mappedArchive"
 
-            if (-not (Test-Path $destination)) {
-              throw "Destination path not reachable: $destination"
+            if (-not (Test-Path $mappedDest)) {
+              throw "Destination path not reachable: $mappedDest"
             }
 
-            if (-not (Test-Path $archiveRoot)) {
-              New-Item -ItemType Directory -Path $archiveRoot | Out-Null
+            if (-not (Test-Path $mappedArchive)) {
+              New-Item -ItemType Directory -Path $mappedArchive | Out-Null
             }
 
             $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
             $localTemp = Join-Path $env:TEMP "archive_$timestamp"
             $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-            $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
+            $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
 
             New-Item -ItemType Directory -Path $localTemp | Out-Null
 
-            robocopy $destination $localTemp /MIR
+            robocopy $mappedDest $localTemp /MIR
             if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
             Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
@@ -178,7 +240,7 @@ jobs:
             Remove-Item -Path $localTemp -Recurse -Force
             Remove-Item -Path $localZip -Force
 
-            $archives = Get-ChildItem -Path $archiveRoot -Filter 'backup_*.zip' |
+            $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
               Sort-Object LastWriteTime -Descending
 
             $archivesToDelete = $archives | Select-Object -Skip 5
@@ -190,12 +252,8 @@ jobs:
           }
           finally {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              if ($destTarget) {
-                cmdkey /delete:$destTarget | Out-Null
-              }
-              if ($archTarget -and $archTarget -ne $destTarget) {
-                cmdkey /delete:$archTarget | Out-Null
-              }
+              Remove-NetUse -Drive $destDrive
+              Remove-NetUse -Drive $archDrive
             }
           }
 
@@ -326,44 +384,100 @@ jobs:
       - name: Deploy build output
         shell: powershell
         run: |
-          $branch      = '${{ env.DEPLOY_ENV }}'
-          $source      = "$(Get-Location)\build_output"
-          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
-          $deployUser  = '${{ steps.envmap.outputs.DEPLOY_USER }}'
-          $deployPass  = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
+          function Invoke-NetUse {
+            param(
+              [Parameter(Mandatory = $true)][string]$Drive,
+              [Parameter(Mandatory = $true)][string]$Share,
+              [Parameter(Mandatory = $true)][string]$Username,
+              [Parameter(Mandatory = $true)][string]$Password
+            )
 
-          $destTarget = $null
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive `"$Share`" `"$Password`" /user:`"$Username`" /persistent:no"
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.UseShellExecute = $false
+            $psi.CreateNoWindow = $true
 
-          function Get-UncHost([string]$uncPath) {
-            if ([string]::IsNullOrWhiteSpace($uncPath) -or -not $uncPath.StartsWith('\\')) {
-              throw "Path is not a UNC path: $uncPath"
+            $proc = New-Object System.Diagnostics.Process
+            $proc.StartInfo = $psi
+            [void]$proc.Start()
+
+            $stdout = $proc.StandardOutput.ReadToEnd()
+            $stderr = $proc.StandardError.ReadToEnd()
+            $proc.WaitForExit()
+
+            if ($stdout) { Write-Host $stdout.Trim() }
+            if ($stderr) { Write-Host $stderr.Trim() }
+
+            if ($proc.ExitCode -ne 0) {
+              throw "net use failed for drive $Drive -> $Share (exit code $($proc.ExitCode))"
             }
-
-            $parts = $uncPath -split '\\'
-            if ($parts.Length -lt 3 -or [string]::IsNullOrWhiteSpace($parts[2])) {
-              throw "Unable to extract host from UNC path: $uncPath"
-            }
-
-            return $parts[2]
           }
+
+          function Remove-NetUse {
+            param([Parameter(Mandatory = $true)][string]$Drive)
+
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = "net.exe"
+            $psi.Arguments = "use $Drive /delete /y"
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.UseShellExecute = $false
+            $psi.CreateNoWindow = $true
+
+            $proc = New-Object System.Diagnostics.Process
+            $proc.StartInfo = $psi
+            [void]$proc.Start()
+
+            $null = $proc.StandardOutput.ReadToEnd()
+            $null = $proc.StandardError.ReadToEnd()
+            $proc.WaitForExit()
+          }
+
+          $branch = '${{ env.DEPLOY_ENV }}'
+          $source = "$(Get-Location)\build_output"
+          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
+          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
+
+          $destDrive = 'Z:'
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Write-Host 'Mapping deployment share using net.exe with safe process invocation...'
+
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
               }
 
-              $destTarget = Get-UncHost $destination
+              if (-not $destination.StartsWith('\\')) {
+                throw "DEST_PATH must be a UNC path for test/prod."
+              }
 
-              Write-Host "Adding stored credentials for destination host: $destTarget"
-              cmdkey /add:$destTarget /user:$deployUser /pass:$deployPass | Out-Null
-              if ($LASTEXITCODE -ne 0) { throw "Failed to add cmdkey credential for $destTarget" }
+              $destParts = $destination -split '\\'
+              if ($destParts.Length -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+
+              Remove-NetUse -Drive $destDrive
+              Invoke-NetUse -Drive $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
+
+              $mappedDest = $destination.Replace($destShareRoot, $destDrive)
+            }
+            else {
+              $mappedDest = $destination
             }
 
             Write-Host "Deploying from: $source"
-            Write-Host "Deploying to:   $destination"
+            Write-Host "Deploying to:   $mappedDest"
 
-            robocopy $source $destination /MIR /XF web.config
+            robocopy $source $mappedDest /MIR /XF web.config
 
             if ($LASTEXITCODE -ge 8) {
               throw "Robocopy deployment failed."
@@ -373,9 +487,7 @@ jobs:
           }
           finally {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              if ($destTarget) {
-                cmdkey /delete:$destTarget | Out-Null
-              }
+              Remove-NetUse -Drive $destDrive
             }
           }
 
