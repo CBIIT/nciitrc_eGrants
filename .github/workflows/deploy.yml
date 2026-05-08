@@ -1,16 +1,11 @@
 name: eGrants Deployment Workflow
 
 on:
-  # Automatic deployments only happen from these branches.
-  # A push to dev deploys to dev.
-  # A push to test deploys to test.
   push:
     branches:
       - dev
       - test
 
-  # Manual deployments are used when we want to target an environment
-  # that is not tied directly to the pushed branch, such as stage or prod.
   workflow_dispatch:
     inputs:
       target_branch:
@@ -24,69 +19,31 @@ on:
           - prod
         default: dev
 
-# Single workflow-level variable used throughout step scripts.
-#
-# How it works:
-# - If the workflow was started manually (workflow_dispatch),
-#   use the selected dropdown value from target_branch.
-# - Otherwise, for normal push-triggered runs, use github.ref_name.
-#
-# Result:
-# - push to dev   => DEPLOY_ENV = dev
-# - push to test  => DEPLOY_ENV = test
-# - manual stage  => DEPLOY_ENV = stage
-# - manual prod   => DEPLOY_ENV = prod
 env:
   DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
 jobs:
   build-and-deploy:
-    # runs-on cannot use env.DEPLOY_ENV directly at this level,
-    # so we repeat the environment resolution logic here.
-    #
-    # dev/test use the non-prod runner
-    # stage/prod use the prod runner
     runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
 
-    # Same note as runs-on:
-    # job.environment cannot use env.DEPLOY_ENV directly here,
-    # so we resolve it inline.
-    #
-    # This ties the job to the matching GitHub Environment so that
-    # environment-specific secrets/approvals/protections can apply.
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
-      # ---------------------------------------------------------
-      # CHECKOUT
-      # ---------------------------------------------------------
-      # Pull the repository contents onto the runner so the project
-      # can be restored, built, and published.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # LOAD ENVIRONMENT VARIABLES
-      # ---------------------------------------------------------
-      # This step maps the selected deployment environment to the
-      # correct path/site/app pool values.
-      #
-      # We write the resolved values to GITHUB_OUTPUT so later steps
-      # can use them consistently as:
-      #   steps.envmap.outputs.DEST_PATH
-      #   steps.envmap.outputs.SITE_NAME
-      #   steps.envmap.outputs.APP_POOL
-      #   etc.
-      #
-      # Note:
-      # - Secrets are intentionally NOT written to GITHUB_OUTPUT.
-      # - Remote-access credentials are provided only to the specific
-      #   steps that need them via step-level env.
       - name: Load environment variables
         id: envmap
         shell: powershell
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
           $branch = "${{ env.DEPLOY_ENV }}"
+          if ([string]::IsNullOrWhiteSpace($branch)) {
+            throw "DEPLOY_ENV resolved to an empty value."
+          }
+
           Write-Host "Environment detected: $branch"
 
           switch ($branch) {
@@ -96,28 +53,24 @@ jobs:
               echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_DEV }}" >> $env:GITHUB_OUTPUT
             }
-
             "test" {
               echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_TEST }}" >> $env:GITHUB_OUTPUT
             }
-
             "stage" {
               echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_STAGE }}" >> $env:GITHUB_OUTPUT
             }
-
             "prod" {
               echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_PROD }}" >> $env:GITHUB_OUTPUT
             }
-
             default {
               throw "Unsupported deployment environment: $branch"
             }
@@ -126,30 +79,24 @@ jobs:
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-      # ---------------------------------------------------------
-      # BUILD
-      # ---------------------------------------------------------
-      # Restore NuGet packages and publish the ASP.NET application
-      # into a deployable folder.
       - name: Build project
         shell: powershell
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
           dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
 
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             -o ./build_output
 
-      # ---------------------------------------------------------
-      # REPLACE TOKEN IN APPSETTINGS.JSON
-      # ---------------------------------------------------------
-      # After publish, update appsettings.json in the build output
-      # so the deployment package contains the correct GitHub token.
-      #
-      # This replaces whatever value currently exists for GitHubToken.
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
           $file = "$(Get-Location)\build_output\appsettings.json"
           $token = "${{ secrets._GITHUB_TOKEN }}"
 
@@ -158,63 +105,79 @@ jobs:
           }
 
           $json = Get-Content $file -Raw
-
           $pattern = '"GitHubToken"\s*:\s*".*?"'
           $replacement = '"GitHubToken": "' + $token + '"'
-
           $json = $json -replace $pattern, $replacement
 
           Set-Content -Path $file -Value $json -Encoding UTF8
 
-      # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE
-      # ---------------------------------------------------------
-      # Before deploying new files, take a backup of the current
-      # deployed site contents.
-      #
-      # Process:
-      # 1. Resolve deployment/archive locations
-      # 2. If remote env (test/prod), map network shares with creds
-      # 3. Copy current deployed files to a temp folder
-      # 4. Zip them
-      # 5. Store the zip in the archive location
-      # 6. Keep only the 5 most recent backups
-      - name: Archive existing destination directory
+      - name: Archive existing destination directory (dev/stage)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
+          function Invoke-RobocopyChecked {
+            param(
+              [Parameter(Mandatory = $true)][string]$Source,
+              [Parameter(Mandatory = $true)][string]$Destination,
+              [Parameter(Mandatory = $false)][string[]]$Arguments = @('/MIR'),
+              [Parameter(Mandatory = $false)][int]$MaxAttempts = 3,
+              [Parameter(Mandatory = $false)][int]$DelaySeconds = 5
+            )
+
+            for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+              & robocopy $Source $Destination @Arguments
+              $code = $LASTEXITCODE
+
+              if ($code -lt 8) {
+                return
+              }
+
+              if ($attempt -lt $MaxAttempts) {
+                Write-Host "Robocopy failed with exit code $code. Retrying in $DelaySeconds seconds (attempt $attempt of $MaxAttempts)..."
+                Start-Sleep -Seconds $DelaySeconds
+              }
+              else {
+                throw "Robocopy failed after $MaxAttempts attempts. Final exit code: $code"
+              }
+            }
+          }
+
           $branch = '${{ env.DEPLOY_ENV }}'
           $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
           $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
 
+          if ([string]::IsNullOrWhiteSpace($destination)) {
+            throw "DEST_PATH is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($archiveRoot)) {
+            throw "ARCHIVE_PATH is empty."
+          }
+
           Write-Host "Environment: $branch"
           Write-Host "Destination UNC: $destination"
           Write-Host "Archive UNC: $archiveRoot"
-
-          $mappedDest = $destination
-          $mappedArchive = $archiveRoot
-
           Write-Host 'DEV or STAGE environment detected — no credentialed net use required.'
-          Write-Host "Mapped destination path: $mappedDest"
-          Write-Host "Mapped archive path: $mappedArchive"
 
-          if (-not (Test-Path $mappedDest)) {
-            throw "Destination share not reachable: $mappedDest"
+          if (-not (Test-Path $destination)) {
+            throw "Destination share not reachable: $destination"
           }
 
-          if (-not (Test-Path $mappedArchive)) {
-            New-Item -ItemType Directory -Path $mappedArchive -Force | Out-Null
+          if (-not (Test-Path $archiveRoot)) {
+            New-Item -ItemType Directory -Path $archiveRoot -Force | Out-Null
           }
 
           $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
           $localTemp = Join-Path $env:TEMP "archive_$timestamp"
           $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-          $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
+          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
 
           New-Item -ItemType Directory -Path $localTemp -Force | Out-Null
 
-          robocopy $mappedDest $localTemp /MIR
-          if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
+          Invoke-RobocopyChecked -Source $destination -Destination $localTemp -Arguments @('/MIR')
 
           Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
           Copy-Item -Path $localZip -Destination $remoteZip -Force
@@ -222,7 +185,7 @@ jobs:
           Remove-Item -Path $localTemp -Recurse -Force
           Remove-Item -Path $localZip -Force
 
-          $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
+          $archives = Get-ChildItem -Path $archiveRoot -Filter 'backup_*.zip' |
             Sort-Object LastWriteTime -Descending
 
           $archivesToDelete = $archives | Select-Object -Skip 5
@@ -232,53 +195,134 @@ jobs:
 
           exit 0
 
-      - name: Archive existing destination directory (remote test/prod)
+      - name: Archive existing destination directory (test/prod)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
         env:
           DEPLOY_USER: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_USER_TEST || secrets.DEPLOY_USER_PROD }}
           DEPLOY_PASS: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_PASS_TEST || secrets.DEPLOY_PASS_PROD }}
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
+          function Remove-NetworkDriveIfExists {
+            param([Parameter(Mandatory = $true)][string]$DriveLetter)
+
+            & net use $DriveLetter /delete /y *> $null
+            $global:LASTEXITCODE = 0
+          }
+
+          function Get-ShareRootFromUnc {
+            param([Parameter(Mandatory = $true)][string]$UncPath)
+
+            if ([string]::IsNullOrWhiteSpace($UncPath) -or -not $UncPath.StartsWith('\\')) {
+              throw "Invalid UNC path: $UncPath"
+            }
+
+            $parts = $UncPath -split '\\'
+            if ($parts.Count -lt 4 -or [string]::IsNullOrWhiteSpace($parts[2]) -or [string]::IsNullOrWhiteSpace($parts[3])) {
+              throw "Unable to determine share root from UNC path: $UncPath"
+            }
+
+            return '\\' + $parts[2] + '\' + $parts[3]
+          }
+
+          function Mount-NetworkDrive {
+            param(
+              [Parameter(Mandatory = $true)][string]$DriveLetter,
+              [Parameter(Mandatory = $true)][string]$ShareRoot,
+              [Parameter(Mandatory = $true)][string]$Username,
+              [Parameter(Mandatory = $true)][string]$Password,
+              [Parameter(Mandatory = $false)][int]$MaxAttempts = 3,
+              [Parameter(Mandatory = $false)][int]$DelaySeconds = 5
+            )
+
+            Remove-NetworkDriveIfExists $DriveLetter
+
+            for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+              & net use $DriveLetter "$ShareRoot" /user:"$Username" "$Password" /persistent:no
+              $code = $LASTEXITCODE
+
+              if ($code -eq 0) {
+                return
+              }
+
+              if ($attempt -lt $MaxAttempts) {
+                Write-Host "net use failed for $ShareRoot with exit code $code. Retrying in $DelaySeconds seconds (attempt $attempt of $MaxAttempts)..."
+                Start-Sleep -Seconds $DelaySeconds
+                Remove-NetworkDriveIfExists $DriveLetter
+              }
+              else {
+                throw "Failed to map share $ShareRoot to drive $DriveLetter after $MaxAttempts attempts. Final exit code: $code"
+              }
+            }
+          }
+
+          function Invoke-RobocopyChecked {
+            param(
+              [Parameter(Mandatory = $true)][string]$Source,
+              [Parameter(Mandatory = $true)][string]$Destination,
+              [Parameter(Mandatory = $false)][string[]]$Arguments = @('/MIR'),
+              [Parameter(Mandatory = $false)][int]$MaxAttempts = 3,
+              [Parameter(Mandatory = $false)][int]$DelaySeconds = 5
+            )
+
+            for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+              & robocopy $Source $Destination @Arguments
+              $code = $LASTEXITCODE
+
+              if ($code -lt 8) {
+                return
+              }
+
+              if ($attempt -lt $MaxAttempts) {
+                Write-Host "Robocopy failed with exit code $code. Retrying in $DelaySeconds seconds (attempt $attempt of $MaxAttempts)..."
+                Start-Sleep -Seconds $DelaySeconds
+              }
+              else {
+                throw "Robocopy failed after $MaxAttempts attempts. Final exit code: $code"
+              }
+            }
+          }
+
           $branch = '${{ env.DEPLOY_ENV }}'
           $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
           $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
           $deployUser = $env:DEPLOY_USER
           $deployPass = $env:DEPLOY_PASS
 
-          Write-Host "Environment: $branch"
-          Write-Host "Destination UNC: $destination"
-          Write-Host "Archive UNC: $archiveRoot"
+          if ([string]::IsNullOrWhiteSpace($destination)) {
+            throw "DEST_PATH is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($archiveRoot)) {
+            throw "ARCHIVE_PATH is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($deployUser)) {
+            throw "DEPLOY_USER is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($deployPass)) {
+            throw "DEPLOY_PASS is empty."
+          }
 
           $destDrive = 'Z:'
           $archDrive = 'Y:'
 
-          Write-Host 'Mapping remote shares using credentials...'
+          Write-Host "Environment: $branch"
+          Write-Host "Destination UNC: $destination"
+          Write-Host "Archive UNC: $archiveRoot"
+          Write-Host "Mapping remote shares using credentials..."
 
-          $destParts = $destination -split '\\'
-          $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
-
-          $archParts = $archiveRoot -split '\\'
-          $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+          $destShareRoot = Get-ShareRootFromUnc $destination
+          $archShareRoot = Get-ShareRootFromUnc $archiveRoot
 
           Write-Host "Destination share root: $destShareRoot"
           Write-Host "Archive share root: $archShareRoot"
 
-          # Clean up any stale mappings first.
-          net use $destDrive /delete /y 2>$null
-          net use $archDrive /delete /y 2>$null
-
-          # Map shares directly from PowerShell.
-          # This avoids cmd.exe mangling passwords containing special chars like %.
-          net use $destDrive "$destShareRoot" /user:"$deployUser" "$deployPass" /persistent:no
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to map destination share: $destShareRoot"
-          }
-
-          net use $archDrive "$archShareRoot" /user:"$deployUser" "$deployPass" /persistent:no
-          if ($LASTEXITCODE -ne 0) {
-            net use $destDrive /delete /y 2>$null
-            throw "Failed to map archive share: $archShareRoot"
-          }
+          Mount-NetworkDrive -DriveLetter $destDrive -ShareRoot $destShareRoot -Username $deployUser -Password $deployPass
+          Mount-NetworkDrive -DriveLetter $archDrive -ShareRoot $archShareRoot -Username $deployUser -Password $deployPass
 
           try {
             $mappedDest = $destination.Replace($destShareRoot, $destDrive)
@@ -302,8 +346,7 @@ jobs:
 
             New-Item -ItemType Directory -Path $localTemp -Force | Out-Null
 
-            robocopy $mappedDest $localTemp /MIR
-            if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
+            Invoke-RobocopyChecked -Source $mappedDest -Destination $localTemp -Arguments @('/MIR')
 
             Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
             Copy-Item -Path $localZip -Destination $remoteZip -Force
@@ -320,18 +363,18 @@ jobs:
             }
           }
           finally {
-            net use $destDrive /delete /y 2>$null
-            net use $archDrive /delete /y 2>$null
+            Remove-NetworkDriveIfExists $destDrive
+            Remove-NetworkDriveIfExists $archDrive
           }
 
           exit 0
 
-      # ---------------------------------------------------------
-      # DIAGNOSTICS (RUNNER / HOST / IIS CONTEXT)
-      # ---------------------------------------------------------
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
           Write-Host "=== BASIC CONTEXT ==="
           Write-Host "DEPLOY_ENV                = ${{ env.DEPLOY_ENV }}"
           Write-Host "github.event_name         = ${{ github.event_name }}"
@@ -405,15 +448,23 @@ jobs:
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
 
-      # ---------------------------------------------------------
-      # STOP IIS LOCAL
-      # ---------------------------------------------------------
       - name: Stop IIS site and app pool (dev/stage local)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          if ([string]::IsNullOrWhiteSpace($siteName)) {
+            throw "SITE_NAME is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($appPool)) {
+            throw "APP_POOL is empty."
+          }
 
           Import-Module WebAdministration
 
@@ -423,9 +474,6 @@ jobs:
           Start-Sleep -Seconds 3
           exit 0
 
-      # ---------------------------------------------------------
-      # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
-      # ---------------------------------------------------------
       - name: Stop IIS (SCM remote stop)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -433,14 +481,13 @@ jobs:
           DEPLOY_USER: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_USER_TEST || secrets.DEPLOY_USER_PROD }}
           DEPLOY_PASS: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_PASS_TEST || secrets.DEPLOY_PASS_PROD }}
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
           $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
 
           if ([string]::IsNullOrWhiteSpace($remote)) {
             throw "REMOTE_SERVER is missing or empty."
-          }
-
-          if ([string]::IsNullOrWhiteSpace($env:DEPLOY_USER) -or [string]::IsNullOrWhiteSpace($env:DEPLOY_PASS)) {
-            throw "DEPLOY_USER or DEPLOY_PASS is missing for remote stop operation."
           }
 
           Write-Host "Stopping IIS core services on $remote ..."
@@ -463,76 +510,204 @@ jobs:
           Write-Host "IIS successfully stopped via SCM."
           exit 0
 
-      # ---------------------------------------------------------
-      # DEPLOY
-      # ---------------------------------------------------------
-      # For remote environments, map the destination share first.
       - name: Deploy build output (dev/stage)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
+          function Invoke-RobocopyChecked {
+            param(
+              [Parameter(Mandatory = $true)][string]$Source,
+              [Parameter(Mandatory = $true)][string]$Destination,
+              [Parameter(Mandatory = $false)][string[]]$Arguments = @('/MIR', '/XF', 'web.config'),
+              [Parameter(Mandatory = $false)][int]$MaxAttempts = 3,
+              [Parameter(Mandatory = $false)][int]$DelaySeconds = 5
+            )
+
+            for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+              & robocopy $Source $Destination @Arguments
+              $code = $LASTEXITCODE
+
+              if ($code -lt 8) {
+                return
+              }
+
+              if ($attempt -lt $MaxAttempts) {
+                Write-Host "Robocopy failed with exit code $code. Retrying in $DelaySeconds seconds (attempt $attempt of $MaxAttempts)..."
+                Start-Sleep -Seconds $DelaySeconds
+              }
+              else {
+                throw "Robocopy failed after $MaxAttempts attempts. Final exit code: $code"
+              }
+            }
+          }
+
           $source = "$(Get-Location)\build_output"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
 
-          robocopy $source $destination /MIR /XF web.config
-
-          if ($LASTEXITCODE -ge 8) {
-            throw "Robocopy deployment failed."
+          if (-not (Test-Path $source)) {
+            throw "Build output folder not found: $source"
           }
 
+          if ([string]::IsNullOrWhiteSpace($destination)) {
+            throw "DEST_PATH is empty."
+          }
+
+          Invoke-RobocopyChecked -Source $source -Destination $destination
           exit 0
 
-      - name: Deploy build output (remote test/prod)
+      - name: Deploy build output (test/prod)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
         env:
           DEPLOY_USER: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_USER_TEST || secrets.DEPLOY_USER_PROD }}
           DEPLOY_PASS: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_PASS_TEST || secrets.DEPLOY_PASS_PROD }}
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
+          function Remove-NetworkDriveIfExists {
+            param([Parameter(Mandatory = $true)][string]$DriveLetter)
+
+            & net use $DriveLetter /delete /y *> $null
+            $global:LASTEXITCODE = 0
+          }
+
+          function Get-ShareRootFromUnc {
+            param([Parameter(Mandatory = $true)][string]$UncPath)
+
+            if ([string]::IsNullOrWhiteSpace($UncPath) -or -not $UncPath.StartsWith('\\')) {
+              throw "Invalid UNC path: $UncPath"
+            }
+
+            $parts = $UncPath -split '\\'
+            if ($parts.Count -lt 4 -or [string]::IsNullOrWhiteSpace($parts[2]) -or [string]::IsNullOrWhiteSpace($parts[3])) {
+              throw "Unable to determine share root from UNC path: $UncPath"
+            }
+
+            return '\\' + $parts[2] + '\' + $parts[3]
+          }
+
+          function Mount-NetworkDrive {
+            param(
+              [Parameter(Mandatory = $true)][string]$DriveLetter,
+              [Parameter(Mandatory = $true)][string]$ShareRoot,
+              [Parameter(Mandatory = $true)][string]$Username,
+              [Parameter(Mandatory = $true)][string]$Password,
+              [Parameter(Mandatory = $false)][int]$MaxAttempts = 3,
+              [Parameter(Mandatory = $false)][int]$DelaySeconds = 5
+            )
+
+            Remove-NetworkDriveIfExists $DriveLetter
+
+            for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+              & net use $DriveLetter "$ShareRoot" /user:"$Username" "$Password" /persistent:no
+              $code = $LASTEXITCODE
+
+              if ($code -eq 0) {
+                return
+              }
+
+              if ($attempt -lt $MaxAttempts) {
+                Write-Host "net use failed for $ShareRoot with exit code $code. Retrying in $DelaySeconds seconds (attempt $attempt of $MaxAttempts)..."
+                Start-Sleep -Seconds $DelaySeconds
+                Remove-NetworkDriveIfExists $DriveLetter
+              }
+              else {
+                throw "Failed to map share $ShareRoot to drive $DriveLetter after $MaxAttempts attempts. Final exit code: $code"
+              }
+            }
+          }
+
+          function Invoke-RobocopyChecked {
+            param(
+              [Parameter(Mandatory = $true)][string]$Source,
+              [Parameter(Mandatory = $true)][string]$Destination,
+              [Parameter(Mandatory = $false)][string[]]$Arguments = @('/MIR', '/XF', 'web.config'),
+              [Parameter(Mandatory = $false)][int]$MaxAttempts = 3,
+              [Parameter(Mandatory = $false)][int]$DelaySeconds = 5
+            )
+
+            for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+              & robocopy $Source $Destination @Arguments
+              $code = $LASTEXITCODE
+
+              if ($code -lt 8) {
+                return
+              }
+
+              if ($attempt -lt $MaxAttempts) {
+                Write-Host "Robocopy failed with exit code $code. Retrying in $DelaySeconds seconds (attempt $attempt of $MaxAttempts)..."
+                Start-Sleep -Seconds $DelaySeconds
+              }
+              else {
+                throw "Robocopy failed after $MaxAttempts attempts. Final exit code: $code"
+              }
+            }
+          }
+
           $source = "$(Get-Location)\build_output"
           $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
           $deployUser = $env:DEPLOY_USER
           $deployPass = $env:DEPLOY_PASS
           $destDrive = 'Z:'
 
-          $destParts = $destination -split '\\'
-          $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
-
-          net use $destDrive /delete /y 2>$null
-
-          net use $destDrive "$destShareRoot" /user:"$deployUser" "$deployPass" /persistent:no
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to map destination share: $destShareRoot"
+          if (-not (Test-Path $source)) {
+            throw "Build output folder not found: $source"
           }
+
+          if ([string]::IsNullOrWhiteSpace($destination)) {
+            throw "DEST_PATH is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($deployUser)) {
+            throw "DEPLOY_USER is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($deployPass)) {
+            throw "DEPLOY_PASS is empty."
+          }
+
+          $destShareRoot = Get-ShareRootFromUnc $destination
+          Write-Host "Destination share root: $destShareRoot"
+
+          Mount-NetworkDrive -DriveLetter $destDrive -ShareRoot $destShareRoot -Username $deployUser -Password $deployPass
 
           try {
             $mappedDest = $destination.Replace($destShareRoot, $destDrive)
+            Write-Host "Mapped destination path: $mappedDest"
 
             if (-not (Test-Path $mappedDest)) {
               throw "Destination share not reachable: $mappedDest"
             }
 
-            robocopy $source $mappedDest /MIR /XF web.config
-
-            if ($LASTEXITCODE -ge 8) {
-              throw "Robocopy deployment failed."
-            }
+            Invoke-RobocopyChecked -Source $source -Destination $mappedDest
           }
           finally {
-            net use $destDrive /delete /y 2>$null
+            Remove-NetworkDriveIfExists $destDrive
           }
 
           exit 0
 
-      # ---------------------------------------------------------
-      # START IIS LOCAL
-      # ---------------------------------------------------------
       - name: Start IIS local
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
+
+          if ([string]::IsNullOrWhiteSpace($siteName)) {
+            throw "SITE_NAME is empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($appPool)) {
+            throw "APP_POOL is empty."
+          }
 
           Import-Module WebAdministration
 
@@ -541,9 +716,6 @@ jobs:
 
           exit 0
 
-      # ---------------------------------------------------------
-      # START IIS (NON-DEV REMOTE) — DIRECT SCM
-      # ---------------------------------------------------------
       - name: Start IIS site and app pool (remote via SCM)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -551,6 +723,9 @@ jobs:
           DEPLOY_USER: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_USER_TEST || secrets.DEPLOY_USER_PROD }}
           DEPLOY_PASS: ${{ env.DEPLOY_ENV == 'test' && secrets.DEPLOY_PASS_TEST || secrets.DEPLOY_PASS_PROD }}
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
           $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
