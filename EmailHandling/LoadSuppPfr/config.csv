@@ -1,0 +1,6 @@
+logDir,,,,,C:\egrants\apps\log\
+conStr,,,,,Provider=SQLNCLI11;Password={DB_PASSWORD};User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000
+docSrcPathSuppPfr,,,,,C:\egrants\SUPP_PFR\
+bakDstPathSuppPfr,,,,,C:\egrants\SUPP_PFR\BAK\
+finalDstPathSuppPfr,,,,,C:\egrants\WATCH\out\
+Verbose,,,,,n

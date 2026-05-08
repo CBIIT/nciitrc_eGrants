@@ -1,0 +1,5 @@
+logDir,,,,,C:\egrants\apps\log\
+conStr,,,,,Provider=SQLNCLI11;Password={DB_PASSWORD};User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000
+dirpathLatest,,,,,Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\efile\
+OutDir,,,,,C:\eGrants\watch\out\
+Verbose,,,,,n
