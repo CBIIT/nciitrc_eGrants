@@ -1,21 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
     <AssemblyTitle>Router</AssemblyTitle>
     <Company>National Cancer Institute</Company>
     <Product>Router</Product>
-    <Copyright>Copyright © National Cancer Institute 2024</Copyright>
+    <Copyright>Copyright � National Cancer Institute 2024</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
-  <ItemGroup>
+<ItemGroup>
     <PackageReference Include="Microsoft.Office.Interop.Outlook" Version="15.0.4797.1004" />
+    <PackageReference Include="Office" Version="12.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="config.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+ <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
