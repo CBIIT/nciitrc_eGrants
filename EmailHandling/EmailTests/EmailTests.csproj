@@ -13,6 +13,12 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <AssemblyTitle>EmailTests</AssemblyTitle>
+    <Company>National Cancer Institute</Company>
+    <Product>EmailTests</Product>
+    <Copyright>Copyright © National Cancer Institute 2024</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
