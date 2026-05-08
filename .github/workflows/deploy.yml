@@ -348,39 +348,6 @@ jobs:
           Start-Sleep -Seconds 3
           exit 0
 
-      - name: Stop IIS (SCM remote stop)
-        if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
-        shell: powershell
-        env:
-          DEPLOY_USER: ${{ steps.envmap.outputs.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ steps.envmap.outputs.DEPLOY_PASS }}
-        run: |
-          $remote = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-
-          if ([string]::IsNullOrWhiteSpace($remote)) {
-            throw "REMOTE_SERVER is missing or empty."
-          }
-
-          Write-Host "Stopping IIS core services on $remote ..."
-
-          sc.exe \\$remote stop W3SVC
-          sc.exe \\$remote stop WAS
-
-          Start-Sleep -Seconds 5
-
-          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
-
-          if ($w3svcState -notmatch "STOPPED") {
-            throw "W3SVC did not stop properly"
-          }
-          if ($wasState -notmatch "STOPPED") {
-            throw "WAS did not stop properly"
-          }
-
-          Write-Host "IIS successfully stopped via SCM."
-          exit 0
-
       - name: Deploy build output
         shell: powershell
         run: |
@@ -443,6 +410,7 @@ jobs:
           $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
           $destDrive = 'Z:'
+          $appOffline = $null
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
@@ -477,15 +445,39 @@ jobs:
             Write-Host "Deploying from: $source"
             Write-Host "Deploying to:   $mappedDest"
 
-            robocopy $source $mappedDest /MIR /XF web.config
+            if (-not (Test-Path $mappedDest)) {
+              throw "Destination path not reachable: $mappedDest"
+            }
+
+            $appOffline = Join-Path $mappedDest "app_offline.htm"
+
+            @"
+          <html>
+            <body>
+              <h1>Temporarily unavailable</h1>
+              <p>The application is currently being updated. Please try again in a few minutes.</p>
+            </body>
+          </html>
+          "@ | Set-Content -Path $appOffline -Encoding UTF8
+
+            Write-Host "Created app_offline.htm at $appOffline"
+            Start-Sleep -Seconds 3
+
+            robocopy $source $mappedDest /MIR /XF web.config app_offline.htm
 
             if ($LASTEXITCODE -ge 8) {
               throw "Robocopy deployment failed."
             }
 
+            Write-Host "Deployment copy completed successfully."
             exit 0
           }
           finally {
+            if ($appOffline -and (Test-Path $appOffline)) {
+              Remove-Item -Path $appOffline -Force -ErrorAction SilentlyContinue
+              Write-Host "Removed app_offline.htm"
+            }
+
             if ($branch -eq 'test' -or $branch -eq 'prod') {
               Remove-NetUse -Drive $destDrive
             }
@@ -503,41 +495,4 @@ jobs:
           Start-WebAppPool -Name $appPool
           Start-Website -Name $siteName
 
-          exit 0
-
-      - name: Start IIS site and app pool (remote via SCM)
-        if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
-        shell: powershell
-        env:
-          DEPLOY_USER: ${{ steps.envmap.outputs.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ steps.envmap.outputs.DEPLOY_PASS }}
-        run: |
-          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          if ([string]::IsNullOrWhiteSpace($remote)) {
-            throw "REMOTE_SERVER is missing or empty."
-          }
-
-          Write-Host "Starting IIS core services on $remote ..."
-          Write-Host "Target site: $siteName"
-          Write-Host "Target app pool: $appPool"
-
-          sc.exe \\$remote start WAS
-          sc.exe \\$remote start W3SVC
-
-          Start-Sleep -Seconds 5
-
-          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
-
-          if ($w3svcState -notmatch "RUNNING") {
-            throw "W3SVC did not start properly"
-          }
-          if ($wasState -notmatch "RUNNING") {
-            throw "WAS did not start properly"
-          }
-
-          Write-Host "IIS core services successfully started via SCM."
           exit 0
