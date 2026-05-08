@@ -208,7 +208,7 @@ jobs:
           function Remove-NetworkDriveIfExists {
             param([Parameter(Mandatory = $true)][string]$DriveLetter)
 
-            & net use $DriveLetter /delete /y *> $null
+            cmd.exe /d /c "net use $DriveLetter /delete /y >nul 2>&1"
             $global:LASTEXITCODE = 0
           }
 
@@ -571,7 +571,7 @@ jobs:
           function Remove-NetworkDriveIfExists {
             param([Parameter(Mandatory = $true)][string]$DriveLetter)
 
-            & net use $DriveLetter /delete /y *> $null
+            cmd.exe /d /c "net use $DriveLetter /delete /y >nul 2>&1"
             $global:LASTEXITCODE = 0
           }
 
