@@ -32,11 +32,6 @@ on:
 # ---------------------------------------------------------
 # If this is a manual workflow_dispatch run, use the selected input.
 # Otherwise, use the pushed branch name.
-#
-# Examples:
-# - push to dev  => DEPLOY_ENV=dev
-# - push to test => DEPLOY_ENV=test
-# - manual prod  => DEPLOY_ENV=prod
 env:
   DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
@@ -52,7 +47,6 @@ jobs:
     # ---------------------------------------------------------
     # GITHUB ENVIRONMENT SELECTION
     # ---------------------------------------------------------
-    # This allows environment-level secrets/protection rules to apply.
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
@@ -65,8 +59,6 @@ jobs:
       # ---------------------------------------------------------
       # LOAD ENVIRONMENT VARIABLES
       # ---------------------------------------------------------
-      # Resolve the environment-specific values used later in the job.
-      # Note: secrets are intentionally NOT written to GITHUB_OUTPUT.
       - name: Load environment variables
         id: envmap
         shell: powershell
@@ -155,8 +147,6 @@ jobs:
       # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE (DEV/STAGE)
       # ---------------------------------------------------------
-      # For dev/stage, the destination is assumed to be reachable
-      # directly from the runner without mapping a credentialed share.
       - name: Archive existing destination directory (dev/stage)
         if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
         shell: powershell
@@ -219,7 +209,8 @@ jobs:
 
           Invoke-RobocopyChecked -Source $destination -Destination $localTemp -Arguments @('/MIR')
 
-          Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
+          $archiveContentPath = Join-Path $localTemp '*'
+          Compress-Archive -Path $archiveContentPath -DestinationPath $localZip -Force
           Copy-Item -Path $localZip -Destination $remoteZip -Force
 
           Remove-Item -Path $localTemp -Recurse -Force
@@ -236,8 +227,6 @@ jobs:
       # ---------------------------------------------------------
       # ARCHIVE CURRENT SITE (TEST/PROD)
       # ---------------------------------------------------------
-      # For test/prod, remote shares are mapped using credentials.
-      # Password handling remains hardened against special characters.
       - name: Archive existing destination directory (test/prod)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
@@ -250,8 +239,6 @@ jobs:
 
           function Remove-NetworkDriveIfExists {
             param([Parameter(Mandatory = $true)][string]$DriveLetter)
-
-            # Cleanup only. No password is passed here, so cmd.exe is safe.
             cmd.exe /d /c "net use $DriveLetter /delete /y >nul 2>&1"
             $global:LASTEXITCODE = 0
           }
@@ -284,8 +271,6 @@ jobs:
             Remove-NetworkDriveIfExists $DriveLetter
 
             for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-              # Direct net use invocation avoids cmd.exe mangling special characters
-              # in the password, such as %.
               & net use $DriveLetter "$ShareRoot" /user:"$Username" "$Password" /persistent:no
               $code = $LASTEXITCODE
 
@@ -381,7 +366,8 @@ jobs:
 
             Invoke-RobocopyChecked -Source $mappedDest -Destination $localTemp -Arguments @('/MIR')
 
-            Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
+            $archiveContentPath = Join-Path $localTemp '*'
+            Compress-Archive -Path $archiveContentPath -DestinationPath $localZip -Force
             Copy-Item -Path $localZip -Destination $remoteZip -Force
 
             Remove-Item -Path $localTemp -Recurse -Force
@@ -403,8 +389,6 @@ jobs:
       # ---------------------------------------------------------
       # DIAGNOSTICS
       # ---------------------------------------------------------
-      # Useful for troubleshooting runner identity, IIS visibility,
-      # and environment resolution.
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
@@ -512,8 +496,6 @@ jobs:
       # STOP IIS REMOTE (TEST/PROD)
       # ---------------------------------------------------------
       # Intentionally uses the older SCM logic you asked to keep.
-      # This means it may still display Access Denied from sc.exe and
-      # later report success based on the query output.
       - name: Stop IIS (SCM remote stop)
         if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
         shell: powershell
