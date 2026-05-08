@@ -228,7 +228,8 @@ namespace Router
         /// <param name="debug"></param>
         public void HandleSingleEmail(string from, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
         {
-            var newMail = new MailItem();
+            Outlook.Application oApp = new Outlook.Application();
+            var newMail = (MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
             //newMail.SenderEmailAddress = from;    // won't allow setting, try moving this around later
 
             newMail.Subject = v_SubLine;
