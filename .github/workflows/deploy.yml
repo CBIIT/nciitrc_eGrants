@@ -75,6 +75,7 @@ jobs:
 
           switch ($branch) {
             "dev" {
+              # Local/non-credentialed deployment target values for dev
               echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
@@ -82,15 +83,19 @@ jobs:
             }
 
             "test" {
+              # Remote deployment target values for test
               echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_TEST }}" >> $env:GITHUB_OUTPUT
+
+              # Credentials used for remote share / remote service access
               echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_TEST }}" >> $env:GITHUB_OUTPUT
               echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_TEST }}" >> $env:GITHUB_OUTPUT
             }
 
             "stage" {
+              # Local/non-credentialed deployment target values for stage
               echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
@@ -98,83 +103,26 @@ jobs:
             }
 
             "prod" {
+              # Remote deployment target values for prod
               echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
               echo "APP_POOL=${{ vars.APP_POOL_PROD }}" >> $env:GITHUB_OUTPUT
+
+              # Credentials used for remote share / remote service access
               echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_PROD }}" >> $env:GITHUB_OUTPUT
               echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_PROD }}" >> $env:GITHUB_OUTPUT
             }
 
             default {
+              # Fail fast if someone adds an unexpected environment name.
               throw "Unsupported deployment environment: $branch"
             }
           }
 
+          # Shared variable used by remote IIS operations.
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
-
-      # ---------------------------------------------------------
-      # MAP REMOTE SHARES FOR TEST/PROD
-      # ---------------------------------------------------------
-      - name: Map remote deployment shares
-        if: ${{ env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod' }}
-        id: sharemap
-        shell: powershell
-        run: |
-          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
-          $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
-          $deployUser  = '${{ steps.envmap.outputs.DEPLOY_USER }}'
-          $deployPass  = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
-
-          if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
-            throw "DEPLOY_USER or DEPLOY_PASS is missing."
-          }
-
-          if (-not $destination.StartsWith('\\') -or -not $archiveRoot.StartsWith('\\')) {
-            throw "DEST_PATH and ARCHIVE_PATH must both be UNC paths for test/prod."
-          }
-
-          $destParts = $destination -split '\\'
-          $archParts = $archiveRoot -split '\\'
-
-          if ($destParts.Length -lt 4) {
-            throw "DEST_PATH is not a valid UNC path: $destination"
-          }
-          if ($archParts.Length -lt 4) {
-            throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
-          }
-
-          $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
-          $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
-
-          Write-Host "Destination share root: $destShareRoot"
-          Write-Host "Archive share root: $archShareRoot"
-
-          $destDriveName = 'DESTDRV'
-          $archDriveName = 'ARCHDRV'
-
-          $securePass = ConvertTo-SecureString $deployPass -AsPlainText -Force
-          $cred = New-Object System.Management.Automation.PSCredential($deployUser, $securePass)
-
-          Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
-          Remove-PSDrive -Name $archDriveName -Force -ErrorAction SilentlyContinue
-
-          New-PSDrive -Name $destDriveName -PSProvider FileSystem -Root $destShareRoot -Credential $cred -ErrorAction Stop | Out-Null
-          New-PSDrive -Name $archDriveName -PSProvider FileSystem -Root $archShareRoot -Credential $cred -ErrorAction Stop | Out-Null
-
-          $mappedDest = $destination.Replace($destShareRoot, "${destDriveName}:")
-          $mappedArchive = $archiveRoot.Replace($archShareRoot, "${archDriveName}:")
-
-          Write-Host "Mapped destination path: $mappedDest"
-          Write-Host "Mapped archive path: $mappedArchive"
-
-          echo "DEST_SHARE_ROOT=$destShareRoot" >> $env:GITHUB_OUTPUT
-          echo "ARCH_SHARE_ROOT=$archShareRoot" >> $env:GITHUB_OUTPUT
-          echo "DEST_DRIVE_NAME=$destDriveName" >> $env:GITHUB_OUTPUT
-          echo "ARCH_DRIVE_NAME=$archDriveName" >> $env:GITHUB_OUTPUT
-          echo "MAPPED_DEST_PATH=$mappedDest" >> $env:GITHUB_OUTPUT
-          echo "MAPPED_ARCHIVE_PATH=$mappedArchive" >> $env:GITHUB_OUTPUT
 
       # ---------------------------------------------------------
       # BUILD
@@ -202,9 +150,13 @@ jobs:
           }
 
           $json = Get-Content $file -Raw
+
+          # Replace any current GitHubToken value in the JSON.
           $pattern = '"GitHubToken"\s*:\s*".*?"'
           $replacement = '"GitHubToken": "' + $token + '"'
+
           $json = $json -replace $pattern, $replacement
+
           Set-Content -Path $file -Value $json -Encoding UTF8
 
       # ---------------------------------------------------------
@@ -214,53 +166,113 @@ jobs:
         shell: powershell
         run: |
           $branch = '${{ env.DEPLOY_ENV }}'
+          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
+          $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
+          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          if ($branch -eq 'test' -or $branch -eq 'prod') {
-            $destination = '${{ steps.sharemap.outputs.MAPPED_DEST_PATH }}'
-            $archiveRoot = '${{ steps.sharemap.outputs.MAPPED_ARCHIVE_PATH }}'
+          $destDriveName = 'DESTDRV'
+          $archDriveName = 'ARCHDRV'
+
+          try {
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Write-Host 'Mapping remote shares with New-PSDrive...'
+
+              if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
+                throw "DEPLOY_USER or DEPLOY_PASS is missing."
+              }
+
+              if (-not $destination.StartsWith('\\') -or -not $archiveRoot.StartsWith('\\')) {
+                throw "DEST_PATH and ARCHIVE_PATH must be UNC paths for test/prod."
+              }
+
+              $destParts = $destination -split '\\'
+              $archParts = $archiveRoot -split '\\'
+
+              if ($destParts.Length -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+              if ($archParts.Length -lt 4) {
+                throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
+              }
+
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+              $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+              Write-Host "Archive share root: $archShareRoot"
+
+              $securePass = ConvertTo-SecureString $deployPass -AsPlainText -Force
+              $cred = New-Object System.Management.Automation.PSCredential($deployUser, $securePass)
+
+              Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
+              Remove-PSDrive -Name $archDriveName -Force -ErrorAction SilentlyContinue
+
+              New-PSDrive -Name $destDriveName -PSProvider FileSystem -Root $destShareRoot -Credential $cred -ErrorAction Stop | Out-Null
+              New-PSDrive -Name $archDriveName -PSProvider FileSystem -Root $archShareRoot -Credential $cred -ErrorAction Stop | Out-Null
+
+              $mappedDest = $destination.Replace($destShareRoot, "${destDriveName}:")
+              $mappedArchive = $archiveRoot.Replace($archShareRoot, "${archDriveName}:")
+            }
+            else {
+              # dev/stage are assumed to be reachable directly from the runner
+              # without mapping credentialed shares.
+              Write-Host 'DEV or STAGE environment detected — no credentialed share mapping required.'
+              $mappedDest = $destination
+              $mappedArchive = $archiveRoot
+            }
+
+            Write-Host "Environment: $branch"
+            Write-Host "Destination path: $mappedDest"
+            Write-Host "Archive path: $mappedArchive"
+
+            # Confirm the live deployment folder is reachable.
+            if (-not (Test-Path $mappedDest)) {
+              throw "Destination path not reachable: $mappedDest"
+            }
+
+            # Create archive folder if it does not already exist.
+            if (-not (Test-Path $mappedArchive)) {
+              New-Item -ItemType Directory -Path $mappedArchive | Out-Null
+            }
+
+            # Build temp and archive filenames with a timestamp.
+            $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+            $localTemp = Join-Path $env:TEMP "archive_$timestamp"
+            $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
+            $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
+
+            New-Item -ItemType Directory -Path $localTemp | Out-Null
+
+            # Copy the existing deployed site to a local temp folder.
+            robocopy $mappedDest $localTemp /MIR
+            if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
+
+            # Zip the backup and copy it to the archive location.
+            Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
+            Copy-Item -Path $localZip -Destination $remoteZip -Force
+
+            # Remove local temp artifacts.
+            Remove-Item -Path $localTemp -Recurse -Force
+            Remove-Item -Path $localZip -Force
+
+            # Keep only the 5 newest backups to avoid unbounded storage growth.
+            $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
+              Sort-Object LastWriteTime -Descending
+
+            $archivesToDelete = $archives | Select-Object -Skip 5
+            foreach ($old in $archivesToDelete) {
+              Remove-Item -Path $old.FullName -Force
+            }
+
+            exit 0
           }
-          else {
-            $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
-            $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
+          finally {
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
+              Remove-PSDrive -Name $archDriveName -Force -ErrorAction SilentlyContinue
+            }
           }
-
-          Write-Host "Environment: $branch"
-          Write-Host "Destination path: $destination"
-          Write-Host "Archive path: $archiveRoot"
-
-          if (-not (Test-Path $destination)) {
-            throw "Destination path not reachable: $destination"
-          }
-
-          if (-not (Test-Path $archiveRoot)) {
-            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
-          }
-
-          $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-          $localTemp = Join-Path $env:TEMP "archive_$timestamp"
-          $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
-
-          New-Item -ItemType Directory -Path $localTemp | Out-Null
-
-          robocopy $destination $localTemp /MIR
-          if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
-
-          Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
-          Copy-Item -Path $localZip -Destination $remoteZip -Force
-
-          Remove-Item -Path $localTemp -Recurse -Force
-          Remove-Item -Path $localZip -Force
-
-          $archives = Get-ChildItem -Path $archiveRoot -Filter 'backup_*.zip' |
-            Sort-Object LastWriteTime -Descending
-
-          $archivesToDelete = $archives | Select-Object -Skip 5
-          foreach ($old in $archivesToDelete) {
-            Remove-Item -Path $old.FullName -Force
-          }
-
-          exit 0
 
       # ---------------------------------------------------------
       # DIAGNOSTICS (RUNNER / HOST / IIS CONTEXT)
@@ -292,15 +304,6 @@ jobs:
           Write-Host "ARCHIVE_PATH              = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'"
           Write-Host "REMOTE_SERVER             = '${{ steps.envmap.outputs.REMOTE_SERVER }}'"
           Write-Host ""
-
-          if ("${{ env.DEPLOY_ENV }}" -eq "test" -or "${{ env.DEPLOY_ENV }}" -eq "prod") {
-            Write-Host "=== SHARE MAP OUTPUTS ==="
-            Write-Host "MAPPED_DEST_PATH          = '${{ steps.sharemap.outputs.MAPPED_DEST_PATH }}'"
-            Write-Host "MAPPED_ARCHIVE_PATH       = '${{ steps.sharemap.outputs.MAPPED_ARCHIVE_PATH }}'"
-            Write-Host "DEST_DRIVE_NAME           = '${{ steps.sharemap.outputs.DEST_DRIVE_NAME }}'"
-            Write-Host "ARCH_DRIVE_NAME           = '${{ steps.sharemap.outputs.ARCH_DRIVE_NAME }}'"
-            Write-Host ""
-          }
 
           Write-Host "=== IIS SERVICES (LOCAL MACHINE) ==="
           try {
@@ -365,6 +368,7 @@ jobs:
           Stop-WebAppPool -Name $appPool -ErrorAction SilentlyContinue
           Stop-Website -Name $siteName -ErrorAction SilentlyContinue
 
+          # Short delay to give IIS time to finish stopping.
           Start-Sleep -Seconds 3
           exit 0
 
@@ -414,25 +418,63 @@ jobs:
       - name: Deploy build output
         shell: powershell
         run: |
+          $branch = '${{ env.DEPLOY_ENV }}'
           $source = "$(Get-Location)\build_output"
+          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
+          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          if ('${{ env.DEPLOY_ENV }}' -eq 'test' -or '${{ env.DEPLOY_ENV }}' -eq 'prod') {
-            $destination = '${{ steps.sharemap.outputs.MAPPED_DEST_PATH }}'
+          $destDriveName = 'DESTDRV'
+
+          try {
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Write-Host 'Mapping deployment share with New-PSDrive...'
+
+              if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
+                throw "DEPLOY_USER or DEPLOY_PASS is missing."
+              }
+
+              if (-not $destination.StartsWith('\\')) {
+                throw "DEST_PATH must be a UNC path for test/prod."
+              }
+
+              $destParts = $destination -split '\\'
+              if ($destParts.Length -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+
+              $securePass = ConvertTo-SecureString $deployPass -AsPlainText -Force
+              $cred = New-Object System.Management.Automation.PSCredential($deployUser, $securePass)
+
+              Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
+              New-PSDrive -Name $destDriveName -PSProvider FileSystem -Root $destShareRoot -Credential $cred -ErrorAction Stop | Out-Null
+
+              $mappedDest = $destination.Replace($destShareRoot, "${destDriveName}:")
+            }
+            else {
+              $mappedDest = $destination
+            }
+
+            Write-Host "Deploying from: $source"
+            Write-Host "Deploying to:   $mappedDest"
+
+            robocopy $source $mappedDest /MIR /XF web.config
+
+            if ($LASTEXITCODE -ge 8) {
+              throw "Robocopy deployment failed."
+            }
+
+            exit 0
           }
-          else {
-            $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
+          finally {
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Remove-PSDrive -Name $destDriveName -Force -ErrorAction SilentlyContinue
+            }
           }
-
-          Write-Host "Deploying from: $source"
-          Write-Host "Deploying to:   $destination"
-
-          robocopy $source $destination /MIR /XF web.config
-
-          if ($LASTEXITCODE -ge 8) {
-            throw "Robocopy deployment failed."
-          }
-
-          exit 0
 
       # ---------------------------------------------------------
       # START IIS LOCAL
@@ -490,13 +532,3 @@ jobs:
 
           Write-Host "IIS core services successfully started via SCM."
           exit 0
-
-      # ---------------------------------------------------------
-      # CLEAN UP MAPPED SHARES
-      # ---------------------------------------------------------
-      - name: Cleanup mapped deployment shares
-        if: ${{ always() && (env.DEPLOY_ENV == 'test' || env.DEPLOY_ENV == 'prod') }}
-        shell: powershell
-        run: |
-          Remove-PSDrive -Name 'DESTDRV' -Force -ErrorAction SilentlyContinue
-          Remove-PSDrive -Name 'ARCHDRV' -Force -ErrorAction SilentlyContinue
