@@ -71,7 +71,7 @@ jobs:
             }
 
             "stage" {
-              # Stage uses local IIS control on its runner and local paths/settings.
+              # Stage uses local paths/settings.
               echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
@@ -364,25 +364,9 @@ jobs:
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
 
-      # For dev/stage, the runner is on the IIS server, so we can stop the app pool and site locally.
-      - name: Stop IIS site and app pool (dev/stage local)
-        if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
-        shell: powershell
-        run: |
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          Import-Module WebAdministration
-
-          Stop-WebAppPool -Name $appPool -ErrorAction SilentlyContinue
-          Stop-Website -Name $siteName -ErrorAction SilentlyContinue
-
-          Start-Sleep -Seconds 3
-          exit 0
-
       # Deploy the published build output.
-      # For test/prod, use app_offline.htm to temporarily take the application offline
-      # while files are copied, instead of trying to stop IIS remotely.
+      # For all environments, use app_offline.htm to temporarily take the application offline
+      # while files are copied.
       - name: Deploy build output
         shell: powershell
         run: |
@@ -529,18 +513,3 @@ jobs:
               Remove-NetUse -Drive $destDrive
             }
           }
-
-      # For dev/stage, bring the site back online locally after deployment finishes.
-      - name: Start IIS local
-        if: ${{ env.DEPLOY_ENV == 'dev' || env.DEPLOY_ENV == 'stage' }}
-        shell: powershell
-        run: |
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          Import-Module WebAdministration
-
-          Start-WebAppPool -Name $appPool
-          Start-Website -Name $siteName
-
-          exit 0
