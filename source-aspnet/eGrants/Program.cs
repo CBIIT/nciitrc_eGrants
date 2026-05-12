@@ -59,7 +59,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // - Increase MaxRequestBodySize and multipart limits (so large bodies aren't rejected)
 //
 // We keep limits aligned to the legacy .NET Framework configuration (2GB).
-// ====================================================================================;
+// ====================================================================================
 
 // Configure Kestrel server limits for large file uploads
 builder.Services.Configure<KestrelServerOptions>(options =>
@@ -188,11 +188,6 @@ if (!app.Environment.IsDevelopment())
  app.UseStatusCodePagesWithReExecute("/Error/{0}");
 #endif
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-app.UseAuthorization();
-
 app.UseSession(); // Enable session middleware
 
 // TODO: Determine better way to handle getting user id information if possible
@@ -202,7 +197,7 @@ app.UseSession(); // Enable session middleware
 // - Strips server-identifying response headers.
 // - If no session user exists:
 //      • Resolve user ID from SiteMinder, Windows identity, or machine account.
-//    • Store IC code, browser type, and default view.
+//      • Store IC code, browser type, and default view.
 //      • Load user type and profile via EgrantsCommon; redirect if invalid.
 //      • Populate session with user details and app configuration values.
 //      • Fetch latest GitHub release tag and store cookies.
@@ -221,19 +216,87 @@ app.Use(async (context, next) =>
 
     if (string.IsNullOrEmpty(context.Session.GetString("userid")))
     {
-        // Get user from SiteMinder header
-        string userId = context.GetServerVariable("HEADER_SM_USER");
+        // ===================================================================================
+        // SITEMINDER BYPASS CONFIGURATION
+        // ===================================================================================
+        // When enabled, allows specific users to bypass SiteMinder authentication.
+        // Configure in appsettings.json:
+        //   "SiteMinderBypass": {
+        //       "Enabled": true,
+        //  "AllowedUsers": ["user1", "user2"]
+        //   }
+        // ===================================================================================
 
-        // If no SiteMinder header, deny access
+        var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
+        var allowedUsers = builder.Configuration.GetSection("SiteMinderBypass:AllowedUsers").Get<string[]>() ?? Array.Empty<string>();
+
+        string userId = string.Empty;
+        bool bypassUsed = false;
+
+        // First, try to get the SiteMinder header
+        string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
+
+        if (!string.IsNullOrEmpty(siteMinderUser))
+        {
+            // SiteMinder header is present, use it
+            userId = siteMinderUser;
+        }
+        else if (bypassEnabled)
+        {
+            // SiteMinder header not present, check if bypass is enabled
+            string potentialUserId = string.Empty;
+
+            // Try to get user from Windows identity
+            if (context.User?.Identity?.IsAuthenticated == true)
+            {
+                var fullName = context.User.Identity?.Name;
+                potentialUserId = fullName?.Contains('\\') == true
+            ? fullName.Split('\\')[1]
+                : fullName ?? string.Empty;
+            }
+
+            // Fallback to machine account if Windows identity not available
+            if (string.IsNullOrEmpty(potentialUserId))
+            {
+                potentialUserId = Environment.UserName;
+            }
+
+            // Check if the user is in the allowed bypass list (case-insensitive)
+            if (!string.IsNullOrEmpty(potentialUserId) &&
+           allowedUsers.Any(u => u.Equals(potentialUserId, StringComparison.OrdinalIgnoreCase)))
+            {
+                userId = potentialUserId;
+                bypassUsed = true;
+
+                // Log the bypass for audit purposes
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogWarning("SiteMinder bypass used for user: {UserId}", userId);
+            }
+        }
+
+        // If still no userId and bypass not used, fall back to original logic
         if (string.IsNullOrEmpty(userId))
         {
-            var logger = context.RequestServices.GetService<ILogger<Program>>();
-            logger?.LogWarning("No user identity found. SiteMinder header missing or empty.");
-    context.Response.Redirect("/egrants_default.htm");
-            return;
+            if (context.User?.Identity?.IsAuthenticated == true)
+            {
+                var fullName = context.User.Identity?.Name;
+                userId = fullName?.Contains('\\') == true
+                     ? fullName.Split('\\')[1]
+                : fullName;
+            }
+            else
+            {
+                userId = Environment.UserName; // Fallback to machine account
+            }
         }
 
         context.Session.SetString("userid", userId);
+
+        // Store bypass flag in session for potential audit/display purposes
+        if (bypassUsed)
+        {
+            context.Session.SetString("SiteMinderBypassed", "true");
+        }
 
         // Capture IC (Institute/Org Code)
         var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
@@ -242,78 +305,85 @@ app.Use(async (context, next) =>
         // Detect browser from User-Agent
         var userAgent = context.Request.Headers["User-Agent"].ToString();
         string browserName = userAgent.Contains("Chrome") ? "Chrome" :
-     userAgent.Contains("Firefox") ? "Firefox" :
-            (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
-            userAgent.Contains("Edg") ? "Edge" :
+ userAgent.Contains("Firefox") ? "Firefox" :
+ (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
+ userAgent.Contains("Edg") ? "Edge" :
  (userAgent.Contains("MSIE") || userAgent.Contains("Trident")) ? "Internet Explorer" :
-        "Unknown";
+ "Unknown";
 
-   context.Session.SetString("browser", browserName);
+        context.Session.SetString("browser", browserName);
         context.Session.SetString("CurrentView", "standardForm");
 
         // Resolve EgrantsCommon service
         var egrantsCommon = context.RequestServices.GetRequiredService<EgrantsCommon>();
 
-   var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
+        var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
 
         if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
         {
             context.Response.Redirect("/egrants_default.htm");
-     return;
-    }
+            return;
+        }
 
-   // Populate user session variables
+        // Populate user session variables
+
         var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);
 
         foreach (var usr in users)
- {
-      context.Session.SetString("Validation", usr.Validation);
-  context.Session.SetString("userid", usr.UserId);
-      context.Session.SetString("ic", usr.ic);
-       context.Session.SetInt32("Personid", usr.personID);
+        {
+            context.Session.SetString("Validation", usr.Validation);
+            context.Session.SetString("userid", usr.UserId);
+            context.Session.SetString("ic", usr.ic);
+            context.Session.SetInt32("Personid", usr.personID);
             context.Session.SetInt32("position_id", usr.positionID);
             context.Session.SetString("UserName", usr.PersonName);
             context.Session.SetString("UserEmail", usr.PersonEmail);
             context.Session.SetString("Menus", usr.menulist);
-     }
+        }
 
         if (context.Session.GetString("Validation").ToString() != "OK")
-      {
-       context.Response.Redirect("/egrants_default.htm");
+        {
+            context.Response.Redirect("/egrants_default.htm");
             return;
         }
 
- // Load app settings into session
+        // You can log or use the URL here
+        // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
         context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
-     context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
-     context.Session.SetInt32("dashboard", 0);
+        context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+        context.Session.SetInt32("dashboard", 0);
         context.Session.SetString("EgrantsDocNewRelativePath", builder.Configuration["AppSettings:egrantsDocNewRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsDocModifyRelativePath", builder.Configuration["AppSettings:egrantsDocModifyRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsFundingRelativePath", builder.Configuration["AppSettings:egrantsFundingRelativePath"] ?? string.Empty);
-    context.Session.SetString("EgrantsInstRelativePath", builder.Configuration["AppSettings:egrantsInstRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsInstRelativePath", builder.Configuration["AppSettings:egrantsInstRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsFundingModifyRelativePath", builder.Configuration["AppSettings:egrantsFundingModifyRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsDocEmail", builder.Configuration["AppSettings:egrantsDocEmail"] ?? string.Empty);
-   context.Session.SetString("closeoutAcceptance", builder.Configuration["AppSettings:closeoutAcceptance"] ?? string.Empty);
-    context.Session.SetString("frpprAcceptance", builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty);
+        context.Session.SetString("closeoutAcceptance", builder.Configuration["AppSettings:closeoutAcceptance"] ?? string.Empty);
+        context.Session.SetString("frpprAcceptance", builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty);
         context.Session.SetString("irpprAcceptance", builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty);
         context.Session.SetString("GitHubToken", builder.Configuration["AppSettings:GitHubToken"] ?? string.Empty);
-   context.Session.SetString("CertPath", builder.Configuration["AppSettings:certPath"] ?? string.Empty);
+        context.Session.SetString("CertPath", builder.Configuration["AppSettings:certPath"] ?? string.Empty);
         context.Session.SetString("CertPass", builder.Configuration["AppSettings:certPass"] ?? string.Empty);
         context.Session.SetString("EraUrlBase", builder.Configuration["AppSettings:eraUrlBase"] ?? string.Empty);
 
-     egrantsCommon.UpdateUsersLastLoginDate(userId);
+        egrantsCommon.UpdateUsersLastLoginDate(userId);
         string token = context.Session.GetString("GitHubToken").ToString();
-  var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
+        var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
         var latestRelease = latestReleaseFull.Split(' ')[0];
-    context.Session.SetString("Release", latestRelease);
+        context.Session.SetString("Release", latestRelease);
 
         var browserCookies = context.Request.Headers["Cookie"].ToString();
-    context.Session.SetString("BrowserCookies", browserCookies);
+        context.Session.SetString("BrowserCookies", browserCookies);
+
     }
-await next.Invoke();
+    await next.Invoke();
 });
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
 app.UseSystemWebAdapters();
 
 #endregion
