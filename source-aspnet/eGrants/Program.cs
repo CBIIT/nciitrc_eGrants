@@ -5,6 +5,7 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
@@ -117,6 +118,26 @@ builder.Services.Configure<FormOptions>(options =>
 builder.Services.AddSystemWebAdapters();
 builder.Services.AddHttpForwarder();
 builder.Services.AddHttpContextAccessor();
+
+// ===================================================================================
+// WINDOWS AUTHENTICATION CONFIGURATION
+// ===================================================================================
+// This enables Windows Authentication (Negotiate/NTLM) for the SiteMinder bypass mode.
+// In IIS, BOTH Anonymous and Windows Authentication should be enabled.
+// The app will use Windows Auth when bypass is enabled to identify the user.
+// ===================================================================================
+var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
+if (bypassEnabled)
+{
+    builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+        .AddNegotiate();
+
+    builder.Services.AddAuthorization(options =>
+    {
+        // By default, all incoming requests will be authorized per the default policy
+        options.FallbackPolicy = options.DefaultPolicy;
+    });
+}
 
 // Application Services & Repositories (Dependency Injection)
 builder.Services.AddScoped<EgrantsCommon>();
@@ -426,6 +447,13 @@ app.Use(async (context, next) =>
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// Enable authentication middleware when SiteMinder bypass is active
+if (builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled"))
+{
+    app.UseAuthentication();
+}
+
 app.UseAuthorization();
 app.UseSystemWebAdapters();
 
