@@ -13,8 +13,6 @@ using Serilog;
 
 using SimpleECommerceCore.Middleware;
 
-using System.Security.Principal;
-
 // Enable Serilog internal diagnostics. 
 // This logs Serilog’s own configuration or sink failures (not application logs) 
 // Useful only for troubleshooting when logs are not appearing as expected.
@@ -192,8 +190,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseSession(); // Enable session middleware
 
-// TODO: Determine better way to handle getting user id information if possible
-
 // Middleware to initialize and validate the user session.
 app.Use(async (context, next) =>
 {
@@ -207,261 +203,119 @@ app.Use(async (context, next) =>
         return Task.CompletedTask;
     });
 
-    // ===================================================================================
-    // SKIP AUTHENTICATION FOR STATIC FILES AND ERROR PAGES
-    // ===================================================================================
-    var path = context.Request.Path.Value?.ToLowerInvariant() ?? string.Empty;
-    
-    bool shouldSkipAuth = 
-     string.IsNullOrEmpty(path) ||
-        path == "/" ||
-     path.EndsWith(".htm") ||
-        path.EndsWith(".html") ||
-        path.EndsWith(".css") ||
-        path.EndsWith(".js") ||
-      path.EndsWith(".png") ||
-        path.EndsWith(".jpg") ||
-        path.EndsWith(".jpeg") ||
-        path.EndsWith(".gif") ||
-        path.EndsWith(".ico") ||
-        path.EndsWith(".svg") ||
-        path.EndsWith(".woff") ||
-        path.EndsWith(".woff2") ||
-        path.EndsWith(".ttf") ||
-     path.EndsWith(".eot") ||
-        path.EndsWith(".map") ||
-    path.Contains("egrants_default") ||
-        path.Contains("/error") ||
-        path.StartsWith("/lib/") ||
-        path.StartsWith("/css/") ||
-path.StartsWith("/js/") ||
-        path.StartsWith("/images/") ||
-        path.StartsWith("/fonts/") ||
-path.StartsWith("/wwwroot/");
-
-    if (shouldSkipAuth)
-    {
-   await next.Invoke();
-      return;
-    }
-
     if (string.IsNullOrEmpty(context.Session.GetString("userid")))
     {
         var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
-        var allowedUsers = builder.Configuration.GetSection("SiteMinderBypass:AllowedUsers").Get<string[]>() ?? Array.Empty<string>();
+        var allowedUser = builder.Configuration.GetValue<string>("SiteMinderBypass:AllowedUser") ?? string.Empty;
 
         string userId = string.Empty;
-        bool bypassUsed = false;
 
-  if (bypassEnabled)
+        if (bypassEnabled)
         {
-            // BYPASS MODE: Skip SiteMinder entirely, use Windows Authentication or dev override
-            if (allowedUsers.Length == 0)
-{
-      var logger = context.RequestServices.GetService<ILogger<Program>>();
-       logger?.LogError("SiteMinder bypass is enabled but no AllowedUsers are configured.");
-        context.Response.StatusCode = 403;
-                await context.Response.WriteAsync("Access denied: No allowed users configured for bypass mode.");
-       return;
-       }
-
-      string potentialUserId = string.Empty;
-
-      // ===================================================================================
-        // DEV OVERRIDE: Check for dev_user query parameter or X-Dev-User header first
-        // This allows testing with specific users when Windows Auth doesn't work
-        // Usage: ?dev_user=dehuffdc or Header: X-Dev-User: dehuffdc
             // ===================================================================================
-            if (context.Request.Headers.TryGetValue("X-Dev-User", out var headerUser) && !string.IsNullOrWhiteSpace(headerUser))
-     {
-              potentialUserId = headerUser.ToString().Trim();
-         var logger = context.RequestServices.GetService<ILogger<Program>>();
-logger?.LogInformation("Dev user override from header: {UserId}", potentialUserId);
-     }
-            else if (context.Request.Query.TryGetValue("dev_user", out var queryUser) && !string.IsNullOrWhiteSpace(queryUser))
- {
- potentialUserId = queryUser.ToString().Trim();
-       // Store in session so subsequent requests don't need the query param
-    context.Session.SetString("dev_user_override", potentialUserId);
-       var logger = context.RequestServices.GetService<ILogger<Program>>();
-    logger?.LogInformation("Dev user override from query: {UserId}", potentialUserId);
-            }
-          else if (!string.IsNullOrEmpty(context.Session.GetString("dev_user_override")))
-    {
-      // Use previously stored dev user from session
-        potentialUserId = context.Session.GetString("dev_user_override")!;
-       var logger = context.RequestServices.GetService<ILogger<Program>>();
-   logger?.LogInformation("Dev user override from session: {UserId}", potentialUserId);
-     }
-
-   // If no dev override, try Windows Authentication methods
-            if (string.IsNullOrEmpty(potentialUserId))
-       {
-             try
-                {
-                    // Method 1: HTTP context user
-      if (context.User?.Identity?.IsAuthenticated == true && context.User.Identity is WindowsIdentity)
- {
-    var fullName = context.User.Identity.Name;
-          potentialUserId = fullName?.Contains('\\') == true ? fullName.Split('\\')[1] : fullName ?? string.Empty;
-               }
-
-       // Method 2: WindowsIdentity.GetCurrent()
-     if (string.IsNullOrEmpty(potentialUserId))
-        {
-   var windowsIdentity = WindowsIdentity.GetCurrent();
-    if (windowsIdentity != null && !string.IsNullOrEmpty(windowsIdentity.Name))
-         {
-     var fullName = windowsIdentity.Name;
-    potentialUserId = fullName.Contains('\\') ? fullName.Split('\\')[1] : fullName;
-      }
-       }
-
-         // Method 3: LOGON_USER server variable
- if (string.IsNullOrEmpty(potentialUserId))
-              {
-        var logonUser = context.GetServerVariable("LOGON_USER");
-  if (!string.IsNullOrEmpty(logonUser))
-      {
-              potentialUserId = logonUser.Contains('\\') ? logonUser.Split('\\')[1] : logonUser;
-                     }
-         }
-
-     // Method 4: AUTH_USER server variable
-           if (string.IsNullOrEmpty(potentialUserId))
-      {
- var authUser = context.GetServerVariable("AUTH_USER");
-              if (!string.IsNullOrEmpty(authUser))
-           {
-       potentialUserId = authUser.Contains('\\') ? authUser.Split('\\')[1] : authUser;
- }
-             }
-     }
- catch (Exception ex)
-   {
-     var logger = context.RequestServices.GetService<ILogger<Program>>();
-     logger?.LogWarning(ex, "Error getting Windows identity for bypass check");
-   }
-            }
-
-            // Log for debugging
-            var debugLogger = context.RequestServices.GetService<ILogger<Program>>();
-       debugLogger?.LogInformation("SiteMinder bypass - Detected user: '{PotentialUserId}', AllowedUsers: [{AllowedUsers}]",
-           potentialUserId, string.Join(", ", allowedUsers));
-
- // Check if user is in allowed list
-            if (!string.IsNullOrEmpty(potentialUserId))
+            // BYPASS MODE: Use the configured AllowedUser
+            // ===================================================================================
+            // When bypass is enabled, use the single configured user.
+            // This is intended for development/testing environments only.
+            // ===================================================================================
+            if (string.IsNullOrEmpty(allowedUser))
             {
-         var matchedUser = allowedUsers.FirstOrDefault(u => string.Equals(u, potentialUserId, StringComparison.OrdinalIgnoreCase));
-
-       if (matchedUser != null)
- {
-          userId = matchedUser;
-        bypassUsed = true;
-  var logger = context.RequestServices.GetService<ILogger<Program>>();
-      logger?.LogWarning("SiteMinder bypass used for user: {UserId}", userId);
-                }
-     else
-           {
-        var logger = context.RequestServices.GetService<ILogger<Program>>();
- logger?.LogWarning("SiteMinder bypass denied - User '{PotentialUserId}' not in AllowedUsers list", potentialUserId);
-            context.Response.StatusCode = 403;
-     await context.Response.WriteAsync($"Access denied: User '{potentialUserId}' is not in the allowed users list.");
-               return;
-                }
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogError("SiteMinder bypass is enabled but AllowedUser is not configured.");
+                context.Response.StatusCode = 403;
+                await context.Response.WriteAsync("Access denied: AllowedUser not configured for bypass mode.");
+                return;
             }
-       else
-            {
-  var logger = context.RequestServices.GetService<ILogger<Program>>();
-logger?.LogWarning("SiteMinder bypass enabled but no Windows user identity could be detected.");
-    context.Response.StatusCode = 403;
-    await context.Response.WriteAsync("Access denied: Could not detect Windows user identity.");
-      return;
-        }
+
+            userId = allowedUser;
+            context.Session.SetString("SiteMinderBypassed", "true");
+
+            var logger2 = context.RequestServices.GetService<ILogger<Program>>();
+            logger2?.LogWarning("SiteMinder bypass active. Using configured user: {UserId}", userId);
         }
         else
         {
-    // NORMAL MODE: Use SiteMinder authentication
- string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
+            // ===================================================================================
+            // NORMAL MODE: Use SiteMinder authentication
+            // ===================================================================================
+            // When running locally in Development and SiteMinder is not available,
+            // fall back to the Windows username from the environment.
+            // ===================================================================================
+            string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
 
-if (!string.IsNullOrEmpty(siteMinderUser))
+            if (!string.IsNullOrEmpty(siteMinderUser))
             {
-     userId = siteMinderUser;
+                userId = siteMinderUser;
             }
-     else
+            else if (app.Environment.IsDevelopment())
             {
-        var logger = context.RequestServices.GetService<ILogger<Program>>();
-   logger?.LogWarning("No user identity found. SiteMinder header missing or empty.");
-      context.Response.StatusCode = 403;
-       await context.Response.WriteAsync("Access denied: SiteMinder header missing or empty.");
+                // Local development fallback: use the Windows username
+                userId = Environment.UserName;
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogWarning("SiteMinder header not found. Using local Windows username: {UserId}", userId);
+            }
+            else
+            {
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogWarning("No user identity found. SiteMinder header missing or empty.");
+                context.Response.Redirect("/egrants_default.htm");
                 return;
-         }
-    }
+            }
+        }
 
         context.Session.SetString("userid", userId);
 
-        if (bypassUsed)
-        {
-      context.Session.SetString("SiteMinderBypassed", "true");
-     }
-
-    // Capture IC (Institute/Org Code)
- var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
+        // Capture IC (Institute/Org Code)
+        var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
         context.Session.SetString("ic", ic);
 
         // Detect browser
         var userAgent = context.Request.Headers["User-Agent"].ToString();
         string browserName = userAgent.Contains("Chrome") ? "Chrome" :
-      userAgent.Contains("Firefox") ? "Firefox" :
-     (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
-          userAgent.Contains("Edg") ? "Edge" :
+        userAgent.Contains("Firefox") ? "Firefox" :
+                (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
+       userAgent.Contains("Edg") ? "Edge" :
             (userAgent.Contains("MSIE") || userAgent.Contains("Trident")) ? "Internet Explorer" : "Unknown";
 
-    context.Session.SetString("browser", browserName);
-   context.Session.SetString("CurrentView", "standardForm");
+        context.Session.SetString("browser", browserName);
+        context.Session.SetString("CurrentView", "standardForm");
 
-    // Resolve EgrantsCommon service
+        // Resolve EgrantsCommon service
         var egrantsCommon = context.RequestServices.GetRequiredService<EgrantsCommon>();
 
         var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
 
-  if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
+        if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
         {
-       var logger = context.RequestServices.GetService<ILogger<Program>>();
-            logger?.LogWarning("User type is null or empty for user: {UserId}", userId);
-            context.Response.StatusCode = 403;
-            await context.Response.WriteAsync($"Access denied: Invalid user type for user '{userId}'.");
-   return;
+            context.Response.Redirect("/egrants_default.htm");
+            return;
         }
 
         // Populate user session variables
         var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);
 
-      foreach (var usr in users)
-     {
+        foreach (var usr in users)
+        {
             context.Session.SetString("Validation", usr.Validation);
             context.Session.SetString("userid", usr.UserId);
-   context.Session.SetString("ic", usr.ic);
-    context.Session.SetInt32("Personid", usr.personID);
-       context.Session.SetInt32("position_id", usr.positionID);
+            context.Session.SetString("ic", usr.ic);
+            context.Session.SetInt32("Personid", usr.personID);
+            context.Session.SetInt32("position_id", usr.positionID);
             context.Session.SetString("UserName", usr.PersonName);
-         context.Session.SetString("UserEmail", usr.PersonEmail);
-     context.Session.SetString("Menus", usr.menulist);
+            context.Session.SetString("UserEmail", usr.PersonEmail);
+            context.Session.SetString("Menus", usr.menulist);
         }
 
         if (context.Session.GetString("Validation")?.ToString() != "OK")
         {
-    var logger = context.RequestServices.GetService<ILogger<Program>>();
-   logger?.LogWarning("Validation failed for user: {UserId}", userId);
-            context.Response.StatusCode = 403;
-   await context.Response.WriteAsync($"Access denied: Validation failed for user '{userId}'.");
-       return;
-      }
+            context.Response.Redirect("/egrants_default.htm");
+            return;
+        }
 
-      // Load app settings into session
+        // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
         context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
-    context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+        context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
         context.Session.SetInt32("dashboard", 0);
         context.Session.SetString("EgrantsDocNewRelativePath", builder.Configuration["AppSettings:egrantsDocNewRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsDocModifyRelativePath", builder.Configuration["AppSettings:egrantsDocModifyRelativePath"] ?? string.Empty);
@@ -474,14 +328,14 @@ if (!string.IsNullOrEmpty(siteMinderUser))
         context.Session.SetString("irpprAcceptance", builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty);
         context.Session.SetString("GitHubToken", builder.Configuration["AppSettings:GitHubToken"] ?? string.Empty);
         context.Session.SetString("CertPath", builder.Configuration["AppSettings:certPath"] ?? string.Empty);
-   context.Session.SetString("CertPass", builder.Configuration["AppSettings:certPass"] ?? string.Empty);
+        context.Session.SetString("CertPass", builder.Configuration["AppSettings:certPass"] ?? string.Empty);
         context.Session.SetString("EraUrlBase", builder.Configuration["AppSettings:eraUrlBase"] ?? string.Empty);
 
         egrantsCommon.UpdateUsersLastLoginDate(userId);
         string token = context.Session.GetString("GitHubToken")?.ToString() ?? string.Empty;
         var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
-      var latestRelease = latestReleaseFull.Split(' ')[0];
-     context.Session.SetString("Release", latestRelease);
+        var latestRelease = latestReleaseFull.Split(' ')[0];
+        context.Session.SetString("Release", latestRelease);
 
         var browserCookies = context.Request.Headers["Cookie"].ToString();
         context.Session.SetString("BrowserCookies", browserCookies);
