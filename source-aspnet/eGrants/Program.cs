@@ -1,1677 +1,458 @@
-﻿#region FileHeader
-
-// /****************************** Module Header ******************************\
-// Module Name:  EgrantsDocController.cs
-// Solution: egrants_new
-// Project:  egrants_new
-// Created: 2025-12-03
-// Contributors:
-//      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
-//      -
-// Copyright (c) National Institute of Health
-// 
-// <Description of the file>
-// 
-// This source is subject to the NIH Softwre License.
-// See https://ncihub.org/resources/899/download/Guidelines_for_Releasing_Research_Software_04062015.pdf
-// All other rights reserved.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
-// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT ARE DISCLAIMED. IN NO EVENT SHALL THE NATIONAL
-// CANCER INSTITUTE (THE PROVIDER), THE NATIONAL INSTITUTES OF HEALTH, THE
-// U.S. GOVERNMENT OR THE INDIVIDUAL DEVELOPERS BE LIABLE FOR ANY DIRECT,
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-// \***************************************************************************/
-
-#endregion
-
-#region
-using System.Net;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Web;
-
 using eGrants.Common;
-using eGrants.Functions;
-using eGrants.Models;
+using eGrants.DAL;
+using eGrants.Repositories;
+using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
-using eGrants.ViewModels;
 
-using EmailConcatenation;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OutputCaching;
-
-using MsgReader.Outlook;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.EntityFrameworkCore;
 
 using Serilog;
+
+using SimpleECommerceCore.Middleware;
+
+// Enable Serilog internal diagnostics. 
+// This logs Serilog’s own configuration or sink failures (not application logs) 
+// Useful only for troubleshooting when logs are not appearing as expected.
+var selfLogPath = Path.Combine(AppContext.BaseDirectory, "serilog-selflog.txt");
+
+Serilog.Debugging.SelfLog.Enable(message =>
+{
+    File.AppendAllText(selfLogPath, message + Environment.NewLine);
+});
+
+#region Setting up the database connection
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Register DbContext with connection string
+var raw = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Pull username/password from environment variables
+var user = builder.Configuration["DB_USER"];
+var password = builder.Configuration["DB_PASSWORD"];
+
+// Replace placeholders
+var finalConnectionString = raw
+    .Replace("{DB_USER}", user)
+    .Replace("{DB_PASSWORD}", password);
+
+// Use the final connection string
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(finalConnectionString));
 #endregion
 
-namespace eGrants.Controllers.Egrants
+#region Request Size Limits Configuration
+// ====================================================================================
+// LARGE FILE UPLOAD SUPPORT
+// ====================================================================================
+// These settings are required for the "Convert to PDF & Add" functionality.
+//
+// IMPORTANT: ERR_HTTP2_PROTOCOL_ERROR near the end of an upload is often caused by
+// upstream timeouts or the server/proxy closing the HTTP/2 stream while the request
+// body is still being sent.
+//
+// To reduce this:
+// - Increase Kestrel keep-alive / header timeouts (so slow uploads don't get cut off)
+// - Increase MaxRequestBodySize and multipart limits (so large bodies aren't rejected)
+//
+// We keep limits aligned to the legacy .NET Framework configuration (2GB).
+// ====================================================================================;
+
+// Configure Kestrel server limits for large file uploads
+builder.Services.Configure<KestrelServerOptions>(options =>
 {
-    /// <summary>
-    /// The egrants doc controller.
-    /// Handles document-related operations including viewing, uploading, creating, and modifying documents.
-    /// 
-    /// MIGRATION CHANGES SUMMARY:
-    /// -------------------------
-    /// This controller was migrated from egrants_new (.NET Framework 4.8) to .NET 8. Key changes:
-    /// 
-    /// 1. DEPENDENCY INJECTION:
-    ///    WHY: .NET 8 requires constructor-based DI instead of static helper classes.
-    ///    Legacy code used static classes like EgrantsDoc.LoadFormerAppls() directly.
-    ///    Now uses injected services (IDocumentService, IeGrantsService, etc.) for testability.
-    /// 
-    /// 2. SESSION INFO PROPERTY:
-    ///    WHY: Provides cleaner access to session data throughout the controller.
-    ///The sessionInfo property uses ISessionInfoService to abstract Session access,
-    ///    making the code more testable and consistent with .NET 8 patterns.
-    /// 
-    /// 3. SHOW_ERA_DOC ACTION CHANGES:
-    ///  WHY: Complete rewrite required due to .NET 8 HTTP client changes:
-    ///    - SocketsHttpHandler replaces HttpClientHandler for better TLS control
-    ///    - Explicit SslProtocols.Tls12 | Tls13 required (older protocols deprecated)
-    ///    - X509Certificate2 KeyStorageFlags (MachineKeySet, PersistKeySet, Exportable)
-    ///    are required for IIS/web app environments to properly load private keys
-    ///    - Comprehensive error handling with Serilog logging for diagnostics
-    /// 
-    /// 4. FILE UPLOAD CHANGES (IFormFile):
-    ///    WHY: ASP.NET Core uses IFormFile instead of HttpPostedFileBase.
-    ///    - IFormFile provides async streaming (CopyToAsync) for better performance
-    ///    - OpenReadStream() replaces InputStream property
-    ///    - File operations moved to service layer for separation of concerns
-    /// 
-    /// 5. PDF CONVERSION (EmailConcatenation.PdfConverter):
-    ///  WHY: The legacy Rotativa/ViewAsPdf approach doesn't work in .NET 8.
-    ///    EmailConcatenation.PdfConverter provides cross-platform PDF generation
-    ///    without requiring external browser dependencies.
-    /// 
-    /// 6. RESPONSE CACHING ATTRIBUTES:
-    ///    WHY: [OutputCache(NoStore = true)] replaced with [ResponseCache(...)]
-    ///    ASP.NET Core uses different caching attributes and middleware.
-    /// 
-    /// 7. CONFIGURATION ACCESS:
-    ///WHY: IConfiguration replaces ConfigurationManager.AppSettings
-    ///    .NET 8 uses appsettings.json and IConfiguration for settings access.
-    /// </summary>
-    public class EgrantsDocController : Controller
+    // Maximum request body size (2GB)
+    // This is the total size of the HTTP request body including file uploads
+    options.Limits.MaxRequestBodySize = 2147483648; //2GB
+
+    // TIMEOUTS (helps prevent HTTP/2 stream resets during slow uploads)
+    // - KeepAliveTimeout: how long to keep an idle connection open
+    // - RequestHeadersTimeout: how long to wait for request headers
+    // 
+    // Note: Uploads can take time on congested networks. If these are too low,
+    // the server or a proxy may terminate the connection mid-upload.
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
+
+    // Optional: allow more generous data rates for slow clients
+    // The defaults can be overly aggressive for some environments.
+    options.Limits.MinRequestBodyDataRate = new MinDataRate(bytesPerSecond: 100, gracePeriod: TimeSpan.FromSeconds(10));
+    options.Limits.MinResponseDataRate = new MinDataRate(bytesPerSecond: 100, gracePeriod: TimeSpan.FromSeconds(10));
+});
+
+// Configure IIS server limits (when hosted in IIS)
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    // Maximum request body size (2GB)
+    options.MaxRequestBodySize = 2147483648; //2GB
+});
+
+// Configure form options for multipart uploads (file uploads via form data)
+builder.Services.Configure<FormOptions>(options =>
+{
+    // Maximum length of the entire multipart body (2GB)
+    options.MultipartBodyLengthLimit = 2147483648; //2GB
+
+    // Maximum length of individual form values (50MB for large text fields)
+    options.ValueLengthLimit = 52428800; //50MB
+
+    // Maximum length of form key names
+    options.KeyLengthLimit = 2048;
+
+    // Maximum number of form entries (files + form fields)
+    options.ValueCountLimit = 1024;
+
+    // Maximum header section size
+    options.MultipartHeadersLengthLimit = 16384;
+});
+
+#endregion
+
+#region Service Configuration
+
+// System Web Adapters & HTTP utilities
+builder.Services.AddSystemWebAdapters();
+builder.Services.AddHttpForwarder();
+builder.Services.AddHttpContextAccessor();
+
+// Application Services & Repositories (Dependency Injection)
+builder.Services.AddScoped<EgrantsCommon>();
+builder.Services.AddScoped<IeGrantsService, eGrantsService>();
+builder.Services.AddScoped<IeGrantsRepository, eGrantsRepository>();
+builder.Services.AddScoped<ICommonService, CommonService>();
+builder.Services.AddScoped<ICommonRepository, CommonRepository>();
+builder.Services.AddScoped<ISessionInfoService, SessionInfoService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IInstitutionalFilesService, InstitutionalFilesService>();
+builder.Services.AddScoped<IInstitutionalFilesRepository, InstitutionalFilesRepository>();
+builder.Services.AddScoped<ICategoryEditService, CategoryEditService>();
+builder.Services.AddScoped<IManagementService, ManagementService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IReminderService, ReminderService>();
+builder.Services.AddScoped<IEgrantsAccessService, EgrantsAccessService>();
+builder.Services.AddScoped<IFlagMaintenanceService, FlagMaintenanceService>();
+builder.Services.AddScoped<IGPMATWorkReportService, GPMATWorkReportService>();
+builder.Services.AddScoped<IApplDestructedService, ApplDestructedService>();
+builder.Services.AddScoped<ISupplementService, SupplementService>();
+builder.Services.AddScoped<IEgrantsFundingService, EgrantsFundingService>();
+builder.Services.AddScoped<IApplService, ApplService>();
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
+// Session configuration
+builder.Services.AddDistributedMemoryCache(); // Required for session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+    options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
+    options.Cookie.IsEssential = true; // Make session cookie essential
+});
+
+#endregion
+
+#region Logging (Serilog)
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext();
+});
+
+#endregion
+
+var app = builder.Build();
+
+#region Middleware Pipeline
+
+// Global exception handling middleware
+app.UseMiddleware<ExceptionHandling>();
+
+// Enforce HSTS in non-development environments
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+#if !DEBUG
+ // Handles unhandled exceptions (500 errors)
+ app.UseExceptionHandler("/Error");
+
+ // Handles HTTP status codes (404,403, etc.)
+ app.UseStatusCodePagesWithReExecute("/Error/{0}");
+#endif
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+
+app.UseSession(); // Enable session middleware
+
+// TODO: Determine better way to handle getting user id information if possible
+
+// Middleware to initialize and validate the user session.
+//
+// - Strips server-identifying response headers.
+// - If no session user exists:
+//      • Resolve user ID from SiteMinder, Windows identity, or machine account.
+//    • Store IC code, browser type, and default view.
+//      • Load user type and profile via EgrantsCommon; redirect if invalid.
+//      • Populate session with user details and app configuration values.
+//      • Fetch latest GitHub release tag and store cookies.
+// - Continues request pipeline afterward.
+app.Use(async (context, next) =>
+{
+    // Remove unwanted headers
+    context.Response.OnStarting(() =>
     {
+        context.Response.Headers.Remove("Server");
+        context.Response.Headers.Remove("X-AspNetMvc-Version");
+        context.Response.Headers.Remove("X-AspNet-Version");
+        context.Response.Headers.Remove("X-UA-Compatible");
+        return Task.CompletedTask;
+    });
 
-        private readonly IeGrantsService _eGrantsService;
-        private readonly IDocumentService _documentService;
-        private readonly ICommonService _commonService;
-        private readonly IApplService _applService;
-        private readonly ISessionInfoService _sessionInfoService;
-        private readonly IConfiguration _configuration;
-        private readonly EgrantsCommon _egrantsCommon;
+    if (string.IsNullOrEmpty(context.Session.GetString("userid")))
+    {
+        // ===================================================================================
+        // SITEMINDER BYPASS CONFIGURATION
+        // ===================================================================================
+        // When enabled, completely bypasses SiteMinder authentication.
+        // The SiteMinder header will NOT be checked at all when bypass is enabled.
+        // Configure in appsettings.json:
+        //   "SiteMinderBypass": {
+        //       "Enabled": true,
+        //       "AllowedUsers": ["user1", "user2"]
+        //   }
+        // 
+        // IMPORTANT: This should only be enabled in development/test environments.
+        // In production, set "Enabled": false to require SiteMinder authentication.
+        //
+        // NOTE: When bypass is enabled, ONLY users in the AllowedUsers list can access
+        // the application. Environment.UserName is NOT used as it returns the app pool
+        // identity, not the actual user.
+        // ===================================================================================
 
-        private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
+        var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
+        var allowedUsers = builder.Configuration.GetSection("SiteMinderBypass:AllowedUsers").Get<string[]>() ?? Array.Empty<string>();
 
-        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IApplService applService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null)
+        string userId = string.Empty;
+        bool bypassUsed = false;
+
+        if (bypassEnabled)
         {
-            _eGrantsService = eGrantsService;
-            _commonService = commonService;
-            _sessionInfoService = sessionInfoService;
-            _documentService = documentService;
-            _configuration = configuration;
-            _egrantsCommon = egrantsCommon;
-            _applService = applService;
-        }
+            // ===================================================================================
+            // BYPASS MODE: Skip SiteMinder entirely
+            // ===================================================================================
+            // When bypass is enabled, we do NOT check the SiteMinder header at all.
+            // 
+            // User identification methods (in order of priority):
+            // 1. X-Dev-User HTTP header (for API tools like Postman)
+            // 2. dev_user query parameter (for browser testing: ?dev_user=username)
+            // 3. First user in AllowedUsers list (default fallback)
+            //
+            // The identified user must be in the AllowedUsers list to gain access.
+            // ===================================================================================
 
-        // GET: Egrants
-        /// <summary>
-        /// The report error index.
-        /// </summary>
-        /// <param name="document_id">
-        /// The document_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public ActionResult ReportErrorIndex(int document_id)
-        {
-            this.ViewBag.DocID = 1; // document_id;
-
-            return this.View("~/Views/Egrants/_Modal_Report_Error.cshtml");
-        }
-
-        /// <summary>
-        /// The report error.
-        /// </summary>
-        /// <param name="errormsg">
-        /// The errormsg.
-        /// </param>
-        /// <param name="document_id">
-        /// The document_id.
-        /// </param>
-        /// <param name="currenturl">
-        /// The currenturl.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public ActionResult ReportError(string errormsg, int document_id, string currenturl)
-        {
-            this.ViewBag.DocID = document_id;
-            this.ViewBag.Errormsg = errormsg;
-            _documentService.report_doc_error(errormsg, document_id, sessionInfo.Ic, sessionInfo.UserId);
-
-            return this.Redirect(currenturl);
-        }
-
-
-        /// <summary>
-        /// Show ERA document by retrieving temporary download link
-        /// </summary>
-        /// <param name="docurl">The document URL</param>
-        /// <returns>Redirect to temporary download link or error view</returns>
-        public async Task<IActionResult> show_era_doc(string docurl)
-        {
-            try
+            if (allowedUsers.Length == 0)
             {
-                if (string.IsNullOrWhiteSpace(docurl))
-                {
-                    Log.Error("show_era_doc called with null or empty docurl");
-                    return BadRequest("Document URL is required.");
-                }
-
-                var certPath = _configuration["AppSettings:certPath"];
-                var certPass = _configuration["AppSettings:certPass"];
-
-                if (string.IsNullOrEmpty(certPath) || !System.IO.File.Exists(certPath))
-                {
-                    Log.Error("Certificate not found at path: {CertPath}", certPath);
-                    return StatusCode(500, "Server configuration error: Certificate not found.");
-                }
-
-                // Load certificate with proper key storage flags for ASP.NET Core / .NET 8
-                var certificate = new X509Certificate2(
-                    certPath,
-                    certPass,
-                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
-
-                Log.Information("Certificate loaded successfully. Subject: {Subject}, HasPrivateKey: {HasPrivateKey}",
-                    certificate.Subject, certificate.HasPrivateKey);
-
-                // Use SocketsHttpHandler for better TLS control in .NET 8
-                var handler = new SocketsHttpHandler
-                {
-                    SslOptions = new System.Net.Security.SslClientAuthenticationOptions
-                    {
-                        EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
-                        ClientCertificates = new X509Certificate2Collection { certificate },
-                        RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
-                        {
-                            // Log certificate validation details for debugging
-                            if (errors != System.Net.Security.SslPolicyErrors.None)
-                            {
-                                Log.Warning("SSL Certificate validation warning: {Errors}", errors);
-                            }
-                            return true; // Accept the server certificate (adjust as needed for security)
-                        }
-                    },
-                    AllowAutoRedirect = false
-                };
-
-                using var client = new HttpClient(handler);
-                client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
-                client.Timeout = TimeSpan.FromSeconds(30);
-
-                Log.Information("Requesting ERA document: {DocUrl}, Certificate HasPrivateKey: {HasPrivateKey}",
-                    docurl, certificate.HasPrivateKey);
-
-                var response = await client.GetAsync(docurl);
-
-                Log.Information("ERA response status: {StatusCode}", response.StatusCode);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    var truncatedContent = errorContent.Length > 200
-                        ? errorContent.Substring(0, 200)
-                        : errorContent;
-                    Log.Error("ERA request failed. Status: {Status}, Content: {Content}",
-                        response.StatusCode, truncatedContent);
-
-                    return StatusCode((int)response.StatusCode,
-     $"Failed to retrieve document from ERA. Status: {response.StatusCode}");
-                }
-
-                var tempLink = await response.Content.ReadAsStringAsync();
-                tempLink = tempLink?.Trim();
-
-                if (string.IsNullOrWhiteSpace(tempLink))
-                {
-                    Log.Error("ERA returned empty or null temporary link for URL: {DocUrl}", docurl);
-                    return StatusCode(502, "ERA service returned an empty response.");
-                }
-
-                // Validate that the response looks like a URL
-                if (!Uri.TryCreate(tempLink, UriKind.Absolute, out var validatedUri) ||
-                    (validatedUri.Scheme != Uri.UriSchemeHttp && validatedUri.Scheme != Uri.UriSchemeHttps))
-                {
-                    Log.Error("ERA returned invalid URL: {TempLink} for DocUrl: {DocUrl}",
-                        tempLink.Length > 200 ? tempLink.Substring(0, 200) : tempLink, docurl);
-                    return StatusCode(502, "ERA service returned an invalid response.");
-                }
-
-                Log.Information("Redirecting to temporary link: {TempLink}", tempLink);
-
-                return Redirect(tempLink);
-            }
-            catch (TaskCanceledException ex)
-            {
-                Log.Error(ex, "Request timeout in show_era_doc for URL: {DocUrl}", docurl);
-                return StatusCode(504, "Request to ERA service timed out.");
-            }
-            catch (HttpRequestException ex)
-            {
-                Log.Error(ex, "HTTP request error in show_era_doc for URL: {DocUrl}", docurl);
-                return StatusCode(502, "Failed to connect to ERA service.");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Unexpected error in show_era_doc for URL: {DocUrl}", docurl);
-                return StatusCode(500, "An unexpected error occurred while retrieving the document.");
-            }
-        }
-
-        public async Task<ActionResult> LoadSupplementDoc(string act, int grantId)
-        {
-            //this.ViewBag.FormerAppls = EgrantsDoc.LoadFormerAppls(grant_id);
-            List<supplement> supplements = await _eGrantsService.GetSupplements(act,
-                grantId,
-                0,
-                string.Empty,
-                string.Empty,
-                0,
-                sessionInfo.Ic,
-                sessionInfo.UserId);
-
-            SupplementObjectViewModel supplementObjectViewModel = new SupplementObjectViewModel();
-
-            supplementObjectViewModel.GrantID = grantId;
-            supplementObjectViewModel.Act = act;
-            supplementObjectViewModel.Supplement = supplements;
-            supplementObjectViewModel.FormerAppls = await _documentService.loadFormerAppls(grantId);
-
-            return View("~/Views/eGrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
-        }
-
-        /// <summary>
-        /// The process supplement doc.
-        /// </summary>
-        /// <param name="act">
-        /// The act.
-        /// </param>
-        /// <param name="grant_id">
-        /// The grant_id.
-        /// </param>
-        /// <param name="support_year">
-        /// The support_year.
-        /// </param>
-        /// <param name="suffix_code">
-        /// The suffix_code.
-        /// </param>
-        /// <param name="former_applid">
-        /// The former_applid.
-        /// </param>
-        /// <param name="docid_str">
-        /// The docid_str.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> ProcessSupplementDoc(string act, int grant_id, int support_year, string suffix_code, int former_applid, string docid_str)
-        {
-            ViewBag.Status = "Done";
-            ViewBag.GrantID = grant_id;
-            ViewBag.FormerAppls = await _documentService.loadFormerAppls(grant_id);
-
-            ViewBag.Supplement = _eGrantsService.GetSupplements(
-                act,
-                grant_id,
-                support_year,
-                suffix_code,
-                docid_str,
-                former_applid,
-                sessionInfo.Ic,
-                sessionInfo.UserId);
-
-            SupplementObjectViewModel supplementObjectViewModel = new SupplementObjectViewModel();
-
-            supplementObjectViewModel.GrantID = grant_id;
-            supplementObjectViewModel.Act = act;
-            supplementObjectViewModel.Supplement = ViewBag.Supplement;
-            supplementObjectViewModel.FormerAppls = await _documentService.loadFormerAppls(grant_id);
-
-            return this.View("~/Views/Egrants/_Modal_Supplement.cshtml", supplementObjectViewModel);
-        }
-
-        /// <summary>
-        /// The load supplement.
-        /// </summary>
-        /// <param name="act">
-        /// The act.
-        /// </param>
-        /// <param name="grant_id">
-        /// The grant_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> LoadSupplement(string act, int grantId)
-        {
-            List<supplement> supplements = await _eGrantsService.GetSupplements(act,
-                grantId,
-                0,
-                string.Empty,
-                string.Empty,
-                0,
-                sessionInfo.Ic,
-                sessionInfo.UserId);
-
-            SupplementObjectViewModel supplementObjectViewModel = new SupplementObjectViewModel();
-
-            supplementObjectViewModel.GrantID = grantId;
-            supplementObjectViewModel.Act = act;
-            supplementObjectViewModel.Supplement = supplements;
-            supplementObjectViewModel.FormerAppls = await _documentService.loadFormerAppls(grantId);
-
-            return View("~/Views/eGrants/Supplement.cshtml", supplementObjectViewModel);
-        }
-
-        public async Task<ActionResult> ProcessSupplement(string act, int grantId, int supportYear, string suffixCode, int formerApplId, string docIdStr)
-        {
-            List<supplement> supplements = await _eGrantsService.GetSupplements(act,
-                grantId,
-                supportYear,
-                suffixCode,
-                docIdStr,
-                formerApplId,
-                sessionInfo.Ic,
-                sessionInfo.UserId);
-
-            SupplementObjectViewModel supplementObjectViewModel = new SupplementObjectViewModel();
-
-            supplementObjectViewModel.GrantID = grantId;
-            supplementObjectViewModel.Supplement = supplements;
-            supplementObjectViewModel.FormerAppls = await _documentService.loadFormerAppls(grantId);
-            supplementObjectViewModel.Status = "Done";
-
-            return View("~/Views/eGrants/Supplement.cshtml", supplementObjectViewModel);
-        }
-
-        // modify doc for delete, store or modify doc index
-        /// <summary>
-        /// The doc_modify.
-        /// </summary>
-        /// <param name="act">
-        /// The act.
-        /// </param>
-        /// <param name="docids">
-        /// The docids.
-        /// </param>
-        public void doc_modify(string act, string docids)
-        {
-            ViewBag.Status = "Done";
-            _documentService.DocModify(act, 0, 0, string.Empty, string.Empty, docids, string.Empty, sessionInfo.Ic, sessionInfo.UserId);
-        }
-
-        // to create new doc
-        /// <summary>
-        /// The doc_create_with_applid.
-        /// </summary>
-        /// <param name="act">
-        /// The act.
-        /// </param>
-        /// <param name="admin_code">
-        /// The admin_code.
-        /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
-        /// </param>
-        /// <param name="appl_id">
-        /// The appl_id.
-        /// </param>
-        /// <param name="document_id">
-        /// The document_id.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="sub_category">
-        /// The sub_category.
-        /// </param>
-        /// <param name="document_date">
-        /// The document_date.
-        /// </param>
-        /// <param name="previous_url">
-        /// The previous_url.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        [HttpGet]
-        public async Task<ActionResult> doc_create_with_applid(
-            string act,
-            string admin_code,
-            int serial_num,
-            int appl_id = 0,
-            int document_id = 0,
-            int category_id = 0,
-            string sub_category = "",
-            string document_date = "",
-            string previous_url = "")
-        {
-            var userId = sessionInfo.UserId;
-            if (userId == "hindsrr")
-            {
-                sessionInfo.Ic = "NCI";
+                // No allowed users configured - deny access
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogError("SiteMinder bypass is enabled but no AllowedUsers are configured. Access denied.");
+                context.Response.Redirect("/egrants_default.htm");
+                return;
             }
 
-            eGrantsDocCreateViewModel eDocViewModel = new eGrantsDocCreateViewModel();
-            eDocViewModel.Act = "Add";
-            eDocViewModel.AdminCode = admin_code;
-            eDocViewModel.SerialNum = serial_num;
-            eDocViewModel.ApplId = appl_id;
-            eDocViewModel.PreviousUrl = previous_url;
-            eDocViewModel.AdminCodeList = await _commonService.LoadAdminCodes();
-            eDocViewModel.CategoryList = await _documentService.LoadCategories(sessionInfo.Ic); // load categories that could only be upload
-            eDocViewModel.SubCategoryList = await _documentService.LoadSubCategoryList();
-            eDocViewModel.MaxCategoryId = await _documentService.GetMaxCategoryid(sessionInfo.Ic);
+            string? requestedUser = null;
 
-            return this.View("~/Views/Egrants/EgrantsDocCreate.cshtml", eDocViewModel);
-        }
-
-        // create new doc without selected appl_id
-        /// <summary>
-        /// The doc_create_without_applid.
-        /// </summary>
-        /// <param name="previousUrl">
-        /// The previous_url.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        [HttpGet]
-        public async Task<ActionResult> doc_create_without_applid(string previousUrl = "")
-        {
-            /*
-            This code was added to hardcode IC for non-nci user to access file uploading/viewing page
-            It was removed on request. This code can potentially be used in the future to hardcode
-            access for non-nci employees (Replace "hindsrr" with user id of the user in question)
-
-            var userId = Convert.ToString(this.Session["userid"]);
-            if (userId == "hindsrr")
+            // Method 1: Check X-Dev-User header (useful for API testing tools)
+            if (context.Request.Headers.TryGetValue("X-Dev-User", out var headerUser) && !string.IsNullOrWhiteSpace(headerUser))
             {
-                this.Session["ic"] = "NCI";
+                requestedUser = headerUser.ToString().Trim();
+            } 
+            // Method 2: Check dev_user query parameter (useful for browser testing)
+            else if (context.Request.Query.TryGetValue("dev_user", out var queryUser) && !string.IsNullOrWhiteSpace(queryUser))
+            {
+                requestedUser = queryUser.ToString().Trim();
+                
+                // Store in session so subsequent requests don't need the query param
+                context.Session.SetString("dev_user_override", requestedUser);
             }
-            */
-
-            eGrantsDocCreateViewModel eDocViewModel = await _documentService.DocCreateWithoutApplIdAsync(previousUrl, sessionInfo);
-
-            return View("~/Views/Egrants/EgrantsDocCreate.cshtml", eDocViewModel);
-
-        }
-
-
-        [HttpPost]
-        public async Task<ActionResult> doc_create_by_file(IFormFile file, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
-        {
-            var result = await _documentService.DocCreateByFileAsync(file, appl_id, category_id,
-                sub_category, doc_date, admin_code, serial_num, sessionInfo);
-
-            return Json(new { url = result.Url, message = result.Message });
-        }
-
-
-        // to create doc by file input
-        /// <summary>
-        /// The doc_create_pdf_by_file.
-        /// </summary>
-        /// <param name="file">
-        /// The file.
-        /// </param>
-        /// <param name="appl_id">
-        /// The appl_id.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="sub_category">
-        /// The sub_category.
-        /// </param>
-        /// <param name="doc_date">
-        /// The doc_date.
-        /// </param>
-        /// <param name="admin_code">
-        /// The admin_code.
-        /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        /// <remarks>
-        /// MIGRATION NOTE: Added [RequestSizeLimit] and [RequestFormLimits] attributes to support 
-        /// large file uploads (1MB+). Without these, uploads fail with ERR_HTTP2_PROTOCOL_ERROR.
-        /// </remarks>
-        [HttpPost]
-        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
-        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
-        public ActionResult doc_create_pdf_by_file(
-            IEnumerable<IFormFile> files,
-            int appl_id,
-            int category_id,
-            string sub_category,
-            DateTime doc_date,
-            string admin_code,
-            int serial_num)
-        {
-            var docName = string.Empty;
-            string url = null;
-            string mssg = null;
-            string fileExtension = string.Empty;
-            var pdfDocs = new List<PdfDocument>();
-            var converter = new EmailConcatenation.PdfConverter();
-
-            if (files != null && files.Any())
-            {
-                try
-                {
-                    var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(files);
-
-                    foreach (var file in files)
-                    {
-                        // get file name and file Extension
-                        var fileName = Path.GetFileName(file.FileName);
-                        fileExtension = Path.GetExtension(fileName);
-
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(file.OpenReadStream()))
-                        {
-                            fileData = binaryReader.ReadBytes((int)file.Length);
-                        }
-
-                        PdfDocument pdfResult = null;
-
-                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                var emailFile = new Storage.Message(memoryStream);
-                                pdfResult = converter.Convert(emailFile);
-                            }
-                        }
-                        else
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                pdfResult = converter.Convert(memoryStream, file.FileName);
-                            }
-                        }
-
-                        if (pdfResult != null)
-                        {
-                            pdfDocs.Add(pdfResult);
-                        }
-                    }
-                    fileExtension = ".pdf";
-
-                    var sb = new StringBuilder();
-                    if (pdfDocs.Any())
-                    {
-                        // get document_id and creat a new docName
-                        var document_id = _documentService.GetDocID(
-                            appl_id,
-                            category_id,
-                            sub_category,
-                            doc_date,
-                            fileExtension,
-                            Convert.ToString(sessionInfo.Ic),
-                            Convert.ToString(sessionInfo.UserId));
-
-                        docName = Convert.ToString(document_id) + fileExtension;
-
-                        // upload to image sever 
-#if DEBUG
-                        var fileFolder = @"C:\PdfFileOutput\";
-#else
-                        var fileFolder = @"\\" + HttpContext.Session.GetString("WebGrantUrl") + "\\egrants\\funded2\\nci\\main\\";
-
-#endif
-                        // leave in place for now for local testing
-
-
-                        var filePath = Path.Combine(fileFolder, docName);
-
-                        var pdfDoc = PdfDocument.Merge(pdfDocs);
-                        pdfDoc.SaveAs(filePath);
-
-                        // create review url
-                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath") + Convert.ToString(docName);
-                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
-                    }
-                    else
-                    {
-                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
-                    }
-
-
-                    if (unsupportedFilesList.Count > 0)
-                    {
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-                        foreach (var unsupportedFile in unsupportedFilesList)
-                        {
-                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-                        }
-                    }
-
-                    url = this.ViewBag.FileUrl;
-                    mssg = sb.ToString();
-                }
-                catch (Exception ex)
-                {
-                    mssg = "ERROR: The file could not be converted!";
-
-
-                }
-            }
-            else
-                mssg = "You have not specified a file.";
-
-            return this.Json(new { url, message = mssg });
-        }
-
-        // to create doc by dragdrop
-        /// <summary>
-        /// The convert_to_pdf_by_ddrop.
-        /// </summary>
-        /// <param name="dropedfiles">
-        /// The dropedfiles.
-        /// </param>
-        /// <param name="appl_id">
-        /// The appl_id.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="sub_category">
-        /// The sub_category.
-        /// </param>
-        /// <param name="doc_date">
-        /// The doc_date.
-        /// </param>
-        /// <param name="admin_code">
-        /// The admin_code.
-        /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        /// <remarks>
-        /// MIGRATION NOTE: Added [RequestSizeLimit] and [RequestFormLimits] attributes to support 
-        /// large file uploads (1MB+). Without these, uploads fail with ERR_HTTP2_PROTOCOL_ERROR.
-        /// The .NET Framework version didn't need these because web.config handled the limits globally.
-        /// In ASP.NET Core, these limits must be configured both globally (Program.cs) and per-action.
-        /// 
-        /// PERFORMANCE OPTIMIZATION (2025):
-        /// - Uses async streaming to avoid loading entire files into memory
-        /// - Processes files in parallel using Parallel.ForEach with controlled concurrency
-        /// - Streams files directly to temp disk storage instead of memory buffers
-        /// - Combines unsupported file detection with conversion in single pass
-        /// - Uses file-based PDF merging to reduce memory pressure for large files
-        /// </remarks>
-        [HttpPost]
-        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
-        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
-        public async Task<ActionResult> convert_to_pdf_by_ddrop(
-            IEnumerable<IFormFile> dropedfiles,
-            int appl_id,
-            int category_id,
-            string sub_category,
-            DateTime doc_date,
-            string admin_code,
-            int serial_num)
-        {
-            string url = null;
-            string mssg = null;
-            string fileExtension = ".pdf";
-            var sb = new StringBuilder();
-
-            // Thread-safe collections for parallel processing
-            var tempPdfPaths = new System.Collections.Concurrent.ConcurrentBag<(string Path, int Index)>();
-            var unsupportedFilesList = new System.Collections.Concurrent.ConcurrentBag<string>();
-
-            if (dropedfiles == null || !dropedfiles.Any())
-            {
-                return Json(new { url, message = "You have not specified a file." });
-            }
-
-            try
-            {
-                // Convert to list to allow indexed access for ordering
-                var filesList = dropedfiles.ToList();
-
-                // Process files in parallel with controlled concurrency
-                // Use MaxDegreeOfParallelism to prevent overwhelming system resources
-                var parallelOptions = new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = Math.Min(Environment.ProcessorCount, 4)
-                };
-
-                await Task.Run(() =>
-           {
-               Parallel.ForEach(filesList.Select((file, index) => (file, index)), parallelOptions, item =>
-   {
-       var (dropedfile, fileIndex) = item;
-       var fileName = Path.GetFileName(dropedfile.FileName);
-       var ext = Path.GetExtension(fileName);
-
-       if (dropedfile.Length <= 0)
+             // Method 3: Check if we previously stored a dev_user in session
+         else if (!string.IsNullOrEmpty(context.Session.GetString("dev_user_override")))
        {
-           Log.Warning("Empty file skipped: {File}", fileName);
-           return;
-       }
+   requestedUser = context.Session.GetString("dev_user_override");
+   }
 
-       // Check for unsupported file types inline (avoid double-read)
-       if (!IsSupportedFileType(ext))
+    // Validate and match the user against AllowedUsers
+            if (!string.IsNullOrEmpty(requestedUser))
+     {
+        var matchedUser = allowedUsers.FirstOrDefault(u =>
+        string.Equals(u, requestedUser, StringComparison.OrdinalIgnoreCase));
+
+   if (matchedUser != null)
        {
-           unsupportedFilesList.Add(fileName);
-           return;
-       }
-
-       try
-       {
-           // Create a thread-local converter (PdfConverter may not be thread-safe)
-           var converter = new EmailConcatenation.PdfConverter();
-           PdfDocument pdfResult = null;
-
-           // Stream file to temp location to minimize memory usage for large files
-           var tempInputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{ext}");
-
-           try
-           {
-               // Stream directly to disk for large files (>10MB), otherwise use memory
-               if (dropedfile.Length > 10 * 1024 * 1024) // 10MB threshold
-               {
-                   using (var fileStream = new FileStream(tempInputPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: false))
-                   {
-                       using var uploadStream = dropedfile.OpenReadStream();
-                       uploadStream.CopyTo(fileStream);
-                   }
-
-                   // Convert from file - need to read back into memory for converter
-                   if (ext.Equals(".msg", StringComparison.OrdinalIgnoreCase))
-                   {
-                       using var msgStream = new FileStream(tempInputPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                       var emailFile = new Storage.Message(msgStream);
-
-                       // Check for unsupported attachments in MSG files
-                       CollectUnsupportedAttachments(emailFile, unsupportedFilesList);
-
-                       pdfResult = converter.Convert(emailFile);
-                   }
-                   else
-                   {
-                       // PdfConverter requires MemoryStream, so read file back into memory
-                       // This is still more efficient for very large files as we stream to disk first
-                       // which prevents ASP.NET from buffering the entire upload in memory
-                       var fileBytes = System.IO.File.ReadAllBytes(tempInputPath);
-                       using var memStream = new MemoryStream(fileBytes);
-                       pdfResult = converter.Convert(memStream, fileName);
-                   }
-               }
-               else
-               {
-                   // For smaller files, use memory stream (faster for small files)
-                   using var memoryStream = new MemoryStream();
-                   using (var uploadStream = dropedfile.OpenReadStream())
-                   {
-                       uploadStream.CopyTo(memoryStream);
-                   }
-                   memoryStream.Position = 0;
-
-                   if (ext.Equals(".msg", StringComparison.OrdinalIgnoreCase))
-                   {
-                       var emailFile = new Storage.Message(memoryStream);
-
-                       // Check for unsupported attachments in MSG files
-                       CollectUnsupportedAttachments(emailFile, unsupportedFilesList);
-
-                       pdfResult = converter.Convert(emailFile);
-                   }
-                   else
-                   {
-                       pdfResult = converter.Convert(memoryStream, fileName);
-                   }
-               }
-
-               // Save PDF to temp file immediately to free memory
-               if (pdfResult != null)
-               {
-                   var tempPdfPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.pdf");
-                   pdfResult.SaveAs(tempPdfPath);
-                   pdfResult.Dispose();
-
-                   // Store with index to maintain original order
-                   tempPdfPaths.Add((tempPdfPath, fileIndex));
-               }
-           }
-           finally
-           {
-               // Clean up temp input file
-               if (System.IO.File.Exists(tempInputPath))
-               {
-                   try { System.IO.File.Delete(tempInputPath); }
-                   catch { /* Ignore cleanup errors */ }
-               }
-           }
-       }
-       catch (Exception ex)
-       {
-           Log.Warning(ex, "Failed to convert file: {FileName}", fileName);
-           unsupportedFilesList.Add($"{fileName} (conversion failed)");
-       }
-   });
-           });
-
-                // Sort by original index to maintain file order
-                var orderedPdfPaths = tempPdfPaths.OrderBy(x => x.Index).Select(x => x.Path).ToList();
-
-                if (orderedPdfPaths.Any())
-                {
-                    // Create final document
-                    var document_id = _documentService.GetDocID(
-                    appl_id,
-                        category_id,
-                    sub_category,
-                       doc_date,
-                   fileExtension,
-               sessionInfo.Ic,
-                 sessionInfo.UserId);
-
-                    var docName = $"{document_id}.pdf";
-
-#if DEBUG
-                    var fileFolder = "C:\\PdfFileOutput\\";
-#else
-   var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) +
-       "\\egrants\\funded2\\nci\\main\\";
-#endif
-
-                    var filePath = Path.Combine(fileFolder, docName);
-
-                    Log.Information("Merging PDFs. ApplId={ApplId}, DocId={DocId}, Count={Count}",
-                   appl_id, document_id, orderedPdfPaths.Count);
-
-                    // Merge PDFs from files (memory efficient)
-                    var pdfDocs = orderedPdfPaths
-                 .Select(path => PdfDocument.FromFile(path))
-                       .ToList();
-
-                    var mergedPdf = PdfDocument.Merge(pdfDocs);
-                    mergedPdf.SaveAs(filePath);
-
-                    // Cleanup merged objects
-                    mergedPdf.Dispose();
-                    foreach (var doc in pdfDocs)
-                    {
-                        doc.Dispose();
-                    }
-
-                    // Build response URL
-                    this.ViewBag.FileUrl =
-               sessionInfo.ImageServerUrl +
-                   HttpContext.Session.GetString("EgrantsDocNewRelativePath") +
-                   docName;
-
-                    sb.Append("Done! New document has been created**#7|n3br3@k#**");
-                }
+    userId = matchedUser;
+           var loggerMatch = context.RequestServices.GetService<ILogger<Program>>();
+         loggerMatch?.LogInformation("SiteMinder bypass: User '{UserId}' authenticated via header/query parameter", userId);
+          }
                 else
                 {
-                    sb.Append("No documents were found to convert**#7|n3br3@k#**");
-                }
-
-                // Add unsupported files message
-                var unsupportedList = unsupportedFilesList.ToList();
-                if (unsupportedList.Count > 0)
-                {
-                    sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-                    foreach (var unsupportedFile in unsupportedList)
-                    {
-                        sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-                    }
-                }
-
-                url = this.ViewBag.FileUrl;
-                mssg = sb.ToString();
+   // Requested user not in allowed list - deny access
+  var logger = context.RequestServices.GetService<ILogger<Program>>();
+    logger?.LogWarning("SiteMinder bypass: Requested user '{RequestedUser}' is not in AllowedUsers list. Access denied.", requestedUser);
+     context.Response.Redirect("/egrants_default.htm");
+  return;
             }
-            catch (Exception ex)
+  }
+      else
+  {
+      // No user specified - use first user in the list as default
+          userId = allowedUsers[0];
+     var loggerDefault = context.RequestServices.GetService<ILogger<Program>>();
+      loggerDefault?.LogInformation("SiteMinder bypass: No user specified, using default: {UserId}", userId);
+            }
+
+            bypassUsed = true;
+        }
+     else
+        {
+            // ===================================================================================
+            // NORMAL MODE: Use SiteMinder authentication
+            // ===================================================================================
+            // When bypass is NOT enabled, check the SiteMinder header for the user.
+            // ===================================================================================
+
+            string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
+
+            if (!string.IsNullOrEmpty(siteMinderUser))
             {
-                Log.Error(ex,
-              "convert_to_pdf_by_ddrop failed. ApplId={ApplId}, CategoryId={CategoryId}",
-                 appl_id, category_id);
-
-                mssg = "ERROR: The file could not be converted!";
-            }
-            finally
-            {
-                // Clean up all temp PDF files
-                foreach (var (path, _) in tempPdfPaths)
-                {
-                    try
-                    {
-                        if (System.IO.File.Exists(path))
-                            System.IO.File.Delete(path);
-                    }
-                    catch (Exception cleanupEx)
-                    {
-                        Log.Warning(cleanupEx, "Failed to delete temp file: {Path}", path);
-                    }
-                }
-            }
-
-            return Json(new { url, message = mssg });
-        }
-
-        /// <summary>
-        /// Checks if the file extension is a supported type for PDF conversion.
-        /// </summary>
-        private static readonly HashSet<string> SupportedFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ".pdf", ".txt", ".doc", ".docx", ".msg", ".rtf",
-            ".jpg", ".jpeg", ".png", ".gif", ".tif",
-          ".html", ".htm", ".log", ".dat"
-     };
-
-        private static bool IsSupportedFileType(string extension)
-        {
-            return SupportedFileExtensions.Contains(extension);
-        }
-
-        /// <summary>
-        /// Collects unsupported attachment filenames from MSG email files.
-        /// </summary>
-        private static void CollectUnsupportedAttachments(Storage.Message emailFile, System.Collections.Concurrent.ConcurrentBag<string> unsupportedFiles)
-        {
-            foreach (var attachment in emailFile.Attachments)
-            {
-                if (attachment is Storage.Attachment storageAttachment)
-                {
-                    var attachExt = Path.GetExtension(storageAttachment.FileName);
-                    if (!IsSupportedFileType(attachExt))
-                    {
-                        unsupportedFiles.Add(storageAttachment.FileName);
-                    }
-                }
-                else if (attachment is Storage.Message messageAttachment)
-                {
-                    // Recursively check nested message attachments
-                    CollectUnsupportedAttachments(messageAttachment, unsupportedFiles);
-                }
+                userId = siteMinderUser;
             }
         }
 
-        // string full_grant_num, int appl_id, string full_grant_num, int appl_id, 
-        /// <summary>
-        /// The doc_upload_default.
-        /// </summary>
-        /// <param name="docId">
-        /// The docId.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> doc_upload_default(int docId)
+        // If still no userId (SiteMinder mode but no header), deny access
+        if (string.IsNullOrEmpty(userId))
         {
-            eGrantsDocUploadViewModel eDocViewModel = await _documentService.DocUploadDefaultAsync(docId);
-
-            return View("~/Views/Egrants/EgrantsDocUpload.cshtml", eDocViewModel);
+            var logger = context.RequestServices.GetService<ILogger<Program>>();
+            logger?.LogWarning("No user identity found. SiteMinder header missing or empty.");
+            context.Response.Redirect("/egrants_default.htm");
+            return;
         }
 
-        // to show doc upload modal default
-        /// <summary>
-        /// The doc_upload_modal.
-        /// </summary>
-        /// <param name="doc_id">
-        /// The doc_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> doc_upload_modal(int doc_id)
-        {
-            this.ViewBag.DocId = doc_id;
-            this.ViewBag.DocInfo = await _documentService.GetDocInfo(doc_id);
+        context.Session.SetString("userid", userId);
 
-            return this.View("~/Views/Egrants/_Modal_Doc_Upload.cshtml");
+        // Store bypass flag in session for potential audit/display purposes
+        if (bypassUsed)
+        {
+            context.Session.SetString("SiteMinderBypassed", "true");
         }
 
-        /// <summary>
-        /// Upload document by file.
-        /// </summary>
-        /// <param name="file">The file to upload.</param>
-        /// <param name="doc_id">The document ID.</param>
-        /// <returns>JSON result with upload status.</returns>
-        [HttpPost]
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public async Task<IActionResult> doc_upload_by_file(IFormFile file, int doc_id)
-        {
-            var result = await _documentService.DocUploadByFileAsync(file, doc_id, sessionInfo);
+        // Capture IC (Institute/Org Code)
+        var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
+        context.Session.SetString("ic", ic);
 
-            return Json(new { url = result.Url, message = result.Message });
+        // Detect browser from User-Agent
+        var userAgent = context.Request.Headers["User-Agent"].ToString();
+        string browserName = userAgent.Contains("Chrome") ? "Chrome" :
+ userAgent.Contains("Firefox") ? "Firefox" :
+ (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
+ userAgent.Contains("Edg") ? "Edge" :
+ (userAgent.Contains("MSIE") || userAgent.Contains("Trident")) ? "Internet Explorer" :
+ "Unknown";
+
+        context.Session.SetString("browser", browserName);
+        context.Session.SetString("CurrentView", "standardForm");
+
+        // Resolve EgrantsCommon service
+        var egrantsCommon = context.RequestServices.GetRequiredService<EgrantsCommon>();
+
+        var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
+
+        if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
+        {
+            context.Response.Redirect("/egrants_default.htm");
+            return;
         }
 
-        // to upload doc by pdf file --added at 4/15/2019 FOR REFRESH AFTER UPLOAD
-        /// <summary>
-        /// The doc_upload_pdf_by_file.
-        /// Handles file upload with PDF conversion for REPLACING an existing document.
-        /// </summary>
-        /// <param name="files">The files to upload and convert.</param>
-        /// <param name="doc_id">The existing document ID being replaced.</param>
-        /// <returns>JSON result with the URL and message.</returns>
-        /// <remarks>
-        /// BUG FIX (2025): This method was incorrectly saving to the "new document" path
-        /// (funded2/nci/main) instead of the "modify/replace document" path (funded/nci/modify).
-        /// 
-        /// When REPLACING a document, files must be saved to:
-        /// - Physical path: \\egrants\\funded\\nci\\modify\\
-        /// - URL path: Uses EgrantsDocModifyRelativePath (data/funded2/nci/modify/)
-        /// 
-        /// The legacy egrants_new site correctly used the modify path for this method.
-        /// See: egrants_new\Egrants\Controllers\EgrantsDocController.cs, doc_upload_pdf_by_file method
-        /// </remarks>
-        [OutputCache(NoStore = true)]
-        [HttpPost]
-        public ActionResult doc_upload_pdf_by_file(IEnumerable<IFormFile> files, int doc_id)
+        // Populate user session variables
+
+        var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);
+
+        foreach (var usr in users)
         {
-            var docName = string.Empty;
-            string url = null;
-            string mssg = null;
-            string fileExtension = string.Empty;
-            var pdfDocs = new List<PdfDocument>();
-            var converter = new EmailConcatenation.PdfConverter();
-
-            if (files != null && files.Any())
-                try
-                {
-                    var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(files);
-
-                    foreach (var file in files)
-                    {
-                        // get file name and file Extension
-                        var fileName = Path.GetFileName(file.FileName);
-                        fileExtension = Path.GetExtension(fileName);
-
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(file.OpenReadStream()))
-                        {
-                            fileData = binaryReader.ReadBytes((int)file.Length);
-                        }
-
-                        PdfDocument pdfResult = null;
-
-                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                var emailFile = new Storage.Message(memoryStream);
-                                pdfResult = converter.Convert(emailFile);
-                            }
-                        }
-                        else
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                pdfResult = converter.Convert(memoryStream, file.FileName);
-                            }
-                        }
-
-                        if (pdfResult != null)
-                        {
-                            pdfDocs.Add(pdfResult);
-                        }
-                    }
-
-                    fileExtension = ".pdf";
-
-                    var sb = new StringBuilder();
-                    if (pdfDocs.Any())
-                    {
-                        // update url for document - marks the document as being modified/replaced
-                        _documentService.DocModify(
-                          "to_upload",
-                         0,
-                        0,
-                             string.Empty,
-                            string.Empty,
-                   Convert.ToString(doc_id),
-                       fileExtension,
-                              sessionInfo.Ic,
-                              sessionInfo.UserId);
-
-                        // get document id and create new document name     
-                        docName = Convert.ToString(doc_id) + fileExtension;
-
-                        // ===================================================================================
-                        // BUG FIX: Use the MODIFY path for replacement documents
-                        // ===================================================================================
-                        // INCORRECT (was causing 404 errors):
-                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded2\\nci\\main\\";
-                        //   this.ViewBag.FileUrl = ... + EgrantsDocNewRelativePath + docName;
-                        //
-                        // CORRECT (matches legacy egrants_new behavior):
-                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded\\nci\\modify\\";
-                        //   this.ViewBag.FileUrl = ... + EgrantsDocModifyRelativePath + docName;
-                        //
-                        // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
-                        // ===================================================================================
-#if DEBUG
-                        var fileFolder = @"C:\PdfFileOutput\";
-#else
-              var fileFolder = @"\\" + HttpContext.Session.GetString("WebGrantUrl") + "\\egrants\\funded\\nci\\modify\\";
-#endif
-
-                        var filePath = Path.Combine(fileFolder, docName);
-
-                        var pdfDoc = PdfDocument.Merge(pdfDocs);
-                        pdfDoc.SaveAs(filePath);
-
-                        // Create review URL using the MODIFY relative path (not the NEW relative path)
-                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocModifyRelativePath") + Convert.ToString(docName);
-
-                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
-                    }
-                    else
-                    {
-                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
-                    }
-
-                    if (unsupportedFilesList.Count > 0)
-                    {
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-                        foreach (var unsupportedFile in unsupportedFilesList)
-                        {
-                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-                        }
-                    }
-
-                    url = this.ViewBag.FileUrl;
-                    mssg = sb.ToString();
-
-                }
-                catch (Exception ex)
-                {
-                    this.ViewBag.Message = "ERROR: The file could not be converted!";
-                }
-            else
-                this.ViewBag.Message = "Error while uploading the files.";
-
-            return this.Json(new { url, message = mssg });
+            context.Session.SetString("Validation", usr.Validation);
+            context.Session.SetString("userid", usr.UserId);
+            context.Session.SetString("ic", usr.ic);
+            context.Session.SetInt32("Personid", usr.personID);
+            context.Session.SetInt32("position_id", usr.positionID);
+            context.Session.SetString("UserName", usr.PersonName);
+            context.Session.SetString("UserEmail", usr.PersonEmail);
+            context.Session.SetString("Menus", usr.menulist);
         }
 
-        // to create doc by dragdrop
-        /// <summary>
-        /// The doc_create_by_ddrop.
-        /// </summary>
-        /// <param name="dropedfile">
-        /// The dropedfile.
-        /// </param>
-        /// <param name="appl_id">
-        /// The appl_id.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="sub_category">
-        /// The sub_category.
-        /// </param>
-        /// <param name="doc_date">
-        /// The doc_date.
-        /// </param>
-        /// <param name="admin_code">
-        /// The admin_code.
-        /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        /// 
-        /// 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        [HttpPost]
-        public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
+        if (context.Session.GetString("Validation").ToString() != "OK")
         {
-            var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
-
-            return Json(new { url = result.Url, message = result.Message });
+            context.Response.Redirect("/egrants_default.htm");
+            return;
         }
 
-        // to upload pdf docs by dragdrop
-        /// <summary>
-        /// The doc_upload_pdf_by_ddrop.
-        /// Handles drag-and-drop upload with PDF conversion for REPLACING an existing document.
-        /// </summary>
-        /// <param name="dropedfiles">The dropped files to upload and convert.</param>
-        /// <param name="doc_id">The existing document ID being replaced.</param>
-        /// <returns>JSON result with the URL and message.</returns>
-        /// <remarks>
-        /// When REPLACING a document via drag-and-drop, files must be saved to:
-        /// - Physical path: \\egrants\\funded\\nci\\modify\\
-        /// - URL path: Uses EgrantsDocModifyRelativePath (data/funded2/nci/modify/)
-        /// 
-        /// Note: The physical folder is "funded" but IIS maps it to "funded2" in the URL.
-        /// This is consistent with the legacy egrants_new site behavior.
-        /// </remarks>
-        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
-        [HttpPost]
-        [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
-        [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
-        public async Task<ActionResult> doc_upload_pdf_by_ddrop(IEnumerable<IFormFile> dropedfiles, int doc_id)
-        {
-            var docName = string.Empty;
-            string url = null;
-            string mssg = null;
-            string fileExtension = string.Empty;
-            var pdfDocs = new List<PdfDocument>();
-            var converter = new EmailConcatenation.PdfConverter();
+        // You can log or use the URL here
+        // Load app settings into session
+        context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
+        context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
+        context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+        context.Session.SetInt32("dashboard", 0);
+        context.Session.SetString("EgrantsDocNewRelativePath", builder.Configuration["AppSettings:egrantsDocNewRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsDocModifyRelativePath", builder.Configuration["AppSettings:egrantsDocModifyRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsFundingRelativePath", builder.Configuration["AppSettings:egrantsFundingRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsInstRelativePath", builder.Configuration["AppSettings:egrantsInstRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsFundingModifyRelativePath", builder.Configuration["AppSettings:egrantsFundingModifyRelativePath"] ?? string.Empty);
+        context.Session.SetString("EgrantsDocEmail", builder.Configuration["AppSettings:egrantsDocEmail"] ?? string.Empty);
+        context.Session.SetString("closeoutAcceptance", builder.Configuration["AppSettings:closeoutAcceptance"] ?? string.Empty);
+        context.Session.SetString("frpprAcceptance", builder.Configuration["AppSettings:frpprAcceptance"] ?? string.Empty);
+        context.Session.SetString("irpprAcceptance", builder.Configuration["AppSettings:irpprAcceptance"] ?? string.Empty);
+        context.Session.SetString("GitHubToken", builder.Configuration["AppSettings:GitHubToken"] ?? string.Empty);
+        context.Session.SetString("CertPath", builder.Configuration["AppSettings:certPath"] ?? string.Empty);
+        context.Session.SetString("CertPass", builder.Configuration["AppSettings:certPass"] ?? string.Empty);
+        context.Session.SetString("EraUrlBase", builder.Configuration["AppSettings:eraUrlBase"] ?? string.Empty);
 
-            if (dropedfiles != null && dropedfiles.Any())
-                try
-                {
-                    var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(dropedfiles);
+        egrantsCommon.UpdateUsersLastLoginDate(userId);
+        string token = context.Session.GetString("GitHubToken").ToString();
+        var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
+        var latestRelease = latestReleaseFull.Split(' ')[0];
+        context.Session.SetString("Release", latestRelease);
 
-                    foreach (var dropedfile in dropedfiles)
-                    {
+        var browserCookies = context.Request.Headers["Cookie"].ToString();
+        context.Session.SetString("BrowserCookies", browserCookies);
 
-                        // get file name and file Extension
-                        var fileName = Path.GetFileName(dropedfile.FileName);
-                        fileExtension = Path.GetExtension(fileName);
-
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
-                        {
-                            fileData = binaryReader.ReadBytes((int)dropedfile.Length);
-                        }
-
-                        PdfDocument pdfResult = null;
-
-                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                var emailFile = new Storage.Message(memoryStream);
-                                pdfResult = converter.Convert(emailFile);
-                            }
-                        }
-                        else
-                        {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                pdfResult = converter.Convert(memoryStream, dropedfile.FileName);
-                            }
-                        }
-
-                        if (pdfResult != null)
-                        {
-                            pdfDocs.Add(pdfResult);
-                        }
-                    }
-
-                    fileExtension = ".pdf";
-
-                    var sb = new StringBuilder();
-                    if (pdfDocs.Any())
-                    {
-
-                        // get document id and create new document name       
-                        docName = Convert.ToString(doc_id) + fileExtension;
-
-                        // update url for document - marks the document as being modified/replaced
-                        _documentService.DocModify(
-                                       "to_upload",
-                                 0,
-                          0,
-                           string.Empty,
-                              string.Empty,
-                               Convert.ToString(doc_id),
-                                  fileExtension,
-                      sessionInfo.Ic,
-                             sessionInfo.UserId);
-
-                        // ===================================================================================
-                        // IMPORTANT: Use the MODIFY path for replacement documents
-                        // ===================================================================================
-                        // INCORRECT (was causing 404 errors):
-                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded2\\nci\\main\\";
-                        //   this.ViewBag.FileUrl = ... + EgrantsDocNewRelativePath + docName;
-                        //
-                        // CORRECT (matches legacy egrants_new behavior):
-                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded\\nci\\modify\\";
-                        //   this.ViewBag.FileUrl = ... + EgrantsDocModifyRelativePath + docName;
-                        //
-                        // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
-                        // ===================================================================================
-                        var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded\\nci\\modify\\";
-
-                        var filePath = Path.Combine(fileFolder, docName);
-
-                        var pdfDoc = PdfDocument.Merge(pdfDocs);
-                        pdfDoc.SaveAs(filePath);
-
-                        // Create review URL using the MODIFY relative path
-                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + Convert.ToString(HttpContext.Session.GetString("EgrantsDocModifyRelativePath"))
-                    + Convert.ToString(docName);
-                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
-                    }
-                    else
-                    {
-                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
-                    }
-
-                    if (unsupportedFilesList.Count > 0)
-                    {
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-                        foreach (var unsupportedFile in unsupportedFilesList)
-                        {
-                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-                        }
-                    }
-
-                    url = this.ViewBag.FileUrl;
-                    mssg = sb.ToString();
-
-                }
-                catch (Exception ex)
-                {
-                    this.ViewBag.Message = "ERROR: The file could not be converted!";
-                }
-            else
-                this.ViewBag.Message = "Error while uploading the files.";
-
-            return this.Json(new { url, message = mssg });
-        }
-
-        // to update document index for normal documents
-        /// <summary>
-        /// The doc_index_update_default.
-        /// </summary>
-        /// <param name="documentId">
-        /// The document_id.
-        /// </param>
-        /// <param name="previousUrl">
-        /// The previous_url.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> doc_index_update_default(int documentId, string previousUrl)
-        {
-            eGrantsDocUpdateViewModel eDocViewModel = await _documentService.DocUpdateDefaultAsync(documentId, previousUrl, sessionInfo);
-
-            return View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
-        }
-
-        /// <summary>
-        /// The doc_index_modify.
-        /// </summary>
-        /// <param name="act">
-        /// The act.
-        /// </param>
-        /// <param name="applId">
-        /// The appl_id.
-        /// </param>
-        /// <param name="document_id">
-        /// The document_id.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="sub_category">
-        /// The sub_category.
-        /// </param>
-        /// <param name="document_date">
-        /// The document_date.
-        /// </param>
-        /// <param name="previous_url">
-        /// The previous_url.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        /// <summary>
-        /// The doc_index_modify.
-        /// </summary>
-        /// <param name="act">The act.</param>
-        /// <param name="appl_id">The appl_id.</param>
-        /// <param name="document_id">The document_id.</param>
-        /// <param name="category_id">The category_id.</param>
-        /// <param name="sub_category">The sub_category.</param>
-        /// <param name="document_date">The document_date.</param>
-        /// <param name="previous_url">The previous_url.</param>
-        /// <returns>The <see cref="ActionResult"/>.</returns>
-        public async Task<ActionResult> doc_index_modify(string act = "", int appl_id = 0, int document_id = 0,
-            int category_id = 0, string sub_category = "", string document_date = "", string previous_url = "")
-        {
-            var docids = Convert.ToString(document_id);
-
-            await _documentService.DocIndexModifyAsync(act, appl_id, category_id, sub_category, document_date, docids, sessionInfo);
-
-            return Redirect(previous_url);
-        }
-
-        // to modify document index for unidentified documrnt
-        /// <summary>
-        /// The unidentified_doc_modify.
-        /// </summary>
-        /// <param name="document_id">
-        /// The document_id.
-        /// </param>
-        /// <param name="category_id">
-        /// The category_id.
-        /// </param>
-        /// <param name="document_date">
-        /// The document_date.
-        /// </param>
-        /// <param name="previous_url">
-        /// The previous_url.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> unidentified_doc_modify(int document_id, int category_id, string document_date, string previous_url)
-        {
-            eGrantsDocUpdateViewModel eDocViewModel = new eGrantsDocUpdateViewModel();
-            eDocViewModel.DocId = document_id;
-            eDocViewModel.CategoryId = (short?)category_id;
-            eDocViewModel.DocDate = document_date;
-            eDocViewModel.PreviousUrl = previous_url;
-
-            eDocViewModel.AdminCodeList = await _commonService.LoadAdminCodes();
-            eDocViewModel.CategoryList = await _documentService.LoadCategories(sessionInfo.Ic); // load categories that could only be upload
-            eDocViewModel.MaxCategoryId = await _documentService.GetMaxCategoryid(sessionInfo.Ic);
-            eDocViewModel.SubCategoryList = await _documentService.LoadSubCategoryList();
-
-            return this.View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
-        }
-
-        //// public ActionResult doc_index_modify(string act, int appl_id, int document_id, int category_id, string sub_category, string document_date, int specialist_id)
-        //// {
-        //// ViewBag.Status = "Done";
-        //// ViewBag.applid = appl_id;
-        //// string docids = Convert.ToString(document_id);
-        //// EgrantsDoc.doc_modify(act, appl_id, category_id, sub_category, document_date, docids, "", specialist_id, Convert.ToString(Session["ic"]), Convert.ToString(Session["userid"]));
-
-        //// return RedirectToAction("by_appl", "Egrants", new { appl_id = ViewBag.applid, mode="qc" });
-        //// }
-
-        /// <summary>
-        /// The appl_create_default.
-        /// </summary>
-        /// <param name="admin_code">
-        /// The admin_code.
-        /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> appl_create_default(string admin_code, int serial_num)
-        {
-            ViewBag.admincode = admin_code;
-            ViewBag.serialnum = serial_num;
-
-            ViewBag.AdminCodeList = _commonService.LoadAdminCodes();
-            ViewBag.ApplTypeList = await _applService.LoadApplTypeAsync();
-            ViewBag.ActivityCodeList = await _applService.LoadActivityCodeAsync(admin_code);
-            ViewBag.GrantYearList = await _applService.LoadApplsBySerialNumAsync(admin_code, serial_num);
-
-            return this.View("~/Views/eGrants/EgrantsApplCreate.cshtml");
-        }
-
-        /// <summary>
-        /// The create_new_appl.
-        /// </summary>
-        /// <param name="admin_code">
-        /// The admin_code.
-        /// </param>
-        /// <param name="serial_num">
-        /// The serial_num.
-        /// </param>
-        /// <param name="appl_type">
-        /// The appl_type.
-        /// </param>
-        /// <param name="activity_code">
-        /// The activity_code.
-        /// </param>
-        /// <param name="support_year">
-        /// The support_year.
-        /// </param>
-        /// <param name="suffix_code">
-        /// The suffix_code.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> create_new_appl(
-            string admin_code,
-            int serial_num,
-            int appl_type,
-            string activity_code,
-            int support_year,
-            string suffix_code = "")
-        {
-            this.ViewBag.admincode = admin_code;
-            this.ViewBag.serialnum = serial_num;
-
-            this.ViewBag.AdminCodeList = _commonService.LoadAdminCodes();
-            ViewBag.ApplTypeList = await _applService.LoadApplTypeAsync();
-            ViewBag.ActivityCodeList = await _applService.LoadActivityCodeAsync(admin_code);
-
-            this.ViewBag.Message = await _applService.CreateNewAppl(
-                admin_code,
-                serial_num,
-                appl_type,
-                activity_code,
-                support_year,
-                suffix_code,
-                sessionInfo.Ic,
-                sessionInfo.UserId);
-
-            this.ViewBag.GrantYearList = await _applService.LoadApplsBySerialNumAsync(admin_code, serial_num);
-
-            return this.View("~/Views/Egrants/EgrantsApplCreate.cshtml");
-        }
-
-        //// show attachments docs
-        ///// <summary>
-        ///// The doc_attachments.
-        ///// </summary>
-        ///// <param name="document_id">
-        ///// The document_id.
-        ///// </param>
-        ///// <returns>
-        ///// The <see cref="ActionResult"/>.
-        ///// </returns>
-        //public ActionResult doc_attachments(int document_id)
-        //{
-        //    this.ViewBag.ImageServer = Convert.ToString(this.Session["ImageServerUrl"]);
-        //    this.ViewBag.Attachments = EgrantsDoc.LoadDocAttachments(document_id);
-
-        //    return this.View("~/Egrants/Views/_Modal_Doc_Attachments.cshtml");
-        //}
-
-        // show impac doc FRS or Closeout Notification
-        /// <summary>
-        /// The impac_docs.
-        /// </summary>
-        /// <param name="act">
-        /// The act.
-        /// </param>
-        /// <param name="appl_id">
-        /// The appl_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> impac_docs(string act, int appl_id)
-        {
-            ViewBag.ImpacDocs = await _eGrantsService.LoadImpacDocs(act, appl_id);
-            ViewBag.act = act;
-            ViewBag.appl_id = appl_id;
-
-            return this.View("~/Views/Egrants/_Modal_Impac_Docs.cshtml");
-        }
-
-        // show Closeout Notification
-        /// <summary>
-        /// The closeout_notif.
-        /// </summary>
-        /// <param name="applid">
-        /// The applid.
-        /// </param>
-        /// <param name="notifName">
-        /// The notif name.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
-        public async Task<ActionResult> closeout_notif(string applid, string notifName)
-        {
-            // Load certificate from session info
-            X509Certificate2 certificate = null;
-            var cerUri = sessionInfo.CertPath;
-            var certPass = sessionInfo.CertPass;
-
-            if (!string.IsNullOrEmpty(cerUri) && System.IO.File.Exists(cerUri))
-            {
-                certificate = new X509Certificate2(cerUri, certPass,
-                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
-            }
-
-            var notification = await _documentService.GetCloseoutNotificationAsync(applid, notifName, sessionInfo, certificate);
-            ViewBag.notification = notification;
-            ViewBag.applid = applid;
-
-            return this.View("~/Views/Egrants/CloseoutNotif.cshtml");
-        }
     }
-}
+    await next.Invoke();
+});
+
+app.UseSystemWebAdapters();
+
+#endregion
+
+#region Routing
+
+// Default MVC route
+app.MapDefaultControllerRoute();
+
+
+// Explicit routes
+app.MapControllerRoute("Default", "{controller=Egrants}/{action=Index}/{id?}");
+app.MapControllerRoute("Integration", "{controller=Integration}/{action=Trigger}/{id?}");
+
+//app.MapForwarder("/{**catch-all}", app.Configuration["ProxyTo"]).Add(static builder => ((RouteEndpointBuilder)builder).Order = int.MaxValue);
+
+#endregion
+
+app.Run();
