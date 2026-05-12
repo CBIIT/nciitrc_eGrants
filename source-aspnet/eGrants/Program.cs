@@ -5,6 +5,7 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
@@ -118,6 +119,26 @@ builder.Services.AddSystemWebAdapters();
 builder.Services.AddHttpForwarder();
 builder.Services.AddHttpContextAccessor();
 
+// ===================================================================================
+// WINDOWS AUTHENTICATION CONFIGURATION
+// ===================================================================================
+// This enables Windows Authentication (Negotiate/NTLM) for the SiteMinder bypass mode.
+// In IIS, BOTH Anonymous and Windows Authentication should be enabled.
+// The app will use Windows Auth when bypass is enabled to identify the user.
+// ===================================================================================
+var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
+if (bypassEnabled)
+{
+    builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+        .AddNegotiate();
+
+    builder.Services.AddAuthorization(options =>
+    {
+        // By default, all incoming requests will be authorized per the default policy
+        options.FallbackPolicy = options.DefaultPolicy;
+    });
+}
+
 // Application Services & Repositories (Dependency Injection)
 builder.Services.AddScoped<EgrantsCommon>();
 builder.Services.AddScoped<IeGrantsService, eGrantsService>();
@@ -219,12 +240,20 @@ app.Use(async (context, next) =>
         // ===================================================================================
         // SITEMINDER BYPASS CONFIGURATION
         // ===================================================================================
-        // When enabled, allows specific users to bypass SiteMinder authentication.
+        // When enabled, completely bypasses SiteMinder authentication.
+        // The SiteMinder header will NOT be checked at all when bypass is enabled.
         // Configure in appsettings.json:
         //   "SiteMinderBypass": {
         //       "Enabled": true,
-        //  "AllowedUsers": ["user1", "user2"]
+        //       "AllowedUsers": ["user1", "user2"]
         //   }
+        // 
+        // IMPORTANT: This should only be enabled in development/test environments.
+        // In production, set "Enabled": false to require SiteMinder authentication.
+        //
+        // NOTE: When bypass is enabled, ONLY users in the AllowedUsers list can access
+        // the application. Environment.UserName is NOT used as it returns the app pool
+        // identity, not the actual user.
         // ===================================================================================
 
         var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
@@ -233,61 +262,96 @@ app.Use(async (context, next) =>
         string userId = string.Empty;
         bool bypassUsed = false;
 
-        // First, try to get the SiteMinder header
-        string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
-
-        if (!string.IsNullOrEmpty(siteMinderUser))
+        if (bypassEnabled)
         {
-            // SiteMinder header is present, use it
-            userId = siteMinderUser;
-        }
-        else if (bypassEnabled)
-        {
-            // SiteMinder header not present, check if bypass is enabled
-            string potentialUserId = string.Empty;
+            // ===================================================================================
+            // BYPASS MODE: Skip SiteMinder entirely
+            // ===================================================================================
+            // When bypass is enabled, we do NOT check the SiteMinder header at all.
+            // Instead, we use Windows Authentication to identify the user.
+            // 
+            // User identification methods (in order of priority):
+            // 1. Windows Authentication (context.User.Identity.Name)
+            // 2. Environment.UserName as fallback
+            //
+            // The identified user must be in the AllowedUsers list to gain access.
+            // ===================================================================================
 
-            // Try to get user from Windows identity
-            if (context.User?.Identity?.IsAuthenticated == true)
+            // Log Windows Authentication details for debugging
+            var debugLogger = context.RequestServices.GetService<ILogger<Program>>();
+            debugLogger?.LogInformation("SiteMinder bypass - IsAuthenticated: {IsAuthenticated}, Identity.Name: {IdentityName}",
+                   context.User?.Identity?.IsAuthenticated,
+                 context.User?.Identity?.Name);
+
+            if (allowedUsers.Length == 0)
             {
-                var fullName = context.User.Identity?.Name;
-                potentialUserId = fullName?.Contains('\\') == true
-            ? fullName.Split('\\')[1]
-                : fullName ?? string.Empty;
-            }
-
-            // Fallback to machine account if Windows identity not available
-            if (string.IsNullOrEmpty(potentialUserId))
-            {
-                potentialUserId = Environment.UserName;
-            }
-
-            // Check if the user is in the allowed bypass list (case-insensitive)
-            if (!string.IsNullOrEmpty(potentialUserId) &&
-           allowedUsers.Any(u => u.Equals(potentialUserId, StringComparison.OrdinalIgnoreCase)))
-            {
-                userId = potentialUserId;
-                bypassUsed = true;
-
-                // Log the bypass for audit purposes
+                // No allowed users configured - deny access
                 var logger = context.RequestServices.GetService<ILogger<Program>>();
-                logger?.LogWarning("SiteMinder bypass used for user: {UserId}", userId);
+                logger?.LogError("SiteMinder bypass is enabled but no AllowedUsers are configured. Access denied.");
+                context.Response.Redirect("/egrants_default.htm");
+                return;
             }
-        }
 
-        // If still no userId and bypass not used, fall back to original logic
-        if (string.IsNullOrEmpty(userId))
-        {
+            // Try to get user from Windows Authentication
             if (context.User?.Identity?.IsAuthenticated == true)
             {
                 var fullName = context.User.Identity?.Name;
                 userId = fullName?.Contains('\\') == true
-                     ? fullName.Split('\\')[1]
-                : fullName;
+             ? fullName.Split('\\')[1]
+    : fullName;
             }
             else
             {
                 userId = Environment.UserName; // Fallback to machine account
             }
+
+            // Validate the user is in the allowed list (case-insensitive)
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var matchedUser = allowedUsers.FirstOrDefault(u =>
+      string.Equals(u, userId, StringComparison.OrdinalIgnoreCase));
+
+                if (matchedUser == null)
+                {
+                    var logger = context.RequestServices.GetService<ILogger<Program>>();
+                    logger?.LogWarning("SiteMinder bypass: User '{UserId}' is not in AllowedUsers list. Access denied.", userId);
+                    context.Response.Redirect("/egrants_default.htm");
+                    return;
+                }
+
+                // Use the matched user (preserves the casing from config)
+                userId = matchedUser;
+            }
+
+            bypassUsed = true;
+
+            // Log the bypass for audit purposes
+            var loggerBypass = context.RequestServices.GetService<ILogger<Program>>();
+            loggerBypass?.LogWarning("SiteMinder completely bypassed. Using Windows authenticated user: {UserId}", userId);
+        }
+        else
+        {
+            // ===================================================================================
+            // NORMAL MODE: Use SiteMinder authentication
+            // ===================================================================================
+            // When bypass is NOT enabled, check the SiteMinder header for the user.
+            // ===================================================================================
+
+            string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
+
+            if (!string.IsNullOrEmpty(siteMinderUser))
+            {
+                userId = siteMinderUser;
+            }
+        }
+
+        // If still no userId (SiteMinder mode but no header), deny access
+        if (string.IsNullOrEmpty(userId))
+        {
+            var logger = context.RequestServices.GetService<ILogger<Program>>();
+            logger?.LogWarning("No user identity found. SiteMinder header missing or empty.");
+            context.Response.Redirect("/egrants_default.htm");
+            return;
         }
 
         context.Session.SetString("userid", userId);
@@ -383,6 +447,13 @@ app.Use(async (context, next) =>
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// Enable authentication middleware when SiteMinder bypass is active
+if (builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled"))
+{
+    app.UseAuthentication();
+}
+
 app.UseAuthorization();
 app.UseSystemWebAdapters();
 
