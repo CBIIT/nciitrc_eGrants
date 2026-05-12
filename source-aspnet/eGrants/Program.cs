@@ -199,25 +199,65 @@ app.UseSession(); // Enable session middleware
 // - Strips server-identifying response headers.
 // - If no session user exists:
 //      • Resolve user ID from SiteMinder, Windows identity, or machine account.
-//      • Store IC code, browser type, and default view.
-//      • Load user type and profile via EgrantsCommon; redirect if invalid.
+// • Store IC code, browser type, and default view.
+// • Load user type and profile via EgrantsCommon; redirect if invalid.
 //      • Populate session with user details and app configuration values.
-//      • Fetch latest GitHub release tag and store cookies.
+// • Fetch latest GitHub release tag and store cookies.
 // - Continues request pipeline afterward.
 app.Use(async (context, next) =>
 {
     // Remove unwanted headers
     context.Response.OnStarting(() =>
     {
-        context.Response.Headers.Remove("Server");
+     context.Response.Headers.Remove("Server");
         context.Response.Headers.Remove("X-AspNetMvc-Version");
         context.Response.Headers.Remove("X-AspNet-Version");
         context.Response.Headers.Remove("X-UA-Compatible");
         return Task.CompletedTask;
     });
 
-    if (string.IsNullOrEmpty(context.Session.GetString("userid")))
+    // ===================================================================================
+    // SKIP AUTHENTICATION FOR STATIC FILES AND ERROR PAGES
+    // ===================================================================================
+    // Skip the authentication middleware for:
+    // - Static files (css, js, images, etc.)
+    // - The default/error page (to prevent redirect loops)
+    // - Favicon and other common static resources
+ // ===================================================================================
+    var path = context.Request.Path.Value?.ToLowerInvariant() ?? string.Empty;
+    
+    // List of paths/extensions to skip authentication
+    bool shouldSkipAuth = 
+    path.EndsWith(".htm") ||
+        path.EndsWith(".html") ||
+        path.EndsWith(".css") ||
+      path.EndsWith(".js") ||
+    path.EndsWith(".png") ||
+        path.EndsWith(".jpg") ||
+  path.EndsWith(".jpeg") ||
+    path.EndsWith(".gif") ||
+        path.EndsWith(".ico") ||
+        path.EndsWith(".svg") ||
+        path.EndsWith(".woff") ||
+        path.EndsWith(".woff2") ||
+        path.EndsWith(".ttf") ||
+path.EndsWith(".eot") ||
+        path.Contains("/egrants_default") ||
+        path.Contains("/error") ||
+        path.StartsWith("/lib/") ||
+     path.StartsWith("/css/") ||
+     path.StartsWith("/js/") ||
+   path.StartsWith("/images/") ||
+        path.StartsWith("/fonts/");
+
+    if (shouldSkipAuth)
     {
+        await next.Invoke();
+        return;
+    }
+
+    if (string.IsNullOrEmpty(context.Session.GetString("userid")))
+{
         // ===================================================================================
         // SITEMINDER BYPASS CONFIGURATION
         // ===================================================================================
