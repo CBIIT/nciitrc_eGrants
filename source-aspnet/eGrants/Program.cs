@@ -190,18 +190,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseSession(); // Enable session middleware
 
-// TODO: Determine better way to handle getting user id information if possible
-
 // Middleware to initialize and validate the user session.
-//
-// - Strips server-identifying response headers.
-// - If no session user exists:
-//      • Resolve user ID from SiteMinder, Windows identity, or machine account.
-//      • Store IC code, browser type, and default view.
-//      • Load user type and profile via EgrantsCommon; redirect if invalid.
-//      • Populate session with user details and app configuration values.
-//      • Fetch latest GitHub release tag and store cookies.
-// - Continues request pipeline afterward.
 app.Use(async (context, next) =>
 {
     // Remove unwanted headers
@@ -216,100 +205,77 @@ app.Use(async (context, next) =>
 
     if (string.IsNullOrEmpty(context.Session.GetString("userid")))
     {
-        // ===================================================================================
-        // SITEMINDER BYPASS CONFIGURATION
-        // ===================================================================================
-        // When enabled, allows specific users to bypass SiteMinder authentication.
-        // Configure in appsettings.json:
-        //   "SiteMinderBypass": {
-        //       "Enabled": true,
-        //  "AllowedUsers": ["user1", "user2"]
-        //   }
-        // ===================================================================================
-
         var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
-        var allowedUsers = builder.Configuration.GetSection("SiteMinderBypass:AllowedUsers").Get<string[]>() ?? Array.Empty<string>();
+        var allowedUser = builder.Configuration.GetValue<string>("SiteMinderBypass:AllowedUser") ?? string.Empty;
 
         string userId = string.Empty;
-        bool bypassUsed = false;
 
-        // First, try to get the SiteMinder header
-        string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
-
-        if (!string.IsNullOrEmpty(siteMinderUser))
+        if (bypassEnabled)
         {
-            // SiteMinder header is present, use it
-            userId = siteMinderUser;
-        }
-        else if (bypassEnabled)
-        {
-            // SiteMinder header not present, check if bypass is enabled
-            string potentialUserId = string.Empty;
-
-            // Try to get user from Windows identity
-            if (context.User?.Identity?.IsAuthenticated == true)
+            // ===================================================================================
+            // BYPASS MODE: Use the configured AllowedUser
+            // ===================================================================================
+            // When bypass is enabled, use the single configured user.
+            // This is intended for development/testing environments only.
+            // ===================================================================================
+            if (string.IsNullOrEmpty(allowedUser))
             {
-                var fullName = context.User.Identity?.Name;
-                potentialUserId = fullName?.Contains('\\') == true
-            ? fullName.Split('\\')[1]
-                : fullName ?? string.Empty;
-            }
-
-            // Fallback to machine account if Windows identity not available
-            if (string.IsNullOrEmpty(potentialUserId))
-            {
-                potentialUserId = Environment.UserName;
-            }
-
-            // Check if the user is in the allowed bypass list (case-insensitive)
-            if (!string.IsNullOrEmpty(potentialUserId) &&
-           allowedUsers.Any(u => u.Equals(potentialUserId, StringComparison.OrdinalIgnoreCase)))
-            {
-                userId = potentialUserId;
-                bypassUsed = true;
-
-                // Log the bypass for audit purposes
                 var logger = context.RequestServices.GetService<ILogger<Program>>();
-                logger?.LogWarning("SiteMinder bypass used for user: {UserId}", userId);
+                logger?.LogError("SiteMinder bypass is enabled but AllowedUser is not configured.");
+                context.Response.StatusCode = 403;
+                await context.Response.WriteAsync("Access denied: AllowedUser not configured for bypass mode.");
+                return;
             }
-        }
 
-        // If still no userId and bypass not used, fall back to original logic
-        if (string.IsNullOrEmpty(userId))
+            userId = allowedUser;
+            context.Session.SetString("SiteMinderBypassed", "true");
+
+            var logger2 = context.RequestServices.GetService<ILogger<Program>>();
+            logger2?.LogWarning("SiteMinder bypass active. Using configured user: {UserId}", userId);
+        }
+        else
         {
-            if (context.User?.Identity?.IsAuthenticated == true)
+            // ===================================================================================
+            // NORMAL MODE: Use SiteMinder authentication
+            // ===================================================================================
+            // When running locally in Development and SiteMinder is not available,
+            // fall back to the Windows username from the environment.
+            // ===================================================================================
+            string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
+
+            if (!string.IsNullOrEmpty(siteMinderUser))
             {
-                var fullName = context.User.Identity?.Name;
-                userId = fullName?.Contains('\\') == true
-                     ? fullName.Split('\\')[1]
-                : fullName;
+                userId = siteMinderUser;
+            }
+            else if (app.Environment.IsDevelopment())
+            {
+                // Local development fallback: use the Windows username
+                userId = Environment.UserName;
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogWarning("SiteMinder header not found. Using local Windows username: {UserId}", userId);
             }
             else
             {
-                userId = Environment.UserName; // Fallback to machine account
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogWarning("No user identity found. SiteMinder header missing or empty.");
+                context.Response.Redirect("/egrants_default.htm");
+                return;
             }
         }
 
         context.Session.SetString("userid", userId);
 
-        // Store bypass flag in session for potential audit/display purposes
-        if (bypassUsed)
-        {
-            context.Session.SetString("SiteMinderBypassed", "true");
-        }
-
         // Capture IC (Institute/Org Code)
         var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
         context.Session.SetString("ic", ic);
 
-        // Detect browser from User-Agent
+        // Detect browser
         var userAgent = context.Request.Headers["User-Agent"].ToString();
         string browserName = userAgent.Contains("Chrome") ? "Chrome" :
- userAgent.Contains("Firefox") ? "Firefox" :
- (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
- userAgent.Contains("Edg") ? "Edge" :
- (userAgent.Contains("MSIE") || userAgent.Contains("Trident")) ? "Internet Explorer" :
- "Unknown";
+        userAgent.Contains("Firefox") ? "Firefox" :
+                (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) ? "Safari" :
+       userAgent.Contains("Edg") ? "Edge" :
+            (userAgent.Contains("MSIE") || userAgent.Contains("Trident")) ? "Internet Explorer" : "Unknown";
 
         context.Session.SetString("browser", browserName);
         context.Session.SetString("CurrentView", "standardForm");
@@ -326,7 +292,6 @@ app.Use(async (context, next) =>
         }
 
         // Populate user session variables
-
         var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);
 
         foreach (var usr in users)
@@ -341,13 +306,12 @@ app.Use(async (context, next) =>
             context.Session.SetString("Menus", usr.menulist);
         }
 
-        if (context.Session.GetString("Validation").ToString() != "OK")
+        if (context.Session.GetString("Validation")?.ToString() != "OK")
         {
             context.Response.Redirect("/egrants_default.htm");
             return;
         }
 
-        // You can log or use the URL here
         // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
         context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
@@ -368,15 +332,15 @@ app.Use(async (context, next) =>
         context.Session.SetString("EraUrlBase", builder.Configuration["AppSettings:eraUrlBase"] ?? string.Empty);
 
         egrantsCommon.UpdateUsersLastLoginDate(userId);
-        string token = context.Session.GetString("GitHubToken").ToString();
+        string token = context.Session.GetString("GitHubToken")?.ToString() ?? string.Empty;
         var latestReleaseFull = egrantsCommon.GetLatestReleaseTagAsync("CBIIT", "nciitrc_eGrants", token);
         var latestRelease = latestReleaseFull.Split(' ')[0];
         context.Session.SetString("Release", latestRelease);
 
         var browserCookies = context.Request.Headers["Cookie"].ToString();
         context.Session.SetString("BrowserCookies", browserCookies);
-
     }
+
     await next.Invoke();
 });
 
@@ -393,12 +357,9 @@ app.UseSystemWebAdapters();
 // Default MVC route
 app.MapDefaultControllerRoute();
 
-
 // Explicit routes
 app.MapControllerRoute("Default", "{controller=Egrants}/{action=Index}/{id?}");
 app.MapControllerRoute("Integration", "{controller=Integration}/{action=Trigger}/{id?}");
-
-//app.MapForwarder("/{**catch-all}", app.Configuration["ProxyTo"]).Add(static builder => ((RouteEndpointBuilder)builder).Order = int.MaxValue);
 
 #endregion
 
