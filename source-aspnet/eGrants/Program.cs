@@ -5,7 +5,6 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
-using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
@@ -60,7 +59,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // - Increase MaxRequestBodySize and multipart limits (so large bodies aren't rejected)
 //
 // We keep limits aligned to the legacy .NET Framework configuration (2GB).
-// ====================================================================================
+// ====================================================================================;
 
 // Configure Kestrel server limits for large file uploads
 builder.Services.Configure<KestrelServerOptions>(options =>
@@ -118,26 +117,6 @@ builder.Services.Configure<FormOptions>(options =>
 builder.Services.AddSystemWebAdapters();
 builder.Services.AddHttpForwarder();
 builder.Services.AddHttpContextAccessor();
-
-// ===================================================================================
-// WINDOWS AUTHENTICATION CONFIGURATION
-// ===================================================================================
-// This enables Windows Authentication (Negotiate/NTLM) for the SiteMinder bypass mode.
-// In IIS, BOTH Anonymous and Windows Authentication should be enabled.
-// The app will use Windows Auth when bypass is enabled to identify the user.
-// ===================================================================================
-var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
-if (bypassEnabled)
-{
-    builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-        .AddNegotiate();
-
-    builder.Services.AddAuthorization(options =>
-    {
-        // By default, all incoming requests will be authorized per the default policy
-        options.FallbackPolicy = options.DefaultPolicy;
-    });
-}
 
 // Application Services & Repositories (Dependency Injection)
 builder.Services.AddScoped<EgrantsCommon>();
@@ -209,6 +188,11 @@ if (!app.Environment.IsDevelopment())
  app.UseStatusCodePagesWithReExecute("/Error/{0}");
 #endif
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+
 app.UseSession(); // Enable session middleware
 
 // TODO: Determine better way to handle getting user id information if possible
@@ -218,7 +202,7 @@ app.UseSession(); // Enable session middleware
 // - Strips server-identifying response headers.
 // - If no session user exists:
 //      • Resolve user ID from SiteMinder, Windows identity, or machine account.
-//      • Store IC code, browser type, and default view.
+//    • Store IC code, browser type, and default view.
 //      • Load user type and profile via EgrantsCommon; redirect if invalid.
 //      • Populate session with user details and app configuration values.
 //      • Fetch latest GitHub release tag and store cookies.
@@ -268,20 +252,14 @@ app.Use(async (context, next) =>
             // BYPASS MODE: Skip SiteMinder entirely
             // ===================================================================================
             // When bypass is enabled, we do NOT check the SiteMinder header at all.
-            // Instead, we use Windows Authentication to identify the user.
             // 
             // User identification methods (in order of priority):
-            // 1. Windows Authentication (context.User.Identity.Name)
-            // 2. Environment.UserName as fallback
+            // 1. X-Dev-User HTTP header (for API tools like Postman)
+            // 2. dev_user query parameter (for browser testing: ?dev_user=username)
+            // 3. First user in AllowedUsers list (default fallback)
             //
             // The identified user must be in the AllowedUsers list to gain access.
             // ===================================================================================
-
-            // Log Windows Authentication details for debugging
-            var debugLogger = context.RequestServices.GetService<ILogger<Program>>();
-            debugLogger?.LogInformation("SiteMinder bypass - IsAuthenticated: {IsAuthenticated}, Identity.Name: {IdentityName}",
-                   context.User?.Identity?.IsAuthenticated,
-                 context.User?.Identity?.Name);
 
             if (allowedUsers.Length == 0)
             {
@@ -292,44 +270,59 @@ app.Use(async (context, next) =>
                 return;
             }
 
-            // Try to get user from Windows Authentication
-            if (context.User?.Identity?.IsAuthenticated == true)
-            {
-                var fullName = context.User.Identity?.Name;
-                userId = fullName?.Contains('\\') == true
-             ? fullName.Split('\\')[1]
-    : fullName;
-            }
-            else
-            {
-                userId = Environment.UserName; // Fallback to machine account
-            }
+            string? requestedUser = null;
 
-            // Validate the user is in the allowed list (case-insensitive)
-            if (!string.IsNullOrEmpty(userId))
+            // Method 1: Check X-Dev-User header (useful for API testing tools)
+            if (context.Request.Headers.TryGetValue("X-Dev-User", out var headerUser) && !string.IsNullOrWhiteSpace(headerUser))
             {
-                var matchedUser = allowedUsers.FirstOrDefault(u =>
-      string.Equals(u, userId, StringComparison.OrdinalIgnoreCase));
+                requestedUser = headerUser.ToString().Trim();
+            } 
+            // Method 2: Check dev_user query parameter (useful for browser testing)
+            else if (context.Request.Query.TryGetValue("dev_user", out var queryUser) && !string.IsNullOrWhiteSpace(queryUser))
+            {
+                requestedUser = queryUser.ToString().Trim();
+                
+                // Store in session so subsequent requests don't need the query param
+                context.Session.SetString("dev_user_override", requestedUser);
+            }
+             // Method 3: Check if we previously stored a dev_user in session
+         else if (!string.IsNullOrEmpty(context.Session.GetString("dev_user_override")))
+       {
+   requestedUser = context.Session.GetString("dev_user_override");
+   }
 
-                if (matchedUser == null)
+    // Validate and match the user against AllowedUsers
+            if (!string.IsNullOrEmpty(requestedUser))
+     {
+        var matchedUser = allowedUsers.FirstOrDefault(u =>
+        string.Equals(u, requestedUser, StringComparison.OrdinalIgnoreCase));
+
+   if (matchedUser != null)
+       {
+    userId = matchedUser;
+           var loggerMatch = context.RequestServices.GetService<ILogger<Program>>();
+         loggerMatch?.LogInformation("SiteMinder bypass: User '{UserId}' authenticated via header/query parameter", userId);
+          }
+                else
                 {
-                    var logger = context.RequestServices.GetService<ILogger<Program>>();
-                    logger?.LogWarning("SiteMinder bypass: User '{UserId}' is not in AllowedUsers list. Access denied.", userId);
-                    context.Response.Redirect("/egrants_default.htm");
-                    return;
-                }
-
-                // Use the matched user (preserves the casing from config)
-                userId = matchedUser;
+   // Requested user not in allowed list - deny access
+  var logger = context.RequestServices.GetService<ILogger<Program>>();
+    logger?.LogWarning("SiteMinder bypass: Requested user '{RequestedUser}' is not in AllowedUsers list. Access denied.", requestedUser);
+     context.Response.Redirect("/egrants_default.htm");
+  return;
+            }
+  }
+      else
+  {
+      // No user specified - use first user in the list as default
+          userId = allowedUsers[0];
+     var loggerDefault = context.RequestServices.GetService<ILogger<Program>>();
+      loggerDefault?.LogInformation("SiteMinder bypass: No user specified, using default: {UserId}", userId);
             }
 
             bypassUsed = true;
-
-            // Log the bypass for audit purposes
-            var loggerBypass = context.RequestServices.GetService<ILogger<Program>>();
-            loggerBypass?.LogWarning("SiteMinder completely bypassed. Using Windows authenticated user: {UserId}", userId);
         }
-        else
+     else
         {
             // ===================================================================================
             // NORMAL MODE: Use SiteMinder authentication
@@ -444,17 +437,6 @@ app.Use(async (context, next) =>
     await next.Invoke();
 });
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-
-// Enable authentication middleware when SiteMinder bypass is active
-if (builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled"))
-{
-    app.UseAuthentication();
-}
-
-app.UseAuthorization();
 app.UseSystemWebAdapters();
 
 #endregion
