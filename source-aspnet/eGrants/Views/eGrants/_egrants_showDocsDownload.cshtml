@@ -123,17 +123,23 @@ This view sends the same request format but benefits from faster server processi
     table.dataTable tbody tr.even-row { background-color: #ffffff; height: 30px; }
     table.dataTable tbody tr.odd-row { background-color: #AED6F1; height: 30px; }
 
-    #overlay {
-        background-color: white;
+    /* Fix link visibility on all rows - ensure links are readable on hover */
+    table.dataTable tbody a { color: darkblue; }
+    table.dataTable tbody a:link { color: darkblue; }
+    table.dataTable tbody a:visited { color: darkblue; }
+    table.dataTable tbody a:hover { color: black; text-decoration: underline; }
+
+ #overlay {
+      background-color: white;
         display: none;
         height: 100%;
-        left: 0px;
-        /* filter: alpha( opacity=75 ); */
+      left: 0px;
+   /* filter: alpha( opacity=75 ); */
         opacity: 0.75;
         position: absolute;
         top: 0px;
         width: 100%;
-        z-index: 99999;
+    z-index: 99999;
     }
 
 </style>
