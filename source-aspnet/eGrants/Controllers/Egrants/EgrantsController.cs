@@ -222,22 +222,60 @@ namespace eGrants.Controllers.Egrants
         /// <param name="fileGuid">The file GUID (handle) stored in session</param>
         /// <param name="fileName">The filename to use for the download</param>
         /// <returns>File result with zip content or NotFound</returns>
-        public virtual IActionResult Download(string fileGuid, string fileName)
+        public virtual async Task<IActionResult> Download(string fileGuid, string fileName)
         {
             // .NET 8 Migration: Retrieve from Session instead of TempData
-            var data = HttpContext.Session.Get(fileGuid);
+            Log.Information("Download requested. FileGuid: {FileGuid}, FileName: {FileName}, SessionId: {SessionId}",
+                fileGuid, fileName, HttpContext.Session.Id);
 
-            if (data != null)
+            if (!string.IsNullOrEmpty(fileGuid))
             {
-                // Clean up session after retrieving the file
-                HttpContext.Session.Remove(fileGuid);
+                Log.Debug("Attempting session lookup for FileGuid: {FileGuid}", fileGuid);
+                var data = HttpContext.Session.Get(fileGuid);
 
-                // .NET 8 Migration: File() method handles Content-Disposition automatically
-                // Third parameter (fileName) triggers attachment disposition
-                return File(data, "application/zip", fileName);
+                if (data != null)
+                {
+                    Log.Information("Session lookup succeeded. FileGuid: {FileGuid}, FileName: {FileName}, Size: {FileSize} bytes",
+                        fileGuid, fileName, data.Length);
+
+                    // Clean up session after retrieving the file
+                    HttpContext.Session.Remove(fileGuid);
+
+                    // .NET 8 Migration: File() method handles Content-Disposition automatically
+                    // Third parameter (fileName) triggers attachment disposition
+                    return File(data, "application/zip", fileName);
+                }
+
+                Log.Warning("Session lookup returned null for FileGuid: {FileGuid}. Session may have expired or data was never stored.", fileGuid);
+            }
+            else
+            {
+                Log.Warning("FileGuid is null or empty. FileName: {FileName}", fileName);
+            }
+
+            // Fallback: If session data is missing (expired session, empty fileGuid, etc.),
+            // try reading the zip file directly from the temp directory where it was created
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                var tempZipPath = Path.Combine(Path.GetTempPath(), fileName);
+                Log.Information("Attempting temp directory fallback. Path: {TempZipPath}", tempZipPath);
+
+                if (System.IO.File.Exists(tempZipPath))
+                {
+                    var fileBytes = await System.IO.File.ReadAllBytesAsync(tempZipPath);
+                    Log.Information("Temp file fallback succeeded. FileName: {FileName}, Size: {FileSize} bytes", fileName, fileBytes.Length);
+                    return File(fileBytes, "application/zip", fileName);
+                }
+
+                Log.Warning("Temp file not found at path: {TempZipPath}", tempZipPath);
+            }
+            else
+            {
+                Log.Warning("FileName is null or empty. Cannot attempt temp directory fallback. FileGuid: {FileGuid}", fileGuid);
             }
 
             // .NET 8 Migration: Return proper 404 instead of EmptyResult
+            Log.Error("Download failed — file not found via session or temp directory. FileGuid: {FileGuid}, FileName: {FileName}", fileGuid, fileName);
             return NotFound();
         }
 
