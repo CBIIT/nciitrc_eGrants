@@ -1080,16 +1080,22 @@ namespace eGrants.Controllers.Egrants
         // to upload doc by pdf file --added at 4/15/2019 FOR REFRESH AFTER UPLOAD
         /// <summary>
         /// The doc_upload_pdf_by_file.
+        /// Handles file upload with PDF conversion for REPLACING an existing document.
         /// </summary>
-        /// <param name="file">
-        /// The file.
-        /// </param>
-        /// <param name="doc_id">
-        /// The doc_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
+        /// <param name="files">The files to upload and convert.</param>
+        /// <param name="doc_id">The existing document ID being replaced.</param>
+        /// <returns>JSON result with the URL and message.</returns>
+        /// <remarks>
+        /// BUG FIX (2025): This method was incorrectly saving to the "new document" path
+        /// (funded2/nci/main) instead of the "modify/replace document" path (funded/nci/modify).
+        /// 
+        /// When REPLACING a document, files must be saved to:
+        /// - Physical path: \\egrants\\funded\\nci\\modify\\
+        /// - URL path: Uses EgrantsDocModifyRelativePath (data/funded2/nci/modify/)
+        /// 
+        /// The legacy egrants_new site correctly used the modify path for this method.
+        /// See: egrants_new\Egrants\Controllers\EgrantsDocController.cs, doc_upload_pdf_by_file method
+        /// </remarks>
         [OutputCache(NoStore = true)]
         [HttpPost]
         public ActionResult doc_upload_pdf_by_file(IEnumerable<IFormFile> files, int doc_id)
@@ -1147,27 +1153,38 @@ namespace eGrants.Controllers.Egrants
                     var sb = new StringBuilder();
                     if (pdfDocs.Any())
                     {
-                        // update url for document
+                        // update url for document - marks the document as being modified/replaced
                         _documentService.DocModify(
-                            "to_upload",
-                            0,
-                            0,
+                          "to_upload",
+                         0,
+                        0,
+                             string.Empty,
                             string.Empty,
-                            string.Empty,
-                            Convert.ToString(doc_id),
-                            fileExtension,
-                            sessionInfo.Ic,
-                            sessionInfo.UserId);
+                   Convert.ToString(doc_id),
+                       fileExtension,
+                              sessionInfo.Ic,
+                              sessionInfo.UserId);
 
-                        // get document id and create new document name       
+                        // get document id and create new document name     
                         docName = Convert.ToString(doc_id) + fileExtension;
 
+                        // ===================================================================================
+                        // BUG FIX: Use the MODIFY path for replacement documents
+                        // ===================================================================================
+                        // INCORRECT (was causing 404 errors):
+                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded2\\nci\\main\\";
+                        //   this.ViewBag.FileUrl = ... + EgrantsDocNewRelativePath + docName;
+                        //
+                        // CORRECT (matches legacy egrants_new behavior):
+                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded\\nci\\modify\\";
+                        //   this.ViewBag.FileUrl = ... + EgrantsDocModifyRelativePath + docName;
+                        //
+                        // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
+                        // ===================================================================================
 #if DEBUG
                         var fileFolder = @"C:\PdfFileOutput\";
-
 #else
-                        var fileFolder = @"\\" + HttpContext.Session.GetString("WebGrantUrl") + "\\egrants\\funded2\\nci\\main\\";
-
+              var fileFolder = @"\\" + HttpContext.Session.GetString("WebGrantUrl") + "\\egrants\\funded\\nci\\modify\\";
 #endif
 
                         var filePath = Path.Combine(fileFolder, docName);
@@ -1175,8 +1192,8 @@ namespace eGrants.Controllers.Egrants
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
-                        // create review url
-                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath") + Convert.ToString(docName);
+                        // Create review URL using the MODIFY relative path (not the NEW relative path)
+                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocModifyRelativePath") + Convert.ToString(docName);
 
                         sb.Append("Done! New document has been created**#7|n3br3@k#**");
                     }
@@ -1250,16 +1267,19 @@ namespace eGrants.Controllers.Egrants
         // to upload pdf docs by dragdrop
         /// <summary>
         /// The doc_upload_pdf_by_ddrop.
+        /// Handles drag-and-drop upload with PDF conversion for REPLACING an existing document.
         /// </summary>
-        /// <param name="dropedfile">
-        /// The dropedfile.
-        /// </param>
-        /// <param name="docId">
-        /// The doc_id.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ActionResult"/>.
-        /// </returns>
+        /// <param name="dropedfiles">The dropped files to upload and convert.</param>
+        /// <param name="doc_id">The existing document ID being replaced.</param>
+        /// <returns>JSON result with the URL and message.</returns>
+        /// <remarks>
+        /// When REPLACING a document via drag-and-drop, files must be saved to:
+        /// - Physical path: \\egrants\\funded\\nci\\modify\\
+        /// - URL path: Uses EgrantsDocModifyRelativePath (data/funded2/nci/modify/)
+        /// 
+        /// Note: The physical folder is "funded" but IIS maps it to "funded2" in the URL.
+        /// This is consistent with the legacy egrants_new site behavior.
+        /// </remarks>
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         [HttpPost]
         [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
@@ -1324,18 +1344,31 @@ namespace eGrants.Controllers.Egrants
                         // get document id and create new document name       
                         docName = Convert.ToString(doc_id) + fileExtension;
 
-                        // update url for document
+                        // update url for document - marks the document as being modified/replaced
                         _documentService.DocModify(
-                            "to_upload",
-                            0,
-                            0,
-                            string.Empty,
-                            string.Empty,
-                            Convert.ToString(doc_id),
-                            fileExtension,
-                            sessionInfo.Ic,
-                            sessionInfo.UserId);
+                                       "to_upload",
+                                 0,
+                          0,
+                           string.Empty,
+                              string.Empty,
+                               Convert.ToString(doc_id),
+                                  fileExtension,
+                      sessionInfo.Ic,
+                             sessionInfo.UserId);
 
+                        // ===================================================================================
+                        // IMPORTANT: Use the MODIFY path for replacement documents
+                        // ===================================================================================
+                        // INCORRECT (was causing 404 errors):
+                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded2\\nci\\main\\";
+                        //   this.ViewBag.FileUrl = ... + EgrantsDocNewRelativePath + docName;
+                        //
+                        // CORRECT (matches legacy egrants_new behavior):
+                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded\\nci\\modify\\";
+                        //   this.ViewBag.FileUrl = ... + EgrantsDocModifyRelativePath + docName;
+                        //
+                        // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
+                        // ===================================================================================
                         var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded\\nci\\modify\\";
 
                         var filePath = Path.Combine(fileFolder, docName);
@@ -1343,9 +1376,9 @@ namespace eGrants.Controllers.Egrants
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
                         pdfDoc.SaveAs(filePath);
 
-                        // create review url
+                        // Create review URL using the MODIFY relative path
                         this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + Convert.ToString(HttpContext.Session.GetString("EgrantsDocModifyRelativePath"))
-                                                                                                + Convert.ToString(docName);
+                    + Convert.ToString(docName);
                         sb.Append("Done! New document has been created**#7|n3br3@k#**");
                     }
                     else
@@ -1364,6 +1397,7 @@ namespace eGrants.Controllers.Egrants
 
                     url = this.ViewBag.FileUrl;
                     mssg = sb.ToString();
+
                 }
                 catch (Exception ex)
                 {
