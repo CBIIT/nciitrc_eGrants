@@ -1,11 +1,13 @@
 name: eGrants Deployment Workflow
 
 on:
+  # Automatically deploy when code is pushed to dev or test.
   push:
     branches:
       - dev
       - test
 
+  # Allow manual deployments to any supported environment.
   workflow_dispatch:
     inputs:
       target_branch:
@@ -20,18 +22,28 @@ on:
         default: dev
 
 env:
+  # Resolve the target environment.
+  # - For manual runs, use the selected workflow input.
+  # - For push runs, use the branch name that triggered the workflow.
   DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
 jobs:
   build-and-deploy:
+    # Choose the runner label based on the environment:
+    # - dev/test use the non-prod runner
+    # - stage/prod use the prod runner
     runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
 
+    # Attach the deployment to the matching GitHub environment.
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
+      # Pull down the repository source so the runner can build it.
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Load environment-specific values from GitHub environment variables and secrets.
+      # This step writes reusable outputs for later steps.
       - name: Load environment variables
         id: envmap
         shell: powershell
@@ -41,6 +53,7 @@ jobs:
 
           switch ($branch) {
             "dev" {
+              # Dev uses local paths/settings and does not require remote deployment credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
@@ -48,6 +61,7 @@ jobs:
             }
 
             "test" {
+              # Test uses remote share credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
@@ -57,6 +71,7 @@ jobs:
             }
 
             "stage" {
+              # Stage uses local paths/settings.
               echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
@@ -64,6 +79,7 @@ jobs:
             }
 
             "prod" {
+              # Prod uses remote share credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
@@ -77,9 +93,12 @@ jobs:
             }
           }
 
+          # Left here for visibility/diagnostics, even though remote IIS service control
+          # is no longer used in this version of the workflow.
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
+      # Restore NuGet packages and publish the application into a deployment-ready folder.
       - name: Build project
         shell: powershell
         run: |
@@ -89,6 +108,8 @@ jobs:
             -c Release `
             -o ./build_output
 
+      # Replace the placeholder GitHubToken value inside the published appsettings.json
+      # with the real secret value from GitHub Actions secrets.
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
@@ -105,6 +126,8 @@ jobs:
           $json = $json -replace $pattern, $replacement
           Set-Content -Path $file -Value $json -Encoding UTF8
 
+      # Archive the currently deployed application before copying in the new build.
+      # This creates a timestamped zip backup and keeps only the 5 newest backups.
       - name: Archive existing destination directory
         shell: powershell
         run: |
@@ -144,6 +167,7 @@ jobs:
           function Remove-MappedDrive {
             param([Parameter(Mandatory = $true)][string]$DriveName)
 
+            # Remove any existing PowerShell drive mapping if present.
             try {
               if (Get-PSDrive -Name $DriveName -ErrorAction SilentlyContinue) {
                 Write-Host "Removing PSDrive ${DriveName}:"
@@ -154,6 +178,7 @@ jobs:
               Write-Host "PSDrive cleanup warning for ${DriveName}: $($_.Exception.Message)"
             }
 
+            # Also remove any persisted Windows drive mapping with the same letter.
             try {
               $output = & net.exe use "${DriveName}:" /delete /y 2>&1
               if ($output) {
@@ -196,6 +221,8 @@ jobs:
 
             $server = $shareParts[2]
 
+            # Preserve the exact password string and compare it at point-of-use
+            # for diagnostics without printing the secret itself.
             $originalPass = $Password
             $passwordUsedForCredential = $Password
 
@@ -229,8 +256,9 @@ jobs:
             Write-Host "Used password trimmed length        = $($usedSummary.TrimmedLength)"
             Write-Host "==========================================="
 
-            Write-Host "Testing SMB reachability to $server on port 445..."
+            # Confirm that SMB is reachable before attempting to map the share.
             try {
+              Write-Host "Testing SMB reachability to $server on port 445..."
               $tnc = Test-NetConnection $server -Port 445 -WarningAction SilentlyContinue
               Write-Host "TcpTestSucceeded = $($tnc.TcpTestSucceeded)"
               Write-Host "RemoteAddress    = $($tnc.RemoteAddress)"
@@ -239,11 +267,16 @@ jobs:
               Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
             }
 
+            # Remove any previous mapping using this drive letter before recreating it.
             Remove-MappedDrive -DriveName $DriveName
 
+            # Build a PSCredential so the password is not passed through net.exe
+            # as a raw command-line argument.
             $securePassword = ConvertTo-SecureString $passwordUsedForCredential -AsPlainText -Force
             $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
+            # Map the remote share as a PowerShell file-system drive.
+            # This uses SMB share access, not PowerShell remoting.
             New-PSDrive -Name $DriveName -PSProvider FileSystem -Root $Share -Credential $credential -Persist -Scope Global | Out-Null
 
             $mappedPath = "${DriveName}:"
@@ -285,6 +318,7 @@ jobs:
                 throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
               }
 
+              # Map only the share root, then translate the full UNC path to the mapped drive.
               $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
               $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
 
@@ -322,6 +356,7 @@ jobs:
 
             New-Item -ItemType Directory -Path $localTemp | Out-Null
 
+            # Copy current deployed content to a temporary local folder before zipping it.
             robocopy $mappedDest $localTemp /MIR
             if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
@@ -331,6 +366,7 @@ jobs:
             Remove-Item -Path $localTemp -Recurse -Force -ErrorAction SilentlyContinue
             Remove-Item -Path $localZip -Force -ErrorAction SilentlyContinue
 
+            # Keep only the most recent 5 backups.
             $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
               Sort-Object LastWriteTime -Descending
 
@@ -342,12 +378,15 @@ jobs:
             exit 0
           }
           finally {
+            # Always clean up mapped drives after archive processing.
             if ($branch -eq 'test' -or $branch -eq 'prod') {
               Remove-MappedDrive -DriveName $destDrive
               Remove-MappedDrive -DriveName $archDrive
             }
           }
 
+      # Helpful diagnostics for confirming which runner executed the job and
+      # whether IIS objects are visible on that machine.
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
@@ -424,6 +463,9 @@ jobs:
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
 
+      # Deploy the published build output.
+      # For all environments, use app_offline.htm to temporarily take the application offline
+      # while files are copied.
       - name: Deploy build output
         shell: powershell
         run: |
@@ -463,6 +505,7 @@ jobs:
           function Remove-MappedDrive {
             param([Parameter(Mandatory = $true)][string]$DriveName)
 
+            # Remove any existing PowerShell drive mapping if present.
             try {
               if (Get-PSDrive -Name $DriveName -ErrorAction SilentlyContinue) {
                 Write-Host "Removing PSDrive ${DriveName}:"
@@ -473,6 +516,7 @@ jobs:
               Write-Host "PSDrive cleanup warning for ${DriveName}: $($_.Exception.Message)"
             }
 
+            # Also remove any persisted Windows drive mapping with the same letter.
             try {
               $output = & net.exe use "${DriveName}:" /delete /y 2>&1
               if ($output) {
@@ -515,6 +559,8 @@ jobs:
 
             $server = $shareParts[2]
 
+            # Preserve the exact password string and compare it at point-of-use
+            # for diagnostics without printing the secret itself.
             $originalPass = $Password
             $passwordUsedForCredential = $Password
 
@@ -548,8 +594,9 @@ jobs:
             Write-Host "Used password trimmed length        = $($usedSummary.TrimmedLength)"
             Write-Host "==========================================="
 
-            Write-Host "Testing SMB reachability to $server on port 445..."
+            # Confirm that SMB is reachable before attempting to map the share.
             try {
+              Write-Host "Testing SMB reachability to $server on port 445..."
               $tnc = Test-NetConnection $server -Port 445 -WarningAction SilentlyContinue
               Write-Host "TcpTestSucceeded = $($tnc.TcpTestSucceeded)"
               Write-Host "RemoteAddress    = $($tnc.RemoteAddress)"
@@ -558,11 +605,16 @@ jobs:
               Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
             }
 
+            # Remove any previous mapping using this drive letter before recreating it.
             Remove-MappedDrive -DriveName $DriveName
 
+            # Build a PSCredential so the password is not passed through net.exe
+            # as a raw command-line argument.
             $securePassword = ConvertTo-SecureString $passwordUsedForCredential -AsPlainText -Force
             $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
+            # Map the remote share as a PowerShell file-system drive.
+            # This uses SMB share access, not PowerShell remoting.
             New-PSDrive -Name $DriveName -PSProvider FileSystem -Root $Share -Credential $credential -Persist -Scope Global | Out-Null
 
             $mappedPath = "${DriveName}:"
@@ -599,6 +651,7 @@ jobs:
                 throw "DEST_PATH is not a valid UNC path: $destination"
               }
 
+              # Map only the share root, then translate the full UNC path to the mapped drive.
               $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
 
               Write-Host "Destination share root: $destShareRoot"
@@ -618,6 +671,7 @@ jobs:
               throw "Destination path not reachable: $mappedDest"
             }
 
+            # Create app_offline.htm so IIS serves a maintenance page and releases file locks.
             $appOffline = Join-Path $mappedDest "app_offline.htm"
 
             @"
@@ -631,8 +685,13 @@ jobs:
 
             Write-Host "Created app_offline.htm at $appOffline"
 
+            # Give IIS a moment to recognize the offline file and unload the app.
             Start-Sleep -Seconds 3
 
+            # Mirror the new build into the target directory.
+            # Exclude:
+            # - web.config because the environment keeps its own deployed copy
+            # - app_offline.htm so robocopy does not delete it mid-deployment
             robocopy $source $mappedDest /MIR /XF web.config app_offline.htm
 
             if ($LASTEXITCODE -ge 8) {
@@ -643,11 +702,13 @@ jobs:
             exit 0
           }
           finally {
+            # Always remove app_offline.htm at the end so the application comes back online.
             if ($appOffline -and (Test-Path $appOffline)) {
               Remove-Item -Path $appOffline -Force -ErrorAction SilentlyContinue
               Write-Host "Removed app_offline.htm"
             }
 
+            # Always remove mapped drives after deployment.
             if ($branch -eq 'test' -or $branch -eq 'prod') {
               Remove-MappedDrive -DriveName $destDrive
             }
