@@ -15,6 +15,11 @@ namespace EGrantsAcmAuditReport
         {
             try
             {
+#if DEBUG
+                // Load credentials from local secrets file (not committed to source control)
+                CommonUtilities.LoadLocalSecrets("secrets.local.csv");
+#endif
+
                 var startTimeStamp = DateTime.Now;
                 Console.WriteLine("EGrantsAcmAuditReport - ACM Audit Report Processor");
 

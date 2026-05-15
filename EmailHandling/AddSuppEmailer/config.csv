@@ -1,4 +1,5 @@
 logDir,,,,,C:\eGrants\apps\log\
-conStr,,,,,Provider=SQLNCLI11;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants
+conStr,,,,,Provider=SQLNCLI11;Password=%EGRANTS_DB_PASSWORD%;Persist Security Info=True;User ID=%EGRANTS_DB_USER%;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants
 Verbose,,,,,n
 dBug,,,,,n
+

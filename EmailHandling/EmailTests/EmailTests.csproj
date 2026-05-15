@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <IsPackable>false</IsPackable>
@@ -23,9 +23,13 @@
     <ProjectReference Include="..\ExchangeFixed\ExchangeFixed.csproj" />
     <ProjectReference Include="..\LoadPfr\LoadPfr.csproj" />
     <ProjectReference Include="..\LoadSuppPfr\LoadSuppPfr.csproj" />
+    <ProjectReference Include="..\StartOutlook\StartOutlook.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="config.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="secrets.local.csv" Condition="Exists('secrets.local.csv')">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

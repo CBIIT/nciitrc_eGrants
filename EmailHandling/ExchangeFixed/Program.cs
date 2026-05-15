@@ -1,6 +1,5 @@
 using System;
 using System.Data.SqlClient;
-using System.IO;
 using CommonUtilties;
 
 namespace ExchangeFixed
@@ -15,6 +14,11 @@ namespace ExchangeFixed
         {
             try
             {
+#if DEBUG
+    // Load credentials from local secrets file (not committed to source control)
+  CommonUtilities.LoadLocalSecrets("secrets.local.csv");
+#endif
+
                 var startTimeStamp = DateTime.Now;
                 Console.WriteLine("ExchangeFixed - Fixed Path Email Router");
 

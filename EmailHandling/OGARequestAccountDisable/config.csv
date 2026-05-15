@@ -1,5 +1,4 @@
 ﻿
-
 -- -------------------------------------------------------------------------------------------------------- --
 --																											                                                    --
 --			WARNING ! THIS IS THE DEV TEST VERSION OF THIS FILE !!													                    --
@@ -21,7 +20,7 @@ Verbose,,,,,y
 --VerboseTEST,,,,,y
 --VerbosePROD,,,,,n
 
-conStr,,,,,Password='';Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
+conStr,,,,,Password=%EGRANTS_DB_PASSWORD%;Persist Security Info=True;User ID=%EGRANTS_DB_USER%;Initial Catalog=EIM;Data Source=NCIDB-Q389-V.nci.nih.gov\MSSQLEGRANTSQ,53500;Application Name=egrants
 --System.ArgumentException: 'Keyword not supported: 'provider'.'
 
 --MLH : note that some providers used to be MSOLEDBSQL

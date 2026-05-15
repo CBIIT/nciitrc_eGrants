@@ -2,21 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Exception = System.Exception;
-using Outlook = Microsoft.Office.Interop.Outlook;
-
-using System.Security.Cryptography;
-using System.Data;
 using System.Threading;
 using CommonUtilties;
+using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace Router
 {
@@ -113,7 +101,7 @@ namespace Router
                     {
                         HandleSingleEmail(currentItem, v_SubLine, v_Body, verbose, con, debug);
                     }
-                    catch (Exception ex)
+                    catch (System.Exception ex)
                     {
                         failedToProcess = true;
                         var _logMessage = $"Error Occured! => EmailSender:{v_SenderID}; Subjectline : {v_SubLine}; Recieved Date: {currentItem.ReceivedTime}";
@@ -136,7 +124,7 @@ namespace Router
                     {
                         var result = currentItem.Move(oldFolder);
                     }
-                    catch (Exception ex)
+                    catch (System.Exception ex)
                     {
                         string message = $"Failed to move an item at {DateTime.UtcNow} UTC. Most likely solution is to restart Outlook (or re-request public file permissions in Outlook). This behavior does not indicate a defect in this software. Written authorization is not required to restart Microsoft Outlook. Here is some info : {ex.Message} \r\n {ex.ToString()}";
                         CommonUtilities.ShowDiagnosticIfVerbose(message, "y");
@@ -1113,7 +1101,7 @@ namespace Router
                 }
                 return string.Empty;
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 Console.WriteLine("Query failed.");
                 Console.WriteLine($"The string parameter for Imm_fn_applid_match was '{str}'");

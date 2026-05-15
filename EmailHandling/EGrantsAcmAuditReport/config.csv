@@ -1,7 +1,8 @@
 logDir,,,,,C:\eGrants\apps\log\
-conStr,,,,,Provider=SQLNCLI11;Password={DB_PASSWORD};User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000
+conStr,,,,,Provider=SQLNCLI11;Password=%EGRANTS_DB_PASSWORD%;User ID=%EGRANTS_DB_USER%;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000
 srcDirPathAcm,,,,,C:\eGrants\Reports\ACMMonthlyReport\
 bckDirPathAcm,,,,,C:\eGrants\Reports\ACMMonthlyReport\BACKUP\
 imgSvrPathAcm,,,,,\\nciws-p288-v\egrants\funded\egrantsadmin\auditreport
 imgSvrPath2Acm,,,,,\\nciis-p401.nci.nih.gov\group02\eGrants_Audit_reports\
 Verbose,,,,,n
+

@@ -1,5 +1,6 @@
 logDir,,,,,C:\egrants\apps\log\
-conStrDocMan,,,,,Provider=SQLNCLI11;Password={DB_PASSWORD};User ID=egrantsuser;Initial Catalog=DOCMAN;Data Source=NCIDB-P232-V.nci.nih.gov\MSSQLEGRANTSP,59000
+conStrDocMan,,,,,Provider=SQLNCLI11;Password=%EGRANTS_DB_PASSWORD%;User ID=%EGRANTS_DB_USER%;Initial Catalog=DOCMAN;Data Source=NCIDB-P232-V.nci.nih.gov\MSSQLEGRANTSP,59000
 dirpathDocMan,,,,,Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\eContracts\
 OutDirDocMan,,,,,C:\egrants\watch\out\docman\prod\
 Verbose,,,,,n
+
