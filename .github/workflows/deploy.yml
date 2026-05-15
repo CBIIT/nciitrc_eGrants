@@ -136,57 +136,45 @@ jobs:
               Percents      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('%'))).Count }
               Carets        = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('^'))).Count }
               Exclamations  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('!'))).Count }
-              Semicolons    = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape(';'))).Count }
-              LessThan      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('<'))).Count }
-              GreaterThan   = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('>'))).Count }
               CR            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`r")).Count }
               LF            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`n")).Count }
             }
           }
 
-          function Remove-NetUse {
-            param(
-              [Parameter(Mandatory = $false)][string]$Drive,
-              [Parameter(Mandatory = $false)][string]$Server
-            )
+          function Remove-MappedDrive {
+            param([Parameter(Mandatory = $true)][string]$DriveName)
 
-            if (-not [string]::IsNullOrWhiteSpace($Drive)) {
-              Write-Host "Cleaning mapped drive if present: $Drive"
-              try {
-                $output = & net.exe use $Drive /delete /y 2>&1
-                if ($output) {
-                  $output | ForEach-Object { Write-Host $_ }
-                }
-              }
-              catch {
-                Write-Host "Drive cleanup warning for ${Drive}: $($_.Exception.Message)"
+            try {
+              if (Get-PSDrive -Name $DriveName -ErrorAction SilentlyContinue) {
+                Write-Host "Removing PSDrive ${DriveName}:"
+                Remove-PSDrive -Name $DriveName -Force -ErrorAction SilentlyContinue
               }
             }
+            catch {
+              Write-Host "PSDrive cleanup warning for ${DriveName}: $($_.Exception.Message)"
+            }
 
-            if (-not [string]::IsNullOrWhiteSpace($Server)) {
-              Write-Host "Cleaning stale SMB sessions to server if present: \\$Server\*"
-              try {
-                $output = & net.exe use "\\$Server\*" /delete /y 2>&1
-                if ($output) {
-                  $output | ForEach-Object { Write-Host $_ }
-                }
+            try {
+              $output = & net.exe use "${DriveName}:" /delete /y 2>&1
+              if ($output) {
+                $output | ForEach-Object { Write-Host $_ }
               }
-              catch {
-                Write-Host "Server cleanup warning for ${Server}: $($_.Exception.Message)"
-              }
+            }
+            catch {
+              Write-Host "net use cleanup warning for ${DriveName}: $($_.Exception.Message)"
             }
           }
 
-          function Invoke-NetUse {
+          function New-AuthenticatedPSDrive {
             param(
-              [Parameter(Mandatory = $true)][string]$Drive,
+              [Parameter(Mandatory = $true)][string]$DriveName,
               [Parameter(Mandatory = $true)][string]$Share,
               [Parameter(Mandatory = $true)][string]$Username,
               [Parameter(Mandatory = $true)][string]$Password
             )
 
-            if ([string]::IsNullOrWhiteSpace($Drive)) {
-              throw "Drive is empty."
+            if ([string]::IsNullOrWhiteSpace($DriveName)) {
+              throw "DriveName is empty."
             }
             if ([string]::IsNullOrWhiteSpace($Share)) {
               throw "Share is empty."
@@ -209,43 +197,37 @@ jobs:
             $server = $shareParts[2]
 
             $originalPass = $Password
-            $passwordUsedForNetUse = $Password
+            $passwordUsedForCredential = $Password
 
             $originalSummary = Get-VisibleCharSummary -Value $originalPass
-            $usedSummary = Get-VisibleCharSummary -Value $passwordUsedForNetUse
+            $usedSummary = Get-VisibleCharSummary -Value $passwordUsedForCredential
             $originalHash = Get-Sha256Hex -Value $originalPass
-            $usedHash = Get-Sha256Hex -Value $passwordUsedForNetUse
-            $passwordChanged = $originalPass -cne $passwordUsedForNetUse
+            $usedHash = Get-Sha256Hex -Value $passwordUsedForCredential
+            $passwordChanged = $originalPass -cne $passwordUsedForCredential
 
-            Write-Host "=== Invoke-NetUse diagnostics ==="
-            Write-Host "Drive                              = $Drive"
-            Write-Host "Share                              = $Share"
-            Write-Host "Server                             = $server"
-            Write-Host "Username                           = $Username"
-            Write-Host "Password changed before use        = $passwordChanged"
-            Write-Host "Password length                    = $($originalSummary.Length)"
-            Write-Host "Password trimmed length            = $($originalSummary.TrimmedLength)"
-            Write-Host "Password has leading/trailing ws   = $($originalSummary.HasLeadingOrTrailingWhitespace)"
-            Write-Host "Password double quotes             = $($originalSummary.DoubleQuotes)"
-            Write-Host "Password backticks                 = $($originalSummary.Backticks)"
-            Write-Host "Password ampersands                = $($originalSummary.Ampersands)"
-            Write-Host "Password pipes                     = $($originalSummary.Pipes)"
-            Write-Host "Password percents                  = $($originalSummary.Percents)"
-            Write-Host "Password carets                    = $($originalSummary.Carets)"
-            Write-Host "Password exclamations              = $($originalSummary.Exclamations)"
-            Write-Host "Password semicolons                = $($originalSummary.Semicolons)"
-            Write-Host "Password less-than                 = $($originalSummary.LessThan)"
-            Write-Host "Password greater-than              = $($originalSummary.GreaterThan)"
-            Write-Host "Password CR count                  = $($originalSummary.CR)"
-            Write-Host "Password LF count                  = $($originalSummary.LF)"
-            Write-Host "Password original SHA-256          = $originalHash"
-            Write-Host "Password used SHA-256              = $usedHash"
-            Write-Host "Used password length               = $($usedSummary.Length)"
-            Write-Host "Used password trimmed length       = $($usedSummary.TrimmedLength)"
-            Write-Host "==================================="
-
-            Remove-NetUse -Drive $Drive
-            Remove-NetUse -Server $server
+            Write-Host "=== New-AuthenticatedPSDrive diagnostics ==="
+            Write-Host "DriveName                           = $DriveName"
+            Write-Host "Share                               = $Share"
+            Write-Host "Server                              = $server"
+            Write-Host "Username                            = $Username"
+            Write-Host "Password changed before use         = $passwordChanged"
+            Write-Host "Password length                     = $($originalSummary.Length)"
+            Write-Host "Password trimmed length             = $($originalSummary.TrimmedLength)"
+            Write-Host "Password has leading/trailing ws    = $($originalSummary.HasLeadingOrTrailingWhitespace)"
+            Write-Host "Password double quotes              = $($originalSummary.DoubleQuotes)"
+            Write-Host "Password backticks                  = $($originalSummary.Backticks)"
+            Write-Host "Password ampersands                 = $($originalSummary.Ampersands)"
+            Write-Host "Password pipes                      = $($originalSummary.Pipes)"
+            Write-Host "Password percents                   = $($originalSummary.Percents)"
+            Write-Host "Password carets                     = $($originalSummary.Carets)"
+            Write-Host "Password exclamations               = $($originalSummary.Exclamations)"
+            Write-Host "Password CR count                   = $($originalSummary.CR)"
+            Write-Host "Password LF count                   = $($originalSummary.LF)"
+            Write-Host "Password original SHA-256           = $originalHash"
+            Write-Host "Password used SHA-256               = $usedHash"
+            Write-Host "Used password length                = $($usedSummary.Length)"
+            Write-Host "Used password trimmed length        = $($usedSummary.TrimmedLength)"
+            Write-Host "==========================================="
 
             Write-Host "Testing SMB reachability to $server on port 445..."
             try {
@@ -257,20 +239,19 @@ jobs:
               Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
             }
 
-            Write-Host "Attempting net use..."
+            Remove-MappedDrive -DriveName $DriveName
 
-            $output = & net.exe use $Drive $Share $passwordUsedForNetUse "/user:$Username" /persistent:no 2>&1
-            $exitCode = $LASTEXITCODE
+            $securePassword = ConvertTo-SecureString $passwordUsedForCredential -AsPlainText -Force
+            $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
-            if ($output) {
-              $output | ForEach-Object { Write-Host $_ }
+            New-PSDrive -Name $DriveName -PSProvider FileSystem -Root $Share -Credential $credential -Persist -Scope Global | Out-Null
+
+            $mappedPath = "${DriveName}:"
+            if (-not (Test-Path $mappedPath)) {
+              throw "Mapped drive was created but is not reachable: $mappedPath"
             }
 
-            Write-Host "net.exe exit code = $exitCode"
-
-            if ($exitCode -ne 0) {
-              throw "net use failed for drive $Drive -> $Share (exit code $exitCode)"
-            }
+            Write-Host "Mapped $Share to $mappedPath successfully."
           }
 
           $branch = '${{ env.DEPLOY_ENV }}'
@@ -279,12 +260,12 @@ jobs:
           $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
           $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          $destDrive = 'Z:'
-          $archDrive = 'Y:'
+          $destDrive = 'Z'
+          $archDrive = 'Y'
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Write-Host 'Mapping remote shares using net.exe with safer diagnostics...'
+              Write-Host 'Mapping remote shares using PowerShell credential-based PSDrives...'
 
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
@@ -310,11 +291,11 @@ jobs:
               Write-Host "Destination share root: $destShareRoot"
               Write-Host "Archive share root: $archShareRoot"
 
-              Invoke-NetUse -Drive $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
-              Invoke-NetUse -Drive $archDrive -Share $archShareRoot -Username $deployUser -Password $deployPass
+              New-AuthenticatedPSDrive -DriveName $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
+              New-AuthenticatedPSDrive -DriveName $archDrive -Share $archShareRoot -Username $deployUser -Password $deployPass
 
-              $mappedDest = $destination.Replace($destShareRoot, $destDrive)
-              $mappedArchive = $archiveRoot.Replace($archShareRoot, $archDrive)
+              $mappedDest = $destination.Replace($destShareRoot, "${destDrive}:")
+              $mappedArchive = $archiveRoot.Replace($archShareRoot, "${archDrive}:")
             }
             else {
               Write-Host 'DEV or STAGE environment detected — no credentialed share mapping required.'
@@ -362,8 +343,8 @@ jobs:
           }
           finally {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Remove-NetUse -Drive $destDrive
-              Remove-NetUse -Drive $archDrive
+              Remove-MappedDrive -DriveName $destDrive
+              Remove-MappedDrive -DriveName $archDrive
             }
           }
 
@@ -474,57 +455,45 @@ jobs:
               Percents      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('%'))).Count }
               Carets        = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('^'))).Count }
               Exclamations  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('!'))).Count }
-              Semicolons    = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape(';'))).Count }
-              LessThan      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('<'))).Count }
-              GreaterThan   = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('>'))).Count }
               CR            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`r")).Count }
               LF            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`n")).Count }
             }
           }
 
-          function Remove-NetUse {
-            param(
-              [Parameter(Mandatory = $false)][string]$Drive,
-              [Parameter(Mandatory = $false)][string]$Server
-            )
+          function Remove-MappedDrive {
+            param([Parameter(Mandatory = $true)][string]$DriveName)
 
-            if (-not [string]::IsNullOrWhiteSpace($Drive)) {
-              Write-Host "Cleaning mapped drive if present: $Drive"
-              try {
-                $output = & net.exe use $Drive /delete /y 2>&1
-                if ($output) {
-                  $output | ForEach-Object { Write-Host $_ }
-                }
-              }
-              catch {
-                Write-Host "Drive cleanup warning for ${Drive}: $($_.Exception.Message)"
+            try {
+              if (Get-PSDrive -Name $DriveName -ErrorAction SilentlyContinue) {
+                Write-Host "Removing PSDrive ${DriveName}:"
+                Remove-PSDrive -Name $DriveName -Force -ErrorAction SilentlyContinue
               }
             }
+            catch {
+              Write-Host "PSDrive cleanup warning for ${DriveName}: $($_.Exception.Message)"
+            }
 
-            if (-not [string]::IsNullOrWhiteSpace($Server)) {
-              Write-Host "Cleaning stale SMB sessions to server if present: \\$Server\*"
-              try {
-                $output = & net.exe use "\\$Server\*" /delete /y 2>&1
-                if ($output) {
-                  $output | ForEach-Object { Write-Host $_ }
-                }
+            try {
+              $output = & net.exe use "${DriveName}:" /delete /y 2>&1
+              if ($output) {
+                $output | ForEach-Object { Write-Host $_ }
               }
-              catch {
-                Write-Host "Server cleanup warning for ${Server}: $($_.Exception.Message)"
-              }
+            }
+            catch {
+              Write-Host "net use cleanup warning for ${DriveName}: $($_.Exception.Message)"
             }
           }
 
-          function Invoke-NetUse {
+          function New-AuthenticatedPSDrive {
             param(
-              [Parameter(Mandatory = $true)][string]$Drive,
+              [Parameter(Mandatory = $true)][string]$DriveName,
               [Parameter(Mandatory = $true)][string]$Share,
               [Parameter(Mandatory = $true)][string]$Username,
               [Parameter(Mandatory = $true)][string]$Password
             )
 
-            if ([string]::IsNullOrWhiteSpace($Drive)) {
-              throw "Drive is empty."
+            if ([string]::IsNullOrWhiteSpace($DriveName)) {
+              throw "DriveName is empty."
             }
             if ([string]::IsNullOrWhiteSpace($Share)) {
               throw "Share is empty."
@@ -547,43 +516,37 @@ jobs:
             $server = $shareParts[2]
 
             $originalPass = $Password
-            $passwordUsedForNetUse = $Password
+            $passwordUsedForCredential = $Password
 
             $originalSummary = Get-VisibleCharSummary -Value $originalPass
-            $usedSummary = Get-VisibleCharSummary -Value $passwordUsedForNetUse
+            $usedSummary = Get-VisibleCharSummary -Value $passwordUsedForCredential
             $originalHash = Get-Sha256Hex -Value $originalPass
-            $usedHash = Get-Sha256Hex -Value $passwordUsedForNetUse
-            $passwordChanged = $originalPass -cne $passwordUsedForNetUse
+            $usedHash = Get-Sha256Hex -Value $passwordUsedForCredential
+            $passwordChanged = $originalPass -cne $passwordUsedForCredential
 
-            Write-Host "=== Invoke-NetUse diagnostics ==="
-            Write-Host "Drive                              = $Drive"
-            Write-Host "Share                              = $Share"
-            Write-Host "Server                             = $server"
-            Write-Host "Username                           = $Username"
-            Write-Host "Password changed before use        = $passwordChanged"
-            Write-Host "Password length                    = $($originalSummary.Length)"
-            Write-Host "Password trimmed length            = $($originalSummary.TrimmedLength)"
-            Write-Host "Password has leading/trailing ws   = $($originalSummary.HasLeadingOrTrailingWhitespace)"
-            Write-Host "Password double quotes             = $($originalSummary.DoubleQuotes)"
-            Write-Host "Password backticks                 = $($originalSummary.Backticks)"
-            Write-Host "Password ampersands                = $($originalSummary.Ampersands)"
-            Write-Host "Password pipes                     = $($originalSummary.Pipes)"
-            Write-Host "Password percents                  = $($originalSummary.Percents)"
-            Write-Host "Password carets                    = $($originalSummary.Carets)"
-            Write-Host "Password exclamations              = $($originalSummary.Exclamations)"
-            Write-Host "Password semicolons                = $($originalSummary.Semicolons)"
-            Write-Host "Password less-than                 = $($originalSummary.LessThan)"
-            Write-Host "Password greater-than              = $($originalSummary.GreaterThan)"
-            Write-Host "Password CR count                  = $($originalSummary.CR)"
-            Write-Host "Password LF count                  = $($originalSummary.LF)"
-            Write-Host "Password original SHA-256          = $originalHash"
-            Write-Host "Password used SHA-256              = $usedHash"
-            Write-Host "Used password length               = $($usedSummary.Length)"
-            Write-Host "Used password trimmed length       = $($usedSummary.TrimmedLength)"
-            Write-Host "==================================="
-
-            Remove-NetUse -Drive $Drive
-            Remove-NetUse -Server $server
+            Write-Host "=== New-AuthenticatedPSDrive diagnostics ==="
+            Write-Host "DriveName                           = $DriveName"
+            Write-Host "Share                               = $Share"
+            Write-Host "Server                              = $server"
+            Write-Host "Username                            = $Username"
+            Write-Host "Password changed before use         = $passwordChanged"
+            Write-Host "Password length                     = $($originalSummary.Length)"
+            Write-Host "Password trimmed length             = $($originalSummary.TrimmedLength)"
+            Write-Host "Password has leading/trailing ws    = $($originalSummary.HasLeadingOrTrailingWhitespace)"
+            Write-Host "Password double quotes              = $($originalSummary.DoubleQuotes)"
+            Write-Host "Password backticks                  = $($originalSummary.Backticks)"
+            Write-Host "Password ampersands                 = $($originalSummary.Ampersands)"
+            Write-Host "Password pipes                      = $($originalSummary.Pipes)"
+            Write-Host "Password percents                   = $($originalSummary.Percents)"
+            Write-Host "Password carets                     = $($originalSummary.Carets)"
+            Write-Host "Password exclamations               = $($originalSummary.Exclamations)"
+            Write-Host "Password CR count                   = $($originalSummary.CR)"
+            Write-Host "Password LF count                   = $($originalSummary.LF)"
+            Write-Host "Password original SHA-256           = $originalHash"
+            Write-Host "Password used SHA-256               = $usedHash"
+            Write-Host "Used password length                = $($usedSummary.Length)"
+            Write-Host "Used password trimmed length        = $($usedSummary.TrimmedLength)"
+            Write-Host "==========================================="
 
             Write-Host "Testing SMB reachability to $server on port 445..."
             try {
@@ -595,20 +558,19 @@ jobs:
               Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
             }
 
-            Write-Host "Attempting net use..."
+            Remove-MappedDrive -DriveName $DriveName
 
-            $output = & net.exe use $Drive $Share $passwordUsedForNetUse "/user:$Username" /persistent:no 2>&1
-            $exitCode = $LASTEXITCODE
+            $securePassword = ConvertTo-SecureString $passwordUsedForCredential -AsPlainText -Force
+            $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
-            if ($output) {
-              $output | ForEach-Object { Write-Host $_ }
+            New-PSDrive -Name $DriveName -PSProvider FileSystem -Root $Share -Credential $credential -Persist -Scope Global | Out-Null
+
+            $mappedPath = "${DriveName}:"
+            if (-not (Test-Path $mappedPath)) {
+              throw "Mapped drive was created but is not reachable: $mappedPath"
             }
 
-            Write-Host "net.exe exit code = $exitCode"
-
-            if ($exitCode -ne 0) {
-              throw "net use failed for drive $Drive -> $Share (exit code $exitCode)"
-            }
+            Write-Host "Mapped $Share to $mappedPath successfully."
           }
 
           $branch = '${{ env.DEPLOY_ENV }}'
@@ -617,12 +579,12 @@ jobs:
           $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
           $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          $destDrive = 'Z:'
+          $destDrive = 'Z'
           $appOffline = $null
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Write-Host 'Mapping deployment share using net.exe with safer diagnostics...'
+              Write-Host 'Mapping deployment share using PowerShell credential-based PSDrives...'
 
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
@@ -641,9 +603,9 @@ jobs:
 
               Write-Host "Destination share root: $destShareRoot"
 
-              Invoke-NetUse -Drive $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
+              New-AuthenticatedPSDrive -DriveName $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
 
-              $mappedDest = $destination.Replace($destShareRoot, $destDrive)
+              $mappedDest = $destination.Replace($destShareRoot, "${destDrive}:")
             }
             else {
               $mappedDest = $destination
@@ -687,6 +649,6 @@ jobs:
             }
 
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Remove-NetUse -Drive $destDrive
+              Remove-MappedDrive -DriveName $destDrive
             }
           }
