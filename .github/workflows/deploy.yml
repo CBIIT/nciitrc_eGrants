@@ -152,52 +152,28 @@ jobs:
 
             if (-not [string]::IsNullOrWhiteSpace($Drive)) {
               Write-Host "Cleaning mapped drive if present: $Drive"
-              $psi = New-Object System.Diagnostics.ProcessStartInfo
-              $psi.FileName = "net.exe"
-              $psi.ArgumentList.Add("use")
-              $psi.ArgumentList.Add($Drive)
-              $psi.ArgumentList.Add("/delete")
-              $psi.ArgumentList.Add("/y")
-              $psi.RedirectStandardOutput = $true
-              $psi.RedirectStandardError = $true
-              $psi.UseShellExecute = $false
-              $psi.CreateNoWindow = $true
-
-              $proc = New-Object System.Diagnostics.Process
-              $proc.StartInfo = $psi
-              [void]$proc.Start()
-
-              $stdout = $proc.StandardOutput.ReadToEnd()
-              $stderr = $proc.StandardError.ReadToEnd()
-              $proc.WaitForExit()
-
-              if ($stdout) { Write-Host $stdout.Trim() }
-              if ($stderr) { Write-Host $stderr.Trim() }
+              try {
+                $output = & net.exe use $Drive /delete /y 2>&1
+                if ($output) {
+                  $output | ForEach-Object { Write-Host $_ }
+                }
+              }
+              catch {
+                Write-Host "Drive cleanup warning for ${Drive}: $($_.Exception.Message)"
+              }
             }
 
             if (-not [string]::IsNullOrWhiteSpace($Server)) {
               Write-Host "Cleaning stale SMB sessions to server if present: \\$Server\*"
-              $psi = New-Object System.Diagnostics.ProcessStartInfo
-              $psi.FileName = "net.exe"
-              $psi.ArgumentList.Add("use")
-              $psi.ArgumentList.Add("\\$Server\*")
-              $psi.ArgumentList.Add("/delete")
-              $psi.ArgumentList.Add("/y")
-              $psi.RedirectStandardOutput = $true
-              $psi.RedirectStandardError = $true
-              $psi.UseShellExecute = $false
-              $psi.CreateNoWindow = $true
-
-              $proc = New-Object System.Diagnostics.Process
-              $proc.StartInfo = $psi
-              [void]$proc.Start()
-
-              $stdout = $proc.StandardOutput.ReadToEnd()
-              $stderr = $proc.StandardError.ReadToEnd()
-              $proc.WaitForExit()
-
-              if ($stdout) { Write-Host $stdout.Trim() }
-              if ($stderr) { Write-Host $stderr.Trim() }
+              try {
+                $output = & net.exe use "\\$Server\*" /delete /y 2>&1
+                if ($output) {
+                  $output | ForEach-Object { Write-Host $_ }
+                }
+              }
+              catch {
+                Write-Host "Server cleanup warning for ${Server}: $($_.Exception.Message)"
+              }
             }
           }
 
@@ -281,36 +257,19 @@ jobs:
               Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
             }
 
-            Write-Host "Attempting net use with ProcessStartInfo.ArgumentList..."
+            Write-Host "Attempting net use..."
 
-            $psi = New-Object System.Diagnostics.ProcessStartInfo
-            $psi.FileName = "net.exe"
-            $psi.ArgumentList.Add("use")
-            $psi.ArgumentList.Add($Drive)
-            $psi.ArgumentList.Add($Share)
-            $psi.ArgumentList.Add($passwordUsedForNetUse)
-            $psi.ArgumentList.Add("/user:$Username")
-            $psi.ArgumentList.Add("/persistent:no")
-            $psi.RedirectStandardOutput = $true
-            $psi.RedirectStandardError = $true
-            $psi.UseShellExecute = $false
-            $psi.CreateNoWindow = $true
+            $output = & net.exe use $Drive $Share $passwordUsedForNetUse "/user:$Username" /persistent:no 2>&1
+            $exitCode = $LASTEXITCODE
 
-            $proc = New-Object System.Diagnostics.Process
-            $proc.StartInfo = $psi
-            [void]$proc.Start()
+            if ($output) {
+              $output | ForEach-Object { Write-Host $_ }
+            }
 
-            $stdout = $proc.StandardOutput.ReadToEnd()
-            $stderr = $proc.StandardError.ReadToEnd()
-            $proc.WaitForExit()
+            Write-Host "net.exe exit code = $exitCode"
 
-            if ($stdout) { Write-Host $stdout.Trim() }
-            if ($stderr) { Write-Host $stderr.Trim() }
-
-            Write-Host "net.exe exit code = $($proc.ExitCode)"
-
-            if ($proc.ExitCode -ne 0) {
-              throw "net use failed for drive $Drive -> $Share (exit code $($proc.ExitCode))"
+            if ($exitCode -ne 0) {
+              throw "net use failed for drive $Drive -> $Share (exit code $exitCode)"
             }
           }
 
@@ -388,8 +347,8 @@ jobs:
             Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
             Copy-Item -Path $localZip -Destination $remoteZip -Force
 
-            Remove-Item -Path $localTemp -Recurse -Force
-            Remove-Item -Path $localZip -Force
+            Remove-Item -Path $localTemp -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $localZip -Force -ErrorAction SilentlyContinue
 
             $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
               Sort-Object LastWriteTime -Descending
@@ -531,52 +490,28 @@ jobs:
 
             if (-not [string]::IsNullOrWhiteSpace($Drive)) {
               Write-Host "Cleaning mapped drive if present: $Drive"
-              $psi = New-Object System.Diagnostics.ProcessStartInfo
-              $psi.FileName = "net.exe"
-              $psi.ArgumentList.Add("use")
-              $psi.ArgumentList.Add($Drive)
-              $psi.ArgumentList.Add("/delete")
-              $psi.ArgumentList.Add("/y")
-              $psi.RedirectStandardOutput = $true
-              $psi.RedirectStandardError = $true
-              $psi.UseShellExecute = $false
-              $psi.CreateNoWindow = $true
-
-              $proc = New-Object System.Diagnostics.Process
-              $proc.StartInfo = $psi
-              [void]$proc.Start()
-
-              $stdout = $proc.StandardOutput.ReadToEnd()
-              $stderr = $proc.StandardError.ReadToEnd()
-              $proc.WaitForExit()
-
-              if ($stdout) { Write-Host $stdout.Trim() }
-              if ($stderr) { Write-Host $stderr.Trim() }
+              try {
+                $output = & net.exe use $Drive /delete /y 2>&1
+                if ($output) {
+                  $output | ForEach-Object { Write-Host $_ }
+                }
+              }
+              catch {
+                Write-Host "Drive cleanup warning for ${Drive}: $($_.Exception.Message)"
+              }
             }
 
             if (-not [string]::IsNullOrWhiteSpace($Server)) {
               Write-Host "Cleaning stale SMB sessions to server if present: \\$Server\*"
-              $psi = New-Object System.Diagnostics.ProcessStartInfo
-              $psi.FileName = "net.exe"
-              $psi.ArgumentList.Add("use")
-              $psi.ArgumentList.Add("\\$Server\*")
-              $psi.ArgumentList.Add("/delete")
-              $psi.ArgumentList.Add("/y")
-              $psi.RedirectStandardOutput = $true
-              $psi.RedirectStandardError = $true
-              $psi.UseShellExecute = $false
-              $psi.CreateNoWindow = $true
-
-              $proc = New-Object System.Diagnostics.Process
-              $proc.StartInfo = $psi
-              [void]$proc.Start()
-
-              $stdout = $proc.StandardOutput.ReadToEnd()
-              $stderr = $proc.StandardError.ReadToEnd()
-              $proc.WaitForExit()
-
-              if ($stdout) { Write-Host $stdout.Trim() }
-              if ($stderr) { Write-Host $stderr.Trim() }
+              try {
+                $output = & net.exe use "\\$Server\*" /delete /y 2>&1
+                if ($output) {
+                  $output | ForEach-Object { Write-Host $_ }
+                }
+              }
+              catch {
+                Write-Host "Server cleanup warning for ${Server}: $($_.Exception.Message)"
+              }
             }
           }
 
@@ -660,36 +595,19 @@ jobs:
               Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
             }
 
-            Write-Host "Attempting net use with ProcessStartInfo.ArgumentList..."
+            Write-Host "Attempting net use..."
 
-            $psi = New-Object System.Diagnostics.ProcessStartInfo
-            $psi.FileName = "net.exe"
-            $psi.ArgumentList.Add("use")
-            $psi.ArgumentList.Add($Drive)
-            $psi.ArgumentList.Add($Share)
-            $psi.ArgumentList.Add($passwordUsedForNetUse)
-            $psi.ArgumentList.Add("/user:$Username")
-            $psi.ArgumentList.Add("/persistent:no")
-            $psi.RedirectStandardOutput = $true
-            $psi.RedirectStandardError = $true
-            $psi.UseShellExecute = $false
-            $psi.CreateNoWindow = $true
+            $output = & net.exe use $Drive $Share $passwordUsedForNetUse "/user:$Username" /persistent:no 2>&1
+            $exitCode = $LASTEXITCODE
 
-            $proc = New-Object System.Diagnostics.Process
-            $proc.StartInfo = $psi
-            [void]$proc.Start()
+            if ($output) {
+              $output | ForEach-Object { Write-Host $_ }
+            }
 
-            $stdout = $proc.StandardOutput.ReadToEnd()
-            $stderr = $proc.StandardError.ReadToEnd()
-            $proc.WaitForExit()
+            Write-Host "net.exe exit code = $exitCode"
 
-            if ($stdout) { Write-Host $stdout.Trim() }
-            if ($stderr) { Write-Host $stderr.Trim() }
-
-            Write-Host "net.exe exit code = $($proc.ExitCode)"
-
-            if ($proc.ExitCode -ne 0) {
-              throw "net use failed for drive $Drive -> $Share (exit code $($proc.ExitCode))"
+            if ($exitCode -ne 0) {
+              throw "net use failed for drive $Drive -> $Share (exit code $exitCode)"
             }
           }
 
