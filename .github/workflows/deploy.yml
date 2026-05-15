@@ -1,13 +1,11 @@
 name: eGrants Deployment Workflow
 
 on:
-  # Automatically deploy when code is pushed to dev or test.
   push:
     branches:
       - dev
       - test
 
-  # Allow manual deployments to any supported environment.
   workflow_dispatch:
     inputs:
       target_branch:
@@ -22,28 +20,18 @@ on:
         default: dev
 
 env:
-  # Resolve the target environment.
-  # - For manual runs, use the selected workflow input.
-  # - For push runs, use the branch name that triggered the workflow.
   DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
 jobs:
   build-and-deploy:
-    # Choose the runner label based on the environment:
-    # - dev/test use the non-prod runner
-    # - stage/prod use the prod runner
     runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
 
-    # Attach the deployment to the matching GitHub environment.
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
-      # Pull down the repository source so the runner can build it.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Load environment-specific values from GitHub environment variables and secrets.
-      # This step writes reusable outputs for later steps.
       - name: Load environment variables
         id: envmap
         shell: powershell
@@ -53,7 +41,6 @@ jobs:
 
           switch ($branch) {
             "dev" {
-              # Dev uses local paths/settings and does not require remote deployment credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
@@ -61,7 +48,6 @@ jobs:
             }
 
             "test" {
-              # Test uses remote share credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
@@ -71,7 +57,6 @@ jobs:
             }
 
             "stage" {
-              # Stage uses local paths/settings.
               echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
@@ -79,7 +64,6 @@ jobs:
             }
 
             "prod" {
-              # Prod uses remote share credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
               echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
@@ -93,12 +77,9 @@ jobs:
             }
           }
 
-          # Left here for visibility/diagnostics, even though remote IIS service control
-          # is no longer used in this version of the workflow.
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-      # Restore NuGet packages and publish the application into a deployment-ready folder.
       - name: Build project
         shell: powershell
         run: |
@@ -108,8 +89,6 @@ jobs:
             -c Release `
             -o ./build_output
 
-      # Replace the placeholder GitHubToken value inside the published appsettings.json
-      # with the real secret value from GitHub Actions secrets.
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
@@ -126,11 +105,102 @@ jobs:
           $json = $json -replace $pattern, $replacement
           Set-Content -Path $file -Value $json -Encoding UTF8
 
-      # Archive the currently deployed application before copying in the new build.
-      # This creates a timestamped zip backup and keeps only the 5 newest backups.
       - name: Archive existing destination directory
         shell: powershell
         run: |
+          function Get-Sha256Hex {
+            param([Parameter(Mandatory = $true)][string]$Value)
+
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value)
+            $sha = [System.Security.Cryptography.SHA256]::Create()
+            try {
+              $hashBytes = $sha.ComputeHash($bytes)
+              return (-join ($hashBytes | ForEach-Object { $_.ToString("x2") }))
+            }
+            finally {
+              $sha.Dispose()
+            }
+          }
+
+          function Get-VisibleCharSummary {
+            param([string]$Value)
+
+            return [pscustomobject]@{
+              Length        = if ($null -eq $Value) { 0 } else { $Value.Length }
+              TrimmedLength = if ($null -eq $Value) { 0 } else { $Value.Trim().Length }
+              HasLeadingOrTrailingWhitespace = if ($null -eq $Value) { $false } else { $Value.Length -ne $Value.Trim().Length }
+              DoubleQuotes  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, '"')).Count }
+              Backticks     = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('`'))).Count }
+              Ampersands    = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('&'))).Count }
+              Pipes         = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('|'))).Count }
+              Percents      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('%'))).Count }
+              Carets        = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('^'))).Count }
+              Exclamations  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('!'))).Count }
+              Semicolons    = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape(';'))).Count }
+              LessThan      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('<'))).Count }
+              GreaterThan   = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('>'))).Count }
+              CR            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`r")).Count }
+              LF            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`n")).Count }
+            }
+          }
+
+          function Remove-NetUse {
+            param(
+              [Parameter(Mandatory = $false)][string]$Drive,
+              [Parameter(Mandatory = $false)][string]$Server
+            )
+
+            if (-not [string]::IsNullOrWhiteSpace($Drive)) {
+              Write-Host "Cleaning mapped drive if present: $Drive"
+              $psi = New-Object System.Diagnostics.ProcessStartInfo
+              $psi.FileName = "net.exe"
+              $psi.ArgumentList.Add("use")
+              $psi.ArgumentList.Add($Drive)
+              $psi.ArgumentList.Add("/delete")
+              $psi.ArgumentList.Add("/y")
+              $psi.RedirectStandardOutput = $true
+              $psi.RedirectStandardError = $true
+              $psi.UseShellExecute = $false
+              $psi.CreateNoWindow = $true
+
+              $proc = New-Object System.Diagnostics.Process
+              $proc.StartInfo = $psi
+              [void]$proc.Start()
+
+              $stdout = $proc.StandardOutput.ReadToEnd()
+              $stderr = $proc.StandardError.ReadToEnd()
+              $proc.WaitForExit()
+
+              if ($stdout) { Write-Host $stdout.Trim() }
+              if ($stderr) { Write-Host $stderr.Trim() }
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($Server)) {
+              Write-Host "Cleaning stale SMB sessions to server if present: \\$Server\*"
+              $psi = New-Object System.Diagnostics.ProcessStartInfo
+              $psi.FileName = "net.exe"
+              $psi.ArgumentList.Add("use")
+              $psi.ArgumentList.Add("\\$Server\*")
+              $psi.ArgumentList.Add("/delete")
+              $psi.ArgumentList.Add("/y")
+              $psi.RedirectStandardOutput = $true
+              $psi.RedirectStandardError = $true
+              $psi.UseShellExecute = $false
+              $psi.CreateNoWindow = $true
+
+              $proc = New-Object System.Diagnostics.Process
+              $proc.StartInfo = $psi
+              [void]$proc.Start()
+
+              $stdout = $proc.StandardOutput.ReadToEnd()
+              $stderr = $proc.StandardError.ReadToEnd()
+              $proc.WaitForExit()
+
+              if ($stdout) { Write-Host $stdout.Trim() }
+              if ($stderr) { Write-Host $stderr.Trim() }
+            }
+          }
+
           function Invoke-NetUse {
             param(
               [Parameter(Mandatory = $true)][string]$Drive,
@@ -139,10 +209,88 @@ jobs:
               [Parameter(Mandatory = $true)][string]$Password
             )
 
-            # Map a network share using net.exe through a safely constructed process call.
+            if ([string]::IsNullOrWhiteSpace($Drive)) {
+              throw "Drive is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Share)) {
+              throw "Share is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Username)) {
+              throw "Username is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Password)) {
+              throw "Password is empty."
+            }
+            if (-not $Share.StartsWith('\\')) {
+              throw "Share must be a UNC path. Actual value: $Share"
+            }
+
+            $shareParts = $Share -split '\\'
+            if ($shareParts.Length -lt 4) {
+              throw "Share is not a valid UNC path: $Share"
+            }
+
+            $server = $shareParts[2]
+
+            $originalPass = $Password
+            $passwordUsedForNetUse = $Password
+
+            $originalSummary = Get-VisibleCharSummary -Value $originalPass
+            $usedSummary = Get-VisibleCharSummary -Value $passwordUsedForNetUse
+            $originalHash = Get-Sha256Hex -Value $originalPass
+            $usedHash = Get-Sha256Hex -Value $passwordUsedForNetUse
+            $passwordChanged = $originalPass -cne $passwordUsedForNetUse
+
+            Write-Host "=== Invoke-NetUse diagnostics ==="
+            Write-Host "Drive                              = $Drive"
+            Write-Host "Share                              = $Share"
+            Write-Host "Server                             = $server"
+            Write-Host "Username                           = $Username"
+            Write-Host "Password changed before use        = $passwordChanged"
+            Write-Host "Password length                    = $($originalSummary.Length)"
+            Write-Host "Password trimmed length            = $($originalSummary.TrimmedLength)"
+            Write-Host "Password has leading/trailing ws   = $($originalSummary.HasLeadingOrTrailingWhitespace)"
+            Write-Host "Password double quotes             = $($originalSummary.DoubleQuotes)"
+            Write-Host "Password backticks                 = $($originalSummary.Backticks)"
+            Write-Host "Password ampersands                = $($originalSummary.Ampersands)"
+            Write-Host "Password pipes                     = $($originalSummary.Pipes)"
+            Write-Host "Password percents                  = $($originalSummary.Percents)"
+            Write-Host "Password carets                    = $($originalSummary.Carets)"
+            Write-Host "Password exclamations              = $($originalSummary.Exclamations)"
+            Write-Host "Password semicolons                = $($originalSummary.Semicolons)"
+            Write-Host "Password less-than                 = $($originalSummary.LessThan)"
+            Write-Host "Password greater-than              = $($originalSummary.GreaterThan)"
+            Write-Host "Password CR count                  = $($originalSummary.CR)"
+            Write-Host "Password LF count                  = $($originalSummary.LF)"
+            Write-Host "Password original SHA-256          = $originalHash"
+            Write-Host "Password used SHA-256              = $usedHash"
+            Write-Host "Used password length               = $($usedSummary.Length)"
+            Write-Host "Used password trimmed length       = $($usedSummary.TrimmedLength)"
+            Write-Host "==================================="
+
+            Remove-NetUse -Drive $Drive
+            Remove-NetUse -Server $server
+
+            Write-Host "Testing SMB reachability to $server on port 445..."
+            try {
+              $tnc = Test-NetConnection $server -Port 445 -WarningAction SilentlyContinue
+              Write-Host "TcpTestSucceeded = $($tnc.TcpTestSucceeded)"
+              Write-Host "RemoteAddress    = $($tnc.RemoteAddress)"
+            }
+            catch {
+              Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
+            }
+
+            Write-Host "Attempting net use with ProcessStartInfo.ArgumentList..."
+
             $psi = New-Object System.Diagnostics.ProcessStartInfo
             $psi.FileName = "net.exe"
-            $psi.Arguments = "use $Drive `"$Share`" `"$Password`" /user:`"$Username`" /persistent:no"
+            $psi.ArgumentList.Add("use")
+            $psi.ArgumentList.Add($Drive)
+            $psi.ArgumentList.Add($Share)
+            $psi.ArgumentList.Add($passwordUsedForNetUse)
+            $psi.ArgumentList.Add("/user:$Username")
+            $psi.ArgumentList.Add("/persistent:no")
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
             $psi.UseShellExecute = $false
@@ -159,30 +307,11 @@ jobs:
             if ($stdout) { Write-Host $stdout.Trim() }
             if ($stderr) { Write-Host $stderr.Trim() }
 
+            Write-Host "net.exe exit code = $($proc.ExitCode)"
+
             if ($proc.ExitCode -ne 0) {
               throw "net use failed for drive $Drive -> $Share (exit code $($proc.ExitCode))"
             }
-          }
-
-          function Remove-NetUse {
-            param([Parameter(Mandatory = $true)][string]$Drive)
-
-            # Always try to remove any existing drive mapping first.
-            $psi = New-Object System.Diagnostics.ProcessStartInfo
-            $psi.FileName = "net.exe"
-            $psi.Arguments = "use $Drive /delete /y"
-            $psi.RedirectStandardOutput = $true
-            $psi.RedirectStandardError = $true
-            $psi.UseShellExecute = $false
-            $psi.CreateNoWindow = $true
-
-            $proc = New-Object System.Diagnostics.Process
-            $proc.StartInfo = $psi
-            [void]$proc.Start()
-
-            $null = $proc.StandardOutput.ReadToEnd()
-            $null = $proc.StandardError.ReadToEnd()
-            $proc.WaitForExit()
           }
 
           $branch = '${{ env.DEPLOY_ENV }}'
@@ -196,7 +325,7 @@ jobs:
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Write-Host 'Mapping remote shares using net.exe with safe process invocation...'
+              Write-Host 'Mapping remote shares using net.exe with safer diagnostics...'
 
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
@@ -216,15 +345,11 @@ jobs:
                 throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
               }
 
-              # Map only the share root, then translate the full UNC path to the mapped drive.
               $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
               $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
 
               Write-Host "Destination share root: $destShareRoot"
               Write-Host "Archive share root: $archShareRoot"
-
-              Remove-NetUse -Drive $destDrive
-              Remove-NetUse -Drive $archDrive
 
               Invoke-NetUse -Drive $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
               Invoke-NetUse -Drive $archDrive -Share $archShareRoot -Username $deployUser -Password $deployPass
@@ -257,7 +382,6 @@ jobs:
 
             New-Item -ItemType Directory -Path $localTemp | Out-Null
 
-            # Copy current deployed content to a temporary local folder before zipping it.
             robocopy $mappedDest $localTemp /MIR
             if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
@@ -267,7 +391,6 @@ jobs:
             Remove-Item -Path $localTemp -Recurse -Force
             Remove-Item -Path $localZip -Force
 
-            # Keep only the most recent 5 backups.
             $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
               Sort-Object LastWriteTime -Descending
 
@@ -279,15 +402,12 @@ jobs:
             exit 0
           }
           finally {
-            # Always clean up mapped drives after archive processing.
             if ($branch -eq 'test' -or $branch -eq 'prod') {
               Remove-NetUse -Drive $destDrive
               Remove-NetUse -Drive $archDrive
             }
           }
 
-      # Helpful diagnostics for confirming which runner executed the job and
-      # whether IIS objects are visible on that machine.
       - name: Diagnostics (runner host + IIS visibility)
         shell: powershell
         run: |
@@ -364,12 +484,102 @@ jobs:
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
 
-      # Deploy the published build output.
-      # For all environments, use app_offline.htm to temporarily take the application offline
-      # while files are copied.
       - name: Deploy build output
         shell: powershell
         run: |
+          function Get-Sha256Hex {
+            param([Parameter(Mandatory = $true)][string]$Value)
+
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value)
+            $sha = [System.Security.Cryptography.SHA256]::Create()
+            try {
+              $hashBytes = $sha.ComputeHash($bytes)
+              return (-join ($hashBytes | ForEach-Object { $_.ToString("x2") }))
+            }
+            finally {
+              $sha.Dispose()
+            }
+          }
+
+          function Get-VisibleCharSummary {
+            param([string]$Value)
+
+            return [pscustomobject]@{
+              Length        = if ($null -eq $Value) { 0 } else { $Value.Length }
+              TrimmedLength = if ($null -eq $Value) { 0 } else { $Value.Trim().Length }
+              HasLeadingOrTrailingWhitespace = if ($null -eq $Value) { $false } else { $Value.Length -ne $Value.Trim().Length }
+              DoubleQuotes  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, '"')).Count }
+              Backticks     = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('`'))).Count }
+              Ampersands    = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('&'))).Count }
+              Pipes         = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('|'))).Count }
+              Percents      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('%'))).Count }
+              Carets        = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('^'))).Count }
+              Exclamations  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('!'))).Count }
+              Semicolons    = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape(';'))).Count }
+              LessThan      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('<'))).Count }
+              GreaterThan   = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('>'))).Count }
+              CR            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`r")).Count }
+              LF            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`n")).Count }
+            }
+          }
+
+          function Remove-NetUse {
+            param(
+              [Parameter(Mandatory = $false)][string]$Drive,
+              [Parameter(Mandatory = $false)][string]$Server
+            )
+
+            if (-not [string]::IsNullOrWhiteSpace($Drive)) {
+              Write-Host "Cleaning mapped drive if present: $Drive"
+              $psi = New-Object System.Diagnostics.ProcessStartInfo
+              $psi.FileName = "net.exe"
+              $psi.ArgumentList.Add("use")
+              $psi.ArgumentList.Add($Drive)
+              $psi.ArgumentList.Add("/delete")
+              $psi.ArgumentList.Add("/y")
+              $psi.RedirectStandardOutput = $true
+              $psi.RedirectStandardError = $true
+              $psi.UseShellExecute = $false
+              $psi.CreateNoWindow = $true
+
+              $proc = New-Object System.Diagnostics.Process
+              $proc.StartInfo = $psi
+              [void]$proc.Start()
+
+              $stdout = $proc.StandardOutput.ReadToEnd()
+              $stderr = $proc.StandardError.ReadToEnd()
+              $proc.WaitForExit()
+
+              if ($stdout) { Write-Host $stdout.Trim() }
+              if ($stderr) { Write-Host $stderr.Trim() }
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($Server)) {
+              Write-Host "Cleaning stale SMB sessions to server if present: \\$Server\*"
+              $psi = New-Object System.Diagnostics.ProcessStartInfo
+              $psi.FileName = "net.exe"
+              $psi.ArgumentList.Add("use")
+              $psi.ArgumentList.Add("\\$Server\*")
+              $psi.ArgumentList.Add("/delete")
+              $psi.ArgumentList.Add("/y")
+              $psi.RedirectStandardOutput = $true
+              $psi.RedirectStandardError = $true
+              $psi.UseShellExecute = $false
+              $psi.CreateNoWindow = $true
+
+              $proc = New-Object System.Diagnostics.Process
+              $proc.StartInfo = $psi
+              [void]$proc.Start()
+
+              $stdout = $proc.StandardOutput.ReadToEnd()
+              $stderr = $proc.StandardError.ReadToEnd()
+              $proc.WaitForExit()
+
+              if ($stdout) { Write-Host $stdout.Trim() }
+              if ($stderr) { Write-Host $stderr.Trim() }
+            }
+          }
+
           function Invoke-NetUse {
             param(
               [Parameter(Mandatory = $true)][string]$Drive,
@@ -378,10 +588,88 @@ jobs:
               [Parameter(Mandatory = $true)][string]$Password
             )
 
-            # Map a network share using net.exe through a safely constructed process call.
+            if ([string]::IsNullOrWhiteSpace($Drive)) {
+              throw "Drive is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Share)) {
+              throw "Share is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Username)) {
+              throw "Username is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Password)) {
+              throw "Password is empty."
+            }
+            if (-not $Share.StartsWith('\\')) {
+              throw "Share must be a UNC path. Actual value: $Share"
+            }
+
+            $shareParts = $Share -split '\\'
+            if ($shareParts.Length -lt 4) {
+              throw "Share is not a valid UNC path: $Share"
+            }
+
+            $server = $shareParts[2]
+
+            $originalPass = $Password
+            $passwordUsedForNetUse = $Password
+
+            $originalSummary = Get-VisibleCharSummary -Value $originalPass
+            $usedSummary = Get-VisibleCharSummary -Value $passwordUsedForNetUse
+            $originalHash = Get-Sha256Hex -Value $originalPass
+            $usedHash = Get-Sha256Hex -Value $passwordUsedForNetUse
+            $passwordChanged = $originalPass -cne $passwordUsedForNetUse
+
+            Write-Host "=== Invoke-NetUse diagnostics ==="
+            Write-Host "Drive                              = $Drive"
+            Write-Host "Share                              = $Share"
+            Write-Host "Server                             = $server"
+            Write-Host "Username                           = $Username"
+            Write-Host "Password changed before use        = $passwordChanged"
+            Write-Host "Password length                    = $($originalSummary.Length)"
+            Write-Host "Password trimmed length            = $($originalSummary.TrimmedLength)"
+            Write-Host "Password has leading/trailing ws   = $($originalSummary.HasLeadingOrTrailingWhitespace)"
+            Write-Host "Password double quotes             = $($originalSummary.DoubleQuotes)"
+            Write-Host "Password backticks                 = $($originalSummary.Backticks)"
+            Write-Host "Password ampersands                = $($originalSummary.Ampersands)"
+            Write-Host "Password pipes                     = $($originalSummary.Pipes)"
+            Write-Host "Password percents                  = $($originalSummary.Percents)"
+            Write-Host "Password carets                    = $($originalSummary.Carets)"
+            Write-Host "Password exclamations              = $($originalSummary.Exclamations)"
+            Write-Host "Password semicolons                = $($originalSummary.Semicolons)"
+            Write-Host "Password less-than                 = $($originalSummary.LessThan)"
+            Write-Host "Password greater-than              = $($originalSummary.GreaterThan)"
+            Write-Host "Password CR count                  = $($originalSummary.CR)"
+            Write-Host "Password LF count                  = $($originalSummary.LF)"
+            Write-Host "Password original SHA-256          = $originalHash"
+            Write-Host "Password used SHA-256              = $usedHash"
+            Write-Host "Used password length               = $($usedSummary.Length)"
+            Write-Host "Used password trimmed length       = $($usedSummary.TrimmedLength)"
+            Write-Host "==================================="
+
+            Remove-NetUse -Drive $Drive
+            Remove-NetUse -Server $server
+
+            Write-Host "Testing SMB reachability to $server on port 445..."
+            try {
+              $tnc = Test-NetConnection $server -Port 445 -WarningAction SilentlyContinue
+              Write-Host "TcpTestSucceeded = $($tnc.TcpTestSucceeded)"
+              Write-Host "RemoteAddress    = $($tnc.RemoteAddress)"
+            }
+            catch {
+              Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
+            }
+
+            Write-Host "Attempting net use with ProcessStartInfo.ArgumentList..."
+
             $psi = New-Object System.Diagnostics.ProcessStartInfo
             $psi.FileName = "net.exe"
-            $psi.Arguments = "use $Drive `"$Share`" `"$Password`" /user:`"$Username`" /persistent:no"
+            $psi.ArgumentList.Add("use")
+            $psi.ArgumentList.Add($Drive)
+            $psi.ArgumentList.Add($Share)
+            $psi.ArgumentList.Add($passwordUsedForNetUse)
+            $psi.ArgumentList.Add("/user:$Username")
+            $psi.ArgumentList.Add("/persistent:no")
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
             $psi.UseShellExecute = $false
@@ -398,30 +686,11 @@ jobs:
             if ($stdout) { Write-Host $stdout.Trim() }
             if ($stderr) { Write-Host $stderr.Trim() }
 
+            Write-Host "net.exe exit code = $($proc.ExitCode)"
+
             if ($proc.ExitCode -ne 0) {
               throw "net use failed for drive $Drive -> $Share (exit code $($proc.ExitCode))"
             }
-          }
-
-          function Remove-NetUse {
-            param([Parameter(Mandatory = $true)][string]$Drive)
-
-            # Always try to remove any existing drive mapping first.
-            $psi = New-Object System.Diagnostics.ProcessStartInfo
-            $psi.FileName = "net.exe"
-            $psi.Arguments = "use $Drive /delete /y"
-            $psi.RedirectStandardOutput = $true
-            $psi.RedirectStandardError = $true
-            $psi.UseShellExecute = $false
-            $psi.CreateNoWindow = $true
-
-            $proc = New-Object System.Diagnostics.Process
-            $proc.StartInfo = $psi
-            [void]$proc.Start()
-
-            $null = $proc.StandardOutput.ReadToEnd()
-            $null = $proc.StandardError.ReadToEnd()
-            $proc.WaitForExit()
           }
 
           $branch = '${{ env.DEPLOY_ENV }}'
@@ -435,7 +704,7 @@ jobs:
 
           try {
             if ($branch -eq 'test' -or $branch -eq 'prod') {
-              Write-Host 'Mapping deployment share using net.exe with safe process invocation...'
+              Write-Host 'Mapping deployment share using net.exe with safer diagnostics...'
 
               if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
                 throw "DEPLOY_USER or DEPLOY_PASS is missing."
@@ -450,12 +719,10 @@ jobs:
                 throw "DEST_PATH is not a valid UNC path: $destination"
               }
 
-              # Map only the share root, then translate the full UNC path to the mapped drive.
               $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
 
               Write-Host "Destination share root: $destShareRoot"
 
-              Remove-NetUse -Drive $destDrive
               Invoke-NetUse -Drive $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
 
               $mappedDest = $destination.Replace($destShareRoot, $destDrive)
@@ -471,7 +738,6 @@ jobs:
               throw "Destination path not reachable: $mappedDest"
             }
 
-            # Create app_offline.htm so IIS serves a maintenance page and releases file locks.
             $appOffline = Join-Path $mappedDest "app_offline.htm"
 
             @"
@@ -485,13 +751,8 @@ jobs:
 
             Write-Host "Created app_offline.htm at $appOffline"
 
-            # Give IIS a moment to recognize the offline file and unload the app.
             Start-Sleep -Seconds 3
 
-            # Mirror the new build into the target directory.
-            # Exclude:
-            # - web.config because the environment keeps its own deployed copy
-            # - app_offline.htm so robocopy does not delete it mid-deployment
             robocopy $source $mappedDest /MIR /XF web.config app_offline.htm
 
             if ($LASTEXITCODE -ge 8) {
@@ -502,13 +763,11 @@ jobs:
             exit 0
           }
           finally {
-            # Always remove app_offline.htm at the end so the application comes back online.
             if ($appOffline -and (Test-Path $appOffline)) {
               Remove-Item -Path $appOffline -Force -ErrorAction SilentlyContinue
               Write-Host "Removed app_offline.htm"
             }
 
-            # Always remove mapped drives after deployment.
             if ($branch -eq 'test' -or $branch -eq 'prod') {
               Remove-NetUse -Drive $destDrive
             }
