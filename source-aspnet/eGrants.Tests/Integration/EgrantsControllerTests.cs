@@ -392,8 +392,8 @@ namespace eGrants.Tests.Integration
 
             var controller = CreateController(context, session);
             var result = await controller.by_appl(
-                    applId: 4040100
-                ) as ViewResult;
+                appl_id:4040100
+            ) as ViewResult;
 
             // Verifies the view and ensures model is correctly typed and populated
             Assert.NotNull(result);
@@ -412,10 +412,10 @@ namespace eGrants.Tests.Integration
 
             var controller = CreateController(context, session);
             var result = await controller.by_appl(
-                    applId: 4001001,
-                    mode: "full",
-                    str: "testString"
-                ) as ViewResult;
+                appl_id:4001001,
+                mode: "full",
+                str: "testString"
+            ) as ViewResult;
 
             // Verifies fallback behavior still returns view and model
             Assert.NotNull(result);
