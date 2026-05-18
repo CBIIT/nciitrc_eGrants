@@ -4,7 +4,7 @@
 // Module Name:  EgrantsController.cs
 // Solution: eGrants
 // Project:  eGrants
-// Created: 2025-08-01
+// Created: 2025-08-02
 // Contributors:
 //      - Dehuff, Daryl (NIH/NCI) [C] - dehuffdc
 // Copyright (c) National Institute of Health
@@ -474,13 +474,13 @@ namespace eGrants.Controllers.Egrants
         /// The <see cref="ActionResult"/>.
         /// </returns>
         public async Task<IActionResult> by_appl(
-            int applId = 0,
+            int appl_id = 0,
             string mode = null,
             string str = null)
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByApplAsync(applId, mode, str, sessionInfo);
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByApplAsync(appl_id, mode, str, sessionInfo);
 
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
 
