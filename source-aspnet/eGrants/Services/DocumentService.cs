@@ -531,7 +531,12 @@ string admin_code,
 
                     docName = Convert.ToString(docId) + fileExtension;
 
+#if DEBUG
+                    var fileFolder = "C:\\PdfFileOutput\\";
+#else
                     var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\modify\\";
+#endif
+
                     var filePath = Path.Combine(fileFolder, docName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
