@@ -1673,5 +1673,19 @@ namespace eGrants.Controllers.Egrants
 
             return this.View("~/Views/Egrants/CloseoutNotif.cshtml");
         }
+
+        /// <summary>
+        /// Upload document by drag-and-drop (fixes404 and matches other upload actions).
+        /// </summary>
+        /// <param name="dropedfile">The file to upload.</param>
+        /// <param name="doc_id">The document ID.</param>
+        /// <returns>JSON result with upload status.</returns>
+        [HttpPost]
+        [ResponseCache(Duration =0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public async Task<IActionResult> doc_upload_by_ddrop(IFormFile dropedfile, int doc_id)
+        {
+            var result = await _documentService.DocUploadByFileAsync(dropedfile, doc_id, sessionInfo);
+            return Json(new { url = result.Url, message = result.Message });
+        }
     }
 }
