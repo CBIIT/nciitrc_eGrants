@@ -146,7 +146,7 @@ function by_appl(appl_id) {
         mode = "";
     }
 
-    var url = 'by_appl?applId=' + appl_id + '&mode=' + mode;
+    var url = 'by_appl?appl_id=' + appl_id + '&mode=' + mode;
     window.document.location.href = url;
 }
 

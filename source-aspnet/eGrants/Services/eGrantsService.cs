@@ -853,7 +853,7 @@ namespace eGrants.Services
             }
         }
 
-        public async Task<List<ImpacDocs>> LoadImpacDocs(string act, int appl_id)
+        public async Task<List<ImpacDocs>> LoadImpacDocs(string act = "", int appl_id = 0)
         {
             var list = new List<ImpacDocs>();
 

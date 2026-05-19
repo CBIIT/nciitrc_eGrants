@@ -1,367 +1,715 @@
-
 name: eGrants Deployment Workflow
 
 on:
+  # Automatically deploy when code is pushed to dev or test.
   push:
     branches:
       - dev
       - test
-      - stage
-      - eGrants-Core-Main
+
+  # Allow manual deployments to any supported environment.
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Select environment to deploy"
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - stage
+          - prod
+        default: dev
+
+env:
+  # Resolve the target environment.
+  # - For manual runs, use the selected workflow input.
+  # - For push runs, use the branch name that triggered the workflow.
+  DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
 jobs:
   build-and-deploy:
-    runs-on: egrants_fcas-oasys_runner
-    environment: ${{ github.ref_name }}
+    # Choose the runner label based on the environment:
+    # - dev/test use the non-prod runner
+    # - stage/prod use the prod runner
+    runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
+
+    # Attach the deployment to the matching GitHub environment.
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
     steps:
-      # ---------------------------------------------------------
-      # CHECKOUT
-      # ---------------------------------------------------------
+      # Pull down the repository source so the runner can build it.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # LOAD ENVIRONMENT VARIABLES
-      # ---------------------------------------------------------
+      # Load environment-specific values from GitHub environment variables and secrets.
+      # This step writes reusable outputs for later steps.
       - name: Load environment variables
         id: envmap
         shell: powershell
         run: |
-          echo "DEST_PATH=${{ vars.DEST_PATH }}" >> $env:GITHUB_OUTPUT
-          echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH }}" >> $env:GITHUB_OUTPUT
-          echo "SITE_NAME=${{ vars.SITE_NAME }}" >> $env:GITHUB_OUTPUT
-          echo "APP_POOL=${{ vars.APP_POOL }}" >> $env:GITHUB_OUTPUT
+          $branch = "${{ env.DEPLOY_ENV }}"
+          Write-Host "Environment detected: $branch"
+
+          switch ($branch) {
+            "dev" {
+              # Dev uses local paths/settings and does not require remote deployment credentials.
+              echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
+              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
+              echo "SITE_NAME=${{ vars.SITE_NAME_DEV }}" >> $env:GITHUB_OUTPUT
+              echo "APP_POOL=${{ vars.APP_POOL_DEV }}" >> $env:GITHUB_OUTPUT
+            }
+
+            "test" {
+              # Test uses remote share credentials.
+              echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "SITE_NAME=${{ vars.SITE_NAME_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "APP_POOL=${{ vars.APP_POOL_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_TEST }}" >> $env:GITHUB_OUTPUT
+              echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_TEST }}" >> $env:GITHUB_OUTPUT
+            }
+
+            "stage" {
+              # Stage uses local paths/settings.
+              echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
+              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
+              echo "SITE_NAME=${{ vars.SITE_NAME_STAGE }}" >> $env:GITHUB_OUTPUT
+              echo "APP_POOL=${{ vars.APP_POOL_STAGE }}" >> $env:GITHUB_OUTPUT
+            }
+
+            "prod" {
+              # Prod uses remote share credentials.
+              echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "APP_POOL=${{ vars.APP_POOL_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_PROD }}" >> $env:GITHUB_OUTPUT
+              echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_PROD }}" >> $env:GITHUB_OUTPUT
+            }
+
+            default {
+              throw "Unsupported deployment environment: $branch"
+            }
+          }
+
+          # Left here for visibility/diagnostics, even though remote IIS service control
+          # is no longer used in this version of the workflow.
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-      # ---------------------------------------------------------
-      # LOAD GITHUB TOKEN (kept as-is)
-      # ---------------------------------------------------------
-      - name: Load GitHub token
-        id: token
-        shell: powershell
-        run: |
-          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $env:GITHUB_OUTPUT
-
-      # ---------------------------------------------------------
-      # BUILD
-      # ---------------------------------------------------------
+      # Restore NuGet packages and publish the application into a deployment-ready folder.
       - name: Build project
         shell: powershell
         run: |
           dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
+
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
             -o ./build_output
-          exit 0
 
-      # ---------------------------------------------------------
-      # ARCHIVE CURRENT SITE (KEEP ONLY MOST RECENT 5) — FAST LOCAL ZIP
-      # ---------------------------------------------------------
-      - name: Archive existing destination directory (local zip)
+      # Replace the placeholder GitHubToken value inside the published appsettings.json
+      # with the real secret value from GitHub Actions secrets.
+      - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
-          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-          $archiveRoot = "${{ steps.envmap.outputs.ARCHIVE_PATH }}"
-      
-          if (-not (Test-Path $destination)) {
-            throw "Destination share not reachable: $destination"
-          }
-      
-          if (-not (Test-Path $archiveRoot)) {
-            New-Item -ItemType Directory -Path $archiveRoot | Out-Null
-          }
-      
-          # Timestamp for archive
-          $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-          $localTemp = Join-Path $env:TEMP "archive_$timestamp"
-          $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-          $remoteZip = Join-Path $archiveRoot "backup_$timestamp.zip"
-      
-          # Create local temp folder
-          New-Item -ItemType Directory -Path $localTemp | Out-Null
-      
-          Write-Host "Copying site to local temp folder: $localTemp"
-          robocopy $destination $localTemp /MIR
-          if ($LASTEXITCODE -ge 8) { throw "Robocopy local copy failed." }
-      
-          Write-Host "Creating ZIP locally: $localZip"
-          Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
-      
-          Write-Host "Copying ZIP back to archive share: $remoteZip"
-          Copy-Item -Path $localZip -Destination $remoteZip -Force
-      
-          # Cleanup local temp
-          Remove-Item -Path $localTemp -Recurse -Force
-          Remove-Item -Path $localZip -Force
-      
-          # ---------------------------------------------------------
-          # PRUNE OLD ARCHIVES — KEEP ONLY MOST RECENT 5 ZIP FILES
-          # ---------------------------------------------------------
-          $archives = Get-ChildItem -Path $archiveRoot -Filter "backup_*.zip" |
-                      Sort-Object LastWriteTime -Descending
-      
-          $archivesToDelete = $archives | Select-Object -Skip 5
-      
-          foreach ($old in $archivesToDelete) {
-            Write-Host "Removing old archive: $($old.FullName)"
-            Remove-Item -Path $old.FullName -Force
-          }
-      
-          exit 0
+          $file = "$(Get-Location)\build_output\appsettings.json"
+          $token = "${{ secrets._GITHUB_TOKEN }}"
 
+          if (-not (Test-Path $file)) {
+            throw "appsettings.json not found at: $file"
+          }
 
-      # ---------------------------------------------------------
-      # STOP IIS (DEV LOCAL)
-      # ---------------------------------------------------------
-      - name: Stop IIS site and app pool (dev/local)
-        if: ${{ github.ref_name == 'dev' }}
+          $json = Get-Content $file -Raw
+          $pattern = '"GitHubToken"\s*:\s*".*?"'
+          $replacement = '"GitHubToken": "' + $token + '"'
+          $json = $json -replace $pattern, $replacement
+          Set-Content -Path $file -Value $json -Encoding UTF8
+
+      # Archive the currently deployed application before copying in the new build.
+      # This creates a timestamped zip backup and keeps only the 5 newest backups.
+      - name: Archive existing destination directory
         shell: powershell
         run: |
+          function Get-Sha256Hex {
+            param([Parameter(Mandatory = $true)][string]$Value)
+
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value)
+            $sha = [System.Security.Cryptography.SHA256]::Create()
+            try {
+              $hashBytes = $sha.ComputeHash($bytes)
+              return (-join ($hashBytes | ForEach-Object { $_.ToString("x2") }))
+            }
+            finally {
+              $sha.Dispose()
+            }
+          }
+
+          function Get-VisibleCharSummary {
+            param([string]$Value)
+
+            return [pscustomobject]@{
+              Length        = if ($null -eq $Value) { 0 } else { $Value.Length }
+              TrimmedLength = if ($null -eq $Value) { 0 } else { $Value.Trim().Length }
+              HasLeadingOrTrailingWhitespace = if ($null -eq $Value) { $false } else { $Value.Length -ne $Value.Trim().Length }
+              DoubleQuotes  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, '"')).Count }
+              Backticks     = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('`'))).Count }
+              Ampersands    = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('&'))).Count }
+              Pipes         = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('|'))).Count }
+              Percents      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('%'))).Count }
+              Carets        = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('^'))).Count }
+              Exclamations  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('!'))).Count }
+              CR            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`r")).Count }
+              LF            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`n")).Count }
+            }
+          }
+
+          function Remove-MappedDrive {
+            param([Parameter(Mandatory = $true)][string]$DriveName)
+
+            # Remove any existing PowerShell drive mapping if present.
+            try {
+              if (Get-PSDrive -Name $DriveName -ErrorAction SilentlyContinue) {
+                Write-Host "Removing PSDrive ${DriveName}:"
+                Remove-PSDrive -Name $DriveName -Force -ErrorAction SilentlyContinue
+              }
+            }
+            catch {
+              Write-Host "PSDrive cleanup warning for ${DriveName}: $($_.Exception.Message)"
+            }
+
+            # Also remove any persisted Windows drive mapping with the same letter.
+            try {
+              $output = & net.exe use "${DriveName}:" /delete /y 2>&1
+              if ($output) {
+                $output | ForEach-Object { Write-Host $_ }
+              }
+            }
+            catch {
+              Write-Host "net use cleanup warning for ${DriveName}: $($_.Exception.Message)"
+            }
+          }
+
+          function New-AuthenticatedPSDrive {
+            param(
+              [Parameter(Mandatory = $true)][string]$DriveName,
+              [Parameter(Mandatory = $true)][string]$Share,
+              [Parameter(Mandatory = $true)][string]$Username,
+              [Parameter(Mandatory = $true)][string]$Password
+            )
+
+            if ([string]::IsNullOrWhiteSpace($DriveName)) {
+              throw "DriveName is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Share)) {
+              throw "Share is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Username)) {
+              throw "Username is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Password)) {
+              throw "Password is empty."
+            }
+            if (-not $Share.StartsWith('\\')) {
+              throw "Share must be a UNC path. Actual value: $Share"
+            }
+
+            $shareParts = $Share -split '\\'
+            if ($shareParts.Length -lt 4) {
+              throw "Share is not a valid UNC path: $Share"
+            }
+
+            $server = $shareParts[2]
+
+            # Preserve the exact password string and compare it at point-of-use
+            # for diagnostics without printing the secret itself.
+            $originalPass = $Password
+            $passwordUsedForCredential = $Password
+
+            $originalSummary = Get-VisibleCharSummary -Value $originalPass
+            $usedSummary = Get-VisibleCharSummary -Value $passwordUsedForCredential
+            $originalHash = Get-Sha256Hex -Value $originalPass
+            $usedHash = Get-Sha256Hex -Value $passwordUsedForCredential
+            $passwordChanged = $originalPass -cne $passwordUsedForCredential
+
+            Write-Host "=== New-AuthenticatedPSDrive diagnostics ==="
+            Write-Host "DriveName                           = $DriveName"
+            Write-Host "Share                               = $Share"
+            Write-Host "Server                              = $server"
+            Write-Host "Username                            = $Username"
+            Write-Host "Password changed before use         = $passwordChanged"
+            Write-Host "Password length                     = $($originalSummary.Length)"
+            Write-Host "Password trimmed length             = $($originalSummary.TrimmedLength)"
+            Write-Host "Password has leading/trailing ws    = $($originalSummary.HasLeadingOrTrailingWhitespace)"
+            Write-Host "Password double quotes              = $($originalSummary.DoubleQuotes)"
+            Write-Host "Password backticks                  = $($originalSummary.Backticks)"
+            Write-Host "Password ampersands                 = $($originalSummary.Ampersands)"
+            Write-Host "Password pipes                      = $($originalSummary.Pipes)"
+            Write-Host "Password percents                   = $($originalSummary.Percents)"
+            Write-Host "Password carets                     = $($originalSummary.Carets)"
+            Write-Host "Password exclamations               = $($originalSummary.Exclamations)"
+            Write-Host "Password CR count                   = $($originalSummary.CR)"
+            Write-Host "Password LF count                   = $($originalSummary.LF)"
+            Write-Host "Password original SHA-256           = $originalHash"
+            Write-Host "Password used SHA-256               = $usedHash"
+            Write-Host "Used password length                = $($usedSummary.Length)"
+            Write-Host "Used password trimmed length        = $($usedSummary.TrimmedLength)"
+            Write-Host "==========================================="
+
+            # Confirm that SMB is reachable before attempting to map the share.
+            try {
+              Write-Host "Testing SMB reachability to $server on port 445..."
+              $tnc = Test-NetConnection $server -Port 445 -WarningAction SilentlyContinue
+              Write-Host "TcpTestSucceeded = $($tnc.TcpTestSucceeded)"
+              Write-Host "RemoteAddress    = $($tnc.RemoteAddress)"
+            }
+            catch {
+              Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
+            }
+
+            # Remove any previous mapping using this drive letter before recreating it.
+            Remove-MappedDrive -DriveName $DriveName
+
+            # Build a PSCredential so the password is not passed through net.exe
+            # as a raw command-line argument.
+            $securePassword = ConvertTo-SecureString $passwordUsedForCredential -AsPlainText -Force
+            $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+
+            # Map the remote share as a PowerShell file-system drive.
+            # This uses SMB share access, not PowerShell remoting.
+            New-PSDrive -Name $DriveName -PSProvider FileSystem -Root $Share -Credential $credential -Persist -Scope Global | Out-Null
+
+            $mappedPath = "${DriveName}:"
+            if (-not (Test-Path $mappedPath)) {
+              throw "Mapped drive was created but is not reachable: $mappedPath"
+            }
+
+            Write-Host "Mapped $Share to $mappedPath successfully."
+          }
+
+          $branch = '${{ env.DEPLOY_ENV }}'
+          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
+          $archiveRoot = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'
+          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
+
+          $destDrive = 'Z'
+          $archDrive = 'Y'
+
+          try {
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Write-Host 'Mapping remote shares using PowerShell credential-based PSDrives...'
+
+              if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
+                throw "DEPLOY_USER or DEPLOY_PASS is missing."
+              }
+
+              if (-not $destination.StartsWith('\\') -or -not $archiveRoot.StartsWith('\\')) {
+                throw "DEST_PATH and ARCHIVE_PATH must be UNC paths for test/prod."
+              }
+
+              $destParts = $destination -split '\\'
+              $archParts = $archiveRoot -split '\\'
+
+              if ($destParts.Length -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+              if ($archParts.Length -lt 4) {
+                throw "ARCHIVE_PATH is not a valid UNC path: $archiveRoot"
+              }
+
+              # Map only the share root, then translate the full UNC path to the mapped drive.
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+              $archShareRoot = '\\' + $archParts[2] + '\' + $archParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+              Write-Host "Archive share root: $archShareRoot"
+
+              New-AuthenticatedPSDrive -DriveName $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
+              New-AuthenticatedPSDrive -DriveName $archDrive -Share $archShareRoot -Username $deployUser -Password $deployPass
+
+              $mappedDest = $destination.Replace($destShareRoot, "${destDrive}:")
+              $mappedArchive = $archiveRoot.Replace($archShareRoot, "${archDrive}:")
+            }
+            else {
+              Write-Host 'DEV or STAGE environment detected — no credentialed share mapping required.'
+              $mappedDest = $destination
+              $mappedArchive = $archiveRoot
+            }
+
+            Write-Host "Environment: $branch"
+            Write-Host "Destination path: $mappedDest"
+            Write-Host "Archive path: $mappedArchive"
+
+            if (-not (Test-Path $mappedDest)) {
+              throw "Destination path not reachable: $mappedDest"
+            }
+
+            if (-not (Test-Path $mappedArchive)) {
+              New-Item -ItemType Directory -Path $mappedArchive | Out-Null
+            }
+
+            $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+            $localTemp = Join-Path $env:TEMP "archive_$timestamp"
+            $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
+            $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
+
+            New-Item -ItemType Directory -Path $localTemp | Out-Null
+
+            # Copy current deployed content to a temporary local folder before zipping it.
+            robocopy $mappedDest $localTemp /MIR
+            if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
+
+            Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
+            Copy-Item -Path $localZip -Destination $remoteZip -Force
+
+            Remove-Item -Path $localTemp -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $localZip -Force -ErrorAction SilentlyContinue
+
+            # Keep only the most recent 5 backups.
+            $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
+              Sort-Object LastWriteTime -Descending
+
+            $archivesToDelete = $archives | Select-Object -Skip 5
+            foreach ($old in $archivesToDelete) {
+              Remove-Item -Path $old.FullName -Force
+            }
+
+            exit 0
+          }
+          finally {
+            # Always clean up mapped drives after archive processing.
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Remove-MappedDrive -DriveName $destDrive
+              Remove-MappedDrive -DriveName $archDrive
+            }
+          }
+
+      # Helpful diagnostics for confirming which runner executed the job and
+      # whether IIS objects are visible on that machine.
+      - name: Diagnostics (runner host + IIS visibility)
+        shell: powershell
+        run: |
+          Write-Host "=== BASIC CONTEXT ==="
+          Write-Host "DEPLOY_ENV                = ${{ env.DEPLOY_ENV }}"
+          Write-Host "github.event_name         = ${{ github.event_name }}"
+          Write-Host "github.ref_name           = ${{ github.ref_name }}"
+          Write-Host "github.repository         = ${{ github.repository }}"
+          Write-Host "github.run_id             = ${{ github.run_id }}"
+          Write-Host "github.run_number         = ${{ github.run_number }}"
+          Write-Host "runner.name               = ${{ runner.name }}"
+          Write-Host "runner.os                 = ${{ runner.os }}"
+          Write-Host "runner.arch               = ${{ runner.arch }}"
+          Write-Host "COMPUTERNAME              = $env:COMPUTERNAME"
+          Write-Host "USERNAME                  = $env:USERNAME"
+          Write-Host "USERDOMAIN                = $env:USERDOMAIN"
+          Write-Host "PROCESS whoami            = $(whoami)"
+          Write-Host "PowerShell version        = $($PSVersionTable.PSVersion)"
+          Write-Host ""
+
+          Write-Host "=== ENV OUTPUTS (FROM envmap) ==="
+          Write-Host "SITE_NAME                 = '${{ steps.envmap.outputs.SITE_NAME }}'"
+          Write-Host "APP_POOL                  = '${{ steps.envmap.outputs.APP_POOL }}'"
+          Write-Host "DEST_PATH                 = '${{ steps.envmap.outputs.DEST_PATH }}'"
+          Write-Host "ARCHIVE_PATH              = '${{ steps.envmap.outputs.ARCHIVE_PATH }}'"
+          Write-Host "REMOTE_SERVER             = '${{ steps.envmap.outputs.REMOTE_SERVER }}'"
+          Write-Host ""
+
+          Write-Host "=== IIS SERVICES (LOCAL MACHINE) ==="
+          try {
+            Get-Service W3SVC, WAS -ErrorAction Stop | Format-Table Name, Status, StartType
+          } catch {
+            Write-Host "Unable to query W3SVC/WAS services: $($_.Exception.Message)"
+          }
+          Write-Host ""
+
+          Write-Host "=== IIS PROVIDER CHECK ==="
+          try {
+            Import-Module WebAdministration -ErrorAction Stop
+            Write-Host "WebAdministration module imported OK."
+            Write-Host "IIS drive exists? " -NoNewline
+            Write-Host (Test-Path "IIS:\")
+          } catch {
+            Write-Host "Failed to import WebAdministration: $($_.Exception.Message)"
+          }
+          Write-Host ""
+
+          Write-Host "=== IIS OBJECT LOOKUP (LOCAL MACHINE) ==="
           $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
           $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
 
-          Import-Module WebAdministration
-
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-            Stop-WebAppPool -Name $appPool -ErrorAction Stop
+          try {
+            if (Test-Path "IIS:\Sites\$siteName") {
+              Write-Host "Found site: IIS:\Sites\$siteName"
+              Get-Item "IIS:\Sites\$siteName" | Select-Object Name, State, PhysicalPath | Format-List
+            } else {
+              Write-Host "Site NOT found on this machine: IIS:\Sites\$siteName"
+            }
+          } catch {
+            Write-Host "Error looking up site: $($_.Exception.Message)"
           }
 
-          if ((Get-Website -Name $siteName).state -ne "Stopped") {
-            Stop-Website -Name $siteName -ErrorAction Stop
+          try {
+            if (Test-Path "IIS:\AppPools\$appPool") {
+              Write-Host "Found app pool: IIS:\AppPools\$appPool"
+              Get-Item "IIS:\AppPools\$appPool" | Select-Object Name, State, AutoStart, ManagedRuntimeVersion | Format-List
+            } else {
+              Write-Host "App pool NOT found on this machine: IIS:\AppPools\$appPool"
+            }
+          } catch {
+            Write-Host "Error looking up app pool: $($_.Exception.Message)"
           }
-          Start-Sleep -Seconds 3
 
-          if ((Get-Website -Name $siteName).state -ne "Stopped") {
-            throw "IIS site did not stop properly: $siteName"
-          }
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
-            throw "IIS app pool did not stop properly: $appPool"
-          }
+          Write-Host ""
+          Write-Host "=== END DIAGNOSTICS ==="
 
-          exit 0
-
-
-      # ---------------------------------------------------------
-      # STOP IIS (REMOTE) — DIRECT SERVICE CONTROL MANAGER (SCM)
-      # ---------------------------------------------------------
-      - name: Stop IIS (SCM remote stop)
-        if: ${{ github.ref_name != 'dev' }}
-        shell: powershell
-        env:
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
-        run: |
-          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-      
-          Write-Host "Preparing credentials for SCM..."
-          $securePass  = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
-          $credential  = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
-      
-          # Extract plain password for sc.exe
-          $plainPass = $credential.GetNetworkCredential().Password
-      
-          Write-Host "Stopping IIS core services on $remote ..."
-      
-          # Stop W3SVC (IIS Web Server)
-          sc.exe \\$remote stop W3SVC
-      
-          # Stop WAS (App Pool Activation)
-          sc.exe \\$remote stop WAS
-      
-          Start-Sleep -Seconds 5
-      
-          # Validate
-          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
-      
-          if ($w3svcState -notmatch "STOPPED") {
-              throw "W3SVC did not stop properly"
-          }
-          if ($wasState -notmatch "STOPPED") {
-              throw "WAS did not stop properly"
-          }
-      
-          Write-Host "IIS successfully stopped via SCM."
-          exit 0
-
-
-      # ---------------------------------------------------------
-      # DEPLOY FILES
-      # ---------------------------------------------------------
+      # Deploy the published build output.
+      # For all environments, use app_offline.htm to temporarily take the application offline
+      # while files are copied.
       - name: Deploy build output
         shell: powershell
         run: |
+          function Get-Sha256Hex {
+            param([Parameter(Mandatory = $true)][string]$Value)
+
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value)
+            $sha = [System.Security.Cryptography.SHA256]::Create()
+            try {
+              $hashBytes = $sha.ComputeHash($bytes)
+              return (-join ($hashBytes | ForEach-Object { $_.ToString("x2") }))
+            }
+            finally {
+              $sha.Dispose()
+            }
+          }
+
+          function Get-VisibleCharSummary {
+            param([string]$Value)
+
+            return [pscustomobject]@{
+              Length        = if ($null -eq $Value) { 0 } else { $Value.Length }
+              TrimmedLength = if ($null -eq $Value) { 0 } else { $Value.Trim().Length }
+              HasLeadingOrTrailingWhitespace = if ($null -eq $Value) { $false } else { $Value.Length -ne $Value.Trim().Length }
+              DoubleQuotes  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, '"')).Count }
+              Backticks     = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('`'))).Count }
+              Ampersands    = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('&'))).Count }
+              Pipes         = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('|'))).Count }
+              Percents      = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('%'))).Count }
+              Carets        = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('^'))).Count }
+              Exclamations  = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, [regex]::Escape('!'))).Count }
+              CR            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`r")).Count }
+              LF            = if ($null -eq $Value) { 0 } else { ([regex]::Matches($Value, "`n")).Count }
+            }
+          }
+
+          function Remove-MappedDrive {
+            param([Parameter(Mandatory = $true)][string]$DriveName)
+
+            # Remove any existing PowerShell drive mapping if present.
+            try {
+              if (Get-PSDrive -Name $DriveName -ErrorAction SilentlyContinue) {
+                Write-Host "Removing PSDrive ${DriveName}:"
+                Remove-PSDrive -Name $DriveName -Force -ErrorAction SilentlyContinue
+              }
+            }
+            catch {
+              Write-Host "PSDrive cleanup warning for ${DriveName}: $($_.Exception.Message)"
+            }
+
+            # Also remove any persisted Windows drive mapping with the same letter.
+            try {
+              $output = & net.exe use "${DriveName}:" /delete /y 2>&1
+              if ($output) {
+                $output | ForEach-Object { Write-Host $_ }
+              }
+            }
+            catch {
+              Write-Host "net use cleanup warning for ${DriveName}: $($_.Exception.Message)"
+            }
+          }
+
+          function New-AuthenticatedPSDrive {
+            param(
+              [Parameter(Mandatory = $true)][string]$DriveName,
+              [Parameter(Mandatory = $true)][string]$Share,
+              [Parameter(Mandatory = $true)][string]$Username,
+              [Parameter(Mandatory = $true)][string]$Password
+            )
+
+            if ([string]::IsNullOrWhiteSpace($DriveName)) {
+              throw "DriveName is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Share)) {
+              throw "Share is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Username)) {
+              throw "Username is empty."
+            }
+            if ([string]::IsNullOrWhiteSpace($Password)) {
+              throw "Password is empty."
+            }
+            if (-not $Share.StartsWith('\\')) {
+              throw "Share must be a UNC path. Actual value: $Share"
+            }
+
+            $shareParts = $Share -split '\\'
+            if ($shareParts.Length -lt 4) {
+              throw "Share is not a valid UNC path: $Share"
+            }
+
+            $server = $shareParts[2]
+
+            # Preserve the exact password string and compare it at point-of-use
+            # for diagnostics without printing the secret itself.
+            $originalPass = $Password
+            $passwordUsedForCredential = $Password
+
+            $originalSummary = Get-VisibleCharSummary -Value $originalPass
+            $usedSummary = Get-VisibleCharSummary -Value $passwordUsedForCredential
+            $originalHash = Get-Sha256Hex -Value $originalPass
+            $usedHash = Get-Sha256Hex -Value $passwordUsedForCredential
+            $passwordChanged = $originalPass -cne $passwordUsedForCredential
+
+            Write-Host "=== New-AuthenticatedPSDrive diagnostics ==="
+            Write-Host "DriveName                           = $DriveName"
+            Write-Host "Share                               = $Share"
+            Write-Host "Server                              = $server"
+            Write-Host "Username                            = $Username"
+            Write-Host "Password changed before use         = $passwordChanged"
+            Write-Host "Password length                     = $($originalSummary.Length)"
+            Write-Host "Password trimmed length             = $($originalSummary.TrimmedLength)"
+            Write-Host "Password has leading/trailing ws    = $($originalSummary.HasLeadingOrTrailingWhitespace)"
+            Write-Host "Password double quotes              = $($originalSummary.DoubleQuotes)"
+            Write-Host "Password backticks                  = $($originalSummary.Backticks)"
+            Write-Host "Password ampersands                 = $($originalSummary.Ampersands)"
+            Write-Host "Password pipes                      = $($originalSummary.Pipes)"
+            Write-Host "Password percents                   = $($originalSummary.Percents)"
+            Write-Host "Password carets                     = $($originalSummary.Carets)"
+            Write-Host "Password exclamations               = $($originalSummary.Exclamations)"
+            Write-Host "Password CR count                   = $($originalSummary.CR)"
+            Write-Host "Password LF count                   = $($originalSummary.LF)"
+            Write-Host "Password original SHA-256           = $originalHash"
+            Write-Host "Password used SHA-256               = $usedHash"
+            Write-Host "Used password length                = $($usedSummary.Length)"
+            Write-Host "Used password trimmed length        = $($usedSummary.TrimmedLength)"
+            Write-Host "==========================================="
+
+            # Confirm that SMB is reachable before attempting to map the share.
+            try {
+              Write-Host "Testing SMB reachability to $server on port 445..."
+              $tnc = Test-NetConnection $server -Port 445 -WarningAction SilentlyContinue
+              Write-Host "TcpTestSucceeded = $($tnc.TcpTestSucceeded)"
+              Write-Host "RemoteAddress    = $($tnc.RemoteAddress)"
+            }
+            catch {
+              Write-Host "Test-NetConnection failed: $($_.Exception.Message)"
+            }
+
+            # Remove any previous mapping using this drive letter before recreating it.
+            Remove-MappedDrive -DriveName $DriveName
+
+            # Build a PSCredential so the password is not passed through net.exe
+            # as a raw command-line argument.
+            $securePassword = ConvertTo-SecureString $passwordUsedForCredential -AsPlainText -Force
+            $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+
+            # Map the remote share as a PowerShell file-system drive.
+            # This uses SMB share access, not PowerShell remoting.
+            New-PSDrive -Name $DriveName -PSProvider FileSystem -Root $Share -Credential $credential -Persist -Scope Global | Out-Null
+
+            $mappedPath = "${DriveName}:"
+            if (-not (Test-Path $mappedPath)) {
+              throw "Mapped drive was created but is not reachable: $mappedPath"
+            }
+
+            Write-Host "Mapped $Share to $mappedPath successfully."
+          }
+
+          $branch = '${{ env.DEPLOY_ENV }}'
           $source = "$(Get-Location)\build_output"
-          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
+          $destination = '${{ steps.envmap.outputs.DEST_PATH }}'
+          $deployUser = '${{ steps.envmap.outputs.DEPLOY_USER }}'
+          $deployPass = '${{ steps.envmap.outputs.DEPLOY_PASS }}'
 
-          if (-not (Test-Path $source)) { throw "Build output not found: $source" }
-          if (-not (Test-Path $destination)) { throw "Destination share not reachable: $destination" }
+          $destDrive = 'Z'
+          $appOffline = $null
 
-          robocopy $source $destination /MIR /XF web.config
-          if ($LASTEXITCODE -ge 8) { throw "Robocopy deployment failed." }
+          try {
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Write-Host 'Mapping deployment share using PowerShell credential-based PSDrives...'
 
-          exit 0
+              if ([string]::IsNullOrWhiteSpace($deployUser) -or [string]::IsNullOrWhiteSpace($deployPass)) {
+                throw "DEPLOY_USER or DEPLOY_PASS is missing."
+              }
 
-      # ---------------------------------------------------------
-      # UPDATE APPSETTINGS.JSON (DEV LOCAL)
-      # ---------------------------------------------------------
-      - name: Update GitHubToken in destination appsettings.json (dev/local)
-        if: ${{ github.ref_name == 'dev' }}
-        shell: powershell
-        run: |
-          $token = "${{ secrets._GITHUB_TOKEN }}"
-          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-          $appSettingsPath = Join-Path $destination "appsettings.json"
+              if (-not $destination.StartsWith('\\')) {
+                throw "DEST_PATH must be a UNC path for test/prod."
+              }
 
-          if (-not (Test-Path $appSettingsPath)) {
-            throw "Destination appsettings.json not found: $appSettingsPath"
+              $destParts = $destination -split '\\'
+              if ($destParts.Length -lt 4) {
+                throw "DEST_PATH is not a valid UNC path: $destination"
+              }
+
+              # Map only the share root, then translate the full UNC path to the mapped drive.
+              $destShareRoot = '\\' + $destParts[2] + '\' + $destParts[3]
+
+              Write-Host "Destination share root: $destShareRoot"
+
+              New-AuthenticatedPSDrive -DriveName $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
+
+              $mappedDest = $destination.Replace($destShareRoot, "${destDrive}:")
+            }
+            else {
+              $mappedDest = $destination
+            }
+
+            Write-Host "Deploying from: $source"
+            Write-Host "Deploying to:   $mappedDest"
+
+            if (-not (Test-Path $mappedDest)) {
+              throw "Destination path not reachable: $mappedDest"
+            }
+
+            # Create app_offline.htm so IIS serves a maintenance page and releases file locks.
+            $appOffline = Join-Path $mappedDest "app_offline.htm"
+
+            @"
+          <html>
+            <body>
+              <h1>Temporarily unavailable</h1>
+              <p>The application is currently being updated. Please try again in a few minutes.</p>
+            </body>
+          </html>
+          "@ | Set-Content -Path $appOffline -Encoding UTF8
+
+            Write-Host "Created app_offline.htm at $appOffline"
+
+            # Give IIS a moment to recognize the offline file and unload the app.
+            Start-Sleep -Seconds 3
+
+            # Mirror the new build into the target directory.
+            # Exclude:
+            # - web.config because the environment keeps its own deployed copy
+            # - app_offline.htm so robocopy does not delete it mid-deployment
+            robocopy $source $mappedDest /MIR /XF web.config app_offline.htm
+
+            if ($LASTEXITCODE -ge 8) {
+              throw "Robocopy deployment failed."
+            }
+
+            Write-Host "Deployment copy completed successfully."
+            exit 0
           }
+          finally {
+            # Always remove app_offline.htm at the end so the application comes back online.
+            if ($appOffline -and (Test-Path $appOffline)) {
+              Remove-Item -Path $appOffline -Force -ErrorAction SilentlyContinue
+              Write-Host "Removed app_offline.htm"
+            }
 
-          $content = Get-Content $appSettingsPath -Raw
-          $pattern = '"GitHubToken"\s*:\s*".*?"'
-          $replacement = '"GitHubToken": "' + $token + '"'
-          $newContent = [regex]::Replace($content, $pattern, $replacement)
-
-          Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
-          exit 0
-      # ---------------------------------------------------------
-      # UPDATE APPSETTINGS.JSON (NON-DEV REMOTE) — UNC PATH ONLY
-      # ---------------------------------------------------------
-      - name: Update GitHubToken in destination appsettings.json (UNC path)
-        if: ${{ github.ref_name != 'dev' }}
-        shell: powershell
-        env:
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
-        run: |
-          $token       = "${{ secrets._GITHUB_TOKEN }}"
-          $remote      = "${{ steps.envmap.outputs.REMOTE_SERVER }}"   # KEEP FULL FQDN
-          $destination = "${{ steps.envmap.outputs.DEST_PATH }}"
-      
-          if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_PASS) {
-            throw "Missing DEPLOY_USER or DEPLOY_PASS environment variables."
+            # Always remove mapped drives after deployment.
+            if ($branch -eq 'test' -or $branch -eq 'prod') {
+              Remove-MappedDrive -DriveName $destDrive
+            }
           }
-      
-          # Extract short server name ONLY for stripping from DEST_PATH
-          $remoteShort = $remote.Split('.')[0]
-      
-          # Normalize DEST_PATH:
-          # 1. Remove leading slashes
-          # 2. Remove "nciws-q2409-v\" if present
-          $destinationClean = $destination `
-              -replace "^\\\\+", "" `
-              -replace "^$remoteShort\\", ""
-      
-          # Build UNC path using FULL FQDN
-          $uncPath = "\\$remote\$destinationClean"
-          Write-Host "Mapping remote UNC path: $uncPath"
-      
-          # Convert credentials
-          $securePass = ConvertTo-SecureString $env:DEPLOY_PASS -AsPlainText -Force
-          $cred       = New-Object System.Management.Automation.PSCredential($env:DEPLOY_USER, $securePass)
-      
-          # Map authenticated drive
-          $driveName = "Z"
-          if (Get-PSDrive -Name $driveName -ErrorAction SilentlyContinue) {
-            Remove-PSDrive -Name $driveName -Force
-          }
-      
-          New-PSDrive -Name $driveName -PSProvider FileSystem -Root $uncPath -Credential $cred -ErrorAction Stop | Out-Null
-      
-          $appSettingsPath = "Z:\appsettings.json"
-      
-          if (-not (Test-Path $appSettingsPath)) {
-            Remove-PSDrive -Name $driveName -Force
-            throw "Destination appsettings.json not found: $appSettingsPath"
-          }
-      
-          Write-Host "Updating GitHubToken in appsettings.json..."
-      
-          $content = Get-Content $appSettingsPath -Raw
-          $pattern = '"GitHubToken"\s*:\s*".*?"'
-          $replacement = '"GitHubToken": "' + $token + '"'
-          $newContent = [regex]::Replace($content, $pattern, $replacement)
-      
-          Set-Content -Path $appSettingsPath -Value $newContent -Encoding UTF8
-      
-          Write-Host "GitHubToken updated successfully."
-      
-          # Cleanup
-          Remove-PSDrive -Name $driveName -Force
-      
-          exit 0
-
-
-      # ---------------------------------------------------------
-      # START IIS (DEV LOCAL)
-      # ---------------------------------------------------------
-      - name: Start IIS site and app pool (dev/local)
-        if: ${{ github.ref_name == 'dev' }}
-        shell: powershell
-        run: |
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-
-          Import-Module WebAdministration
-
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
-            Start-WebAppPool -Name $appPool -ErrorAction Stop
-          }
-
-          if ((Get-Website -Name $siteName).state -ne "Started") {
-            Start-Website -Name $siteName -ErrorAction Stop
-          }
-          Start-Sleep -Seconds 3
-
-          if ((Get-Website -Name $siteName).state -ne "Started") {
-            throw "IIS site did not start properly: $siteName"
-          }
-          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Started") {
-            throw "IIS app pool did not start properly: $appPool"
-          }
-
-          exit 0
-
-      # ---------------------------------------------------------
-      # START IIS (NON-DEV REMOTE) — DIRECT SCM (NO PSEXEC)
-      # ---------------------------------------------------------
-      - name: Start IIS site and app pool (remote via SCM)
-        if: ${{ github.ref_name != 'dev' }}
-        shell: powershell
-        env:
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PASS: ${{ secrets.DEPLOY_PASS }}
-        run: |
-          $remote   = "${{ steps.envmap.outputs.REMOTE_SERVER }}"
-          $siteName = "${{ steps.envmap.outputs.SITE_NAME }}"
-          $appPool  = "${{ steps.envmap.outputs.APP_POOL }}"
-      
-          if ([string]::IsNullOrWhiteSpace($remote)) {
-            throw "REMOTE_SERVER is missing or empty."
-          }
-      
-          Write-Host "Starting IIS core services on $remote ..."
-      
-          # Start WAS (App Pool Activation)
-          sc.exe \\$remote start WAS
-      
-          # Start W3SVC (IIS Web Server)
-          sc.exe \\$remote start W3SVC
-      
-          Start-Sleep -Seconds 5
-      
-          # Validate
-          $w3svcState = sc.exe \\$remote query W3SVC | Select-String "STATE"
-          $wasState   = sc.exe \\$remote query WAS   | Select-String "STATE"
-      
-          if ($w3svcState -notmatch "RUNNING") {
-              throw "W3SVC did not start properly"
-          }
-          if ($wasState -notmatch "RUNNING") {
-              throw "WAS did not start properly"
-          }
-      
-          Write-Host "IIS core services successfully started via SCM."
-          exit 0

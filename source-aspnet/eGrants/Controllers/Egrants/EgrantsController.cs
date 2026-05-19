@@ -11,23 +11,36 @@
 // 
 // <Description of the file>
 // 
-// This source is subject to the NIH Softwre License.
+// MIGRATION NOTES (.NET Framework 4.8 to .NET 8):
+// ------------------------------------------------
+// This controller was migrated from the legacy egrants_new project. Key changes include:
+// 
+// 1. DEPENDENCY INJECTION: 
+//    - Legacy used static classes and Session directly
+//    - .NET 8 uses constructor injection for services (IeGrantsService, IDocumentService, etc.)
+//    - SessionInfo is now retrieved via ISessionInfoService instead of direct Session access
+//
+// 2. IsDownloadForm ACTION:
+//    - Legacy: Used ActionResult with Json(downloadModel, JsonRequestBehavior.AllowGet)
+//    - .NET 8: Uses async Task<IActionResult> with Json(downloadModel)
+//    - Legacy stored zip bytes in TempData[handle]
+//    - .NET 8: Stores zip bytes in HttpContext.Session.Set() because TempData has size limits
+//    - Parameter binding changed from implicit to explicit [FromForm] attributes
+//    - Download logic moved to DocumentService.ProcessDocumentDownloadAsync()
+//
+// 3. Download ACTION:
+//    - Legacy: Retrieved data from TempData[fileGuid]
+//    - .NET 8: Retrieves from HttpContext.Session.Get(fileGuid)
+//    - Content-Disposition header is now handled automatically by ASP.NET Core's File() method
+//
+// 4. ASYNC PATTERNS:
+//    - Most actions converted to async/await pattern for better scalability
+//    - Database operations now use async methods
+// ------------------------------------------------
+// 
+// This source is subject to the NIH Software License.
 // See https://ncihub.org/resources/899/download/Guidelines_for_Releasing_Research_Software_04062015.pdf
 // All other rights reserved.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
-// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT ARE DISCLAIMED. IN NO EVENT SHALL THE NATIONAL
-// CANCER INSTITUTE (THE PROVIDER), THE NATIONAL INSTITUTES OF HEALTH, THE
-// U.S. GOVERNMENT OR THE INDIVIDUAL DEVELOPERS BE LIABLE FOR ANY DIRECT,
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 // \***************************************************************************/
 
 #endregion
@@ -49,12 +62,47 @@ namespace eGrants.Controllers.Egrants
 {
     /// <summary>
     /// The egrants controller.
+    /// Handles main eGrants functionality including document downloads, search, and grant management.
+    /// 
+    /// MIGRATION CHANGES SUMMARY:
+    /// -------------------------
+    /// This controller underwent significant changes during the .NET Framework 4.8 to .NET 8 migration:
+    /// 
+    /// 1. DEPENDENCY INJECTION PATTERN:
+    ///    WHY: .NET 8 strongly encourages DI for better testability, maintainability, and loose coupling.
+    ///    The legacy code used static classes and direct Session access which made unit testing difficult.
+    ///    Services are now injected via constructor (IeGrantsService, IDocumentService, etc.)
+    /// 
+    /// 2. SESSION HANDLING CHANGES:
+    ///    WHY: ASP.NET Core's session is accessed differently than .NET Framework.
+    ///    Legacy: Session["key"] direct access
+    ///    .NET 8: HttpContext.Session.GetString("key") or via ISessionInfoService abstraction
+    ///    This abstraction also improves testability by allowing mock sessions in unit tests.
+    /// 
+    /// 3. ASYNC/AWAIT PATTERN:
+    ///    WHY: .NET 8 emphasizes async patterns for better scalability and thread utilization.
+    ///    Synchronous I/O operations can block threads, reducing server throughput.
+    ///    Most actions are now async Task<IActionResult> instead of ActionResult.
+    /// 
+    /// 4. DOWNLOAD MECHANISM REWRITE (IsDownloadForm & Download actions):
+    ///    WHY: Multiple breaking changes required a complete rewrite:
+    ///    - TempData size limits: ASP.NET Core TempData has serialization overhead and size constraints.
+    ///      Large zip files cannot be stored in TempData, so we now use HttpContext.Session.Set().
+    ///    - HttpClient replaces WebClient/HttpWebRequest: .NET 8 deprecates WebClient.
+    ///      HttpClient with SocketsHttpHandler provides better TLS 1.2/1.3 support and connection pooling.
+    ///    - Certificate handling: X509Certificate2 now requires specific KeyStorageFlags for web apps.
+    ///    - Form data binding: Explicit [FromForm] attributes replace implicit model binding.
+    /// 
+    /// 5. JSON SERIALIZATION:
+    ///    WHY: .NET 8 defaults to System.Text.Json, but Newtonsoft.Json is retained for compatibility
+    ///    with complex serialization scenarios and existing API contracts.
     /// </summary>
     public class EgrantsController : Controller
     {
         const int MAX_RETRIES = 3;
-        // Injected dependencies: database context and product service
 
+        // .NET 8 Migration: Services are now injected via constructor instead of using static classes
+        // This enables better testability and follows SOLID principles
         private readonly IeGrantsService _eGrantsService;
         private readonly IDocumentService _documentService;
         private readonly ICommonService _commonService;
@@ -101,17 +149,38 @@ namespace eGrants.Controllers.Egrants
 
         /// <summary>
         /// HttpPost - Download files and create zip
+        /// 
+        /// MIGRATION NOTES:
+        /// ----------------
+        /// Legacy (.NET Framework):
+        /// - Used synchronous ActionResult
+        /// - Parameters bound implicitly from form/query
+        /// - Created HttpWebRequest for ERA files with certificate
+        /// - Used WebClient for standard file downloads
+        /// - Stored zip bytes in TempData[handle]
+        /// - Used ViewAsPdf (Rotativa) for closeout notifications
+        /// 
+        /// .NET 8:
+        /// - Uses async Task<IActionResult> for non-blocking I/O
+        /// - [FromForm] attributes explicitly bind parameters from POST body
+        /// - Download logic moved to DocumentService.ProcessDocumentDownloadAsync()
+        /// - Uses HttpClient with HttpClientHandler for all HTTP requests
+        /// - Stores zip bytes in Session (TempData has size limits in .NET Core)
+        /// - Uses EmailConcatenation.PdfConverter for closeout notification PDFs
+        /// - Certificate handling uses X509Certificate2 with SslProtocols.Tls12 | Tls13
         /// </summary>
         /// <param name="appl">The application ID</param>
         /// <param name="fullGrantNumber">The full grant number</param>
-        /// <param name="listOfUrl">List of URLs to download</param>
-        /// <returns>JSON result with download model</returns>
+        /// <param name="listOfUrl">List of URLs to download (pipe-delimited format: url|category|subcategory|docId|docName|docDate)</param>
+        /// <returns>JSON result with download model containing success/failure status and zip file handle</returns>
         [HttpPost]
-        public async Task<IActionResult> IsDownloadForm(string appl, string fullGrantNumber, [FromQuery] IList<string> listOfUrl)
+        public async Task<IActionResult> IsDownloadForm([FromForm] string appl, [FromForm] string fullGrantNumber, [FromForm] IList<string> listOfUrl)
         {
-
+            // .NET 8 Migration: SessionInfo retrieved via service instead of direct Session access
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
+            // .NET 8 Migration: Request object encapsulates all download parameters
+            // This replaces the inline parameter handling in the legacy controller
             var request = new DownloadRequest
             {
                 ApplId = appl,
@@ -120,10 +189,13 @@ namespace eGrants.Controllers.Egrants
                 SessionInfo = sessionInfo
             };
 
-
+            // .NET 8 Migration: Download processing moved to service layer
+            // Legacy had all download logic inline in the controller action
             var downloadModel = await _documentService.ProcessDocumentDownloadAsync(request);
 
-            // Store zip bytes in SESSION (.NET 8) if successful // was storing in TempData in legacy
+            // .NET 8 Migration: Store zip bytes in Session instead of TempData
+            // TempData in ASP.NET Core has size limitations and requires serialization
+            // Session.Set() handles byte arrays directly
             if (downloadModel.ZipFileBytes != null)
             {
                 HttpContext.Session.Set(downloadModel.Handle, downloadModel.ZipFileBytes);
@@ -134,26 +206,78 @@ namespace eGrants.Controllers.Egrants
 
         /// <summary>
         /// Download action to serve the zip file
+        /// 
+        /// MIGRATION NOTES:
+        /// ----------------
+        /// Legacy (.NET Framework):
+        /// - Retrieved byte[] from TempData[fileGuid]
+        /// - Manually set Content-Disposition header via Response.AppendHeader()
+        /// - Used ContentDisposition class for header formatting
+        /// 
+        /// .NET 8:
+        /// - Retrieves byte[] from HttpContext.Session.Get()
+        /// - File() method automatically sets Content-Disposition header
+        /// - Returns NotFound() instead of EmptyResult for missing files
         /// </summary>
-        /// <param name="fileGuid">The file GUID from TempData</param>
-        /// <param name="fileName">The filename</param>
-        /// <returns>File result</returns>
-        public virtual IActionResult Download(string fileGuid, string fileName)
+        /// <param name="fileGuid">The file GUID (handle) stored in session</param>
+        /// <param name="fileName">The filename to use for the download</param>
+        /// <returns>File result with zip content or NotFound</returns>
+        public virtual async Task<IActionResult> Download(string fileGuid, string fileName)
         {
-            // Retrieve from SESSION instead of TempData
-            var data = HttpContext.Session.Get(fileGuid);
+            // .NET 8 Migration: Retrieve from Session instead of TempData
+            Log.Information("Download requested. FileGuid: {FileGuid}, FileName: {FileName}, SessionId: {SessionId}",
+                fileGuid, fileName, HttpContext.Session.Id);
 
-            // Content-Disposition header set in ASP.NET Core,
-            // so the explicit header addition (from legacy) is technically redundant, not required
-            if (data != null)
+            if (!string.IsNullOrEmpty(fileGuid))
             {
-                HttpContext.Session.Remove(fileGuid);
-                return File(data, "application/zip", fileName);
+                Log.Debug("Attempting session lookup for FileGuid: {FileGuid}", fileGuid);
+                var data = HttpContext.Session.Get(fileGuid);
+
+                if (data != null)
+                {
+                    Log.Information("Session lookup succeeded. FileGuid: {FileGuid}, FileName: {FileName}, Size: {FileSize} bytes",
+                        fileGuid, fileName, data.Length);
+
+                    // Clean up session after retrieving the file
+                    HttpContext.Session.Remove(fileGuid);
+
+                    // .NET 8 Migration: File() method handles Content-Disposition automatically
+                    // Third parameter (fileName) triggers attachment disposition
+                    return File(data, "application/zip", fileName);
+                }
+
+                Log.Warning("Session lookup returned null for FileGuid: {FileGuid}. Session may have expired or data was never stored.", fileGuid);
+            }
+            else
+            {
+                Log.Warning("FileGuid is null or empty. FileName: {FileName}", fileName);
             }
 
+            // Fallback: If session data is missing (expired session, empty fileGuid, etc.),
+            // try reading the zip file directly from the temp directory where it was created
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                var tempZipPath = Path.Combine(Path.GetTempPath(), fileName);
+                Log.Information("Attempting temp directory fallback. Path: {TempZipPath}", tempZipPath);
+
+                if (System.IO.File.Exists(tempZipPath))
+                {
+                    var fileBytes = await System.IO.File.ReadAllBytesAsync(tempZipPath);
+                    Log.Information("Temp file fallback succeeded. FileName: {FileName}, Size: {FileSize} bytes", fileName, fileBytes.Length);
+                    return File(fileBytes, "application/zip", fileName);
+                }
+
+                Log.Warning("Temp file not found at path: {TempZipPath}", tempZipPath);
+            }
+            else
+            {
+                Log.Warning("FileName is null or empty. Cannot attempt temp directory fallback. FileGuid: {FileGuid}", fileGuid);
+            }
+
+            // .NET 8 Migration: Return proper 404 instead of EmptyResult
+            Log.Error("Download failed — file not found via session or temp directory. FileGuid: {FileGuid}, FileName: {FileName}", fileGuid, fileName);
             return NotFound();
         }
-
 
         // get appls list with documents by (admin_code and serial_num) added by Ayu at 3/15/2019
         /// <summary>
@@ -350,13 +474,13 @@ namespace eGrants.Controllers.Egrants
         /// The <see cref="ActionResult"/>.
         /// </returns>
         public async Task<IActionResult> by_appl(
-            int applId = 0,
+            int appl_id = 0,
             string mode = null,
             string str = null)
         {
             var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByApplAsync(applId, mode, str, sessionInfo);
+            eGrantsSearchViewModel eGrantsSearchViewModelList = await _eGrantsService.GetEgrantsByApplAsync(appl_id, mode, str, sessionInfo);
 
             eGrantsSearchViewModelList.ICList = await _commonService.LoadAdminCodes();
 
