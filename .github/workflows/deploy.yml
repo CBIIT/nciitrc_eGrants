@@ -2,13 +2,11 @@ name: eGrants Deployment Workflow
 
 on:
   # Automatically deploy when code is pushed to dev or test.
-  # Automatically deploy when code is pushed to dev or test.
   push:
     branches:
       - dev
       - test
 
-  # Allow manual deployments to any supported environment.
   # Allow manual deployments to any supported environment.
   workflow_dispatch:
     inputs:
@@ -29,21 +27,8 @@ env:
   # - For push runs, use the branch name that triggered the workflow.
   DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
 
-env:
-  # Resolve the target environment.
-  # - For manual runs, use the selected workflow input.
-  # - For push runs, use the branch name that triggered the workflow.
-  DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
-
 jobs:
   build-and-deploy:
-    # Choose the runner label based on the environment:
-    # - dev/test use the non-prod runner
-    # - stage/prod use the prod runner
-    runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.target_branch == 'dev') || (github.event_name == 'workflow_dispatch' && inputs.target_branch == 'test') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'dev') || (github.event_name != 'workflow_dispatch' && github.ref_name == 'test')) && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
-
-    # Attach the deployment to the matching GitHub environment.
-    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
     # Choose the runner label based on the environment:
     # - dev/test use the non-prod runner
     # - stage/prod use the prod runner
@@ -54,12 +39,9 @@ jobs:
 
     steps:
       # Pull down the repository source so the runner can build it.
-      # Pull down the repository source so the runner can build it.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Load environment-specific values from GitHub environment variables and secrets.
-      # This step writes reusable outputs for later steps.
       # Load environment-specific values from GitHub environment variables and secrets.
       # This step writes reusable outputs for later steps.
       - name: Load environment variables
@@ -68,12 +50,9 @@ jobs:
         run: |
           $branch = "${{ env.DEPLOY_ENV }}"
           Write-Host "Environment detected: $branch"
-          $branch = "${{ env.DEPLOY_ENV }}"
-          Write-Host "Environment detected: $branch"
 
           switch ($branch) {
             "dev" {
-              # Dev uses local paths/settings and does not require remote deployment credentials.
               # Dev uses local paths/settings and does not require remote deployment credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_DEV }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_DEV }}" >> $env:GITHUB_OUTPUT
@@ -82,7 +61,6 @@ jobs:
             }
 
             "test" {
-              # Test uses remote share credentials.
               # Test uses remote share credentials.
               echo "DEST_PATH=${{ vars.DEST_PATH_TEST }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_TEST }}" >> $env:GITHUB_OUTPUT
@@ -93,7 +71,6 @@ jobs:
             }
 
             "stage" {
-              # Stage uses local paths/settings.
               # Stage uses local paths/settings.
               echo "DEST_PATH=${{ vars.DEST_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
               echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_STAGE }}" >> $env:GITHUB_OUTPUT
@@ -111,30 +88,16 @@ jobs:
               echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_PROD }}" >> $env:GITHUB_OUTPUT
             }
 
-            "prod" {
-              # Prod uses remote share credentials.
-              echo "DEST_PATH=${{ vars.DEST_PATH_PROD }}" >> $env:GITHUB_OUTPUT
-              echo "ARCHIVE_PATH=${{ vars.ARCHIVE_PATH_PROD }}" >> $env:GITHUB_OUTPUT
-              echo "SITE_NAME=${{ vars.SITE_NAME_PROD }}" >> $env:GITHUB_OUTPUT
-              echo "APP_POOL=${{ vars.APP_POOL_PROD }}" >> $env:GITHUB_OUTPUT
-              echo "DEPLOY_USER=${{ secrets.DEPLOY_USER_PROD }}" >> $env:GITHUB_OUTPUT
-              echo "DEPLOY_PASS=${{ secrets.DEPLOY_PASS_PROD }}" >> $env:GITHUB_OUTPUT
-            }
-
             default {
-              throw "Unsupported deployment environment: $branch"
               throw "Unsupported deployment environment: $branch"
             }
           }
 
           # Left here for visibility/diagnostics, even though remote IIS service control
           # is no longer used in this version of the workflow.
-          # Left here for visibility/diagnostics, even though remote IIS service control
-          # is no longer used in this version of the workflow.
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-      # Restore NuGet packages and publish the application into a deployment-ready folder.
       # Restore NuGet packages and publish the application into a deployment-ready folder.
       - name: Build project
         shell: powershell
@@ -147,19 +110,15 @@ jobs:
 
       # Replace the placeholder GitHubToken value inside the published appsettings.json
       # with the real secret value from GitHub Actions secrets.
-      # Replace the placeholder GitHubToken value inside the published appsettings.json
-      # with the real secret value from GitHub Actions secrets.
       - name: Replace GitHubToken value with secret
         shell: powershell
         run: |
           $file = "$(Get-Location)\build_output\appsettings.json"
           $token = "${{ secrets._GITHUB_TOKEN }}"
 
-
           if (-not (Test-Path $file)) {
             throw "appsettings.json not found at: $file"
           }
-
 
           $json = Get-Content $file -Raw
           $pattern = '"GitHubToken"\s*:\s*".*?"'
@@ -167,8 +126,6 @@ jobs:
           $json = $json -replace $pattern, $replacement
           Set-Content -Path $file -Value $json -Encoding UTF8
 
-      # Archive the currently deployed application before copying in the new build.
-      # This creates a timestamped zip backup and keeps only the 5 newest backups.
       # Archive the currently deployed application before copying in the new build.
       # This creates a timestamped zip backup and keeps only the 5 newest backups.
       - name: Archive existing destination directory
@@ -367,8 +324,6 @@ jobs:
 
               Write-Host "Destination share root: $destShareRoot"
               Write-Host "Archive share root: $archShareRoot"
-              Write-Host "Destination share root: $destShareRoot"
-              Write-Host "Archive share root: $archShareRoot"
 
               New-AuthenticatedPSDrive -DriveName $destDrive -Share $destShareRoot -Username $deployUser -Password $deployPass
               New-AuthenticatedPSDrive -DriveName $archDrive -Share $archShareRoot -Username $deployUser -Password $deployPass
@@ -385,20 +340,11 @@ jobs:
             Write-Host "Environment: $branch"
             Write-Host "Destination path: $mappedDest"
             Write-Host "Archive path: $mappedArchive"
-            Write-Host "Environment: $branch"
-            Write-Host "Destination path: $mappedDest"
-            Write-Host "Archive path: $mappedArchive"
 
             if (-not (Test-Path $mappedDest)) {
               throw "Destination path not reachable: $mappedDest"
             }
-            if (-not (Test-Path $mappedDest)) {
-              throw "Destination path not reachable: $mappedDest"
-            }
 
-            if (-not (Test-Path $mappedArchive)) {
-              New-Item -ItemType Directory -Path $mappedArchive | Out-Null
-            }
             if (-not (Test-Path $mappedArchive)) {
               New-Item -ItemType Directory -Path $mappedArchive | Out-Null
             }
@@ -407,23 +353,13 @@ jobs:
             $localTemp = Join-Path $env:TEMP "archive_$timestamp"
             $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
             $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
-            $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-            $localTemp = Join-Path $env:TEMP "archive_$timestamp"
-            $localZip  = Join-Path $env:TEMP "archive_$timestamp.zip"
-            $remoteZip = Join-Path $mappedArchive "backup_$timestamp.zip"
 
-            New-Item -ItemType Directory -Path $localTemp | Out-Null
             New-Item -ItemType Directory -Path $localTemp | Out-Null
 
             # Copy current deployed content to a temporary local folder before zipping it.
             robocopy $mappedDest $localTemp /MIR
             if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
-            # Copy current deployed content to a temporary local folder before zipping it.
-            robocopy $mappedDest $localTemp /MIR
-            if ($LASTEXITCODE -ge 8) { throw 'Robocopy local copy failed.' }
 
-            Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
-            Copy-Item -Path $localZip -Destination $remoteZip -Force
             Compress-Archive -Path "$localTemp\*" -DestinationPath $localZip -Force
             Copy-Item -Path $localZip -Destination $remoteZip -Force
 
@@ -433,14 +369,7 @@ jobs:
             # Keep only the most recent 5 backups.
             $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
               Sort-Object LastWriteTime -Descending
-            # Keep only the most recent 5 backups.
-            $archives = Get-ChildItem -Path $mappedArchive -Filter 'backup_*.zip' |
-              Sort-Object LastWriteTime -Descending
 
-            $archivesToDelete = $archives | Select-Object -Skip 5
-            foreach ($old in $archivesToDelete) {
-              Remove-Item -Path $old.FullName -Force
-            }
             $archivesToDelete = $archives | Select-Object -Skip 5
             foreach ($old in $archivesToDelete) {
               Remove-Item -Path $old.FullName -Force
@@ -462,8 +391,6 @@ jobs:
         shell: powershell
         run: |
           Write-Host "=== BASIC CONTEXT ==="
-          Write-Host "DEPLOY_ENV                = ${{ env.DEPLOY_ENV }}"
-          Write-Host "github.event_name         = ${{ github.event_name }}"
           Write-Host "DEPLOY_ENV                = ${{ env.DEPLOY_ENV }}"
           Write-Host "github.event_name         = ${{ github.event_name }}"
           Write-Host "github.ref_name           = ${{ github.ref_name }}"
@@ -535,11 +462,6 @@ jobs:
 
           Write-Host ""
           Write-Host "=== END DIAGNOSTICS ==="
-
-      # Deploy the published build output.
-      # For all environments, use app_offline.htm to temporarily take the application offline
-      # while files are copied.
-      - name: Deploy build output
 
       # Deploy the published build output.
       # For all environments, use app_offline.htm to temporarily take the application offline
@@ -772,9 +694,6 @@ jobs:
             # - app_offline.htm so robocopy does not delete it mid-deployment
             robocopy $source $mappedDest /MIR /XF web.config app_offline.htm
 
-            if ($LASTEXITCODE -ge 8) {
-              throw "Robocopy deployment failed."
-            }
             if ($LASTEXITCODE -ge 8) {
               throw "Robocopy deployment failed."
             }
