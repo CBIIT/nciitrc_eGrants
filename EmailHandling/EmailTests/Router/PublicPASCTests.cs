@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailTests
+namespace EmailHandlingTests
 {
     [TestClass]
     public class PublicPASCTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        private string _josniEmail = "jonesni@mail.nih.gov";
+        //private string _josniEmail = "jonesni@mail.nih.gov";
 
         // MLH : Note this was originally manually tested, probably because I didn't have any examples
         // We do have examples now though ... very conflicted examples

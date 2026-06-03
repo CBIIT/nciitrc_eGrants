@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailTests
+namespace EmailHandlingTests
 {
     [TestClass]
     public class eRACommonsPRAMTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        private string _josniEmail = "jonesni@mail.nih.gov";
+        //private string _josniEmail = "jonesni@mail.nih.gov";
 
         // MLH : didn't see any actual emails with this subject, so just using this
 

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailTests
+namespace EmailHandlingTests
 {
     [TestClass]
     public class eRAFinalRPPRTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        private string _josniEmail = "jonesni@mail.nih.gov";
+        //private string _josniEmail = "jonesni@mail.nih.gov";
 
         // MLH : I see emails with subjects like this :     eRA Commons: The Final RPPR for Award R21CA241015-02 has been submitted to the NIH
         // But the main capture text is eRA Commons: The Final RPPR - Additional Materials for Award, which wouldn't catch on those emails

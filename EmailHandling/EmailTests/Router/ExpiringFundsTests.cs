@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailTests
+namespace EmailHandlingTests
 {
     [TestClass]
     public class ExpiringFundsTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        private string _josniEmail = "jonesni@mail.nih.gov";
+        //private string _josniEmail = "jonesni@mail.nih.gov";
 
         // MLH : I've never found any actual emails that would meet this criteria, so update if you find such an email
 
