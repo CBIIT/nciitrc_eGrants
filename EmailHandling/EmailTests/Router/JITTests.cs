@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailTests
+namespace EmailHandlingTests
 {
     [TestClass]
     public class JITTests
@@ -17,7 +17,7 @@ namespace EmailTests
 
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
         private string _dBugEmail = "leul.ayana@nih.gov";
-        private string _josniEmail = "jonesni@mail.nih.gov";
+        //private string _josniEmail = "jonesni@mail.nih.gov";
 
         [TestMethod]
         public void JITRequestSendToDevEmail()

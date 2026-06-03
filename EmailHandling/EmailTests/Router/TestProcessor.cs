@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EmailTests
+namespace EmailHandlingTests
 {
 
     internal class TestProcessor : Processor

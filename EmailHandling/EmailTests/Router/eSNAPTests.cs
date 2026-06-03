@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailTests
+namespace EmailHandlingTests
 {
     [TestClass]
     public class eSNAPTests
@@ -15,7 +15,7 @@ namespace EmailTests
         // NB : an extra email gets sent out if the subject contains "submitted to NIH with a Non-Compliance"
 
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        private string _josniEmail = "jonesni@mail.nih.gov";
+        //private string _josniEmail = "jonesni@mail.nih.gov";
 
         [TestMethod]
         public void TestReceivedByAgencySendToDevEmail()

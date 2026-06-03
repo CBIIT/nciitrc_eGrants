@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System.Data;
-using System.Data.OleDb;
 using System.Data.SqlClient;
-using Router;
-using Outlook = Microsoft.Office.Interop.Outlook;
-using CommonUtilties;
 using System.IO;
+using CommonUtilties;
+using Outlook = Microsoft.Office.Interop.Outlook;
 using Microsoft.Office.Interop.Outlook;
-using System.Xml.Linq;
-
 
 namespace Router
 {
@@ -23,6 +13,11 @@ namespace Router
         {
             try
             {
+#if DEBUG
+                    // Load credentials from shared secrets file in the solution root (not committed to source control)
+                    CommonUtilities.LoadLocalSecrets(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "secrets.local.csv"));
+#endif
+
                 var _startTimeStamp = DateTime.Now;
 
                 Console.WriteLine("The current directory is {0}", Directory.GetCurrentDirectory());
