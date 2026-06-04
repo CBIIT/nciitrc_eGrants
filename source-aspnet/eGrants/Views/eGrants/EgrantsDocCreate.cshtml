@@ -9,6 +9,8 @@
 <script src="~/js/dragdrop.js"></script>
 <script src="~/js/ProgressBar.js"></script>
 <script src="~/js/bs-custom-file-input.min.js"></script>
+<script src="~/scripts/signalr.min.js"></script>
+<script src="~/js/fileUploadProgress.js"></script>
 
 <style>
     body {
@@ -61,6 +63,31 @@
     $(document).ready(function () {
         bsCustomFileInput.init();
         set_default();
+        
+        // Add SignalR diagnostics
+        console.log("=== SignalR Diagnostics (Create Page) ===");
+        console.log("1. SignalR library loaded:", typeof signalR !== 'undefined');
+        console.log("2. FileUploadProgressManager exists:", !!window.fileUploadProgressManager);
+        
+        if (window.fileUploadProgressManager) {
+            console.log("3. Connection state:", window.fileUploadProgressManager.connection?.state);
+            
+            // Test notification
+            try {
+                window.fileUploadProgressManager.showNotification(
+                    'SignalR Ready', 
+                    'File upload progress tracking is enabled', 
+                    'info'
+                );
+                console.log("4. Test notification sent successfully");
+            } catch (e) {
+                console.error("4. Test notification failed:", e);
+            }
+        } else {
+            console.error("3. FileUploadProgressManager not initialized!");
+        }
+        
+        console.log("=== End Diagnostics ===");
     });
 
     function set_default() {
@@ -143,7 +170,9 @@
         $('#notice').css('visibility', 'hidden');
     }
 
-    function create_by_file() {
+    // SignalR-enabled create_by_file function
+    async function create_by_file() {
+        console.log("=== create_by_file called ===");
         clear_message("by_file");
 
         //check admin_code
@@ -182,21 +211,64 @@
         //check loacte file, file type and file size
         if (!check_file()) {
             return false;
-        } else var file = document.getElementById('customFile').files[0];
-
-        var frmdata = new FormData();
-        frmdata.append('file', file);
-        frmdata.append('admin_code', AdminCode);
-        frmdata.append('serial_num', SerialNum);
-        frmdata.append('appl_id', Applid);
-        frmdata.append('category_id', Categoryid);
-        frmdata.append('sub_category', SubCategory);
-        frmdata.append('doc_date', DocDate);
-        docupload(frmdata, "/EgrantsDoc/doc_create_by_file");
+        }
+        
+        const file = document.getElementById('customFile').files[0];
+        const uploadId = generateUploadId();
+        
+        console.log("Starting SignalR upload for:", file.name);
+        
+        // Check if fileUploadProgressManager exists
+        if (!window.fileUploadProgressManager) {
+            console.error("fileUploadProgressManager not found!");
+            alert("SignalR not initialized. Please refresh the page.");
+            return false;
+        }
+        
+        try {
+            // Start SignalR tracking
+            await window.fileUploadProgressManager.startUpload(uploadId, file.name);
+            
+            var frmdata = new FormData();
+            frmdata.append('file', file);
+            frmdata.append('uploadId', uploadId);
+            frmdata.append('appl_id', Applid);
+            frmdata.append('category_id', Categoryid);
+            frmdata.append('sub_category', SubCategory);
+            frmdata.append('doc_date', DocDate);
+            frmdata.append('admin_code', AdminCode);
+            frmdata.append('serial_num', SerialNum);
+            frmdata.append('uploadType', 'create');
+            
+            console.log("Sending upload request to server...");
+            
+            const response = await fetch('/EgrantsDoc/UploadWithProgress', {
+                method: 'POST',
+                body: frmdata
+            });
+            
+            console.log("Server response:", response.status);
+            
+            const result = await response.json();
+            console.log("Result:", result);
+            
+            if (result.success) {
+                console.log('Upload queued successfully:', result.uploadId);
+            } else {
+                console.error('Upload failed:', result.message);
+                alert('Upload failed: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+        }
+        
         clear_all("by_file");
     }
 
-    function create_pdf_by_file() {
+    // SignalR-enabled create_pdf_by_file function
+    async function create_pdf_by_file() {
+        console.log("=== create_pdf_by_file called ===");
         clear_message("by_file");
 
         //check admin_code
@@ -215,7 +287,7 @@
         //check category_id and get sub_category input index
         if (get_category_id() == false) {
             return false;
-        } //else get_sub_category_input();
+        }
 
         //get category_id and get sub_category input index
         if (get_category_id() == false) {
@@ -234,28 +306,63 @@
 
         var fileInput = document.getElementById('customFile');
 
-        var frmdata = new FormData();
-        frmdata.append('admin_code', AdminCode);
-        frmdata.append('serial_num', SerialNum);
-        frmdata.append('appl_id', Applid);
-        frmdata.append('category_id', Categoryid);
-        frmdata.append('sub_category', SubCategory);
-        frmdata.append('doc_date', DocDate);
-
         //check loacte file, file type and file size
         if (!check_file_pdf()) {
             return false;
-        } else {
-            for (var i = 0; i < fileInput.files.length; i++) {
-                frmdata.append('files', fileInput.files[i]);
+        }
+        
+        // Check if fileUploadProgressManager exists
+        if (!window.fileUploadProgressManager) {
+            console.error("fileUploadProgressManager not found!");
+            alert("SignalR not initialized. Please refresh the page.");
+            return false;
+        }
+        
+        // Upload each file separately with progress tracking
+        for (var i = 0; i < fileInput.files.length; i++) {
+            const file = fileInput.files[i];
+            const uploadId = generateUploadId();
+            
+            console.log(`Starting SignalR upload ${i + 1}/${fileInput.files.length}:`, file.name);
+            
+            try {
+                await window.fileUploadProgressManager.startUpload(uploadId, file.name);
+                
+                var frmdata = new FormData();
+                frmdata.append('file', file);
+                frmdata.append('uploadId', uploadId);
+                frmdata.append('appl_id', Applid);
+                frmdata.append('category_id', Categoryid);
+                frmdata.append('sub_category', SubCategory);
+                frmdata.append('doc_date', DocDate);
+                frmdata.append('admin_code', AdminCode);
+                frmdata.append('serial_num', SerialNum);
+                frmdata.append('uploadType', 'create');
+                frmdata.append('convertToPdf', 'true');
+                
+                const response = await fetch('/EgrantsDoc/UploadWithProgress', {
+                    method: 'POST',
+                    body: frmdata
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    console.error(`Upload failed for ${file.name}:`, result.message);
+                    alert(`Upload failed for ${file.name}: ` + result.message);
+                }
+            } catch (error) {
+                console.error(`Upload error for ${file.name}:`, error);
+                alert(`Upload failed for ${file.name}: ` + error.message);
             }
         }
-
-        docupload(frmdata, "/EgrantsDoc/doc_create_pdf_by_file");
+        
         clear_all("by_file");
     }
 
-    function create_by_ddrop() {
+    // SignalR-enabled create_by_ddrop function
+    async function create_by_ddrop() {
+        console.log("=== create_by_ddrop called ===");
         clear_message("by_dd");
 
         //check admin_code
@@ -289,20 +396,58 @@
         if (!check_file_dnd()) {
             return false;
         }
-
-        var frmdata = new FormData();
-        frmdata.append('dropedfile', dropedfile);
-        frmdata.append('appl_id', Applid);
-        frmdata.append('category_id', Categoryid);
-        frmdata.append('sub_category', SubCategory);
-        frmdata.append('doc_date', DocDate);
-        frmdata.append('admin_code', AdminCode);
-        frmdata.append('serial_num', SerialNum);
-        docupload(frmdata, "/EgrantsDoc/doc_create_by_ddrop");
+        
+        const uploadId = generateUploadId();
+        
+        console.log("Starting SignalR upload:", dropedfile.name);
+        
+        // Check if fileUploadProgressManager exists
+        if (!window.fileUploadProgressManager) {
+            console.error("fileUploadProgressManager not found!");
+            alert("SignalR not initialized. Please refresh the page.");
+            return false;
+        }
+        
+        try {
+            await window.fileUploadProgressManager.startUpload(uploadId, dropedfile.name);
+            
+            var frmdata = new FormData();
+            frmdata.append('file', dropedfile);
+            frmdata.append('uploadId', uploadId);
+            frmdata.append('appl_id', Applid);
+            frmdata.append('category_id', Categoryid);
+            frmdata.append('sub_category', SubCategory);
+            frmdata.append('doc_date', DocDate);
+            frmdata.append('admin_code', AdminCode);
+            frmdata.append('serial_num', SerialNum);
+            frmdata.append('uploadType', 'create');
+            
+            console.log("Sending upload request to server...");
+            
+            const response = await fetch('/EgrantsDoc/UploadWithProgress', {
+                method: 'POST',
+                body: frmdata
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('Upload queued successfully:', result.uploadId);
+            } else {
+                console.error('Upload failed:', result.message);
+                alert('Upload failed: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+        }
+        
         clear_all("by_dd");
     }
 
-    function convert_to_pdf_by_ddrop() {
+    // SignalR-enabled convert_to_pdf_by_ddrop function
+    async function convert_to_pdf_by_ddrop() {
+        console.log("=== convert_to_pdf_by_ddrop called ===");
         clear_message("by_dd");
 
         //check admin_code
@@ -336,21 +481,59 @@
         if (!check_file_pdf_dnd()) {
             return false;
         }
-
-        var frmdata = new FormData();
-        frmdata.append('appl_id', Applid);
-        frmdata.append('category_id', Categoryid);
-        frmdata.append('sub_category', SubCategory);
-        frmdata.append('doc_date', DocDate);
-        frmdata.append('admin_code', AdminCode);
-        frmdata.append('serial_num', SerialNum);
-
-        for (var i = 0; i < dropedfiles.length; i++) {
-            frmdata.append('dropedfiles', dropedfiles[i]);
+        
+        // Check if fileUploadProgressManager exists
+        if (!window.fileUploadProgressManager) {
+            console.error("fileUploadProgressManager not found!");
+            alert("SignalR not initialized. Please refresh the page.");
+            return false;
         }
-
-        docupload(frmdata, "/EgrantsDoc/convert_to_pdf_by_ddrop");
+        
+        // Upload each file separately with progress tracking
+        for (let i = 0; i < dropedfiles.length; i++) {
+            const file = dropedfiles[i];
+            const uploadId = generateUploadId();
+            
+            console.log(`Starting SignalR upload ${i + 1}/${dropedfiles.length}:`, file.name);
+            
+            try {
+                await window.fileUploadProgressManager.startUpload(uploadId, file.name);
+                
+                var frmdata = new FormData();
+                frmdata.append('file', file);
+                frmdata.append('uploadId', uploadId);
+                frmdata.append('appl_id', Applid);
+                frmdata.append('category_id', Categoryid);
+                frmdata.append('sub_category', SubCategory);
+                frmdata.append('doc_date', DocDate);
+                frmdata.append('admin_code', AdminCode);
+                frmdata.append('serial_num', SerialNum);
+                frmdata.append('uploadType', 'create');
+                frmdata.append('convertToPdf', 'true');
+                
+                const response = await fetch('/EgrantsDoc/UploadWithProgress', {
+                    method: 'POST',
+                    body: frmdata
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    console.error(`Upload failed for ${file.name}:`, result.message);
+                    alert(`Upload failed for ${file.name}: ` + result.message);
+                }
+            } catch (error) {
+                console.error(`Upload error for ${file.name}:`, error);
+                alert(`Upload failed for ${file.name}: ` + error.message);
+            }
+        }
+        
         clear_all("by_dd");
+    }
+
+    // Helper function to generate unique upload IDs
+    function generateUploadId() {
+        return 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
 
     function clear_all(act) {
@@ -407,7 +590,6 @@
     }
 
     function back() {
-
         var url = document.getElementById("hidPrevious_url").value;
         window.self.location = url;
     }
@@ -418,7 +600,6 @@
         tabcontent = document.getElementsByClassName("tabcontent");
         for (i = 0; i < tabcontent.length; i++) {
             tabcontent[i].style.display = "none";
-
         }
         tablinks = document.getElementsByClassName("tablinks");
         for (i = 0; i < tablinks.length; i++) {

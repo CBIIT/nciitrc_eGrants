@@ -1,423 +1,441 @@
 ﻿@{
-   ViewBag.Title = "eGrants [Document Upload Module]";
-   Layout = "~/Views/Shared/_egrants_header.cshtml";
+    ViewBag.Title = "eGrants [Document Upload Module]";
+    Layout = "~/Views/Shared/_egrants_header.cshtml";
 }
 
 <link rel="stylesheet" type="text/css" href="~/css/DragdropArea.css" />
 <script src="~/js/dragdrop.js"></script>
 <script src="~/js/ProgressBar.js"></script>
 <script src="~/js/bs-custom-file-input.min.js"></script>
+<script src="~/scripts/signalr.min.js"></script>
+<script src="~/js/fileUploadProgress.js"></script>
 
 <style>
-   body {
-      font-family: Arial;
-   }
+    body {
+        font-family: Arial;
+    }
 
-   /* Style the tab */
+    /* Style the tab */
 
-   .tab {
-      overflow: hidden;
-      border: 1px solid #ccc;
-      background-color: #f1f1f1;
-   }
-
-      /* Style the buttons inside the tab */
-
-      .tab button {
-         background-color: inherit;
-         float: left;
-         border: none;
-         outline: none;
-         cursor: pointer;
-         padding: 14px 16px;
-         transition: 0.3s;
-         font-size: 17px;
-      }
-
-         /* Change background color of buttons on hover */
-
-         .tab button:hover {
-            background-color: #ddd;
-         }
-
-         /* Create an active/current tablink class */
-
-         .tab button.active {
-            background-color: #ccc;
-         }
-
-   input[type="file"] {
-      display: none;
-   }
-
-   .custom-file-upload {
-      border: 1px solid #ccc;
-      display: inline-block;
-      padding: 6px 12px;
-      cursor: pointer;
-   }
-
-   .fileUpload {
-      position: relative;
-      overflow: hidden;
-      margin: 10px;
-   }
-
-      .fileUpload input.upload {
-         position: absolute;
-         top: 0;
-         right: 0;
-         margin: 0;
-         padding: 0;
-         font-size: 20px;
-         cursor: pointer;
-         opacity: 0;
-         filter: alpha(opacity=0);
-      }
-   /* Style the tab content */
-
-   .tabcontent {
-      /*display: none;
-        padding: 6px 12px;
+    .tab {
+        overflow: hidden;
         border: 1px solid #ccc;
-        border-top: none;*/
-   }
+        background-color: #f1f1f1;
+    }
+
+        /* Style the buttons inside the tab */
+
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+            /* Change background color of buttons on hover */
+
+            .tab button:hover {
+                background-color: #ddd;
+            }
+
+            /* Create an active/current tablink class */
+
+            .tab button.active {
+                background-color: #ccc;
+            }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    .custom-file-upload {
+        border: 1px solid #ccc;
+        display: inline-block;
+        padding: 6px 12px;
+        cursor: pointer;
+    }
+
+    .fileUpload {
+        position: relative;
+        overflow: hidden;
+        margin: 10px;
+    }
+
+        .fileUpload input.upload {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            filter: alpha(opacity=0);
+        }
+    /* Style the tab content */
+
+    .tabcontent {
+        /*display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;*/
+    }
 </style>
 
 <script language="javascript" type="text/javascript">
-   //var currenturl = window.document.location.href;
-   var appl_id;
-   var document_id;
-   var document_date;
+       //var currenturl = window.document.location.href;
+       var appl_id;
+       var document_id;
+       var document_date;
 
-   $(document).ready(function () {
-      set_default();
-      bsCustomFileInput.init();
-      //below code executes on file input change and append name in text control
+       $(document).ready(function () {
+          set_default();
+          bsCustomFileInput.init();
+          //below code executes on file input change and append name in text control
 
-   });
+       });
 
-   // This code will attach `fileselect` event to all file inputs on the page
-//   $(document).on('change', ':file', function () {
-//      var input = $(this),
-//         numFiles = input.get(0).files ? input.get(0).files.length : 1,
-//         label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-//      input.trigger('fileselect', [numFiles, label]);
-//
-//      document.getElementById("by_ddrop").style.display = "inline";
-//   });
-//
-//
-//   $(':file').on('fileselect', function (event, numFiles, label) {
-//
-//      var input = $(this).parents('.input-group').find(':text'),
-//         log = numFiles > 1 ? numFiles + ' files selected' : label;
-//
-//      if (input.length) {
-//         input.val(log);
-//      } else {
-//         if (log) alert(log);
-//      }
-//
-//   });
+       // This code will attach `fileselect` event to all file inputs on the page
+    //   $(document).on('change', ':file', function () {
+    //      var input = $(this),
+    //         numFiles = input.get(0).files ? input.get(0).files.length : 1,
+    //         label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+    //      input.trigger('fileselect', [numFiles, label]);
+    //
+    //      document.getElementById("by_ddrop").style.display = "inline";
+    //   });
+    //
+    //
+    //   $(':file').on('fileselect', function (event, numFiles, label) {
+    //
+    //      var input = $(this).parents('.input-group').find(':text'),
+    //         log = numFiles > 1 ? numFiles + ' files selected' : label;
+    //
+    //      if (input.length) {
+    //         input.val(log);
+    //      } else {
+    //         if (log) alert(log);
+    //      }
+    //
+    //   });
 
-   function set_default() {
-      //get doc data
-      document_id = document.getElementById('hidDocID').value;
-      appl_id = document.getElementById('hidApplID').value;
-      document_date = document.getElementById('hidDocDate').value;
+       function set_default() {
+          //get doc data
+          document_id = document.getElementById('hidDocID').value;
+          appl_id = document.getElementById('hidApplID').value;
+          document_date = document.getElementById('hidDocDate').value;
 
-      switch_upload_mode("by_ddrop");
-      //var BrowserType = document.getElementById("hidBrowserType").value;
-      ////alert(BrowserType);
-      //if (BrowserType.indexOf("Chrome") != -1) {
-      //    switch_upload_mode("by_file");
-      //} else switch_upload_mode("by_ddrop");
+          switch_upload_mode("by_ddrop");
+          //var BrowserType = document.getElementById("hidBrowserType").value;
+          ////alert(BrowserType);
+          //if (BrowserType.indexOf("Chrome") != -1) {
+          //    switch_upload_mode("by_file");
+          //} else switch_upload_mode("by_ddrop");
 
-      //$('#btnFileUpload').attr("disabled", "disabled");
-   }
+          //$('#btnFileUpload').attr("disabled", "disabled");
+       }
 
-   function switch_upload_mode(act) {
-      if (act == "by_ddrop") {
-         document.getElementById("by_ddrop").style.display = "inline";
-         document.getElementById("by_file").style.display = "none";
-         document.getElementById("by_email").style.display = "none";
-         document.getElementById("btnDragdrop").style.display = "inline";
-         Init();
-      }
+       function switch_upload_mode(act) {
+          if (act == "by_ddrop") {
+             document.getElementById("by_ddrop").style.display = "inline";
+             document.getElementById("by_file").style.display = "none";
+             document.getElementById("by_email").style.display = "none";
+             document.getElementById("btnDragdrop").style.display = "inline";
+             Init();
+          }
 
-      if (act == "by_file") {
-         document.getElementById("by_file").style.display = "inline";
-         document.getElementById("by_ddrop").style.display = "none";
-         document.getElementById("by_email").style.display = "none";
-         document.getElementById("btnFileUpload").style.display = "inline";
-      }
+          if (act == "by_file") {
+             document.getElementById("by_file").style.display = "inline";
+             document.getElementById("by_ddrop").style.display = "none";
+             document.getElementById("by_email").style.display = "none";
+             document.getElementById("btnFileUpload").style.display = "inline";
+          }
 
-      if (act == "by_email") {
-         document.getElementById("by_email").style.display = "inline";
-         document.getElementById("by_ddrop").style.display = "none";
-         document.getElementById("by_file").style.display = "none";
-         document.getElementById("btnEmail").style.display = "inline";
-      }
-   }
+          if (act == "by_email") {
+             document.getElementById("by_email").style.display = "inline";
+             document.getElementById("by_ddrop").style.display = "none";
+             document.getElementById("by_file").style.display = "none";
+             document.getElementById("btnEmail").style.display = "inline";
+          }
+       }
 
-   function clear_message(type) {
-      //clear all message
-       $("#mssg").css('display', 'none');
-       $("#mssgGood").css('display', 'none');
-      $('#notice').css('visibility', 'hidden');
-   }
+       function clear_message(type) {
+          //clear all message
+           $("#mssg").css('display', 'none');
+           $("#mssgGood").css('display', 'none');
+          $('#notice').css('visibility', 'hidden');
+       }
 
-    function upload_by_ddrop() {
+        // Replace the old upload_by_ddrop function
+    async function upload_by_ddrop() {
+
         if (!check_file_dnd()) {
             return false;
         }
 
-        var frmdata = new FormData();
+        // Generate unique upload ID
+        const uploadId = generateUploadId();
 
-        frmdata.append('dropedfile', dropedfile);
+        // Start SignalR tracking
+        await window.fileUploadProgressManager.startUpload(uploadId, dropedfile.name);
+
+        // Create FormData
+        var frmdata = new FormData();
+        frmdata.append('file', dropedfile);
+        frmdata.append('uploadId', uploadId);
         frmdata.append('doc_id', document_id);
-        docupload(frmdata, "/EgrantsDoc/doc_upload_by_ddrop");
+        frmdata.append('uploadType', 'replace');
+
+        // Call the new SignalR-enabled endpoint
+        try {
+            const response = await fetch('/EgrantsDoc/UploadWithProgress', {
+                method: 'POST',
+                body: frmdata
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                console.log('Upload queued successfully:', result.uploadId);
+            } else {
+                alert('Upload failed: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+        }
 
         clear_all("by_dd");
     }
 
-    function upload_pdf_by_ddrop() {
+    // Replace the old upload_pdf_by_ddrop function
+    async function upload_pdf_by_ddrop() {
         if (!check_file_pdf_dnd()) {
             return false;
         }
 
-        var frmdata = new FormData();
+        // For multiple files, upload each one separately with its own progress tracking
+        for (let i = 0; i < dropedfiles.length; i++) {
+            const uploadId = generateUploadId();
+            const file = dropedfiles[i];
 
-        frmdata.append('doc_id', document_id);
+            await window.fileUploadProgressManager.startUpload(uploadId, file.name);
 
-        for (var i = 0; i < dropedfiles.length; i++) {
-            frmdata.append('dropedfiles', dropedfiles[i]);
+            var frmdata = new FormData();
+            frmdata.append('file', file);
+            frmdata.append('uploadId', uploadId);
+            frmdata.append('doc_id', document_id);
+            frmdata.append('uploadType', 'replace');
+            frmdata.append('convertToPdf', 'true');
+
+            try {
+                const response = await fetch('/EgrantsDoc/UploadWithProgress', {
+                    method: 'POST',
+                    body: frmdata
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert(`Upload failed for ${file.name}: ` + result.message);
+                }
+            } catch (error) {
+                console.error(`Upload error for ${file.name}:`, error);
+                alert(`Upload failed for ${file.name}: ` + error.message);
+            }
         }
-
-        docupload(frmdata, "/EgrantsDoc/doc_upload_pdf_by_ddrop");
 
         clear_all("by_dd");
     }
 
-   function upload_by_file() {
-      if (check_file() == false) {
-         return false;
-      } else var file = document.getElementById('customFile').files[0];
-      var frmdata = new FormData();
-      var document_id = document.getElementById('hidDocID').value;
-
-      frmdata.append('file', file);
-      frmdata.append('doc_id', document_id);
-      docupload(frmdata, "/EgrantsDoc/doc_upload_by_file");
-      //$('#btnFileUpload').attr("disabled", "disabled");
-      clear_all("by_file");
-    }
-
-    function upload_pdf_by_file() {
-        var frmdata = new FormData();
-
-        if (!check_file()) {
-            return false;
-        } else {
-            for (var i = 0; i < document.getElementById('customFile').files.length; i++) {
-                frmdata.append('files', document.getElementById('customFile').files[i]);
-            }
+    // Replace the old upload_by_file function
+    async function upload_by_file() {
+        if (check_file() == false) {
+             return false;
         }
 
-        var document_id = document.getElementById('hidDocID').value;
+        const file = document.getElementById('customFile').files[0];
+        const uploadId = generateUploadId();
 
+        await window.fileUploadProgressManager.startUpload(uploadId, file.name);
+
+        var frmdata = new FormData();
+        frmdata.append('file', file);
+        frmdata.append('uploadId', uploadId);
         frmdata.append('doc_id', document_id);
-        docupload(frmdata, "/EgrantsDoc/doc_upload_pdf_by_file");
-        
+        frmdata.append('uploadType', 'replace');
+
+        try {
+            const response = await fetch('/EgrantsDoc/UploadWithProgress', {
+                method: 'POST',
+                body: frmdata
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                console.log('Upload queued successfully:', result.uploadId);
+            } else {
+                alert('Upload failed: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+        }
+
         clear_all("by_file");
     }
 
-   function upload_by_email() {
-      var email_address = document.getElementById("hidEgrantsEmail").value;
-      var email_body = "Before sending the email:%0D%0A %0D%0A 1. Attach the document to upload to this email.%0D%0A ";
-      email_body = email_body + " 2. If necessary, change the document date in the subject line (maintain the date format mm/dd/yyyy).%0D%0A ";
-      email_body = email_body + " 3. Send the email. %0D%0A %0D%0A  Changing any other information in the Subject: or the To: lines will cause an unsuccessful upload.%0D%0A %0D%0A ";
-      email_body = email_body + " Note:There may be a time delay of up to 15 minutes before the uploaded file is available for your review.";
-      var email_subject = "applid=" + appl_id + ", documentid=" + document_id + ", documentdate=" + document_date + ", extract=2";
-      var maillink = "mailto:" + email_address + "?subject=" + email_subject + "&body=" + email_body;
-      window.open(maillink, "_self");
-   }
+    // Helper function to generate unique upload IDs
+    function generateUploadId() {
+        return 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
 
-   function clear_all(act) {
-      if (act == "by_file") {
-          document.getElementById("btnFileUpload").disabled = "disabled";
-          document.getElementById("btnFilePdfUpload").disabled = "disabled";
-      } else if (act == "by_dd") {
-          document.getElementById("btnDragdrop").disabled = "disabled";
-          document.getElementById("btnPdfDragdrop").disabled = "disabled";
-      }
-   }
+    // Test if SignalR client is loaded
+    console.log("SignalR available:", typeof signalR !== 'undefined');
+    console.log("File upload manager:", window.fileUploadProgressManager);
 
-   function back() {
-      if ('referrer' in document) {
-         window.location = document.referrer;
-      } else {
-         window.history.back();
-      }
-      //window.history.back();
-      //window.close();
-      //window.opener.location.reload(false);
-   }
+    // Manually test the notification
+    if (window.fileUploadProgressManager) {
+        window.fileUploadProgressManager.showNotification(
+            'Test',
+            'This is a test notification',
+            'success'
+        );
+    }
 
-   function active_btnFileUpload() {
-       if (document.getElementById("btnFileUpload").disabled == true || document.getElementById("btnFilePdfUpload").disabled == true) {
-           document.getElementById("btnFileUpload").disabled = false;
-           document.getElementById("btnFilePdfUpload").disabled = false;
-       }
-       // eGrants-616 : disable regular add button if multiple files (make them PDF convert)
-       if (document.getElementById("customFile").files?.length > 1) {
-           document.getElementById("btnFileUpload").disabled = true;
-       }
-   }
+    console.log(typeof upload_by_ddrop);
+    // Should output: "function"
 
-   //to highlight selected tab
-   function Docreate(evt, tabs) {
-      var i, tabcontent, tablinks;
-      tabcontent = document.getElementsByClassName("tabcontent");
-      for (i = 0; i < tabcontent.length; i++) {
-         tabcontent[i].style.display = "none";
+    // Enable the button
+    document.getElementById('btnDragdrop').disabled = false;
 
-      }
-      tablinks = document.getElementsByClassName("tablinks");
-      for (i = 0; i < tablinks.length; i++) {
-         tablinks[i].className = tablinks[i].className.replace(" active", "");
-      }
-      document.getElementById(tabs).style.display = "block";
-      evt.currentTarget.className += " active";
-
-       // disable Add if multiple or zero files
-       if (document.getElementById("customFile").files.length === 0 ||
-           document.getElementById("customFile").files.length >= 2) {
-           document.getElementById("btnFileUpload").disabled = "disabled";
-       }
-   }
-
-   //$(window).unload(function () {
-   //    back();
-   //});
-
+    // Now try clicking it, or call it manually
+    // But first, you need a file in dropedfile variable
 </script>
 
 <div id="main" style="margin: 0; padding: 0;">
-   <div id="caption">
-      <b id="page_title">Replace Document</b>
-   </div>
-   <form name="frmGetInfo">
-      <input type="text" hidden id="hidApplID" name="appl_id" value="@Model.ApplId" />
-      <input type="text" hidden id="hidDocID" name="document_id" value="@Model.DocId" />
-      <input type="text" hidden id="hidDocDate" name="document_date" value="@Model.DocDate" />
-      <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Context.Session.GetString("browser")" />
-      <input type="text" hidden id="hidEgrantsEmail" name="egrants_email" value="@Context.Session.GetString("EgrantsDocEmail")">
-   </form>
+    <div id="caption">
+        <b id="page_title">Replace Document</b>
+    </div>
+    <form name="frmGetInfo">
+        <input type="text" hidden id="hidApplID" name="appl_id" value="@Model.ApplId" />
+        <input type="text" hidden id="hidDocID" name="document_id" value="@Model.DocId" />
+        <input type="text" hidden id="hidDocDate" name="document_date" value="@Model.DocDate" />
+        <input type="text" hidden id="hidBrowserType" name="browser_type" value="@Context.Session.GetString("browser")" />
+        <input type="text" hidden id="hidEgrantsEmail" name="egrants_email" value="@Context.Session.GetString("EgrantsDocEmail")">
+    </form>
 
-   <!--start upload document-->
-   <div id="content" style="margin: 0; padding: 0;">
-      <table>
-         <tr>
-            <td width="800">
-               <table width="800">
-                  <thead>
-                     <tr>
-                        <td colspan="2" height="20"></td>
-                     </tr>
-                     <tr>
-                        <td colspan="2" height="20"><b>Grant:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@Model.FullGrantNum </td>
-                     </tr>
-                     <tr>
-                        <td colspan="2" height="20"><b>Category:</b>&#0160;&#0160;@Model.DocName </td>
-                     </tr>
-                     <tr>
-                        <td colspan="2" height="20"><b>Date:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@Model.DocDate </td>
-                     </tr>
-                     <tr>
-                        <td colspan="2" height="20"></td>
-                     </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-               </table>
-            </td>
-         </tr>
-      </table>
-      <table width="1024">
-         <tbody>
+    <!--start upload document-->
+    <div id="content" style="margin: 0; padding: 0;">
+        <table>
             <tr>
-               <!--show loading icon-->
-               <td width="80"><div class="loading" style="display:none"><img src="~/images/Loading.gif" width="50" /></div></td>
-               <td width="700" valign="top">
-
-                   <div class="tab" style="width: 498px">
-                       <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
-
-                       <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
-
-                       <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
-                   </div>
-                   <div id="myTabContent" style="width: 700px;">
-                       <!--start upload by drag drop -->
-                       <div class="tabcontent" id="by_ddrop" style="display: none">
-                           <br />
-                           <div id="dropArea">Drag-drop only one file here to upload</div><br />
-                           <div style="display:inline">
-                               <button type="button" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn" disabled="disabled" onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>
-                               <button type="button" name="ReplaceByDdrop" id="btnPdfDragdrop" class="btn btn-primary eGrantsDocBtn space-big-left" disabled="disabled" onclick="return upload_pdf_by_ddrop();" accesskey="U" title="Click here to convert a document to PDF and upload it [shift + alt + C]"><u>C</u>onvert to PDF & Upload</button> &#0160;&#0160;
-                           </div>
-                           <br style="clear:both" />
-                           <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                       </div>
-                       <!--end upload by drag drop-->
-                       <!--start upload by file-->
-                       <div class="tabcontent" id="by_file" style="display: none">
-                           <form>
-                               <div class="custom-file my-2">
-                                   <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()" multiple>
-                                   <label class="custom-file-label" for="customFile">Choose files...</label>
-                               </div>
-                           </form>
-                           @* <input type="file" name="file" id="UploadFile" style="width: 550px; height: 40px;" onchange="active_btnFileUpload()" /><br /> *@
-                           <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
-                           <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByPdfFile" id="btnFilePdfUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_pdf_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>C</u>onvert to PDF & Upload</button>&#0160;</div>&#0160;&#0160;
-                           <br style="clear:both" />
-                           <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                       </div>
-                       <!--end upload by file-->
-                       <!--start upload by email-->
-                       <div class="tabcontent" id="by_email" style="display:none">
-                           <br /><br />
-                           1. Click the button "Upload Via Email" to open an email window.<br /><br />
-                           2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
-                           <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return upload_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
-                           <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
-                       </div>
-                       <!--end upload by email-->
-                       <br /><br />
-                       <!--show progress bar-->
-                       <div class="progress" style="display:none">
-                           <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; margin:0; padding:0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                       </div>
-                       <!--end progress bar-->
-                   </div><!--end myTabContent-->
-                   <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
-                   <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
-                   <b id="done"><span id="mssgGood"></span></b>
-                   <br style="clear:both" />
-                   <div style="line-height: 30px; margin: 10px;">
-                       <b id="done"><span id="mssg"></span></b>
-                   </div>
-               </td>
-               <td style="width: 400px; padding-left: 50px;">
-                  <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
-                     <p><strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
-                  </div>
-               </td>
+                <td width="800">
+                    <table width="800">
+                        <thead>
+                            <tr>
+                                <td colspan="2" height="20"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" height="20"><b>Grant:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@Model.FullGrantNum </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" height="20"><b>Category:</b>&#0160;&#0160;@Model.DocName </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" height="20"><b>Date:</b>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;@Model.DocDate </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" height="20"></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </td>
             </tr>
-         </tbody>
-      </table>
-   </div><!--end content-->
+        </table>
+        <table width="1024">
+            <tbody>
+                <tr>
+                    <!--show loading icon-->
+                    <td width="80"><div class="loading" style="display:none"><img src="~/images/Loading.gif" width="50" /></div></td>
+                    <td width="700" valign="top">
+
+                        <div class="tab" style="width: 498px">
+                            <button class="tablinks active" onclick="Docreate(event, 'btnDragdrop');Javascript:switch_upload_mode('by_ddrop')" id="li_ddrop"> Drag & Drop </button>
+
+                            <button class="tablinks" onclick="Docreate(event, 'btnFileUpload');Javascript:switch_upload_mode('by_file')">Locate File and Upload</button>
+
+                            <button class="tablinks" onclick="Docreate(event, 'btnEmail');Javascript:switch_upload_mode('by_email')">Upload <I>via</I> Email</></button>
+                        </div>
+                        <div id="myTabContent" style="width: 700px;">
+                            <!--start upload by drag drop -->
+                            <div class="tabcontent" id="by_ddrop" style="display: none">
+                                <br />
+                                <div id="dropArea">Drag-drop only one file here to upload</div><br />
+                                <div style="display:inline">
+                                    <button type="button" name="ReplaceByDdrop" id="btnDragdrop" class="btn btn-primary eGrantsDocBtn"
+                                            disabled="disabled"
+                                            onclick="return upload_by_ddrop();" accesskey="U" title="Click here to upload document [shift + alt + U]">
+                                        <u>U</u>pload Document
+                                    </button>
+                                    <button type="button" name="ReplaceByDdrop" id="btnPdfDragdrop" class="btn btn-primary eGrantsDocBtn space-big-left" disabled="disabled" onclick="return upload_pdf_by_ddrop();" accesskey="U" title="Click here to convert a document to PDF and upload it [shift + alt + C]"><u>C</u>onvert to PDF & Upload</button> &#0160;&#0160;
+                                </div>
+                                <br style="clear:both" />
+                                <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                            </div>
+                            <!--end upload by drag drop-->
+                            <!--start upload by file-->
+                            <div class="tabcontent" id="by_file" style="display: none">
+                                <form>
+                                    <div class="custom-file my-2">
+                                        <input type="file" class="custom-file-input" id="customFile" onchange="active_btnFileUpload()" multiple>
+                                        <label class="custom-file-label" for="customFile">Choose files...</label>
+                                    </div>
+                                </form>
+                                @* <input type="file" name="file" id="UploadFile" style="width="550px" height="40px;" onchange="active_btnFileUpload()" /><br /> *@
+                                <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByFile" id="btnFileUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>U</u>pload Document</button>&#0160;</div>
+                                <div style="display: inline"><button type="button" style="display: inline" name="ReplaceByPdfFile" id="btnFilePdfUpload" class="btn btn-primary eGrantsDocBtn" onclick="return upload_pdf_by_file();" disabled="disabled" accesskey="U" title="Click here to upload document [shift + alt + U]"><u>C</u>onvert to PDF & Upload</button>&#0160;</div>&#0160;&#0160;
+                                <br style="clear:both" />
+                                <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                            </div>
+                            <!--end upload by file-->
+                            <!--start upload by email-->
+                            <div class="tabcontent" id="by_email" style="display:none">
+                                <br /><br />
+                                1. Click the button "Upload Via Email" to open an email window.<br /><br />
+                                2. Attach document (<b>DO NOT</b> change the subject) and click send.<br /><br />
+                                <div style="display: inline"><button type="button" style="display:inline" name="CreatByEmail" id="btnEmail" onclick="return upload_by_email()" class="btn btn-primary eGrantsDocBtn" AccessKey="U" title="Click here to upload document by email [shift + alt + U]"><u>U</u>pload via Email</button></div>
+                                <div class="space-down">By clicking Upload or Convert to PDF & Upload, I confirm that no sensitive PII or PHI is included in this file.</div>
+                            </div>
+                            <!--end upload by email-->
+                            <br /><br />
+                            <!--show progress bar-->
+                            <div class="progress" style="display:none">
+                                <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%; height:18px; text-align: center; line-height:18px; margin:0; padding:0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <!--end progress bar-->
+                        </div><!--end myTabContent-->
+                        <button accesskey="R" class="btn btn-primary eGrantsReturnBtn" title="Click here to return previous page [alt + shift + R]" onclick="Javascript: back()"><u>R</u>eturn to eGrants File</button>&#0160;&#0160;
+                        <a target="_new" href="#" id="notice" style="visibility: hidden"><img src="~/images/check_doc_btn.png" style="height: 35px;" title="Check Document" /></a>
+                        <b id="done"><span id="mssgGood"></span></b>
+                        <br style="clear:both" />
+                        <div style="line-height: 30px; margin: 10px;">
+                            <b id="done"><span id="mssg"></span></b>
+                        </div>
+                    </td>
+                    <td style="width: 400px; padding-left: 50px;">
+                        <div class="text-justify p-4" style="box-shadow: 0 3px 10px lightgray; width: 350px; height: 240px; line-height: normal; font-style: normal;">
+                            <p><strong>Reminder:</strong> Sensitive Personally Identifiable Information (PII; e.g. Social Security Number, personal financial information, Alien Registration Number, etc.) or Protected Health Information (e.g. personal medical conditions, etc.) requires strict handling due to the increased risk to an individual if the data is compromised. Documents containing sensitive PII or PHI must not be uploaded into eGrants. More information can be found in the <a target="_new" href="https://policymanual.nih.gov/manage/chapter/view/1745">Manual Chapter 1745 - NIH Information Technology (IT) Privacy Program</a>.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div><!--end content-->
 </div><!--end main-->

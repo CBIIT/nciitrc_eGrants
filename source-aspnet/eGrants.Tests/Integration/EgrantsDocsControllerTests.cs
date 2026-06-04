@@ -1,5 +1,6 @@
 ﻿using System.Text;
 
+using eGrants.Common;
 using eGrants.Controllers.Egrants;
 using eGrants.DAL;
 using eGrants.Models;
@@ -12,6 +13,7 @@ using eGrants.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using Moq;
@@ -56,7 +58,21 @@ namespace eGrants.Tests.Integration
             var documentService = mockDocumentService ?? new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService);
             var applService = new ApplService(context);
 
-            var controller = new EgrantsDocController(eGrantsService, commonService, documentService, sessionInfoService, applService);
+                    // Create dummy parameters for the additional constructor arguments
+            var mockBackgroundFileUploadService = new Mock<IBackgroundFileUploadService>().Object;
+            var mockConfiguration = new Mock<IConfiguration>().Object;
+            var mockEgrantsCommon = new Mock<EgrantsCommon>().Object;
+
+            var controller = new EgrantsDocController(
+                eGrantsService, 
+                commonService, 
+                documentService, 
+                sessionInfoService, 
+                applService,
+                mockBackgroundFileUploadService,
+                mockConfiguration,
+                mockEgrantsCommon);
+            
             var httpContext = new DefaultHttpContext();
             httpContext.Session = session;
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

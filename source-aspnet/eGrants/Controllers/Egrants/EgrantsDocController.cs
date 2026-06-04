@@ -80,7 +80,7 @@ namespace eGrants.Controllers.Egrants
     /// 3. SHOW_ERA_DOC ACTION CHANGES:
     ///  WHY: Complete rewrite required due to .NET 8 HTTP client changes:
     ///    - SocketsHttpHandler replaces HttpClientHandler for better TLS control
-    ///    - Explicit SslProtocols.Tls12 | Tls13 required (older protocols deprecated)
+    ///    - Explicit SslProtocols.Tls12 | Tsl13 required (older protocols deprecated)
     ///    - X509Certificate2 KeyStorageFlags (MachineKeySet, PersistKeySet, Exportable)
     ///    are required for IIS/web app environments to properly load private keys
     ///    - Comprehensive error handling with Serilog logging for diagnostics
@@ -114,10 +114,11 @@ namespace eGrants.Controllers.Egrants
         private readonly ISessionInfoService _sessionInfoService;
         private readonly IConfiguration _configuration;
         private readonly EgrantsCommon _egrantsCommon;
+        private readonly IBackgroundFileUploadService _backgroundFileUploadService;
 
         private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IApplService applService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null)
+        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IApplService applService, IBackgroundFileUploadService backgroundFileUploadService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null)
         {
             _eGrantsService = eGrantsService;
             _commonService = commonService;
@@ -126,6 +127,7 @@ namespace eGrants.Controllers.Egrants
             _configuration = configuration;
             _egrantsCommon = egrantsCommon;
             _applService = applService;
+            _backgroundFileUploadService = backgroundFileUploadService;
         }
 
         // GET: Egrants
@@ -572,7 +574,7 @@ namespace eGrants.Controllers.Egrants
         [RequestSizeLimit(2147483648)] // 2GB - matches web.config maxAllowedContentLength
         [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public ActionResult doc_create_pdf_by_file(
-            IEnumerable<IFormFile> files,
+            IEnumerable<    IFormFile> files,
             int appl_id,
             int category_id,
             string sub_category,
@@ -914,8 +916,6 @@ namespace eGrants.Controllers.Egrants
        "\\egrants\\funded2\\nci\\main\\";
 #endif
 
-                    var filePath = Path.Combine(fileFolder, docName);
-
                     Log.Information("Merging PDFs. ApplId={ApplId}, DocId={DocId}, Count={Count}",
                    appl_id, document_id, orderedPdfPaths.Count);
 
@@ -1179,7 +1179,7 @@ namespace eGrants.Controllers.Egrants
                         //   var fileFolder = @"\\" + ... + "\\egrants\\funded\\nci\\modify\\";
                         //   this.ViewBag.FileUrl = ... + EgrantsDocModifyRelativePath + docName;
                         //
-                        // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
+                        // The "main" path is for NEW documents, the "modify" path is for REPLACES.
                         // ===================================================================================
 #if DEBUG
                         var fileFolder = @"C:\PdfFileOutput\";
@@ -1367,7 +1367,7 @@ namespace eGrants.Controllers.Egrants
                         //   var fileFolder = @"\\" + ... + "\\egrants\\funded\\nci\\modify\\";
                         //   this.ViewBag.FileUrl = ... + EgrantsDocModifyRelativePath + docName;
                         //
-                        // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
+                        // The "main" path is for NEW documents, the "modify" path is for REPLACES.
                         // ===================================================================================
                         var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded\\nci\\modify\\";
 
@@ -1686,6 +1686,152 @@ namespace eGrants.Controllers.Egrants
         {
             var result = await _documentService.DocUploadByFileAsync(dropedfile, doc_id, sessionInfo);
             return Json(new { url = result.Url, message = result.Message });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadWithProgress(
+            IFormFile file,
+            string uploadId,
+            int? doc_id = null,
+            int? appl_id = null,
+            int? category_id = null,
+            string sub_category = null,
+            DateTime? doc_date = null,
+            string admin_code = null,
+            int? serial_num = null,
+            string uploadType = "replace",
+            bool convertToPdf = false)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { success = false, message = "No file provided" });
+            }
+
+            var sessionInfo = _sessionInfoService.GetSessionInfo(HttpContext.Session);
+
+            // Validate required fields based on upload type
+            if (uploadType == "create")
+            {
+                if (!appl_id.HasValue || !category_id.HasValue || !doc_date.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "For new documents, appl_id, category_id, and doc_date are required."
+                    });
+                }
+            }
+            else if (uploadType == "replace")
+            {
+                if (!doc_id.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "For document replacements, doc_id is required."
+                    });
+                }
+            }
+
+            // Create upload context
+            var context = new FileUploadContext
+            {
+                UploadType = uploadType,
+                DocId = doc_id,
+                ApplId = appl_id,
+                CategoryId = category_id,
+                SubCategory = sub_category,
+                DocDate = doc_date,
+                AdminCode = admin_code,
+                SerialNum = serial_num,
+                Ic = sessionInfo.Ic,
+                UserId = sessionInfo.UserId,
+                WebGrantUrl = sessionInfo.WebGrantUrl,
+                ImageServerUrl = sessionInfo.ImageServerUrl,
+                EgrantsDocModifyRelativePath = sessionInfo.EgrantsDocModifyRelativePath,
+                EgrantsDocNewRelativePath = sessionInfo.EgrantsDocNewRelativePath,
+                ConvertToPdf = convertToPdf
+            };
+
+            try
+            {
+                // Queue for background processing with SignalR updates
+                await _backgroundFileUploadService.QueueFileUpload(uploadId, file, context);
+
+                return Ok(new
+                {
+                    success = true,
+                    uploadId = uploadId,
+                    message = "Upload queued successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to queue upload. UploadId: {UploadId}, FileName: {FileName}",
+                    uploadId, file.FileName);
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"Failed to queue upload: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Cancels an in-progress file upload.
+        /// </summary>
+        /// <param name="request">The cancel upload request containing the upload ID.</param>
+        /// <returns>JSON result indicating success or failure.</returns>
+        [HttpPost]
+        public async Task<IActionResult> CancelUpload([FromBody] CancelUploadRequest request)
+        {
+            if (string.IsNullOrEmpty(request?.UploadId))
+            {
+                return BadRequest(new { success = false, message = "Upload ID is required." });
+            }
+
+            try
+            {
+                var cancelled = await _backgroundFileUploadService.CancelUpload(request.UploadId);
+
+                if (cancelled)
+                {
+                    Log.Information("Upload cancelled by user. UploadId: {UploadId}", request.UploadId);
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Upload cancelled successfully."
+                    });
+                }
+                else
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Upload not found or already completed."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to cancel upload. UploadId: {UploadId}", request.UploadId);
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"Failed to cancel upload: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Request model for cancelling an upload.
+        /// </summary>
+        public class CancelUploadRequest
+        {
+            public string UploadId { get; set; }
         }
     }
 }

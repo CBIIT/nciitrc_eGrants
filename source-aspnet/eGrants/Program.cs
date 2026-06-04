@@ -4,6 +4,7 @@ using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
+using eGrants.Hubs;
 
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -28,11 +29,19 @@ Serilog.Debugging.SelfLog.Enable(message =>
 var builder = WebApplication.CreateBuilder(args);
 
 // Register DbContext with connection string
-var raw = builder.Configuration.GetConnectionString("DefaultConnection");
+var raw = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("DefaultConnection not found in configuration");
 
 // Pull username/password from environment variables
 var user = builder.Configuration["DB_USER"];
 var password = builder.Configuration["DB_PASSWORD"];
+
+// Add validation to prevent null reference issues
+if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(password))
+{
+    throw new InvalidOperationException(
+        "Database credentials not configured. Ensure DB_USER and DB_PASSWORD are set in environment variables or appsettings.json");
+}
 
 // Replace placeholders
 var finalConnectionString = raw
@@ -152,6 +161,23 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
 });
+#endregion
+
+#region SignalR Configuration for File Upload Progress
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 102400; // 100KB for signaling only
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+});
+#endregion
+#region
+
+// Register background file upload service as both singleton and hosted service
+builder.Services.AddSingleton<BackgroundFileUploadService>();
+builder.Services.AddSingleton<IBackgroundFileUploadService>(provider => provider.GetRequiredService<BackgroundFileUploadService>());
+builder.Services.AddHostedService(provider => provider.GetRequiredService<BackgroundFileUploadService>());
 
 #endregion
 
@@ -167,7 +193,26 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 #endregion
 
-var app = builder.Build();
+WebApplication app;
+try
+{
+    app = builder.Build();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Failed to build application: {ex}");
+    
+    // Log all inner exceptions
+    var innerEx = ex.InnerException;
+    while (innerEx != null)
+    {
+        Console.WriteLine($"Inner Exception: {innerEx.Message}");
+        Console.WriteLine($"Stack Trace: {innerEx.StackTrace}");
+        innerEx = innerEx.InnerException;
+    }
+    
+    throw;
+}
 
 #region Middleware Pipeline
 
@@ -212,12 +257,6 @@ app.Use(async (context, next) =>
 
         if (bypassEnabled)
         {
-            // ===================================================================================
-            // BYPASS MODE: Use the configured AllowedUser
-            // ===================================================================================
-            // When bypass is enabled, use the single configured user.
-            // This is intended for development/testing environments only.
-            // ===================================================================================
             if (string.IsNullOrEmpty(allowedUser))
             {
                 var logger = context.RequestServices.GetService<ILogger<Program>>();
@@ -235,13 +274,7 @@ app.Use(async (context, next) =>
         }
         else
         {
-            // ===================================================================================
-            // NORMAL MODE: Use SiteMinder authentication
-            // ===================================================================================
-            // When running locally in Development and SiteMinder is not available,
-            // fall back to the Windows username from the environment.
-            // ===================================================================================
-            string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
+            string? siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
 
             if (!string.IsNullOrEmpty(siteMinderUser))
             {
@@ -249,7 +282,6 @@ app.Use(async (context, next) =>
             }
             else if (app.Environment.IsDevelopment())
             {
-                // Local development fallback: use the Windows username
                 userId = Environment.UserName;
                 var logger = context.RequestServices.GetService<ILogger<Program>>();
                 logger?.LogWarning("SiteMinder header not found. Using local Windows username: {UserId}", userId);
@@ -265,11 +297,9 @@ app.Use(async (context, next) =>
 
         context.Session.SetString("userid", userId);
 
-        // Capture IC (Institute/Org Code)
         var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
         context.Session.SetString("ic", ic);
 
-        // Detect browser
         var userAgent = context.Request.Headers["User-Agent"].ToString();
         string browserName = userAgent.Contains("Chrome") ? "Chrome" :
         userAgent.Contains("Firefox") ? "Firefox" :
@@ -280,10 +310,13 @@ app.Use(async (context, next) =>
         context.Session.SetString("browser", browserName);
         context.Session.SetString("CurrentView", "standardForm");
 
-        // Resolve EgrantsCommon service
         var egrantsCommon = context.RequestServices.GetRequiredService<EgrantsCommon>();
 
-        var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
+        // Null-coalescing for session strings
+        var sessionIc = context.Session.GetString("ic") ?? ic;
+        var sessionUserId = context.Session.GetString("userid") ?? userId;
+        
+        var usertype = egrantsCommon.UserType(sessionIc, sessionUserId);
 
         if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
         {
@@ -291,8 +324,7 @@ app.Use(async (context, next) =>
             return;
         }
 
-        // Populate user session variables
-        var users = egrantsCommon.uservar(context.Session.GetString("userid"), context.Session.GetString("ic"), usertype);
+        var users = egrantsCommon.uservar(sessionUserId, sessionIc, usertype);
 
         foreach (var usr in users)
         {
@@ -312,7 +344,6 @@ app.Use(async (context, next) =>
             return;
         }
 
-        // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
         context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
         context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
@@ -349,7 +380,6 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 app.UseSystemWebAdapters();
-
 #endregion
 
 #region Routing
@@ -360,6 +390,7 @@ app.MapDefaultControllerRoute();
 // Explicit routes
 app.MapControllerRoute("Default", "{controller=Egrants}/{action=Index}/{id?}");
 app.MapControllerRoute("Integration", "{controller=Integration}/{action=Trigger}/{id?}");
+app.MapHub<FileUploadHub>("/hubs/fileupload");
 
 #endregion
 
