@@ -102,6 +102,9 @@ namespace ExchangeFixed
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
+                CommonUtilities.WriteLog(8, "Fatal Error in ExchangeFixed", 
+                    $"Message: {ex.Message}\nStackTrace: {ex.StackTrace}", 
+                    DateTime.Now);
             }
         }
     }
