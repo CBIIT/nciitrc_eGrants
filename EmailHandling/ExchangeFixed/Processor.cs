@@ -159,11 +159,18 @@ namespace ExchangeFixed
                             ProcessExtractBoth(con, item, p, applId, senderId, moveToQc, folder);
                         }
 
-                        // Move to old folder
-                        MoveToOldFolder(folder, item);
+                        // Release all COM references before moving
+                        System.Runtime.InteropServices.Marshal.FinalReleaseComObject(item);
+                        
+                        // Small delay to ensure file handles are released
+                        System.Threading.Thread.Sleep(1000);
+                        
+                        // NOW move to old folder - refresh the item reference first
+                        dynamic freshItem = folder.Items[itemToProcess];
+                        MoveToOldFolder(folder, freshItem);
 
                         CommonUtilities.WriteLog(8,
-                            $"Processed! => EmailSender:{senderId}; Subjectline :{subject}; Recieved Date: {item.ReceivedTime}",
+                            $"Processed! => EmailSender:{senderId}; Subjectline :{subject}; Recieved Date: {freshItem.ReceivedTime}",
                             null, DateTime.Now);
 
                         itemsProcessed++;
@@ -508,7 +515,7 @@ namespace ExchangeFixed
         /// 
         /// Process:
         /// 1. Clears the working directory
-        /// 2. Exports email body as PDF via Word/Outlook inspector
+        /// 2. Exports email body as PDF via Outlook Inspector/Word editor
         /// 3. Writes email headers to a text file, converts to PDF via Acrobat
         /// 4. Merges subject PDF + body PDF into a single document
         /// 5. Saves any attachments to the working directory
@@ -578,6 +585,12 @@ namespace ExchangeFixed
             try
             {
                 Type acroAppType = Type.GetTypeFromProgID("AcroExch.App");
+
+                // TODO: FAILING - COM Error 0x80004002 (E_NOINTERFACE) "No such interface supported"
+                // Adobe Acrobat COM component not properly registered or not installed.
+                // Requires Adobe Acrobat Pro (not Reader) with proper COM registration.
+                // Solution: Run as admin: regsvr32 "C:\Program Files\Adobe\Acrobat DC\Acrobat\acrobat.exe" /regserver
+                // OR: Consider replacing with modern PDF library (PdfSharp, iTextSharp) to eliminate COM dependency.
                 app = Activator.CreateInstance(acroAppType);
 
                 // Convert subject.txt to subject.pdf
@@ -619,80 +632,86 @@ namespace ExchangeFixed
         }
 
         /// <summary>
-        /// Converts non-PDF files in the working directory to PDF using Acrobat SDK,
-        /// then merges all PDFs into the main document. Moves the final merged PDF
-        /// to the output directory.
-        /// </summary>
-        private void ConvertToPdf(string pdfDir, string pdfDoc)
+/// Converts non-PDF files in the working directory to PDF using Acrobat SDK,
+/// then merges all PDFs into the main document. Moves the final merged PDF
+/// to the output directory.
+/// </summary>
+private void ConvertToPdf(string pdfDir, string pdfDoc)
+{
+    CommonUtilities.ShowDiagnosticIfVerbose("in converttopdf", _verbose);
+
+    dynamic app = null;
+    try
+    {
+        Type acroAppType = Type.GetTypeFromProgID("AcroExch.App");
+        
+        // TODO: FAILING - COM Error 0x80004002 (E_NOINTERFACE) "No such interface supported"
+        // Adobe Acrobat COM component not properly registered or not installed.
+        // Requires Adobe Acrobat Pro (not Reader) with proper COM registration.
+        // Solution: Run as admin: regsvr32 "C:\Program Files\Adobe\Acrobat DC\Acrobat\acrobat.exe" /regserver
+        // OR: Consider replacing with modern PDF library (PdfSharp, iTextSharp) to eliminate COM dependency.
+        app = Activator.CreateInstance(acroAppType);
+
+        var files = Directory.GetFiles(pdfDir);
+        if (files.Length == 0) return;
+
+        // Convert non-PDF files to PDF
+        Type avDocType = Type.GetTypeFromProgID("AcroExch.AVDoc");
+        foreach (var filePath in files)
         {
-            CommonUtilities.ShowDiagnosticIfVerbose("in converttopdf", _verbose);
-
-            dynamic app = null;
-            try
+            string ext = Path.GetExtension(filePath).TrimStart('.').ToLower();
+            if (ext != "pdf")
             {
-                Type acroAppType = Type.GetTypeFromProgID("AcroExch.App");
-                app = Activator.CreateInstance(acroAppType);
-
-                var files = Directory.GetFiles(pdfDir);
-                if (files.Length == 0) return;
-
-                // Convert non-PDF files to PDF
-                Type avDocType = Type.GetTypeFromProgID("AcroExch.AVDoc");
-                foreach (var filePath in files)
-                {
-                    string ext = Path.GetExtension(filePath).TrimStart('.').ToLower();
-                    if (ext != "pdf")
-                    {
-                        dynamic fileObj = Activator.CreateInstance(avDocType);
-                        fileObj.Open(filePath, "");
-                        dynamic filePdf = fileObj.GetPDDoc();
-                        filePdf.Save(1, filePath + ".pdf");
-                        filePdf.Close();
-                        fileObj.Close(-1);
-                        File.Delete(filePath);
-                    }
-                }
-
-                // Merge all remaining PDFs into the main document
-                if (File.Exists(pdfDoc))
-                {
-                    Type pdDocType = Type.GetTypeFromProgID("AcroExch.PDDoc");
-                    foreach (var filePath in Directory.GetFiles(pdfDir))
-                    {
-                        if (filePath != pdfDoc)
-                        {
-                            dynamic basePdf = Activator.CreateInstance(pdDocType);
-                            dynamic insrtPdf = Activator.CreateInstance(pdDocType);
-                            basePdf.Open(pdfDoc);
-                            insrtPdf.Open(filePath);
-                            int lastPg = basePdf.GetNumPages() - 1;
-                            int pages = insrtPdf.GetNumPages();
-                            basePdf.InsertPages(lastPg, insrtPdf, 0, pages, 1);
-                            basePdf.Save(1, pdfDoc);
-                            basePdf.Close();
-                            insrtPdf.Close();
-                            File.Delete(filePath);
-                        }
-                    }
-                }
-
-                // Move final PDF to output directory
-                if (File.Exists(pdfDoc))
-                {
-                    string destPath = Path.Combine(_outDir, Path.GetFileName(pdfDoc));
-                    File.Move(pdfDoc, destPath, true);
-                }
-            }
-            finally
-            {
-                try
-                {
-                    app?.CloseAllDocs();
-                    app?.Exit();
-                }
-                catch { }
+                dynamic fileObj = Activator.CreateInstance(avDocType);
+                fileObj.Open(filePath, "");
+                dynamic filePdf = fileObj.GetPDDoc();
+                filePdf.Save(1, filePath + ".pdf");
+                filePdf.Close();
+                fileObj.Close(-1);
+                File.Delete(filePath);
             }
         }
+
+        // Merge all remaining PDFs into the main document
+        if (File.Exists(pdfDoc))
+        {
+            Type pdDocType = Type.GetTypeFromProgID("AcroExch.PDDoc");
+            foreach (var filePath in Directory.GetFiles(pdfDir))
+            {
+                if (filePath != pdfDoc)
+                {
+                    dynamic basePdf = Activator.CreateInstance(pdDocType);
+                    dynamic insrtPdf = Activator.CreateInstance(pdDocType);
+                    basePdf.Open(pdfDoc);
+                    insrtPdf.Open(filePath);
+                    int lastPg = basePdf.GetNumPages() - 1;
+                    int pages = insrtPdf.GetNumPages();
+                    basePdf.InsertPages(lastPg, insrtPdf, 0, pages, 1);
+                    basePdf.Save(1, pdfDoc);
+                    basePdf.Close();
+                    insrtPdf.Close();
+                    File.Delete(filePath);
+                }
+            }
+        }
+
+        // Move final PDF to output directory
+        if (File.Exists(pdfDoc))
+        {
+            string destPath = Path.Combine(_outDir, Path.GetFileName(pdfDoc));
+            File.Move(pdfDoc, destPath, true);
+        }
+    }
+    finally
+    {
+        try
+        {
+            app?.CloseAllDocs();
+            app?.Exit();
+        }
+        catch { }
+    }
+}
 
         /// <summary>
         /// Calls SP_CREATE_EGRANTS_DOCUMENT_NEW to register a document in the EIM database.
@@ -706,15 +725,15 @@ namespace ExchangeFixed
                 using (var cmd = new SqlCommand("SP_CREATE_EGRANTS_DOCUMENT_NEW", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@param1", documentId ?? "");
-                    cmd.Parameters.AddWithValue("@param2", category ?? "");
-                    cmd.Parameters.AddWithValue("@param3", applId ?? "");
-                    cmd.Parameters.AddWithValue("@param4", profileId ?? "1");
-                    cmd.Parameters.AddWithValue("@param5", docDate ?? "");
-                    cmd.Parameters.AddWithValue("@param6", senderId ?? "");
-                    cmd.Parameters.AddWithValue("@param7", fileType ?? "txt");
-                    cmd.Parameters.AddWithValue("@param8", moveToQc ?? "no");
-                    cmd.Parameters.AddWithValue("@param9", subcat ?? "");
+                    cmd.Parameters.AddWithValue("@DOCID", documentId ?? "");
+                    cmd.Parameters.AddWithValue("@CAT", category ?? "");
+                    cmd.Parameters.AddWithValue("@APPID", applId ?? "");
+                    cmd.Parameters.AddWithValue("@PROFILEID", profileId ?? "1");
+                    cmd.Parameters.AddWithValue("@DD", docDate ?? "");
+                    cmd.Parameters.AddWithValue("@UID", senderId ?? "");
+                    cmd.Parameters.AddWithValue("@FT", fileType ?? "txt");
+                    cmd.Parameters.AddWithValue("@QCFLAG", moveToQc ?? "no");
+                    cmd.Parameters.AddWithValue("@SUB", subcat ?? "");
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -820,7 +839,7 @@ namespace ExchangeFixed
             try
             {
                 dynamic mailItem = _outlookApp.CreateItem(0); // olMailItem = 0
-                mailItem.To = "egrantsdevs@mail.nih.gov";
+                mailItem.To = "daryl.dehuff@nih.gov"; // "egrantsdevs@mail.nih.gov";
                 mailItem.Subject = subject;
                 mailItem.BodyFormat = 2;
                 mailItem.HTMLBody = " " + body;

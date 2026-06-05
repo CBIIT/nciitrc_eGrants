@@ -1,7 +1,0 @@
-logDir,,,,,C:\egrants\apps\log\
-conStr,,,,,Password=%EGRANTS_DB_PASSWORD%;User ID=%EGRANTS_DB_USER%;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000
-docSrcPathSuppPfr,,,,,C:\egrants\SUPP_PFR\
-bakDstPathSuppPfr,,,,,C:\egrants\SUPP_PFR\BAK\
-finalDstPathSuppPfr,,,,,C:\egrants\WATCH\out\
-Verbose,,,,,n
-
