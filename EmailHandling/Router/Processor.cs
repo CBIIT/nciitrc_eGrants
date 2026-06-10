@@ -2,9 +2,23 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Messaging;
+using System.Security.Policy;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using Exception = System.Exception;
+using Outlook = Microsoft.Office.Interop.Outlook;
+
+using System.Management;
+using System.Security.Cryptography;
+using System.Data;
 using System.Threading;
 using CommonUtilties;
-using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace Router
 {
@@ -43,7 +57,9 @@ namespace Router
             if (!string.IsNullOrWhiteSpace(dirPath))
             {
                 var dirs = dirPath.Split(sepchar);
+                var i = 0;
                 CommonUtilities.ShowDiagnosticIfVerbose($"Setting objNS.Folders to {dirs[0]}", verbose);
+                Outlook.MAPIFolder startingFolder = null;
 
                 Outlook.MAPIFolder currentFolder = oNS.Folders[dirs[0]];
                 bool first = true;
@@ -75,6 +91,9 @@ namespace Router
                 }
                 CommonUtilities.ShowDiagnosticIfVerbose($"staging email list count={eachEmailToProcess.Count}", verbose);
 
+                int itemsToProcess = 0;
+                int itemsProcessed = 0;
+
                 CommonUtilities.ShowDiagnosticIfVerbose($"****************** starting ********************", verbose);
 
                 foreach (var item in eachEmailToProcess)
@@ -96,7 +115,7 @@ namespace Router
                     {
                         HandleSingleEmail(currentItem, v_SubLine, v_Body, verbose, con, debug);
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         failedToProcess = true;
                         var _logMessage = $"Error Occured! => EmailSender:{v_SenderID}; Subjectline : {v_SubLine}; Recieved Date: {currentItem.ReceivedTime}";
@@ -119,7 +138,7 @@ namespace Router
                     {
                         var result = currentItem.Move(oldFolder);
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         string message = $"Failed to move an item at {DateTime.UtcNow} UTC. Most likely solution is to restart Outlook (or re-request public file permissions in Outlook). This behavior does not indicate a defect in this software. Written authorization is not required to restart Microsoft Outlook. Here is some info : {ex.Message} \r\n {ex.ToString()}";
                         CommonUtilities.ShowDiagnosticIfVerbose(message, "y");
@@ -187,7 +206,24 @@ namespace Router
         public static string StartService(string svcName)
         {
             string objPath = string.Format("Win32_Service.Name='{0}'", svcName);
-            throw new NotSupportedException("ManagementObject is not available in this project. StartService functionality is not supported on this platform.");
+            using (ManagementObject service = new ManagementObject(new ManagementPath(objPath)))
+            {
+                try
+                {
+                    ManagementBaseObject outParams = service.InvokeMethod("StartService",
+                        null, null);
+                    return (string)Enum.Parse(typeof(string),
+                        outParams["ReturnValue"].ToString());
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.ToLower().Trim() == "not found" ||
+                        ex.GetHashCode() == 41149443)
+                        return "Service not found.";
+                    else
+                        throw ex;
+                }
+            }
         }
 
 
@@ -211,8 +247,7 @@ namespace Router
         /// <param name="debug"></param>
         public void HandleSingleEmail(string from, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
         {
-            Outlook.Application oApp = new Outlook.Application();
-            var newMail = (MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
+            var newMail = new MailItem();
             //newMail.SenderEmailAddress = from;    // won't allow setting, try moving this around later
 
             newMail.Subject = v_SubLine;
@@ -351,7 +386,12 @@ namespace Router
 
                     if (debug == "n")
                     {
-                        outmail2.Recipients.Add("nciogabobteam1@mail.nih.gov");
+                        outmail2.Recipients.Add("jonesni@mail.nih.gov");
+                        outmail2.Recipients.Add("bakerb@mail.nih.gov");
+                        outmail2.Recipients.Add("dvellaj@mail.nih.gov");
+                        outmail2.Recipients.Add("agyemann@mail.nih.gov");
+                        outmail2.Recipients.Add("eugenia.chester@nih.gov");
+                        outmail2.Recipients.Add("emily.driskell@nih.gov");
                         // if they're not equal, send to both
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && !p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
@@ -882,14 +922,14 @@ namespace Router
                         Send(outmail);
                     }
                 }
-                else if (v_SubLine.ToLower().Contains("urgent: closeout reports overdue"))
+                else if (v_SubLine.ToLower().Contains("closeout action required"))
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($"Hello you are closing out a thing ...", verbose);
                     var applId = string.Empty;
 
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
-                        var isolated = GetNthWord(v_SubLine, 6);
+                        var isolated = GetNthWord(v_SubLine, 4);
                         CommonUtilities.ShowDiagnosticIfVerbose($"Isolated : {isolated}", verbose);
                         applId = GetApplId(RemoveSpCharacters(isolated), con);
                         CommonUtilities.ShowDiagnosticIfVerbose($"Appl Id : {applId}", verbose);
@@ -1096,7 +1136,7 @@ namespace Router
                 }
                 return string.Empty;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine("Query failed.");
                 Console.WriteLine($"The string parameter for Imm_fn_applid_match was '{str}'");

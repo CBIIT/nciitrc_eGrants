@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailHandlingTests
+namespace EmailTests
 {
     [TestClass]
     public class NIHOverdueProgressReportTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        //private string _josniEmail = "jonesni@mail.nih.gov";
+        private string _josniEmail = "jonesni@mail.nih.gov";
 
         // MLH : warning the test subject here is in code and an actual email subject containing part or all of these tokens was not found to populate these tests
 

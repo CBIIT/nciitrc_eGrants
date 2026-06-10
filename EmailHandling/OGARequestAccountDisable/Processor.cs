@@ -1,10 +1,11 @@
-﻿using System;
+﻿using CommonUtilties;
+using Microsoft.Office.Interop.Outlook;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
-using CommonUtilties;
-using Microsoft.Office.Interop.Outlook;
+using System.Threading.Tasks;
 using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace OGARequestAccountDisable
@@ -82,11 +83,11 @@ namespace OGARequestAccountDisable
 
         private string CreateEmailBody(List<DisabledListItem> usersWhoHaveEmailsToBeDisabled)
         {
-            //The following eGrants accounts have been deactivated due to 60 days of inactivity in the system:
+            //The following eGrants accounts have been deactivated due to 120 days of inactivity in the system:
             //Barbara Fisher bfisher 2024-01-04 06:03:27.940
 
             var sb = new StringBuilder();
-            sb.AppendLine("The following eGrants accounts have been deactivated due to 60 days of inactivity in the system:");
+            sb.AppendLine("The following eGrants accounts have been deactivated due to 120 days of inactivity in the system:");
             sb.AppendLine("<br/>&nbsp;&nbsp;<br/>");
             sb.AppendLine(@"<table style=""padding-top:10px""><tr><th style=""text-align:left"">User</th><th style=""text-align:left"">UserName</th><th style=""text-align:left"">Last Login Date</th></tr>");
             foreach (var disabledUser in usersWhoHaveEmailsToBeDisabled)

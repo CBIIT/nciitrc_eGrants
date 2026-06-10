@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using OGARequestAccountDisable;
 using Microsoft.Office.Interop.Outlook;
 
-namespace EmailHandlingTests.OGADisableEmail
+namespace EmailTests.OGADisableEmail
 {
     [TestClass]
-    public class OGAEmailHandlingTests
+    public class OGAEmailTests
     {
         private List<DisabledListItem> GetFakeCandidates()
         {

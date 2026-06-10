@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailHandlingTests
+namespace EmailTests
 {
     [TestClass]
     public class ChangeNoticeForTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        //private string _josniEmail = "jonesni@mail.nih.gov";
+        private string _josniEmail = "jonesni@mail.nih.gov";
 
         // MLH : Note that the subject capture for this is : "CHANGE_NOTICE_FOR" ** and ** "Application is withdrawn request"
         // the closest email I could find was CHANGE_NOTICE_FOR 1R41CA298615-01     - Application number has changed.
