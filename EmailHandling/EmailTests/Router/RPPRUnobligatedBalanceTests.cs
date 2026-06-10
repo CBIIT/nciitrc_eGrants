@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailHandlingTests
+namespace EmailTests
 {
     [TestClass]
     public class RPPRUnobligatedBalanceTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        //private string _josniEmail = "jonesni@mail.nih.gov";
+        private string _josniEmail = "jonesni@mail.nih.gov";
 
         [TestMethod]
         public void RPPRUnobligatedBalanceSendToDevEmail()

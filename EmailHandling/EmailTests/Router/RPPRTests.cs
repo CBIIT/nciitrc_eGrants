@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailHandlingTests
+namespace EmailTests
 {
     [TestClass]
     public class RPPRTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        //private string _josniEmail = "jonesni@mail.nih.gov";
+        private string _josniEmail = "jonesni@mail.nih.gov";
 
         // MLH : Note I haven't seen any emails with a subject that capture on this
 

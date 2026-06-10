@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailHandlingTests
+namespace EmailTests
 {
     [TestClass]
     public class SBIRTests

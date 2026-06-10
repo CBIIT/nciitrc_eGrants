@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Outlook = Microsoft.Office.Interop.Outlook;
 
-namespace EmailHandlingTests
+namespace EmailTests
 {
     [TestClass]
     public class PRAMFRAMTests
     {
         private string _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-        //private string _josniEmail = "jonesni@mail.nih.gov";
+        private string _josniEmail = "jonesni@mail.nih.gov";
 
         // MLH : These tests use an actual FRAM subject I found, but I never saw a correspondin PRAM email
 

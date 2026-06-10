@@ -1,7 +1,10 @@
-﻿using System;
+﻿using CommonUtilties;
+using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
-using CommonUtilties;
-using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace OGARequestAccountDisable
 {
@@ -9,10 +12,6 @@ namespace OGARequestAccountDisable
     {
         static void Main(string[] args)
         {
-#if DEBUG
-    // Load credentials from shared secrets file in the solution root (not committed to source control)
-    CommonUtilities.LoadLocalSecrets(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "secrets.local.csv"));
-#endif
 
             var _startTimeStamp = DateTime.Now;
 
