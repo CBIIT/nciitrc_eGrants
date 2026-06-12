@@ -272,7 +272,7 @@ This view sends the same request format but benefits from faster server processi
 
      // Load document data via AJAX
         ajax: {
-     url: "/Egrants/LoadDocsGrid?applId=" + @appl_id + "&searchType=@Convert.ToString(ViewBag.SearchStyle)" + "&categoryList=@Convert.ToString(ViewBag.SelectedCats)",
+        url: "/Egrants/LoadDocsGrid?applId=" + @appl_id + "&searchType=" + $("#hidSearchType").val() + "&categoryList=" + $("#hidSelectedCats").val(),
   type: "GET",
             contentType: 'application/json; charset=utf=8',
      dataType: 'JSON',
