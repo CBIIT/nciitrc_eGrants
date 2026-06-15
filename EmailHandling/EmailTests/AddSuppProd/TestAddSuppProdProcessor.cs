@@ -19,6 +19,19 @@ namespace EmailHandlingTests.AddSuppProd
     internal class TestAddSuppProdProcessor : Processor
     {
         /// <summary>
+        /// Constructor that passes test admin email recipients to base class
+        /// </summary>
+        public TestAddSuppProdProcessor() : base("test.admin@nih.gov")
+        {
+        }
+
+        // Expose internal methods for testing
+        public string TestExtractNotificationID(string body) => ExtractNotificationID(body);
+        public string TestRemoveSpecialCharacters(string text) => RemoveSpecialCharacters(text);
+        public Dictionary<string, string> TestParseSubjectParameters(string subject) => ParseSubjectParameters(subject);
+        public string TestGetFileExtension(string fileName) => GetFileExtension(fileName);
+
+        /// <summary>
         /// Tracks all items that would have been processed during the test session.
    /// </summary>
    public List<TestProcessedItem> ItemsProcessedThisSession { get; } = new List<TestProcessedItem>();

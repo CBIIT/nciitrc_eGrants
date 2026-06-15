@@ -19,7 +19,7 @@ namespace CommonUtilties
     /// - Never hardcode or commit secrets.
     /// - Use environment variables for all secrets.
     /// - Use a gitignored secrets file (secrets.local.csv) for local dev, loaded at startup.
-    /// - Reference secrets in config using environment variable syntax (e.g., %EGRANTS_DB_USER%).
+    /// - Reference secrets in config using environment variable syntax (e.g., %DB_USER%).
     /// - Provide a template secrets file for onboarding.
     /// - Use secret scanning tools in your CI pipeline.
     /// </summary>
@@ -94,90 +94,6 @@ namespace CommonUtilties
                 Debug.WriteLine(Message);
                 Logger?.Debug("{Message}", Message);
             }
-        }
-
-        /// <summary>
-        /// Loads environment variables from a local secrets file.
-        /// The secrets file should NOT be committed to source control.
-        /// </summary>
-        /// <param name="secretsFilePath">Path to the secrets file (default: secrets.local.csv)</param>
-        /// <returns>True if secrets were loaded successfully, false otherwise</returns>
-        public static bool LoadLocalSecrets(string secretsFilePath = "secrets.local.csv")
-        {
-            try
-            {
-                if (!File.Exists(secretsFilePath))
-                {
-                    Console.WriteLine($"Note: Local secrets file not found: {secretsFilePath}");
-                    return false;
-                }
-
-                string delimiter = ",,,,,";
-                foreach (string line in File.ReadLines(secretsFilePath))
-                {
-                    if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("--"))
-                        continue;
-
-                    string[] sections = line.Split(new[] { delimiter }, StringSplitOptions.None);
-                    if (sections.Length > 1)
-                    {
-                        var key = sections[0].Trim();
-                        var value = sections[1].Trim();
-                        Environment.SetEnvironmentVariable(key, value);
-                    }
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to load local secrets: {ex.Message}");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Reads a configuration value from config.csv file.
-        /// Environment variables in the format %VARIABLE_NAME% are automatically expanded.
-        /// </summary>
-        public static string GetConfigVal(string name)
-        {
-            string delimiter = ",,,,,";
-            try
-            {
-                foreach (string line in File.ReadLines(@"config.csv"))
-                {
-                    string[] delimiterAsArray = new string[] { delimiter };
-                    var sections = line.Split(delimiterAsArray, StringSplitOptions.None);
-
-                    if (sections.Length > 1)
-                    {
-                        var key = sections[0];
-                        var value = sections[1];
-                        if (key.Equals(name))
-                        {
-                            return ExpandEnvironmentVariables(value);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger?.Error(ex, "Failed to read config value for key: {Key}", name);
-            }
-            return "FAILED TO FIND VALUE";
-        }
-
-        /// <summary>
-        /// Expands environment variables in a string.
-        /// Variables should be in the format %VARIABLE_NAME%.
-        /// </summary>
-        private static string ExpandEnvironmentVariables(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return value;
-
-            return Environment.ExpandEnvironmentVariables(value);
         }
 
         /// <summary>
@@ -325,8 +241,8 @@ namespace CommonUtilties
         /// </summary>
         public static void SetLocalTestEnvironmentVariables(string user, string password)
         {
-            Environment.SetEnvironmentVariable("EGRANTS_DB_USER", user);
-            Environment.SetEnvironmentVariable("EGRANTS_DB_PASSWORD", password);
+            Environment.SetEnvironmentVariable("DB_USER", user);
+            Environment.SetEnvironmentVariable("DB_PASSWORD", password);
         }
     }
 }

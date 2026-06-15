@@ -1088,9 +1088,19 @@ namespace Router
                     {
                         while (reader.Read())
                         {
-                            int returnedVal = reader.GetInt32(0);
-                            string applId = $"{returnedVal}";
-                            return applId;
+                            // Check if the value is NULL before trying to read it
+                            if (!reader.IsDBNull(0))
+                            {
+                                int returnedVal = reader.GetInt32(0);
+                                string applId = $"{returnedVal}";
+                                return applId;
+                            }
+                            else
+                            {
+                                // Database function returned NULL - log and return empty
+                                Console.WriteLine($"Warning: Imm_fn_applid_match returned NULL for input '{str}'");
+                                return string.Empty;
+                            }
                         }
                     }
                 }

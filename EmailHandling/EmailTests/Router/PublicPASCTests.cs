@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
@@ -24,6 +24,8 @@ namespace EmailHandlingTests
         // Compliant: PASC: 5U01CA253915-06 - ETZIONI, RUTH D
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void PASCSendToDevEmail()
         {
             // not compliant at all
@@ -48,6 +50,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void PASCSendAltFormatToDevEmail()
         {
             // compliant and one colon
@@ -72,6 +76,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void PASCSendAltAltFormatToDevEmail()
         {
             // compliant and two colons !!
@@ -96,6 +102,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void PASCSendToDevEmailNegative()
         {
             // Arrange
@@ -107,20 +115,20 @@ namespace EmailHandlingTests
             testEmail.Body = Body;
             string criticalEmailAddress = "public@public.com";
             var testProcessor = new TestProcessor();
-            bool containsIntendedDiagnostics = false;
 
             // Act
-            try
-            {
-                var sentResults = testProcessor.TestSingleEmail(testEmail, criticalEmailAddress);
-            } catch (Exception ex)
-            {
-                containsIntendedDiagnostics = ex.Message.Contains("Appl Id query failed");
-                Assert.IsTrue(containsIntendedDiagnostics);
-            }
+            var sentResults = testProcessor.TestSingleEmail(testEmail, criticalEmailAddress);
+            var subj = sentResults["subject"];
 
-            Assert.IsTrue(containsIntendedDiagnostics);
+            // Assert
+            // When no grant number is found in the subject, the database function returns NULL
+            // and the applid should be empty, but the email should still be processed
+            Assert.IsTrue(subj.Contains("applid="),
+                $"Expected subject to contain 'applid=', but got: {subj}");
+            Assert.IsTrue(subj.Contains("category=PublicAccess"),
+                $"Expected subject to contain 'category=PublicAccess', but got: {subj}");
         }
 
     }
 }
+

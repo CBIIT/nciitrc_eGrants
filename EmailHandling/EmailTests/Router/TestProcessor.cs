@@ -22,9 +22,10 @@ namespace EmailHandlingTests
         /// <returns></returns>
         internal Dictionary<string, string> TestSingleEmail(MailItem testEmail, string sender = null)
         {
-            var dirPath = CommonUtilities.GetConfigVal("logDir");
-            var conStr = CommonUtilities.GetConfigVal("conStr");
-            var verbose = CommonUtilities.GetConfigVal("Verbose");
+            var config = AppConfig.Load();
+            var dirPath = config["AppSettings:LogDir"];
+            var conStr = AppConfig.GetConnectionString(config, "EIM");
+            var verbose = config["AppSettings:Verbose"];
 
             if (!string.IsNullOrWhiteSpace(sender))
             {
@@ -50,9 +51,10 @@ namespace EmailHandlingTests
 
         internal Dictionary<string, string> TestSingleEmail(string From, string Subject, string Body)
         {
-            var dirPath = CommonUtilities.GetConfigVal("logDir");
-            var conStr = CommonUtilities.GetConfigVal("conStr");
-            var verbose = CommonUtilities.GetConfigVal("Verbose");
+            var config = AppConfig.Load();
+            var dirPath = config["AppSettings:LogDir"];
+            var conStr = AppConfig.GetConnectionString(config, "EIM");
+            var verbose = config["AppSettings:Verbose"];
             var debug = "y";    // NEVER send out emails from these tests
             SqlConnection connection = new SqlConnection(conStr);
             connection.Open();

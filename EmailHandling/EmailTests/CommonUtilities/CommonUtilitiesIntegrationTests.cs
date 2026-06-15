@@ -19,9 +19,6 @@ namespace EmailHandlingTests.CommonUtilitiesProject
             _testLogDir = Path.Combine(Path.GetTempPath(), "EmailHandlingTestsLogs_" + Guid.NewGuid().ToString());
             Directory.CreateDirectory(_testLogDir);
             CommonUtilties.CommonUtilities.LogDir = _testLogDir;
-
-            // Load environment variables for local testing from secrets.local.csv
-            CommonUtilties.CommonUtilities.LoadLocalSecrets("secrets.local.csv");
         }
 
         [TestCleanup]
@@ -571,8 +568,13 @@ namespace EmailHandlingTests.CommonUtilitiesProject
 
         #endregion
 
-        #region GetConfigVal Tests
+        #region GetConfigVal Tests - OBSOLETE (projects now use appsettings.json)
 
+        // NOTE: GetConfigVal has been removed from CommonUtilities.
+        // All projects now use appsettings.json with AppConfig.Load() instead of config.csv.
+        // These tests are commented out as they are no longer applicable.
+
+        /*
         /// <summary>
         /// Verifies that GetConfigVal expands environment variables in the returned value.
         /// </summary>
@@ -580,8 +582,8 @@ namespace EmailHandlingTests.CommonUtilitiesProject
         public void GetConfigVal_WithEnvironmentVariables_ExpandsVariables()
         {
             // Arrange - Environment variables are set in TestInitialize
-            string expectedUser = Environment.GetEnvironmentVariable("EGRANTS_DB_USER");
-            string expectedPassword = Environment.GetEnvironmentVariable("EGRANTS_DB_PASSWORD");
+            string expectedUser = Environment.GetEnvironmentVariable("DB_USER");
+            string expectedPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
             string tempConfigPath = "config.csv";
             string originalContent = null;
             bool configExisted = File.Exists(tempConfigPath);
@@ -594,16 +596,16 @@ namespace EmailHandlingTests.CommonUtilitiesProject
             try
             {
                 // Create test config with environment variables
-                File.WriteAllText(tempConfigPath, "testConStr,,,,,User ID=%EGRANTS_DB_USER%;Password=%EGRANTS_DB_PASSWORD%");
+                File.WriteAllText(tempConfigPath, "testConStr,,,,,User ID=%DB_USER%;Password=%DB_PASSWORD%");
 
                 // Act
                 string result = CommonUtilties.CommonUtilities.GetConfigVal("testConStr");
 
                 // Assert
-                Assert.IsTrue(result.Contains(expectedUser), "Should expand EGRANTS_DB_USER");
-                Assert.IsTrue(result.Contains(expectedPassword), "Should expand EGRANTS_DB_PASSWORD");
-                Assert.IsFalse(result.Contains("%EGRANTS_DB_USER%"), "Should not contain unexpanded variable");
-                Assert.IsFalse(result.Contains("%EGRANTS_DB_PASSWORD%"), "Should not contain unexpanded variable");
+                Assert.IsTrue(result.Contains(expectedUser), "Should expand DB_USER");
+                Assert.IsTrue(result.Contains(expectedPassword), "Should expand DB_PASSWORD");
+                Assert.IsFalse(result.Contains("%DB_USER%"), "Should not contain unexpanded variable");
+                Assert.IsFalse(result.Contains("%DB_PASSWORD%"), "Should not contain unexpanded variable");
             }
             finally
             {
@@ -633,8 +635,8 @@ namespace EmailHandlingTests.CommonUtilitiesProject
             CommonUtilties.CommonUtilities.SetLocalTestEnvironmentVariables(testUser, testPassword);
 
             // Assert
-            Assert.AreEqual(testUser, Environment.GetEnvironmentVariable("EGRANTS_DB_USER"));
-            Assert.AreEqual(testPassword, Environment.GetEnvironmentVariable("EGRANTS_DB_PASSWORD"));
+            Assert.AreEqual(testUser, Environment.GetEnvironmentVariable("DB_USER"));
+            Assert.AreEqual(testPassword, Environment.GetEnvironmentVariable("DB_PASSWORD"));
         }
 
         /// <summary>
@@ -679,6 +681,7 @@ namespace EmailHandlingTests.CommonUtilitiesProject
             // Assert
             Assert.AreEqual("FAILED TO FIND VALUE", result, "Should return failure message");
         }
+        */
 
         #endregion
 

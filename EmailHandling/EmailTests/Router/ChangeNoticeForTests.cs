@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +23,7 @@ namespace EmailHandlingTests
         // because I think it will probably be similar enough and should still work
 
         [TestMethod]
+        [TestCategory("Integration")]
         public void ChangeNoticeForSendToDevEmail()
         {
             // Arrange
@@ -42,6 +43,7 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public void ChangeNoticeForAdjustedSubject()
         {
             // Arrange
@@ -63,6 +65,7 @@ namespace EmailHandlingTests
 
 
         [TestMethod]
+        [TestCategory("Integration")]
         public void ChangeNoticeForSameSubjectNegative()
         {
             // Arrange
@@ -82,6 +85,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ChangeNoticeForSameSubjectNegative2()
         {
             // Arrange
@@ -102,3 +107,4 @@ namespace EmailHandlingTests
 
     }
 }
+

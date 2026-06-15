@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,8 @@ namespace EmailHandlingTests
         // MLH : I have no record of ever seeing an email like this, so these tests may be a bit pass through
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void SupplementRequestedSendToDevEmail()
         {
             // Arrange
@@ -37,6 +39,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void SupplementRequestedSameSubject()
         {
             // Arrange
@@ -57,6 +61,9 @@ namespace EmailHandlingTests
 
 
         [TestMethod]
+
+
+        [TestCategory("Integration")]
         public void SupplementRequestedSameSubjectNegative()
         {
             // Arrange
@@ -77,3 +84,4 @@ namespace EmailHandlingTests
 
     }
 }
+

@@ -14,26 +14,27 @@ namespace Router
             try
             {
 #if DEBUG
-                    // Load credentials from shared secrets file in the solution root (not committed to source control)
-                    CommonUtilities.LoadLocalSecrets(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "secrets.local.csv"));
+                Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
 #endif
 
                 var _startTimeStamp = DateTime.Now;
+                Console.WriteLine("Router - Email Router");
 
-                Console.WriteLine("The current directory is {0}", Directory.GetCurrentDirectory());
+                // Load configuration from shared appsettings.json (via CommonUtilties.AppConfig)
+                var config = AppConfig.Load();
 
-                var _verbose = CommonUtilities.GetConfigVal("Verbose");
+                var _verbose = config["AppSettings:Verbose"] ?? "n";
                 CommonUtilities.ShowDiagnosticIfVerbose($"_verbose: '{_verbose}'", _verbose);
-                var _debug = CommonUtilities.GetConfigVal("dBug");
+                var _debug = config["AppSettings:dBug"] ?? "n";
                 CommonUtilities.ShowDiagnosticIfVerbose($"_debug: '{_debug}'", _verbose);
-                var _logDir = CommonUtilities.GetConfigVal("logDir");
+                var _logDir = config["AppSettings:LogDir"] ?? @"C:\egrants\apps\log\";
                 CommonUtilities.LogDir = _logDir;
                 CommonUtilities.ShowDiagnosticIfVerbose($"_logDir: '{_logDir}'", _verbose);
-                var _conStr = CommonUtilities.GetConfigVal("conStr");
-                CommonUtilities.ShowDiagnosticIfVerbose($"_conStr: '{_conStr}'", _verbose);
-                var _dirPath = CommonUtilities.GetConfigVal("dirpathRouter");
+                var _conStr = AppConfig.GetConnectionString(config, "EIM");
+                CommonUtilities.ShowDiagnosticIfVerbose($"_conStr loaded", _verbose);
+                var _dirPath = config["FolderPaths:dirpathRouter"];
                 CommonUtilities.ShowDiagnosticIfVerbose($"_dirPath: '{_dirPath}'", _verbose);
-                var _routingBreakDurationToken = CommonUtilities.GetConfigVal("routingBreakDuration");
+                var _routingBreakDurationToken = config["AppSettings:RoutingBreakDuration"];
                 var _routingBreakDuration = 1000;
                 if (!string.IsNullOrWhiteSpace(_routingBreakDurationToken) && !_routingBreakDurationToken.ToLower().Contains("fail"))
                 {
@@ -41,7 +42,7 @@ namespace Router
                     if (!success)
                     {
                         _routingBreakDuration = 1000;
-                        CommonUtilities.ShowDiagnosticIfVerbose($"Unable to load routingBreakDuration from config : ({_routingBreakDurationToken}), so settin to 1000 milliseconds", _verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Unable to load routingBreakDuration from config : ({_routingBreakDurationToken}), so setting to 1000 milliseconds", _verbose);
                     }
                 }
                 CommonUtilities.ShowDiagnosticIfVerbose($"_routingBreakDuration: '{_routingBreakDuration}'", _verbose);

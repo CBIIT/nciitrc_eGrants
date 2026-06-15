@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,8 @@ namespace EmailHandlingTests
         // MLH : didn't see any actual emails with this subject, so just using this
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRACommonsPRAMSendToDevEmail()
         {
             // Arrange
@@ -37,6 +39,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRACommonsPRAMSameSubject()
         {
             // Arrange
@@ -56,6 +60,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRACommonsPRAMReSubject()
         {
             // Arrange
@@ -75,6 +81,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRACommonsPRAMSameSubjectNegative()
         {
             // Arrange
@@ -95,3 +103,4 @@ namespace EmailHandlingTests
 
     }
 }
+

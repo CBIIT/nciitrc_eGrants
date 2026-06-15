@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +16,8 @@ namespace EmailHandlingTests
         //private string _josniEmail = "jonesni@mail.nih.gov";
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void RPPRUnobligatedBalanceSendToDevEmail()
         {
             // Arrange
@@ -35,6 +37,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void RPPRUnobligatedBalanceAdjustedSubject()
         {
             // Arrange
@@ -56,6 +60,9 @@ namespace EmailHandlingTests
 
 
         [TestMethod]
+
+
+        [TestCategory("Integration")]
         public void RPPRUnobligatedBalanceSameSubjectNegative()
         {
             // Arrange
@@ -76,3 +83,4 @@ namespace EmailHandlingTests
 
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,8 @@ namespace EmailHandlingTests
         // MLH : These tests use an actual FRAM subject I found, but I never saw a correspondin PRAM email
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FRAMSendToDevEmail()
         {
             // Arrange
@@ -37,6 +39,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FRAMAdjustedSubject()
         {
             // Arrange
@@ -57,6 +61,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void PRAMAdjustedSubject()
         {
             // Arrange
@@ -78,6 +84,9 @@ namespace EmailHandlingTests
 
 
         [TestMethod]
+
+
+        [TestCategory("Integration")]
         public void FRAMSameSubjectNegative()
         {
             // Arrange
@@ -98,6 +107,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void PRAMSameSubjectNegative()
         {
             // Arrange
@@ -119,3 +130,4 @@ namespace EmailHandlingTests
 
     }
 }
+

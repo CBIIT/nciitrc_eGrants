@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Xml;
 using CommonUtilties;
+using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace LoadSuppPfr
 {
@@ -24,6 +26,7 @@ namespace LoadSuppPfr
     ///    - Copies the PDF to the final destination with the assigned file number name
     ///    - Moves both XML and PDF to the backup directory
     /// 3. Logs all operations and errors
+    /// 4. Sends email notifications for errors
     /// 
     /// XML STRUCTURE EXPECTED:
     /// &lt;root&gt;
@@ -37,15 +40,15 @@ namespace LoadSuppPfr
     /// &lt;/root&gt;
     /// 
     /// STORED PROCEDURE: getPlaceHolder_new
-    /// Parameters:
+    /// Parameters (VBScript indexing 1-8):
     /// @param1 = applid
-    /// @param2 = " " (space)
+    /// @param2 = " " (single space)
     /// @param3 = document date
     /// @param4 = catname (e.g., "PFR")
     /// @param5 = file type (e.g., "pdf")
-    /// @param6 = description (e.g., "Supplement PFR - {applid}")
-    /// @param7 = "" (empty string)
-    /// @param8 = "PFR"
+    /// @param6 = " " (single space)
+    /// @param7 = " " (single space)
+    /// @param8 = " " (single space)
     /// 
     /// FILE FLOW:
     /// Source Directory (XML + PDF) → Process → Final Directory (renamed PDF) + Backup Directory (original files)
@@ -53,9 +56,17 @@ namespace LoadSuppPfr
     /// ERROR HANDLING:
     /// Individual file processing errors are logged but do not stop the batch.
     /// The processor continues with the next file if one fails.
+    /// 
+    /// EMAIL NOTIFICATIONS:
+    /// - Errors: When getPlaceHolder_new returns no data (database error)
     /// </summary>
     public class Processor
     {
+        private bool _emailEnabled = false;
+        private string _toRecipients = "";
+        private string _ccRecipients = "";
+        private string _environment = "";
+
         /// <summary>
         /// Main processing method that orchestrates the entire supplement PFR loading workflow.
         /// Opens database connection, finds XML files, processes each one, and returns count of files processed.
@@ -66,11 +77,18 @@ namespace LoadSuppPfr
         /// <param name="finalDstPath">Final destination directory where PDFs are copied with new names</param>
         /// <param name="verbose">Verbose mode flag ("y" for detailed console output, "n" for minimal output)</param>
         /// <param name="logDir">Directory where log files are written</param>
+        /// <param name="config">Configuration containing email settings</param>
         /// <returns>Number of XML files successfully processed</returns>
-        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir)
+        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             int filesProcessed = 0;
-            
+
+            // Load email settings from configuration
+            _emailEnabled = config["EmailSettings:Enabled"]?.ToLower() == "true";
+            _toRecipients = config["EmailSettings:ToRecipients"] ?? "";
+            _ccRecipients = config["EmailSettings:CcRecipients"] ?? "";
+            _environment = config["EmailSettings:Environment"] ?? "DEV";
+
             // Open database connection for processing
             con.Open();
             CommonUtilities.ShowDiagnosticIfVerbose("Database connection opened", verbose);
@@ -186,20 +204,21 @@ namespace LoadSuppPfr
 
                 // Call the getPlaceHolder_new stored procedure to get a file number
                 // This procedure registers the supplement PFR document
+                // Parameters must match VBScript exactly: applid, " ", date, catname, filetype, " ", " ", " "
                 using (var cmd = new SqlCommand("getPlaceHolder_new", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    
-                    // Add parameters for the stored procedure
-                    // Note: Using generic param names as expected by the stored procedure
+
+                    // Add parameters for the stored procedure matching VBScript parameter order
+                    // VBScript uses Parameters(1) through Parameters(8) (1-indexed)
                     cmd.Parameters.AddWithValue("@PARENTAPPLID", applId);
-                    cmd.Parameters.AddWithValue("@pa", "");  // Space character
+                    cmd.Parameters.AddWithValue("@pa", " ");  // Single space (param 2)
                     cmd.Parameters.AddWithValue("@Rcvd_dt", DateTime.Parse(docDt));
                     cmd.Parameters.AddWithValue("@Catname", catName);
                     cmd.Parameters.AddWithValue("@filetype", fileType);
-                    cmd.Parameters.AddWithValue("@Sub", "");
-                    cmd.Parameters.AddWithValue("@body", "");  // Empty string
-                    cmd.Parameters.AddWithValue("@SubCatname", "");
+                    cmd.Parameters.AddWithValue("@Sub", " ");  // Single space (param 6)
+                    cmd.Parameters.AddWithValue("@body", " ");  // Single space (param 7)
+                    cmd.Parameters.AddWithValue("@SubCatname", " ");  // Single space (param 8)
 
                     // Execute stored procedure and get the assigned file number
                     using (var reader = cmd.ExecuteReader())
@@ -255,8 +274,23 @@ namespace LoadSuppPfr
                         }
                         else
                         {
-                            CommonUtilities.ShowDiagnosticIfVerbose("Stored procedure returned no results", verbose);
-                            Program.WriteLog("Stored procedure returned no results", null, DateTime.Now, logDir);
+                            string errorMsg = "Stored procedure returned no results";
+                            CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
+                            Program.WriteLog(errorMsg, null, DateTime.Now, logDir);
+
+                            // Send email notification about database error (matching VBScript behavior)
+                            if (_emailEnabled)
+                            {
+                                try
+                                {
+                                    SendEmail("ERROR: Could not create entry in WIP. Check DB proc : getPlaceHolder_new", 
+                                             "Could not create entry in WIP. Check DB proc : getPlaceHolder_new", verbose, logDir);
+                                }
+                                catch (Exception emailEx)
+                                {
+                                    Program.WriteLog("Error sending DB error email", emailEx.Message, DateTime.Now, logDir);
+                                }
+                            }
                         }
                     }
                 }
@@ -276,6 +310,42 @@ namespace LoadSuppPfr
                     CommonUtilities.ShowDiagnosticIfVerbose($"Error moving XML to backup: {ex.Message}", verbose);
                     Program.WriteLog($"Error moving XML to backup for {xmlFile.Name}", ex.Message, DateTime.Now, logDir);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Sends an email notification via Outlook COM automation.
+        /// Matches the VBScript emailme() function behavior.
+        /// </summary>
+        /// <param name="subject">Email subject line</param>
+        /// <param name="body">Email body content</param>
+        /// <param name="verbose">Verbose mode for diagnostic output</param>
+        /// <param name="logDir">Log directory for error logging</param>
+        private void SendEmail(string subject, string body, string verbose, string logDir)
+        {
+            try
+            {
+                CommonUtilities.ShowDiagnosticIfVerbose($"Sending email: {subject}", verbose);
+
+                Outlook.Application outlookApp = new Outlook.Application();
+                Outlook.MailItem mailItem = (Outlook.MailItem)outlookApp.CreateItem(Outlook.OlItemType.olMailItem);
+
+                mailItem.To = _toRecipients;
+                mailItem.CC = _ccRecipients;
+                mailItem.Subject = $"{_environment}: {subject}";
+                mailItem.BodyFormat = Outlook.OlBodyFormat.olFormatHTML;
+                mailItem.HTMLBody = body;
+                mailItem.Send();
+
+                Program.WriteLog($"Email sent: {subject}", null, DateTime.Now, logDir);
+                CommonUtilities.ShowDiagnosticIfVerbose("Email sent successfully", verbose);
+            }
+            catch (Exception ex)
+            {
+                string errorMsg = $"Failed to send email: {ex.Message}";
+                CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
+                Program.WriteLog("Email send failed", ex.Message, DateTime.Now, logDir);
+                throw; // Re-throw to let caller handle
             }
         }
     }

@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace EmailHandlingTests.AddSuppProd
 {
     /// <summary>
-    /// Unit tests for the AddSuppProd.Processor class.
+    /// Scenario-based tests for the AddSuppProd.Processor class.
     /// These tests verify email processing, item movement, and logging logic
     /// without requiring actual Outlook or database connections.
     /// </summary>
@@ -411,6 +411,277 @@ Assert.IsFalse(testProcessor.ErrorOccurred,
             // Assert
         Assert.IsFalse(string.IsNullOrEmpty(testProcessor.SimulatedOutDir),
          "SimulatedOutDir should have a default value");
+        }
+
+        #endregion
+
+        #region Scenario-Based Tests
+
+        /// <summary>
+        /// Simulates processing a system notification email from nciogaegrantsprod.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_SystemNotification_ProcessesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "Admin Supplement notification";
+            string body = "You have received a supplement notification. Notification Id=12345";
+            string sender = "nciogaegrantsprod@mail.nih.gov";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result, "System notification should be processed");
+            Assert.AreEqual(subject, result.Subject);
+            Assert.IsTrue(result.Body.Contains("Notification Id=12345"));
+            Assert.AreEqual(sender, result.SenderEmail);
+            Assert.IsTrue(result.WasMovedToOld, "Should be moved to archive");
+        }
+
+        /// <summary>
+        /// Simulates processing an eRA notification from caeranotifications.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_EraNotification_ProcessesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "Supplement Requested - 5R01CA123456-03";
+            string body = "An administrative supplement has been requested for grant 5R01CA123456-03";
+            string sender = "caeranotifications@era.nih.gov";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result, "eRA notification should be processed");
+            Assert.IsTrue(result.Subject.Contains("Supplement Requested"));
+            Assert.IsTrue(result.Subject.Contains("5R01CA123456-03"));
+            Assert.AreEqual(sender, result.SenderEmail);
+        }
+
+        /// <summary>
+        /// Simulates processing a staff correspondence email.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_StaffCorrespondence_ProcessesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "category=correspondence,sub=admin supplement,grantnumber=1R01CA123456-01";
+            string body = "This is the correspondence body text that will be saved.";
+            string sender = "driskelleb@mail.nih.gov";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result, "Staff correspondence should be processed");
+            Assert.IsTrue(result.Subject.Contains("category=correspondence"));
+            Assert.IsTrue(result.Subject.Contains("sub=admin supplement"));
+            Assert.IsTrue(result.Subject.Contains("grantnumber="));
+            Assert.AreEqual(sender, result.SenderEmail);
+        }
+
+        /// <summary>
+        /// Simulates processing a staff application file upload.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_StaffApplicationFile_ProcessesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "category=application file,grantnumber=5R44CA987654-02";
+            string body = "Please process the attached application file.";
+            string sender = "jonesni@mail.nih.gov";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result, "Staff application file should be processed");
+            Assert.IsTrue(result.Subject.Contains("category=application file"));
+            Assert.IsTrue(result.Subject.Contains("grantnumber="));
+            Assert.AreEqual(sender, result.SenderEmail);
+        }
+
+        /// <summary>
+        /// Simulates processing a PD/PI reply to a notification.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_PDPIReply_ProcessesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "Re: Admin Supplement Notification";
+            string body = "Thank you for the notification. Notification Id=67890. I accept the supplement.";
+            string sender = "pi.researcher@university.edu";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result, "PD/PI reply should be processed");
+            Assert.IsTrue(result.Subject.Contains("Re:"));
+            Assert.IsTrue(result.Body.Contains("Notification Id=67890"));
+            Assert.AreEqual(sender, result.SenderEmail);
+        }
+
+        /// <summary>
+        /// Simulates processing an email from unknown sender (should trigger error handling).
+        /// </summary>
+        [TestMethod]
+        public void Scenario_UnknownSender_ProcessesAsUnidentified()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "Random email subject";
+            string body = "This email has no notification ID and is from an unknown sender.";
+            string sender = "unknown@external.com";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result, "Unknown sender email should still be recorded");
+            Assert.AreEqual(sender, result.SenderEmail);
+            // In real implementation, this would trigger admin notification
+        }
+
+        /// <summary>
+        /// Simulates batch processing of multiple email types.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_BatchProcessing_HandlesMultipleTypes()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+
+            // Add various email types
+            testProcessor.AddSimulatedMailItem(
+                "Admin Supplement notification",
+                "Notification Id=111",
+                "nciogaegrantsprod@mail.nih.gov");
+
+            testProcessor.AddSimulatedMailItem(
+                "Supplement Requested - 5R01CA111111-01",
+                "Supplement requested",
+                "caeranotifications@era.nih.gov");
+
+            testProcessor.AddSimulatedMailItem(
+                "category=correspondence,sub=diversity supplement,grantnumber=2R01CA222222-02",
+                "Staff correspondence body",
+                "omairi@mail.nih.gov");
+
+            testProcessor.AddSimulatedMailItem(
+                "Re: Supplement Notification",
+                "I accept. Notification Id=222",
+                "pi@university.edu");
+
+            // Act
+            int processed = testProcessor.TestProcessSimulatedItems();
+
+            // Assert
+            Assert.AreEqual(4, processed, "Should process all 4 emails");
+            Assert.AreEqual(4, testProcessor.ItemsProcessedThisSession.Count);
+
+            // Verify each type was captured
+            Assert.IsTrue(testProcessor.ItemsProcessedThisSession[0].Subject.Contains("Admin Supplement"));
+            Assert.IsTrue(testProcessor.ItemsProcessedThisSession[1].Subject.Contains("Supplement Requested"));
+            Assert.IsTrue(testProcessor.ItemsProcessedThisSession[2].Subject.Contains("category="));
+            Assert.IsTrue(testProcessor.ItemsProcessedThisSession[3].Subject.Contains("Re:"));
+        }
+
+        /// <summary>
+        /// Simulates processing with different authorized staff members.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_MultipleAuthorizedStaff_AllProcessCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string[] staffMembers = { "driskelleb", "jonesni", "omairi", "woldezf" };
+
+            foreach (var staff in staffMembers)
+            {
+                testProcessor.AddSimulatedMailItem(
+                    $"category=correspondence,sub=test,grantnumber=1R01CA{staff}-01",
+                    $"Test from {staff}",
+                    $"{staff}@mail.nih.gov");
+            }
+
+            // Act
+            int processed = testProcessor.TestProcessSimulatedItems();
+
+            // Assert
+            Assert.AreEqual(4, processed, "Should process all authorized staff emails");
+            foreach (var item in testProcessor.ItemsProcessedThisSession)
+            {
+                Assert.IsTrue(item.WasMovedToOld, $"Email from {item.SenderEmail} should be archived");
+            }
+        }
+
+        /// <summary>
+        /// Simulates processing diversity supplement notifications.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_DiversitySupplement_ProcessesWithCorrectSubcategory()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "Diversity Supplement notification";
+            string body = "Your diversity supplement notification. Notification Id=99999";
+            string sender = "nciogaegrantsprod@mail.nih.gov";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Subject.Contains("Diversity Supplement"));
+            Assert.IsTrue(result.Body.Contains("diversity"));
+        }
+
+        /// <summary>
+        /// Simulates processing status change notifications.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_StatusChange_ProcessesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "Change in Status - Supplement Application";
+            string body = "The status of your supplement has changed. Notification Id=88888";
+            string sender = "nciogaegrantsprod@mail.nih.gov";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Subject.Contains("Change in Status"));
+        }
+
+        /// <summary>
+        /// Simulates processing response required notifications.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_ResponseRequired_ProcessesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProdProcessor();
+            string subject = "Response Required - Administrative Supplement";
+            string body = "Your response is required for this supplement. Notification Id=77777";
+            string sender = "nciogaegrantsprod@mail.nih.gov";
+
+            // Act
+            var result = testProcessor.TestProcessSingleItem(subject, body, sender);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Subject.Contains("Response Required"));
         }
 
         #endregion

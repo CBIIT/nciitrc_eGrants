@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,8 @@ namespace EmailHandlingTests
         // MLH : Note I haven't seen any emails with a subject that capture on this
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void IRPPRSendToDevEmail()
         {
             // Arrange
@@ -37,6 +39,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void IRPPRCheckedSubject()
         {
             // Arrange
@@ -58,6 +62,9 @@ namespace EmailHandlingTests
 
 
         [TestMethod]
+
+
+        [TestCategory("Integration")]
         public void IRPPRCheckedWInSubject()
         {
             // Arrange
@@ -68,23 +75,25 @@ namespace EmailHandlingTests
             var Body = " \r\n";
             testEmail.Body = Body;
             var testProcessor = new TestProcessor();
-            string exceptionMessage = string.Empty;
 
             // Act
-            try
-            {
-                var sentResults = testProcessor.TestSingleEmail(testEmail);
-            } catch (Exception ex)
-            {
-                exceptionMessage = ex.Message;
-            }
+            var sentResults = testProcessor.TestSingleEmail(testEmail);
+            var subj = sentResults["subject"];
 
             // Assert
-            Assert.IsTrue(exceptionMessage.Contains("Get Appl Id query failed"));
+            // The grant number format with 'W' suffix is not recognized by the database function,
+            // so it should return an empty applid but still process the email successfully
+            Assert.IsTrue(subj.Contains("applid="),
+                $"Expected subject to contain 'applid=', but got: {subj}");
+            Assert.IsTrue(subj.Contains("category=IRPPR"),
+                $"Expected subject to contain 'category=IRPPR', but got: {subj}");
         }
 
 
         [TestMethod]
+
+
+        [TestCategory("Integration")]
         public void IRPPRSameSubjectNegative()
         {
             // Arrange
@@ -105,3 +114,4 @@ namespace EmailHandlingTests
 
     }
 }
+

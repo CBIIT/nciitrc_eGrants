@@ -20,30 +20,19 @@ namespace EGrantsAcmAuditReport
                 Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
 #endif
 
-                // Load credentials from shared secrets file in the solution root (if present)
-                var secretsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "secrets.local.csv");
-                CommonUtilities.LoadLocalSecrets(secretsPath);
-
                 var startTimeStamp = DateTime.Now;
                 Console.WriteLine("EGrantsAcmAuditReport - ACM Audit Report Processor");
 
-                // Build configuration from appsettings.json files
-                var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: false)
-                    .AddEnvironmentVariables()
-                    .Build();
+                // Load configuration from shared appsettings.json (via CommonUtilties.AppConfig)
+                var config = AppConfig.Load();
 
-                // Load configuration values from appsettings
-                var verbose = configuration["AppSettings:Verbose"] ?? "n";
-                var logDir = Environment.ExpandEnvironmentVariables(configuration["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\");
-                var conStr = Environment.ExpandEnvironmentVariables(configuration["ConnectionStrings:EIM"]);
-                var srcDir = configuration["AcmAuditReport:SrcDir"];
-                var bckDir = configuration["AcmAuditReport:BckDir"];
-                var imgSvrPath = configuration["AcmAuditReport:ImgSvrPath"];
-                var imgSvrPath2 = configuration["AcmAuditReport:ImgSvrPath2"];
+                var verbose = config["AppSettings:Verbose"] ?? "n";
+                var logDir = config["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
+                var conStr = AppConfig.GetConnectionString(config, "EIM");
+                var srcDir = config["AcmAuditReport:SrcDir"];
+                var bckDir = config["AcmAuditReport:BckDir"];
+                var imgSvrPath = config["AcmAuditReport:ImgSvrPath"];
+                var imgSvrPath2 = config["AcmAuditReport:ImgSvrPath2"];
 
                 CommonUtilities.LogDir = logDir;
 

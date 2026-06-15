@@ -19,9 +19,6 @@
     <Content Include="appsettings.Production.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="config.csv">
-   <CopyToOutputDirectory>Always</CopyToOutputDirectory>
- </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommonUtilties\CommonUtilties.csproj" />
