@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +16,8 @@ namespace EmailHandlingTests
         //private string _josniEmail = "jonesni@mail.nih.gov";
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FFRNotificationSendToDevEmail()
         {
             // Arrange
@@ -35,6 +37,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FFRNotificationSameSubject()
         {
             // Arrange
@@ -54,6 +58,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FFRNotificationReSubject()
         {
             // Arrange
@@ -73,6 +79,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FFRNotificationFwdSubject()
         {
             // Arrange
@@ -92,6 +100,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FFRNotificationSameSubjectNegative()
         {
             // Arrange
@@ -112,3 +122,4 @@ namespace EmailHandlingTests
 
     }
 }
+

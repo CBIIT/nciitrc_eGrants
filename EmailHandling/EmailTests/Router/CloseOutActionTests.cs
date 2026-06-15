@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +34,7 @@ namespace EmailHandlingTests
         /// This is expected behavior based on current Router implementation.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
   public void CloseoutActionRequired_NotCurrentlyHandled()
         {
     // Arrange
@@ -59,6 +60,7 @@ namespace EmailHandlingTests
         /// Tests that the "urgent: closeout reports overdue" pattern IS handled.
         /// </summary>
   [TestMethod]
+  [TestCategory("Integration")]
         public void UrgentCloseoutReportsOverdue_SendToDevEmail()
         {
             // Arrange
@@ -83,6 +85,7 @@ var sentResults = testProcessor.TestSingleEmail(testEmail);
  /// Tests that "urgent: closeout reports overdue" emails have correct applid.
         /// </summary>
      [TestMethod]
+     [TestCategory("Integration")]
         public void UrgentCloseoutReportsOverdue_CheckApplId()
         {
             // Arrange
@@ -107,6 +110,7 @@ var sentResults = testProcessor.TestSingleEmail(testEmail);
         /// Tests that "urgent: closeout reports overdue" emails have correct category.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public void UrgentCloseoutReportsOverdue_CheckCategory()
   {
             // Arrange
@@ -132,6 +136,7 @@ var sentResults = testProcessor.TestSingleEmail(testEmail);
         /// Negative test - altered subject should not be processed.
         /// </summary>
     [TestMethod]
+    [TestCategory("Integration")]
      public void CloseoutActionRequiredSameSubjectNegative()
         {
             // Arrange
@@ -151,3 +156,4 @@ Assert.IsFalse(sentResults.ContainsKey("subject"));
         }
     }
 }
+

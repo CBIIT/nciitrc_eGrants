@@ -19,12 +19,22 @@ namespace AddSuppVoteCollection
     /// </summary>
     public class Processor
     {
-        public int Process(string dirPath, string verbose, string logDir, IConfiguration configuration)
+        public int Process(string dirPath, string verbose, IConfiguration configuration)
         {
             int itemsProcessed = 0;
 
-            // Load forward recipients from configuration
+            // Load configuration settings
+            var debugEmail = configuration["AppSettings:DebugEmail"] ?? "daryl.dehuff@nih.gov";
+
+            // Load forward recipients from configuration (used in production)
             var forwardRecipients = configuration.GetSection("VoteCollection:ForwardRecipients").GetChildren().Select(c => c.Value!).ToArray();
+
+            // In development, override recipients to use debugEmail only
+            if (IsDevEnvironment())
+            {
+                forwardRecipients = new[] { debugEmail };
+                CommonUtilities.Logger?.Information("DEVELOPMENT MODE: Emails will be sent to {DebugEmail} instead of production recipients", debugEmail);
+            }
 
             CommonUtilities.Logger?.Information("Starting vote collection processing");
             CommonUtilities.Logger?.Debug("Folder path: {DirPath}", dirPath);
@@ -85,7 +95,8 @@ namespace AddSuppVoteCollection
                             CommonUtilities.Logger?.Debug("Forwarded vote to OGA staff");
 
                             itemsProcessed++;
-                            Program.WriteLog($"Processed: {mailItem.SenderName}; {subject}", null, DateTime.Now, logDir);
+                            CommonUtilities.Logger?.Information("Processed vote from {Sender}: {Subject}", 
+                                (string)mailItem.SenderName, subject);
 
                             // Archive the original email
                             mailItem.Move(oldFolder);
@@ -96,7 +107,6 @@ namespace AddSuppVoteCollection
                 catch (Exception ex)
                 {
                     CommonUtilities.Logger?.Error(ex, "Error processing item {ItemNumber}", currentItem);
-                    Program.WriteLog($"Error processing item {currentItem}", ex.Message, DateTime.Now, logDir);
                 }
                 currentItem--;
             }
@@ -122,6 +132,20 @@ namespace AddSuppVoteCollection
                 }
             }
             return folder;
+        }
+
+        /// <summary>
+        /// Checks if the current environment is a development environment.
+        /// Looks for ASPNETCORE_ENVIRONMENT or DOTNET_ENVIRONMENT variables set to "Development".
+        /// </summary>
+        /// <returns>True if running in development environment, false otherwise</returns>
+        private bool IsDevEnvironment()
+        {
+            string aspNetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string dotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+
+            return string.Equals(aspNetEnv, "Development", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(dotNetEnv, "Development", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

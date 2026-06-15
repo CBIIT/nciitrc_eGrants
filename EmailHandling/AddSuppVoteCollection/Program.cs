@@ -37,10 +37,15 @@ namespace AddSuppVoteCollection
     /// - Structured parameters for filtering (VoteType, Sender, Subject, etc.)
     /// - 31-day log retention
     /// 
+    /// CONFIGURATION:
+    /// Uses shared appsettings.json with environment-specific overrides.
+    /// Set DOTNET_ENVIRONMENT=Development for local dev.
+    /// Defaults to Production if not set.
+    /// 
     /// DEPENDENCIES:
-    /// - CommonUtilties project (for Serilog logging)
+    /// - CommonUtilties project (for Serilog logging and AppConfig)
     /// - Microsoft Outlook (COM Interop) - must be installed and configured
-    /// - appsettings.json with AppSettings and FolderPaths sections
+    /// - appsettings.json with AppSettings, FolderPaths, and VoteCollection sections
     /// 
     /// SCHEDULED TASK:
     /// Typically run as a Windows Scheduled Task to collect voting responses.
@@ -62,41 +67,42 @@ namespace AddSuppVoteCollection
             try
             {
 #if DEBUG
-                // Load credentials from shared secrets file in the solution root (not committed to source control)
-                CommonUtilities.LoadLocalSecrets(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "secrets.local.csv"));
+                Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
 #endif
 
                 var startTimeStamp = DateTime.Now;
                 Console.WriteLine($"{ApplicationName} - Vote Collection Processor");
 
-                // Build configuration from appsettings.json files
-                var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: false)
-                    .AddEnvironmentVariables()
-                    .Build();
+                // Diagnostic: Check what environment variable is set
+                var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+                Console.WriteLine($"DOTNET_ENVIRONMENT: {dotnetEnv ?? "(not set)"}");
 
-                // Load configuration values from appsettings
-                var verbose = configuration["AppSettings:Verbose"] ?? "n";
-                var logDir = configuration["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
+                // Load configuration from shared appsettings.json (via CommonUtilties.AppConfig)
+                // If DOTNET_ENVIRONMENT=Development, this will also load appsettings.Development.json
+                var config = AppConfig.Load();
 
-                // Expand environment variables in config values
-                logDir = Environment.ExpandEnvironmentVariables(logDir);
+                var verbose = config["AppSettings:Verbose"] ?? "n";
+                var logDir = config["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
+                var dirPath = config["FolderPaths:dirpathVoteCollection"] ?? "";
 
-                // Initialize Serilog logging - creates daily rolling log files
+                // Initialize Serilog logging
                 CommonUtilities.InitializeLogging(ApplicationName, logDir);
                 CommonUtilities.Logger.Information("=== {ApplicationName} Started ===", ApplicationName);
-                CommonUtilities.Logger.Information("Start Time: {StartTime}", startTimeStamp);
-                CommonUtilities.Logger.Information("Environment: {Environment}", environment);
+                CommonUtilities.Logger.Information("DOTNET_ENVIRONMENT: {DotnetEnv}", dotnetEnv ?? "(not set)");
+                CommonUtilities.Logger.Information("Resolved Environment: {Environment}", dotnetEnv ?? "Production");
 
-                // dirpathVoteCollection: Outlook folder path where voting responses arrive
-                var dirPath = configuration["FolderPaths:dirpathVoteCollection"];
-                CommonUtilities.Logger.Debug("Using folder path: {FolderPath}", dirPath);
+                // Log which config files were loaded
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var envConfigFile = Path.Combine(baseDir, $"appsettings.{dotnetEnv ?? "Production"}.json");
+                CommonUtilities.Logger.Information("Base config file: appsettings.json");
+                CommonUtilities.Logger.Information("Environment config file: appsettings.{Environment}.json (exists: {Exists})", 
+                    dotnetEnv ?? "Production", File.Exists(envConfigFile));
+
+                CommonUtilities.Logger.Information("Start Time: {StartTime}", startTimeStamp);
+                CommonUtilities.Logger.Debug("Folder path: {FolderPath}", dirPath);
 
                 var processor = new Processor();
-                var itemsProcessed = processor.Process(dirPath, verbose, logDir, configuration);
+                var itemsProcessed = processor.Process(dirPath, verbose, config);
 
                 CommonUtilities.Logger.Information("Task Completed - {ItemCount} votes processed", itemsProcessed);
                 CommonUtilities.Logger.Information("=== {ApplicationName} Finished ===", ApplicationName);
@@ -104,39 +110,15 @@ namespace AddSuppVoteCollection
             catch (Exception ex)
             {
                 // Log fatal errors - Logger may be null if initialization failed
-                CommonUtilities.Logger?.Error(ex, "Fatal error in {ApplicationName}", ApplicationName);
-                Console.WriteLine("Error: " + ex.Message);
+                CommonUtilities.Logger?.Fatal(ex, "Fatal error in {ApplicationName}", ApplicationName);
+                Console.WriteLine($"FATAL ERROR: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                Environment.Exit(1);
             }
             finally
             {
                 // Ensure all logs are flushed before exit
                 CommonUtilities.CloseLogging();
-            }
-        }
-
-        /// <summary>
-        /// Writes a log entry to the daily log file.
-        /// 
-        /// This method logs to both Serilog (if initialized) and the legacy text file
-        /// for backward compatibility. New code should use CommonUtilities.Logger directly.
-        /// 
-        /// Log file naming: Supp-VoteColl-Log-{yyyy-M-d}.txt (legacy format)
-        /// Serilog file: AddSuppVoteCollection-{yyyy-MM-dd}.log
-        /// </summary>
-        /// <param name="message">The main log message</param>
-        /// <param name="errorInfo">Optional error details (appended on new line if provided)</param>
-        /// <param name="timeStamp">Timestamp for the log entry</param>
-        /// <param name="logDir">Directory where log files are stored</param>
-        public static void WriteLog(string message, string errorInfo, DateTime timeStamp, string logDir)
-        {
-            // Use Serilog for structured logging
-            if (string.IsNullOrEmpty(errorInfo))
-            {
-                CommonUtilities.Logger?.Information("{Message}", message);
-            }
-            else
-            {
-                CommonUtilities.Logger?.Error("{Message} - {ErrorInfo}", message, errorInfo);
             }
         }
     }

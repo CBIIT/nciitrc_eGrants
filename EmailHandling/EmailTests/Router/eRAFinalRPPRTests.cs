@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +19,8 @@ namespace EmailHandlingTests
         // But the main capture text is eRA Commons: The Final RPPR - Additional Materials for Award, which wouldn't catch on those emails
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRAFinalRPPRSendToDevEmail()
         {
             // Arrange
@@ -38,6 +40,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRAFinalRPPRSameSubject()
         {
             // Arrange
@@ -57,6 +61,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRAFinalRPPRReSubject()
         {
             // Arrange
@@ -76,6 +82,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRAFinalRPPRFwdSubject()
         {
             // Arrange
@@ -95,6 +103,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void eRAFinalRPPRSameSubjectNegative()
         {
             // Arrange
@@ -115,3 +125,4 @@ namespace EmailHandlingTests
 
     }
 }
+

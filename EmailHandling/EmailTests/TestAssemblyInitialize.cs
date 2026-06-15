@@ -13,24 +13,36 @@ namespace EmailHandlingTests
     {
         /// <summary>
         /// Runs once before any tests in the assembly.
-        /// Loads credentials from secrets.local.csv (not committed to source control).
+        /// Sets default test credentials if environment variables are not already set.
+        /// 
+        /// NOTE: Some tests require actual database access and will fail with test credentials.
+        /// These are integration tests that should be run with valid credentials:
+        /// - Set DB_USER and DB_PASSWORD environment variables for integration tests
+        /// - Or run with filter: --filter "TestCategory!=Integration"
         /// </summary>
         [AssemblyInitialize]
         public static void Initialize(TestContext context)
         {
-            // Try to load secrets from local file (not committed to source control)
-            if (!CommonUtilities.LoadLocalSecrets("secrets.local.csv"))
+            // Check if environment variables are already set
+            var dbUser = Environment.GetEnvironmentVariable("DB_USER");
+            var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+            if (string.IsNullOrEmpty(dbUser))
             {
-                // Fall back to checking if environment variables are already set
-                var dbUser = Environment.GetEnvironmentVariable("EGRANTS_DB_USER");
-                if (string.IsNullOrEmpty(dbUser))
-                {
-                    throw new InvalidOperationException(
-                        "Database credentials not configured.\n" +
-                        "Please either:\n" +
-                        "1. Copy 'secrets.local.csv.template' to 'secrets.local.csv' and fill in credentials, OR\n" +
-                        "2. Set EGRANTS_DB_USER and EGRANTS_DB_PASSWORD environment variables.");
-                }
+                // Set default test credentials for unit tests
+                // Integration tests that need database access will fail with these credentials
+                Console.WriteLine("WARNING: DB_USER not set - using default test credentials");
+                Console.WriteLine("Integration tests requiring database access will fail.");
+                Console.WriteLine("To run integration tests, set environment variables:");
+                Console.WriteLine("  [System.Environment]::SetEnvironmentVariable('DB_USER', 'your_user', 'User')");
+                Console.WriteLine("  [System.Environment]::SetEnvironmentVariable('DB_PASSWORD', 'your_pass', 'User')");
+
+                Environment.SetEnvironmentVariable("DB_USER", "test_user");
+                Environment.SetEnvironmentVariable("DB_PASSWORD", "test_password");
+            }
+            else
+            {
+                Console.WriteLine($"Using configured credentials: DB_USER={dbUser}");
             }
         }
 

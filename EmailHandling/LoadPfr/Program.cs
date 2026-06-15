@@ -64,33 +64,18 @@ namespace LoadPfr
                 Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
 #endif
 
-                // Load credentials from shared secrets file in the solution root (if present)
-                // This file is not committed to source control and contains sensitive data
-                var secretsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "secrets.local.csv");
-                CommonUtilities.LoadLocalSecrets(secretsPath);
-
                 var startTimeStamp = DateTime.Now;
                 Console.WriteLine("LoadPfr - Progress/Final Report Loader");
 
-                // Build configuration from appsettings.json files
-                // The configuration system loads base settings from appsettings.json,
-                // then overlays environment-specific settings from appsettings.{Environment}.json
-                var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: false)
-                    .AddEnvironmentVariables()
-                    .Build();
+                // Load configuration from shared appsettings.json (via CommonUtilties.AppConfig)
+                var config = AppConfig.Load();
 
-                // Load configuration values from appsettings
-                // Environment variables in the format %VARIABLE_NAME% are automatically expanded
-                var verbose = configuration["AppSettings:Verbose"] ?? "n";
-                var logDir = Environment.ExpandEnvironmentVariables(configuration["AppSettings:LogDir"] ?? @"C:\egrants\apps\log\");
-                var conStr = Environment.ExpandEnvironmentVariables(configuration["ConnectionStrings:EIM"]);
-                var docSrcPath = Environment.ExpandEnvironmentVariables(configuration["PfrPaths:DocSrcPath"]);
-                var bakDstPath = Environment.ExpandEnvironmentVariables(configuration["PfrPaths:BakDstPath"]);
-                var finalDstPath = Environment.ExpandEnvironmentVariables(configuration["PfrPaths:FinalDstPath"]);
+                var verbose = config["AppSettings:Verbose"] ?? "n";
+                var logDir = config["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
+                var conStr = AppConfig.GetConnectionString(config, "EIM");
+                var docSrcPath = config["PfrPaths:DocSrcPath"];
+                var bakDstPath = config["PfrPaths:BakDstPath"];
+                var finalDstPath = config["PfrPaths:FinalDstPath"];
 
                 // Set the global log directory for CommonUtilities logging
                 CommonUtilities.LogDir = logDir;
@@ -103,7 +88,7 @@ namespace LoadPfr
                 using (var con = new SqlConnection(conStr))
                 {
                     var processor = new Processor();
-                    var filesProcessed = processor.Process(con, docSrcPath, bakDstPath, finalDstPath, verbose, logDir);
+                    var filesProcessed = processor.Process(con, docSrcPath, bakDstPath, finalDstPath, verbose, logDir, config);
                     WriteLog($"******* Task Completed! ******* {filesProcessed} files processed.", null, DateTime.Now, logDir);
                 }
 

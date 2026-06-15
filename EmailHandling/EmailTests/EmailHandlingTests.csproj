@@ -25,12 +25,4 @@
     <ProjectReference Include="..\LoadSuppPfr\LoadSuppPfr.csproj" />
     <ProjectReference Include="..\StartOutlook\StartOutlook.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="config.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="secrets.local.csv" Condition="Exists('secrets.local.csv')">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 </Project>

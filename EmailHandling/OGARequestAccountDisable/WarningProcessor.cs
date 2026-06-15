@@ -8,6 +8,25 @@ using CommonUtilties;
 namespace OGARequestAccountDisable
 {
     /// <summary>
+    /// Processor for Sending Warning Emails to Users Approaching Account Deactivation
+    /// 
+    /// RESPONSIBILITY:
+    /// Identifies eGrants user accounts approaching the 60-day inactivity threshold (at 46 days)
+    /// and sends individual warning emails to each user notifying them that their account will
+    /// be deactivated if they don't log in.
+    /// 
+    /// PROCESSING LOGIC:
+    /// 1. Queries database for accounts approaching deactivation (46 days inactive)
+    /// 2. Checks people_sent_warning table to see if warning already sent
+    /// 3. For each user not yet warned:
+    ///    - Sends individual warning email
+    ///    - Updates people_sent_warning table
+    /// 4. Handles re-sending warnings if user logs in and then becomes inactive again
+    /// 
+    /// WARNING EMAIL TIMING:
+    /// - First warning: 46 days after last login
+    /// - If user logs in after warning and becomes inactive again: warning resent after 46 days
+    /// 
     /// OUTLOOK INTEGRATION:
     /// Uses late-bound COM automation (dynamic/Activator) to control Outlook.
     /// No Primary Interop Assembly (PIA) or NuGet interop package is required at compile time.
@@ -15,52 +34,81 @@ namespace OGARequestAccountDisable
     /// </summary>
     public class ProcessorWarning
     {
-        private string _userSubject = "Action Required: eGrants Account Deactivation";
+        private readonly EmailSettings _emailSettings;
         private List<string> _lowerTierEmails = new List<string>();
 
-        public int ProcessWarning(string dirPath, SqlConnection con, string verbose, string debug)
+        /// <summary>
+        /// Initializes the warning processor with email configuration settings.
+        /// </summary>
+        /// <param name="emailSettings">Email configuration from appsettings</param>
+        public ProcessorWarning(EmailSettings emailSettings)
         {
-            CommonUtilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
+            _emailSettings = emailSettings ?? throw new ArgumentNullException(nameof(emailSettings));
+        }
+
+        /// <summary>
+        /// Main processing method for sending warning emails to users.
+        /// Connects to Outlook, retrieves accounts needing warnings, and sends individual emails.
+        /// </summary>
+        /// <param name="dirPath">Directory path (currently not used but kept for compatibility)</param>
+        /// <param name="con">SQL connection to the EIM database</param>
+        /// <param name="verbose">Verbose mode flag for diagnostic output</param>
+        /// <returns>Number of warning emails sent to users</returns>
+        public int ProcessWarning(string dirPath, SqlConnection con, string verbose)
+        {
+            CommonUtilities.ShowDiagnosticIfVerbose("Initializing warning email process...", verbose);
 
             // Create Outlook application via late binding (no PIA needed)
             Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
             if (outlookType == null)
                 throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
             dynamic oApp = Activator.CreateInstance(outlookType);
-            CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose("Created the Outlook object.", verbose);
             dynamic oNS = oApp.GetNamespace("MAPI");
             oNS.Logon("", "", false, true);
             CommonUtilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
 
+            // Get accounts that need warning emails
             var usersToSendWarning = GetAccountsForDisabledWarning(con);
-            CommonUtilities.ShowDiagnosticIfVerbose($"Found list of {usersToSendWarning.Count} candidates that need to be sent disabled warning email", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"Found list of {usersToSendWarning.Count} candidate(s) that need to be sent disabled warning email", verbose);
 
+            // Filter out users with missing email addresses
             var usersWhoHaveEmailsToDisable = FilterOutUsersWithMissingInfo(usersToSendWarning);
-            CommonUtilities.ShowDiagnosticIfVerbose($"List contains {usersWhoHaveEmailsToDisable.Count} that we want to proceed with sending email.", verbose);
+            CommonUtilities.ShowDiagnosticIfVerbose($"List contains {usersWhoHaveEmailsToDisable.Count} user(s) to proceed with sending email.", verbose);
 
+            // Send warning emails to each user
             if (usersToSendWarning.Count() > 0)
             {
                 foreach (var user in usersWhoHaveEmailsToDisable)
                 {
+                    // Check if email already sent to this user
                     if (!CheckIfEmailSent(user, con))
                     {
                         var message = CreateEmailBody(user);
-                        SendEmailToUser(message, oApp, debug, user, con);
-                        CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to User.", verbose);
+                        SendEmailToUser(message, oApp, user, con);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Warning email sent to user: {user.UserIdFromDB}", verbose);
                     }
                     else
                     {
-                        CommonUtilities.ShowDiagnosticIfVerbose($"Email already sent to User. Email not sent", verbose);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Warning email already sent to user: {user.UserIdFromDB}. Email not sent.", verbose);
                     }
                 }
             }
             else
             {
-                CommonUtilities.ShowDiagnosticIfVerbose($"No users found to send email", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose($"No users found to send warning email", verbose);
             }
+            
             return usersWhoHaveEmailsToDisable.Count;
         }
 
+        /// <summary>
+        /// Checks if a warning email has already been sent to a user.
+        /// Also handles resetting the sent flag if user logged in after warning and is inactive again.
+        /// </summary>
+        /// <param name="user">User to check</param>
+        /// <param name="con">SQL connection (may be opened/closed within this method)</param>
+        /// <returns>True if email was already sent and shouldn't be sent again, false otherwise</returns>
         private Boolean CheckIfEmailSent(DisabledListItem user, SqlConnection con)
         {
             var queryText = "SELECT psw.email_sent, p.last_login_date " +
@@ -96,6 +144,8 @@ namespace OGARequestAccountDisable
                         }
                         con.Close();
 
+                        // If email was sent (flag=1) AND it's been 46 days since last login,
+                        // reset the flag so warning can be sent again
                         if (warningListItem.sentFlag == 1
                             &&
                             warningListItem.lastLoginDate.AddDays(46)
@@ -108,6 +158,7 @@ namespace OGARequestAccountDisable
                                 var rowsAffected = command2.ExecuteNonQuery();
                                 if (rowsAffected > 0)
                                 {
+                                    // Recursively check again after update
                                     if (CheckIfEmailSent(user, con))
                                     {
                                         return true;
@@ -117,6 +168,8 @@ namespace OGARequestAccountDisable
                             }
                             con.Close();
                         }
+                        
+                        // If no record exists for this user, insert a new one
                         if (count == 0)
                         {
                             con.Open();
@@ -125,6 +178,7 @@ namespace OGARequestAccountDisable
                                 var rowsAffected = command3.ExecuteNonQuery();
                                 if (rowsAffected > 0)
                                 {
+                                    // Recursively check again after insert
                                     if (CheckIfEmailSent(user, con))
                                     {
                                         return true;
@@ -136,16 +190,23 @@ namespace OGARequestAccountDisable
                         }
                     }
                 }
+                // Return true if email already sent (flag != 0), false otherwise
                 return warningListItem.sentFlag != 0 ? true : false;
             }
             catch (System.Exception ex)
             {
                 Console.WriteLine("Query failed.");
-                Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
+                Console.WriteLine($"The query text (without inferred params): '{queryText}'");
                 throw new System.Exception($"Check if email sent failed in database call. Message: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Creates the warning email body for a user.
+        /// Includes notification about 60-day requirement and deadline to log in.
+        /// </summary>
+        /// <param name="user">User receiving the warning</param>
+        /// <returns>HTML formatted email body</returns>
         private string CreateEmailBody(DisabledListItem user)
         {
             var sb = new StringBuilder();
@@ -163,6 +224,12 @@ namespace OGARequestAccountDisable
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Filters out users with missing email addresses.
+        /// Only users with valid email addresses can receive warning emails.
+        /// </summary>
+        /// <param name="usersToSendWarning">Raw list of users from database</param>
+        /// <returns>Filtered list with valid email addresses</returns>
         public static List<DisabledListItem> FilterOutUsersWithMissingInfo(List<DisabledListItem> usersToSendWarning)
         {
             var newFilteredList = new List<DisabledListItem>();
@@ -176,11 +243,17 @@ namespace OGARequestAccountDisable
             return newFilteredList;
         }
 
+        /// <summary>
+        /// Queries the database for accounts that need warning emails.
+        /// Selects active users who haven't logged in for 46+ days.
+        /// </summary>
+        /// <param name="con">SQL connection</param>
+        /// <returns>List of users needing warning emails</returns>
         private static List<DisabledListItem> GetAccountsForDisabledWarning(SqlConnection con)
         {
             var queryText = "select person_id, first_name, last_name, person_name, email, userid, " +
                 "CONVERT(varchar, last_login_date, 101) as last_login_date_tx " +
-                "FROM [dbo].[people]" +
+                "FROM [dbo].[people] " +
                 "where active = 1 and last_login_date < (DATEADD(day, -46, GETDATE()))";
 
             var usersToDisable = new List<DisabledListItem>();
@@ -211,13 +284,23 @@ namespace OGARequestAccountDisable
             catch (System.Exception ex)
             {
                 Console.WriteLine("Query failed.");
-                Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
+                Console.WriteLine($"The query text (without inferred params): '{queryText}'");
                 throw new System.Exception($"Get accounts for disabled warning failed in database call. Message: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Sends warning email to a user via Outlook COM automation.
+        /// Updates the people_sent_warning table to mark email as sent.
+        /// In development mode, sends to debug email instead of actual user.
+        /// </summary>
+        /// <param name="bodyMessage">HTML formatted email body</param>
+        /// <param name="oApp">Outlook Application object (dynamic)</param>
+        /// <param name="user">User receiving the warning</param>
+        /// <param name="con">SQL connection for updating sent status</param>
+        /// <returns>True if email was sent successfully</returns>
         private bool SendEmailToUser(string bodyMessage, dynamic oApp,
-            string debug, DisabledListItem user, SqlConnection con)
+            DisabledListItem user, SqlConnection con)
         {
             var queryText = "update [dbo].[people_sent_warning] " +
              $"set email_sent=1 where person_id = {user.PersonIdFromDB}";
@@ -233,33 +316,46 @@ namespace OGARequestAccountDisable
             catch (System.Exception ex)
             {
                 Console.WriteLine("Query failed.");
-                Console.WriteLine($"The query text (without inferred params) : '{queryText}'");
-                throw new System.Exception($"Update status of people_sent_waring failed in database call. Message: {ex.Message}");
+                Console.WriteLine($"The query text (without inferred params): '{queryText}'");
+                throw new System.Exception($"Update status of people_sent_warning failed in database call. Message: {ex.Message}");
             }
 
-            if (debug == "n")
+            // Create mail item: 0 = olMailItem
+            dynamic mailItem = oApp.CreateItem(0);
+            mailItem.BodyFormat = 2; // olFormatHTML
+            mailItem.HTMLBody = bodyMessage;
+
+            // In development mode, send to debug email instead of actual user
+            if (IsDevEnvironment())
             {
-                // Create mail item: 0 = olMailItem
-                dynamic mailItem = oApp.CreateItem(0);
-                mailItem.Subject = _userSubject;
-                mailItem.To = user.EmailFromDB;
-                mailItem.BodyFormat = 2; // olFormatHTML
-                mailItem.HTMLBody = bodyMessage;
-                mailItem.Send();
+                mailItem.Subject = "[TEST] " + _emailSettings.UserWarningSubject + " for " + user.PersonNameFromDB;
+                mailItem.To = _emailSettings.EGrantsDevEmail;
+                CommonUtilities.Logger?.Information("DEVELOPMENT MODE: Sending warning email to {DebugEmail} instead of {UserEmail}", 
+                    _emailSettings.EGrantsDevEmail, user.EmailFromDB);
             }
+            // In production mode, send to actual user
             else
             {
-                foreach (var email in _lowerTierEmails)
-                {
-                    dynamic mailItem = oApp.CreateItem(0);
-                    mailItem.Subject = "[TEST] " + _userSubject + " for " + user.PersonNameFromDB;
-                    mailItem.To = email;
-                    mailItem.BodyFormat = 2; // olFormatHTML
-                    mailItem.HTMLBody = bodyMessage;
-                    mailItem.Send();
-                }
+                mailItem.Subject = _emailSettings.UserWarningSubject;
+                mailItem.To = user.EmailFromDB;
             }
+
+            mailItem.Send();
             return true;
+        }
+
+        /// <summary>
+        /// Checks if the current environment is a development environment.
+        /// Looks for ASPNETCORE_ENVIRONMENT or DOTNET_ENVIRONMENT variables set to "Development".
+        /// </summary>
+        /// <returns>True if running in development environment, false otherwise</returns>
+        private bool IsDevEnvironment()
+        {
+            string aspNetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string dotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+
+            return string.Equals(aspNetEnv, "Development", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(dotNetEnv, "Development", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Xml;
 using CommonUtilties;
+using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace LoadPfr
 {
@@ -25,6 +27,7 @@ namespace LoadPfr
     ///    - Copies the PDF to the final destination with the assigned file number name
     ///    - Moves both XML and PDF to the backup directory
     /// 3. Logs all operations and errors
+    /// 4. Sends email notifications for successful processing and errors
     /// 
     /// XML STRUCTURE EXPECTED:
     /// &lt;root&gt;
@@ -44,12 +47,22 @@ namespace LoadPfr
     /// ERROR HANDLING:
     /// Individual file processing errors are logged but do not stop the batch.
     /// The processor continues with the next file if one fails.
+    /// 
+    /// EMAIL NOTIFICATIONS:
+    /// - Success: Lists all processed applids
+    /// - Errors: PDF not found, database errors
     /// </summary>
     public class Processor
     {
+        private List<string> _processedApplIds = new List<string>();
+        private bool _emailEnabled = false;
+        private string _toRecipients = "";
+        private string _ccRecipients = "";
+        private string _environment = "";
+
         /// <summary>
         /// Main processing method that orchestrates the entire PFR loading workflow.
-        /// Opens database connection, finds XML files, processes each one, and returns count of files processed.
+        /// Opens database connection, finds XML files, processes each one, sends email notification, and returns count of files processed.
         /// </summary>
         /// <param name="con">SQL connection to the EIM database</param>
         /// <param name="docSrcPath">Source directory containing XML metadata and PDF files</param>
@@ -57,11 +70,19 @@ namespace LoadPfr
         /// <param name="finalDstPath">Final destination directory where PDFs are copied with new names</param>
         /// <param name="verbose">Verbose mode flag ("y" for detailed console output, "n" for minimal output)</param>
         /// <param name="logDir">Directory where log files are written</param>
+        /// <param name="config">Configuration containing email settings</param>
         /// <returns>Number of XML files successfully processed</returns>
-        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir)
+        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             int filesProcessed = 0;
-            
+
+            // Load email settings from configuration
+            _emailEnabled = config["EmailSettings:Enabled"]?.ToLower() == "true";
+            _toRecipients = config["EmailSettings:ToRecipients"] ?? "";
+            _ccRecipients = config["EmailSettings:CcRecipients"] ?? "";
+            _environment = config["EmailSettings:Environment"] ?? "DEV";
+            _processedApplIds.Clear();
+
             // Open database connection for processing
             con.Open();
             CommonUtilities.ShowDiagnosticIfVerbose("Database connection opened", verbose);
@@ -85,7 +106,7 @@ namespace LoadPfr
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($"Processing: {xmlFile.Name}", verbose);
                     Program.WriteLog($"Processing: {xmlFile.FullName}", null, DateTime.Now, logDir);
-                    
+
                     // Process the XML file and its associated PDF
                     ProcessXmlFile(con, xmlFile, docSrcPath, bakDstPath, finalDstPath, verbose, logDir);
                     filesProcessed++;
@@ -100,6 +121,22 @@ namespace LoadPfr
 
             con.Close();
             CommonUtilities.ShowDiagnosticIfVerbose($"Total files processed: {filesProcessed}", verbose);
+
+            // Send email notification if any files were processed
+            if (_emailEnabled && _processedApplIds.Count > 0)
+            {
+                try
+                {
+                    string applList = string.Join("   ", _processedApplIds);
+                    SendEmail($"{_environment}=>>PFR Processed", applList, verbose, logDir);
+                }
+                catch (Exception ex)
+                {
+                    Program.WriteLog("Error sending email notification", ex.Message, DateTime.Now, logDir);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Error sending email: {ex.Message}", verbose);
+                }
+            }
+
             return filesProcessed;
         }
 
@@ -181,8 +218,22 @@ namespace LoadPfr
                 string pdfSrc = Path.Combine(docSrcPath, fileName);
                 if (!File.Exists(pdfSrc))
                 {
+                    string errorMsg = $"PDF NOT FOUND: {pdfSrc}";
                     CommonUtilities.ShowDiagnosticIfVerbose($"Source file not found: {pdfSrc}", verbose);
                     Program.WriteLog($"Source file not found: {pdfSrc}", null, DateTime.Now, logDir);
+
+                    // Send email notification about missing PDF
+                    if (_emailEnabled)
+                    {
+                        try
+                        {
+                            SendEmail("ERROR=> PDF NOT FOUND", $"PDF SOURCE={pdfSrc}", verbose, logDir);
+                        }
+                        catch (Exception emailEx)
+                        {
+                            Program.WriteLog("Error sending PDF not found email", emailEx.Message, DateTime.Now, logDir);
+                        }
+                    }
                     continue;
                 }
 
@@ -213,25 +264,58 @@ namespace LoadPfr
                                 // Create new filename using the file number and extension
                                 string alias = $"{fileNumberName}.{fileType}";
                                 string destPath = Path.Combine(finalDstPath, alias);
-                                
+
                                 // Ensure destination directory exists
                                 Directory.CreateDirectory(finalDstPath);
-                                
+
                                 // Copy PDF to final destination with new name
                                 File.Copy(pdfSrc, destPath, true);
                                 Program.WriteLog($"Copied to: {alias} (CatName: {catName})", null, DateTime.Now, logDir);
                                 CommonUtilities.ShowDiagnosticIfVerbose($"Copied to: {destPath}", verbose);
+
+                                // Track successfully processed applid for email notification
+                                _processedApplIds.Add(applId);
                             }
                             else
                             {
-                                CommonUtilities.ShowDiagnosticIfVerbose("No file number name returned from stored procedure", verbose);
-                                Program.WriteLog("No file number name returned from stored procedure", null, DateTime.Now, logDir);
+                                string errorMsg = "No file number name returned from stored procedure";
+                                CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
+                                Program.WriteLog(errorMsg, null, DateTime.Now, logDir);
+
+                                // Send email notification about database error
+                                if (_emailEnabled)
+                                {
+                                    try
+                                    {
+                                        SendEmail($"{_environment}=>> ERROR: Could not create PFR in DB using Create_PFR", 
+                                                 $"Could not create PFR in DB using Create_PFR for ApplID: {applId}", verbose, logDir);
+                                    }
+                                    catch (Exception emailEx)
+                                    {
+                                        Program.WriteLog("Error sending DB error email", emailEx.Message, DateTime.Now, logDir);
+                                    }
+                                }
                             }
                         }
                         else
                         {
-                            CommonUtilities.ShowDiagnosticIfVerbose("Stored procedure returned no results", verbose);
-                            Program.WriteLog("Stored procedure returned no results", null, DateTime.Now, logDir);
+                            string errorMsg = "Stored procedure returned no results";
+                            CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
+                            Program.WriteLog(errorMsg, null, DateTime.Now, logDir);
+
+                            // Send email notification about database error (no data returned)
+                            if (_emailEnabled)
+                            {
+                                try
+                                {
+                                    SendEmail($"{_environment}=>> ERROR: Could not create PFR in DB using Create_PFR", 
+                                             $"Could not create PFR in DB using Create_PFR for ApplID: {applId} - No data returned", verbose, logDir);
+                                }
+                                catch (Exception emailEx)
+                                {
+                                    Program.WriteLog("Error sending DB error email", emailEx.Message, DateTime.Now, logDir);
+                                }
+                            }
                         }
                     }
                 }
@@ -259,6 +343,42 @@ namespace LoadPfr
                     CommonUtilities.ShowDiagnosticIfVerbose($"Error moving files to backup: {ex.Message}", verbose);
                     Program.WriteLog($"Error moving files to backup for {fileName}", ex.Message, DateTime.Now, logDir);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Sends an email notification via Outlook COM automation.
+        /// Matches the VBScript emailme() function behavior.
+        /// </summary>
+        /// <param name="subject">Email subject line</param>
+        /// <param name="body">Email body content</param>
+        /// <param name="verbose">Verbose mode for diagnostic output</param>
+        /// <param name="logDir">Log directory for error logging</param>
+        private void SendEmail(string subject, string body, string verbose, string logDir)
+        {
+            try
+            {
+                CommonUtilities.ShowDiagnosticIfVerbose($"Sending email: {subject}", verbose);
+
+                Outlook.Application outlookApp = new Outlook.Application();
+                Outlook.MailItem mailItem = (Outlook.MailItem)outlookApp.CreateItem(Outlook.OlItemType.olMailItem);
+
+                mailItem.To = _toRecipients;
+                mailItem.CC = _ccRecipients;
+                mailItem.Subject = subject;
+                mailItem.BodyFormat = Outlook.OlBodyFormat.olFormatHTML;
+                mailItem.HTMLBody = body;
+                mailItem.Send();
+
+                Program.WriteLog($"Email sent: {subject}", null, DateTime.Now, logDir);
+                CommonUtilities.ShowDiagnosticIfVerbose("Email sent successfully", verbose);
+            }
+            catch (Exception ex)
+            {
+                string errorMsg = $"Failed to send email: {ex.Message}";
+                CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
+                Program.WriteLog("Email send failed", ex.Message, DateTime.Now, logDir);
+                throw; // Re-throw to let caller handle
             }
         }
     }

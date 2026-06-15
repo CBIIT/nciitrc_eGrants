@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,8 @@ namespace EmailHandlingTests
         // MLH : Note I haven't seen any emails with a subject that capture on this
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ClinicalTrialDotGovRequiredSendToDevEmail()
         {
             // Arrange
@@ -37,6 +39,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ClinicalTrialDotGovRequiredLastFourDigits()
         {
             // Arrange
@@ -57,6 +61,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ClinicalTrialDotGovRequiredApplId()
         {
             // Arrange
@@ -77,6 +83,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ClinicalTrialDotGovRequiredCheckedSubject()
         {
             // Arrange
@@ -98,6 +106,9 @@ namespace EmailHandlingTests
 
 
         [TestMethod]
+
+
+        [TestCategory("Integration")]
         public void ClinicalTrialDotGovRequiredSameSubjectNegative()
         {
             // Arrange
@@ -118,3 +129,4 @@ namespace EmailHandlingTests
 
     }
 }
+

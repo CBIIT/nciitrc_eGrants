@@ -20,31 +20,17 @@ namespace DocManEmail
                 Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
 #endif
 
-                // Load credentials from shared secrets file in the solution root (if present)
-                var secretsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "secrets.local.csv");
-                CommonUtilities.LoadLocalSecrets(secretsPath);
-
                 var startTimeStamp = DateTime.Now;
                 Console.WriteLine("DocManEmail - Document Management Email Processor");
 
-                // Build configuration from appsettings.json files
-                var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: false)
-                    .AddEnvironmentVariables()
-                    .Build();
+                // Load configuration from shared appsettings.json (via CommonUtilties.AppConfig)
+                var config = AppConfig.Load();
 
-                // Load configuration values from appsettings
-                var verbose = configuration["AppSettings:Verbose"] ?? "n";
-                var logDir = configuration["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
-                var conStr = Environment.ExpandEnvironmentVariables(configuration["ConnectionStrings:DocMan"]);
-                var dirPath = configuration["FolderPaths:dirpathDocMan"];
-                var outDir = configuration["DocMan:OutDir"] ?? @"C:\egrants\watch\out\docman\";
-
-                // Expand environment variables in config values
-                logDir = Environment.ExpandEnvironmentVariables(logDir);
+                var verbose = config["AppSettings:Verbose"] ?? "n";
+                var logDir = config["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
+                var conStr = AppConfig.GetConnectionString(config, "DocMan");
+                var dirPath = config["FolderPaths:dirpathDocMan"];
+                var outDir = config["DocMan:OutDir"] ?? @"C:\egrants\watch\out\docman\";
 
                 CommonUtilities.LogDir = logDir;
 

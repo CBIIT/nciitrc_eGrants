@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,8 @@ namespace EmailHandlingTests
         // MLH : I've never found any actual emails that would meet this criteria, so update if you find such an email
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ExpiringFundsSendToDevEmail()
         {
             // Arrange
@@ -37,6 +39,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ExpiringFundsSubject()
         {
             // Arrange
@@ -56,6 +60,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ExpiringFundsSubjectAlt()
         {
             // Arrange
@@ -75,6 +81,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void ExpiringFundsSubjectTestNegative()
         {
             // Arrange
@@ -95,3 +103,4 @@ namespace EmailHandlingTests
 
     }
 }
+

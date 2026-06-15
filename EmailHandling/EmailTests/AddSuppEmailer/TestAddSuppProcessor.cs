@@ -52,7 +52,7 @@ namespace EmailHandlingTests.AddSuppEmailer
         /// Uses late-bound COM (dynamic) to match the base class signature.
         /// </summary>
         protected override void ProcessNotification(SqlConnection con, dynamic outlookApp,
-            int notifId, string verbose, string logDir, string debug, ref int suppMailsSent)
+            int notifId, string verbose, string logDir, string debugEmail, ref int suppMailsSent)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace EmailHandlingTests.AddSuppEmailer
             {
                 int mailsSent = 0;
                 // Pass null for outlookApp since we override ProcessNotification and don't use it
-                ProcessNotification(null, null, notifId, verbose, "", "y", ref mailsSent);
+                ProcessNotification(null, null, notifId, verbose, "", "test@nih.gov", ref mailsSent);
 
                 return EmailsSentThisSession.Count > 0
                     ? EmailsSentThisSession[EmailsSentThisSession.Count - 1]

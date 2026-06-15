@@ -61,8 +61,16 @@ namespace EGrantsAcmAuditReport
                     DateTime runDate = file.LastWriteTime;
                     string fileUrl = $"/data/funded/egrantsadmin/auditreport/{fileName}";
 
-                    string sql = $"INSERT INTO dbo.egrants_audit_report (Report_name, File_name, Run_date, url) VALUES('{ReportName}', '{fileName}', '{runDate:yyyy-MM-dd HH:mm:ss}', '{fileUrl}')";
-                    using (var cmd = new SqlCommand(sql, con)) cmd.ExecuteNonQuery();
+                    // Use parameterized query to prevent SQL injection
+                    string sql = "INSERT INTO dbo.egrants_audit_report (Report_name, File_name, Run_date, url) VALUES(@ReportName, @FileName, @RunDate, @Url)";
+                    using (var cmd = new SqlCommand(sql, con))
+                    {
+                        cmd.Parameters.AddWithValue("@ReportName", ReportName);
+                        cmd.Parameters.AddWithValue("@FileName", fileName);
+                        cmd.Parameters.AddWithValue("@RunDate", runDate);
+                        cmd.Parameters.AddWithValue("@Url", fileUrl);
+                        cmd.ExecuteNonQuery();
+                    }
 
                     try { File.Copy(file.FullName, Path.Combine(bckDir, fileName), true); } catch { }
                     // Copy to primary web server share (serves files to eGrants users via web URL)

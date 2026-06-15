@@ -358,5 +358,255 @@ namespace EmailHandlingTests.AddSuppEmailer
         }
 
         #endregion
+
+        #region Scenario-Based Tests
+
+        /// <summary>
+        /// Scenario: Processing notification for single PI.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_SinglePI_EmailCreatedCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            testProcessor.SimulatedRecipients = "pi.researcher@university.edu";
+            testProcessor.SimulatedSubject = "Administrative Supplement Notification - Grant 5R01CA123456-03";
+            testProcessor.SimulatedBody = "<html><body><p>Your grant has been approved for a supplement.</p></body></html>";
+
+            // Act
+            var result = testProcessor.TestProcessSingleNotification(12345);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("pi.researcher@university.edu", result.To);
+            Assert.IsTrue(result.Subject.Contains("Administrative Supplement"));
+            Assert.IsTrue(result.Body.Contains("approved for a supplement"));
+            Assert.AreEqual("Accepted;Rejected", result.VotingOptions);
+            Assert.AreEqual("High", result.Importance);
+        }
+
+        /// <summary>
+        /// Scenario: Processing notification with multiple stakeholders.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_MultipleStakeholders_AllRecipientsIncluded()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            testProcessor.SimulatedRecipients = "pi@university.edu;admin@university.edu;grants@university.edu";
+            testProcessor.SimulatedSubject = "Diversity Supplement Opportunity";
+
+            // Act
+            var result = testProcessor.TestProcessSingleNotification(54321);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.To.Contains("pi@university.edu"));
+            Assert.IsTrue(result.To.Contains("admin@university.edu"));
+            Assert.IsTrue(result.To.Contains("grants@university.edu"));
+        }
+
+        /// <summary>
+        /// Scenario: Batch processing of multiple notifications.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_BatchProcessing_AllNotificationsProcessed()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            testProcessor.SimulatedRecipients = "test@nih.gov";
+
+            // Act
+            testProcessor.TestProcessSingleNotification(100);
+            testProcessor.TestProcessSingleNotification(200);
+            testProcessor.TestProcessSingleNotification(300);
+            testProcessor.TestProcessSingleNotification(400);
+            testProcessor.TestProcessSingleNotification(500);
+
+            // Assert
+            Assert.AreEqual(5, testProcessor.NotificationsProcessed);
+            Assert.AreEqual(5, testProcessor.EmailsSentThisSession.Count);
+
+            // Verify each notification was tracked
+            Assert.IsTrue(testProcessor.EmailsSentThisSession[0].Body.Contains("100"));
+            Assert.IsTrue(testProcessor.EmailsSentThisSession[1].Body.Contains("200"));
+            Assert.IsTrue(testProcessor.EmailsSentThisSession[2].Body.Contains("300"));
+            Assert.IsTrue(testProcessor.EmailsSentThisSession[3].Body.Contains("400"));
+            Assert.IsTrue(testProcessor.EmailsSentThisSession[4].Body.Contains("500"));
+        }
+
+        /// <summary>
+        /// Scenario: Processing notification with HTML-formatted body.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_HtmlFormattedBody_PreservesFormatting()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            testProcessor.SimulatedRecipients = "test@nih.gov";
+            testProcessor.SimulatedBody = @"
+                <html>
+                <head><title>Supplement Notification</title></head>
+                <body>
+                    <h1>Administrative Supplement Approved</h1>
+                    <p>Grant: <strong>5R01CA123456-03</strong></p>
+                    <ul>
+                        <li>Amount: $50,000</li>
+                        <li>Duration: 12 months</li>
+                    </ul>
+                </body>
+                </html>";
+
+            // Act
+            var result = testProcessor.TestProcessSingleNotification(12345);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("HTML", result.BodyFormat);
+            Assert.IsTrue(result.Body.Contains("<h1>"));
+            Assert.IsTrue(result.Body.Contains("<strong>"));
+            Assert.IsTrue(result.Body.Contains("<li>"));
+        }
+
+        /// <summary>
+        /// Scenario: Processing notification for diversity supplement.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_DiversitySupplement_CorrectSubjectAndBody()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            testProcessor.SimulatedRecipients = "pi@university.edu";
+            testProcessor.SimulatedSubject = "Diversity Supplement Opportunity - Grant 2R01CA987654-04";
+            testProcessor.SimulatedBody = "<html><body><p>We are pleased to inform you about a diversity supplement opportunity.</p></body></html>";
+
+            // Act
+            var result = testProcessor.TestProcessSingleNotification(67890);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Subject.Contains("Diversity Supplement"));
+            Assert.IsTrue(result.Body.Contains("diversity supplement opportunity"));
+            Assert.AreEqual("Accepted;Rejected", result.VotingOptions);
+        }
+
+        /// <summary>
+        /// Scenario: Processing notification requiring urgent response.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_UrgentNotification_MarkedHighImportance()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            testProcessor.SimulatedRecipients = "urgent@university.edu";
+            testProcessor.SimulatedSubject = "URGENT: Response Required - Administrative Supplement";
+
+            // Act
+            var result = testProcessor.TestProcessSingleNotification(11111);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("High", result.Importance, "Urgent notifications should always be high importance");
+            Assert.IsTrue(result.Subject.Contains("URGENT"));
+        }
+
+        /// <summary>
+        /// Scenario: Processing after system restart (state reset).
+        /// </summary>
+        [TestMethod]
+        public void Scenario_AfterSystemRestart_ProcessesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            testProcessor.SimulatedRecipients = "test@nih.gov";
+
+            // Simulate some processing
+            testProcessor.TestProcessSingleNotification(100);
+            testProcessor.TestProcessSingleNotification(200);
+
+            // Simulate system restart (reset)
+            testProcessor.Reset();
+
+            // Act - Process new notifications after restart
+            testProcessor.TestProcessSingleNotification(300);
+            testProcessor.TestProcessSingleNotification(400);
+
+            // Assert
+            Assert.AreEqual(2, testProcessor.NotificationsProcessed, "Should start fresh after reset");
+            Assert.AreEqual(2, testProcessor.EmailsSentThisSession.Count);
+            Assert.IsTrue(testProcessor.EmailsSentThisSession[0].Body.Contains("300"));
+            Assert.IsTrue(testProcessor.EmailsSentThisSession[1].Body.Contains("400"));
+        }
+
+        /// <summary>
+        /// Scenario: Processing notification with international characters.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_InternationalCharacters_PreservesContent()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            testProcessor.SimulatedRecipients = "josé.garcía@universidad.edu";
+            testProcessor.SimulatedSubject = "Suplemento Administrativo - Subvención";
+            testProcessor.SimulatedBody = "<html><body><p>Notificación: Café & Résumé</p></body></html>";
+
+            // Act
+            var result = testProcessor.TestProcessSingleNotification(12345);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.To.Contains("josé.garcía"));
+            Assert.IsTrue(result.Subject.Contains("Suplemento"));
+            Assert.IsTrue(result.Body.Contains("Café"));
+            Assert.IsTrue(result.Body.Contains("Résumé"));
+        }
+
+        /// <summary>
+        /// Scenario: Processing with very long recipient list.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_LongRecipientList_HandlesCorrectly()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            var recipients = new System.Text.StringBuilder();
+            for (int i = 1; i <= 20; i++)
+            {
+                if (i > 1) recipients.Append(";");
+                recipients.Append($"user{i}@university.edu");
+            }
+            testProcessor.SimulatedRecipients = recipients.ToString();
+
+            // Act
+            var result = testProcessor.TestProcessSingleNotification(12345);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.To.Contains("user1@university.edu"));
+            Assert.IsTrue(result.To.Contains("user10@university.edu"));
+            Assert.IsTrue(result.To.Contains("user20@university.edu"));
+        }
+
+        /// <summary>
+        /// Scenario: Processing notification with embedded notification ID.
+        /// </summary>
+        [TestMethod]
+        public void Scenario_EmbeddedNotificationId_PreservesInBody()
+        {
+            // Arrange
+            var testProcessor = new TestAddSuppProcessor();
+            int notifId = 88888;
+            testProcessor.SimulatedRecipients = "test@nih.gov";
+            testProcessor.SimulatedBody = $"<html><body><p>Please reference Notification Id={notifId} in your response.</p></body></html>";
+
+            // Act
+            var result = testProcessor.TestProcessSingleNotification(notifId);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Body.Contains($"Notification Id={notifId}"));
+        }
+
+        #endregion
     }
 }

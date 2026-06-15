@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +16,8 @@ namespace EmailHandlingTests
         //private string _josniEmail = "jonesni@mail.nih.gov";
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FCOISendToDevEmail()
         {
             // Arrange
@@ -35,6 +37,8 @@ namespace EmailHandlingTests
         }
 
         [TestMethod]
+
+        [TestCategory("Integration")]
         public void FCOIAutoReplySubject()
         {
             // Arrange
@@ -55,6 +59,9 @@ namespace EmailHandlingTests
 
 
         [TestMethod]
+
+
+        [TestCategory("Integration")]
         public void FCOISameSubjectNegative()
         {
             // Arrange
@@ -75,3 +82,4 @@ namespace EmailHandlingTests
 
     }
 }
+

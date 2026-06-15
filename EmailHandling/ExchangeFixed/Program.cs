@@ -60,30 +60,23 @@ namespace ExchangeFixed
                 Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
 #endif
 
-                // Load credentials from shared secrets file in the solution root (if present)
-                var secretsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "secrets.local.csv");
-                CommonUtilities.LoadLocalSecrets(secretsPath);
-
                 var startTimeStamp = DateTime.Now;
                 Console.WriteLine("ExchangeFixed - Fixed Path Email Router");
 
-                // Build configuration from appsettings.json files
-                var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: false)
-                    .AddEnvironmentVariables()
-                    .Build();
+                // Diagnostic: Check what environment variable is set
+                var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+                Console.WriteLine($"DOTNET_ENVIRONMENT: {dotnetEnv ?? "(not set)"}");
 
-                // Load configuration values from appsettings
-                var verbose = configuration["AppSettings:Verbose"] ?? "n";
-                var logDir = Environment.ExpandEnvironmentVariables(configuration["AppSettings:LogDir"] ?? @"C:\egrants\apps\log\");
-                var conStr = Environment.ExpandEnvironmentVariables(configuration["ConnectionStrings:EIM"]);
-                var dirPath = configuration["FolderPaths:dirpathFixed"];
-                var outDir = configuration["AppSettings:OutDir"] ?? @"C:\eGrants\watch\out\";
-                var publicAccessBackup = configuration["AppSettings:PublicAccessBackup"] ?? @"C:\eGrants\publicaccess\";
-                var adminRecipients = configuration["AppSettings:AdminRecipients"];
+                // Load configuration from shared appsettings.json (via CommonUtilties.AppConfig)
+                var config = AppConfig.Load();
+
+                var verbose = config["AppSettings:Verbose"] ?? "n";
+                var logDir = config["AppSettings:LogDir"] ?? @"C:\egrants\apps\log\";
+                var conStr = AppConfig.GetConnectionString(config, "EIM");
+                var dirPath = config["FolderPaths:dirpathFixed"];
+                var outDir = config["AppSettings:OutDir"] ?? @"C:\eGrants\watch\out\";
+                var publicAccessBackup = config["AppSettings:PublicAccessBackup"] ?? @"C:\eGrants\publicaccess\";
+                var adminRecipients = config["AppSettings:AdminRecipients"];
 
                 CommonUtilities.LogDir = logDir;
 
