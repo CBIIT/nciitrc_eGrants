@@ -1,5 +1,7 @@
 # DocManEmail
 
+> **?? DEPRECATED:** This job is no longer running in production and is **excluded from the Task Scheduler migration**. This code is retained for reference only.
+
 Document Management email processor that monitors Outlook folders for document submission emails and processes them into the eGrants document management system.
 
 ## Overview

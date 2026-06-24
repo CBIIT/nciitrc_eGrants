@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Router": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

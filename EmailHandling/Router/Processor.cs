@@ -1,10 +1,10 @@
-﻿using Microsoft.Office.Interop.Outlook;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Runtime.InteropServices;
 using System.Threading;
 using CommonUtilties;
-using Outlook = Microsoft.Office.Interop.Outlook;
+using Microsoft.Extensions.Configuration;
 
 namespace Router
 {
@@ -15,9 +15,12 @@ namespace Router
         // Used by tests
         public Dictionary<string, string> emailsSentThisSession { get; private set; }
 
-        public Processor()
+        private IConfiguration _config;
+
+        public Processor(IConfiguration config = null)
         {
             emailsSentThisSession = new Dictionary<string, string>();
+            _config = config;
         }
 
         public int Process(string dirPath, SqlConnection con, string verbose, string debug, int routingBreakDuration)
@@ -26,9 +29,18 @@ namespace Router
             emailsSentThisSession.Clear();
 
             CommonUtilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
-            Outlook.Application oApp = new Outlook.Application();
+
+            // Connect to existing Outlook instance via late-bound COM (matches AddSuppEmailer pattern)
+            Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
+            if (outlookType == null)
+            {
+                throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
+            }
+
+            dynamic oApp = GetRunningOutlook() ?? Activator.CreateInstance(outlookType);
             CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", verbose);
-            Outlook.NameSpace oNS = oApp.GetNamespace("MAPI");
+
+            dynamic oNS = oApp.GetNamespace("MAPI");
             oNS.Logon("", "", false, true);
             CommonUtilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
 
@@ -42,10 +54,11 @@ namespace Router
             //Parse inputstr and Navigate to the folder
             if (!string.IsNullOrWhiteSpace(dirPath))
             {
-                var dirs = dirPath.Split(sepchar);
+                string[] dirs = dirPath.Split(new char[] { sepchar }, StringSplitOptions.RemoveEmptyEntries);
+
                 CommonUtilities.ShowDiagnosticIfVerbose($"Setting objNS.Folders to {dirs[0]}", verbose);
 
-                Outlook.MAPIFolder currentFolder = oNS.Folders[dirs[0]];
+                dynamic currentFolder = oNS.Folders[dirs[0]];
                 bool first = true;
                 foreach (var dir in dirs)
                 {
@@ -58,20 +71,28 @@ namespace Router
                 }
                 CommonUtilities.ShowDiagnosticIfVerbose("Finished stepping through CFolder xarray", verbose);
 
-                Outlook.MAPIFolder oldFolder = currentFolder.Folders["Old emails"];
+                dynamic oldFolder = currentFolder.Folders["Old emails"];
 
                 CommonUtilities.ShowDiagnosticIfVerbose("went to Old emails", verbose);
                 CommonUtilities.ShowDiagnosticIfVerbose($"Mail count={currentFolder.Items.Count}", verbose);
 
                 var itemCount = currentFolder.Items.Count;      // itmscncnt
-                List<MailItem> eachEmailToProcess = new List<MailItem>();
+                List<dynamic> eachEmailToProcess = new List<dynamic>();
                 foreach (object item in currentFolder.Items)     // fails here
                 {
-                    Outlook.MailItem mailItem = item as Outlook.MailItem;
-                    if (mailItem != null)
-                        eachEmailToProcess.Add(mailItem);
-                    else
+                    // Check if item is a MailItem (Class == 43 is olMail)
+                    try
+                    {
+                        dynamic dynItem = item;
+                        if ((int)dynItem.Class == 43) // olMail
+                            eachEmailToProcess.Add(dynItem);
+                        else
+                            CommonUtilities.ShowDiagnosticIfVerbose($"skipping a non mail item ...", verbose);
+                    }
+                    catch
+                    {
                         CommonUtilities.ShowDiagnosticIfVerbose($"skipping a non mail item ...", verbose);
+                    }
                 }
                 CommonUtilities.ShowDiagnosticIfVerbose($"staging email list count={eachEmailToProcess.Count}", verbose);
 
@@ -80,7 +101,7 @@ namespace Router
                 foreach (var item in eachEmailToProcess)
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($" ", verbose);
-                    Outlook.MailItem currentItem = item as Outlook.MailItem;
+                    dynamic currentItem = item;
                     CommonUtilities.ShowDiagnosticIfVerbose($"Item : {currentItem.ToString()}", verbose);
 
                     // TODO refactor these variable names
@@ -123,16 +144,17 @@ namespace Router
                     {
                         string message = $"Failed to move an item at {DateTime.UtcNow} UTC. Most likely solution is to restart Outlook (or re-request public file permissions in Outlook). This behavior does not indicate a defect in this software. Written authorization is not required to restart Microsoft Outlook. Here is some info : {ex.Message} \r\n {ex.ToString()}";
                         CommonUtilities.ShowDiagnosticIfVerbose(message, "y");
-                        Outlook.Application oApp2 = new Outlook.Application();
+                        dynamic oApp2 = GetRunningOutlook() ?? Activator.CreateInstance(outlookType);
                         CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", "y");
 
-                        Outlook.MailItem mailItem =
-                            (Outlook.MailItem)oApp2.CreateItem(Outlook.OlItemType.olMailItem);
+                        // CreateItem(0) = olMailItem
+                        dynamic mailItem = oApp2.CreateItem(0);
 
-                        mailItem.Subject = "Failed to move an item to old. Please restart Outlook.";
-                        mailItem.To = "egrantsdevs@mail.nih.gov;leul.ayana@nih.gov";
+                        mailItem.Subject = GetEnvironmentPrefix() + "Failed to move an item to old. Please restart Outlook.";
+                        var errorRecipients = _config?["EmailRecipients:ErrorNotificationRecipients"] ?? "egrantsdevs@mail.nih.gov;leul.ayana@nih.gov";
+                        mailItem.To = errorRecipients;
                         mailItem.HTMLBody = message;
-                        mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
+                        mailItem.BodyFormat = 2; // olFormatHTML
                         mailItem.Send();
                     }
                     Thread.Sleep(routingBreakDuration);
@@ -159,26 +181,42 @@ namespace Router
         /// </summary>
         /// <param name="mailItem"></param>
         /// <returns></returns>
-        protected virtual Dictionary<string, string> Send(MailItem mailItem)
+        protected virtual Dictionary<string, string> Send(dynamic mailItem)
         {
+            var prefix = GetEnvironmentPrefix();
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                mailItem.Subject = prefix + mailItem.Subject;
+            }
+
             mailItem.Send();
 
             return null;
         }
 
-        private static bool EmailMe(string subject, string bodyMessage)
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
         {
-            CommonUtilities.ShowDiagnosticIfVerbose("Issuing email to leul ...", "y");
-            //Outlook.MailItem mailItem = (Outlook.MailItem)
-            //    this.Application.CreateItem(Outlook.OlItemType.olMailItem);
-            //var mailItem = new Outlook.MailItem();
-            Outlook.Application oApp = new Outlook.Application();
-            Outlook.MailItem mailItem =
-                (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            mailItem.Subject = subject;
-            mailItem.To = "leul.ayana@nih.gov";
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
+        }
+
+        private bool EmailMe(string subject, string bodyMessage)
+        {
+            CommonUtilities.ShowDiagnosticIfVerbose("Issuing email to admin ...", "y");
+            dynamic oApp = GetRunningOutlook() ?? Activator.CreateInstance(Type.GetTypeFromProgID("Outlook.Application"));
+            // CreateItem(0) = olMailItem
+            dynamic mailItem = oApp.CreateItem(0);
+            mailItem.Subject = GetEnvironmentPrefix() + subject;
+            var legacyRecipient = _config?["EmailRecipients:LegacyErrorRecipient"] ?? "leul.ayana@nih.gov";
+            mailItem.To = legacyRecipient;
             mailItem.HTMLBody = bodyMessage;
-            mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
+            mailItem.BodyFormat = 2; // olFormatHTML
             mailItem.Send();
 
             return true;
@@ -191,11 +229,12 @@ namespace Router
         }
 
 
-        private string RaiseErrorToAdmin(MailItem currentItem, string errorMessage1, string errorMessage2)
+        private string RaiseErrorToAdmin(dynamic currentItem, string errorMessage1, string errorMessage2)
         {
             var outmail = currentItem.Forward();
-            outmail.Recipients.Add("leul.ayana@nih.gov");
-            outmail.Recipients.Add("leul.ayana@nih.gov");   // NB : original system had this duplicated [sic]
+            var legacyRecipient = _config?["EmailRecipients:LegacyErrorRecipient"] ?? "leul.ayana@nih.gov";
+            outmail.Recipients.Add(legacyRecipient);
+            outmail.Recipients.Add(legacyRecipient);   // NB : original system had this duplicated [sic]
             outmail.Subject = $"{errorMessage1}  >>(Subj: {currentItem.Subject} )";
             Send(outmail);
             return "done";
@@ -211,23 +250,24 @@ namespace Router
         /// <param name="debug"></param>
         public void HandleSingleEmail(string from, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
         {
-            Outlook.Application oApp = new Outlook.Application();
-            var newMail = (MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-            //newMail.SenderEmailAddress = from;    // won't allow setting, try moving this around later
+            dynamic oApp = GetRunningOutlook() ?? Activator.CreateInstance(Type.GetTypeFromProgID("Outlook.Application"));
+            // CreateItem(0) = olMailItem
+            dynamic newMail = oApp.CreateItem(0);
 
             newMail.Subject = v_SubLine;
             newMail.Body = v_Body;
             HandleSingleEmail(newMail, v_SubLine, v_Body, verbose, con, debug);
         }
 
-        public void HandleSingleEmail(MailItem currentItem, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
+        public void HandleSingleEmail(dynamic currentItem, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
         {
-            var _dBugEmail = "leul.ayana@nih.gov";
-            var _eGrantsDevEmail = "eGrantsDev@mail.nih.gov";
-            var _eGrantsTestEmail = "eGrantsTest1@mail.nih.gov";
-            var _eGrantsStageEmail = "eGrantsStage@mail.nih.gov";
-            var _eFileEmail = "efile@mail.nih.gov";
-            var _nciGrantsPostAwardEmail = "NCIGrantsPostAward@nih.gov";
+            // Load email recipients from configuration, with fallback to legacy hardcoded values if config not available
+            var _dBugEmail = _config?["EmailRecipients:DebugEmail"] ?? "leul.ayana@nih.gov";
+            var _eGrantsDevEmail = _config?["EmailRecipients:EGrantsDevEmail"] ?? "eGrantsDev@mail.nih.gov";
+            var _eGrantsTestEmail = _config?["EmailRecipients:EGrantsTestEmail"] ?? "eGrantsTest1@mail.nih.gov";
+            var _eGrantsStageEmail = _config?["EmailRecipients:EGrantsStageEmail"] ?? "eGrantsStage@mail.nih.gov";
+            var _eFileEmail = _config?["EmailRecipients:EFileEmail"] ?? "efile@mail.nih.gov";
+            var _nciGrantsPostAwardEmail = _config?["EmailRecipients:NCIGrantsPostAwardEmail"] ?? "NCIGrantsPostAward@nih.gov";
 
             if (!v_SubLine.ToLower().Contains("undeliverable: "))
             {
@@ -267,10 +307,11 @@ namespace Router
                     var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
-                        //outmail.Recipients.Add("leul.ayana@nih.gov");
-                        outmail2.Recipients.Add("jonesni@mail.nih.gov");
-                        outmail2.Recipients.Add("bakerb@mail.nih.gov");
-                        outmail2.Recipients.Add("edward.mikulich@nih.gov");
+                        var publicAccessRecipients = (_config?["EmailRecipients:PublicAccessComplianceRecipients"] ?? "jonesni@mail.nih.gov;bakerb@mail.nih.gov;edward.mikulich@nih.gov").Split(';');
+                        foreach (var recipient in publicAccessRecipients)
+                        {
+                            outmail2.Recipients.Add(recipient.Trim());
+                        }
                         Send(outmail2);
                     }
                     else
@@ -285,10 +326,11 @@ namespace Router
                     var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
-                        //outmail.Recipients.Add("leul.ayana@nih.gov");
-                        outmail2.Recipients.Add("emily.driskell@nih.gov");
-                        outmail2.Recipients.Add("dvellaj@mail.nih.gov");
-                        outmail2.Recipients.Add("edward.mikulich@nih.gov");
+                        var relinquishingRecipients = (_config?["EmailRecipients:RelinquishingStatementRecipients"] ?? "emily.driskell@nih.gov;dvellaj@mail.nih.gov;edward.mikulich@nih.gov").Split(';');
+                        foreach (var recipient in relinquishingRecipients)
+                        {
+                            outmail2.Recipients.Add(recipient.Trim());
+                        }
                         Send(outmail2);
                     }
                     else
@@ -305,7 +347,8 @@ namespace Router
                     var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail2.Recipients.Add("NCIOGASupplements@mail.nih.gov");
+                        var supplementsEmail = _config?["EmailRecipients:NCIOGASupplementsEmail"] ?? "NCIOGASupplements@mail.nih.gov";
+                        outmail2.Recipients.Add(supplementsEmail);
                         Send(outmail2);
                     }
                     else
@@ -351,7 +394,8 @@ namespace Router
 
                     if (debug == "n")
                     {
-                        outmail2.Recipients.Add("nciogabobteam1@mail.nih.gov");
+                        var bobTeamEmail = _config?["EmailRecipients:NCIOGABOBTeamEmail"] ?? "nciogabobteam1@mail.nih.gov";
+                        outmail2.Recipients.Add(bobTeamEmail);
                         // if they're not equal, send to both
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && !p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
@@ -436,9 +480,11 @@ namespace Router
                     var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.Recipients.Add("dvellaj@mail.nih.gov");
-                        outmail.Recipients.Add("emily.driskell@nih.gov");
-                        outmail.Recipients.Add("edward.mikulich@nih.gov");
+                        var changeOfInstitutionRecipients = (_config?["EmailRecipients:RelinquishingStatementRecipients"] ?? "emily.driskell@nih.gov;dvellaj@mail.nih.gov;edward.mikulich@nih.gov").Split(';');
+                        foreach (var recipient in changeOfInstitutionRecipients)
+                        {
+                            outmail.Recipients.Add(recipient.Trim());
+                        }
                         outmail.Subject = replysubj;
                         Send(outmail);
                     }
@@ -1136,14 +1182,16 @@ namespace Router
             return result;
         }
 
-        public virtual string GetSenderId(Outlook.MailItem currentItem)
+        public virtual string GetSenderId(dynamic currentItem)
         {
             string id = string.Empty;
 
-            if (string.IsNullOrWhiteSpace(currentItem.SenderEmailAddress))
+            string senderEmailAddress = currentItem.SenderEmailAddress;
+            if (string.IsNullOrWhiteSpace(senderEmailAddress))
                 return id;
 
-            if (currentItem.SenderEmailType.Equals("ex", StringComparison.InvariantCultureIgnoreCase))
+            string senderEmailType = currentItem.SenderEmailType;
+            if (senderEmailType.Equals("ex", StringComparison.InvariantCultureIgnoreCase))
             {
                 var objectSender = currentItem.Sender;
                 if (objectSender != null)
@@ -1154,26 +1202,33 @@ namespace Router
                         id = objectExchangeUser.Alias;
                     }
                 }
-
-                // MLH : saw this in the VB script and I don't see GetAlias in the code, interwebs, or outlook APIs
-                //if (string.IsNullOrWhiteSpace(id))
-                //{
-                //    //id = GetAlias(currentItem);
-                //}
-
             }
-            else if (currentItem.SenderEmailType.Equals("smtp", StringComparison.InvariantCultureIgnoreCase))
+            else if (senderEmailType.Equals("smtp", StringComparison.InvariantCultureIgnoreCase))
             {
-                id = currentItem.SenderEmailAddress;
+                id = senderEmailAddress;
             }
 
             return id;
         }
 
+        [DllImport("oleaut32.dll", PreserveSig = false)]
+        private static extern void GetActiveObject(
+            [MarshalAs(UnmanagedType.LPStruct)] Guid clsid,
+            IntPtr reserved,
+            [MarshalAs(UnmanagedType.IUnknown)] out object obj);
 
-
-
-
-
+        private static dynamic GetRunningOutlook()
+        {
+            try
+            {
+                var clsid = new Guid("0006F03A-0000-0000-C000-000000000046"); // Outlook.Application CLSID
+                GetActiveObject(clsid, IntPtr.Zero, out object obj);
+                return obj;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

@@ -5,7 +5,6 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Xml;
 using CommonUtilties;
-using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace LoadSuppPfr
 {
@@ -202,6 +201,27 @@ namespace LoadSuppPfr
 
                 CommonUtilities.ShowDiagnosticIfVerbose($"Creating Supplement PFR for ApplID: {applId}, CatName: {catName}, File: {fileName}", verbose);
 
+                // Validate that the date field is not blank
+                if (string.IsNullOrWhiteSpace(docDt))
+                {
+                    string dateErrorMsg = $"DATE is blank in XML file {xmlFile.Name} for ApplID: {applId}, File: {fileName}";
+                    CommonUtilities.ShowDiagnosticIfVerbose(dateErrorMsg, verbose);
+                    Program.WriteLog(dateErrorMsg, null, DateTime.Now, logDir);
+
+                    if (_emailEnabled)
+                    {
+                        try
+                        {
+                            SendEmail("ERROR=> DATE is blank in XML", dateErrorMsg, verbose, logDir);
+                        }
+                        catch (Exception emailEx)
+                        {
+                            Program.WriteLog("Error sending blank date email", emailEx.Message, DateTime.Now, logDir);
+                        }
+                    }
+                    continue;
+                }
+
                 // Call the getPlaceHolder_new stored procedure to get a file number
                 // This procedure registers the supplement PFR document
                 // Parameters must match VBScript exactly: applid, " ", date, catname, filetype, " ", " ", " "
@@ -226,7 +246,7 @@ namespace LoadSuppPfr
                         if (reader.Read())
                         {
                             // Get the file number returned by the stored procedure
-                            string fileNumberName = reader[0]?.ToString();
+                            string fileNumberName = reader["ABC"]?.ToString();
                             if (!string.IsNullOrEmpty(fileNumberName))
                             {
                                 string pdfSrc = Path.Combine(docSrcPath, fileName);
@@ -327,13 +347,18 @@ namespace LoadSuppPfr
             {
                 CommonUtilities.ShowDiagnosticIfVerbose($"Sending email: {subject}", verbose);
 
-                Outlook.Application outlookApp = new Outlook.Application();
-                Outlook.MailItem mailItem = (Outlook.MailItem)outlookApp.CreateItem(Outlook.OlItemType.olMailItem);
+                Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
+                if (outlookType == null)
+                    throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
+
+                dynamic outlookApp = Activator.CreateInstance(outlookType);
+                // CreateItem(0) = olMailItem
+                dynamic mailItem = outlookApp.CreateItem(0);
 
                 mailItem.To = _toRecipients;
                 mailItem.CC = _ccRecipients;
-                mailItem.Subject = $"{_environment}: {subject}";
-                mailItem.BodyFormat = Outlook.OlBodyFormat.olFormatHTML;
+                mailItem.Subject = GetEnvironmentPrefix() + $"{_environment}: {subject}";
+                mailItem.BodyFormat = 2; // olFormatHTML
                 mailItem.HTMLBody = body;
                 mailItem.Send();
 
@@ -347,6 +372,18 @@ namespace LoadSuppPfr
                 Program.WriteLog("Email send failed", ex.Message, DateTime.Now, logDir);
                 throw; // Re-throw to let caller handle
             }
+        }
+
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
+        {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
         }
     }
 }

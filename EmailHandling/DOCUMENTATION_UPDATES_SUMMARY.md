@@ -74,12 +74,12 @@ All project documentation has been updated to reflect the migration from:
 #### `EmailTests/README.md`
 - ? Updated project list to include all current executables with checkmarks
 - ? Expanded test categories to include Smoke Tests, Process Tests, Logging Tests, Configuration Tests
-- ? Added reference to `ProcessSmokeTests/README.md`
+- ? Added reference to `Process/README.md`
 - ? Updated test configuration to use `%DB_USER%` and `%DB_PASSWORD%` placeholders
 - ? Removed `secrets.test.csv` references
 - ? Added "Environment Variables" section with PowerShell examples
 
-#### `EmailTests/ProcessSmokeTests/README.md`
+#### `EmailTests/Process/README.md`
 - ? Updated environment variable setup to use `DB_USER` and `DB_PASSWORD` instead of `EGRANTS_DB_USER`/`EGRANTS_DB_PASSWORD`
 - ? Added note about smoke tests handling missing credentials gracefully
 - ? Updated expected results to reference `DB_USER`/`DB_PASSWORD` and Outlook availability checks
@@ -181,7 +181,7 @@ When deploying these changes:
 - `SESSION_CHANGES_SUMMARY.md` - Complete session history and code changes
 - `LoadPfr/VBSCRIPT_COVERAGE_ANALYSIS.md` - LoadPfr VBScript parity details
 - `LoadSuppPfr/VBSCRIPT_COVERAGE_ANALYSIS.md` - LoadSuppPfr VBScript parity details
-- `EmailTests/ProcessSmokeTests/SMOKE_TEST_OUTLOOK_SETUP.md` - Outlook setup for smoke tests
+- `EmailTests/Process/SMOKE_TEST_OUTLOOK_SETUP.md` - Outlook setup for smoke tests
 
 ## Summary
 
@@ -194,3 +194,4 @@ When deploying these changes:
 ? **Build successful**  
 
 The documentation now accurately reflects the current codebase and provides clear guidance for configuration, deployment, and testing.
+

@@ -46,19 +46,22 @@ namespace AddSuppEmailer
     /// </summary>
     public class Processor
     {
-        private bool _firstEmailSentInDevMode = false;
 
         /// <summary>
         /// Main processing method that queries for pending notifications and sends emails.
         /// Uses DOTNET_ENVIRONMENT to determine if running in development mode.
-        /// In development mode: sends first email, logs all others.
+        /// In development mode: sends all emails to the debug recipient.
         /// </summary>
         /// <param name="con">SQL Server database connection (will be opened by this method)</param>
         /// <param name="verbose">Verbose mode flag ("y" for diagnostic output)</param>
         /// <param name="logDir">Directory for log files</param>
         /// <param name="debugEmail">Email address to use when in development environment</param>
+        /// <param name="additionalCcRecipients">Additional CC recipients appended to every email</param>
+        /// <param name="errorToRecipients">TO recipients for error notification emails when PD address is missing</param>
+        /// <param name="errorCcRecipients">CC recipients for error notification emails</param>
         /// <returns>Number of emails successfully sent</returns>
-        public int Process(SqlConnection con, string verbose, string logDir, string debugEmail)
+        public int Process(SqlConnection con, string verbose, string logDir, string debugEmail,
+            string additionalCcRecipients, string errorToRecipients, string errorCcRecipients)
         {
             int suppMailsSent = 0;
 
@@ -115,7 +118,8 @@ namespace AddSuppEmailer
             foreach (var notifId in notificationIds)
             {
                 CommonUtilities.Logger?.Debug("Processing notification ID: {NotificationId}", notifId);
-                ProcessNotification(con, outlookApp, notifId, verbose, logDir, debugEmail, ref suppMailsSent);
+                ProcessNotification(con, outlookApp, notifId, verbose, logDir, debugEmail,
+                    additionalCcRecipients, errorToRecipients, errorCcRecipients, ref suppMailsSent);
             }
 
             con.Close();
@@ -126,6 +130,7 @@ namespace AddSuppEmailer
 
         /// <summary>
         /// Processes a single notification - creates and sends the email via Outlook COM late binding.
+        /// If TO recipients are empty, sends an error notification email to admin and marks as 'NtSend'.
         /// 
         /// Outlook constants used:
         /// - CreateItem(0) = olMailItem
@@ -138,9 +143,14 @@ namespace AddSuppEmailer
         /// <param name="verbose">Verbose mode flag</param>
         /// <param name="logDir">Log directory</param>
         /// <param name="debugEmail">Email address to use when in development environment</param>
+        /// <param name="additionalCcRecipients">Additional CC recipients appended to every email</param>
+        /// <param name="errorToRecipients">TO recipients for error notification emails</param>
+        /// <param name="errorCcRecipients">CC recipients for error notification emails</param>
         /// <param name="suppMailsSent">Reference counter for emails sent</param>
         protected virtual void ProcessNotification(SqlConnection con, dynamic outlookApp,
-            int notifId, string verbose, string logDir, string debugEmail, ref int suppMailsSent)
+            int notifId, string verbose, string logDir, string debugEmail,
+            string additionalCcRecipients, string errorToRecipients, string errorCcRecipients,
+            ref int suppMailsSent)
         {
             try
             {
@@ -158,11 +168,22 @@ namespace AddSuppEmailer
                     ? null 
                     : GetEmailRecipients(con, notifId, "CC");
 
-                // Validate recipients
-                if (string.IsNullOrWhiteSpace(toRecipients))
+                // If no TO recipients found, send error notification email (matches VBS behavior)
+                if (!IsDevEnvironment() && string.IsNullOrWhiteSpace(toRecipients))
                 {
-                    CommonUtilities.Logger?.Warning("No TO recipients for notification {NotificationId}, skipping", notifId);
+                    CommonUtilities.Logger?.Warning("No TO recipients for notification {NotificationId}, sending error email", notifId);
+                    SendMissingRecipientErrorEmail(con, outlookApp, notifId, subject,
+                        errorToRecipients, errorCcRecipients, logDir);
+                    suppMailsSent++;
                     return;
+                }
+
+                // Append additional CC recipients (matches VBS: .CC=ccemailstr & "; additional@...")
+                if (!IsDevEnvironment() && !string.IsNullOrWhiteSpace(additionalCcRecipients))
+                {
+                    ccRecipients = string.IsNullOrWhiteSpace(ccRecipients)
+                        ? additionalCcRecipients
+                        : ccRecipients + ";" + additionalCcRecipients;
                 }
 
                 CommonUtilities.Logger?.Debug("Creating mail item for NotifID={NotificationId}", notifId);
@@ -180,59 +201,30 @@ namespace AddSuppEmailer
                         mail.CC = ccRecipients;
                     }
 
-                    // In development mode, prefix subject with [TEST]
-                    mail.Subject = IsDevEnvironment() ? $"[TEST] {subject}" : subject;
-
+                    mail.Subject = GetEnvironmentPrefix() + subject;
                     mail.VotingOptions = "Accepted;Rejected";
                     mail.Importance = 2; // olImportanceHigh
                     mail.BodyFormat = 2; // olFormatHTML
                     mail.HTMLBody = body + "Notification Id=" + notifId;
 
-                    // In development mode: send FIRST email, log all others
                     if (IsDevEnvironment())
                     {
-                        if (!_firstEmailSentInDevMode)
-                        {
-                            // Send the FIRST email in development mode
-                            CommonUtilities.Logger?.Information("DEVELOPMENT MODE - Sending FIRST email as test");
-                            CommonUtilities.Logger?.Information("NotificationId: {NotificationId}", notifId);
-                            CommonUtilities.Logger?.Information("To: {To}", toRecipients);
-                            CommonUtilities.Logger?.Information("CC: {CC}", ccRecipients ?? "(none)");
-                            CommonUtilities.Logger?.Information("Subject: {Subject}", mail.Subject);
-
-                            mail.Send();
-                            UpdateNotificationStatus(con, notifId, "sent");
-                            _firstEmailSentInDevMode = true;
-
-                            CommonUtilities.Logger?.Information("✓ First email SENT for Notification ID: {NotificationId}", notifId);
-                            Program.WriteLog($"DEV MODE: First email sent for Notification ID: {notifId}", null, DateTime.Now, logDir);
-                        }
-                        else
-                        {
-                            // Log all SUBSEQUENT emails without sending
-                            CommonUtilities.Logger?.Information("DEVELOPMENT MODE - Email #{Count} NOT sent (logged only)", suppMailsSent + 1);
-                            CommonUtilities.Logger?.Information("NotificationId: {NotificationId}", notifId);
-                            CommonUtilities.Logger?.Information("To: {To}", toRecipients);
-                            CommonUtilities.Logger?.Information("CC: {CC}", ccRecipients ?? "(none)");
-                            CommonUtilities.Logger?.Information("Subject: {Subject}", mail.Subject);
-                            CommonUtilities.Logger?.Debug("Body length: {BodyLength} characters", body?.Length ?? 0);
-
-                            // Do NOT send the email
-                            // Do NOT update notification status
-                            CommonUtilities.ShowDiagnosticIfVerbose($"DEV MODE: Would send email for NotifID={notifId}", verbose);
-                        }
+                        CommonUtilities.Logger?.Information("DEVELOPMENT MODE - Sending email");
+                        CommonUtilities.Logger?.Information("NotificationId: {NotificationId}", notifId);
+                        CommonUtilities.Logger?.Information("To: {To}", toRecipients);
+                        CommonUtilities.Logger?.Information("CC: {CC}", ccRecipients ?? "(none)");
+                        CommonUtilities.Logger?.Information("Subject: {Subject}", mail.Subject);
                     }
                     else
                     {
-                        // Production mode - actually send all emails
                         CommonUtilities.Logger?.Debug("Sending mail for NotifID={NotificationId} to {Recipients}", 
                             notifId, toRecipients);
-
-                        mail.Send();
-                        UpdateNotificationStatus(con, notifId, "sent");
-                        CommonUtilities.Logger?.Information("Email sent for Notification ID: {NotificationId}", notifId);
-                        Program.WriteLog($"Email sent for Notification ID: {notifId}", null, DateTime.Now, logDir);
                     }
+
+                    mail.Send();
+                    UpdateNotificationStatus(con, notifId, "Send");
+                    CommonUtilities.Logger?.Information("Email sent for Notification ID: {NotificationId}", notifId);
+                    Program.WriteLog($"Processed! => Notification_ID: {notifId}; Sent to: {toRecipients}; Subject: {subject}", null, DateTime.Now, logDir);
 
                     suppMailsSent++;
                 }
@@ -250,13 +242,53 @@ namespace AddSuppEmailer
             {
                 CommonUtilities.Logger?.Error(comEx, "COM error processing notification ID: {NotificationId}. HRESULT: {HResult}", 
                     notifId, comEx.HResult);
-                Program.WriteLog($"COM Error with NotifID={notifId}", 
-                    $"HRESULT: {comEx.HResult:X}, Message: {comEx.Message}", DateTime.Now, logDir);
+                Program.WriteLog($"Error Occured! => with Notification_ID: {notifId}", 
+                    $"Error Number: {comEx.HResult:X}, Error Description: {comEx.Message}, Error Source: {comEx.Source}", DateTime.Now, logDir);
             }
             catch (Exception ex)
             {
                 CommonUtilities.Logger?.Error(ex, "Error processing notification ID: {NotificationId}", notifId);
-                Program.WriteLog("Error with NotifID=" + notifId, ex.Message, DateTime.Now, logDir);
+                Program.WriteLog($"Error Occured! => with Notification_ID: {notifId}",
+                    $"Error Description: {ex.Message}, Error Source: {ex.Source}", DateTime.Now, logDir);
+            }
+        }
+
+        /// <summary>
+        /// Sends an error notification email when no TO recipients are found for a notification.
+        /// Matches VBS behavior: sends to admin recipients with "ERROR Refering : " subject prefix,
+        /// explains that the PD email address could not be found in GPMATS,
+        /// and marks the notification status as 'NtSend'.
+        /// </summary>
+        private void SendMissingRecipientErrorEmail(SqlConnection con, dynamic outlookApp,
+            int notifId, string subject, string errorToRecipients, string errorCcRecipients, string logDir)
+        {
+            dynamic mail = null;
+            try
+            {
+                mail = outlookApp.CreateItem(0);
+                mail.To = errorToRecipients;
+                if (!string.IsNullOrWhiteSpace(errorCcRecipients))
+                {
+                    mail.CC = errorCcRecipients;
+                }
+                mail.Subject = GetEnvironmentPrefix() + "ERROR Refering : " + subject;
+                mail.Importance = 2; // olImportanceHigh
+                mail.BodyFormat = 2; // olFormatHTML
+                mail.HTMLBody = "ERROR : Some how Admin Suplement Automated WorkFlow emailer system could not find PD email address in GPMATS as main recipient of Grant Number mention in subject. Email could not be sent for Notification_id = " + notifId;
+
+                mail.Send();
+                UpdateNotificationStatus(con, notifId, "NtSend");
+
+                CommonUtilities.Logger?.Warning("Error email sent for Notification ID: {NotificationId} - no TO recipients found", notifId);
+                Program.WriteLog($"ERROR: No TO recipients for Notification_ID: {notifId}; Error email sent to: {errorToRecipients}", null, DateTime.Now, logDir);
+            }
+            finally
+            {
+                if (mail != null)
+                {
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(mail);
+                    mail = null;
+                }
             }
         }
 
@@ -301,6 +333,7 @@ namespace AddSuppEmailer
         /// <summary>
         /// Updates the notification status after email is sent.
         /// Sets email_date to current time and email_send_status to the provided status.
+        /// Status values: 'Send' (successfully sent), 'NtSend' (error - not sent to intended recipient)
         /// </summary>
         protected virtual void UpdateNotificationStatus(SqlConnection con, int notifId, string status)
         {
@@ -348,6 +381,18 @@ namespace AddSuppEmailer
         {
             string dotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
             return string.Equals(dotNetEnv?.Trim(), "Development", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
+        {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
         }
     }
 }

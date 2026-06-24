@@ -2,8 +2,6 @@
 using System.Data.SqlClient;
 using System.IO;
 using CommonUtilties;
-using Outlook = Microsoft.Office.Interop.Outlook;
-using Microsoft.Office.Interop.Outlook;
 
 namespace Router
 {
@@ -55,7 +53,7 @@ namespace Router
 
                 SqlConnection _con = new SqlConnection(_conStr);
 
-                var processor = new Processor();
+                var processor = new Processor(config);
                 var _itemsProcessed = processor.Process(_dirPath, _con, _verbose, _debug, _routingBreakDuration);
 
                 var _taskEndMssg = $"******* Task Completed! ******* {_itemsProcessed} Mail Items Have Been Processed";
@@ -67,21 +65,86 @@ namespace Router
             catch (System.Exception ex)
             {
                 string message = $"An unanticipated failure was caught at the global level at {DateTime.UtcNow} UTC. You might need to restart Outlook. Here is some info : {ex.Message} \r\n {ex.ToString()}";
+                Console.WriteLine(message);
                 CommonUtilities.ShowDiagnosticIfVerbose(message, "y");
-                Outlook.Application oApp = new Outlook.Application();
-                CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", "y");
-                Outlook.NameSpace oNS = oApp.GetNamespace("MAPI");
 
-                Outlook.MailItem mailItem =
-                    (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-
-                mailItem.Subject = "Global level email failure.";
-                mailItem.To = "egrantsdevs@mail.nih.gov;leul.ayana@nih.gov";
-                mailItem.HTMLBody = message;
-                mailItem.BodyFormat = OlBodyFormat.olFormatHTML;
-                mailItem.Send();
+                try
+                {
+                    SendGlobalErrorEmail(message);
+                }
+                catch (System.Exception emailEx)
+                {
+                    Console.WriteLine($"Failed to send error notification email: {emailEx.Message}");
+                }
             }
 
+        }
+
+        /// <summary>
+        /// Isolated in a separate method so that Outlook COM types are not JIT-compiled
+        /// as part of Main(). This prevents a blank-screen crash when Outlook is not available.
+        /// </summary>
+        private static void SendGlobalErrorEmail(string message)
+        {
+            Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
+            if (outlookType == null)
+                throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
+
+            dynamic oApp = GetRunningOutlook() ?? Activator.CreateInstance(outlookType);
+            dynamic oNS = oApp.GetNamespace("MAPI");
+
+            // CreateItem(0) = olMailItem
+            dynamic mailItem = oApp.CreateItem(0);
+
+            var envPrefix = GetEnvironmentPrefix();
+            mailItem.Subject = envPrefix + "Global level email failure.";
+
+            try
+            {
+                var config = AppConfig.Load();
+                var errorRecipients = config["EmailRecipients:ErrorNotificationRecipients"] ?? "egrantsdevs@mail.nih.gov;leul.ayana@nih.gov";
+                mailItem.To = errorRecipients;
+            }
+            catch
+            {
+                mailItem.To = "egrantsdevs@mail.nih.gov;leul.ayana@nih.gov";
+            }
+
+            mailItem.HTMLBody = message;
+            mailItem.BodyFormat = 2; // olFormatHTML
+            mailItem.Send();
+        }
+
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
+        {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
+        }
+
+        [System.Runtime.InteropServices.DllImport("oleaut32.dll", PreserveSig = false)]
+        private static extern void GetActiveObject(
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPStruct)] Guid clsid,
+            IntPtr reserved,
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.IUnknown)] out object obj);
+
+        private static dynamic GetRunningOutlook()
+        {
+            try
+            {
+                var clsid = new Guid("0006F03A-0000-0000-C000-000000000046"); // Outlook.Application CLSID
+                GetActiveObject(clsid, IntPtr.Zero, out object obj);
+                return obj;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

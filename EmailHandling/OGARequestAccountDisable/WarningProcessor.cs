@@ -328,7 +328,7 @@ namespace OGARequestAccountDisable
             // In development mode, send to debug email instead of actual user
             if (IsDevEnvironment())
             {
-                mailItem.Subject = "[TEST] " + _emailSettings.UserWarningSubject + " for " + user.PersonNameFromDB;
+                mailItem.Subject = GetEnvironmentPrefix() + _emailSettings.UserWarningSubject + " for " + user.PersonNameFromDB;
                 mailItem.To = _emailSettings.EGrantsDevEmail;
                 CommonUtilities.Logger?.Information("DEVELOPMENT MODE: Sending warning email to {DebugEmail} instead of {UserEmail}", 
                     _emailSettings.EGrantsDevEmail, user.EmailFromDB);
@@ -336,7 +336,7 @@ namespace OGARequestAccountDisable
             // In production mode, send to actual user
             else
             {
-                mailItem.Subject = _emailSettings.UserWarningSubject;
+                mailItem.Subject = GetEnvironmentPrefix() + _emailSettings.UserWarningSubject;
                 mailItem.To = user.EmailFromDB;
             }
 
@@ -356,6 +356,18 @@ namespace OGARequestAccountDisable
 
             return string.Equals(aspNetEnv, "Development", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(dotNetEnv, "Development", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
+        {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
         }
     }
 }
