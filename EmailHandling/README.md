@@ -7,7 +7,7 @@ This solution is a modernized migration of legacy VBS scripts to .NET8 C# projec
 - AddSuppEmailer
 - AddSuppProd
 - AddSuppVoteCollection
-- DocManEmail
+- ~~DocManEmail~~ (deprecated - no longer in production)
 - ExchangeFixed
 - LoadPfr
 - LoadSuppPfr

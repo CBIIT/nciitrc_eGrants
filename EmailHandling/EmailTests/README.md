@@ -70,7 +70,7 @@ dotnet test --filter Category=Process
 dotnet test --filter FullyQualifiedName~Router
 ```
 
-**For detailed smoke test documentation, see [`ProcessSmokeTests/README.md`](ProcessSmokeTests/README.md).**
+**For detailed smoke test documentation, see [`Process/README.md`](Process/README.md).**
 
 ### With Code Coverage
 
@@ -90,14 +90,68 @@ dotnet test --logger "console;verbosity=detailed"
 
 ```
 EmailTests/
-??? Unit/
-?   ??? RouterTests/
-?   ??? ExchangeFixedTests/
-?   ??? CommonUtilitiesTests/
-?   ??? ...
-??? Integration/
-?   ??? DatabaseTests/
-?   ??? FileSystemTests/
+??? Unit/                      # Unit tests (no external dependencies)
+?   ??? Router/                # 4 unit tests
+?   ??? ExchangeFixed/         # 2 unit tests
+?   ??? AddSuppEmailer/        # 2 unit tests
+?   ??? AddSuppProd/           # 2 unit tests
+?   ??? AddSuppVoteCollection/ # 2 unit tests
+?   ??? DocManEmail/           # 2 unit tests
+?   ??? LoadPfr/               # 2 unit tests
+?   ??? LoadSuppPfr/           # 2 unit tests
+?   ??? EGrantsAcmAuditReport/ # 2 unit tests
+?   ??? OGADisableEmail/       # 2 unit tests
+?   ??? (22 total unit test files)
+?
+??? Integration/               # Integration tests (database, Outlook, file system)
+?   ??? Router/                # 20 integration tests
+?   ??? AddSuppEmailer/        # 1 integration test
+?   ??? AddSuppProd/           # 2 integration tests
+?   ??? CommonUtilities/       # 1 integration test
+?   ??? OGADisableEmail/       # 1 integration test
+?   ??? StartOutlook/          # 1 integration test
+?   ??? (26 total integration test files)
+?
+??? Process/                   # Process-level smoke tests
+?   ??? SchedulerExecutableSmokeTests.cs  # Executable launch tests
+?   ??? DependencySmokeTests.cs           # Dependency loading tests
+?   ??? LogOutputSmokeTests.cs            # Logging tests
+?   ??? README.md
+?   ??? SMOKE_TEST_OUTLOOK_SETUP.md
+?
+??? Shared/                    # Shared test helpers
+?   ??? TestProcessor.cs       # Router test helper
+?   ??? TestAddSuppProcessor.cs # AddSuppEmailer test helper
+?   ??? (2 shared helper files)
+?
+??? TestAssemblyInitialize.cs
+??? TEST_REORGANIZATION_PLAN.md
+??? README.md
+```
+
+### Running Tests by Type
+
+```powershell
+# Run all tests
+dotnet test
+
+# Run only unit tests (fast, no external dependencies)
+dotnet test --filter "FullyQualifiedName~Unit"
+
+# Run only integration tests (requires database/Outlook)
+dotnet test --filter "FullyQualifiedName~Integration"
+
+# Run only process smoke tests
+dotnet test --filter "FullyQualifiedName~Process"
+
+# Or use test categories
+dotnet test --filter "TestCategory=Unit"
+dotnet test --filter "TestCategory=Integration"
+dotnet test --filter "TestCategory=SmokeTest"
+
+# Run tests for specific project
+dotnet test --filter "FullyQualifiedName~Router"
+```
 ?   ??? OutlookTests/
 ??? Mocks/
 ?   ??? MockOutlookObjects.cs

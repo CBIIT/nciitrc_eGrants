@@ -89,7 +89,7 @@ namespace AddSuppVoteCollection
                             {
                                 outMail.Recipients.Add(recipient);
                             }
-                            outMail.Subject = $"DO NOT REPLY : Forwarding Response [{subject}]";
+                            outMail.Subject = GetEnvironmentPrefix() + $"DO NOT REPLY : Forwarding Response [{subject}]";
                             outMail.Send();
 
                             CommonUtilities.Logger?.Debug("Forwarded vote to OGA staff");
@@ -146,6 +146,18 @@ namespace AddSuppVoteCollection
 
             return string.Equals(aspNetEnv, "Development", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(dotNetEnv, "Development", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
+        {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
         }
     }
 }

@@ -800,7 +800,7 @@ private void ConvertToPdf(string pdfDir, string pdfDoc)
                     if (!string.IsNullOrWhiteSpace(recipient))
                         outMail.Recipients.Add(recipient.Trim());
                 }
-                outMail.Subject = $"{errorMsg1} >>(Subj: {item.Subject})";
+                outMail.Subject = GetEnvironmentPrefix() + $"{errorMsg1} >>(Subj: {item.Subject})";
                 outMail.Body = $"{errorMsg2}\r\n\r\n{item.Body}";
                 outMail.Send();
             }
@@ -820,7 +820,7 @@ private void ConvertToPdf(string pdfDir, string pdfDoc)
             {
                 dynamic mailItem = _outlookApp.CreateItem(0); // olMailItem = 0
                 mailItem.To = _adminRecipients.Replace(";", ";");
-                mailItem.Subject = subject;
+                mailItem.Subject = GetEnvironmentPrefix() + subject;
                 mailItem.BodyFormat = 2; // olFormatHTML
                 mailItem.HTMLBody = " " + body;
                 mailItem.Send();
@@ -840,7 +840,7 @@ private void ConvertToPdf(string pdfDir, string pdfDoc)
             {
                 dynamic mailItem = _outlookApp.CreateItem(0); // olMailItem = 0
                 mailItem.To = "daryl.dehuff@nih.gov"; // "egrantsdevs@mail.nih.gov";
-                mailItem.Subject = subject;
+                mailItem.Subject = GetEnvironmentPrefix() + subject;
                 mailItem.BodyFormat = 2;
                 mailItem.HTMLBody = " " + body;
                 mailItem.Send();
@@ -1043,6 +1043,18 @@ private void ConvertToPdf(string pdfDir, string pdfDoc)
             public string Extract { get; set; }
             public string DocumentDate { get; set; }
             public string DocumentId { get; set; }
+        }
+
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
+        {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
         }
     }
 }

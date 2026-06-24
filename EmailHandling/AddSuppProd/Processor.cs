@@ -539,7 +539,7 @@ namespace AddSuppProd
                     }
                 }
                 
-                forwardMail.Subject = errorSubject;
+                forwardMail.Subject = GetEnvironmentPrefix() + errorSubject;
                 forwardMail.Body = errorMessage + "\n\n" + (originalItem.Body ?? "");
                 forwardMail.Send();
 
@@ -557,7 +557,7 @@ namespace AddSuppProd
             {
                 dynamic mail = outlookApp.CreateItem(OlMailItem);
                 mail.To = _adminEmailRecipients;
-                mail.Subject = subject;
+                mail.Subject = GetEnvironmentPrefix() + subject;
                 mail.BodyFormat = 2;
                 mail.HTMLBody = body;
                 mail.Send();
@@ -589,6 +589,18 @@ namespace AddSuppProd
             [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPStruct)] Guid clsid,
             IntPtr reserved,
             [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.IUnknown)] out object obj);
+
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
+        {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
+        }
 
         #endregion
 
@@ -703,14 +715,14 @@ namespace AddSuppProd
                 using (var cmd = new SqlCommand("getPlaceHolder_new", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@appl_id", applId);
+                    cmd.Parameters.AddWithValue("@PARENTAPPLID", applId);
                     cmd.Parameters.AddWithValue("@pa", pa ?? "");
-                    cmd.Parameters.AddWithValue("@received_time", receivedTime);
-                    cmd.Parameters.AddWithValue("@category", category);
-                    cmd.Parameters.AddWithValue("@file_type", fileType);
-                    cmd.Parameters.AddWithValue("@subject", subject ?? "");
+                    cmd.Parameters.AddWithValue("@Rcvd_dt", receivedTime);
+                    cmd.Parameters.AddWithValue("@Catname", category);
+                    cmd.Parameters.AddWithValue("@filetype", fileType);
+                    cmd.Parameters.AddWithValue("@Sub", subject ?? "");
                     cmd.Parameters.AddWithValue("@body", body ?? "");
-                    cmd.Parameters.AddWithValue("@subcategory", subcategory ?? "");
+                    cmd.Parameters.AddWithValue("@SubCatname", subcategory ?? "");
 
                     var result = cmd.ExecuteScalar();
                     if (result != null && result != DBNull.Value)

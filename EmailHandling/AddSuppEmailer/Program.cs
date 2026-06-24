@@ -31,6 +31,9 @@ namespace AddSuppEmailer
                 var verbose = config["AppSettings:Verbose"] ?? "n";
                 var logDir = config["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
                 var debugEmail = config["AppSettings:DebugEmail"];
+                var additionalCc = config["AppSettings:AdditionalCcRecipients"] ?? "";
+                var errorTo = config["AppSettings:ErrorToRecipients"] ?? "";
+                var errorCc = config["AppSettings:ErrorCcRecipients"] ?? "";
                 var conStr = AppConfig.GetConnectionString(config, "EIM");
 
                 CommonUtilities.InitializeLogging(ApplicationName, logDir);
@@ -52,7 +55,7 @@ namespace AddSuppEmailer
                     CommonUtilities.Logger.Debug("Database connection string configured");
 
                     var processor = new Processor();
-                    var mailsSent = processor.Process(con, verbose, logDir, debugEmail);
+                    var mailsSent = processor.Process(con, verbose, logDir, debugEmail, additionalCc, errorTo, errorCc);
 
                     CommonUtilities.Logger.Information("Task Completed - {MailCount} emails sent", mailsSent);
                 }

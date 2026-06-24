@@ -257,7 +257,7 @@ namespace OGARequestAccountDisable
             // Create mail item: 0 = olMailItem
             dynamic mailItem = oApp.CreateItem(0);
 
-            mailItem.Subject = _emailSettings.OgaSubject;
+            mailItem.Subject = GetEnvironmentPrefix() + _emailSettings.OgaSubject;
 
             // In development mode, send to debug email. In production, send to OGA team
             if (IsDevEnvironment())
@@ -290,6 +290,18 @@ namespace OGARequestAccountDisable
 
             return string.Equals(aspNetEnv, "Development", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(dotNetEnv, "Development", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Returns the environment name in parentheses (e.g. "(Development) ") if not Production.
+        /// Returns empty string for Production or if DOTNET_ENVIRONMENT is not set.
+        /// </summary>
+        private static string GetEnvironmentPrefix()
+        {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env) || env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            return $"({env}) ";
         }
     }
 
