@@ -37,26 +37,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scheduled-Tasks", "Schedule
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrated", "Migrated", "{D6079E6B-7DA5-43BF-A619-527F8183E503}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\Temp\LoadPfr.ps1 = ..\..\..\Temp\LoadPfr.ps1
-		..\..\..\Temp\LoadSuppPfr.ps1 = ..\..\..\Temp\LoadSuppPfr.ps1
+		Scripts\Scheduled-Tasks\Migrated\LoadPfr.ps1 = Scripts\Scheduled-Tasks\Migrated\LoadPfr.ps1
+		Scripts\Scheduled-Tasks\Migrated\LoadSuppPfr.ps1 = Scripts\Scheduled-Tasks\Migrated\LoadSuppPfr.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Legacy", "Legacy", "{8E11025E-6032-4FBE-BF55-7C6AB9E61D44}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\Temp\LoadPfr_Legacy.ps1 = ..\..\..\Temp\LoadPfr_Legacy.ps1
-		..\..\..\Temp\LoadSuppPfr_Legacy.ps1 = ..\..\..\Temp\LoadSuppPfr_Legacy.ps1
+		Scripts\Scheduled-Tasks\Legacy\LoadPfr_Legacy.ps1 = Scripts\Scheduled-Tasks\Legacy\LoadPfr_Legacy.ps1
+		Scripts\Scheduled-Tasks\Legacy\LoadSuppPfr_Legacy.ps1 = Scripts\Scheduled-Tasks\Legacy\LoadSuppPfr_Legacy.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Run", "Run", "{2C51CE43-6F54-4A1B-BA22-81E28781BE08}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Legacy", "Legacy", "{E31BF222-62BD-40C8-B30B-801F9F45BF78}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\Temp\Register-LoadPfr-Legacy-Tasks.bat = ..\..\..\Temp\Register-LoadPfr-Legacy-Tasks.bat
+		Scripts\Run\Legacy\Register-LoadPfr-Legacy-Tasks.bat = Scripts\Run\Legacy\Register-LoadPfr-Legacy-Tasks.bat
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrated", "Migrated", "{1333916F-F279-4F05-B813-DA6CAA81EFE8}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\Temp\Register_LoadPfr_And_LoadSuppPfr.bat = ..\..\..\Temp\Register_LoadPfr_And_LoadSuppPfr.bat
+		Scripts\Run\Migrated\Register_LoadPfr_And_LoadSuppPfr.bat = Scripts\Run\Migrated\Register_LoadPfr_And_LoadSuppPfr.bat
 	EndProjectSection
 EndProject
 Global
