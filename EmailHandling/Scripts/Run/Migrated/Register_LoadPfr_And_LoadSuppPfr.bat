@@ -3,7 +3,7 @@ setlocal
 
 set PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe
 set LOG_DIR=C:\temp
-set LOG_FILE=%LOG_DIR%\Run_LoadPfr_And_LoadSuppPfr.log
+set LOG_FILE=%LOG_DIR%\Register_LoadPfr_And_LoadSuppPfr.log
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
