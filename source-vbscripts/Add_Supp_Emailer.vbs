@@ -28,10 +28,7 @@
 	Set objNS = OtlkApps.GetNamespace("MAPI")
 	Set oConn=CreateObject("ADODB.Connection")
 
-	'conStr = "Provider=SQLOLEDB.1;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=eim;Data Source=ncidb-d131-v\egrants_dev,52300;Application Name=eGrants"	
-	'conStr = "Provider=SQLOLEDB.1;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=eim;Data Source=ncidb-d131-v\egrants_dev,52300\egrants_piv;Application Name=TestApp"
-	''conStr = "Provider=SQLOLEDB.1;Password={PROD_DB_PASSWORD};Persist Security Info=True;User ID=AllWebUSER;Initial Catalog=EIM;Data Source=NCIDB-P232-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=eGrants"
-	conStr = "Provider=SQLNCLI11;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
+	conStr = "Provider=SQLNCLI11;Password='';Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 	Call Process()	
 	
 	set oConn=Nothing

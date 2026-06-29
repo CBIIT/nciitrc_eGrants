@@ -25,10 +25,7 @@
 	Dim objNS
 	
 
-	conStr = "Provider=SQLNCLI11;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
-	''conStr = "Provider=SQLOLEDB.1;Password={PROD_DB_PASSWORD};Persist Security Info=True;User ID=AllWebUSER;Initial Catalog=EIM;Data Source=ncidb-p133-v\egrants_prod,52300;Application Name=eGrants"
-	''conStr = "Provider=SQLOLEDB.1;Password={DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser;Initial Catalog=eim;Data Source=ncidb-d131-v\egrants_dev,52300\egrants_piv;Application Name=TestApp"
-	''conStr = "Provider=SQLOLEDB.1;Password={PROD_READ_DB_PASSWORD};Persist Security Info=True;User ID=egrantsuser_read;Initial Catalog=EIM;Data Source=ncidbprd,54500\mssqlprd;Application Name=egrants"
+	conStr = "Provider=SQLNCLI11;Password='';Persist Security Info=True;User ID=egrantsuser;Initial Catalog=EIM;Data Source=NCIDB-P391-V.nci.nih.gov\MSSQLEGRANTSP,59000;Application Name=egrants"
 	
 	'dirpath="Public Folders - nciogastage@mail.nih.gov\All Public Folders\NCI\GAB\NCIOGASupplements\Test\"	
 	dirpath="Public Folders - NCIOGAeGrantsProd@mail.nih.gov\All Public Folders\NCI\GAB\NCIOGASupplements\"	
