@@ -25,4 +25,7 @@
     <ProjectReference Include="..\LoadSuppPfr\LoadSuppPfr.csproj" />
     <ProjectReference Include="..\StartOutlook\StartOutlook.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>
