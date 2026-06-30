@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.6.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.6.3" />
+    <PackageReference Include="Microsoft.Office.Interop.Outlook" Version="15.0.4797.1004" />
+    <PackageReference Include="Office" Version="12.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommonUtilties\CommonUtilties.csproj" />
+    <ProjectReference Include="..\Router\Router.csproj" />
+    <ProjectReference Include="..\OGARequestAccountDisable\OGARequestAccountDisable.csproj" />
+    <ProjectReference Include="..\AddSuppEmailer\AddSuppEmailer.csproj" />
+    <ProjectReference Include="..\AddSuppProd\AddSuppProd.csproj" />
+    <ProjectReference Include="..\AddSuppVoteCollection\AddSuppVoteCollection.csproj" />
+    <ProjectReference Include="..\DocManEmail\DocManEmail.csproj" />
+    <ProjectReference Include="..\EGrantsAcmAuditReport\EGrantsAcmAuditReport.csproj" />
+    <ProjectReference Include="..\ExchangeFixed\ExchangeFixed.csproj" />
+    <ProjectReference Include="..\LoadPfr\LoadPfr.csproj" />
+    <ProjectReference Include="..\LoadSuppPfr\LoadSuppPfr.csproj" />
+    <ProjectReference Include="..\StartOutlook\StartOutlook.csproj" />
+  </ItemGroup>
+</Project>
