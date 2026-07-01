@@ -37,8 +37,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scheduled-Tasks", "Schedule
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrated", "Migrated", "{D6079E6B-7DA5-43BF-A619-527F8183E503}"
 	ProjectSection(SolutionItems) = preProject
+		Scripts\Scheduled-Tasks\Migrated\AddSuppEmailer.ps1 = Scripts\Scheduled-Tasks\Migrated\AddSuppEmailer.ps1
+		Scripts\Scheduled-Tasks\Migrated\AddSuppProd.ps1 = Scripts\Scheduled-Tasks\Migrated\AddSuppProd.ps1
+		Scripts\Scheduled-Tasks\Migrated\ExchangeFixed.ps1 = Scripts\Scheduled-Tasks\Migrated\ExchangeFixed.ps1
 		Scripts\Scheduled-Tasks\Migrated\LoadPfr.ps1 = Scripts\Scheduled-Tasks\Migrated\LoadPfr.ps1
 		Scripts\Scheduled-Tasks\Migrated\LoadSuppPfr.ps1 = Scripts\Scheduled-Tasks\Migrated\LoadSuppPfr.ps1
+		Scripts\Scheduled-Tasks\Migrated\Router.ps1 = Scripts\Scheduled-Tasks\Migrated\Router.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Legacy", "Legacy", "{8E11025E-6032-4FBE-BF55-7C6AB9E61D44}"
@@ -57,6 +61,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrated", "Migrated", "{1333916F-F279-4F05-B813-DA6CAA81EFE8}"
 	ProjectSection(SolutionItems) = preProject
 		Scripts\Run\Migrated\Register_LoadPfr_And_LoadSuppPfr.bat = Scripts\Run\Migrated\Register_LoadPfr_And_LoadSuppPfr.bat
+		Scripts\Run\Migrated\Register_Router_ExchangeFixed_AddSuppProd_AddSuppEmailer_Jobs.bat = Scripts\Run\Migrated\Register_Router_ExchangeFixed_AddSuppProd_AddSuppEmailer_Jobs.bat
 	EndProjectSection
 EndProject
 Global

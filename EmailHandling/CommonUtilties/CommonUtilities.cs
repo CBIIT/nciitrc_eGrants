@@ -97,7 +97,7 @@ namespace CommonUtilties
         }
 
         /// <summary>
-        /// Writes a log entry to the daily log file (legacy method).
+        /// Writes a log entry via Serilog.
         /// </summary>
         public static void WriteLog(int code, string message, string errorInfo, DateTime timeStamp)
         {
@@ -111,27 +111,6 @@ namespace CommonUtilties
                 {
                     Logger.Error("{Message} - {ErrorInfo}", message, errorInfo);
                 }
-            }
-
-            var fileName = $"eMailRouter-Log-{timeStamp.Year}-{timeStamp.Month}-{timeStamp.Day}.txt";
-
-            var outputContent = string.Empty;
-            if (errorInfo == null)
-            {
-                outputContent = $"{timeStamp}-\t{message}";
-            }
-            else
-            {
-                outputContent = $"{timeStamp}  -\t{message}\t\t\t{errorInfo}";
-            }
-
-            try
-            {
-                File.AppendAllText(Path.Combine(LogDir, fileName), outputContent + Environment.NewLine);
-            }
-            catch (Exception ex)
-            {
-                Logger?.Error(ex, "Failed to write to legacy log file");
             }
         }
 

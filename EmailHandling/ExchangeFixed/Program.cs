@@ -78,7 +78,8 @@ namespace ExchangeFixed
                 var publicAccessBackup = config["AppSettings:PublicAccessBackup"] ?? @"C:\eGrants\publicaccess\";
                 var adminRecipients = config["AppSettings:AdminRecipients"];
 
-                CommonUtilities.LogDir = logDir;
+                // Initialize Serilog logging (creates log directory and configures file + console sinks)
+                CommonUtilities.InitializeLogging("ExchangeFixed", logDir);
 
                 CommonUtilities.WriteLog(8, "...........Task Started!...........", null, startTimeStamp);
                 CommonUtilities.ShowDiagnosticIfVerbose("Exchange_latest script is going to run!!", verbose);
@@ -98,6 +99,10 @@ namespace ExchangeFixed
                 CommonUtilities.WriteLog(8, "Fatal Error in ExchangeFixed", 
                     $"Message: {ex.Message}\nStackTrace: {ex.StackTrace}", 
                     DateTime.Now);
+            }
+            finally
+            {
+                CommonUtilities.CloseLogging();
             }
         }
     }
