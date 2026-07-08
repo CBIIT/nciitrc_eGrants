@@ -80,9 +80,11 @@ namespace LoadSuppPfr
                 var verbose = config["AppSettings:Verbose"] ?? "n";
                 var logDir = config["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
                 var conStr = AppConfig.GetConnectionString(config, "EIM");
+                var networkSharePath = config["SuppPfrPaths:NetworkSharePath"];
                 var docSrcPath = config["SuppPfrPaths:DocSrcPath"];
                 var bakDstPath = config["SuppPfrPaths:BakDstPath"];
-                var finalDstPath = config["SuppPfrPaths:FinalDstPath"];
+                var outDir = config["SuppPfrPaths:OutDir"];
+                var serverDstPath = config["SuppPfrPaths:ServerDstPath"];
 
                 // Set the global log directory for CommonUtilities logging
                 CommonUtilities.LogDir = logDir;
@@ -91,11 +93,21 @@ namespace LoadSuppPfr
                 WriteLog(".........Task Started!........", null, startTimeStamp, logDir);
                 CommonUtilities.ShowDiagnosticIfVerbose("LoadSuppPfr task is starting", verbose);
 
+                // Move files from network share to local source directory before processing
+                int filesMoved = MoveFilesFromNetworkShare(networkSharePath, docSrcPath, verbose, logDir);
+
+                if (filesMoved == 0)
+                {
+                    WriteLog("No files to process. Exiting.", null, DateTime.Now, logDir);
+                    CommonUtilities.ShowDiagnosticIfVerbose("No files to process. Exiting.", verbose);
+                    return;
+                }
+
                 // Process all supplement PFR files in the source directory
                 using (var con = new SqlConnection(conStr))
                 {
                     var processor = new Processor();
-                    var filesProcessed = processor.Process(con, docSrcPath, bakDstPath, finalDstPath, verbose, logDir, config);
+                    var filesProcessed = processor.Process(con, docSrcPath, bakDstPath, outDir, serverDstPath, verbose, logDir, config);
                     WriteLog($"******* Task Completed! ******* {filesProcessed} files processed.", null, DateTime.Now, logDir);
                 }
 
@@ -115,6 +127,72 @@ namespace LoadSuppPfr
                 }
                 catch { }
             }
+        }
+
+        /// <summary>
+        /// Moves all files from the network share to the local source directory.
+        /// This ensures files are available locally before processing begins.
+        /// Returns the number of files moved (0 if none found or share not configured).
+        /// </summary>
+        private static int MoveFilesFromNetworkShare(string networkSharePath, string docSrcPath, string verbose, string logDir)
+        {
+            if (string.IsNullOrWhiteSpace(networkSharePath))
+            {
+                CommonUtilities.ShowDiagnosticIfVerbose("NetworkSharePath not configured, skipping network transfer", verbose);
+                return 0;
+            }
+
+            CommonUtilities.ShowDiagnosticIfVerbose($"Moving files from network share: {networkSharePath} to {docSrcPath}", verbose);
+            WriteLog($"Moving from network share. Source='{networkSharePath}' Destination='{docSrcPath}'", null, DateTime.Now, logDir);
+
+            if (!Directory.Exists(networkSharePath))
+            {
+                var errorMsg = $"Network share source folder not found: {networkSharePath}";
+                WriteLog(errorMsg, null, DateTime.Now, logDir);
+                CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
+                throw new DirectoryNotFoundException(errorMsg);
+            }
+
+            if (!Directory.Exists(docSrcPath))
+            {
+                var errorMsg = $"Local destination folder not found: {docSrcPath}";
+                WriteLog(errorMsg, null, DateTime.Now, logDir);
+                CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
+                throw new DirectoryNotFoundException(errorMsg);
+            }
+
+            var files = Directory.GetFiles(networkSharePath);
+
+            if (files.Length == 0)
+            {
+                WriteLog("No files found on network share. Nothing to move.", null, DateTime.Now, logDir);
+                CommonUtilities.ShowDiagnosticIfVerbose("No files found on network share. Nothing to move.", verbose);
+                return 0;
+            }
+
+            int filesMoved = 0;
+            foreach (var filePath in files)
+            {
+                var fileName = Path.GetFileName(filePath);
+                var destPath = Path.Combine(docSrcPath, fileName);
+                try
+                {
+                    File.Move(filePath, destPath, true);
+                }
+                catch (IOException)
+                {
+                    // Move fails across volumes/network shares; fall back to copy+delete
+                    File.Copy(filePath, destPath, true);
+                    File.Delete(filePath);
+                }
+                WriteLog($"Moved: '{filePath}' -> '{destPath}'", null, DateTime.Now, logDir);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Moved: '{filePath}' -> '{destPath}'", verbose);
+                filesMoved++;
+            }
+
+            WriteLog($"Network share transfer completed. Files moved: {filesMoved}", null, DateTime.Now, logDir);
+            CommonUtilities.ShowDiagnosticIfVerbose($"Network share transfer completed. Files moved: {filesMoved}", verbose);
+            return filesMoved;
         }
 
         /// <summary>

@@ -42,6 +42,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrated", "Migrated", "{D6
 		Scripts\Scheduled-Tasks\Migrated\ExchangeFixed.ps1 = Scripts\Scheduled-Tasks\Migrated\ExchangeFixed.ps1
 		Scripts\Scheduled-Tasks\Migrated\LoadPfr.ps1 = Scripts\Scheduled-Tasks\Migrated\LoadPfr.ps1
 		Scripts\Scheduled-Tasks\Migrated\LoadSuppPfr.ps1 = Scripts\Scheduled-Tasks\Migrated\LoadSuppPfr.ps1
+		Scripts\Scheduled-Tasks\Migrated\MoveAllFilesToShare.ps1 = Scripts\Scheduled-Tasks\Migrated\MoveAllFilesToShare.ps1
+		Scripts\Scheduled-Tasks\Migrated\Move-FromShareToSuppDir.ps1 = Scripts\Scheduled-Tasks\Migrated\Move-FromShareToSuppDir.ps1
+		Scripts\Scheduled-Tasks\Migrated\Move-AllFilesToShare.ps1 = Scripts\Scheduled-Tasks\Migrated\Move-AllFilesToShare.ps1
+		Scripts\Scheduled-Tasks\Migrated\MoveFromShareToSuppDir.ps1 = Scripts\Scheduled-Tasks\Migrated\MoveFromShareToSuppDir.ps1
 		Scripts\Scheduled-Tasks\Migrated\Router.ps1 = Scripts\Scheduled-Tasks\Migrated\Router.ps1
 	EndProjectSection
 EndProject

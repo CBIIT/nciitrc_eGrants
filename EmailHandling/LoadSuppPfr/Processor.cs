@@ -78,7 +78,7 @@ namespace LoadSuppPfr
         /// <param name="logDir">Directory where log files are written</param>
         /// <param name="config">Configuration containing email settings</param>
         /// <returns>Number of XML files successfully processed</returns>
-        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir, Microsoft.Extensions.Configuration.IConfiguration config)
+        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string serverDstPath, string verbose, string logDir, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             int filesProcessed = 0;
 
@@ -113,7 +113,7 @@ namespace LoadSuppPfr
                     Program.WriteLog($"Processing: {xmlFile.FullName}", null, DateTime.Now, logDir);
                     
                     // Process the XML file and its associated PDF
-                    ProcessXmlFile(con, xmlFile, docSrcPath, bakDstPath, finalDstPath, verbose, logDir);
+                    ProcessXmlFile(con, xmlFile, docSrcPath, bakDstPath, finalDstPath, serverDstPath, verbose, logDir);
                     filesProcessed++;
                 }
                 catch (Exception ex)
@@ -142,7 +142,7 @@ namespace LoadSuppPfr
         /// <param name="finalDstPath">Final destination for renamed PDF files</param>
         /// <param name="verbose">Verbose mode flag for diagnostic output</param>
         /// <param name="logDir">Directory for log files</param>
-        private void ProcessXmlFile(SqlConnection con, FileInfo xmlFile, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir)
+        private void ProcessXmlFile(SqlConnection con, FileInfo xmlFile, string docSrcPath, string bakDstPath, string finalDstPath, string serverDstPath, string verbose, string logDir)
         {
             // Load and parse the XML metadata file
             var xmlDoc = new XmlDocument();
@@ -265,6 +265,9 @@ namespace LoadSuppPfr
                                     File.Copy(pdfSrc, destPath, true);
                                     Program.WriteLog($"Copied to: {alias} (CatName: {catName})", null, DateTime.Now, logDir);
                                     CommonUtilities.ShowDiagnosticIfVerbose($"Copied to: {destPath}", verbose);
+
+                                    // Move PDF to server share (fall back to copy+delete if move fails)
+                                    CommonUtilities.MoveFileToServerShare(destPath, serverDstPath, verbose);
                                     
                                     // Move PDF to backup after successful copy
                                     try

@@ -96,7 +96,7 @@ $triggerBlock
       <RestartOnIdle>false</RestartOnIdle>
     </IdleSettings>
     <AllowStartOnDemand>true</AllowStartOnDemand>
-    <Enabled>true</Enabled>
+    <Enabled>false</Enabled>
     <Hidden>false</Hidden>
     <RunOnlyIfIdle>false</RunOnlyIfIdle>
     <WakeToRun>false</WakeToRun>
