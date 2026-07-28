@@ -51,5 +51,18 @@ source-aspnet/eGrants/Properties/PublishProfiles
 source-aspnet/eGrants/*.user
 source-aspnet/eGrants_new/App_Data/*
 
+# Secrets — never commit certificates or credential files.
+# Connection-string passwords are injected at deploy time (see JenkinsUpdates/*.txt,
+# $env:db_password / $env:cert_password); the tracked *.config files carry only
+# placeholders ({DB_PASSWORD}, {CERT_PASSWORD}, etc.).
+*.pfx
+*.p12
+*.pem
+*.key
+.env
+*.env
+secrets.json
+appsettings.*.Local.json
+
 
 
