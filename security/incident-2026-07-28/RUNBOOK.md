@@ -28,11 +28,14 @@ credentials were found that the report did **not** flag.
 
 ## 2. Remediation status
 
-- [x] **Working tree sanitized** — all 4 secrets replaced with placeholders (commit `6fe327e2` on `dev`, not yet pushed).
+- [x] **Working tree sanitized** — all 4 secrets replaced with placeholders.
 - [x] **.gitignore hardened** — `*.pfx`, `*.pem`, `*.key`, `.env`, `secrets.json` etc.
-- [ ] **Credential rotation** — DBA / infra action, see §3. **HIGHEST PRIORITY.**
-- [ ] **History rewrite + force-push** — see §4. Requires coordinated maintenance window.
-- [ ] **Push `dev`** — after rotation, or as part of the rewrite.
+- [ ] **Credential rotation** — DBA / infra action, see §3. **STILL REQUIRED — HIGHEST PRIORITY.**
+- [x] **History rewrite + force-push** — DONE 2026-07-29 (see §4 + §6). All 4 secrets scrubbed
+  from every commit on all 217 branches and 39 tags; independently verified from a fresh clone
+  (0 occurrences). 256 refs force-updated, 0 new/dropped refs.
+- [x] **`dev` synced** to rewritten history.
+- [ ] **Developers + Jenkins must re-clone** — see §4 "After force-push". Not yet done.
 
 > Deleting/replacing the secrets in a new commit does NOT remove them from history.
 > The URLs NIH cited pin an old SHA and remain readable until history is rewritten
@@ -104,11 +107,43 @@ git push --force --tags origin
 
 ---
 
-## 5. Files sanitized (commit 6fe327e2)
+## 5. Files sanitized
 
-25 source files + `.gitignore`. Full list in the commit. Categories:
+25 source files + `.gitignore`. Categories:
 - `source-aspnet/egrants_new/*.config` (the deploy template + local variants)
 - `source-aspnet/eGrants/appsettings.json` (certPass)
 - `source-vbscripts/*.vbs`, `*.csv`
 - `EmailHandling/*/config.csv`
 - `HelpAndRestore/Web.config.txt`, `web.base.config.txt` (the reported copies)
+
+---
+
+## 6. Rewrite execution log (2026-07-29)
+
+What actually happened, including a gotcha worth recording:
+
+- **macOS case-sensitivity trap (IMPORTANT):** the first mirror clone was on the default
+  macOS case-INsensitive filesystem. This repo has branches differing only by case
+  (`Feature/RB/*` vs `feature/RB/*`), which a case-insensitive FS cannot represent — it
+  produced 13 spurious duplicate branches and a bad ref count (230 vs the real 217). The
+  dry-run push exposed this (`[new branch]` for branches that already existed). **Do NOT
+  push from a case-insensitive clone.** The rewrite was redone on a case-sensitive APFS
+  disk image (`hdiutil create -fs "Case-sensitive APFS"`), which preserved all 217 heads.
+- **Branch protection:** `master`/`stage` are guarded by a repository **ruleset** (id
+  `15015977`, `non_fast_forward` + `pull_request` + linear-history), not just classic
+  branch protection. Both were temporarily lifted (ruleset set to `disabled`, classic
+  protection deleted) for the push, then restored to their exact original state. Backups:
+  `master-protection-backup.json`, `master-ruleset-backup.json`.
+- **Push:** `git push --force <remote> 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'`
+  — 256 forced updates (217 heads + 39 tags), 0 new refs, 0 rejects.
+- **Verification:** fresh independent mirror clone → `git log -S` for all 4 full secrets =
+  0 commits across branches+tags. Head/tag counts unchanged (217/39).
+- **Note on `refs/pull/*`:** GitHub-managed PR refs are read-only and regenerate from the
+  (now-clean) branches; they were not pushed and need no action.
+
+### Still open
+1. **Credential rotation (§3)** — the leak is only *neutralized* once the 4 credentials are
+   rotated. Old SHA-pinned URLs / GitHub caches / any forks may still surface the old blobs
+   until caches expire; rotation is what makes that harmless.
+2. **All developers + Jenkins re-clone** (§4). Announce the rewrite; freeze pushes to old clones.
+3. **Open PRs** rebased/recreated onto rewritten history.
