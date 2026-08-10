@@ -66,3 +66,6 @@ appsettings.*.Local.json
 
 
 
+
+# Ignore Visual Studio solution cache at repo root
+.vs/
