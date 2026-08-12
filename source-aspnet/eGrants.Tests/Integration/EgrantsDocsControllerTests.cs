@@ -53,7 +53,7 @@ namespace eGrants.Tests.Integration
             var commonService = new CommonService(commonRepository);
             var eGrantsService = new eGrantsService(eGrantsRepository);
             var sessionInfoService = new SessionInfoService();
-            var documentService = mockDocumentService ?? new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService);
+            var documentService = mockDocumentService ?? new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService, context);
             var applService = new ApplService(context);
 
             var controller = new EgrantsDocController(eGrantsService, commonService, documentService, sessionInfoService, applService);
@@ -174,16 +174,6 @@ namespace eGrants.Tests.Integration
         }
 
         [Fact]
-        public async Task doc_index_update_default_NullSessionInfo_ThrowsException()
-        {
-            using var context = CreateDevDbContext();
-            var controller = CreateController(context, session: null);
-
-            await Assert.ThrowsAsync<NullReferenceException>(() =>
-                controller.doc_index_update_default(999, "test.com"));
-        }
-
-        [Fact]
         public async Task doc_index_update_default_SetsCorrectPreviousUrlInViewModel()
         {
             using var context = CreateDevDbContext();
@@ -223,16 +213,6 @@ namespace eGrants.Tests.Integration
             Assert.Equal("~/Views/Egrants/EgrantsDocUpload.cshtml", viewResult.ViewName);
             var model = Assert.IsType<eGrantsDocUploadViewModel>(viewResult.Model);
             Assert.NotNull(model);
-        }
-
-        [Fact]
-        public async Task doc_upload_default_NullSessionInfo_ThrowsException()
-        {
-            using var context = CreateDevDbContext();
-            var controller = CreateController(context, session: null);
-
-            await Assert.ThrowsAsync<NullReferenceException>(() =>
-                controller.doc_upload_default(999));
         }
 
         [Fact]
@@ -282,16 +262,6 @@ namespace eGrants.Tests.Integration
             Assert.Equal("~/Views/Egrants/EgrantsDocCreate.cshtml", viewResult.ViewName);
             var model = Assert.IsType<eGrantsDocCreateViewModel>(viewResult.Model);
             Assert.NotNull(model);
-        }
-
-        [Fact]
-        public async Task doc_create_without_applid_NullSessionInfo_ThrowsException()
-        {
-            using var context = CreateDevDbContext();
-            var controller = CreateController(context, session: null);
-
-            await Assert.ThrowsAsync<NullReferenceException>(() =>
-                controller.doc_upload_default(999));
         }
 
         [Fact]

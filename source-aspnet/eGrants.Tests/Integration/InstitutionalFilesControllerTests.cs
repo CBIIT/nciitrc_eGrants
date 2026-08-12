@@ -59,7 +59,7 @@ namespace eGrants.Tests.Integration
             return controller;
         }
 
-        [Fact]
+        [Fact(Skip = "Requires seeded dev database (specific org/document rows). Enable when a controlled test database with known data is available.")]
         public async Task Show_Docs_WithValidOrgId_ReturnsCorrectViewAndModel()
         {
             // Arrange
@@ -86,7 +86,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model.DocFiles);
         }
 
-        [Fact]
+        [Fact(Skip = "Requires seeded dev database (specific org/document rows). Enable when a controlled test database with known data is available.")]
         public async Task Show_Docs_WithValidOrgIdAndName_ReturnsExpectedViewAndModel()
         {
             // Arrange
@@ -110,7 +110,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model.DocFiles);
         }
 
-        [Fact]
+        [Fact(Skip = "Requires seeded dev database (specific org/document rows). Enable when a controlled test database with known data is available.")]
         public async Task Show_Docs_WithOrgHavingNoDocs_ReturnsEmptyDocList()
         {
             // Arrange
@@ -128,7 +128,7 @@ namespace eGrants.Tests.Integration
             Assert.Empty(model.DocFiles);
         }
 
-        [Fact]
+        [Fact(Skip = "Requires seeded dev database (specific org/document rows). Enable when a controlled test database with known data is available.")]
         public async Task Show_Docs_WithMissingCharacterIndices_ReturnsEmptyIndices()
         {
             // Arrange
