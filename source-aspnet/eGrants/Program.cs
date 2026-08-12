@@ -48,6 +48,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(finalConnectionString));
 #endregion
 
+#region Setting up the Entra ID client secret
+
+// Pull the Entra ID client secret from an environment variable and replace the
+// "{eGrants_AzureAd_ClientSecret}" placeholder configured in appsettings, mirroring
+// the DB_USER / DB_PASSWORD pattern used for the connection string above.
+var azureAdClientSecret = builder.Configuration["eGrants_AzureAd_ClientSecret"];
+var configuredClientSecret = builder.Configuration["AzureAd:ClientSecret"];
+
+if (!string.IsNullOrEmpty(configuredClientSecret))
+{
+    builder.Configuration["AzureAd:ClientSecret"] =
+        configuredClientSecret.Replace("{eGrants_AzureAd_ClientSecret}", azureAdClientSecret);
+}
+#endregion
+
 #region Request Size Limits Configuration
 // ====================================================================================
 // LARGE FILE UPLOAD SUPPORT
@@ -189,8 +204,10 @@ var app = builder.Build();
 // Global exception handling middleware
 app.UseMiddleware<ExceptionHandling>();
 
-// Enforce HSTS in non-development environments
-if (!app.Environment.IsDevelopment())
+// Enforce HSTS in non-development environments.
+// "Local" is treated as a development-like environment so local runs behave the
+// same as Development (no HSTS) even though appsettings.Development.json is not loaded.
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Local"))
 {
     app.UseHsts();
 }
