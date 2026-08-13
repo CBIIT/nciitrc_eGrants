@@ -97,7 +97,7 @@ namespace CommonUtilties
         }
 
         /// <summary>
-        /// Writes a log entry to the daily log file (legacy method).
+        /// Writes a log entry via Serilog.
         /// </summary>
         public static void WriteLog(int code, string message, string errorInfo, DateTime timeStamp)
         {
@@ -111,27 +111,6 @@ namespace CommonUtilties
                 {
                     Logger.Error("{Message} - {ErrorInfo}", message, errorInfo);
                 }
-            }
-
-            var fileName = $"eMailRouter-Log-{timeStamp.Year}-{timeStamp.Month}-{timeStamp.Day}.txt";
-
-            var outputContent = string.Empty;
-            if (errorInfo == null)
-            {
-                outputContent = $"{timeStamp}-\t{message}";
-            }
-            else
-            {
-                outputContent = $"{timeStamp}  -\t{message}\t\t\t{errorInfo}";
-            }
-
-            try
-            {
-                File.AppendAllText(Path.Combine(LogDir, fileName), outputContent + Environment.NewLine);
-            }
-            catch (Exception ex)
-            {
-                Logger?.Error(ex, "Failed to write to legacy log file");
             }
         }
 
@@ -185,6 +164,46 @@ namespace CommonUtilties
         #endregion
 
         #region File Utilities
+
+        /// <summary>
+        /// Moves a file to a server share directory. Falls back to copy+delete if the move
+        /// fails (e.g., across volumes or network shares). Does nothing if serverShareDirectory
+        /// is null or whitespace.
+        /// </summary>
+        /// <param name="sourceFilePath">Full path to the source file (e.g., in watch\out)</param>
+        /// <param name="serverShareDirectory">Destination directory on the server share</param>
+        /// <param name="verbose">Verbose mode flag for diagnostic output</param>
+        public static void MoveFileToServerShare(string sourceFilePath, string serverShareDirectory, string verbose)
+        {
+            if (string.IsNullOrWhiteSpace(serverShareDirectory))
+                return;
+
+            try
+            {
+                Directory.CreateDirectory(serverShareDirectory);
+                string fileName = Path.GetFileName(sourceFilePath);
+                string serverDestPath = Path.Combine(serverShareDirectory, fileName);
+                try
+                {
+                    File.Move(sourceFilePath, serverDestPath, true);
+                    ShowDiagnosticIfVerbose($"Moved to server: {serverDestPath}", verbose);
+                    Logger?.Information("Moved to server: {ServerPath}", serverDestPath);
+                }
+                catch (IOException)
+                {
+                    // Move fails across volumes/network shares; fall back to copy+delete
+                    File.Copy(sourceFilePath, serverDestPath, true);
+                    File.Delete(sourceFilePath);
+                    ShowDiagnosticIfVerbose($"Copied+deleted to server: {serverDestPath}", verbose);
+                    Logger?.Information("Copied+deleted to server: {ServerPath}", serverDestPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowDiagnosticIfVerbose($"Error moving to server: {ex.Message}", verbose);
+                Logger?.Error(ex, "Error moving file to server share: {SourceFile}", sourceFilePath);
+            }
+        }
 
         public static string GetFileType(string fileName)
         {

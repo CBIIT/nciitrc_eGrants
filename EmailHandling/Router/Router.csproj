@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <StartupObject>Router.Program</StartupObject>
     <AssemblyTitle>Router</AssemblyTitle>
@@ -11,6 +11,8 @@
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.17.0" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.86.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
   <ItemGroup>
@@ -26,5 +28,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommonUtilties\CommonUtilties.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Router.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

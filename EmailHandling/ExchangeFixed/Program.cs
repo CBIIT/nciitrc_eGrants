@@ -75,10 +75,12 @@ namespace ExchangeFixed
                 var conStr = AppConfig.GetConnectionString(config, "EIM");
                 var dirPath = config["FolderPaths:dirpathFixed"];
                 var outDir = config["AppSettings:OutDir"] ?? @"C:\eGrants\watch\out\";
+                var serverDstPath = config["AppSettings:ServerDstPath"];
                 var publicAccessBackup = config["AppSettings:PublicAccessBackup"] ?? @"C:\eGrants\publicaccess\";
                 var adminRecipients = config["AppSettings:AdminRecipients"];
 
-                CommonUtilities.LogDir = logDir;
+                // Initialize Serilog logging (creates log directory and configures file + console sinks)
+                CommonUtilities.InitializeLogging("ExchangeFixed", logDir);
 
                 CommonUtilities.WriteLog(8, "...........Task Started!...........", null, startTimeStamp);
                 CommonUtilities.ShowDiagnosticIfVerbose("Exchange_latest script is going to run!!", verbose);
@@ -86,7 +88,7 @@ namespace ExchangeFixed
                 using (var con = new SqlConnection(conStr))
                 {
                     var processor = new Processor();
-                    var itemsProcessed = processor.Process(dirPath, con, verbose, outDir, publicAccessBackup, adminRecipients);
+                    var itemsProcessed = processor.Process(dirPath, con, verbose, outDir, serverDstPath, publicAccessBackup, adminRecipients);
                     CommonUtilities.WriteLog(8, $"******* Task Completed! ******* {itemsProcessed} Mail Items Have Been Processed", null, DateTime.Now);
                 }
 
@@ -98,6 +100,10 @@ namespace ExchangeFixed
                 CommonUtilities.WriteLog(8, "Fatal Error in ExchangeFixed", 
                     $"Message: {ex.Message}\nStackTrace: {ex.StackTrace}", 
                     DateTime.Now);
+            }
+            finally
+            {
+                CommonUtilities.CloseLogging();
             }
         }
     }

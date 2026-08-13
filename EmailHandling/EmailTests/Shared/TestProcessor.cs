@@ -1,6 +1,4 @@
 using CommonUtilties;
-using CommonUtilties;
-using Microsoft.Office.Interop.Outlook;
 using Router;
 using System;
 using System.Collections.Generic;
@@ -40,12 +38,12 @@ namespace EmailHandlingTests.Shared
             SqlConnection connection = new SqlConnection(conStr);
             connection.Open();
 
-            HandleSingleEmail(testEmail, testEmail.Subject, testEmail.Body, verbose, connection, debug);
+            HandleSingleEmail((string)testEmail.Subject, (string)testEmail.Subject, (string)testEmail.Body, verbose, connection, debug);
             var result = emailsSentThisSession;
             return result;
         }
 
-        public override string GetSenderId(dynamic testEmail)
+        public override string GetSenderId(RouterMailItem testEmail)
         {
             return _testSender;
         }
@@ -61,24 +59,16 @@ namespace EmailHandlingTests.Shared
             connection.Open();
 
             HandleSingleEmail(From, Subject, Body, verbose, connection, debug);
-            //public void HandleSingleEmail(string from, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
-            //HandleSingleEmail(testEmail, testEmail.Subject, testEmail.Body, verbose, connection, debug);
 
             var result = emailsSentThisSession;
             return result;
         }
 
-        protected override Dictionary<string, string> Send(dynamic mailItem)
+        protected override Dictionary<string, string> Send(RouterOutgoingMail mailItem)
         {
             // don't send here because this is the test method, just gather info to be returned to test method
 
-            var recipients = new List<string>();
-
-            foreach (Microsoft.Office.Interop.Outlook.Recipient recipient in mailItem.Recipients)
-            {
-                // somehow recipient.Address is always null and the email isn't in the object
-                recipients.Add(recipient.Name);     
-            }
+            var recipients = mailItem.Recipients;
 
             if (emailsSentThisSession.ContainsKey("recipients"))
             {
@@ -96,7 +86,7 @@ namespace EmailHandlingTests.Shared
             {
                 emailsSentThisSession["subject"] = mailItem.Subject;
             }
-            
+
 
             return null;
         }

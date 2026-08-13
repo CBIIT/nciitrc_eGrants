@@ -13,8 +13,13 @@ namespace CommonUtilties
         public static IConfiguration Load()
         {
             var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
-                ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
-                ?? "Production";
+                ?? "Development";
+
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")))
+            {
+                Console.WriteLine("WARNING: DOTNET_ENVIRONMENT is not set. Defaulting to 'Development'.");
+                Console.WriteLine("For production, set DOTNET_ENVIRONMENT=Production on the scheduled task.");
+            }
 
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var baseConfigFile = Path.Combine(baseDir, "appsettings.json");

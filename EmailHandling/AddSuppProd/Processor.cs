@@ -29,6 +29,7 @@ namespace AddSuppProd
         private const int OlTXT = 0;
         private const int OlMailItem = 0;
         private readonly string _adminEmailRecipients;  // Add this field
+        private string _serverDstPath;
 
         // Add this constructor
         public Processor(string adminEmailRecipients)
@@ -36,9 +37,10 @@ namespace AddSuppProd
             _adminEmailRecipients = adminEmailRecipients ?? "leul.ayana@nih.gov;guillermo.choy-leon@nih.gov";
         }
 
-        public int Process(SqlConnection con, string dirPath, string outDir, string verbose, string logDir)
+        public int Process(SqlConnection con, string dirPath, string outDir, string serverDstPath, string verbose, string logDir)
         {
             int itemsProcessed = 0;
+            _serverDstPath = serverDstPath;
 
             CommonUtilities.Logger?.Information("Starting supplement production processing");
             CommonUtilities.Logger?.Information("Folder path: {DirPath}", dirPath);
@@ -869,6 +871,7 @@ namespace AddSuppProd
                 string fullPath = Path.Combine(outDir, fileName);
                 mailItem.SaveAs(fullPath, OlTXT);
                 CommonUtilities.Logger?.Information("Email saved to {Path}", fullPath);
+                CommonUtilities.MoveFileToServerShare(fullPath, _serverDstPath, "y");
             }
             catch (Exception ex)
             {
@@ -888,6 +891,7 @@ namespace AddSuppProd
                 string fullPath = Path.Combine(outDir, fileName);
                 attachment.SaveAsFile(fullPath);
                 CommonUtilities.Logger?.Information("Attachment saved to {Path}", fullPath);
+                CommonUtilities.MoveFileToServerShare(fullPath, _serverDstPath, "y");
             }
             catch (Exception ex)
             {

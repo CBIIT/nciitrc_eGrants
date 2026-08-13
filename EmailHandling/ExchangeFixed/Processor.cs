@@ -80,6 +80,7 @@ namespace ExchangeFixed
     public class Processor
     {
         private string _outDir;
+        private string _serverDstPath;
         private string _publicAccessBackup;
         private string _adminRecipients;
         private string _verbose;
@@ -89,9 +90,10 @@ namespace ExchangeFixed
         /// Main processing loop. Opens the Outlook folder and processes each email
         /// that has valid metadata in the subject line. Limits to 30 items per run.
         /// </summary>
-        public int Process(string dirPath, SqlConnection con, string verbose, string outDir, string publicAccessBackup, string adminRecipients)
+        public int Process(string dirPath, SqlConnection con, string verbose, string outDir, string serverDstPath, string publicAccessBackup, string adminRecipients)
         {
             _outDir = outDir;
+            _serverDstPath = serverDstPath;
             _publicAccessBackup = publicAccessBackup;
             _adminRecipients = adminRecipients;
             _verbose = verbose;
@@ -318,6 +320,7 @@ namespace ExchangeFixed
                     string alias = $"{documentId}.txt";
                     string filePath = Path.Combine(_outDir, alias);
                     WriteEmailToTextFile(item, filePath, category, subcat);
+                    CommonUtilities.MoveFileToServerShare(filePath, _serverDstPath, _verbose);
                 }
             }
         }
@@ -354,7 +357,9 @@ namespace ExchangeFixed
                             string alias = $"{documentId}.{fileType}";
                             CommonUtilities.ShowDiagnosticIfVerbose($"OutDir: {_outDir}", _verbose);
                             CommonUtilities.ShowDiagnosticIfVerbose($"Alias: {alias}", _verbose);
-                            item.Attachments[i].SaveAsFile(Path.Combine(_outDir, alias));
+                            string attFilePath = Path.Combine(_outDir, alias);
+                            item.Attachments[i].SaveAsFile(attFilePath);
+                            CommonUtilities.MoveFileToServerShare(attFilePath, _serverDstPath, _verbose);
                         }
                     }
                 }
@@ -399,6 +404,7 @@ namespace ExchangeFixed
                     string alias = $"{documentId}.txt";
                     string filePath = Path.Combine(_outDir, alias);
                     WriteEmailToTextFile(item, filePath, category, subcat);
+                    CommonUtilities.MoveFileToServerShare(filePath, _serverDstPath, _verbose);
                 }
 
                 // Extract all attachments
@@ -422,7 +428,9 @@ namespace ExchangeFixed
                             else
                             {
                                 string attAlias = $"{attDocId}.{attFileType}";
-                                item.Attachments[i].SaveAsFile(Path.Combine(_outDir, attAlias));
+                                string attFilePath = Path.Combine(_outDir, attAlias);
+                                item.Attachments[i].SaveAsFile(attFilePath);
+                                CommonUtilities.MoveFileToServerShare(attFilePath, _serverDstPath, _verbose);
                             }
                         }
                     }
@@ -506,6 +514,9 @@ namespace ExchangeFixed
 
             // Clean up the .doc file
             try { File.Delete(docName); } catch { }
+
+            // Move PDF to server share
+            CommonUtilities.MoveFileToServerShare(pdfName, _serverDstPath, _verbose);
         }
 
         /// <summary>
@@ -700,6 +711,7 @@ private void ConvertToPdf(string pdfDir, string pdfDoc)
         {
             string destPath = Path.Combine(_outDir, Path.GetFileName(pdfDoc));
             File.Move(pdfDoc, destPath, true);
+            CommonUtilities.MoveFileToServerShare(destPath, _serverDstPath, _verbose);
         }
     }
     finally

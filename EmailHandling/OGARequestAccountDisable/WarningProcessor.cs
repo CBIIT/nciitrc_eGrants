@@ -35,15 +35,18 @@ namespace OGARequestAccountDisable
     public class ProcessorWarning
     {
         private readonly EmailSettings _emailSettings;
+        private readonly SmtpEmailService _smtpService;
         private List<string> _lowerTierEmails = new List<string>();
 
         /// <summary>
         /// Initializes the warning processor with email configuration settings.
         /// </summary>
         /// <param name="emailSettings">Email configuration from appsettings</param>
-        public ProcessorWarning(EmailSettings emailSettings)
+        /// <param name="smtpService">SMTP email service for sending emails</param>
+        public ProcessorWarning(EmailSettings emailSettings, SmtpEmailService smtpService)
         {
             _emailSettings = emailSettings ?? throw new ArgumentNullException(nameof(emailSettings));
+            _smtpService = smtpService ?? throw new ArgumentNullException(nameof(smtpService));
         }
 
         /// <summary>
@@ -57,16 +60,6 @@ namespace OGARequestAccountDisable
         public int ProcessWarning(string dirPath, SqlConnection con, string verbose)
         {
             CommonUtilities.ShowDiagnosticIfVerbose("Initializing warning email process...", verbose);
-
-            // Create Outlook application via late binding (no PIA needed)
-            Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
-            if (outlookType == null)
-                throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
-            dynamic oApp = Activator.CreateInstance(outlookType);
-            CommonUtilities.ShowDiagnosticIfVerbose("Created the Outlook object.", verbose);
-            dynamic oNS = oApp.GetNamespace("MAPI");
-            oNS.Logon("", "", false, true);
-            CommonUtilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
 
             // Get accounts that need warning emails
             var usersToSendWarning = GetAccountsForDisabledWarning(con);
@@ -85,7 +78,7 @@ namespace OGARequestAccountDisable
                     if (!CheckIfEmailSent(user, con))
                     {
                         var message = CreateEmailBody(user);
-                        SendEmailToUser(message, oApp, user, con);
+                        SendEmailToUser(message, user, con);
                         CommonUtilities.ShowDiagnosticIfVerbose($"Warning email sent to user: {user.UserIdFromDB}", verbose);
                     }
                     else
@@ -290,16 +283,15 @@ namespace OGARequestAccountDisable
         }
 
         /// <summary>
-        /// Sends warning email to a user via Outlook COM automation.
+        /// Sends warning email to a user via SMTP relay.
         /// Updates the people_sent_warning table to mark email as sent.
         /// In development mode, sends to debug email instead of actual user.
         /// </summary>
         /// <param name="bodyMessage">HTML formatted email body</param>
-        /// <param name="oApp">Outlook Application object (dynamic)</param>
         /// <param name="user">User receiving the warning</param>
         /// <param name="con">SQL connection for updating sent status</param>
         /// <returns>True if email was sent successfully</returns>
-        private bool SendEmailToUser(string bodyMessage, dynamic oApp,
+        private bool SendEmailToUser(string bodyMessage,
             DisabledListItem user, SqlConnection con)
         {
             var queryText = "update [dbo].[people_sent_warning] " +
@@ -320,27 +312,23 @@ namespace OGARequestAccountDisable
                 throw new System.Exception($"Update status of people_sent_warning failed in database call. Message: {ex.Message}");
             }
 
-            // Create mail item: 0 = olMailItem
-            dynamic mailItem = oApp.CreateItem(0);
-            mailItem.BodyFormat = 2; // olFormatHTML
-            mailItem.HTMLBody = bodyMessage;
+            string subject;
+            string toAddress;
 
-            // In development mode, send to debug email instead of actual user
             if (IsDevEnvironment())
             {
-                mailItem.Subject = GetEnvironmentPrefix() + _emailSettings.UserWarningSubject + " for " + user.PersonNameFromDB;
-                mailItem.To = _emailSettings.EGrantsDevEmail;
+                subject = GetEnvironmentPrefix() + _emailSettings.UserWarningSubject + " for " + user.PersonNameFromDB;
+                toAddress = _emailSettings.EGrantsDevEmail;
                 CommonUtilities.Logger?.Information("DEVELOPMENT MODE: Sending warning email to {DebugEmail} instead of {UserEmail}", 
                     _emailSettings.EGrantsDevEmail, user.EmailFromDB);
             }
-            // In production mode, send to actual user
             else
             {
-                mailItem.Subject = GetEnvironmentPrefix() + _emailSettings.UserWarningSubject;
-                mailItem.To = user.EmailFromDB;
+                subject = GetEnvironmentPrefix() + _emailSettings.UserWarningSubject;
+                toAddress = user.EmailFromDB;
             }
 
-            mailItem.Send();
+            _smtpService.SendEmail(toAddress, subject, bodyMessage);
             return true;
         }
 

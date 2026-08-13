@@ -54,10 +54,12 @@ namespace LoadPfr
     public class Processor
     {
         private List<string> _processedApplIds = new List<string>();
+        private List<(string Subject, string Body)> _pendingErrorEmails = new List<(string, string)>();
         private bool _emailEnabled = false;
         private string _toRecipients = "";
         private string _ccRecipients = "";
         private string _environment = "";
+        private SmtpEmailService _smtpService;
 
         /// <summary>
         /// Main processing method that orchestrates the entire PFR loading workflow.
@@ -71,7 +73,7 @@ namespace LoadPfr
         /// <param name="logDir">Directory where log files are written</param>
         /// <param name="config">Configuration containing email settings</param>
         /// <returns>Number of XML files successfully processed</returns>
-        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir, Microsoft.Extensions.Configuration.IConfiguration config)
+        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string serverDstPath, string verbose, string logDir, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             int filesProcessed = 0;
 
@@ -80,7 +82,9 @@ namespace LoadPfr
             _toRecipients = config["EmailSettings:ToRecipients"] ?? "";
             _ccRecipients = config["EmailSettings:CcRecipients"] ?? "";
             _environment = config["EmailSettings:Environment"] ?? "DEV";
+            _smtpService = new SmtpEmailService(config);
             _processedApplIds.Clear();
+            _pendingErrorEmails.Clear();
 
             // Open database connection for processing
             con.Open();
@@ -90,7 +94,7 @@ namespace LoadPfr
             if (!Directory.Exists(docSrcPath))
             {
                 CommonUtilities.ShowDiagnosticIfVerbose($"Source directory does not exist: {docSrcPath}", verbose);
-                Program.WriteLog($"Source directory does not exist: {docSrcPath}", null, DateTime.Now, logDir);
+                CommonUtilities.Logger?.Error("Source directory does not exist: {DocSrcPath}", docSrcPath);
                 return 0;
             }
 
@@ -104,16 +108,16 @@ namespace LoadPfr
                 try
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($"Processing: {xmlFile.Name}", verbose);
-                    Program.WriteLog($"Processing: {xmlFile.FullName}", null, DateTime.Now, logDir);
+                    CommonUtilities.Logger?.Information("Processing: {XmlFile}", xmlFile.FullName);
 
                     // Process the XML file and its associated PDF
-                    ProcessXmlFile(con, xmlFile, docSrcPath, bakDstPath, finalDstPath, verbose, logDir);
+                    ProcessXmlFile(con, xmlFile, docSrcPath, bakDstPath, finalDstPath, serverDstPath, verbose, logDir);
                     filesProcessed++;
                 }
                 catch (Exception ex)
                 {
                     // Log error but continue processing remaining files
-                    Program.WriteLog($"Error processing: {xmlFile.Name}", ex.Message, DateTime.Now, logDir);
+                    CommonUtilities.Logger?.Error(ex, "Error processing: {XmlFile}. Error: {ErrorMessage}", xmlFile.Name, ex.Message);
                     CommonUtilities.ShowDiagnosticIfVerbose($"Error processing {xmlFile.Name}: {ex.Message}", verbose);
                 }
             }
@@ -131,8 +135,25 @@ namespace LoadPfr
                 }
                 catch (Exception ex)
                 {
-                    Program.WriteLog("Error sending email notification", ex.Message, DateTime.Now, logDir);
+                    CommonUtilities.Logger?.Error(ex, "Error sending email notification: {ErrorMessage}", ex.Message);
                     CommonUtilities.ShowDiagnosticIfVerbose($"Error sending email: {ex.Message}", verbose);
+                }
+            }
+
+            // Send any queued error notification emails after all files have been processed
+            if (_emailEnabled && _pendingErrorEmails.Count > 0)
+            {
+                foreach (var (subject, body) in _pendingErrorEmails)
+                {
+                    try
+                    {
+                        SendEmail(subject, body, verbose, logDir);
+                    }
+                    catch (Exception ex)
+                    {
+                        CommonUtilities.Logger?.Error(ex, "Error sending error notification email: {Subject}. Error: {ErrorMessage}", subject, ex.Message);
+                        CommonUtilities.ShowDiagnosticIfVerbose($"Error sending error email: {ex.Message}", verbose);
+                    }
                 }
             }
 
@@ -152,7 +173,7 @@ namespace LoadPfr
         /// <param name="finalDstPath">Final destination for renamed PDF files</param>
         /// <param name="verbose">Verbose mode flag for diagnostic output</param>
         /// <param name="logDir">Directory for log files</param>
-        private void ProcessXmlFile(SqlConnection con, FileInfo xmlFile, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir)
+        private void ProcessXmlFile(SqlConnection con, FileInfo xmlFile, string docSrcPath, string bakDstPath, string finalDstPath, string serverDstPath, string verbose, string logDir)
         {
             // Load and parse the XML metadata file
             var xmlDoc = new XmlDocument();
@@ -219,19 +240,12 @@ namespace LoadPfr
                 {
                     string errorMsg = $"PDF NOT FOUND: {pdfSrc}";
                     CommonUtilities.ShowDiagnosticIfVerbose($"Source file not found: {pdfSrc}", verbose);
-                    Program.WriteLog($"Source file not found: {pdfSrc}", null, DateTime.Now, logDir);
+                    CommonUtilities.Logger?.Error("Source file not found: {PdfSrc}", pdfSrc);
 
                     // Send email notification about missing PDF
                     if (_emailEnabled)
                     {
-                        try
-                        {
-                            SendEmail("ERROR=> PDF NOT FOUND", $"PDF SOURCE={pdfSrc}", verbose, logDir);
-                        }
-                        catch (Exception emailEx)
-                        {
-                            Program.WriteLog("Error sending PDF not found email", emailEx.Message, DateTime.Now, logDir);
-                        }
+                        _pendingErrorEmails.Add(("ERROR=> PDF NOT FOUND", $"PDF SOURCE={pdfSrc}"));
                     }
                     continue;
                 }
@@ -243,18 +257,11 @@ namespace LoadPfr
                 {
                     string dateErrorMsg = $"DATE is blank in XML file {xmlFile.Name} for ApplID: {applId}, File: {fileName}";
                     CommonUtilities.ShowDiagnosticIfVerbose(dateErrorMsg, verbose);
-                    Program.WriteLog(dateErrorMsg, null, DateTime.Now, logDir);
+                    CommonUtilities.Logger?.Error("DATE is blank in XML file {XmlFile} for ApplID: {ApplId}, File: {FileName}", xmlFile.Name, applId, fileName);
 
                     if (_emailEnabled)
                     {
-                        try
-                        {
-                            SendEmail("ERROR=> DATE is blank in XML", dateErrorMsg, verbose, logDir);
-                        }
-                        catch (Exception emailEx)
-                        {
-                            Program.WriteLog("Error sending blank date email", emailEx.Message, DateTime.Now, logDir);
-                        }
+                        _pendingErrorEmails.Add(("ERROR=> DATE is blank in XML", dateErrorMsg));
                     }
                     continue;
                 }
@@ -290,8 +297,11 @@ namespace LoadPfr
 
                                 // Copy PDF to final destination with new name
                                 File.Copy(pdfSrc, destPath, true);
-                                Program.WriteLog($"Copied to: {alias} (CatName: {catName})", null, DateTime.Now, logDir);
+                                CommonUtilities.Logger?.Information("Copied to: {Alias} (CatName: {CatName})", alias, catName);
                                 CommonUtilities.ShowDiagnosticIfVerbose($"Copied to: {destPath}", verbose);
+
+                                // Move PDF to server share (fall back to copy+delete if move fails)
+                                CommonUtilities.MoveFileToServerShare(destPath, serverDstPath, verbose);
 
                                 // Track successfully processed applid for email notification
                                 _processedApplIds.Add(applId);
@@ -300,20 +310,13 @@ namespace LoadPfr
                             {
                                 string errorMsg = "No file number name returned from stored procedure";
                                 CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
-                                Program.WriteLog(errorMsg, null, DateTime.Now, logDir);
+                                CommonUtilities.Logger?.Error("No file number name returned from stored procedure for ApplID: {ApplId}", applId);
 
-                                // Send email notification about database error
+                                // Queue email notification about database error
                                 if (_emailEnabled)
                                 {
-                                    try
-                                    {
-                                        SendEmail($"{_environment}=>> ERROR: Could not create PFR in DB using Create_PFR", 
-                                                 $"Could not create PFR in DB using Create_PFR for ApplID: {applId}", verbose, logDir);
-                                    }
-                                    catch (Exception emailEx)
-                                    {
-                                        Program.WriteLog("Error sending DB error email", emailEx.Message, DateTime.Now, logDir);
-                                    }
+                                    _pendingErrorEmails.Add(($"{_environment}=>> ERROR: Could not create PFR in DB using Create_PFR",
+                                        $"Could not create PFR in DB using Create_PFR for ApplID: {applId}"));
                                 }
                             }
                         }
@@ -321,20 +324,13 @@ namespace LoadPfr
                         {
                             string errorMsg = "Stored procedure returned no results";
                             CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
-                            Program.WriteLog(errorMsg, null, DateTime.Now, logDir);
+                            CommonUtilities.Logger?.Error("Stored procedure returned no results for ApplID: {ApplId}", applId);
 
-                            // Send email notification about database error (no data returned)
+                            // Queue email notification about database error (no data returned)
                             if (_emailEnabled)
                             {
-                                try
-                                {
-                                    SendEmail($"{_environment}=>> ERROR: Could not create PFR in DB using Create_PFR", 
-                                             $"Could not create PFR in DB using Create_PFR for ApplID: {applId} - No data returned", verbose, logDir);
-                                }
-                                catch (Exception emailEx)
-                                {
-                                    Program.WriteLog("Error sending DB error email", emailEx.Message, DateTime.Now, logDir);
-                                }
+                                _pendingErrorEmails.Add(($"{_environment}=>> ERROR: Could not create PFR in DB using Create_PFR",
+                                    $"Could not create PFR in DB using Create_PFR for ApplID: {applId} - No data returned"));
                             }
                         }
                     }
@@ -355,20 +351,19 @@ namespace LoadPfr
                     File.Move(pdfSrc, fileBackupPath, true);
                     
                     CommonUtilities.ShowDiagnosticIfVerbose($"Moved files to backup: {bakDstPath}", verbose);
-                    Program.WriteLog($"Moved files to backup: XML={xmlFile.Name}, PDF={fileName}", null, DateTime.Now, logDir);
+                    CommonUtilities.Logger?.Information("Moved files to backup: XML={XmlFile}, PDF={FileName}", xmlFile.Name, fileName);
                 }
                 catch (Exception ex)
                 {
                     // Log error but don't fail the entire process
                     CommonUtilities.ShowDiagnosticIfVerbose($"Error moving files to backup: {ex.Message}", verbose);
-                    Program.WriteLog($"Error moving files to backup for {fileName}", ex.Message, DateTime.Now, logDir);
+                    CommonUtilities.Logger?.Error(ex, "Error moving files to backup for {FileName}: {ErrorMessage}", fileName, ex.Message);
                 }
             }
         }
 
         /// <summary>
-        /// Sends an email notification via Outlook COM automation.
-        /// Matches the VBScript emailme() function behavior.
+        /// Sends an email notification via SMTP relay.
         /// </summary>
         /// <param name="subject">Email subject line</param>
         /// <param name="body">Email body content</param>
@@ -380,29 +375,16 @@ namespace LoadPfr
             {
                 CommonUtilities.ShowDiagnosticIfVerbose($"Sending email: {subject}", verbose);
 
-                Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
-                if (outlookType == null)
-                    throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
+                _smtpService.SendEmail(_toRecipients, GetEnvironmentPrefix() + subject, body, _ccRecipients);
 
-                dynamic outlookApp = Activator.CreateInstance(outlookType);
-                // CreateItem(0) = olMailItem
-                dynamic mailItem = outlookApp.CreateItem(0);
-
-                mailItem.To = _toRecipients;
-                mailItem.CC = _ccRecipients;
-                mailItem.Subject = GetEnvironmentPrefix() + subject;
-                mailItem.BodyFormat = 2; // olFormatHTML
-                mailItem.HTMLBody = body;
-                mailItem.Send();
-
-                Program.WriteLog($"Email sent: {subject}", null, DateTime.Now, logDir);
+                CommonUtilities.Logger?.Information("Email sent: {Subject}", subject);
                 CommonUtilities.ShowDiagnosticIfVerbose("Email sent successfully", verbose);
             }
             catch (Exception ex)
             {
                 string errorMsg = $"Failed to send email: {ex.Message}";
                 CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
-                Program.WriteLog("Email send failed", ex.Message, DateTime.Now, logDir);
+                CommonUtilities.Logger?.Error(ex, "Email send failed: {ErrorMessage}", ex.Message);
                 throw; // Re-throw to let caller handle
             }
         }

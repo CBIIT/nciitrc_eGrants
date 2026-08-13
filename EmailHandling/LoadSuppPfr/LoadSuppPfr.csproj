@@ -6,7 +6,7 @@
     <Description>Load Supplement PFR - Supplement Progress/Final Report Loader</Description>
     <Company>NCI</Company>
     <Product>LoadSuppPfr</Product>
-    <Copyright>Copyright © NCI 2024</Copyright>
+    <Copyright>Copyright � NCI 2024</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -16,14 +16,17 @@
     <ProjectReference Include="..\CommonUtilties\CommonUtilties.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="appsettings.Development.json">
+    <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="appsettings.json">
+    <None Update="appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="appsettings.Production.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LoadSuppPfr.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>

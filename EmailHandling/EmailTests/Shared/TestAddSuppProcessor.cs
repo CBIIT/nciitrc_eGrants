@@ -51,7 +51,7 @@ namespace EmailHandlingTests.Shared
         /// Overrides ProcessNotification to capture email details instead of actually sending.
         /// Uses late-bound COM (dynamic) to match the base class signature.
         /// </summary>
-        protected override void ProcessNotification(SqlConnection con, dynamic outlookApp,
+        protected override void ProcessNotification(SqlConnection con,
             int notifId, string verbose, string logDir, string debugEmail,
             string additionalCcRecipients, string errorToRecipients, string errorCcRecipients,
             ref int suppMailsSent)
@@ -92,7 +92,7 @@ namespace EmailHandlingTests.Shared
             {
                 int mailsSent = 0;
                 // Pass null for outlookApp since we override ProcessNotification and don't use it
-                ProcessNotification(null, null, notifId, verbose, "", "test@nih.gov", "", "", "", ref mailsSent);
+                ProcessNotification(null, notifId, verbose, "", "test@nih.gov", "", "", "", ref mailsSent);
 
                 return EmailsSentThisSession.Count > 0
                     ? EmailsSentThisSession[EmailsSentThisSession.Count - 1]
