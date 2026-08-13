@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 using Serilog;
 
@@ -172,6 +173,17 @@ builder.Services.AddSession(options =>
 // Microsoft Entra ID (OIDC) Authentication
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
+// Use the authorization code flow (back-channel token exchange) rather than the
+// hybrid/implicit flow. This avoids AADSTS700054 ("response_type 'id_token' is not
+// enabled for the application") by requesting "response_type=code" instead of an
+// id_token at the authorize endpoint. The ID token is then returned via the token
+// endpoint using the configured client secret.
+builder.Services.Configure<OpenIdConnectOptions>(
+    OpenIdConnectDefaults.AuthenticationScheme, options =>
+    {
+        options.ResponseType = OpenIdConnectResponseType.Code;
+    });
 
 builder.Services.AddAuthorization(options =>
 {
