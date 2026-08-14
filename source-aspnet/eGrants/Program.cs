@@ -67,15 +67,15 @@ if (!string.IsNullOrEmpty(configuredClientSecret))
 #region Setting up the eRA client certificate password
 
 // Pull the client certificate (.pfx) password from an environment variable and replace
-// the "{EGRANTS_CERT_PASSWORD}" placeholder configured in appsettings, mirroring the
+// the "{CERT_PASSWORD}" placeholder configured in appsettings, mirroring the
 // DB_USER / DB_PASSWORD and client secret patterns above.
-var certPassword = builder.Configuration["EGRANTS_CERT_PASSWORD"];
+var certPassword = builder.Configuration["CERT_PASSWORD"];
 var configuredCertPass = builder.Configuration["AppSettings:certPass"];
 
 if (!string.IsNullOrEmpty(configuredCertPass))
 {
     builder.Configuration["AppSettings:certPass"] =
-        configuredCertPass.Replace("{EGRANTS_CERT_PASSWORD}", certPassword ?? string.Empty);
+        configuredCertPass.Replace("{CERT_PASSWORD}", certPassword ?? string.Empty);
 }
 #endregion
 
