@@ -172,7 +172,7 @@ Sensitive values are injected at runtime rather than stored in the committed fil
 | --- | --- |
 | `DB_USER` | SQL Server user id for the `DefaultConnection` string |
 | `DB_PASSWORD` | SQL Server password for the `DefaultConnection` string |
-| `CERT_PASSWORD` | Password for the client certificate (`AppSettings:certPass`) |
+| `EGRANTS_CERT_PASSWORD` | Password for the client certificate (`AppSettings:certPass`) |
 | `GITHUB_TOKEN` | Token used for GitHub (Octokit) integration (`AppSettings:GitHubToken`) |
 | `ASPNETCORE_ENVIRONMENT` | Selects the active environment/config (e.g., `Development`) |
 | `ProxyTo` | Optional upstream URL for the reverse proxy/forwarder |
@@ -257,7 +257,7 @@ The `eGrants.Tests` project contains both unit tests (services/controllers with 
 
 - **Hosting:** The app is configured to run under both **IIS** (`IISServerOptions`, Windows Authentication enabled in `iisSettings`) and **Kestrel** (`KestrelServerOptions`). Choose the model that matches your target environment.
 - **Environment:** Set `ASPNETCORE_ENVIRONMENT` to `Staging` or `Production` to load the corresponding `appsettings` file.
-- **Secrets:** Provide `DB_USER`, `DB_PASSWORD`, `CERT_PASSWORD`, and `GITHUB_TOKEN` through the hosting platform's secure configuration (environment variables / key vault), not in source control.
+- **Secrets:** Provide `DB_USER`, `DB_PASSWORD`, `EGRANTS_CERT_PASSWORD`, and `GITHUB_TOKEN` through the hosting platform's secure configuration (environment variables / key vault), not in source control.
 - **Reverse proxy:** `Yarp.ReverseProxy` and the HTTP forwarder are registered; set `ProxyTo` to forward requests to an upstream service when needed.
 - **Production hardening:** Outside Development, HSTS is enabled and custom exception/status-code pages are served (`/Error`), while several server-identifying response headers are stripped.
 - **Publish:**
