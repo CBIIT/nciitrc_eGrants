@@ -64,6 +64,21 @@ if (!string.IsNullOrEmpty(configuredClientSecret))
 }
 #endregion
 
+#region Setting up the eRA client certificate password
+
+// Pull the client certificate (.pfx) password from an environment variable and replace
+// the "{CERT_PASSWORD}" placeholder configured in appsettings, mirroring the
+// DB_USER / DB_PASSWORD and client secret patterns above.
+var certPassword = builder.Configuration["CERT_PASSWORD"];
+var configuredCertPass = builder.Configuration["AppSettings:certPass"];
+
+if (!string.IsNullOrEmpty(configuredCertPass))
+{
+    builder.Configuration["AppSettings:certPass"] =
+        configuredCertPass.Replace("{CERT_PASSWORD}", certPassword ?? string.Empty);
+}
+#endregion
+
 #region Request Size Limits Configuration
 // ====================================================================================
 // LARGE FILE UPLOAD SUPPORT
