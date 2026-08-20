@@ -1,4 +1,4 @@
-﻿@inject IHttpContextAccessor HttpContextAccessor
+@inject IHttpContextAccessor HttpContextAccessor
 <!--start display appls and documents-->
 
 <script src="~/js/jquery.datatables.js"></script>
@@ -158,7 +158,7 @@
 @{
    var appl_id = Model;
    <div id="overlay">
-      <img style="width: 150px; height: 150px; margin-left: 400px; margin-top: 150px;" src="../images/Loading.gif" />
+      <img style="width: 150px; height: 150px; margin-left: 400px; margin-top: 150px;" src="/images/Loading.gif" />
    </div>
 
    <div id="data_table">
@@ -174,13 +174,13 @@
                            <div id='show_qc_all_@appl_id' style='display: none;'>
                               @*class="show_qc_all"*@
                               <a class='showmodeall' href='javascript:void(0);' title='show all qc mode'>
-                                 <img name='show_qc_all' style="height: 30px;" src='../images/plus.png' />
+                                 <img name='show_qc_all' style="height: 30px;" src='/images/plus.png' />
                               </a>
                            </div>
                            <div id='hide_qc_all_@appl_id' style='display: none;'>
                               @*class="hide_qc_all"*@
                               <a class='hidemodeall' href='javascript:void(0);' title='hide all qc mode'>
-                                 <img name='hide_qc_all' style="height: 30px;" src='../images/minus.png' />
+                                 <img name='hide_qc_all' style="height: 30px;" src='/images/minus.png' />
                               </a>
                            </div>
                         }
@@ -320,12 +320,12 @@
                                  full.document_id +
                                  "'  class='show_qc' style='width:30px; display:inline'>" +
                                  "<a class='showmode' href='javascript:void(0);' title='show qc mode'>" +
-                                 "<img name='show_qc' style='height:30px;' src='../images/plus.png'/></a></div>" +
+                                 "<img name='show_qc' style='height:30px;' src='/images/plus.png'/></a></div>" +
                                  "<div id='hide_qc_" +
                                  full.document_id +
                                  "' class='hide_qc' style='width:30px; display:none'>" +
                                  "<a class='hidemode' href='javascript:void(0);' title='hide qc mode'>" +
-                                 "<img name='hide_qc' style='height:30px;' src='../images/minus.png'/></a></div>" +
+                                 "<img name='hide_qc' style='height:30px;' src='/images/minus.png'/></a></div>" +
                                  "<div id='qc_checkbox_" +
                                  full.document_id +
                                  "' name='qc_checkbox' class='qc_checkbox' style='display:none;vertical-align:middle;'>" +
@@ -339,12 +339,12 @@
                                  full.document_id +
                                  "'  class='show_qc' style='width:30px; display:inline'>" +
                                  "<a class='showmode' href='javascript:void(0);' title='show qc mode'>" +
-                                 "<img name='show_qc' style='height:30px;' src='../images/plus.png'/></a></div>" +
+                                 "<img name='show_qc' style='height:30px;' src='/images/plus.png'/></a></div>" +
                                  "<div id='hide_qc_" +
                                  full.document_id +
                                  "' class='hide_qc' style='width:30px; display:none'>" +
                                  "<a class='hidemode' href='javascript:void(0);' title='hide qc mode'>" +
-                                 "<img name='hide_qc' style='height:30px;' src='../images/minus.png'/></a></div>";
+                                 "<img name='hide_qc' style='height:30px;' src='/images/minus.png'/></a></div>";
                            }
                         } else return "";
                      }
@@ -390,7 +390,7 @@
                      // replace document image
                     "render": function(data, type, full, meta) {
                         const posId = parseInt(document.getElementById("hidPositionID").value, 10);
-                        console.log("Replace Doc Check → posId:", posId, 
+                        console.log("Replace Doc Check ? posId:", posId, 
                                     "can_upload:", full.can_upload, 
                                     "frc_destroyed:", full.frc_destroyed);
 
@@ -414,7 +414,7 @@
                      "render": function(data, type, full, meta) {
                           if (full.can_qc == "y" && full.frc_destroyed == 0) {
                               return "<a href='#' class='NormalModal' style='display:none' data-toggle='modal' data-target='#NormalModal' data-id='error' data-assigned-id='" + full.document_id + "' title='Report problem with document'></a>";
-                        //   return "<a href='#' class='NormalModal' style='display:none' data-toggle='modal' data-target='#NormalModal' data-id='error' data-assigned-id='" + full.document_id + "' title='Report problem with document'><img class='img_16_16' src='../images/Report Doc Error.png'/></a>";
+                        //   return "<a href='#' class='NormalModal' style='display:none' data-toggle='modal' data-target='#NormalModal' data-id='error' data-assigned-id='" + full.document_id + "' title='Report problem with document'><img class='img_16_16' src='/images/Report Doc Error.png'/></a>";
                         } else return "";
                      }
                   }
@@ -606,7 +606,7 @@
             }
             str = str + '</div>';
             // display all qc options
-            return '<div id=' + d.document_id + ' name="qc_options" class="qc_options" style="display:inline; float:left; width:900px;"><div class="processing" id="' + "process_" + d.document_id + '" style="width:40px; display:none; float:left;"><img style="width:30px; height:30px; margin-left:5px;" src="../images/Loading.gif"/></div>' + str + '</div>';
+            src="/images/Loading.gif"/></div>' + str + '</div>';
          }
 
          window.onload = function() {

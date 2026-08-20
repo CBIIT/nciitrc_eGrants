@@ -27,16 +27,27 @@ namespace SimpleECommerceCore.Middleware
             {
                 Log.Error(ex, "Unhandled exception occurred while processing request: " + context.Request.Path);
 
-                // Avoid trying to modify the response if it has already started.
-                if (context.Response.HasStarted)
-                {
-                    throw;
-                }
+                context.Response.StatusCode = 500;
+                context.Response.ContentType = "application/json";
+                var referer = context.Request.Headers["Referer"].ToString();
 
-                // Redirect to the application's error page (handled by ErrorController at "/Error").
-                // Note: the previous fallback redirected to "/Views/Index", which is not a valid
-                // route and resulted in an HTTP 404 that masked the real error.
-                context.Response.Redirect("/Error");
+                var errorResponse = new
+                {
+                    Message = EgrantsCommon.ErrorMessages.UNEXPECTED_ERROR_OCCURRED,
+                    Detail = ex.Message
+                };
+
+                var errorMessage = Uri.EscapeDataString(ex.Message);
+
+                var fallbackUrl = "/Views/Index?error=" + errorMessage;
+                var redirectUrl = string.IsNullOrWhiteSpace(referer)
+                    ? fallbackUrl
+                    : referer + "?error=" + errorMessage;
+
+                context.Response.Redirect(redirectUrl);
+
+                //await context.Response.WriteAsJsonAsync(errorResponse);
+                //context.Response.Redirect(referer + "?error=" + ex.Message ?? "/Views/Index");
             }
         }
     }

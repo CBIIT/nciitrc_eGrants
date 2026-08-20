@@ -1,7 +1,6 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
-using eGrants.DAL;
 using eGrants.DTOs;
 using eGrants.Models;
 using eGrants.Repositories;
@@ -11,7 +10,6 @@ using eGrants.Services.Interfaces;
 using eGrants.ViewModels;
 
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using Moq;
@@ -29,18 +27,6 @@ namespace eGrants.Tests.Unit
         private readonly Mock<ICommonRepository> _mockCommonRepo;
         private readonly Mock<ILogger<IeGrantsService>> _mockLogger;
         private readonly eGrantsService _service;
-
-        // Creates a lightweight in-memory AppDbContext so DocumentService (which now
-        // requires a non-null context) can be constructed in unit tests without a real database.
-        private static AppDbContext CreateInMemoryDbContext()
-        {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-
-            return new AppDbContext(options);
-        }
-
 
         public eGrantsServiceTests()
         {
@@ -74,7 +60,7 @@ namespace eGrants.Tests.Unit
                 .ReturnsAsync(documentInfo);
 
             var documentService = new DocumentService(
-                _mockDocumentRepo.Object, null, null, null, CreateInMemoryDbContext());
+                _mockDocumentRepo.Object, null, null, null);
 
             // Act
             var result = await documentService.DocUploadDefaultAsync(123);
@@ -98,7 +84,7 @@ namespace eGrants.Tests.Unit
                 .ReturnsAsync(emptyDocumentInfo);
 
             var documentService = new DocumentService(
-                _mockDocumentRepo.Object, null, null, null, CreateInMemoryDbContext());
+                _mockDocumentRepo.Object, null, null, null);
 
             // Act
             var result = await documentService.DocUploadDefaultAsync(456);
@@ -133,7 +119,7 @@ namespace eGrants.Tests.Unit
                 .ReturnsAsync(documentInfo);
 
             var documentService = new DocumentService(
-                _mockDocumentRepo.Object, null, null, null, CreateInMemoryDbContext());
+                _mockDocumentRepo.Object, null, null, null);
 
             // Act
             var result = await documentService.DocUploadDefaultAsync(789);
@@ -187,7 +173,7 @@ namespace eGrants.Tests.Unit
                 _mockDocumentRepo.Object,
                 mockSessionInfoService.Object,
                 _mockCommonRepo.Object,
-                _mockService.Object, CreateInMemoryDbContext());
+                _mockService.Object);
 
             // Act
             var result = await documentService.DocUpdateDefaultAsync(123, "http://previous.url", sessionInfo);
@@ -242,7 +228,7 @@ namespace eGrants.Tests.Unit
                 _mockDocumentRepo.Object,
                 mockSessionInfoService.Object,
                 _mockCommonRepo.Object,
-                _mockService.Object, CreateInMemoryDbContext());
+                _mockService.Object);
 
             // Act
             var result = await documentService.DocUpdateDefaultAsync(456, "http://test.url", sessionInfo);
@@ -292,7 +278,7 @@ namespace eGrants.Tests.Unit
                 _mockDocumentRepo.Object,
                 mockSessionInfoService.Object,
                 _mockCommonRepo.Object,
-                _mockService.Object, CreateInMemoryDbContext());
+                _mockService.Object);
 
             // Act
             await documentService.DocUpdateDefaultAsync(789, "http://another.url", sessionInfo);
@@ -330,7 +316,7 @@ namespace eGrants.Tests.Unit
                 _mockDocumentRepo.Object,
                 mockSessionInfoService.Object,
                 _mockCommonRepo.Object,
-                _mockService.Object, CreateInMemoryDbContext());
+                _mockService.Object);
 
             // Act
             var result = await documentService.DocCreateWithoutApplIdAsync(previousUrl, sessionInfo);
@@ -366,7 +352,7 @@ namespace eGrants.Tests.Unit
                 _mockDocumentRepo.Object,
                 mockSessionInfoService.Object,
                 _mockCommonRepo.Object,
-                _mockService.Object, CreateInMemoryDbContext());
+                _mockService.Object);
 
             // Act
             await documentService.DocCreateWithoutApplIdAsync(previousUrl, sessionInfo);
@@ -400,7 +386,7 @@ namespace eGrants.Tests.Unit
                 _mockDocumentRepo.Object,
                 mockSessionInfoService.Object,
                 _mockCommonRepo.Object,
-                _mockService.Object, CreateInMemoryDbContext());
+                _mockService.Object);
 
             // Act
             var result = await documentService.DocCreateWithoutApplIdAsync(previousUrl, sessionInfo);

@@ -415,14 +415,15 @@ namespace eGrants.Repositories
 
             await using var command = new SqlCommand(sqlQuery, connection)
             {
-                CommandType = CommandType.StoredProcedure
+                CommandType = CommandType.StoredProcedure,
+                CommandTimeout = 120
             };
 
-            command.Parameters.Add("@term", SqlDbType.VarChar).Value = term;
-            command.Parameters.Add("@fy", SqlDbType.VarChar).Value = fy;
-            command.Parameters.Add("@mechanism", SqlDbType.VarChar).Value = mechanism;
-            command.Parameters.Add("@admincode", SqlDbType.VarChar).Value = adminCode;
-            command.Parameters.Add("@serialnum", SqlDbType.VarChar).Value = serialNum;
+            command.Parameters.Add("@term", SqlDbType.VarChar).Value = (object)term ?? DBNull.Value;
+            command.Parameters.Add("@fy", SqlDbType.VarChar).Value = (object)fy ?? DBNull.Value;
+            command.Parameters.Add("@mechanism", SqlDbType.VarChar).Value = (object)mechanism ?? DBNull.Value;
+            command.Parameters.Add("@admincode", SqlDbType.VarChar).Value = (object)adminCode ?? DBNull.Value;
+            command.Parameters.Add("@serialnum", SqlDbType.VarChar).Value = (object)serialNum ?? DBNull.Value;
 
             await using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
             while (await reader.ReadAsync().ConfigureAwait(false))

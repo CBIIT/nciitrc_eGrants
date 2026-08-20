@@ -5,13 +5,9 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
 
 using Serilog;
 
@@ -46,21 +42,6 @@ var finalConnectionString = raw
 // Use the final connection string
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(finalConnectionString));
-#endregion
-
-#region Setting up the Entra ID client secret
-
-// Pull the Entra ID client secret from an environment variable and replace the
-// "{eGrants_AzureAd_ClientSecret}" placeholder configured in appsettings, mirroring
-// the DB_USER / DB_PASSWORD pattern used for the connection string above.
-var azureAdClientSecret = builder.Configuration["eGrants_AzureAd_ClientSecret"];
-var configuredClientSecret = builder.Configuration["AzureAd:ClientSecret"];
-
-if (!string.IsNullOrEmpty(configuredClientSecret))
-{
-    builder.Configuration["AzureAd:ClientSecret"] =
-        configuredClientSecret.Replace("{eGrants_AzureAd_ClientSecret}", azureAdClientSecret);
-}
 #endregion
 
 #region Request Size Limits Configuration
@@ -160,6 +141,9 @@ builder.Services.AddScoped<ISupplementService, SupplementService>();
 builder.Services.AddScoped<IEgrantsFundingService, EgrantsFundingService>();
 builder.Services.AddScoped<IApplService, ApplService>();
 
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
 // Session configuration
 builder.Services.AddDistributedMemoryCache(); // Required for session
 builder.Services.AddSession(options =>
@@ -168,20 +152,6 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
 });
-
-// Microsoft Entra ID (OIDC) Authentication
-builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
-
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
-
-builder.Services.AddControllersWithViews()
-    .AddMicrosoftIdentityUI();
 
 #endregion
 
@@ -204,10 +174,8 @@ var app = builder.Build();
 // Global exception handling middleware
 app.UseMiddleware<ExceptionHandling>();
 
-// Enforce HSTS in non-development environments.
-// "Local" is treated as a development-like environment so local runs behave the
-// same as Development (no HSTS) even though appsettings.Development.json is not loaded.
-if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Local"))
+// Enforce HSTS in non-development environments
+if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
 }
@@ -220,17 +188,9 @@ if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Local"))
  app.UseStatusCodePagesWithReExecute("/Error/{0}");
 #endif
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-
 app.UseSession(); // Enable session middleware
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Middleware to initialize and validate the user session from Entra ID claims.
+// Middleware to initialize and validate the user session.
 app.Use(async (context, next) =>
 {
     // Remove unwanted headers
@@ -243,46 +203,103 @@ app.Use(async (context, next) =>
         return Task.CompletedTask;
     });
 
-    // Skip session initialization for auth endpoints
-    if (context.Request.Path.StartsWithSegments("/MicrosoftIdentity") ||
-        context.Request.Path.StartsWithSegments("/signin-oidc") ||
-        context.Request.Path.StartsWithSegments("/signout-callback-oidc"))
+    // ===================================================================================
+    // TEST AUTH SEAM (integration smoke tests only)
+    // ===================================================================================
+    // When TestAuth:Enabled is true (set exclusively by the integration test host, never
+    // in production configuration) we seed the session with a fully-validated fake user
+    // and skip the SiteMinder / database / GitHub driven initialization below. This is the
+    // equivalent of a "fake auth handler" for this session-based application and lets the
+    // route smoke tests exercise every page without a live database or SiteMinder header.
+    // ===================================================================================
+    if (builder.Configuration.GetValue<bool>("TestAuth:Enabled"))
     {
+        if (string.IsNullOrEmpty(context.Session.GetString("userid")))
+        {
+            var testUser = builder.Configuration.GetValue<string>("TestAuth:UserId") ?? "testuser";
+            var testIc = builder.Configuration.GetValue<string>("TestAuth:Ic") ?? "NCI";
+
+            context.Session.SetString("userid", testUser);
+            context.Session.SetString("ic", testIc);
+            context.Session.SetString("Validation", "OK");
+            context.Session.SetString("UserName", "Test User");
+            context.Session.SetString("UserEmail", "testuser@example.com");
+            context.Session.SetString("Menus", string.Empty);
+            context.Session.SetString("browser", "Chrome");
+            context.Session.SetString("CurrentView", "standardForm");
+            context.Session.SetInt32("Personid", 0);
+            context.Session.SetInt32("position_id", 0);
+            context.Session.SetInt32("dashboard", 0);
+        }
+
         await next.Invoke();
         return;
     }
 
     if (string.IsNullOrEmpty(context.Session.GetString("userid")))
     {
-        // User must be authenticated via Entra ID OIDC at this point
-        if (context.User?.Identity?.IsAuthenticated != true)
+        var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
+        var allowedUser = builder.Configuration.GetValue<string>("SiteMinderBypass:AllowedUser") ?? string.Empty;
+
+        string userId = string.Empty;
+
+        if (bypassEnabled)
         {
-            // Not authenticated — the [Authorize] policy will trigger OIDC challenge
-            await next.Invoke();
-            return;
+            // ===================================================================================
+            // BYPASS MODE: Use the configured AllowedUser
+            // ===================================================================================
+            // When bypass is enabled, use the single configured user.
+            // This is intended for development/testing environments only.
+            // ===================================================================================
+            if (string.IsNullOrEmpty(allowedUser))
+            {
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogError("SiteMinder bypass is enabled but AllowedUser is not configured.");
+                context.Response.StatusCode = 403;
+                await context.Response.WriteAsync("Access denied: AllowedUser not configured for bypass mode.");
+                return;
+            }
+
+            userId = allowedUser;
+            context.Session.SetString("SiteMinderBypassed", "true");
+
+            var logger2 = context.RequestServices.GetService<ILogger<Program>>();
+            logger2?.LogWarning("SiteMinder bypass active. Using configured user: {UserId}", userId);
         }
-
-        // ===================================================================================
-        // Extract user identity from Entra ID OIDC claims
-        // ===================================================================================
-        // The "preferred_username" claim contains the UPN (e.g., "dehuffdc@nih.gov").
-        // We extract the username portion to match the existing person table.
-        // Resolution logic lives in EntraIdUserResolver so it can be unit tested.
-        // ===================================================================================
-        string userId = eGrants.Common.EntraIdUserResolver.ResolveUserId(context.User);
-
-        if (string.IsNullOrEmpty(userId))
+        else
         {
-            var logger = context.RequestServices.GetService<ILogger<Program>>();
-            logger?.LogWarning("No user identity found in Entra ID claims.");
-            context.Response.Redirect("/egrants_default.htm");
-            return;
+            // ===================================================================================
+            // NORMAL MODE: Use SiteMinder authentication
+            // ===================================================================================
+            // When running locally in Development and SiteMinder is not available,
+            // fall back to the Windows username from the environment.
+            // ===================================================================================
+            string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
+
+            if (!string.IsNullOrEmpty(siteMinderUser))
+            {
+                userId = siteMinderUser;
+            }
+            else if (app.Environment.IsDevelopment())
+            {
+                // Local development fallback: use the Windows username
+                userId = Environment.UserName;
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogWarning("SiteMinder header not found. Using local Windows username: {UserId}", userId);
+            }
+            else
+            {
+                var logger = context.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogWarning("No user identity found. SiteMinder header missing or empty.");
+                context.Response.Redirect("/egrants_default.htm");
+                return;
+            }
         }
 
         context.Session.SetString("userid", userId);
 
-        // Determine IC (Institute/Org Code) - default to NCI
-        var ic = eGrants.Common.EntraIdUserResolver.ResolveIc(context.User);
+        // Capture IC (Institute/Org Code)
+        var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
         context.Session.SetString("ic", ic);
 
         // Detect browser
@@ -360,6 +377,10 @@ app.Use(async (context, next) =>
     await next.Invoke();
 });
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
 app.UseSystemWebAdapters();
 
 #endregion
@@ -376,3 +397,7 @@ app.MapControllerRoute("Integration", "{controller=Integration}/{action=Trigger}
 #endregion
 
 app.Run();
+
+// Exposes the implicit Program class to the integration test project so it can be used
+// as the entry point for WebApplicationFactory<Program>.
+public partial class Program { }
