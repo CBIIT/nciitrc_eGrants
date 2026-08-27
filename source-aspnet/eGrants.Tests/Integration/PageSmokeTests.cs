@@ -22,20 +22,24 @@ namespace eGrants.Tests.Integration
     /// that none of them return a server error (5xx). Routes are discovered from the running
     /// application's action descriptors so the coverage stays in sync as pages are added.
     /// </summary>
-    public class PageSmokeTests : IClassFixture<SmokeTestWebApplicationFactory>
+    [Collection(SmokeTestCollection.Name)]
+    public class PageSmokeTests
     {
         private readonly SmokeTestWebApplicationFactory _factory;
         private readonly ITestOutputHelper _output;
 
-        public PageSmokeTests(SmokeTestWebApplicationFactory factory, ITestOutputHelper output)
+        public PageSmokeTests(ITestOutputHelper output)
         {
-            _factory = factory;
+            // Reuse the single process-wide host. AddSystemWebAdapters() registers a
+            // process-global hosting environment that only permits one host per process,
+            // so every smoke test must share the same factory instance.
+            _factory = SmokeTestHost.Factory;
             _output = output;
         }
 
         public static IEnumerable<object[]> DiscoverGetRoutes()
         {
-            using var factory = new SmokeTestWebApplicationFactory();
+            var factory = SmokeTestHost.Factory;
 
             // Forces the host to build so the action descriptors are available.
             _ = factory.Server;

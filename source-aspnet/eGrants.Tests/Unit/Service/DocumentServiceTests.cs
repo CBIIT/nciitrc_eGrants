@@ -16,9 +16,9 @@ using Moq;
 
 using Xunit;
 
-namespace eGrants.Tests.Unit
+namespace eGrants.Tests.Unit.Service
 {
-    public class eGrantsServiceTests
+    public class DocumentServiceTests
     {
         private readonly Mock<IeGrantsService> _mockService;
         private readonly Mock<IDocumentService> _mockDocumentService;
@@ -28,7 +28,7 @@ namespace eGrants.Tests.Unit
         private readonly Mock<ILogger<IeGrantsService>> _mockLogger;
         private readonly eGrantsService _service;
 
-        public eGrantsServiceTests()
+        public DocumentServiceTests()
         {
             _mockService = new Mock<IeGrantsService>(); // { CallBase = true };
             _mockRepo = new Mock<IeGrantsRepository>();
@@ -396,6 +396,217 @@ namespace eGrants.Tests.Unit
             Assert.Equal("Add", result.Act);
             Assert.Null(result.PreviousUrl);
             Assert.Equal(20, result.MaxCategoryId);
+        }
+        #endregion
+
+        #region LoadCategories tests
+        [Fact]
+        public async Task LoadCategories_ReturnsRepositoryResult()
+        {
+            var categories = new List<CategoriesListDTO>
+            {
+                new CategoriesListDTO { category_id = 1, category_name = "Alpha" }
+            };
+            _mockDocumentRepo.Setup(repo => repo.LoadCategories("NCI")).ReturnsAsync(categories);
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.LoadCategories("NCI");
+
+            Assert.Same(categories, result);
+            _mockDocumentRepo.Verify(repo => repo.LoadCategories("NCI"), Times.Once);
+        }
+
+        [Fact]
+        public async Task LoadCategories_WhenRepositoryThrows_ReturnsEmptyList()
+        {
+            _mockDocumentRepo.Setup(repo => repo.LoadCategories(It.IsAny<string>()))
+                .ThrowsAsync(new Exception("db failure"));
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.LoadCategories("NCI");
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        #endregion
+
+        #region LoadSubCategoryList tests
+        [Fact]
+        public async Task LoadSubCategoryList_ReturnsRepositoryResult()
+        {
+            var subCategories = new List<SubCategories>
+            {
+                new SubCategories { parent_category_id = 1, sub_category_name = "Sub A" }
+            };
+            _mockDocumentRepo.Setup(repo => repo.LoadSubCategoryList()).ReturnsAsync(subCategories);
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.LoadSubCategoryList();
+
+            Assert.Same(subCategories, result);
+            _mockDocumentRepo.Verify(repo => repo.LoadSubCategoryList(), Times.Once);
+        }
+
+        [Fact]
+        public async Task LoadSubCategoryList_WhenRepositoryThrows_ReturnsEmptyList()
+        {
+            _mockDocumentRepo.Setup(repo => repo.LoadSubCategoryList())
+                .ThrowsAsync(new Exception("db failure"));
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.LoadSubCategoryList();
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        #endregion
+
+        #region GetMaxCategoryid tests
+        [Fact]
+        public async Task GetMaxCategoryid_ReturnsRepositoryValue()
+        {
+            _mockDocumentRepo.Setup(repo => repo.GetMaxCategoryId("NCI")).ReturnsAsync(42);
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.GetMaxCategoryid("NCI");
+
+            Assert.Equal(42, result);
+            _mockDocumentRepo.Verify(repo => repo.GetMaxCategoryId("NCI"), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetMaxCategoryid_WhenRepositoryThrows_ReturnsZero()
+        {
+            _mockDocumentRepo.Setup(repo => repo.GetMaxCategoryId(It.IsAny<string>()))
+                .ThrowsAsync(new Exception("db failure"));
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.GetMaxCategoryid("NCI");
+
+            Assert.Equal(0, result);
+        }
+        #endregion
+
+        #region Delegation tests
+        [Fact]
+        public async Task GetDocInfo_DelegatesToRepository()
+        {
+            var docInfo = new List<DocumentInformation>
+            {
+                new DocumentInformation { document_id = 5 }
+            };
+            _mockDocumentRepo.Setup(repo => repo.GetDocInfo(5)).ReturnsAsync(docInfo);
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.GetDocInfo(5);
+
+            Assert.Same(docInfo, result);
+            _mockDocumentRepo.Verify(repo => repo.GetDocInfo(5), Times.Once);
+        }
+
+        [Fact]
+        public async Task LoadFormerAppls_DelegatesToRepository()
+        {
+            var formerAppls = new List<former_appls>();
+            _mockDocumentRepo.Setup(repo => repo.loadFormerAppls(99)).ReturnsAsync(formerAppls);
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.loadFormerAppls(99);
+
+            Assert.Same(formerAppls, result);
+            _mockDocumentRepo.Verify(repo => repo.loadFormerAppls(99), Times.Once);
+        }
+
+        [Fact]
+        public async Task LoadDocsUnidentified_DelegatesToRepository()
+        {
+            var docs = new List<DocsUnidentified>();
+            _mockDocumentRepo.Setup(repo => repo.LoadDocsUnidentified("imgsrv", "user1")).ReturnsAsync(docs);
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = await documentService.LoadDocsUnidentified("imgsrv", "user1");
+
+            Assert.Same(docs, result);
+            _mockDocumentRepo.Verify(repo => repo.LoadDocsUnidentified("imgsrv", "user1"), Times.Once);
+        }
+
+        [Fact]
+        public void GetDocID_DelegatesToRepository()
+        {
+            var docDate = new DateTime(2024, 1, 1);
+            _mockDocumentRepo
+                .Setup(repo => repo.GetDocID(1, 2, "sub", docDate, "pdf", "NCI", "user1"))
+                .Returns(555);
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            var result = documentService.GetDocID(1, 2, "sub", docDate, "pdf", "NCI", "user1");
+
+            Assert.Equal(555, result);
+            _mockDocumentRepo.Verify(repo => repo.GetDocID(1, 2, "sub", docDate, "pdf", "NCI", "user1"), Times.Once);
+        }
+
+        [Fact]
+        public void DocModify_DelegatesToRepository()
+        {
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            documentService.DocModify("update", 1, 2, "sub", "01/01/2024", "10", "pdf", "NCI", "user1");
+
+            _mockDocumentRepo.Verify(
+                repo => repo.DocModify("update", 1, 2, "sub", "01/01/2024", "10", "pdf", "NCI", "user1"),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ReportDocError_DelegatesToRepository()
+        {
+            _mockDocumentRepo
+                .Setup(repo => repo.report_doc_error("boom", 7, "NCI", "user1"))
+                .Returns(Task.CompletedTask);
+
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+
+            await documentService.report_doc_error("boom", 7, "NCI", "user1");
+
+            _mockDocumentRepo.Verify(repo => repo.report_doc_error("boom", 7, "NCI", "user1"), Times.Once);
+        }
+        #endregion
+
+        #region DocCreateByDdropAsync tests
+        [Fact]
+        public async Task DocCreateByDdropAsync_WithNullFile_ReturnsNotSpecifiedResult()
+        {
+            var documentService = new DocumentService(_mockDocumentRepo.Object, null, null, null);
+            var sessionInfo = new SessionInfo { UserId = "user1", Ic = "NCI" };
+
+            var result = await documentService.DocCreateByDdropAsync(
+                dropedfile: null,
+                applId: 1,
+                categoryId: 2,
+                subCategory: "sub",
+                docDate: new DateTime(2024, 1, 1),
+                adminCode: "NCI",
+                serialNum: 10,
+                sessionInfo: sessionInfo);
+
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+            Assert.Null(result.Url);
+            Assert.Equal("You have not specified a file.", result.Message);
+            _mockDocumentRepo.Verify(
+                repo => repo.GetDocID(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(),
+                    It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                Times.Never);
         }
         #endregion
     }

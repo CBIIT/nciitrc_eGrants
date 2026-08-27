@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace eGrants.Tests.Integration
 {
@@ -23,6 +25,10 @@ namespace eGrants.Tests.Integration
     /// </summary>
     public class SmokeTestWebApplicationFactory : WebApplicationFactory<Program>
     {
+        // Set to true ONLY when you intentionally want tests to send real exception emails
+        // via the Serilog Email sink configured in appsettings.json. Leave false normally.
+        private const bool SendEmailsFromTests = false;
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Development");
@@ -60,6 +66,24 @@ namespace eGrants.Tests.Integration
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseInMemoryDatabase("egrants_smoke_tests"));
             });
+        }
+
+        protected override IHost CreateHost(IHostBuilder builder)
+        {
+            var host = base.CreateHost(builder);
+
+            // Program.cs wires a process-wide Serilog Email sink that emails on every Error log.
+            // Tests exercise failure paths that call Log.Error(...), so unless explicitly enabled
+            // we replace the static logger with console-only to guarantee tests never send email.
+            if (!SendEmailsFromTests)
+            {
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Verbose()
+                    .WriteTo.Console()
+                    .CreateLogger();
+            }
+
+            return host;
         }
     }
 }

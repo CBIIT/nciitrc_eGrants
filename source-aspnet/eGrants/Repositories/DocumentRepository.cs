@@ -215,15 +215,15 @@ namespace eGrants.Repositories
 
                     // Add parameters
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+                    cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act ?? "";
                     cmd.Parameters.Add("@appl_id", SqlDbType.Int).Value = applId;
                     cmd.Parameters.Add("@category_id", SqlDbType.Int).Value = categoryId;
-                    cmd.Parameters.Add("@sub_category", SqlDbType.VarChar).Value = subCategory;
-                    cmd.Parameters.Add("@doc_date", SqlDbType.VarChar).Value = docDate;
-                    cmd.Parameters.Add("@docid_str", SqlDbType.VarChar).Value = docidStr;
-                    cmd.Parameters.Add("@file_type", SqlDbType.VarChar).Value = fileType;
-                    cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-                    cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userId;
+                    cmd.Parameters.Add("@sub_category", SqlDbType.VarChar).Value = string.IsNullOrEmpty(subCategory) ? (object)DBNull.Value : subCategory;
+                    cmd.Parameters.Add("@doc_date", SqlDbType.VarChar).Value = string.IsNullOrEmpty(docDate) ? (object)DBNull.Value : docDate;
+                    cmd.Parameters.Add("@docid_str", SqlDbType.VarChar).Value = docidStr ?? "";
+                    cmd.Parameters.Add("@file_type", SqlDbType.VarChar).Value = string.IsNullOrEmpty(fileType) ? (object)DBNull.Value : fileType;
+                    cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic ?? "";
+                    cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userId ?? "";
 
                     SqlDataReader reader = cmd.ExecuteReader();
                     reader.Close();

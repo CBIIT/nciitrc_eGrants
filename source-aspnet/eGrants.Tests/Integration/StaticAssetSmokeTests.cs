@@ -21,14 +21,18 @@ namespace eGrants.Tests.Integration
     /// database-driven db_*.jpg dashboard icons and previously broken ~/images paths) and
     /// catches any future broken static asset reference automatically.
     /// </summary>
-    public class StaticAssetSmokeTests : IClassFixture<SmokeTestWebApplicationFactory>
+    [Collection(SmokeTestCollection.Name)]
+    public class StaticAssetSmokeTests
     {
         private readonly SmokeTestWebApplicationFactory _factory;
         private readonly ITestOutputHelper _output;
 
-        public StaticAssetSmokeTests(SmokeTestWebApplicationFactory factory, ITestOutputHelper output)
+        public StaticAssetSmokeTests(ITestOutputHelper output)
         {
-            _factory = factory;
+            // Reuse the single process-wide host. AddSystemWebAdapters() registers a
+            // process-global hosting environment that only permits one host per process,
+            // so every smoke test must share the same factory instance.
+            _factory = SmokeTestHost.Factory;
             _output = output;
         }
 
