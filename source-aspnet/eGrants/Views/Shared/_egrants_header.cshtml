@@ -21,7 +21,42 @@
     <link href="~/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/css/egrants.css" rel="stylesheet" />
 
-    
+    <style>
+        /* Loading overlay that covers the entire page */
+        #page-loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #page-loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-content img {
+            width: 150px;
+            height: 150px;
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+
 @*     <script src="~/scripts/jquery-3.6.4.min.js"></script>
     <script src="~/scripts/bootstrap.min.js"></script>
     <script src="~/scripts/validation.js"></script> *@
@@ -305,6 +340,14 @@
     </style>
 </head>
 <body>
+
+<!-- Loading overlay - shown during page navigation to by_grant -->
+<div id="page-loading-overlay">
+    <div class="loading-content">
+        <img src="/images/Loading.gif" alt="Loading..." />
+        <div class="loading-text">Loading grant and documents...</div>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-lg-2" id="logo">

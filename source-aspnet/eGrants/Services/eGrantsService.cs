@@ -363,10 +363,26 @@ namespace eGrants.Services
                 }
                 else if (applsList != null && applsList.Equals("All", StringComparison.InvariantCultureIgnoreCase))
                 {
+                    Log.Information("[GetEgrantsByGrantAsync] applsList='All' - Setting display_docs='y' for all {Count} applications", 
+                        eGrantsSearchViewModelList.appllayer.Count);
+
                     foreach (var appl in eGrantsSearchViewModelList.appllayer)
                     {
                         appl.display_docs = "y";
                     }
+
+                    // Log first few to verify
+                    var sampleAppls = eGrantsSearchViewModelList.appllayer.Take(3);
+                    foreach (var appl in sampleAppls)
+                    {
+                        Log.Information("[GetEgrantsByGrantAsync] Application: appl_id={ApplId}, full_grant_num={FullGrantNum}, display_docs={DisplayDocs}",
+                            appl.appl_id, appl.full_grant_num, appl.display_docs);
+                    }
+                }
+                else
+                {
+                    Log.Warning("[GetEgrantsByGrantAsync] applsList is NULL or not 'All' - display_docs NOT set! Applications won't show documents.");
+                    Log.Warning("[GetEgrantsByGrantAsync] applsList value: {ApplsList}", applsList ?? "(null)");
                 }
             }
 
@@ -450,6 +466,8 @@ namespace eGrants.Services
             var applList = new List<ApplLayerObject>();
             var docList = new List<doclayer>();
             List<ApplLayerObject> appllayerproperty = null;
+
+            Log.Information("[eGrantsSearchResults] Processing {TotalRows} database rows", result.Count);
 
             foreach (eGrantsSearchResults value in result)
             {
@@ -605,11 +623,24 @@ namespace eGrants.Services
                 }
                 else if (value.tag == 3)
                 {
+                    // Log what data IS available for document rows (tag=3)
+                    // Note: eGrantsSearchResults doesn't have document-specific fields
+                    Log.Information("[eGrantsSearchResults] Document row (tag=3) - grant_id={GrantId}, appl_id={ApplId}, docs_count={DocsCount}",
+                        value.grant_id, value.appl_id, value.docs_count);
+
+                    // WARNING: Creating empty document object - THIS IS THE BUG!
                     var doc = new doclayer();
+
+                    Log.Warning("[eGrantsSearchResults] BUG: Created empty doclayer with no properties populated!");
+                    Log.Warning("[eGrantsSearchResults] Documents are NOT returned by sp_web_egrants - they must be loaded separately via AJAX");
+                    Log.Warning("[eGrantsSearchResults] Check if JavaScript is calling /Egrants/LoadDocsGrid for applId={ApplId}", value.appl_id);
 
                     docList.Add(doc);
                 }
             }
+
+            Log.Information("[eGrantsSearchResults] Processing complete - Created {GrantCount} grants, {ApplCount} applications, {DocCount} empty document placeholders",
+                grantList.Count, applList.Count, docList.Count);
 
             searchByStrViewModel.grantlayerproperty = grantList;
             searchByStrViewModel.doclayerproperty = docList;

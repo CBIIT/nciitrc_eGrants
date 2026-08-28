@@ -234,7 +234,10 @@
          $("#overlay").show();
 
          $(document).ready(function () {
- 
+            console.log('[_egrants_showDocs] Document ready - Initializing DataTable for applId @appl_id');
+            console.log('[_egrants_showDocs] jQuery version:', $.fn.jquery);
+            console.log('[_egrants_showDocs] DataTables available:', typeof $.fn.dataTable);
+
             $.fn.dataTable.moment('MM/DD/YYYY');
             jQuery.extend(jQuery.fn.dataTableExt.oSort,
                {
@@ -277,6 +280,8 @@
                "orderMulti": false, // for disable multiple column at once
                "bInfo": false,
                "initComplete": function(settings, json) {
+                  console.log('[DataTable] Init complete for applId @appl_id');
+                  console.log('[DataTable] Records total:', json ? (json.data ? json.data.length : 0) : 0);
                   var info = this.api().page.info();
                   if (info.recordsTotal > 1) $('#show_qc_all_' + @appl_id).show();
                },
@@ -286,6 +291,23 @@
                   "type": "GET",
                    "datatype": "json",
                    "timeout": 600000,
+                   "error": function(xhr, error, thrown) {
+                      console.error('[DataTable] AJAX ERROR for applId @appl_id:', error);
+                      console.error('[DataTable] Status:', xhr.status, xhr.statusText);
+                      console.error('[DataTable] Response:', xhr.responseText);
+                      console.error('[DataTable] URL:', "/Egrants/LoadDocsGrid?applId=" + @appl_id);
+                   },
+                   "beforeSend": function(xhr) {
+                      console.log('[DataTable] Loading documents for applId @appl_id');
+                      console.log('[DataTable] URL:', "/Egrants/LoadDocsGrid?applId=" + @appl_id);
+                   },
+                   "dataSrc": function(json) {
+                      console.log('[DataTable] Received data for applId @appl_id:', json);
+                      if (json && json.data) {
+                         console.log('[DataTable] Document count:', json.data.length);
+                      }
+                      return json.data;
+                   }
                },
                "stripeClasses": ['odd-row', 'even-row'],
                "columnDefs": [
