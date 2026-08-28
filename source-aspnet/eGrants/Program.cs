@@ -8,6 +8,9 @@ using eGrants.Services.Interfaces;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 using Serilog;
 
@@ -42,6 +45,36 @@ var finalConnectionString = raw
 // Use the final connection string
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(finalConnectionString));
+#endregion
+
+#region Setting up the Entra ID client secret
+
+// Pull the Entra ID client secret from an environment variable and replace the
+// "{eGrants_AzureAd_ClientSecret}" placeholder configured in appsettings, mirroring
+// the DB_USER / DB_PASSWORD pattern used for the connection string above.
+var azureAdClientSecret = builder.Configuration["eGrants_AzureAd_ClientSecret"];
+var configuredClientSecret = builder.Configuration["AzureAd:ClientSecret"];
+
+if (!string.IsNullOrEmpty(configuredClientSecret))
+{
+    builder.Configuration["AzureAd:ClientSecret"] =
+        configuredClientSecret.Replace("{eGrants_AzureAd_ClientSecret}", azureAdClientSecret);
+}
+#endregion
+
+#region Setting up the eRA client certificate password
+
+// Pull the client certificate (.pfx) password from an environment variable and replace
+// the "{CERT_PASSWORD}" placeholder configured in appsettings, mirroring the
+// DB_USER / DB_PASSWORD and client secret patterns above.
+var certPassword = builder.Configuration["CERT_PASSWORD"];
+var configuredCertPass = builder.Configuration["AppSettings:certPass"];
+
+if (!string.IsNullOrEmpty(configuredCertPass))
+{
+    builder.Configuration["AppSettings:certPass"] =
+        configuredCertPass.Replace("{CERT_PASSWORD}", certPassword ?? string.Empty);
+}
 #endregion
 
 #region Request Size Limits Configuration
@@ -152,6 +185,31 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
 });
+
+// Microsoft Entra ID (OIDC) Authentication
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
+// Use the authorization code flow (back-channel token exchange) rather than the
+// hybrid/implicit flow. This avoids AADSTS700054 ("response_type 'id_token' is not
+// enabled for the application") by requesting "response_type=code" instead of an
+// id_token at the authorize endpoint. The ID token is then returned via the token
+// endpoint using the configured client secret.
+builder.Services.Configure<OpenIdConnectOptions>(
+    OpenIdConnectDefaults.AuthenticationScheme, options =>
+    {
+        options.ResponseType = OpenIdConnectResponseType.Code;
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+builder.Services.AddControllersWithViews()
+    .AddMicrosoftIdentityUI();
 
 #endregion
 
