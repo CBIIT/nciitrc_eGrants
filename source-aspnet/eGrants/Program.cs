@@ -5,6 +5,8 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
