@@ -18,7 +18,7 @@ namespace EmailHandlingTests.Unit.OGADisableEmail
         /// <summary>
         /// Initializes the test processor with default email settings for testing.
         /// </summary>
-        public TestOGADisableProcessor() : base(CreateTestEmailSettings(), CreateTestSmtpService())
+        public TestOGADisableProcessor() : base(CreateTestEmailSettings())
         {
         }
 
@@ -26,13 +26,8 @@ namespace EmailHandlingTests.Unit.OGADisableEmail
         /// Initializes the test processor with custom email settings.
         /// </summary>
         /// <param name="emailSettings">Custom email settings for testing</param>
-        public TestOGADisableProcessor(EmailSettings emailSettings) : base(emailSettings, CreateTestSmtpService())
+        public TestOGADisableProcessor(EmailSettings emailSettings) : base(emailSettings)
         {
-        }
-
-        private static CommonUtilties.SmtpEmailService CreateTestSmtpService()
-        {
-            return new CommonUtilties.SmtpEmailService("localhost", 25, "test@test.com");
         }
 
         /// <summary>

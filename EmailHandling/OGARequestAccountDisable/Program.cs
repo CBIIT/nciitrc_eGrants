@@ -77,7 +77,6 @@ namespace OGARequestAccountDisable
 
                 var logDir = config["AppSettings:LogDir"] ?? @"C:\egrants\apps\log\";
                 CommonUtilities.LogDir = logDir;
-                CommonUtilities.InitializeLogging("OGARequestAccountDisable", logDir);
                 CommonUtilities.ShowDiagnosticIfVerbose($"Log directory: '{logDir}'", verbose);
 
                 var conStr = AppConfig.GetConnectionString(config, "EIM");
@@ -101,8 +100,7 @@ namespace OGARequestAccountDisable
 
                 SqlConnection con = new SqlConnection(conStr);
 
-                var smtpService = new SmtpEmailService(config);
-                var processor = new Processor(emailSettings, smtpService);
+                var processor = new Processor(emailSettings);
                 var emailsCountRequestedToBeDisabled = processor.Process("", con, verbose);
 
                 var taskEndMsg = $"******* Disable Task Completed! ******* {emailsCountRequestedToBeDisabled} email account(s) have been requested to OGA for disabling";
@@ -117,7 +115,7 @@ namespace OGARequestAccountDisable
                 var startTimeStamp2 = DateTime.Now;
                 CommonUtilities.WriteLog(forAppending2, taskStartMsg2, null, startTimeStamp2);
 
-                var warningProcessor = new ProcessorWarning(emailSettings, smtpService);
+                var warningProcessor = new ProcessorWarning(emailSettings);
                 var emailsCountRequestedToSendWarning = warningProcessor.ProcessWarning("", con, verbose);
 
                 var taskEndMsg2 = $"******* Warning Task Completed! ******* {emailsCountRequestedToSendWarning} warning email(s) have been sent to users";
@@ -132,7 +130,6 @@ namespace OGARequestAccountDisable
                 // Log any unhandled exceptions to console and log file
                 Console.WriteLine($"Error: {ex.Message}");
                 Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                CommonUtilities.Logger?.Fatal(ex, "Fatal error in OGARequestAccountDisable: {ErrorMessage}", ex.Message);
 
                 try
                 {
@@ -142,10 +139,6 @@ namespace OGARequestAccountDisable
                         $"Message: {ex.Message}\nStackTrace: {ex.StackTrace}", DateTime.Now);
                 }
                 catch { }
-            }
-            finally
-            {
-                CommonUtilities.CloseLogging();
             }
         }
     }

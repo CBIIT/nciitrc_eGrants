@@ -55,7 +55,7 @@ namespace AddSuppEmailer
                     CommonUtilities.Logger.Debug("Database connection string configured");
 
                     var processor = new Processor();
-                    var mailsSent = processor.Process(con, verbose, logDir, debugEmail, additionalCc, errorTo, errorCc, config);
+                    var mailsSent = processor.Process(con, verbose, logDir, debugEmail, additionalCc, errorTo, errorCc);
 
                     CommonUtilities.Logger.Information("Task Completed - {MailCount} emails sent", mailsSent);
                 }

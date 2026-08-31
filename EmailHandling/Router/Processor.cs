@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Runtime.InteropServices;
 using System.Threading;
 using CommonUtilties;
-using MailKit;
 using Microsoft.Extensions.Configuration;
 
 namespace Router
@@ -16,7 +16,6 @@ namespace Router
         public Dictionary<string, string> emailsSentThisSession { get; private set; }
 
         private IConfiguration _config;
-        private ImapEmailService _imapService;
 
         public Processor(IConfiguration config = null)
         {
@@ -31,36 +30,70 @@ namespace Router
 
             CommonUtilities.ShowDiagnosticIfVerbose("Here we go ...", verbose);
 
-            // Connect to Exchange via IMAP (replaces Outlook COM)
-            CommonUtilities.Logger?.Information("Processor: Creating ImapEmailService instance...");
-            _imapService = new ImapEmailService(_config);
-            CommonUtilities.Logger?.Information("Processor: ImapEmailService created. Calling Connect()...");
-            _imapService.Connect();
-            CommonUtilities.Logger?.Information("Processor: IMAP connection established successfully.");
-            CommonUtilities.ShowDiagnosticIfVerbose("Connected to mail server via IMAP.", verbose);
+            // Connect to existing Outlook instance via late-bound COM (matches AddSuppEmailer pattern)
+            Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
+            if (outlookType == null)
+            {
+                throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
+            }
+
+            dynamic oApp = GetRunningOutlook() ?? Activator.CreateInstance(outlookType);
+            CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", verbose);
+
+            dynamic oNS = oApp.GetNamespace("MAPI");
+            oNS.Logon("", "", false, true);
+            CommonUtilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
 
             CommonUtilities.ShowDiagnosticIfVerbose($"Opening SQL connection ...", verbose);
             con.Open();
             CommonUtilities.ShowDiagnosticIfVerbose($"SQL connection opened.", verbose);
 
+            char sepchar = '\\';
+
             CommonUtilities.ShowDiagnosticIfVerbose($"dirpath: {dirPath}", verbose);
-            CommonUtilities.Logger?.Information("Processor: dirPath='{DirPath}'", dirPath);
+            //Parse inputstr and Navigate to the folder
             if (!string.IsNullOrWhiteSpace(dirPath))
             {
-                CommonUtilities.Logger?.Information("Processor: Calling GetFolder for path '{DirPath}'...", dirPath);
-                IMailFolder currentFolder = _imapService.GetFolder(dirPath);
-                CommonUtilities.Logger?.Information("Processor: GetFolder returned folder '{FolderName}' with {Count} messages.", currentFolder.FullName, currentFolder.Count);
-                CommonUtilities.ShowDiagnosticIfVerbose("Finished navigating to folder", verbose);
+                string[] dirs = dirPath.Split(new char[] { sepchar }, StringSplitOptions.RemoveEmptyEntries);
 
-                CommonUtilities.Logger?.Information("Processor: Calling GetSubfolder for 'Old emails' under '{ParentFolder}'...", currentFolder.FullName);
-                IMailFolder oldFolder = _imapService.GetSubfolder(currentFolder, "Old emails");
-                CommonUtilities.Logger?.Information("Processor: Got 'Old emails' subfolder: '{FullName}'", oldFolder.FullName);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Setting objNS.Folders to {dirs[0]}", verbose);
+
+                dynamic currentFolder = oNS.Folders[dirs[0]];
+                bool first = true;
+                foreach (var dir in dirs)
+                {
+                    if (first || string.IsNullOrWhiteSpace(dir))
+                    {
+                        first = false;
+                        continue;
+                    }
+                    currentFolder = currentFolder.Folders[dir];       // All Public Folders could not be found
+                }
+                CommonUtilities.ShowDiagnosticIfVerbose("Finished stepping through CFolder xarray", verbose);
+
+                dynamic oldFolder = currentFolder.Folders["Old emails"];
+
                 CommonUtilities.ShowDiagnosticIfVerbose("went to Old emails", verbose);
+                CommonUtilities.ShowDiagnosticIfVerbose($"Mail count={currentFolder.Items.Count}", verbose);
 
-                CommonUtilities.Logger?.Information("Processor: Calling GetEmails for folder '{FolderName}'...", currentFolder.FullName);
-                List<RouterMailItem> eachEmailToProcess = _imapService.GetEmails(currentFolder);
-                CommonUtilities.Logger?.Information("Processor: GetEmails returned {Count} email(s) to process.", eachEmailToProcess.Count);
-                CommonUtilities.ShowDiagnosticIfVerbose($"Mail count={eachEmailToProcess.Count}", verbose);
+                var itemCount = currentFolder.Items.Count;      // itmscncnt
+                List<dynamic> eachEmailToProcess = new List<dynamic>();
+                foreach (object item in currentFolder.Items)     // fails here
+                {
+                    // Check if item is a MailItem (Class == 43 is olMail)
+                    try
+                    {
+                        dynamic dynItem = item;
+                        if ((int)dynItem.Class == 43) // olMail
+                            eachEmailToProcess.Add(dynItem);
+                        else
+                            CommonUtilities.ShowDiagnosticIfVerbose($"skipping a non mail item ...", verbose);
+                    }
+                    catch
+                    {
+                        CommonUtilities.ShowDiagnosticIfVerbose($"skipping a non mail item ...", verbose);
+                    }
+                }
                 CommonUtilities.ShowDiagnosticIfVerbose($"staging email list count={eachEmailToProcess.Count}", verbose);
 
                 CommonUtilities.ShowDiagnosticIfVerbose($"****************** starting ********************", verbose);
@@ -68,51 +101,61 @@ namespace Router
                 foreach (var item in eachEmailToProcess)
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($" ", verbose);
-                    CommonUtilities.ShowDiagnosticIfVerbose($"Item : {item.Subject}", verbose);
-                    CommonUtilities.Logger?.Information("Processor: Processing email UID={Uid}, Subject='{Subject}', From='{Sender}', ReceivedTime={ReceivedTime}",
-                        item.UniqueId, item.Subject, item.SenderAddress, item.ReceivedTime);
+                    dynamic currentItem = item;
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Item : {currentItem.ToString()}", verbose);
 
-                    var v_SubLine = item.Subject;
-                    var v_Body = item.Body;
+                    // TODO refactor these variable names
+                    var v_SubLine = currentItem.Subject;
+                    var v_Body = currentItem.Body;
 
                     CommonUtilities.ShowDiagnosticIfVerbose($"Subject : {v_SubLine}", verbose);
+                    //CommonUtilities.ShowDiagnosticIfVerbose($"Body : {v_Body}", verbose);
 
                     bool failedToProcess = false;
+                    string exceptionType = string.Empty;
                     try
                     {
-                        HandleSingleEmail(item, v_SubLine, v_Body, verbose, con, debug);
+                        HandleSingleEmail(currentItem, v_SubLine, v_Body, verbose, con, debug);
                     }
                     catch (System.Exception ex)
                     {
                         failedToProcess = true;
-                        var _logMessage = $"Error Occured! => EmailSender:{v_SenderID}; Subjectline : {v_SubLine}; Recieved Date: {item.ReceivedTime}";
+                        var _logMessage = $"Error Occured! => EmailSender:{v_SenderID}; Subjectline : {v_SubLine}; Recieved Date: {currentItem.ReceivedTime}";
                         var _errorMessage = $"Error Type : {ex.GetType().FullName}, Error Message: {ex.Message} , Error Stack: {ex.StackTrace}";
-                        CommonUtilities.Logger?.Error(ex, "Processor: HandleSingleEmail failed for UID={Uid}, Subject='{Subject}', Sender='{Sender}'. Error: {ErrorMessage}",
-                            item.UniqueId, v_SubLine, v_SenderID, ex.Message);
                         var _endTimeStamp = DateTime.Now;
                         int _forAppending = 8;
                         CommonUtilities.WriteLog(_forAppending, _logMessage, _errorMessage, _endTimeStamp);
 
-                        RaiseErrorToAdmin(item, "Error Occured! PROD eMailRouter vbs", _errorMessage);
+                        RaiseErrorToAdmin(currentItem, "Error Occured! PROD eMailRouter vbs", _errorMessage);
+                    }
+                    if (failedToProcess && exceptionType.ToLower().Contains("comexception"))
+                    {
+                        StartService("ClickToRunSvc");
                     }
 
+                    itemCount++;
                     CommonUtilities.ShowDiagnosticIfVerbose("Incrementing count", verbose);
-                    CommonUtilities.Logger?.Information("Processor: Moving message UID={Uid} from '{Source}' to 'Old emails'...", item.UniqueId, currentFolder.FullName);
+                    CommonUtilities.ShowDiagnosticIfVerbose($"Old folder: {oldFolder}", verbose);
                     try
                     {
-                        _imapService.MoveMessage(currentFolder, item.UniqueId, oldFolder);
-                        CommonUtilities.Logger?.Information("Processor: Message UID={Uid} moved successfully.", item.UniqueId);
+                        var result = currentItem.Move(oldFolder);
                     }
                     catch (System.Exception ex)
                     {
-                        string message = $"Failed to move an item at {DateTime.UtcNow} UTC. Here is some info : {ex.Message} \r\n {ex.ToString()}";
-                        CommonUtilities.Logger?.Error(ex, "Processor: Failed to move message UID={Uid} to 'Old emails'. Error: {ErrorMessage}", item.UniqueId, ex.Message);
+                        string message = $"Failed to move an item at {DateTime.UtcNow} UTC. Most likely solution is to restart Outlook (or re-request public file permissions in Outlook). This behavior does not indicate a defect in this software. Written authorization is not required to restart Microsoft Outlook. Here is some info : {ex.Message} \r\n {ex.ToString()}";
                         CommonUtilities.ShowDiagnosticIfVerbose(message, "y");
+                        dynamic oApp2 = GetRunningOutlook() ?? Activator.CreateInstance(outlookType);
+                        CommonUtilities.ShowDiagnosticIfVerbose("Created the outlook object.", "y");
 
+                        // CreateItem(0) = olMailItem
+                        dynamic mailItem = oApp2.CreateItem(0);
+
+                        mailItem.Subject = GetEnvironmentPrefix() + "Failed to move an item to old. Please restart Outlook.";
                         var errorRecipients = _config?["EmailRecipients:ErrorNotificationRecipients"] ?? "egrantsdevs@mail.nih.gov;leul.ayana@nih.gov";
-                        CommonUtilities.Logger?.Information("Processor: Sending move-failure notification email to '{Recipients}'...", errorRecipients);
-                        _imapService.SendEmail(errorRecipients, GetEnvironmentPrefix() + "Failed to move an item to old.", message);
-                        CommonUtilities.Logger?.Information("Processor: Move-failure notification sent.");
+                        mailItem.To = errorRecipients;
+                        mailItem.HTMLBody = message;
+                        mailItem.BodyFormat = 2; // olFormatHTML
+                        mailItem.Send();
                     }
                     Thread.Sleep(routingBreakDuration);
 
@@ -130,14 +173,15 @@ namespace Router
                 }
             }
 
-            CommonUtilities.Logger?.Information("Processor: Finished processing. Total items processed: {Count}", itemsProcessedCount);
             return itemsProcessedCount;
         }
 
         /// <summary>
         /// Override this method for testing.
         /// </summary>
-        protected virtual Dictionary<string, string> Send(RouterOutgoingMail mailItem)
+        /// <param name="mailItem"></param>
+        /// <returns></returns>
+        protected virtual Dictionary<string, string> Send(dynamic mailItem)
         {
             var prefix = GetEnvironmentPrefix();
             if (!string.IsNullOrEmpty(prefix))
@@ -145,10 +189,7 @@ namespace Router
                 mailItem.Subject = prefix + mailItem.Subject;
             }
 
-            CommonUtilities.Logger?.Information("Processor.Send: Sending email via SMTP. Subject='{Subject}', Recipients=[{Recipients}], IsForward={IsForward}",
-                mailItem.Subject, string.Join("; ", mailItem.Recipients), mailItem.OriginalMessage != null);
-            _imapService.Send(mailItem);
-            CommonUtilities.Logger?.Information("Processor.Send: Email sent successfully. Subject='{Subject}'", mailItem.Subject);
+            mailItem.Send();
 
             return null;
         }
@@ -168,10 +209,16 @@ namespace Router
         private bool EmailMe(string subject, string bodyMessage)
         {
             CommonUtilities.ShowDiagnosticIfVerbose("Issuing email to admin ...", "y");
+            dynamic oApp = GetRunningOutlook() ?? Activator.CreateInstance(Type.GetTypeFromProgID("Outlook.Application"));
+            // CreateItem(0) = olMailItem
+            dynamic mailItem = oApp.CreateItem(0);
+            mailItem.Subject = GetEnvironmentPrefix() + subject;
             var legacyRecipient = _config?["EmailRecipients:LegacyErrorRecipient"] ?? "leul.ayana@nih.gov";
-            CommonUtilities.Logger?.Information("Processor.EmailMe: Sending admin email via SMTP. To='{Recipient}', Subject='{Subject}'", legacyRecipient, subject);
-            _imapService.SendEmail(legacyRecipient, GetEnvironmentPrefix() + subject, bodyMessage);
-            CommonUtilities.Logger?.Information("Processor.EmailMe: Admin email sent successfully.");
+            mailItem.To = legacyRecipient;
+            mailItem.HTMLBody = bodyMessage;
+            mailItem.BodyFormat = 2; // olFormatHTML
+            mailItem.Send();
+
             return true;
         }
 
@@ -181,64 +228,39 @@ namespace Router
             throw new NotSupportedException("ManagementObject is not available in this project. StartService functionality is not supported on this platform.");
         }
 
-        private string RaiseErrorToAdmin(RouterMailItem currentItem, string errorMessage1, string errorMessage2)
+
+        private string RaiseErrorToAdmin(dynamic currentItem, string errorMessage1, string errorMessage2)
         {
-            CommonUtilities.Logger?.Information("Processor.RaiseErrorToAdmin: Forwarding error email for UID={Uid}, Subject='{Subject}'", currentItem.UniqueId, currentItem.Subject);
-            var outmail = _imapService.Forward(currentItem);
+            var outmail = currentItem.Forward();
             var legacyRecipient = _config?["EmailRecipients:LegacyErrorRecipient"] ?? "leul.ayana@nih.gov";
-            outmail.AddRecipient(legacyRecipient);
-            outmail.AddRecipient(legacyRecipient);   // NB : original system had this duplicated [sic]
+            outmail.Recipients.Add(legacyRecipient);
+            outmail.Recipients.Add(legacyRecipient);   // NB : original system had this duplicated [sic]
             outmail.Subject = $"{errorMessage1}  >>(Subj: {currentItem.Subject} )";
-            CommonUtilities.Logger?.Information("Processor.RaiseErrorToAdmin: Sending forward to '{Recipient}', Subject='{Subject}'", legacyRecipient, outmail.Subject);
             Send(outmail);
-            CommonUtilities.Logger?.Information("Processor.RaiseErrorToAdmin: Error notification sent.");
             return "done";
         }
 
         /// <summary>
-        /// Overload for test objects that cannot create real mail items.
+        /// Overload for test objects that cannot create or pass COM objects due to registry conflicts
         /// </summary>
+        /// <param name="v_SubLine"></param>
+        /// <param name="v_Body"></param>
+        /// <param name="verbose"></param>
+        /// <param name="con"></param>
+        /// <param name="debug"></param>
         public void HandleSingleEmail(string from, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
         {
-            // Create a synthetic RouterMailItem for testing
-            var testItem = new RouterMailItem
-            {
-                Subject = v_SubLine,
-                Body = v_Body,
-                SenderAddress = from,
-                SenderName = from,
-                ReceivedTime = DateTime.Now
-            };
-            HandleSingleEmailInternal(testItem, from, v_SubLine, v_Body, verbose, con, debug);
+            dynamic oApp = GetRunningOutlook() ?? Activator.CreateInstance(Type.GetTypeFromProgID("Outlook.Application"));
+            // CreateItem(0) = olMailItem
+            dynamic newMail = oApp.CreateItem(0);
+
+            newMail.Subject = v_SubLine;
+            newMail.Body = v_Body;
+            HandleSingleEmail(newMail, v_SubLine, v_Body, verbose, con, debug);
         }
 
-        public void HandleSingleEmail(RouterMailItem currentItem, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
+        public void HandleSingleEmail(dynamic currentItem, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
         {
-            HandleSingleEmailInternal(currentItem, null, v_SubLine, v_Body, verbose, con, debug);
-        }
-
-        private void HandleSingleEmailInternal(RouterMailItem currentItem, string fromOverride, string v_SubLine, string v_Body, string verbose, SqlConnection con, string debug)
-        {
-            // Helper to create a forward
-            RouterOutgoingMail ForwardCurrentItem()
-            {
-                if (currentItem?.MimeMessage != null)
-                {
-                    CommonUtilities.Logger?.Information("Processor.ForwardCurrentItem: Creating IMAP forward for UID={Uid}, Subject='{Subject}'", currentItem.UniqueId, currentItem.Subject);
-                    var result = _imapService.Forward(currentItem);
-                    CommonUtilities.Logger?.Information("Processor.ForwardCurrentItem: Forward created with subject '{Subject}'", result.Subject);
-                    return result;
-                }
-                // Test path: create a new mail with the forwarded content
-                CommonUtilities.Logger?.Debug("Processor.ForwardCurrentItem: No MimeMessage available (test path). Creating synthetic forward.");
-                var fwd = new RouterOutgoingMail
-                {
-                    Subject = "FW: " + v_SubLine,
-                    HtmlBody = v_Body
-                };
-                return fwd;
-            }
-
             // Load email recipients from configuration, with fallback to legacy hardcoded values if config not available
             var _dBugEmail = _config?["EmailRecipients:DebugEmail"] ?? "leul.ayana@nih.gov";
             var _eGrantsDevEmail = _config?["EmailRecipients:EGrantsDevEmail"] ?? "eGrantsDev@mail.nih.gov";
@@ -250,7 +272,6 @@ namespace Router
             if (!v_SubLine.ToLower().Contains("undeliverable: "))
             {
                 v_SenderID = GetSenderId(currentItem);
-                CommonUtilities.Logger?.Information("Processor: SenderID resolved to '{SenderID}' for Subject='{Subject}'", v_SenderID, v_SubLine);
                 CommonUtilities.ShowDiagnosticIfVerbose($"Sender : {v_SenderID}", verbose);
 
                 if (v_SubLine.Contains("eSNAP Received at NIH") || v_SubLine.Contains("eRA Commons: RPPR for Grant"))
@@ -262,20 +283,20 @@ namespace Router
                         var replysubj = $"category=eRANotification, sub=RPPR Non-Compliance, extract=1,{v_SubLine}";
                         CommonUtilities.ShowDiagnosticIfVerbose($"Found : {v_SubLine}", verbose);
                         CommonUtilities.ShowDiagnosticIfVerbose($"replysubj : {replysubj}", verbose);
-                        var outmail = ForwardCurrentItem();
+                        var outmail = currentItem.Forward();
                         if (debug == "n")
                         {
-                            outmail.AddRecipient(_eFileEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
-                            outmail.AddRecipient(_eGrantsTestEmail);
-                            outmail.AddRecipient(_eGrantsStageEmail);
+                            outmail.Recipients.Add(_eFileEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_eGrantsTestEmail);
+                            outmail.Recipients.Add(_eGrantsStageEmail);
                             outmail.Subject = replysubj;
                             Send(outmail);
                         }
                         else
                         {
-                            outmail.AddRecipient(_dBugEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_dBugEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replysubj;
                             Send(outmail);
                         }
@@ -283,58 +304,58 @@ namespace Router
                     } // end submitted to NIH with a Non-Compliance
 
                     //(2) forward to Bryan and Nicole
-                    var outmail2 = ForwardCurrentItem();
+                    var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
                         var publicAccessRecipients = (_config?["EmailRecipients:PublicAccessComplianceRecipients"] ?? "jonesni@mail.nih.gov;bakerb@mail.nih.gov;edward.mikulich@nih.gov").Split(';');
                         foreach (var recipient in publicAccessRecipients)
                         {
-                            outmail2.AddRecipient(recipient.Trim());
+                            outmail2.Recipients.Add(recipient.Trim());
                         }
                         Send(outmail2);
                     }
                     else
                     {
-                        outmail2.AddRecipient(_dBugEmail);
-                        outmail2.AddRecipient(_eGrantsDevEmail);
+                        outmail2.Recipients.Add(_dBugEmail);
+                        outmail2.Recipients.Add(_eGrantsDevEmail);
                         Send(outmail2);
                     }
                 }
                 else if (v_SubLine.Contains("IC ACTION REQUIRED - Relinquishing Statement"))
                 {
-                    var outmail2 = ForwardCurrentItem();
+                    var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
                         var relinquishingRecipients = (_config?["EmailRecipients:RelinquishingStatementRecipients"] ?? "emily.driskell@nih.gov;dvellaj@mail.nih.gov;edward.mikulich@nih.gov").Split(';');
                         foreach (var recipient in relinquishingRecipients)
                         {
-                            outmail2.AddRecipient(recipient.Trim());
+                            outmail2.Recipients.Add(recipient.Trim());
                         }
                         Send(outmail2);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
-                        outmail2.AddRecipient(_dBugEmail);
-                        outmail2.AddRecipient(_eGrantsDevEmail);
+                        outmail2.Recipients.Add(_dBugEmail);
+                        outmail2.Recipients.Add(_eGrantsDevEmail);
                         Send(outmail2);
                     }
                 }
                 else if (v_SubLine.Contains(" Supplement Requested through "))
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
-                    var outmail2 = ForwardCurrentItem();
+                    var outmail2 = currentItem.Forward();
                     if (debug == "n")
                     {
                         var supplementsEmail = _config?["EmailRecipients:NCIOGASupplementsEmail"] ?? "NCIOGASupplements@mail.nih.gov";
-                        outmail2.AddRecipient(supplementsEmail);
+                        outmail2.Recipients.Add(supplementsEmail);
                         Send(outmail2);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"Found subject : {v_SubLine}", verbose);
-                        outmail2.AddRecipient(_dBugEmail);
-                        outmail2.AddRecipient(_eGrantsDevEmail);
+                        outmail2.Recipients.Add(_dBugEmail);
+                        outmail2.Recipients.Add(_eGrantsDevEmail);
                         Send(outmail2);
                     }
                 }
@@ -360,6 +381,7 @@ namespace Router
                             {
                                 while (reader.Read())
                                 {
+                                    // MLH : was an earlier vbscript reference to {reader["ABC"]} but I don't see any field with that name returnin from this sproc or in the code
                                     p_SpecEmail = $"{reader["Email_address_p"]}";
                                     b_SpecEmail = $"{reader["Email_address_b"]}";
                                     CommonUtilities.ShowDiagnosticIfVerbose($"Return from poroc (SPEC EMAIL)=>{p_SpecEmail}", verbose);
@@ -368,39 +390,39 @@ namespace Router
                             }
                         }
                     }
-                    var outmail2 = ForwardCurrentItem();
+                    var outmail2 = currentItem.Forward();
 
                     if (debug == "n")
                     {
                         var bobTeamEmail = _config?["EmailRecipients:NCIOGABOBTeamEmail"] ?? "nciogabobteam1@mail.nih.gov";
-                        outmail2.AddRecipient(bobTeamEmail);
+                        outmail2.Recipients.Add(bobTeamEmail);
                         // if they're not equal, send to both
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && !p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            outmail2.AddRecipient(p_SpecEmail);
-                            outmail2.AddRecipient(b_SpecEmail);
+                            outmail2.Recipients.Add(p_SpecEmail);
+                            outmail2.Recipients.Add(b_SpecEmail);
                         }
                         // they do equal, just send to p specEmail
                         else if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
                             && p_SpecEmail.Equals(b_SpecEmail, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            outmail2.AddRecipient(p_SpecEmail);
+                            outmail2.Recipients.Add(p_SpecEmail);
                         }
                         else if (!string.IsNullOrWhiteSpace(p_SpecEmail) && string.IsNullOrWhiteSpace(b_SpecEmail))
                         {
-                            outmail2.AddRecipient(p_SpecEmail);
+                            outmail2.Recipients.Add(p_SpecEmail);
                         }
                         else if (!string.IsNullOrWhiteSpace(b_SpecEmail) && string.IsNullOrWhiteSpace(p_SpecEmail))
                         {
-                            outmail2.AddRecipient(b_SpecEmail);
+                            outmail2.Recipients.Add(b_SpecEmail);
                         }
                         Send(outmail2);
                     }
                     else
                     {
-                        outmail2.AddRecipient(_dBugEmail);
-                        outmail2.AddRecipient(_eGrantsDevEmail);
+                        outmail2.Recipients.Add(_dBugEmail);
+                        outmail2.Recipients.Add(_eGrantsDevEmail);
                         var replysubj = string.Empty;
                         // if they're not equal, send to both
                         if (!string.IsNullOrWhiteSpace(p_SpecEmail) && !string.IsNullOrWhiteSpace(b_SpecEmail)
@@ -431,20 +453,23 @@ namespace Router
                     var replysubj = $"category=eRANotification, sub=No Cost Extension, extract=1,{currentItem.Subject}";
                     CommonUtilities.ShowDiagnosticIfVerbose($"FOUND->{v_SubLine}", verbose);
                     CommonUtilities.ShowDiagnosticIfVerbose($"reply : {replysubj}", verbose);
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
+                        //-----------ADD THE FOLLOWING FOR DEVELOPMENT TIER	AS NEEDED BASIS					
+                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replysubj;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"reply : {replysubj}", verbose);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        //                              outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replysubj;
                         Send(outmail);
                     }
@@ -452,13 +477,13 @@ namespace Router
                 else if (v_SubLine.Contains("Change of Institution request for Grant"))
                 {
                     var replysubj = currentItem.Subject;
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
                         var changeOfInstitutionRecipients = (_config?["EmailRecipients:RelinquishingStatementRecipients"] ?? "emily.driskell@nih.gov;dvellaj@mail.nih.gov;edward.mikulich@nih.gov").Split(';');
                         foreach (var recipient in changeOfInstitutionRecipients)
                         {
-                            outmail.AddRecipient(recipient.Trim());
+                            outmail.Recipients.Add(recipient.Trim());
                         }
                         outmail.Subject = replysubj;
                         Send(outmail);
@@ -466,8 +491,8 @@ namespace Router
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"FOUND->{v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replysubj;
                         Send(outmail);
                     }
@@ -475,6 +500,10 @@ namespace Router
                 else if (v_SenderID.ToLower().Contains("public"))
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($"Found a public access email", verbose);
+                    // get the appl id from the grant number in the subject line
+                    // example: PASC: 5U24CA213274 - 08 - RUDIN, CHARLES M
+                    // example2: Compliant PASC: 5R01CA258784 - 04 - SEN, TRIPARNA
+                    // new example as of 7/2024 !!  : Compliant: PASC: 5U01CA253915-06 - ETZIONI, RUTH D
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"FOUND subject ->{v_SubLine}", verbose);
@@ -506,21 +535,22 @@ namespace Router
                         CommonUtilities.ShowDiagnosticIfVerbose($"eGrantsDevEmail :{_eGrantsDevEmail}", verbose);
                         CommonUtilities.ShowDiagnosticIfVerbose($"replySubj :{replySubj}", verbose);
 
-                        var outmail = ForwardCurrentItem();
+                        var outmail = currentItem.Forward();
                         if (debug == "n")
                         {
-                            outmail.AddRecipient(_eFileEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
-                            outmail.AddRecipient(_eGrantsTestEmail);
-                            outmail.AddRecipient(_eGrantsStageEmail);
+                            outmail.Recipients.Add(_eFileEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_eGrantsTestEmail);
+                            outmail.Recipients.Add(_eGrantsStageEmail);
+                            //===>STOPPING THIS UNTILL FIX IT/5/30 started
                             outmail.Subject = replySubj;
                             Send(outmail);
                         }
                         else
                         {
                             CommonUtilities.ShowDiagnosticIfVerbose($"reply : {replySubj}", verbose);
-                            outmail.AddRecipient(_dBugEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_dBugEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubj;
                             Send(outmail);
                         }
@@ -530,21 +560,21 @@ namespace Router
                 else if (v_SubLine.Contains("JIT Request for Grant"))
                 {
                     var replySubj = $"category=JIT Info, sub=Reminder, extract=1, {currentItem.Subject}";
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
@@ -552,21 +582,22 @@ namespace Router
                 else if (v_SubLine.Contains("JIT Documents Have Been Submitted for Grant"))
                 {
                     var replySubj = $"category=eRA Notification, sub=JIT Submitted, extract=1, {currentItem.Subject}";
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
+                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
@@ -581,21 +612,22 @@ namespace Router
                         replySubj = $"category=eRANotification, sub=Late Progress Report, extract=1, {currentItem.Subject}";
                     CommonUtilities.ShowDiagnosticIfVerbose($"Current subject : {currentItem.Subject}", verbose);
                     CommonUtilities.ShowDiagnosticIfVerbose($"Reply subject :  {replySubj}", verbose);
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
+                        //outmail.Recipients.Add("leul.ayana@nih.gov")
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
@@ -605,37 +637,37 @@ namespace Router
                     //Only attached document has to be extracted so many make Body=""
                     var replySubj = $"category=Closeout, extract=2, {currentItem.Subject}";
                     CommonUtilities.ShowDiagnosticIfVerbose($"Reply subject : {replySubj}", verbose);
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubj;
                         Send(outmail);
                     }
                 }
                 else if (v_SubLine.Contains("Prior Approval: "))
                 {
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_nciGrantsPostAwardEmail);
+                        outmail.Recipients.Add(_nciGrantsPostAwardEmail);
                         Send(outmail);
                     }
                     else
                     {
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         Send(outmail);
                     }
                 }
@@ -648,20 +680,20 @@ namespace Router
                     else
                     {
                         var replySubj = $"category=Notification, sub=FFR Rejection, extract=1, {currentItem.Subject}";
-                        var outmail = ForwardCurrentItem();
+                        var outmail = currentItem.Forward();
                         if (debug == "n")
                         {
-                            outmail.AddRecipient(_eFileEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
-                            outmail.AddRecipient(_eGrantsTestEmail);
-                            outmail.AddRecipient(_eGrantsStageEmail);
+                            outmail.Recipients.Add(_eFileEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_eGrantsTestEmail);
+                            outmail.Recipients.Add(_eGrantsStageEmail);
                             outmail.Subject = replySubj;
                             Send(outmail);
                         }
                         else
                         {
-                            outmail.AddRecipient(_dBugEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_dBugEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubj;
                             Send(outmail);
                         }
@@ -676,21 +708,21 @@ namespace Router
                     else
                     {
                         var replySubject = $"category=FRAM: Request, sub=The Final RPPR, extract=1, {currentItem.Subject}";
-                        var outmail = ForwardCurrentItem();
+                        var outmail = currentItem.Forward();
                         if (debug == "n")
                         {
-                            outmail.AddRecipient(_eFileEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
-                            outmail.AddRecipient(_eGrantsTestEmail);
-                            outmail.AddRecipient(_eGrantsStageEmail);
+                            outmail.Recipients.Add(_eFileEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_eGrantsTestEmail);
+                            outmail.Recipients.Add(_eGrantsStageEmail);
                             outmail.Subject = replySubject;
                             Send(outmail);
                         }
                         else
                         {
                             CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
-                            outmail.AddRecipient(_dBugEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_dBugEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubject;
                             Send(outmail);
                         }
@@ -712,21 +744,21 @@ namespace Router
                     }
 
                     var replySubject = $"applid={applid}, category=Correspondence, sub=RPPR Unobligated Balance, extract=1, {currentItem.Subject}";
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -740,20 +772,21 @@ namespace Router
                     else
                     {
                         var replySubject = $"category=PRAM: Requested, sub=PRAM for Grant, extract=1, {currentItem.Subject}";
-                        var outmail = ForwardCurrentItem();
+                        var outmail = currentItem.Forward();
                         if (debug == "n")
                         {
-                            outmail.AddRecipient(_eGrantsDevEmail);
-                            outmail.AddRecipient(_eGrantsTestEmail);
-                            outmail.AddRecipient(_eGrantsStageEmail);
+                            //outmail.Recipients.Add(_eFileEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_eGrantsTestEmail);
+                            outmail.Recipients.Add(_eGrantsStageEmail);
                             outmail.Subject = replySubject;
                             Send(outmail);
                         }
                         else
                         {
                             CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
-                            outmail.AddRecipient(_dBugEmail);
-                            outmail.AddRecipient(_eGrantsDevEmail);
+                            outmail.Recipients.Add(_dBugEmail);
+                            outmail.Recipients.Add(_eGrantsDevEmail);
                             outmail.Subject = replySubject;
                             Send(outmail);
                         }
@@ -781,21 +814,21 @@ namespace Router
                         replySubject = $"applid={applId}, category=PRAM, sub=Request, extract=1, {currentItem.Subject}";
                     }
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -812,20 +845,21 @@ namespace Router
                     }
                     replySubject = $"applid={applId}, category=eRA Notification, sub=Application Withdrawn, extract=1, {currentItem.Subject}";
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        //CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -845,20 +879,21 @@ namespace Router
                     CommonUtilities.ShowDiagnosticIfVerbose($"replySubject :  {replySubject}", verbose);
                     replySubject = $"applid={applId}, category=RPPR, sub=Reminder, extract=1, {currentItem.Subject}";
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        //CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -874,20 +909,21 @@ namespace Router
                     }
                     replySubject = $"applid={applId}, category=IRPPR, sub=Reminder, extract=1, {currentItem.Subject}";
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        //CommonUtilities.ShowDiagnosticIfVerbose($"DON'T WANT THIS {v_SubLine}", verbose);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -907,21 +943,21 @@ namespace Router
 
                     var replySubject = $"category=closeout, sub=Past Due Documents Reminder, applid={applId}, extract=1, {currentItem.Subject}";
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"FOUND -> {v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -930,6 +966,7 @@ namespace Router
                 else if (v_SubLine.ToLower().Contains("closeout program action required"))
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose($"Hello you are closing out a PROGRAM thing ...", verbose);
+                    // example subject here : Closeout Program Action Required: 5R21CA249649-02 - Sun, Jingjing F-RPPR Acceptance Past Due
                     var applId = string.Empty;
 
                     if (!string.IsNullOrWhiteSpace(v_SubLine))
@@ -942,21 +979,21 @@ namespace Router
 
                     var replySubject = $"category=closeout, sub=F-RPPR Acceptance Past Due Reminder, applid={applId}, extract=1, {currentItem.Subject}";
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
                         CommonUtilities.ShowDiagnosticIfVerbose($"FOUND -> {v_SubLine}", verbose);
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -973,20 +1010,20 @@ namespace Router
                     }
                     replySubject = $"applid={applId}, category=FFR, sub=Reminder, extract=1, {currentItem.Subject}";
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -1005,20 +1042,20 @@ namespace Router
                     }
                     replySubject = $"applid={applId}, category=CT.gov, sub=Results Reporting Reminder NCT{lastFourCharacters} , extract=1, {currentItem.Subject}";
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -1026,7 +1063,10 @@ namespace Router
                 else if (v_SubLine.Contains("SBIR/STTR Foreign Risk Management"))
                 {
                     CommonUtilities.ShowDiagnosticIfVerbose("handling SBIR/STTR", verbose);
+                    // example body we want to snatch the appl id from :
+                    // 1R43CA291415-01 (10921643) has undergone SBIR/STTR risk management assessment in accordance with the SBIR and STTR Extension Act of 2022 on 04/25/2024 12:19 PM. 
 
+                    // get the appl id from the grant number in the subject line
                     var replySubject = string.Empty;
                     var applId = string.Empty;
                     var lastFourCharacters = string.Empty;
@@ -1043,20 +1083,20 @@ namespace Router
                         replySubject = $"applid={applId}, category=Funding, sub=DCI-InTh Not Cleared, extract=1, {currentItem.Subject}";
                     CommonUtilities.ShowDiagnosticIfVerbose($"replySubject : {replySubject}", verbose);
 
-                    var outmail = ForwardCurrentItem();
+                    var outmail = currentItem.Forward();
                     if (debug == "n")
                     {
-                        outmail.AddRecipient(_eFileEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
-                        outmail.AddRecipient(_eGrantsTestEmail);
-                        outmail.AddRecipient(_eGrantsStageEmail);
+                        outmail.Recipients.Add(_eFileEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_eGrantsTestEmail);
+                        outmail.Recipients.Add(_eGrantsStageEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
                     else
                     {
-                        outmail.AddRecipient(_dBugEmail);
-                        outmail.AddRecipient(_eGrantsDevEmail);
+                        outmail.Recipients.Add(_dBugEmail);
+                        outmail.Recipients.Add(_eGrantsDevEmail);
                         outmail.Subject = replySubject;
                         Send(outmail);
                     }
@@ -1070,8 +1110,8 @@ namespace Router
         private static string GetLastWord(string inbound)
         {
             var wordz = inbound.Split(' ');
-            var numberOfWords = wordz.Length;
-            var lastWord = wordz[numberOfWords - 1];
+            var numberOfWords = wordz.Length;           // Ubound(wordz)
+            var lastWord = wordz[numberOfWords - 1];    // Remember arrays start at index 0
             return lastWord;
         }
 
@@ -1094,6 +1134,7 @@ namespace Router
                     {
                         while (reader.Read())
                         {
+                            // Check if the value is NULL before trying to read it
                             if (!reader.IsDBNull(0))
                             {
                                 int returnedVal = reader.GetInt32(0);
@@ -1102,6 +1143,7 @@ namespace Router
                             }
                             else
                             {
+                                // Database function returned NULL - log and return empty
                                 Console.WriteLine($"Warning: Imm_fn_applid_match returned NULL for input '{str}'");
                                 return string.Empty;
                             }
@@ -1140,26 +1182,53 @@ namespace Router
             return result;
         }
 
-        /// <summary>
-        /// Gets the sender identifier from a RouterMailItem.
-        /// For IMAP, the sender address is already available as a property.
-        /// Extracts the alias (part before @) to match legacy Outlook behavior.
-        /// </summary>
-        public virtual string GetSenderId(RouterMailItem currentItem)
+        public virtual string GetSenderId(dynamic currentItem)
         {
-            if (currentItem == null)
-                return string.Empty;
+            string id = string.Empty;
 
-            string senderAddress = currentItem.SenderAddress;
-            if (string.IsNullOrWhiteSpace(senderAddress))
-                return string.Empty;
+            string senderEmailAddress = currentItem.SenderEmailAddress;
+            if (string.IsNullOrWhiteSpace(senderEmailAddress))
+                return id;
 
-            // Extract the alias (part before @) to match legacy Exchange alias behavior
-            int atIndex = senderAddress.IndexOf('@');
-            if (atIndex > 0)
-                return senderAddress.Substring(0, atIndex);
+            string senderEmailType = currentItem.SenderEmailType;
+            if (senderEmailType.Equals("ex", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var objectSender = currentItem.Sender;
+                if (objectSender != null)
+                {
+                    var objectExchangeUser = currentItem.Sender.GetExchangeUser();
+                    if (objectExchangeUser != null)
+                    {
+                        id = objectExchangeUser.Alias;
+                    }
+                }
+            }
+            else if (senderEmailType.Equals("smtp", StringComparison.InvariantCultureIgnoreCase))
+            {
+                id = senderEmailAddress;
+            }
 
-            return senderAddress;
+            return id;
+        }
+
+        [DllImport("oleaut32.dll", PreserveSig = false)]
+        private static extern void GetActiveObject(
+            [MarshalAs(UnmanagedType.LPStruct)] Guid clsid,
+            IntPtr reserved,
+            [MarshalAs(UnmanagedType.IUnknown)] out object obj);
+
+        private static dynamic GetRunningOutlook()
+        {
+            try
+            {
+                var clsid = new Guid("0006F03A-0000-0000-C000-000000000046"); // Outlook.Application CLSID
+                GetActiveObject(clsid, IntPtr.Zero, out object obj);
+                return obj;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

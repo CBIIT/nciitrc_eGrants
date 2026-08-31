@@ -53,7 +53,6 @@ namespace AddSuppProd
                 var conStr = AppConfig.GetConnectionString(config, "EIM");
                 var dirPath = config["FolderPaths:dirpathSupplement"] ?? "";
                 var outDir = config["AppSettings:OutDir"] ?? @"C:\egrants\watch\out\";
-                var serverDstPath = config["AppSettings:ServerDstPath"];
                 var adminEmails = config["AppSettings:AdminEmailRecipients"] ?? "leul.ayana@nih.gov;guillermo.choy-leon@nih.gov";
 
                 // Initialize Serilog logging
@@ -76,7 +75,7 @@ namespace AddSuppProd
                 using (var con = new SqlConnection(conStr))
                 {
                     var processor = new Processor(adminEmails);  // Pass admin emails to constructor
-                    var itemsProcessed = processor.Process(con, dirPath, outDir, serverDstPath, verbose, logDir);
+                    var itemsProcessed = processor.Process(con, dirPath, outDir, verbose, logDir);
                     CommonUtilities.Logger.Information("Task Completed - {ItemCount} items processed", itemsProcessed);
                 }
 

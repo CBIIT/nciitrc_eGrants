@@ -35,17 +35,14 @@ namespace OGARequestAccountDisable
     public class Processor
     {
         private readonly EmailSettings _emailSettings;
-        private readonly SmtpEmailService _smtpService;
 
         /// <summary>
         /// Initializes the processor with email configuration settings.
         /// </summary>
         /// <param name="emailSettings">Email configuration from appsettings</param>
-        /// <param name="smtpService">SMTP email service for sending emails</param>
-        public Processor(EmailSettings emailSettings, SmtpEmailService smtpService)
+        public Processor(EmailSettings emailSettings)
         {
             _emailSettings = emailSettings ?? throw new ArgumentNullException(nameof(emailSettings));
-            _smtpService = smtpService ?? throw new ArgumentNullException(nameof(smtpService));
         }
 
         /// <summary>
@@ -59,6 +56,17 @@ namespace OGARequestAccountDisable
         /// <returns>Number of user accounts requested to be disabled</returns>
         public int Process(string dirPath, SqlConnection con, string verbose)
         {
+            // Connect to Outlook via late binding (no PIA needed)
+            CommonUtilities.ShowDiagnosticIfVerbose("Initializing Outlook connection...", verbose);
+            Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
+            if (outlookType == null)
+                throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
+            dynamic oApp = Activator.CreateInstance(outlookType);
+            CommonUtilities.ShowDiagnosticIfVerbose("Created the Outlook object.", verbose);
+            dynamic oNS = oApp.GetNamespace("MAPI");
+            oNS.Logon("", "", false, true);
+            CommonUtilities.ShowDiagnosticIfVerbose($"Logged on to Outlook.", verbose);
+
             // Open database connection
             CommonUtilities.ShowDiagnosticIfVerbose($"Opening SQL connection...", verbose);
             con.Open();
@@ -72,13 +80,6 @@ namespace OGARequestAccountDisable
             var usersWhoHaveEmailsToDisable = FilterOutUsersWithMissingInfo(usersToDisable);
             CommonUtilities.ShowDiagnosticIfVerbose($"List contains {usersWhoHaveEmailsToDisable.Count} user(s) to proceed with disabling.", verbose);
 
-            // Log each user being sent to OGA for disabling
-            foreach (var user in usersWhoHaveEmailsToDisable)
-            {
-                CommonUtilities.Logger?.Information("Account disabled - PersonId={PersonId}, UserId='{UserId}', Name='{Name}', Email='{Email}', LastLogin='{LastLogin}'",
-                    user.PersonIdFromDB, user.UserIdFromDB, user.FinalNameForOGA, user.EmailFromDB, user.LastLoginDateFromDB);
-            }
-
             // Create HTML email body with user table
             var message = CreateEmailBody(usersWhoHaveEmailsToDisable);
             CommonUtilities.ShowDiagnosticIfVerbose($"Created the body for the email to OGA.", verbose);
@@ -86,7 +87,7 @@ namespace OGARequestAccountDisable
             // Send email if there are users to disable
             if (usersToDisable.Count() > 0)
             {
-                SendEmailToOGA(message);
+                SendEmailToOGA(message, oApp);
                 CommonUtilities.ShowDiagnosticIfVerbose($"Email sent to OGA.", verbose);
 
                 // Update database to mark accounts as sent
@@ -245,27 +246,34 @@ namespace OGARequestAccountDisable
         }
 
         /// <summary>
-        /// Sends the deprovisioning email to OGA or dev team via SMTP relay.
+        /// Sends the deprovisioning email to OGA or dev team via Outlook COM automation.
         /// In development mode, sends to debug email. In production mode, sends to OGA prod email.
         /// </summary>
         /// <param name="bodyMessage">HTML formatted email body</param>
+        /// <param name="oApp">Outlook Application object</param>
         /// <returns>True if email was sent successfully</returns>
-        private bool SendEmailToOGA(string bodyMessage)
+        private bool SendEmailToOGA(string bodyMessage, dynamic oApp)
         {
-            var subject = GetEnvironmentPrefix() + _emailSettings.OgaSubject;
-            string toAddress;
+            // Create mail item: 0 = olMailItem
+            dynamic mailItem = oApp.CreateItem(0);
 
+            mailItem.Subject = GetEnvironmentPrefix() + _emailSettings.OgaSubject;
+
+            // In development mode, send to debug email. In production, send to OGA team
             if (IsDevEnvironment())
             {
-                toAddress = _emailSettings.EGrantsDevEmail;
+                mailItem.To = _emailSettings.EGrantsDevEmail;
                 CommonUtilities.Logger?.Information("DEVELOPMENT MODE: Sending to {DebugEmail}", _emailSettings.EGrantsDevEmail);
             }
             else
             {
-                toAddress = _emailSettings.OgaProdEmail;
+                mailItem.To = _emailSettings.OgaProdEmail;
             }
 
-            _smtpService.SendEmail(toAddress, subject, bodyMessage);
+            mailItem.BodyFormat = 2; // olFormatHTML
+            mailItem.HTMLBody = bodyMessage;
+
+            mailItem.Send();
 
             return true;
         }

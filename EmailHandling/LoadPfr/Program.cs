@@ -73,51 +73,23 @@ namespace LoadPfr
                 var verbose = config["AppSettings:Verbose"] ?? "n";
                 var logDir = config["AppSettings:LogDir"] ?? @"C:\eGrants\apps\log\";
                 var conStr = AppConfig.GetConnectionString(config, "EIM");
-                var networkSharePath = config["PfrPaths:NetworkSharePath"];
                 var docSrcPath = config["PfrPaths:DocSrcPath"];
                 var bakDstPath = config["PfrPaths:BakDstPath"];
-                var outDir = config["PfrPaths:OutDir"];
-                var serverDstPath = config["PfrPaths:ServerDstPath"];
+                var finalDstPath = config["PfrPaths:FinalDstPath"];
 
                 // Set the global log directory for CommonUtilities logging
                 CommonUtilities.LogDir = logDir;
-                CommonUtilities.InitializeLogging("LoadPfr", logDir);
 
                 // Log the start of processing
-                CommonUtilities.Logger?.Information(".........Task Started!........");
+                WriteLog(".........Task Started!........", null, startTimeStamp, logDir);
                 CommonUtilities.ShowDiagnosticIfVerbose("LoadPfr task is starting", verbose);
-
-                // Move files from network share to local source directory before processing
-                int filesMoved = MoveFilesFromNetworkShare(networkSharePath, docSrcPath, verbose, logDir);
-                if (filesMoved > 0)
-                {
-                    CommonUtilities.Logger?.Information("{FilesMoved} file(s) moved from network share to {DocSrcPath}", filesMoved, docSrcPath);
-                    CommonUtilities.ShowDiagnosticIfVerbose($"{filesMoved} file(s) moved from network share.", verbose);
-                }
-                else
-                {
-                    CommonUtilities.Logger?.Information("No files found on network share to move.");
-                    CommonUtilities.ShowDiagnosticIfVerbose("No files found on network share to move.", verbose);
-                }
-
-                // Check DocSrcPath for any files to process
-                int xmlFileCount = Directory.Exists(docSrcPath) ? Directory.GetFiles(docSrcPath, "*.xml").Length : 0;
-                if (xmlFileCount == 0)
-                {
-                    CommonUtilities.Logger?.Information("No files to process in DocSrcPath. Exiting.");
-                    CommonUtilities.ShowDiagnosticIfVerbose("No files to process in DocSrcPath. Exiting.", verbose);
-                    return;
-                }
-
-                CommonUtilities.Logger?.Information("Found {XmlFileCount} XML file(s) in DocSrcPath to process.", xmlFileCount);
-                CommonUtilities.ShowDiagnosticIfVerbose($"Found {xmlFileCount} XML file(s) in DocSrcPath to process.", verbose);
 
                 // Process all PFR files in the source directory
                 using (var con = new SqlConnection(conStr))
                 {
                     var processor = new Processor();
-                    var filesProcessed = processor.Process(con, docSrcPath, bakDstPath, outDir, serverDstPath, verbose, logDir, config);
-                    CommonUtilities.Logger?.Information("******* Task Completed! ******* {FilesProcessed} files processed.", filesProcessed);
+                    var filesProcessed = processor.Process(con, docSrcPath, bakDstPath, finalDstPath, verbose, logDir, config);
+                    WriteLog($"******* Task Completed! ******* {filesProcessed} files processed.", null, DateTime.Now, logDir);
                 }
 
                 CommonUtilities.ShowDiagnosticIfVerbose("Done", verbose);
@@ -127,80 +99,52 @@ namespace LoadPfr
                 // Log any unhandled exceptions to console and log file
                 Console.WriteLine($"Error: {ex.Message}");
                 Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                CommonUtilities.Logger?.Fatal(ex, "Fatal error in LoadPfr: {ErrorMessage}", ex.Message);
-            }
-            finally
-            {
-                CommonUtilities.CloseLogging();
+                
+                try
+                {
+                    // Attempt to write the error to the log file
+                    var logDir = Environment.ExpandEnvironmentVariables(@"C:\egrants\apps\log\");
+                    WriteLog("Fatal Error in LoadPfr", $"Message: {ex.Message}\nStackTrace: {ex.StackTrace}", DateTime.Now, logDir);
+                }
+                catch { }
             }
         }
 
         /// <summary>
-        /// Moves all files from the network share to the local source directory.
-        /// This ensures files are available locally before processing begins.
-        /// Returns the number of files moved (0 if none found or share not configured).
+        /// Writes a log entry to a daily log file.
+        /// Creates the log directory if it doesn't exist.
+        /// Log files are named PFR-Log-{date}.txt and contain timestamped entries.
         /// </summary>
-        private static int MoveFilesFromNetworkShare(string networkSharePath, string docSrcPath, string verbose, string logDir)
+        /// <param name="message">Main log message describing the event</param>
+        /// <param name="errorInfo">Optional error details (exception message, stack trace, etc.)</param>
+        /// <param name="timeStamp">Timestamp for the log entry</param>
+        /// <param name="logDir">Directory where log files are stored</param>
+        public static void WriteLog(string message, string errorInfo, DateTime timeStamp, string logDir)
         {
-            if (string.IsNullOrWhiteSpace(networkSharePath))
+            try
             {
-                CommonUtilities.ShowDiagnosticIfVerbose("NetworkSharePath not configured, skipping network transfer", verbose);
-                return 0;
-            }
-
-            CommonUtilities.ShowDiagnosticIfVerbose($"Moving files from network share: {networkSharePath} to {docSrcPath}", verbose);
-            CommonUtilities.Logger?.Information("Moving from network share. Source='{NetworkSharePath}' Destination='{DocSrcPath}'", networkSharePath, docSrcPath);
-
-            if (!Directory.Exists(networkSharePath))
-            {
-                var errorMsg = $"Network share source folder not found: {networkSharePath}";
-                CommonUtilities.Logger?.Error("Network share source folder not found: {NetworkSharePath}", networkSharePath);
-                CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
-                throw new DirectoryNotFoundException(errorMsg);
-            }
-
-            if (!Directory.Exists(docSrcPath))
-            {
-                var errorMsg = $"Local destination folder not found: {docSrcPath}";
-                CommonUtilities.Logger?.Error("Local destination folder not found: {DocSrcPath}", docSrcPath);
-                CommonUtilities.ShowDiagnosticIfVerbose(errorMsg, verbose);
-                throw new DirectoryNotFoundException(errorMsg);
-            }
-
-            var files = Directory.GetFiles(networkSharePath);
-
-            if (files.Length == 0)
-            {
-                CommonUtilities.Logger?.Information("No files found on network share. Nothing to move.");
-                CommonUtilities.ShowDiagnosticIfVerbose("No files found on network share. Nothing to move.", verbose);
-                return 0;
-            }
-
-            int filesMoved = 0;
-            foreach (var filePath in files)
-            {
-                var fileName = Path.GetFileName(filePath);
-                var destPath = Path.Combine(docSrcPath, fileName);
-                try
+                // Ensure log directory exists before writing
+                if (!Directory.Exists(logDir))
                 {
-                    File.Move(filePath, destPath, true);
+                    Directory.CreateDirectory(logDir);
                 }
-                catch (IOException)
-                {
-                    // Move fails across volumes/network shares; fall back to copy+delete
-                    File.Copy(filePath, destPath, true);
-                    File.Delete(filePath);
-                }
-                CommonUtilities.Logger?.Information("Moved: '{FilePath}' -> '{DestPath}'", filePath, destPath);
-                CommonUtilities.ShowDiagnosticIfVerbose($"Moved: '{filePath}' -> '{destPath}'", verbose);
-                filesMoved++;
-            }
 
-            CommonUtilities.Logger?.Information("Network share transfer completed. Files moved: {FilesMoved}", filesMoved);
-            CommonUtilities.ShowDiagnosticIfVerbose($"Network share transfer completed. Files moved: {filesMoved}", verbose);
-            return filesMoved;
+                // Create daily log file name (one file per day)
+                var fileName = $"PFR-Log-{timeStamp:yyyy-M-d}.txt";
+                
+                // Format log entry with timestamp and optional error details
+                var content = string.IsNullOrEmpty(errorInfo)
+                    ? $"{timeStamp}  -\t{message}"
+                    : $"{timeStamp}  -\t{message}\r\n\t\t-> {errorInfo}";
+                
+                // Append to the log file (creates file if it doesn't exist)
+                File.AppendAllText(Path.Combine(logDir, fileName), content + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                // If logging fails, output to console as fallback
+                Console.WriteLine($"Failed to write log: {ex.Message}");
+            }
         }
-
-
     }
 }

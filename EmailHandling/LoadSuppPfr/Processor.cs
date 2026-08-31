@@ -65,7 +65,6 @@ namespace LoadSuppPfr
         private string _toRecipients = "";
         private string _ccRecipients = "";
         private string _environment = "";
-        private SmtpEmailService _smtpService;
 
         /// <summary>
         /// Main processing method that orchestrates the entire supplement PFR loading workflow.
@@ -79,7 +78,7 @@ namespace LoadSuppPfr
         /// <param name="logDir">Directory where log files are written</param>
         /// <param name="config">Configuration containing email settings</param>
         /// <returns>Number of XML files successfully processed</returns>
-        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string serverDstPath, string verbose, string logDir, Microsoft.Extensions.Configuration.IConfiguration config)
+        public int Process(SqlConnection con, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             int filesProcessed = 0;
 
@@ -88,7 +87,6 @@ namespace LoadSuppPfr
             _toRecipients = config["EmailSettings:ToRecipients"] ?? "";
             _ccRecipients = config["EmailSettings:CcRecipients"] ?? "";
             _environment = config["EmailSettings:Environment"] ?? "DEV";
-            _smtpService = new SmtpEmailService(config);
 
             // Open database connection for processing
             con.Open();
@@ -115,7 +113,7 @@ namespace LoadSuppPfr
                     Program.WriteLog($"Processing: {xmlFile.FullName}", null, DateTime.Now, logDir);
                     
                     // Process the XML file and its associated PDF
-                    ProcessXmlFile(con, xmlFile, docSrcPath, bakDstPath, finalDstPath, serverDstPath, verbose, logDir);
+                    ProcessXmlFile(con, xmlFile, docSrcPath, bakDstPath, finalDstPath, verbose, logDir);
                     filesProcessed++;
                 }
                 catch (Exception ex)
@@ -144,7 +142,7 @@ namespace LoadSuppPfr
         /// <param name="finalDstPath">Final destination for renamed PDF files</param>
         /// <param name="verbose">Verbose mode flag for diagnostic output</param>
         /// <param name="logDir">Directory for log files</param>
-        private void ProcessXmlFile(SqlConnection con, FileInfo xmlFile, string docSrcPath, string bakDstPath, string finalDstPath, string serverDstPath, string verbose, string logDir)
+        private void ProcessXmlFile(SqlConnection con, FileInfo xmlFile, string docSrcPath, string bakDstPath, string finalDstPath, string verbose, string logDir)
         {
             // Load and parse the XML metadata file
             var xmlDoc = new XmlDocument();
@@ -267,9 +265,6 @@ namespace LoadSuppPfr
                                     File.Copy(pdfSrc, destPath, true);
                                     Program.WriteLog($"Copied to: {alias} (CatName: {catName})", null, DateTime.Now, logDir);
                                     CommonUtilities.ShowDiagnosticIfVerbose($"Copied to: {destPath}", verbose);
-
-                                    // Move PDF to server share (fall back to copy+delete if move fails)
-                                    CommonUtilities.MoveFileToServerShare(destPath, serverDstPath, verbose);
                                     
                                     // Move PDF to backup after successful copy
                                     try
@@ -339,7 +334,8 @@ namespace LoadSuppPfr
         }
 
         /// <summary>
-        /// Sends an email notification via SMTP relay.
+        /// Sends an email notification via Outlook COM automation.
+        /// Matches the VBScript emailme() function behavior.
         /// </summary>
         /// <param name="subject">Email subject line</param>
         /// <param name="body">Email body content</param>
@@ -351,7 +347,20 @@ namespace LoadSuppPfr
             {
                 CommonUtilities.ShowDiagnosticIfVerbose($"Sending email: {subject}", verbose);
 
-                _smtpService.SendEmail(_toRecipients, GetEnvironmentPrefix() + $"{_environment}: {subject}", body, _ccRecipients);
+                Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
+                if (outlookType == null)
+                    throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
+
+                dynamic outlookApp = Activator.CreateInstance(outlookType);
+                // CreateItem(0) = olMailItem
+                dynamic mailItem = outlookApp.CreateItem(0);
+
+                mailItem.To = _toRecipients;
+                mailItem.CC = _ccRecipients;
+                mailItem.Subject = GetEnvironmentPrefix() + $"{_environment}: {subject}";
+                mailItem.BodyFormat = 2; // olFormatHTML
+                mailItem.HTMLBody = body;
+                mailItem.Send();
 
                 Program.WriteLog($"Email sent: {subject}", null, DateTime.Now, logDir);
                 CommonUtilities.ShowDiagnosticIfVerbose("Email sent successfully", verbose);

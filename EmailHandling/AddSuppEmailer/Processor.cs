@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
-using System.Net.Mail;
 using CommonUtilties;
 using System.IO;
-using Microsoft.Extensions.Configuration;
 
 namespace AddSuppEmailer
 {
@@ -48,7 +46,6 @@ namespace AddSuppEmailer
     /// </summary>
     public class Processor
     {
-        private SmtpEmailService _smtpService;
 
         /// <summary>
         /// Main processing method that queries for pending notifications and sends emails.
@@ -62,18 +59,40 @@ namespace AddSuppEmailer
         /// <param name="additionalCcRecipients">Additional CC recipients appended to every email</param>
         /// <param name="errorToRecipients">TO recipients for error notification emails when PD address is missing</param>
         /// <param name="errorCcRecipients">CC recipients for error notification emails</param>
-        /// <param name="config">Configuration for SMTP settings</param>
         /// <returns>Number of emails successfully sent</returns>
         public int Process(SqlConnection con, string verbose, string logDir, string debugEmail,
-            string additionalCcRecipients, string errorToRecipients, string errorCcRecipients,
-            IConfiguration config = null)
+            string additionalCcRecipients, string errorToRecipients, string errorCcRecipients)
         {
             int suppMailsSent = 0;
 
             CommonUtilities.Logger?.Information("Starting supplement email processing");
             CommonUtilities.ShowDiagnosticIfVerbose("Starting supplement email processing...", verbose);
 
-            _smtpService = new SmtpEmailService(config ?? AppConfig.Load());
+            // Connect to existing Outlook instance (matches VBS GetObject behavior)
+            Type outlookType = Type.GetTypeFromProgID("Outlook.Application");
+            if (outlookType == null)
+            {
+                CommonUtilities.Logger?.Error("Outlook is not installed or not registered on this machine");
+                throw new InvalidOperationException("Outlook.Application COM class not found. Is Outlook installed?");
+            }
+
+            dynamic outlookApp = GetRunningOutlook() ?? Activator.CreateInstance(outlookType);
+
+            // Validate Outlook session
+            try
+            {
+                dynamic session = outlookApp.Session;
+                if (session == null)
+                {
+                    throw new InvalidOperationException("Outlook session is not available");
+                }
+                CommonUtilities.Logger?.Debug("Outlook session validated");
+            }
+            catch (Exception ex)
+            {
+                CommonUtilities.Logger?.Error(ex, "Failed to validate Outlook session");
+                throw new InvalidOperationException("Outlook is not properly configured or logged in", ex);
+            }
 
             con.Open();
             CommonUtilities.Logger?.Debug("Database connection opened");
@@ -99,7 +118,7 @@ namespace AddSuppEmailer
             foreach (var notifId in notificationIds)
             {
                 CommonUtilities.Logger?.Debug("Processing notification ID: {NotificationId}", notifId);
-                ProcessNotification(con, notifId, verbose, logDir, debugEmail,
+                ProcessNotification(con, outlookApp, notifId, verbose, logDir, debugEmail,
                     additionalCcRecipients, errorToRecipients, errorCcRecipients, ref suppMailsSent);
             }
 
@@ -128,7 +147,7 @@ namespace AddSuppEmailer
         /// <param name="errorToRecipients">TO recipients for error notification emails</param>
         /// <param name="errorCcRecipients">CC recipients for error notification emails</param>
         /// <param name="suppMailsSent">Reference counter for emails sent</param>
-        protected virtual void ProcessNotification(SqlConnection con,
+        protected virtual void ProcessNotification(SqlConnection con, dynamic outlookApp,
             int notifId, string verbose, string logDir, string debugEmail,
             string additionalCcRecipients, string errorToRecipients, string errorCcRecipients,
             ref int suppMailsSent)
@@ -153,7 +172,7 @@ namespace AddSuppEmailer
                 if (!IsDevEnvironment() && string.IsNullOrWhiteSpace(toRecipients))
                 {
                     CommonUtilities.Logger?.Warning("No TO recipients for notification {NotificationId}, sending error email", notifId);
-                    SendMissingRecipientErrorEmail(con, notifId, subject,
+                    SendMissingRecipientErrorEmail(con, outlookApp, notifId, subject,
                         errorToRecipients, errorCcRecipients, logDir);
                     suppMailsSent++;
                     return;
@@ -167,33 +186,64 @@ namespace AddSuppEmailer
                         : ccRecipients + ";" + additionalCcRecipients;
                 }
 
-                CommonUtilities.Logger?.Debug("Creating email for NotifID={NotificationId}", notifId);
+                CommonUtilities.Logger?.Debug("Creating mail item for NotifID={NotificationId}", notifId);
 
-                var fullSubject = GetEnvironmentPrefix() + subject;
-                var fullBody = body + "Notification Id=" + notifId;
-
-                if (IsDevEnvironment())
+                // Create mail item via late-bound COM: 0 = olMailItem
+                dynamic mail = null;
+                try
                 {
-                    CommonUtilities.Logger?.Information("DEVELOPMENT MODE - Sending email");
-                    CommonUtilities.Logger?.Information("NotificationId: {NotificationId}", notifId);
-                    CommonUtilities.Logger?.Information("To: {To}", toRecipients);
-                    CommonUtilities.Logger?.Information("CC: {CC}", ccRecipients ?? "(none)");
-                    CommonUtilities.Logger?.Information("Subject: {Subject}", fullSubject);
+                    mail = outlookApp.CreateItem(0);
+
+                    // Set all properties before sending
+                    mail.To = toRecipients;
+                    if (!string.IsNullOrWhiteSpace(ccRecipients))
+                    {
+                        mail.CC = ccRecipients;
+                    }
+
+                    mail.Subject = GetEnvironmentPrefix() + subject;
+                    mail.VotingOptions = "Accepted;Rejected";
+                    mail.Importance = 2; // olImportanceHigh
+                    mail.BodyFormat = 2; // olFormatHTML
+                    mail.HTMLBody = body + "Notification Id=" + notifId;
+
+                    if (IsDevEnvironment())
+                    {
+                        CommonUtilities.Logger?.Information("DEVELOPMENT MODE - Sending email");
+                        CommonUtilities.Logger?.Information("NotificationId: {NotificationId}", notifId);
+                        CommonUtilities.Logger?.Information("To: {To}", toRecipients);
+                        CommonUtilities.Logger?.Information("CC: {CC}", ccRecipients ?? "(none)");
+                        CommonUtilities.Logger?.Information("Subject: {Subject}", mail.Subject);
+                    }
+                    else
+                    {
+                        CommonUtilities.Logger?.Debug("Sending mail for NotifID={NotificationId} to {Recipients}", 
+                            notifId, toRecipients);
+                    }
+
+                    mail.Send();
+                    UpdateNotificationStatus(con, notifId, "Send");
+                    CommonUtilities.Logger?.Information("Email sent for Notification ID: {NotificationId}", notifId);
+                    Program.WriteLog($"Processed! => Notification_ID: {notifId}; Sent to: {toRecipients}; Subject: {subject}", null, DateTime.Now, logDir);
+
+                    suppMailsSent++;
                 }
-                else
+                finally
                 {
-                    CommonUtilities.Logger?.Debug("Sending mail for NotifID={NotificationId} to {Recipients}", 
-                        notifId, toRecipients);
+                    // Release COM object
+                    if (mail != null)
+                    {
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(mail);
+                        mail = null;
+                    }
                 }
-
-                _smtpService.SendEmailWithVoting(toRecipients, fullSubject, fullBody,
-                    "Accepted;Rejected", ccRecipients, MailPriority.High);
-
-                UpdateNotificationStatus(con, notifId, "Send");
-                CommonUtilities.Logger?.Information("Email sent for Notification ID: {NotificationId}", notifId);
-                Program.WriteLog($"Processed! => Notification_ID: {notifId}; Sent to: {toRecipients}; Subject: {subject}", null, DateTime.Now, logDir);
-
-                suppMailsSent++;
+            }
+            catch (System.Runtime.InteropServices.COMException comEx)
+            {
+                CommonUtilities.Logger?.Error(comEx, "COM error processing notification ID: {NotificationId}. HRESULT: {HResult}", 
+                    notifId, comEx.HResult);
+                Program.WriteLog($"Error Occured! => with Notification_ID: {notifId}", 
+                    $"Error Number: {comEx.HResult:X}, Error Description: {comEx.Message}, Error Source: {comEx.Source}", DateTime.Now, logDir);
             }
             catch (Exception ex)
             {
@@ -209,17 +259,37 @@ namespace AddSuppEmailer
         /// explains that the PD email address could not be found in GPMATS,
         /// and marks the notification status as 'NtSend'.
         /// </summary>
-        private void SendMissingRecipientErrorEmail(SqlConnection con,
+        private void SendMissingRecipientErrorEmail(SqlConnection con, dynamic outlookApp,
             int notifId, string subject, string errorToRecipients, string errorCcRecipients, string logDir)
         {
-            var errorSubject = GetEnvironmentPrefix() + "ERROR Refering : " + subject;
-            var errorBody = "ERROR : Some how Admin Suplement Automated WorkFlow emailer system could not find PD email address in GPMATS as main recipient of Grant Number mention in subject. Email could not be sent for Notification_id = " + notifId;
+            dynamic mail = null;
+            try
+            {
+                mail = outlookApp.CreateItem(0);
+                mail.To = errorToRecipients;
+                if (!string.IsNullOrWhiteSpace(errorCcRecipients))
+                {
+                    mail.CC = errorCcRecipients;
+                }
+                mail.Subject = GetEnvironmentPrefix() + "ERROR Refering : " + subject;
+                mail.Importance = 2; // olImportanceHigh
+                mail.BodyFormat = 2; // olFormatHTML
+                mail.HTMLBody = "ERROR : Some how Admin Suplement Automated WorkFlow emailer system could not find PD email address in GPMATS as main recipient of Grant Number mention in subject. Email could not be sent for Notification_id = " + notifId;
 
-            _smtpService.SendEmail(errorToRecipients, errorSubject, errorBody, errorCcRecipients, MailPriority.High);
-            UpdateNotificationStatus(con, notifId, "NtSend");
+                mail.Send();
+                UpdateNotificationStatus(con, notifId, "NtSend");
 
-            CommonUtilities.Logger?.Warning("Error email sent for Notification ID: {NotificationId} - no TO recipients found", notifId);
-            Program.WriteLog($"ERROR: No TO recipients for Notification_ID: {notifId}; Error email sent to: {errorToRecipients}", null, DateTime.Now, logDir);
+                CommonUtilities.Logger?.Warning("Error email sent for Notification ID: {NotificationId} - no TO recipients found", notifId);
+                Program.WriteLog($"ERROR: No TO recipients for Notification_ID: {notifId}; Error email sent to: {errorToRecipients}", null, DateTime.Now, logDir);
+            }
+            finally
+            {
+                if (mail != null)
+                {
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(mail);
+                    mail = null;
+                }
+            }
         }
 
         #region Database Helper Methods
@@ -281,6 +351,26 @@ namespace AddSuppEmailer
         }
 
         #endregion
+
+        [System.Runtime.InteropServices.DllImport("oleaut32.dll", PreserveSig = false)]
+        private static extern void GetActiveObject(
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPStruct)] Guid clsid,
+            IntPtr reserved,
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.IUnknown)] out object obj);
+
+        private static dynamic GetRunningOutlook()
+        {
+            try
+            {
+                var clsid = new Guid("0006F03A-0000-0000-C000-000000000046"); // Outlook.Application CLSID
+                GetActiveObject(clsid, IntPtr.Zero, out object obj);
+                return obj;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         /// <summary>
         /// Checks if the current environment is a development environment.
