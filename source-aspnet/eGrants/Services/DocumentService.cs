@@ -145,7 +145,7 @@ namespace eGrants.Services
             _sessionInfoService = sessionInfoService;
             _commonRepository = commonRepository;
             _eGrantsService = eGrantsService;
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _context = context;
         }
 
         /// <summary>
