@@ -658,13 +658,7 @@ namespace eGrants.Controllers.Egrants
         /// 
         public JsonResult LoadDocsGrid(int applId, string searchType = null, string categoryList = null, string mode = null)
         {
-            Log.Information("[LoadDocsGrid] Requested for applId={ApplId}, searchType={SearchType}, categoryList={CategoryList}, mode={Mode}",
-                applId, searchType, categoryList, mode);
-
             var docs = _documentService.LoadDocs(applId, searchType, categoryList, mode, HttpContext.Session);
-
-            Log.Information("[LoadDocsGrid] Returning {DocumentCount} documents for applId={ApplId}", docs?.Count ?? 0, applId);
-
             return Json(new { data = docs });
         }
 

@@ -639,38 +639,6 @@
 </div><!--end main-->
 <script type="text/javascript">
     const loadSupplementBaseUrl = '@Url.Action("LoadSupplement", "EgrantsDoc")';
-
-    // If this is a by_grant page load (direct URL or refresh), show loading overlay immediately
-    (function() {
-        var searchType = '@Model.SearchStyle';
-        if (searchType === 'by_grant' || searchType === 'by_appl') {
-            var overlay = document.getElementById('page-loading-overlay');
-            if (overlay) {
-                overlay.classList.add('show');
-                console.log('[Page Init] Loading overlay shown for ' + searchType);
-            }
-        }
-    })();
-
-    // Hide loading overlay when page is fully loaded
-    $(document).ready(function() {
-        // Hide the loading overlay
-        var overlay = document.getElementById('page-loading-overlay');
-        if (overlay) {
-            overlay.classList.remove('show');
-        }
-
-        console.log('[Page Load] Index.cshtml fully loaded and ready');
-    });
-
-    // Also hide on window load (after all images/resources)
-    $(window).on('load', function() {
-        var overlay = document.getElementById('page-loading-overlay');
-        if (overlay) {
-            overlay.classList.remove('show');
-        }
-        console.log('[Window Load] All resources loaded');
-    });
 </script>
 <script src="~/js/egrantsindex.js"></script>
 <script src="~/js/egrantscatszone.js"></script>

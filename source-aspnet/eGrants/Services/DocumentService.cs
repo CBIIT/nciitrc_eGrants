@@ -249,11 +249,6 @@ namespace eGrants.Services
         {
             var session = _sessionInfoService.GetSessionInfo(sessionInfo);
 
-            Log.Information("[LoadDocs] Starting for applId={ApplId}, searchType={SearchType}, categoryList={CategoryList}", 
-                applId, searchType, categoryList);
-            Log.Information("[LoadDocs] Storage config - WebGrantUrl={WebGrantUrl}, ImageServerUrl={ImageServerUrl}",
-                session.WebGrantUrl, session.ImageServerUrl);
-
             const int maxRetries = 5;
             int attempt = 0;
             Exception lastException = null;
@@ -262,86 +257,20 @@ namespace eGrants.Services
             {
                 try
                 {
-                    var docs = _documentRepository.LoadDocs(
+                    return _documentRepository.LoadDocs(
                   applId,
                         searchType,
             categoryList,
                      Convert.ToString(session.Ic),
                     Convert.ToString(session.UserId));
-
-                    Log.Information("[LoadDocs] Retrieved {DocumentCount} documents from database", docs.Count);
-
-                    // Test file accessibility for first document
-                    if (docs.Count > 0)
-                    {
-                        var firstDoc = docs[0];
-                        Log.Information("[LoadDocs] Sample: ID={DocId}, Name={DocName}, URL={Url}", 
-                            firstDoc.document_id, firstDoc.document_name, firstDoc.url);
-
-                        // TEST FILE ACCESSIBILITY
-                        if (!string.IsNullOrEmpty(firstDoc.url))
-                        {
-                            try
-                            {
-                                var uri = new Uri(firstDoc.url);
-                                var relativePath = uri.AbsolutePath.TrimStart('/');
-                                if (relativePath.StartsWith("data/")) relativePath = relativePath.Substring(5);
-
-                                var filePath = @"\\" + session.WebGrantUrl + "\\egrants\\" + relativePath.Replace('/', '\\');
-                                var directory = System.IO.Path.GetDirectoryName(filePath);
-
-                                Log.Information("[LoadDocs] Testing file path: {FilePath}", filePath);
-
-                                if (System.IO.Directory.Exists(directory))
-                                {
-                                    Log.Information("[LoadDocs] ✓ Directory EXISTS: {Directory}", directory);
-
-                                    if (System.IO.File.Exists(filePath))
-                                    {
-                                        var fi = new System.IO.FileInfo(filePath);
-                                        Log.Information("[LoadDocs] ✓ FILE EXISTS - {Size} bytes, modified {Modified}",
-                                            fi.Length, fi.LastWriteTime);
-                                    }
-                                    else
-                                    {
-                                        Log.Warning("[LoadDocs] ✗ FILE NOT FOUND (but directory accessible)");
-                                        Log.Warning("[LoadDocs] CAUSE: Network share OK, but file is missing from storage");
-                                    }
-                                }
-                                else
-                                {
-                                    Log.Error("[LoadDocs] ✗ DIRECTORY NOT ACCESSIBLE: {Directory}", directory);
-
-                                    var rootShare = @"\\" + session.WebGrantUrl + "\\egrants";
-                                    if (System.IO.Directory.Exists(rootShare))
-                                    {
-                                        Log.Warning("[LoadDocs] Root accessible but subdirectory missing: {RootShare}", rootShare);
-                                    }
-                                    else
-                                    {
-                                        Log.Error("[LoadDocs] ✗ ROOT SHARE NOT ACCESSIBLE: {RootShare}", rootShare);
-                                        Log.Error("[LoadDocs] CAUSE: Cannot access network share - check mount/VPN/permissions");
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "[LoadDocs] Exception testing file accessibility");
-                            }
-                        }
-                    }
-
-                    return docs;
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "[LoadDocs] Attempt {Attempt}/{MaxRetries} failed", attempt + 1, maxRetries);
                     lastException = ex;
                     attempt++;
                 }
             }
 
-            Log.Error("[LoadDocs] All retries failed");
             throw lastException ?? new Exception("Unknown error occurred while loading documents.");
         }
 

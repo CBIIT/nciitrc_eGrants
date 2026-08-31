@@ -136,12 +136,6 @@ function by_grant(grant_id, package_name, appls_list, categories, years) {
         mode = "";
     }
 
-    // Show loading overlay before navigation
-    var overlay = document.getElementById('page-loading-overlay');
-    if (overlay) {
-        overlay.classList.add('show');
-    }
-
     var url = 'by_grant?grantId=' + grant_id + '&package=' + package_name + '&mode=' + mode + '&applsList=' + appls_list + '&categories=' + categories + '&years=' + years;
     window.document.location.href = url;
 }
