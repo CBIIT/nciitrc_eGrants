@@ -203,12 +203,12 @@ builder.Services.Configure<OpenIdConnectOptions>(
         options.ResponseType = OpenIdConnectResponseType.Code;
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
+// NOTE: We intentionally do NOT set a global FallbackPolicy requiring authenticated
+// users. This application uses session-based (SiteMinder) authentication for its main
+// request flow via custom middleware. A global RequireAuthenticatedUser fallback policy
+// would force every request (including AJAX endpoints like /Egrants/LoadDocsGrid) to be
+// challenged by Entra ID, breaking DataTables document loading and other AJAX calls.
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllersWithViews()
     .AddMicrosoftIdentityUI();
