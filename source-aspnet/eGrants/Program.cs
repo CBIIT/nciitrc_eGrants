@@ -199,6 +199,57 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromHours(8);
+
+    // Cookie auth diagnostics to determine why a request is redirected to login
+    // even when users report that cookies are present in their browser.
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnSigningIn = context =>
+        {
+            Log.Information(
+                "Cookie signing in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.Name,
+                context.Properties?.IsPersistent,
+                context.Properties?.ExpiresUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnSignedIn = context =>
+        {
+            Log.Information(
+                "Cookie signed in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.Name,
+                context.Properties?.IsPersistent,
+                context.Properties?.ExpiresUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnValidatePrincipal = context =>
+        {
+            Log.Information(
+                "Cookie validate principal. IsAuthenticated={IsAuthenticated}, Name={Name}, ExpiresUtc={ExpiresUtc}, IssuedUtc={IssuedUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.IsAuthenticated == true,
+                context.Principal?.Identity?.Name,
+                context.Properties?.ExpiresUtc,
+                context.Properties?.IssuedUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnRedirectToLogin = context =>
+        {
+            Log.Warning(
+                "Cookie redirect to login. Path={Path}, RedirectUri={RedirectUri}, TraceId={TraceId}",
+                context.Request.Path,
+                context.RedirectUri,
+                context.HttpContext.TraceIdentifier);
+
+            context.Response.Redirect(context.RedirectUri);
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // Use the authorization code flow (back-channel token exchange) rather than the
@@ -235,6 +286,26 @@ builder.Services.Configure<OpenIdConnectOptions>(
                     maxAge,
                     context.HttpContext.TraceIdentifier);
             }
+
+            return Task.CompletedTask;
+        };
+
+        options.Events.OnRedirectToIdentityProvider = context =>
+        {
+            var request = context.HttpContext.Request;
+            var hasAuthCookie = request.Cookies.Keys.Any(k =>
+                k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
+
+            Log.Warning(
+                "OIDC challenge initiated. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, IsAuthenticated={IsAuthenticated}, HasAuthCookie={HasAuthCookie}, RedirectUri={RedirectUri}, TraceId={TraceId}",
+                request.Path,
+                request.QueryString.Value,
+                request.Host.Value,
+                request.Headers.Referer.ToString(),
+                context.HttpContext.User?.Identity?.IsAuthenticated == true,
+                hasAuthCookie,
+                context.ProtocolMessage?.RedirectUri,
+                context.HttpContext.TraceIdentifier);
 
             return Task.CompletedTask;
         };
@@ -331,6 +402,9 @@ app.Use(async (context, next) =>
     var request = context.Request;
     var referer = request.Headers.Referer.ToString();
     var origin = request.Headers.Origin.ToString();
+    var forwardedProto = request.Headers["X-Forwarded-Proto"].ToString();
+    var forwardedHost = request.Headers["X-Forwarded-Host"].ToString();
+    var forwardedFor = request.Headers["X-Forwarded-For"].ToString();
     var hasAuthCookie = request.Cookies.Keys.Any(k => k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
     var hasNonceCookie = request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.OpenIdConnect.Nonce", StringComparison.OrdinalIgnoreCase));
     var hasCorrelationCookie = request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.Correlation.", StringComparison.OrdinalIgnoreCase));
@@ -343,19 +417,44 @@ app.Use(async (context, next) =>
     if (isCrossSite)
     {
         Log.Information(
-            "Cross-site inbound request. Method={Method}, Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, Origin={Origin}, UserAgent={UserAgent}, RemoteIp={RemoteIp}, IsAuthenticated={IsAuthenticated}, HasAuthCookie={HasAuthCookie}, HasNonceCookie={HasNonceCookie}, HasCorrelationCookie={HasCorrelationCookie}, TraceId={TraceId}",
+            "Cross-site inbound request. Method={Method}, Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, Origin={Origin}, XForwardedProto={XForwardedProto}, XForwardedHost={XForwardedHost}, XForwardedFor={XForwardedFor}, UserAgent={UserAgent}, RemoteIp={RemoteIp}, IsAuthenticated={IsAuthenticated}, HasAuthCookie={HasAuthCookie}, HasNonceCookie={HasNonceCookie}, HasCorrelationCookie={HasCorrelationCookie}, TraceId={TraceId}",
             request.Method,
             request.Path,
             request.QueryString.Value,
             request.Host.Value,
             referer,
             origin,
+            forwardedProto,
+            forwardedHost,
+            forwardedFor,
             request.Headers.UserAgent.ToString(),
             context.Connection.RemoteIpAddress?.ToString(),
             context.User?.Identity?.IsAuthenticated == true,
             hasAuthCookie,
             hasNonceCookie,
             hasCorrelationCookie,
+            context.TraceIdentifier);
+    }
+
+    var isAuthEndpoint = request.Path.StartsWithSegments("/MicrosoftIdentity") ||
+                         request.Path.StartsWithSegments("/signin-oidc") ||
+                         request.Path.StartsWithSegments("/signout-callback-oidc");
+
+    if (!isCrossSite &&
+        !isAuthEndpoint &&
+        HttpMethods.IsGet(request.Method) &&
+        !hasAuthCookie &&
+        context.User?.Identity?.IsAuthenticated != true)
+    {
+        Log.Warning(
+            "Direct inbound request has no auth cookie and user is unauthenticated. Path={Path}, Query={Query}, Host={Host}, XForwardedProto={XForwardedProto}, XForwardedHost={XForwardedHost}, XForwardedFor={XForwardedFor}, UserAgent={UserAgent}, TraceId={TraceId}",
+            request.Path,
+            request.QueryString.Value,
+            request.Host.Value,
+            forwardedProto,
+            forwardedHost,
+            forwardedFor,
+            request.Headers.UserAgent.ToString(),
             context.TraceIdentifier);
     }
 
@@ -381,6 +480,40 @@ app.Use(async (context, next) =>
 app.UseSession(); // Enable session middleware
 
 app.UseAuthentication();
+
+// Post-auth diagnostics: logs the effective principal state after cookie processing.
+// This helps distinguish between "cookie exists" and "cookie produced an authenticated user".
+app.Use(async (context, next) =>
+{
+    var request = context.Request;
+    var referer = request.Headers.Referer.ToString();
+    var hasAuthCookie = request.Cookies.Keys.Any(k =>
+        k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
+
+    Log.Information(
+        "Post-auth state. Method={Method}, Path={Path}, Host={Host}, Referer={Referer}, IsAuthenticated={IsAuthenticated}, AuthType={AuthType}, Name={Name}, HasAuthCookie={HasAuthCookie}, TraceId={TraceId}",
+        request.Method,
+        request.Path,
+        request.Host.Value,
+        referer,
+        context.User?.Identity?.IsAuthenticated == true,
+        context.User?.Identity?.AuthenticationType,
+        context.User?.Identity?.Name,
+        hasAuthCookie,
+        context.TraceIdentifier);
+
+    if (hasAuthCookie && context.User?.Identity?.IsAuthenticated != true)
+    {
+        Log.Warning(
+            "Auth cookie is present but request is still unauthenticated after cookie auth. Path={Path}, Host={Host}, TraceId={TraceId}",
+            request.Path,
+            request.Host.Value,
+            context.TraceIdentifier);
+    }
+
+    await next.Invoke();
+});
+
 app.UseAuthorization();
 
 // Middleware to initialize and validate the user session from Entra ID claims.
