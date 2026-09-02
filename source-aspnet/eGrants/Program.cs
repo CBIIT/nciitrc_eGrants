@@ -5,6 +5,7 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
@@ -183,11 +184,22 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 // Microsoft Entra ID (OIDC) Authentication
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
+builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.SlidingExpiration = true;
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+});
 
 // Use the authorization code flow (back-channel token exchange) rather than the
 // hybrid/implicit flow. This avoids AADSTS700054 ("response_type 'id_token' is not
@@ -198,6 +210,66 @@ builder.Services.Configure<OpenIdConnectOptions>(
     OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
         options.ResponseType = OpenIdConnectResponseType.Code;
+        options.UsePkce = true;
+        options.NonceCookie.SameSite = SameSiteMode.None;
+        options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.CorrelationCookie.SameSite = SameSiteMode.None;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+
+        // OIDC diagnostics for cross-site SSO issues. These handlers capture
+        // protocol inputs and auth failures with request context for tracing.
+        options.Events ??= new OpenIdConnectEvents();
+
+        // Logs inbound prompt/max_age flags that can force re-authentication.
+        options.Events.OnMessageReceived = context =>
+        {
+            var prompt = context.ProtocolMessage?.Prompt;
+            var maxAge = context.ProtocolMessage?.MaxAge;
+
+            if (!string.IsNullOrEmpty(prompt) || !string.IsNullOrEmpty(maxAge))
+            {
+                Log.Warning(
+                    "OIDC message includes prompt/max_age. Path={Path}, Prompt={Prompt}, MaxAge={MaxAge}, TraceId={TraceId}",
+                    context.HttpContext.Request.Path,
+                    prompt,
+                    maxAge,
+                    context.HttpContext.TraceIdentifier);
+            }
+
+            return Task.CompletedTask;
+        };
+
+        // Logs Entra/OIDC remote failures (for example, correlation/nonce/callback issues).
+        options.Events.OnRemoteFailure = context =>
+        {
+            var request = context.HttpContext.Request;
+            Log.Error(
+                context.Failure,
+                "OIDC remote failure. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, TraceId={TraceId}",
+                request.Path,
+                request.QueryString.Value,
+                request.Host.Value,
+                request.Headers.Referer.ToString(),
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        };
+
+        // Logs local authentication processing failures before sign-in completes.
+        options.Events.OnAuthenticationFailed = context =>
+        {
+            var request = context.HttpContext.Request;
+            Log.Error(
+                context.Exception,
+                "OIDC authentication failed. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, TraceId={TraceId}",
+                request.Path,
+                request.QueryString.Value,
+                request.Host.Value,
+                request.Headers.Referer.ToString(),
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        };
     });
 
 builder.Services.AddAuthorization(options =>
@@ -251,6 +323,60 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Cross-site diagnostics middleware for requests entering eGrants from other sites.
+// Logs key headers/cookie presence and flags unsuccessful outcomes for correlation.
+app.Use(async (context, next) =>
+{
+    var request = context.Request;
+    var referer = request.Headers.Referer.ToString();
+    var origin = request.Headers.Origin.ToString();
+    var hasAuthCookie = request.Cookies.Keys.Any(k => k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
+    var hasNonceCookie = request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.OpenIdConnect.Nonce", StringComparison.OrdinalIgnoreCase));
+    var hasCorrelationCookie = request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.Correlation.", StringComparison.OrdinalIgnoreCase));
+
+    // Treat request as cross-site when referer host differs from current host.
+    var isCrossSite = !string.IsNullOrWhiteSpace(referer) &&
+                      Uri.TryCreate(referer, UriKind.Absolute, out var refererUri) &&
+                      !string.Equals(refererUri.Host, request.Host.Host, StringComparison.OrdinalIgnoreCase);
+
+    if (isCrossSite)
+    {
+        Log.Information(
+            "Cross-site inbound request. Method={Method}, Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, Origin={Origin}, UserAgent={UserAgent}, RemoteIp={RemoteIp}, IsAuthenticated={IsAuthenticated}, HasAuthCookie={HasAuthCookie}, HasNonceCookie={HasNonceCookie}, HasCorrelationCookie={HasCorrelationCookie}, TraceId={TraceId}",
+            request.Method,
+            request.Path,
+            request.QueryString.Value,
+            request.Host.Value,
+            referer,
+            origin,
+            request.Headers.UserAgent.ToString(),
+            context.Connection.RemoteIpAddress?.ToString(),
+            context.User?.Identity?.IsAuthenticated == true,
+            hasAuthCookie,
+            hasNonceCookie,
+            hasCorrelationCookie,
+            context.TraceIdentifier);
+    }
+
+    await next.Invoke();
+
+    // Log failures for all requests, plus redirects/errors for cross-site traffic.
+    if (context.Response.StatusCode >= 400 || (isCrossSite && context.Response.StatusCode >= 300))
+    {
+        Log.Warning(
+            "Inbound request completed with notable status. Method={Method}, Path={Path}, Query={Query}, StatusCode={StatusCode}, Host={Host}, Referer={Referer}, Origin={Origin}, IsAuthenticated={IsAuthenticated}, TraceId={TraceId}",
+            request.Method,
+            request.Path,
+            request.QueryString.Value,
+            context.Response.StatusCode,
+            request.Host.Value,
+            referer,
+            origin,
+            context.User?.Identity?.IsAuthenticated == true,
+            context.TraceIdentifier);
+    }
+});
 
 app.UseSession(); // Enable session middleware
 
