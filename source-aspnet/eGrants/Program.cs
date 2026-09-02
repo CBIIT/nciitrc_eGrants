@@ -195,7 +195,11 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
 builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
     options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.None;
+    // The eGrants application session cookie is first-party (top-level navigation
+    // to its own host). Use Lax so it is reliably sent when users re-enter eGrants
+    // from an external referrer (for example authdev.nih.gov). SameSite=None can be
+    // treated as third-party and dropped by modern browsers on top-level re-entry.
+    options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromHours(8);
@@ -262,6 +266,9 @@ builder.Services.Configure<OpenIdConnectOptions>(
     {
         options.ResponseType = OpenIdConnectResponseType.Code;
         options.UsePkce = true;
+        // Nonce/correlation cookies are used during the cross-site handshake
+        // (login.microsoftonline.com -> /signin-oidc form_post) and must remain
+        // SameSite=None; Secure so they are sent on that cross-site callback.
         options.NonceCookie.SameSite = SameSiteMode.None;
         options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
         options.CorrelationCookie.SameSite = SameSiteMode.None;
@@ -270,6 +277,16 @@ builder.Services.Configure<OpenIdConnectOptions>(
         // OIDC diagnostics for cross-site SSO issues. These handlers capture
         // protocol inputs and auth failures with request context for tracing.
         options.Events ??= new OpenIdConnectEvents();
+
+        // Persist the resulting application auth cookie so it survives browser
+        // restarts and is reliably present on later top-level re-entry.
+        options.Events.OnTicketReceived = context =>
+        {
+            context.Properties ??= new Microsoft.AspNetCore.Authentication.AuthenticationProperties();
+            context.Properties.IsPersistent = true;
+            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8);
+            return Task.CompletedTask;
+        };
 
         // Logs inbound prompt/max_age flags that can force re-authentication.
         options.Events.OnMessageReceived = context =>
