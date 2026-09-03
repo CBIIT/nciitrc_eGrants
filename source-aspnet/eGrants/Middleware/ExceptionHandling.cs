@@ -40,9 +40,21 @@ namespace SimpleECommerceCore.Middleware
                 var errorMessage = Uri.EscapeDataString(ex.Message);
 
                 var fallbackUrl = "/Views/Index?error=" + errorMessage;
-                var redirectUrl = string.IsNullOrWhiteSpace(referer)
-                    ? fallbackUrl
-                    : referer + "?error=" + errorMessage;
+
+                // SECURITY: The Referer header is client-controlled, so redirecting to it
+                // directly would allow an open redirect to an arbitrary external site.
+                // Only honor the referer when it is a local URL that targets the same host
+                // as the current request; otherwise fall back to the safe local URL.
+                var redirectUrl = fallbackUrl;
+                if (!string.IsNullOrWhiteSpace(referer) &&
+                    Uri.TryCreate(referer, UriKind.Absolute, out var refererUri) &&
+                    string.Equals(refererUri.Host, context.Request.Host.Host, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Rebuild the target from trusted, validated components only (never the
+                    // raw header string) so no attacker-supplied data flows into the redirect.
+                    var separator = string.IsNullOrEmpty(refererUri.Query) ? "?" : "&";
+                    redirectUrl = refererUri.PathAndQuery + separator + "error=" + errorMessage;
+                }
 
                 context.Response.Redirect(redirectUrl);
 
