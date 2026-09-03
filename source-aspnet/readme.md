@@ -172,6 +172,7 @@ Sensitive values are injected at runtime rather than stored in the committed fil
 | --- | --- |
 | `DB_USER` | SQL Server user id for the `DefaultConnection` string |
 | `DB_PASSWORD` | SQL Server password for the `DefaultConnection` string |
+| `eGrants_AzureAd_ClientSecret` | Entra ID client secret; replaces the `{eGrants_AzureAd_ClientSecret}` placeholder in `AzureAd:ClientSecret` |
 | `CERT_PASSWORD` | Password for the client certificate (`AppSettings:certPass`) |
 | `GITHUB_TOKEN` | Token used for GitHub (Octokit) integration (`AppSettings:GitHubToken`) |
 | `ASPNETCORE_ENVIRONMENT` | Selects the active environment/config (e.g., `Development`) |
@@ -193,6 +194,8 @@ Sensitive values are injected at runtime rather than stored in the committed fil
 The application authenticates users with **Microsoft Entra ID** using OpenID Connect via `Microsoft.Identity.Web`:
 
 - Configuration lives in the `AzureAd` section of `appsettings`.
+- Sign-in uses the OpenID Connect **authorization code flow** (`ResponseType = code`, configured in `Program.cs`). The ID token is exchanged at the token endpoint using the client secret, which avoids `AADSTS700054` ("response_type 'id_token' is not enabled for the application").
+- The Entra ID **client secret is externalized**: the `{eGrants_AzureAd_ClientSecret}` placeholder in `AzureAd:ClientSecret` is replaced at startup from the `eGrants_AzureAd_ClientSecret` configuration/environment value (mirroring the `DB_USER`/`DB_PASSWORD` pattern).
 - A global **fallback authorization policy** requires every request to be from an authenticated user.
 - After sign-in, middleware in `Program.cs` uses `EntraIdUserResolver` to read the `preferred_username` claim, derive the user id and Institute/Center (IC) code, and initialize the user session (user type, permissions, person id) via `EgrantsCommon`.
 - Sign-in/sign-out callbacks use `/signin-oidc` and `/signout-callback-oidc`.
@@ -315,3 +318,9 @@ Internal NCI/NIH application. Add the applicable license or usage terms here.
 ## Changelog
 
 Notable changes are tracked per release. Add release notes here or link to a `CHANGELOG.md`.
+
+### Recent changes
+- **Session timeout reduced from 120 to 90 minutes.** The browser inactivity auto-logout timer (`browserTimeout`) in `eGrants/Views/Shared/_egrants_header.cshtml` was changed from `2 * 60 * 60 * 1000` (120 minutes) to `90 * 60 * 1000` (90 minutes); the 15-minute inactivity warning dialog threshold is unchanged.
+- **Forced OIDC authorization code flow** (`ResponseType = code`) to fix Entra ID sign-in error `AADSTS700054`.
+- **Externalized the Entra ID client secret** via the `{eGrants_AzureAd_ClientSecret}` placeholder and the `eGrants_AzureAd_ClientSecret` environment/configuration value; hardened local auth configuration.
+- **Migrated authentication from SiteMinder to Microsoft Entra ID (OIDC)**, adding `EntraIdUserResolver` and related unit/integration tests.
