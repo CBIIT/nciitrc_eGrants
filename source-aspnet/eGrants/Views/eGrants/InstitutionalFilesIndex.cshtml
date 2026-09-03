@@ -39,7 +39,7 @@
          return false;
       } else var search_str = document.getElementById("txtStr").value;
 
-      var url = "@Url.Action("Search_Orgs", "InstitutionalFiles")?str=" + search_str;
+      var url = "@Url.Action("Search_Orgs", "InstitutionalFiles")?str=" + encodeURIComponent(search_str);
       window.document.location.href = url;
    }
 
@@ -49,7 +49,7 @@
    }
 
    function show_docs(org_id, org_name) {
-      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
+      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + encodeURIComponent(org_name);
       window.document.location.href = url;
    }
 
