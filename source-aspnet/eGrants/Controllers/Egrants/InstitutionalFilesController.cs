@@ -442,7 +442,7 @@ namespace eGrant.Controllers
                         end_date ?? "",
                         sessionInfo.Ic,
                         sessionInfo.UserId,
-                        comments);
+                        comments ?? "");
                 else
                     ViewBag.Message = "You have not specified information correctly.";
             }

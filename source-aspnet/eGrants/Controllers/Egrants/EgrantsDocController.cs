@@ -225,7 +225,7 @@ namespace eGrants.Controllers.Egrants
 
                 using var client = new HttpClient(handler);
                 client.DefaultRequestHeaders.Add("User-Agent", "eGrants");
-                client.Timeout = TimeSpan.FromSeconds(30);
+                client.Timeout = TimeSpan.FromSeconds(60);
 
                 Log.Information("Requesting ERA document: {DocUrl}, Certificate HasPrivateKey: {HasPrivateKey}",
                     docurl, certificate.HasPrivateKey);

@@ -20,13 +20,12 @@ namespace eGrants.Tests.Integration
     public class EgrantsControllerTests
     {
         // Connection string to the development SQL Server instance
-        private const string DevConnectionString = @"Data Source=NCIDB-D387-V.nci.nih.gov\\MSSQLEGRANTSQ,52000;Persist Security Info=True;Initial Catalog=EIM;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=45";
 
         // Creates a DbContext using the dev connection string
         private AppDbContext CreateDevDbContext()
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseSqlServer(DevConnectionString)
+                .UseSqlServer(TestDatabase.ConnectionString)
                 .Options;
 
             return new AppDbContext(options);
@@ -53,7 +52,7 @@ namespace eGrants.Tests.Integration
             var commonService = new CommonService(commonRepository);
             var eGrantsService = new eGrantsService(eGrantsRepository);
             var sessionInfoService = new SessionInfoService();
-            var documentService = new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService, context);
+            var documentService = new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService);
 
             var controller = new EgrantsController(eGrantsService, commonService, documentService, sessionInfoService);
             var httpContext = new DefaultHttpContext();
@@ -63,7 +62,7 @@ namespace eGrants.Tests.Integration
             return controller;
         }
 
-        [Fact]
+        [DbFact]
         public void Go_to_default_ReturnsCorrectView()
         {
             // Verifies that Go_to_default returns the expected view path
@@ -76,7 +75,7 @@ namespace eGrants.Tests.Integration
             Assert.Equal("~/Views/Shared/Go_to_Default.cshtml", result.ViewName);
         }
 
-        [Fact]
+        [DbFact]
         public async Task Index_ReturnsCorrectViewAndModel()
         {
             // Tests Index action with valid session data
@@ -95,7 +94,7 @@ namespace eGrants.Tests.Integration
 
         #region by_str controller method tests
 
-        [Fact]
+        [DbFact]
         public async Task by_str_ReturnsCorrectViewAndModel()
         {
             // Tests by_str with basic search string and session data
@@ -113,7 +112,7 @@ namespace eGrants.Tests.Integration
             Assert.IsType<eGrantsSearchViewModel>(result.Model);
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_str_WithDifferentValidParams_ReturnsExpectedModel()
         {
             // Tests by_str with alternate valid parameters
@@ -131,7 +130,7 @@ namespace eGrants.Tests.Integration
             Assert.IsType<eGrantsSearchViewModel>(result.Model);
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_str_NullSearchString_ReturnsEmptyModel()
         {
             // Tests by_str with null search string to validate fallback behavior
@@ -149,7 +148,7 @@ namespace eGrants.Tests.Integration
             Assert.IsType<eGrantsSearchViewModel>(result.Model);
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_str_MissingSessionData_ReturnsDefaultModel()
         {
             // Tests by_str with no session data to ensure default behavior
@@ -167,7 +166,7 @@ namespace eGrants.Tests.Integration
 
         #region by_grant controller tests
 
-        [Fact]
+        [DbFact]
         public async Task by_grant_WithDefaultParameters_ReturnsCorrectViewAndModel()
         {
             // Tests by_grant action with default parameters and valid session
@@ -185,7 +184,7 @@ namespace eGrants.Tests.Integration
             Assert.IsType<eGrantsSearchViewModel>(result.Model);
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_grant_WithSpecificGrantIdAndFilters_ReturnsPopulatedModel()
         {
             // Tests by_grant with specific grantId and filter parameters
@@ -210,7 +209,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model.ICList); // Ensures ICList is loaded
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_grant_WithEmptySession_StillReturnsView()
         {
             // Tests by_grant behavior when session is empty or missing expected keys
@@ -229,7 +228,7 @@ namespace eGrants.Tests.Integration
         #endregion
         #region by_filter controller tests
 
-        [Fact]
+        [DbFact]
         public async Task by_filters_WithDefaultParameters_ReturnsCorrectViewAndModel()
         {
             // Tests by_filters with default parameters and valid session
@@ -247,7 +246,7 @@ namespace eGrants.Tests.Integration
             Assert.IsType<eGrantsSearchViewModel>(result.Model);
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_filters_WithSpecificFilters_ReturnsPopulatedModel()
         {
             // Tests by_filters with specific fiscal year, mechanism, admin code, and serial number
@@ -273,7 +272,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model.ICList); // Ensures ICList is loaded
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_filters_WithEmptySession_StillReturnsView()
         {
             // Tests by_filters behavior when session is empty or missing expected keys
@@ -292,7 +291,7 @@ namespace eGrants.Tests.Integration
         #endregion
         #region LoadCategories controller tests
 
-        [Fact]
+        [DbFact]
 
         public async Task LoadCategories_ReturnsSerializedCategoryList()
         {
@@ -326,7 +325,7 @@ namespace eGrants.Tests.Integration
             Assert.Contains(categoryStrings, s => s.Contains("Greensheet"));
         }
 
-        [Fact]
+        [DbFact]
         public async Task LoadCategories_WithInvalidGrantId_ReturnsEmptyOrError()
         {
             // Arrange: create test DB context and session
@@ -362,7 +361,7 @@ namespace eGrants.Tests.Integration
         #endregion
 
         #region by_appl controller tests
-        [Fact]
+        [DbFact]
         public async Task by_appl_WithDefaultParameters_ReturnsCorrectViewAndModel()
         {
             // Tests by_appl with default parameters and valid session
@@ -381,7 +380,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model);
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_appl_WithSpecificFilters_ReturnsPopulatedModel()
         {
             //Tests by_appl with valid session and parameteres
@@ -403,7 +402,7 @@ namespace eGrants.Tests.Integration
 
         }
 
-        [Fact]
+        [DbFact]
         public async Task by_appl_WithEmptySession_StillReturnsView()
         {
             //Tests by_appl with empty session and parameteres
@@ -427,7 +426,7 @@ namespace eGrants.Tests.Integration
 
         #region load_data_autocomplete tests
 
-        [Fact]
+        [DbFact]
         public async Task LoadDataAutocomplete_ReturnsJsonResult_WithExpectedData()
         {
             using var context = CreateDevDbContext();
@@ -447,7 +446,7 @@ namespace eGrants.Tests.Integration
             Assert.IsAssignableFrom<IEnumerable<object>>(jsonResult.Value); // Replace object with expected type if known
         }
 
-        [Fact]
+        [DbFact]
         public async Task LoadDataAutocomplete_HandlesNullAndUndefinedParameters()
         {
             using var context = CreateDevDbContext();
@@ -465,7 +464,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(jsonResult.Value);
         }
 
-        [Fact]
+        [DbFact]
         public async Task LoadDataAutocomplete_IgnoresInvalidIntegerInputs()
         {
             using var context = CreateDevDbContext();
@@ -486,7 +485,7 @@ namespace eGrants.Tests.Integration
 
         #region by_page controller tests
 
-        [Fact]
+        [DbFact]
         public async Task by_page_WithDefaultParameters_ReturnsCorrectViewAndModel()
         {
             // Arrange: create a test database context and session

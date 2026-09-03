@@ -679,3 +679,9 @@ app.MapControllerRoute("Integration", "{controller=Integration}/{action=Trigger}
 #endregion
 
 app.Run();
+
+// Exposes the top-level-statements Program class as public so the integration
+// test project (eGrants.Tests) can reference it via WebApplicationFactory<Program>.
+public partial class Program
+{
+}

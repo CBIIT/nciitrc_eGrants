@@ -27,16 +27,39 @@ namespace SimpleECommerceCore.Middleware
             {
                 Log.Error(ex, "Unhandled exception occurred while processing request: " + context.Request.Path);
 
-                // Avoid trying to modify the response if it has already started.
-                if (context.Response.HasStarted)
+                context.Response.StatusCode = 500;
+                context.Response.ContentType = "application/json";
+                var referer = context.Request.Headers["Referer"].ToString();
+
+                var errorResponse = new
                 {
-                    throw;
+                    Message = EgrantsCommon.ErrorMessages.UNEXPECTED_ERROR_OCCURRED,
+                    Detail = ex.Message
+                };
+
+                var errorMessage = Uri.EscapeDataString(ex.Message);
+
+                var fallbackUrl = "/Views/Index?error=" + errorMessage;
+
+                // SECURITY: The Referer header is client-controlled, so redirecting to it
+                // directly would allow an open redirect to an arbitrary external site.
+                // Only honor the referer when it is a local URL that targets the same host
+                // as the current request; otherwise fall back to the safe local URL.
+                var redirectUrl = fallbackUrl;
+                if (!string.IsNullOrWhiteSpace(referer) &&
+                    Uri.TryCreate(referer, UriKind.Absolute, out var refererUri) &&
+                    string.Equals(refererUri.Host, context.Request.Host.Host, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Rebuild the target from trusted, validated components only (never the
+                    // raw header string) so no attacker-supplied data flows into the redirect.
+                    var separator = string.IsNullOrEmpty(refererUri.Query) ? "?" : "&";
+                    redirectUrl = refererUri.PathAndQuery + separator + "error=" + errorMessage;
                 }
 
-                // Redirect to the application's error page (handled by ErrorController at "/Error").
-                // Note: the previous fallback redirected to "/Views/Index", which is not a valid
-                // route and resulted in an HTTP 404 that masked the real error.
-                context.Response.Redirect("/Error");
+                context.Response.Redirect(redirectUrl);
+
+                //await context.Response.WriteAsJsonAsync(errorResponse);
+                //context.Response.Redirect(referer + "?error=" + ex.Message ?? "/Views/Index");
             }
         }
     }
