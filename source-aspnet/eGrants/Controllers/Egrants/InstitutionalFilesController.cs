@@ -131,6 +131,14 @@ namespace eGrant.Controllers
         {
             var str = HttpContext.Session.GetString("InstitutionalFiles_SearchStr") ?? string.Empty;
 
+            // Empty-search guard: covers direct navigation/bookmarks and expired sessions,
+            // which client-side validation cannot reach. Prevents SearchOrgList("") from
+            // running a LIKE '%%' that would return the entire org table.
+            if (string.IsNullOrWhiteSpace(str))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
             var page = new InstitutionalFilesPage
             {
                 SelectedInstitutionalOrg = new InstitutionalOrg(),
