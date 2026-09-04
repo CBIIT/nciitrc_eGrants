@@ -127,8 +127,10 @@ namespace eGrant.Controllers
         /// The <see cref="ActionResult"/>.
         /// </returns>
         [HttpGet]
-        public async Task<ActionResult> Search_Orgs(string str)
+        public async Task<ActionResult> Search_Orgs()
         {
+            var str = HttpContext.Session.GetString("InstitutionalFiles_SearchStr") ?? string.Empty;
+
             var page = new InstitutionalFilesPage
             {
                 SelectedInstitutionalOrg = new InstitutionalOrg(),
@@ -137,7 +139,20 @@ namespace eGrant.Controllers
                 OrgList = await _institutionalFilesService.SearchOrgList(str)
             };
 
+            // Repopulate the search box with the submitted keyword.
+            this.ViewBag.Str = str;
+
             return View("~/Views/eGrants/InstitutionalFilesIndex.cshtml", page);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Search_Orgs(string str)
+        {
+            // Persist the search term in session and redirect to GET (PRG pattern)
+            // to prevent browser form-resubmission prompts on Back navigation.
+            HttpContext.Session.SetString("InstitutionalFiles_SearchStr", str ?? string.Empty);
+
+            return RedirectToAction(nameof(Search_Orgs));
         }
 
         /// <summary>
@@ -182,23 +197,19 @@ namespace eGrant.Controllers
         /// <param name="org_id">
         /// The org_id.
         /// </param>
-        /// <param name="org_name">
-        /// The org_name.
-        /// </param>
         /// <returns>
         /// The <see cref="ActionResult"/>.
         /// </returns>
         [HttpGet]
-        public async Task<ActionResult> Delete_Doc(string act, int doc_id, int org_id, string org_name)
+        public async Task<ActionResult> Delete_Doc(string act, int doc_id, int org_id)
         {
             // disable_doc
-            _institutionalFilesService.DisableDoc(doc_id, sessionInfo.UserId);
+            await _institutionalFilesService.DisableDoc(doc_id, sessionInfo.UserId);
 
             this.ViewBag.Act = act;
             this.ViewBag.OrgID = org_id;
-            this.ViewBag.OrgName = org_name;
 
-            return await Show_Docs(org_id, org_name);
+            return await Show_Docs(org_id);
         }
 
         /// <summary>
