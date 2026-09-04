@@ -201,8 +201,12 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     // treated as third-party and dropped by modern browsers on top-level re-entry.
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // Persist the auth cookie across browser restarts. ExpireTimeSpan controls the
+    // ticket lifetime, but the browser only keeps the cookie past close-out when the
+    // cookie itself carries a Max-Age/Expires attribute, which Cookie.MaxAge sets.
+    options.Cookie.MaxAge = TimeSpan.FromDays(14);
     options.SlidingExpiration = true;
-    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.ExpireTimeSpan = TimeSpan.FromDays(14);
 
     // Cookie auth diagnostics to determine why a request is redirected to login
     // even when users report that cookies are present in their browser.
@@ -210,6 +214,13 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     {
         OnSigningIn = context =>
         {
+            // Authoritative place to force a PERSISTENT cookie. This runs for the
+            // actual cookie being written and is not overridden by Microsoft.Identity.Web's
+            // OIDC wiring. Without this the cookie is issued as a session cookie (no
+            // Expires/Max-Age) and is deleted when the browser is closed, forcing re-login.
+            context.Properties.IsPersistent = true;
+            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
+
             Log.Information(
                 "Cookie signing in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
                 context.Principal?.Identity?.Name,
@@ -284,7 +295,7 @@ builder.Services.Configure<OpenIdConnectOptions>(
         {
             context.Properties ??= new Microsoft.AspNetCore.Authentication.AuthenticationProperties();
             context.Properties.IsPersistent = true;
-            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8);
+            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
             return Task.CompletedTask;
         };
 
