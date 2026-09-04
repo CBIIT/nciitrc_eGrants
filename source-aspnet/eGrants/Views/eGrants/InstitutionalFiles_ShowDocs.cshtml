@@ -81,7 +81,10 @@
    function delete_doc(doc_id, category_name, org_id, org_name) {
 
       if (confirm("Are you sure that you want to delete selected document(s)?")) {
-         var url = "@Url.Action("Delete_Doc", "InstitutionalFiles")?act=disable_doc&doc_id=" + doc_id + "&org_id=" + org_id + "&org_name=" + org_name;
+         // Navigate by org_id only; org_name is intentionally omitted so that
+         // institution names with apostrophes/special characters are not placed
+         // in the query string (which an upstream WAF blocks with a 403).
+         var url = "@Url.Action("Delete_Doc", "InstitutionalFiles")?act=disable_doc&doc_id=" + doc_id + "&org_id=" + org_id;
          window.document.location.href = url;
       }
    }
