@@ -259,6 +259,7 @@ namespace eGrants.Common
             {
                 var cmd = new SqlCommand("sp_web_egrants_user_profile", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 60;
                 cmd.Parameters.AddWithValue("@ic", ic);
                 cmd.Parameters.AddWithValue("@Operator", userid);
                 cmd.Parameters.AddWithValue("@type", type);
