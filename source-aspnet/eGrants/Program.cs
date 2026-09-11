@@ -8,6 +8,7 @@ using eGrants.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
@@ -188,6 +189,32 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
+// ---------------------------------------------------------------------------
+// Data Protection key ring (eGrants-1259)
+//
+// The keys that encrypt and sign the auth cookie must be stored somewhere
+// durable. Left unconfigured, ASP.NET Core keeps them per-process under IIS, so
+// every app pool recycle generates a new key ring, every previously issued auth
+// cookie becomes undecryptable, and those users are redirected to Entra ID to
+// sign in again. The same keys protect the OIDC nonce/correlation cookies, so
+// losing them mid-handshake also produces "Correlation failed" login loops.
+//
+// SetApplicationName pins the purpose discriminator, which otherwise derives
+// from the content root path and changes when the deployment path changes. It
+// must stay exactly "eGrants" in every environment, forever: changing it
+// invalidates every cookie that was issued under the previous value.
+//
+// Requires table dbo.DataProtectionKeys - see
+// source-sqlscripts/1.0.3.4/01_eGrants-1259_create_dataprotection_keys.sql
+// ---------------------------------------------------------------------------
+builder.Services.AddDbContext<DataProtectionKeyContext>(options =>
+    options.UseSqlServer(finalConnectionString));
+
+builder.Services.AddDataProtection()
+    .SetApplicationName("eGrants")
+    .PersistKeysToDbContext<DataProtectionKeyContext>()
+    .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
+
 // Microsoft Entra ID (OIDC) Authentication
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
@@ -201,12 +228,13 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     // treated as third-party and dropped by modern browsers on top-level re-entry.
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    // Persist the auth cookie across browser restarts. ExpireTimeSpan controls the
-    // ticket lifetime, but the browser only keeps the cookie past close-out when the
-    // cookie itself carries a Max-Age/Expires attribute, which Cookie.MaxAge sets.
-    options.Cookie.MaxAge = TimeSpan.FromDays(14);
+    // Session-scoped cookie with an 8 hour sliding ticket lifetime. The long-lived
+    // 14 day persistent cookie previously configured here was an attempt to work
+    // around key ring loss (eGrants-1259) and is no longer needed now that the keys
+    // are persisted. When the ticket does expire, Entra ID re-authenticates the user
+    // silently as long as their identity provider session is still active.
     options.SlidingExpiration = true;
-    options.ExpireTimeSpan = TimeSpan.FromDays(14);
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
 
     // Cookie auth diagnostics to determine why a request is redirected to login
     // even when users report that cookies are present in their browser.
@@ -214,13 +242,6 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     {
         OnSigningIn = context =>
         {
-            // Authoritative place to force a PERSISTENT cookie. This runs for the
-            // actual cookie being written and is not overridden by Microsoft.Identity.Web's
-            // OIDC wiring. Without this the cookie is issued as a session cookie (no
-            // Expires/Max-Age) and is deleted when the browser is closed, forcing re-login.
-            context.Properties.IsPersistent = true;
-            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
-
             Log.Information(
                 "Cookie signing in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
                 context.Principal?.Identity?.Name,
@@ -288,16 +309,6 @@ builder.Services.Configure<OpenIdConnectOptions>(
         // OIDC diagnostics for cross-site SSO issues. These handlers capture
         // protocol inputs and auth failures with request context for tracing.
         options.Events ??= new OpenIdConnectEvents();
-
-        // Persist the resulting application auth cookie so it survives browser
-        // restarts and is reliably present on later top-level re-entry.
-        options.Events.OnTicketReceived = context =>
-        {
-            context.Properties ??= new Microsoft.AspNetCore.Authentication.AuthenticationProperties();
-            context.Properties.IsPersistent = true;
-            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
-            return Task.CompletedTask;
-        };
 
         // Logs inbound prompt/max_age flags that can force re-authentication.
         options.Events.OnMessageReceived = context =>

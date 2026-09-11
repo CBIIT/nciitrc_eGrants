@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="IronPdf" Version="2024.9.3" />
+    <!-- 8.0.x, not 9.x: the 9.x package targets net9.0 only and will not restore
+         against this project's net8.0 target framework. -->
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.31" />
     <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters.CoreServices" Version="2.0.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="3.8.5" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.8.5" />
