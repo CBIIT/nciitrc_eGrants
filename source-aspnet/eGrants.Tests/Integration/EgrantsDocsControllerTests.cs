@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 using eGrants.Controllers.Egrants;
 using eGrants.DAL;
@@ -21,13 +21,12 @@ namespace eGrants.Tests.Integration
     public class EgrantsDocsControllerTests
     {
         // Connection string to the development SQL Server instance
-        private const string DevConnectionString = @"Data Source=NCIDB-D387-V.nci.nih.gov\\MSSQLEGRANTSQ,52000;Persist Security Info=True;Initial Catalog=EIM;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=45";
 
         // Creates a DbContext using the dev connection string
         private AppDbContext CreateDevDbContext()
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseSqlServer(DevConnectionString)
+                .UseSqlServer(TestDatabase.ConnectionString)
                 .Options;
 
             return new AppDbContext(options);
@@ -53,7 +52,7 @@ namespace eGrants.Tests.Integration
             var commonService = new CommonService(commonRepository);
             var eGrantsService = new eGrantsService(eGrantsRepository);
             var sessionInfoService = new SessionInfoService();
-            var documentService = mockDocumentService ?? new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService, context);
+            var documentService = mockDocumentService ?? new DocumentService(documentRepository, sessionInfoService, commonRepository, eGrantsService);
             var applService = new ApplService(context);
 
             var controller = new EgrantsDocController(eGrantsService, commonService, documentService, sessionInfoService, applService);
@@ -66,7 +65,7 @@ namespace eGrants.Tests.Integration
 
         #region LoadSupplement Tests
 
-        [Fact]
+        [DbFact]
         public async Task LoadSupplement_ReturnsViewWithCorrectModel()
         {
             using var context = CreateDevDbContext();
@@ -84,7 +83,7 @@ namespace eGrants.Tests.Integration
             Assert.NotEmpty(model.Supplement);
         }
 
-        [Fact]
+        [DbFact]
         public async Task LoadSupplement_NullSessionInfo_ThrowsException()
         {
             using var context = CreateDevDbContext();
@@ -94,7 +93,7 @@ namespace eGrants.Tests.Integration
                 controller.LoadSupplement("ajskkljfsa", 123));
         }
 
-        [Fact]
+        [DbFact]
         public async Task LoadSupplement_EmptySupplements_ReturnsViewWithEmptyList()
         {
             using var context = CreateDevDbContext();
@@ -111,7 +110,7 @@ namespace eGrants.Tests.Integration
             Assert.Empty(model.FormerAppls);
         }
 
-        [Fact]
+        [DbFact]
         public async Task LoadSupplement_DocumentServiceThrowsException_PropagatesError()
         {
             using var context = CreateDevDbContext();
@@ -130,7 +129,7 @@ namespace eGrants.Tests.Integration
                 controller.LoadSupplement("TriggerErrorAct", 999998));
         }
 
-        [Theory]
+        [DbTheory]
         [InlineData("", -1)]
         [InlineData(null, 0)]
         public async Task LoadSupplement_InvalidInputs_ReturnsView(string act, int grantId)
@@ -152,7 +151,7 @@ namespace eGrants.Tests.Integration
         #endregion
 
         #region doc_index_update_default tests
-        [Fact]
+        [DbFact]
         public async Task doc_index_update_default_ReturnsViewWithViewModel()
         {
             using var context = CreateDevDbContext();
@@ -173,7 +172,17 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model);
         }
 
-        [Fact]
+        [DbFact]
+        public async Task doc_index_update_default_NullSessionInfo_ThrowsException()
+        {
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context, session: null);
+
+            await Assert.ThrowsAsync<NullReferenceException>(() =>
+                controller.doc_index_update_default(999, "test.com"));
+        }
+
+        [DbFact]
         public async Task doc_index_update_default_SetsCorrectPreviousUrlInViewModel()
         {
             using var context = CreateDevDbContext();
@@ -195,7 +204,7 @@ namespace eGrants.Tests.Integration
         #endregion
 
         #region doc_upload_default tests
-        [Fact]
+        [DbFact]
         public async Task doc_upload_default_ReturnsViewWithViewModel()
         {
             using var context = CreateDevDbContext();
@@ -215,7 +224,28 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model);
         }
 
-        [Fact]
+        [DbFact]
+        public async Task doc_upload_default_NullSession_ReturnsViewWithoutUsingSession()
+        {
+            using var context = CreateDevDbContext();
+
+            var mockDocumentService = new Mock<IDocumentService>();
+            var expectedViewModel = new eGrantsDocUploadViewModel { DocId = 999 };
+
+            mockDocumentService
+                .Setup(d => d.DocUploadDefaultAsync(999))
+                .ReturnsAsync(expectedViewModel);
+
+            var controller = CreateController(context, session: null, mockDocumentService.Object);
+
+            var result = await controller.doc_upload_default(999);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<eGrantsDocUploadViewModel>(viewResult.Model);
+            Assert.Equal(999, model.DocId);
+        }
+
+        [DbFact]
         public async Task doc_upload_default_CallsDocumentServiceWithCorrectDocId()
         {
             using var context = CreateDevDbContext();
@@ -244,7 +274,7 @@ namespace eGrants.Tests.Integration
         #endregion
 
         #region doc_create_without_applid tests
-        [Fact]
+        [DbFact]
         public async Task doc_create_without_applid_ReturnsViewWithViewModel()
         {
             using var context = CreateDevDbContext();
@@ -264,7 +294,17 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model);
         }
 
-        [Fact]
+        [DbFact]
+        public async Task doc_create_without_applid_NullSessionInfo_ThrowsException()
+        {
+            using var context = CreateDevDbContext();
+            var controller = CreateController(context, session: null);
+
+            await Assert.ThrowsAsync<NullReferenceException>(() =>
+                controller.doc_create_without_applid("test.com"));
+        }
+
+        [DbFact]
         public async Task doc_create_without_applid_SetsPreviousUrlInViewModel()
         {
             using var context = CreateDevDbContext();
@@ -286,7 +326,7 @@ namespace eGrants.Tests.Integration
         #endregion
 
         #region doc_upload_by_ddrop tests
-        [Fact]
+        [DbFact]
         public async Task doc_upload_by_file_ValidFile_ReturnsSuccessJson()
         {
             using var context = CreateDevDbContext();
@@ -334,7 +374,7 @@ namespace eGrants.Tests.Integration
             Assert.Equal(expectedResult.Message, message);
         }
 
-        [Fact]
+        [DbFact]
         public async Task doc_upload_pdf_by_ddrop_NullFiles_ReturnsErrorJson()
         {
             using var context = CreateDevDbContext();

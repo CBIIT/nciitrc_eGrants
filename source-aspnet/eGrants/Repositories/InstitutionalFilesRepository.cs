@@ -36,9 +36,9 @@ namespace eGrants.Repositories
 
             cmd.Parameters.Add("@org_id", SqlDbType.Int).Value = orgId;
 
-            // sanitize orgName to avoid SQL injection issues
-            var sanitizedOrgName = orgName.Replace("'", "''");
-            cmd.Parameters.Add("@org_name", SqlDbType.VarChar).Value = sanitizedOrgName;
+            // org_name is passed as a parameterized value, so no manual escaping
+            // is required (or correct) here.
+            cmd.Parameters.Add("@org_name", SqlDbType.VarChar).Value = orgName ?? string.Empty;
 
             InstitutionalOrg org = null;
 

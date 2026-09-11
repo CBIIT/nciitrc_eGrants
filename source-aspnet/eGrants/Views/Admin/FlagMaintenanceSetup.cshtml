@@ -1,4 +1,4 @@
-﻿
+
 @{
     ViewBag.Title = "eGrants [Flag Maintenance Administration]";
     Layout = "~/Views/Shared/_egrants_header.cshtml";
@@ -330,7 +330,7 @@
                             <td>
                                 @if (Convert.ToChar(appls.flag) == 'y')
                                 {
-                                    @Html.Raw(string.Format("<img height=\'12\' src=\'../images/flag_" + ViewBag.FlagType + ".jpg' />"))
+                                    @Html.Raw(string.Format("<img height=\'12\' src=\'/images/flag_" + ViewBag.FlagType + ".jpg' />"))
                                 }
                                 else
                                 {

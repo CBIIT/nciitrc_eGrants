@@ -4,7 +4,7 @@
     Layout = null;
 
     // prod mode
-    string browserTimeout = "2 * 60 * 60 * 1000";   // "7200000" 2 * 60 * 60 * 1000     // 2 hours
+    string browserTimeout = "90 * 60 * 1000";   // "5400000" 90 * 60 * 1000     // 90 minutes
     string whenToDisplayTimoutDialog = "15 * 60 * 1000";      // 15 minutes
 }
 
@@ -34,8 +34,16 @@
         var QuickLinkType = [];
 
         var currentView = "StandardForm";
-        var remainingAutoLogoutMS = @browserTimeout;
+        var autoLogoutMS = @browserTimeout;
         var displayDialogAtRemainingTime = @whenToDisplayTimoutDialog;       // 15000 * 60
+
+        // Track the wall-clock time of the last activity instead of counting interval
+        // ticks. Background/inactive tabs get their timers throttled (and eventually
+        // frozen) by the browser, so a tick-based countdown stalls when the browser is
+        // left alone and the dialog never appears. Deriving the remaining time from
+        // Date.now() is immune to that throttling.
+        var lastActivityMS = Date.now();
+        var remainingAutoLogoutMS = autoLogoutMS;
 
 
 
@@ -79,12 +87,12 @@
             var dialogCurrentlyVisible = $('#timeoutModalId').is(':visible');
             // if timed out dialog is up, just let it be hosed for AWOL user
             if (!dialogCurrentlyVisible) {
-                remainingAutoLogoutMS = @browserTimeout;
+                lastActivityMS = Date.now();
             }
         };
 
         function timeoutExtended() {
-            remainingAutoLogoutMS = @browserTimeout;
+            lastActivityMS = Date.now();
             if ($('#timeoutModalId').is(':visible'))
                 $("#timeoutModalId").modal('hide');
             if ($('#timedoutModalId').is(':visible'))
@@ -92,19 +100,19 @@
         }
 
         function updateTimeout() {
-            if (remainingAutoLogoutMS >= 1000)
-                remainingAutoLogoutMS -= 1000;
+            // Recompute remaining time from the real clock so a throttled/frozen
+            // background timer can't stall the countdown.
+            remainingAutoLogoutMS = autoLogoutMS - (Date.now() - lastActivityMS);
+            if (remainingAutoLogoutMS < 0)
+                remainingAutoLogoutMS = 0;
             var dialogCurrentlyVisible = $('#timeoutModalId').is(':visible');
             var timedOutDialogCurrentlyVisible = $('#timedoutModalId').is(':visible');
             if ((remainingAutoLogoutMS < displayDialogAtRemainingTime) && !dialogCurrentlyVisible && !timedOutDialogCurrentlyVisible) {
                 $("#timeoutModalId").modal('show');
             }
-            var seconds = remainingAutoLogoutMS / 1000;
-            var mins = 0;
-            while (seconds > 59) {
-                seconds -= 60;
-                mins += 1;
-            }
+            var totalSeconds = Math.floor(remainingAutoLogoutMS / 1000);
+            var seconds = totalSeconds % 60;
+            var mins = Math.floor(totalSeconds / 60);
             var secondsText = "" + seconds;
             if (seconds <= 9)
                 secondsText = "0" + secondsText;
@@ -114,7 +122,7 @@
             document.getElementById('timeout-mins').innerHTML = minutesText;
             document.getElementById('timeout-secs').innerHTML = secondsText;
 
-            if (seconds == 0 && mins == 0 && !timedOutDialogCurrentlyVisible) {
+            if (remainingAutoLogoutMS <= 0 && !timedOutDialogCurrentlyVisible) {
                 $("#timeoutModalId").modal('hide');
                 $("#timedoutModalId").modal('show');
             }

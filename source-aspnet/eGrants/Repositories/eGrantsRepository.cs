@@ -35,6 +35,7 @@ namespace eGrants.Repositories
             using (var cmd = new SqlCommand("dbo.sp_web_egrants", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 60;
 
                 cmd.Parameters.AddWithValue("@str", searchString ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@grant_id", grantId);
@@ -290,6 +291,7 @@ namespace eGrants.Repositories
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    context.Database.SetCommandTimeout(60);
 
                     // Execute the OPENQUERY and return the results.
                     return await context.PersonInvolvements
@@ -415,7 +417,8 @@ namespace eGrants.Repositories
 
             await using var command = new SqlCommand(sqlQuery, connection)
             {
-                CommandType = CommandType.StoredProcedure
+                CommandType = CommandType.StoredProcedure,
+                CommandTimeout = 60
             };
 
             command.Parameters.Add("@term", SqlDbType.VarChar).Value = term;
