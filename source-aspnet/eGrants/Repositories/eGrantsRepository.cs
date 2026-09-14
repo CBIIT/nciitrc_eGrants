@@ -280,7 +280,7 @@ namespace eGrants.Repositories
                                c.email_addr, e.role_type_code, c.addr_type_code
                         FROM person_involvements_mv e
                         JOIN persons_secure d ON d.person_id = e.person_id
-                        LEFT OUTER JOIN person_addresses_mv c ON d.person_id = c.person_id
+                        LEFT OUTER JOIN person_addresses_restricted_vw c ON d.person_id = c.person_id
                             AND c.addr_type_code IN (''HOM'') AND c.preferred_addr_code = ''Y''
                         WHERE e.role_type_code IN (''PI'', ''MPI'', ''CPI'')
                             AND appl_id IN ({applsParam})
