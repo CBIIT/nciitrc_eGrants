@@ -425,7 +425,99 @@ namespace eGrants.Controllers.Egrants
         public void doc_modify(string act, string docids)
         {
             ViewBag.Status = "Done";
+
+            if (string.Equals(act, "to restore", StringComparison.OrdinalIgnoreCase))
+            {
+                var documentIds = (docids ?? string.Empty)
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                foreach (var documentId in documentIds)
+                {
+                    var fileType = ResolveOriginalFileTypeForRestore(documentId);
+
+                    if (int.TryParse(documentId, out var parsedDocumentId) && !string.IsNullOrWhiteSpace(fileType))
+                    {
+                        var normalizedFileType = fileType.Trim().TrimStart('.');
+                        _documentService.UpdateDocumentFileType(parsedDocumentId, normalizedFileType);
+                    }
+
+                    _documentService.DocModify(
+                        act,
+                        0,
+                        0,
+                        string.Empty,
+                        string.Empty,
+                        documentId,
+                        fileType,
+                        sessionInfo.Ic,
+                        sessionInfo.UserId);
+                }
+
+                return;
+            }
+
             _documentService.DocModify(act, 0, 0, string.Empty, string.Empty, docids, string.Empty, sessionInfo.Ic, sessionInfo.UserId);
+        }
+
+        private string ResolveOriginalFileTypeForRestore(string documentId)
+        {
+            if (string.IsNullOrWhiteSpace(documentId))
+            {
+                return string.Empty;
+            }
+
+            var candidateFolders = new List<string>();
+
+#if DEBUG
+            candidateFolders.Add(@"C:\PdfFileOutput\");
+#endif
+
+            var webGrantUrl = sessionInfo.WebGrantUrl;
+            if (!string.IsNullOrWhiteSpace(webGrantUrl))
+            {
+                candidateFolders.Add(@"\\" + webGrantUrl + @"\egrants\funded2\nci\main\");
+                candidateFolders.Add(@"\\" + webGrantUrl + @"\egrants\funded2\nci\main1\");
+            }
+
+            foreach (var folder in candidateFolders)
+            {
+                try
+                {
+                    if (!Directory.Exists(folder))
+                    {
+                        continue;
+                    }
+
+                    // Prefer the oldest matching file as the original document.
+                    // In debug mode both the original and replacement files may
+                    // exist in C:\PdfFileOutput with the same document id and
+                    // different extensions (e.g. 123.pdf and 123.docx).
+                    // The original is written first, so it has the older timestamp.
+                    var matchedFile = Directory
+                        .EnumerateFiles(folder, documentId + ".*")
+                        .OrderBy(path => new FileInfo(path).LastWriteTimeUtc)
+                        .FirstOrDefault();
+
+                    if (!string.IsNullOrWhiteSpace(matchedFile))
+                    {
+                        var extension = Path.GetExtension(matchedFile);
+                        return extension.TrimStart('.');
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex,
+                        "Failed while resolving original file type for restore. DocumentId={DocumentId}, Folder={Folder}",
+                        documentId,
+                        folder);
+                }
+            }
+
+            Log.Warning(
+                "Could not resolve original file type from main storage for restore. DocumentId={DocumentId}",
+                documentId);
+
+            return string.Empty;
         }
 
         // to create new doc
@@ -908,7 +1000,7 @@ namespace eGrants.Controllers.Egrants
                     var docName = $"{document_id}.pdf";
 
 #if DEBUG
-                    var fileFolder = "C:\\PdfFileOutput\\";
+                    var fileFolder = @"C:\PdfFileOutput\";
 #else
    var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) +
        "\\egrants\\funded2\\nci\\main\\";
@@ -1369,7 +1461,15 @@ namespace eGrants.Controllers.Egrants
                         //
                         // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
                         // ===================================================================================
+ #if DEBUG
+                        var fileFolder = @"C:\PdfFileOutput\";
+ #else
+#if DEBUG
+                        var fileFolder = @"C:\PdfFileOutput\";
+#else
                         var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded\\nci\\modify\\";
+#endif
+ #endif
 
                         var filePath = Path.Combine(fileFolder, docName);
 

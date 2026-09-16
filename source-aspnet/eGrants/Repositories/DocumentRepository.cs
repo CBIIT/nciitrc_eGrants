@@ -314,5 +314,21 @@ namespace eGrants.Repositories
             // If you don’t need to read results, use ExecuteNonQueryAsync
             await cmd.ExecuteNonQueryAsync();
         }
+
+        public void UpdateDocumentFileType(int documentId, string fileType)
+        {
+            using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                connection.Open();
+
+                using (SqlCommand cmd = new SqlCommand("UPDATE documents SET file_type = @file_type WHERE document_id = @document_id", connection))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add("@file_type", SqlDbType.VarChar).Value = fileType;
+                    cmd.Parameters.Add("@document_id", SqlDbType.Int).Value = documentId;
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }

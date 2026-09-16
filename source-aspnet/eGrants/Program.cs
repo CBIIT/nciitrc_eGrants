@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -421,6 +422,30 @@ if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Local"))
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+#if DEBUG
+// Local debug-only document URL mappings for viewing files from local disk.
+var localPdfOutputPath = @"C:\PdfFileOutput";
+Directory.CreateDirectory(localPdfOutputPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded2/nci/main"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded2/nci/main1"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded/nci/modify"
+});
+#endif
+
 app.UseRouting();
 
 // Cross-site diagnostics middleware for requests entering eGrants from other sites.
@@ -645,7 +670,12 @@ app.Use(async (context, next) =>
         // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
         context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
+#if DEBUG
+        var localImageServerUrl = $"{context.Request.Scheme}://{context.Request.Host}/";
+        context.Session.SetString("ImageServerUrl", localImageServerUrl);
+#else
         context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+#endif
         context.Session.SetInt32("dashboard", 0);
         context.Session.SetString("EgrantsDocNewRelativePath", builder.Configuration["AppSettings:egrantsDocNewRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsDocModifyRelativePath", builder.Configuration["AppSettings:egrantsDocModifyRelativePath"] ?? string.Empty);
