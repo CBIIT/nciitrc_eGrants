@@ -1378,133 +1378,229 @@ namespace eGrants.Controllers.Egrants
         [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public async Task<ActionResult> doc_upload_pdf_by_ddrop(IEnumerable<IFormFile> dropedfiles, int doc_id)
         {
-            var docName = string.Empty;
             string url = null;
             string mssg = null;
-            string fileExtension = string.Empty;
-            var pdfDocs = new List<PdfDocument>();
-            var converter = new EmailConcatenation.PdfConverter();
+            const string fileExtension = ".pdf";
+            var sb = new StringBuilder();
 
-            if (dropedfiles != null && dropedfiles.Any())
-                try
+            // Thread-safe collections for parallel processing
+            var tempPdfPaths = new System.Collections.Concurrent.ConcurrentBag<(string Path, int Index)>();
+            var unsupportedFilesList = new System.Collections.Concurrent.ConcurrentBag<string>();
+
+            if (dropedfiles == null || !dropedfiles.Any())
+            {
+                return this.Json(new { url, message = "Error while uploading the files." });
+            }
+
+            try
+            {
+                // Convert to list to allow indexed access for ordering
+                var filesList = dropedfiles.ToList();
+
+                // Process files in parallel with controlled concurrency to prevent
+                // overwhelming system resources (mirrors convert_to_pdf_by_ddrop).
+                var parallelOptions = new ParallelOptions
                 {
-                    var unsupportedFilesList = _egrantsCommon.GetUnsupportedFileList(dropedfiles);
+                    MaxDegreeOfParallelism = Math.Min(Environment.ProcessorCount, 4)
+                };
 
-                    foreach (var dropedfile in dropedfiles)
+                await Task.Run(() =>
+                {
+                    Parallel.ForEach(filesList.Select((file, index) => (file, index)), parallelOptions, item =>
                     {
-
-                        // get file name and file Extension
+                        var (dropedfile, fileIndex) = item;
                         var fileName = Path.GetFileName(dropedfile.FileName);
-                        fileExtension = Path.GetExtension(fileName);
+                        var ext = Path.GetExtension(fileName);
 
-                        byte[] fileData;
-                        using (var binaryReader = new BinaryReader(dropedfile.OpenReadStream()))
+                        if (dropedfile.Length <= 0)
                         {
-                            fileData = binaryReader.ReadBytes((int)dropedfile.Length);
+                            Log.Warning("Empty file skipped: {File}", fileName);
+                            return;
                         }
 
-                        PdfDocument pdfResult = null;
-
-                        if (fileExtension.Equals(".msg", StringComparison.InvariantCultureIgnoreCase))
+                        if (!IsSupportedFileType(ext))
                         {
-                            using (var memoryStream = new MemoryStream(fileData))
+                            unsupportedFilesList.Add(fileName);
+                            return;
+                        }
+
+                        try
+                        {
+                            // PdfConverter may not be thread-safe, so create per-file.
+                            var converter = new EmailConcatenation.PdfConverter();
+                            PdfDocument pdfResult = null;
+
+                            // Stream file to temp location to minimize memory usage for large files.
+                            var tempInputPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{ext}");
+
+                            try
                             {
-                                var emailFile = new Storage.Message(memoryStream);
-                                pdfResult = converter.Convert(emailFile);
+                                if (dropedfile.Length > 10 * 1024 * 1024) // 10MB threshold
+                                {
+                                    using (var fileStream = new FileStream(tempInputPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: false))
+                                    {
+                                        using var uploadStream = dropedfile.OpenReadStream();
+                                        uploadStream.CopyTo(fileStream);
+                                    }
+
+                                    if (ext.Equals(".msg", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        using var msgStream = new FileStream(tempInputPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                                        var emailFile = new Storage.Message(msgStream);
+                                        CollectUnsupportedAttachments(emailFile, unsupportedFilesList);
+                                        pdfResult = converter.Convert(emailFile);
+                                    }
+                                    else
+                                    {
+                                        var fileBytes = System.IO.File.ReadAllBytes(tempInputPath);
+                                        using var memStream = new MemoryStream(fileBytes);
+                                        pdfResult = converter.Convert(memStream, fileName);
+                                    }
+                                }
+                                else
+                                {
+                                    using var memoryStream = new MemoryStream();
+                                    using (var uploadStream = dropedfile.OpenReadStream())
+                                    {
+                                        uploadStream.CopyTo(memoryStream);
+                                    }
+                                    memoryStream.Position = 0;
+
+                                    if (ext.Equals(".msg", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        var emailFile = new Storage.Message(memoryStream);
+                                        CollectUnsupportedAttachments(emailFile, unsupportedFilesList);
+                                        pdfResult = converter.Convert(emailFile);
+                                    }
+                                    else
+                                    {
+                                        pdfResult = converter.Convert(memoryStream, fileName);
+                                    }
+                                }
+
+                                // Save PDF to temp file immediately to free memory.
+                                if (pdfResult != null)
+                                {
+                                    var tempPdfPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.pdf");
+                                    pdfResult.SaveAs(tempPdfPath);
+                                    pdfResult.Dispose();
+
+                                    tempPdfPaths.Add((tempPdfPath, fileIndex));
+                                }
+                            }
+                            finally
+                            {
+                                if (System.IO.File.Exists(tempInputPath))
+                                {
+                                    try { System.IO.File.Delete(tempInputPath); }
+                                    catch { /* Ignore cleanup errors */ }
+                                }
                             }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            using (var memoryStream = new MemoryStream(fileData))
-                            {
-                                pdfResult = converter.Convert(memoryStream, dropedfile.FileName);
-                            }
+                            Log.Warning(ex, "Failed to convert file: {FileName}", fileName);
+                            unsupportedFilesList.Add($"{fileName} (conversion failed)");
                         }
+                    });
+                });
 
-                        if (pdfResult != null)
-                        {
-                            pdfDocs.Add(pdfResult);
-                        }
-                    }
+                // Sort by original index to maintain file order.
+                var orderedPdfPaths = tempPdfPaths.OrderBy(x => x.Index).Select(x => x.Path).ToList();
 
-                    fileExtension = ".pdf";
-
-                    var sb = new StringBuilder();
-                    if (pdfDocs.Any())
-                    {
-
-                        // get document id and create new document name       
-                        docName = Convert.ToString(doc_id) + fileExtension;
-
-                        // update url for document - marks the document as being modified/replaced
-                        _documentService.DocModify(
-                                       "to_upload",
-                                 0,
-                          0,
-                           string.Empty,
-                              string.Empty,
-                               Convert.ToString(doc_id),
-                                  fileExtension,
-                      sessionInfo.Ic,
-                             sessionInfo.UserId);
-
-                        // ===================================================================================
-                        // IMPORTANT: Use the MODIFY path for replacement documents
-                        // ===================================================================================
-                        // INCORRECT (was causing 404 errors):
-                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded2\\nci\\main\\";
-                        //   this.ViewBag.FileUrl = ... + EgrantsDocNewRelativePath + docName;
-                        //
-                        // CORRECT (matches legacy egrants_new behavior):
-                        //   var fileFolder = @"\\" + ... + "\\egrants\\funded\\nci\\modify\\";
-                        //   this.ViewBag.FileUrl = ... + EgrantsDocModifyRelativePath + docName;
-                        //
-                        // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
-                        // ===================================================================================
- #if DEBUG
-                        var fileFolder = @"C:\PdfFileOutput\";
- #else
-#if DEBUG
-                        var fileFolder = @"C:\PdfFileOutput\";
-#else
-                        var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded\\nci\\modify\\";
-#endif
- #endif
-
-                        var filePath = Path.Combine(fileFolder, docName);
-
-                        var pdfDoc = PdfDocument.Merge(pdfDocs);
-                        pdfDoc.SaveAs(filePath);
-
-                        // Create review URL using the MODIFY relative path
-                        this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + Convert.ToString(HttpContext.Session.GetString("EgrantsDocModifyRelativePath"))
-                    + Convert.ToString(docName);
-                        sb.Append("Done! New document has been created**#7|n3br3@k#**");
-                    }
-                    else
-                    {
-                        sb.Append("No documents were found to convert**#7|n3br3@k#**");
-                    }
-
-                    if (unsupportedFilesList.Count > 0)
-                    {
-                        sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
-                        foreach (var unsupportedFile in unsupportedFilesList)
-                        {
-                            sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
-                        }
-                    }
-
-                    url = this.ViewBag.FileUrl;
-                    mssg = sb.ToString();
-
-                }
-                catch (Exception ex)
+                if (orderedPdfPaths.Any())
                 {
-                    this.ViewBag.Message = "ERROR: The file could not be converted!";
+                    // get document id and create new document name
+                    var docName = Convert.ToString(doc_id) + fileExtension;
+
+                    // update url for document - marks the document as being modified/replaced
+                    _documentService.DocModify(
+                        "to_upload",
+                        0,
+                        0,
+                        string.Empty,
+                        string.Empty,
+                        Convert.ToString(doc_id),
+                        fileExtension,
+                        sessionInfo.Ic,
+                        sessionInfo.UserId);
+
+                    // ===================================================================================
+                    // IMPORTANT: Use the MODIFY path for replacement documents
+                    // ===================================================================================
+                    // The "main" path is for NEW documents, the "modify" path is for REPLACEMENTS.
+                    // ===================================================================================
+#if DEBUG
+                    var fileFolder = @"C:\PdfFileOutput\";
+#else
+                    var fileFolder = @"\\" + Convert.ToString(HttpContext.Session.GetString("WebGrantUrl")) + "\\egrants\\funded\\nci\\modify\\";
+#endif
+
+                    var filePath = Path.Combine(fileFolder, docName);
+
+                    Log.Information("Merging PDFs for replace. DocId={DocId}, Count={Count}",
+                        doc_id, orderedPdfPaths.Count);
+
+                    // Merge PDFs from files (memory efficient).
+                    var pdfDocs = orderedPdfPaths
+                        .Select(path => PdfDocument.FromFile(path))
+                        .ToList();
+
+                    var mergedPdf = PdfDocument.Merge(pdfDocs);
+                    mergedPdf.SaveAs(filePath);
+
+                    // Cleanup merged objects.
+                    mergedPdf.Dispose();
+                    foreach (var doc in pdfDocs)
+                    {
+                        doc.Dispose();
+                    }
+
+                    // Create review URL using the MODIFY relative path.
+                    this.ViewBag.FileUrl = sessionInfo.ImageServerUrl
+                        + Convert.ToString(HttpContext.Session.GetString("EgrantsDocModifyRelativePath"))
+                        + Convert.ToString(docName);
+                    sb.Append("Done! New document has been created**#7|n3br3@k#**");
                 }
-            else
-                this.ViewBag.Message = "Error while uploading the files.";
+                else
+                {
+                    sb.Append("No documents were found to convert**#7|n3br3@k#**");
+                }
+
+                var unsupportedList = unsupportedFilesList.ToList();
+                if (unsupportedList.Count > 0)
+                {
+                    sb.AppendLine("IMPORTANT! The following email attachments were not converted, please add them separately: **#h3@d3r#****#7|n3br3@k#**");
+                    foreach (var unsupportedFile in unsupportedList)
+                    {
+                        sb.AppendLine($"{unsupportedFile.Truncate(50)}**#7|n3br3@k#**");
+                    }
+                }
+
+                url = this.ViewBag.FileUrl;
+                mssg = sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "doc_upload_pdf_by_ddrop failed. DocId={DocId}", doc_id);
+                mssg = "ERROR: The file could not be converted!";
+            }
+            finally
+            {
+                // Clean up all temp PDF files.
+                foreach (var (path, _) in tempPdfPaths)
+                {
+                    try
+                    {
+                        if (System.IO.File.Exists(path))
+                            System.IO.File.Delete(path);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        Log.Warning(cleanupEx, "Failed to delete temp file: {Path}", path);
+                    }
+                }
+            }
 
             return this.Json(new { url, message = mssg });
         }
