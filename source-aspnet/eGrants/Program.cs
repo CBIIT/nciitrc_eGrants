@@ -277,99 +277,26 @@ builder.Services.Configure<OpenIdConnectOptions>(
     OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
         options.ResponseType = OpenIdConnectResponseType.Code;
-        options.UsePkce = true;
-        // Nonce/correlation cookies are used during the cross-site handshake
-        // (login.microsoftonline.com -> /signin-oidc form_post) and must remain
-        // SameSite=None; Secure so they are sent on that cross-site callback.
-        options.NonceCookie.SameSite = SameSiteMode.None;
-        options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.CorrelationCookie.SameSite = SameSiteMode.None;
-        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
-        // OIDC diagnostics for cross-site SSO issues. These handlers capture
-        // protocol inputs and auth failures with request context for tracing.
-        options.Events ??= new OpenIdConnectEvents();
+        // Force an interactive login prompt on EVERY authentication redirect
+        // (including after the browser is closed and reopened). Without this,
+        // Entra performs a silent SSO re-login using the still-valid Microsoft
+        // session cookie and the user is never challenged. Setting prompt=login
+        // instructs Entra to ignore the existing SSO session and re-prompt for
+        // credentials.
+        options.Prompt = "login";
+    });
 
-        // Persist the resulting application auth cookie so it survives browser
-        // restarts and is reliably present on later top-level re-entry.
-        options.Events.OnTicketReceived = context =>
-        {
-            context.Properties ??= new Microsoft.AspNetCore.Authentication.AuthenticationProperties();
-            context.Properties.IsPersistent = true;
-            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
-            return Task.CompletedTask;
-        };
-
-        // Logs inbound prompt/max_age flags that can force re-authentication.
-        options.Events.OnMessageReceived = context =>
-        {
-            var prompt = context.ProtocolMessage?.Prompt;
-            var maxAge = context.ProtocolMessage?.MaxAge;
-
-            if (!string.IsNullOrEmpty(prompt) || !string.IsNullOrEmpty(maxAge))
-            {
-                Log.Warning(
-                    "OIDC message includes prompt/max_age. Path={Path}, Prompt={Prompt}, MaxAge={MaxAge}, TraceId={TraceId}",
-                    context.HttpContext.Request.Path,
-                    prompt,
-                    maxAge,
-                    context.HttpContext.TraceIdentifier);
-            }
-
-            return Task.CompletedTask;
-        };
-
-        options.Events.OnRedirectToIdentityProvider = context =>
-        {
-            var request = context.HttpContext.Request;
-            var hasAuthCookie = request.Cookies.Keys.Any(k =>
-                k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
-
-            Log.Warning(
-                "OIDC challenge initiated. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, IsAuthenticated={IsAuthenticated}, HasAuthCookie={HasAuthCookie}, RedirectUri={RedirectUri}, TraceId={TraceId}",
-                request.Path,
-                request.QueryString.Value,
-                request.Host.Value,
-                request.Headers.Referer.ToString(),
-                context.HttpContext.User?.Identity?.IsAuthenticated == true,
-                hasAuthCookie,
-                context.ProtocolMessage?.RedirectUri,
-                context.HttpContext.TraceIdentifier);
-
-            return Task.CompletedTask;
-        };
-
-        // Logs Entra/OIDC remote failures (for example, correlation/nonce/callback issues).
-        options.Events.OnRemoteFailure = context =>
-        {
-            var request = context.HttpContext.Request;
-            Log.Error(
-                context.Failure,
-                "OIDC remote failure. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, TraceId={TraceId}",
-                request.Path,
-                request.QueryString.Value,
-                request.Host.Value,
-                request.Headers.Referer.ToString(),
-                context.HttpContext.TraceIdentifier);
-
-            return Task.CompletedTask;
-        };
-
-        // Logs local authentication processing failures before sign-in completes.
-        options.Events.OnAuthenticationFailed = context =>
-        {
-            var request = context.HttpContext.Request;
-            Log.Error(
-                context.Exception,
-                "OIDC authentication failed. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, TraceId={TraceId}",
-                request.Path,
-                request.QueryString.Value,
-                request.Host.Value,
-                request.Headers.Referer.ToString(),
-                context.HttpContext.TraceIdentifier);
-
-            return Task.CompletedTask;
-        };
+// Make the application authentication cookie a non-persistent (session) cookie so
+// it is discarded when the browser is closed. Combined with prompt=login above,
+// reopening the browser then triggers a fresh interactive login rather than a
+// silent SSO restore.
+builder.Services.Configure<CookieAuthenticationOptions>(
+    CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.Cookie.MaxAge = null;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(2);
+        options.SlidingExpiration = false;
     });
 
 builder.Services.AddAuthorization(options =>
