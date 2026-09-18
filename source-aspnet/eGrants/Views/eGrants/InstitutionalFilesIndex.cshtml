@@ -37,10 +37,25 @@
          alert("Please insert institution name to search");
          document.getElementById("txtStr").focus();
          return false;
-      } else var search_str = document.getElementById("txtStr").value;
+      }
 
-      var url = "@Url.Action("Search_Orgs", "InstitutionalFiles")?str=" + search_str;
-      window.document.location.href = url;
+      // Submit the search keyword via POST so the value (which may contain
+      // apostrophes or other special characters) travels in the request body
+      // rather than the query string, where an upstream WAF blocks it (403).
+      var search_str = document.getElementById("txtStr").value;
+
+      var form = document.createElement("form");
+      form.method = "POST";
+      form.action = "@Url.Action("Search_Orgs", "InstitutionalFiles")";
+
+      var input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "str";
+      input.value = search_str;
+      form.appendChild(input);
+
+      document.body.appendChild(form);
+      form.submit();
    }
 
    function show_orgs(index_id) {
@@ -48,8 +63,11 @@
       window.document.location.href = url;
    }
 
-   function show_docs(org_id, org_name) {
-      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + org_name;
+   function show_docs(org_id) {
+      // Navigate by org_id only. org_name is intentionally omitted so that
+      // institution names containing apostrophes/special characters are not
+      // placed in the query string (which an upstream WAF blocks with a 403).
+      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id;
       window.document.location.href = url;
    }
 
@@ -64,10 +82,12 @@
       window.document.location.href = url;
    }
 
-   function refresh_after_upload(org_id, org_name) {
+   function refresh_after_upload(org_id) {
       // Add cache-busting timestamp parameter to prevent browser caching issues (especially in Firefox)
+      // Navigate by org_id only so institution names with apostrophes/special
+      // characters are not placed in the query string (blocked by WAF with 403).
       var timestamp = new Date().getTime();
-      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&org_name=" + encodeURIComponent(org_name) + "&_=" + timestamp;
+      var url = "@Url.Action("Show_Docs", "InstitutionalFiles")?org_id=" + org_id + "&_=" + timestamp;
       window.document.location.href = url;
    }
 

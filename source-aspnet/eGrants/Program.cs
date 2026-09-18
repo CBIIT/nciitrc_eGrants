@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -62,6 +63,21 @@ if (!string.IsNullOrEmpty(configuredClientSecret))
 {
     builder.Configuration["AzureAd:ClientSecret"] =
         configuredClientSecret.Replace("{eGrants_AzureAd_ClientSecret}", azureAdClientSecret);
+}
+#endregion
+
+#region Setting up the eRA client certificate password
+
+// Pull the client certificate (.pfx) password from an environment variable and replace
+// the "{CERT_PASSWORD}" placeholder configured in appsettings, mirroring the
+// DB_USER / DB_PASSWORD and client secret patterns above.
+var certPassword = builder.Configuration["CERT_PASSWORD"];
+var configuredCertPass = builder.Configuration["AppSettings:certPass"];
+
+if (!string.IsNullOrEmpty(configuredCertPass))
+{
+    builder.Configuration["AppSettings:certPass"] =
+        configuredCertPass.Replace("{CERT_PASSWORD}", certPassword ?? string.Empty);
 }
 #endregion
 
@@ -169,11 +185,88 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 // Microsoft Entra ID (OIDC) Authentication
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
+builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.Cookie.HttpOnly = true;
+    // The eGrants application session cookie is first-party (top-level navigation
+    // to its own host). Use Lax so it is reliably sent when users re-enter eGrants
+    // from an external referrer (for example authdev.nih.gov). SameSite=None can be
+    // treated as third-party and dropped by modern browsers on top-level re-entry.
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // Persist the auth cookie across browser restarts. ExpireTimeSpan controls the
+    // ticket lifetime, but the browser only keeps the cookie past close-out when the
+    // cookie itself carries a Max-Age/Expires attribute, which Cookie.MaxAge sets.
+    options.Cookie.MaxAge = TimeSpan.FromDays(14);
+    options.SlidingExpiration = true;
+    options.ExpireTimeSpan = TimeSpan.FromDays(14);
+
+    // Cookie auth diagnostics to determine why a request is redirected to login
+    // even when users report that cookies are present in their browser.
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnSigningIn = context =>
+        {
+            // Authoritative place to force a PERSISTENT cookie. This runs for the
+            // actual cookie being written and is not overridden by Microsoft.Identity.Web's
+            // OIDC wiring. Without this the cookie is issued as a session cookie (no
+            // Expires/Max-Age) and is deleted when the browser is closed, forcing re-login.
+            context.Properties.IsPersistent = true;
+            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
+
+            Log.Information(
+                "Cookie signing in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.Name,
+                context.Properties?.IsPersistent,
+                context.Properties?.ExpiresUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnSignedIn = context =>
+        {
+            Log.Information(
+                "Cookie signed in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.Name,
+                context.Properties?.IsPersistent,
+                context.Properties?.ExpiresUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnValidatePrincipal = context =>
+        {
+            Log.Information(
+                "Cookie validate principal. IsAuthenticated={IsAuthenticated}, Name={Name}, ExpiresUtc={ExpiresUtc}, IssuedUtc={IssuedUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.IsAuthenticated == true,
+                context.Principal?.Identity?.Name,
+                context.Properties?.ExpiresUtc,
+                context.Properties?.IssuedUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnRedirectToLogin = context =>
+        {
+            Log.Warning(
+                "Cookie redirect to login. Path={Path}, RedirectUri={RedirectUri}, TraceId={TraceId}",
+                context.Request.Path,
+                context.RedirectUri,
+                context.HttpContext.TraceIdentifier);
+
+            context.Response.Redirect(context.RedirectUri);
+            return Task.CompletedTask;
+        }
+    };
+});
 
 // Use the authorization code flow (back-channel token exchange) rather than the
 // hybrid/implicit flow. This avoids AADSTS700054 ("response_type 'id_token' is not
@@ -232,6 +325,51 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 var app = builder.Build();
 
+#region IronPdf Initialization & Warm-up
+
+// ====================================================================================
+// IRONPDF STARTUP INITIALIZATION & WARM-UP
+// ====================================================================================
+// WHY: IronPdf uses an embedded Chrome rendering engine. The FIRST render in a process
+// pays a large one-time cost (engine/Chromium initialization). Previously the license
+// and Installation settings were applied lazily inside every conversion call, so this
+// cold-start cost was paid by the first user action (e.g. "Replace document"), which
+// could take minutes in the development environment.
+//
+// By configuring IronPdf once here and performing a tiny warm-up render at startup, the
+// Chrome engine is initialized before any user request, removing that delay from the
+// first document conversion/replace.
+// ====================================================================================
+try
+{
+    IronPdf.License.LicenseKey =
+        "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
+
+    // Disable local disk access or cross-origin requests during rendering.
+    IronPdf.Installation.EnableWebSecurity = true;
+
+    // Keep IronPdf's Chrome/engine temp files on a fast local disk. A slow or network
+    // temp location makes every cold start dramatically slower.
+    var ironPdfTempPath = Path.Combine(AppContext.BaseDirectory, "ironpdf_temp");
+    Directory.CreateDirectory(ironPdfTempPath);
+    IronPdf.Installation.TempFolderPath = ironPdfTempPath;
+
+    // Warm up the Chrome rendering engine with a minimal render so the first real
+    // conversion doesn't pay the initialization cost.
+    var warmupRenderer = new IronPdf.ChromePdfRenderer();
+    using var warmupPdf = warmupRenderer.RenderHtmlAsPdf("<p>warmup</p>");
+
+    Log.Information("IronPdf initialized and warmed up. TempFolderPath={TempPath}", ironPdfTempPath);
+}
+catch (Exception ex)
+{
+    // A warm-up failure should never prevent the application from starting; conversions
+    // will still fall back to lazy initialization on first use.
+    Log.Warning(ex, "IronPdf warm-up failed during startup; conversions will initialize lazily.");
+}
+
+#endregion
+
 #region Middleware Pipeline
 
 // Global exception handling middleware
@@ -256,11 +394,151 @@ if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Local"))
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+#if DEBUG
+// Local debug-only document URL mappings for viewing files from local disk.
+var localPdfOutputPath = @"C:\PdfFileOutput";
+Directory.CreateDirectory(localPdfOutputPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded2/nci/main"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded2/nci/main1"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded/nci/modify"
+});
+#endif
+
 app.UseRouting();
+
+// Cross-site diagnostics middleware for requests entering eGrants from other sites.
+// Logs key headers/cookie presence and flags unsuccessful outcomes for correlation.
+app.Use(async (context, next) =>
+{
+    var request = context.Request;
+    var referer = request.Headers.Referer.ToString();
+    var origin = request.Headers.Origin.ToString();
+    var forwardedProto = request.Headers["X-Forwarded-Proto"].ToString();
+    var forwardedHost = request.Headers["X-Forwarded-Host"].ToString();
+    var forwardedFor = request.Headers["X-Forwarded-For"].ToString();
+    var hasAuthCookie = request.Cookies.Keys.Any(k => k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
+    var hasNonceCookie = request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.OpenIdConnect.Nonce", StringComparison.OrdinalIgnoreCase));
+    var hasCorrelationCookie = request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.Correlation.", StringComparison.OrdinalIgnoreCase));
+
+    // Treat request as cross-site when referer host differs from current host.
+    var isCrossSite = !string.IsNullOrWhiteSpace(referer) &&
+                      Uri.TryCreate(referer, UriKind.Absolute, out var refererUri) &&
+                      !string.Equals(refererUri.Host, request.Host.Host, StringComparison.OrdinalIgnoreCase);
+
+    if (isCrossSite)
+    {
+        Log.Information(
+            "Cross-site inbound request. Method={Method}, Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, Origin={Origin}, XForwardedProto={XForwardedProto}, XForwardedHost={XForwardedHost}, XForwardedFor={XForwardedFor}, UserAgent={UserAgent}, RemoteIp={RemoteIp}, IsAuthenticated={IsAuthenticated}, HasAuthCookie={HasAuthCookie}, HasNonceCookie={HasNonceCookie}, HasCorrelationCookie={HasCorrelationCookie}, TraceId={TraceId}",
+            request.Method,
+            request.Path,
+            request.QueryString.Value,
+            request.Host.Value,
+            referer,
+            origin,
+            forwardedProto,
+            forwardedHost,
+            forwardedFor,
+            request.Headers.UserAgent.ToString(),
+            context.Connection.RemoteIpAddress?.ToString(),
+            context.User?.Identity?.IsAuthenticated == true,
+            hasAuthCookie,
+            hasNonceCookie,
+            hasCorrelationCookie,
+            context.TraceIdentifier);
+    }
+
+    var isAuthEndpoint = request.Path.StartsWithSegments("/MicrosoftIdentity") ||
+                         request.Path.StartsWithSegments("/signin-oidc") ||
+                         request.Path.StartsWithSegments("/signout-callback-oidc");
+
+    if (!isCrossSite &&
+        !isAuthEndpoint &&
+        HttpMethods.IsGet(request.Method) &&
+        !hasAuthCookie &&
+        context.User?.Identity?.IsAuthenticated != true)
+    {
+        Log.Warning(
+            "Direct inbound request has no auth cookie and user is unauthenticated. Path={Path}, Query={Query}, Host={Host}, XForwardedProto={XForwardedProto}, XForwardedHost={XForwardedHost}, XForwardedFor={XForwardedFor}, UserAgent={UserAgent}, TraceId={TraceId}",
+            request.Path,
+            request.QueryString.Value,
+            request.Host.Value,
+            forwardedProto,
+            forwardedHost,
+            forwardedFor,
+            request.Headers.UserAgent.ToString(),
+            context.TraceIdentifier);
+    }
+
+    await next.Invoke();
+
+    // Log failures for all requests, plus redirects/errors for cross-site traffic.
+    if (context.Response.StatusCode >= 400 || (isCrossSite && context.Response.StatusCode >= 300))
+    {
+        Log.Warning(
+            "Inbound request completed with notable status. Method={Method}, Path={Path}, Query={Query}, StatusCode={StatusCode}, Host={Host}, Referer={Referer}, Origin={Origin}, IsAuthenticated={IsAuthenticated}, TraceId={TraceId}",
+            request.Method,
+            request.Path,
+            request.QueryString.Value,
+            context.Response.StatusCode,
+            request.Host.Value,
+            referer,
+            origin,
+            context.User?.Identity?.IsAuthenticated == true,
+            context.TraceIdentifier);
+    }
+});
 
 app.UseSession(); // Enable session middleware
 
 app.UseAuthentication();
+
+// Post-auth diagnostics: logs the effective principal state after cookie processing.
+// This helps distinguish between "cookie exists" and "cookie produced an authenticated user".
+app.Use(async (context, next) =>
+{
+    var request = context.Request;
+    var referer = request.Headers.Referer.ToString();
+    var hasAuthCookie = request.Cookies.Keys.Any(k =>
+        k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
+
+    Log.Information(
+        "Post-auth state. Method={Method}, Path={Path}, Host={Host}, Referer={Referer}, IsAuthenticated={IsAuthenticated}, AuthType={AuthType}, Name={Name}, HasAuthCookie={HasAuthCookie}, TraceId={TraceId}",
+        request.Method,
+        request.Path,
+        request.Host.Value,
+        referer,
+        context.User?.Identity?.IsAuthenticated == true,
+        context.User?.Identity?.AuthenticationType,
+        context.User?.Identity?.Name,
+        hasAuthCookie,
+        context.TraceIdentifier);
+
+    if (hasAuthCookie && context.User?.Identity?.IsAuthenticated != true)
+    {
+        Log.Warning(
+            "Auth cookie is present but request is still unauthenticated after cookie auth. Path={Path}, Host={Host}, TraceId={TraceId}",
+            request.Path,
+            request.Host.Value,
+            context.TraceIdentifier);
+    }
+
+    await next.Invoke();
+});
+
 app.UseAuthorization();
 
 // Middleware to initialize and validate the user session from Entra ID claims.
@@ -364,7 +642,12 @@ app.Use(async (context, next) =>
         // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
         context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
+#if DEBUG
+        var localImageServerUrl = $"{context.Request.Scheme}://{context.Request.Host}/";
+        context.Session.SetString("ImageServerUrl", localImageServerUrl);
+#else
         context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+#endif
         context.Session.SetInt32("dashboard", 0);
         context.Session.SetString("EgrantsDocNewRelativePath", builder.Configuration["AppSettings:egrantsDocNewRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsDocModifyRelativePath", builder.Configuration["AppSettings:egrantsDocModifyRelativePath"] ?? string.Empty);
@@ -409,3 +692,9 @@ app.MapControllerRoute("Integration", "{controller=Integration}/{action=Trigger}
 #endregion
 
 app.Run();
+
+// Exposes the top-level-statements Program class as public so the integration
+// test project (eGrants.Tests) can reference it via WebApplicationFactory<Program>.
+public partial class Program
+{
+}

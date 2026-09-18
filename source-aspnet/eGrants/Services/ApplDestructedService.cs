@@ -142,15 +142,15 @@ namespace eGrants.Services
                 {
                     var cmd = new SqlCommand("sp_web_admin_appl_destructed", conn);
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act;
+                    cmd.Parameters.Add("@act", SqlDbType.VarChar).Value = act ?? "";
                     cmd.Parameters.Add("@year", SqlDbType.Int).Value = year;
-                    cmd.Parameters.Add("@status_code", SqlDbType.VarChar).Value = status_code;
-                    cmd.Parameters.Add("@exception_code", SqlDbType.VarChar).Value = exception_code;
-                    cmd.Parameters.Add("@str", SqlDbType.VarChar).Value = str;
-                    cmd.Parameters.Add("@id_string", SqlDbType.VarChar).Value = id_string;
-                    cmd.Parameters.Add("@exception_type", SqlDbType.VarChar).Value = exception_type;
-                    cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic;
-                    cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid;
+                    cmd.Parameters.Add("@status_code", SqlDbType.VarChar).Value = status_code ?? "";
+                    cmd.Parameters.Add("@exception_code", SqlDbType.VarChar).Value = exception_code ?? "";
+                    cmd.Parameters.Add("@str", SqlDbType.VarChar).Value = str ?? "";
+                    cmd.Parameters.Add("@id_string", SqlDbType.VarChar).Value = id_string ?? "";
+                    cmd.Parameters.Add("@exception_type", SqlDbType.VarChar).Value = exception_type ?? "";
+                    cmd.Parameters.Add("@ic", SqlDbType.VarChar).Value = ic ?? "";
+                    cmd.Parameters.Add("@operator", SqlDbType.VarChar).Value = userid ?? "";
                     conn.Open();
 
                     var Appls = new List<DestructedsAppls>();
@@ -193,9 +193,9 @@ namespace eGrants.Services
                     var cmd = new SqlCommand("sp_web_admin_appl_destructed_index", conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add("@year", SqlDbType.Int).Value = year;
-                    cmd.Parameters.Add("@status_code", SqlDbType.VarChar).Value = status_code;
-                    cmd.Parameters.Add("@exception_code", SqlDbType.VarChar).Value = exception_code;
-                    cmd.Parameters.Add("@str", SqlDbType.VarChar).Value = str;
+                    cmd.Parameters.Add("@status_code", SqlDbType.VarChar).Value = status_code ?? "";
+                    cmd.Parameters.Add("@exception_code", SqlDbType.VarChar).Value = exception_code ?? "";
+                    cmd.Parameters.Add("@str", SqlDbType.VarChar).Value = str ?? "";
 
                     conn.Open();
 
@@ -250,7 +250,7 @@ namespace eGrants.Services
 
                     cmd.CommandType = CommandType.Text;
                     cmd.Parameters.Add("@year", SqlDbType.Int).Value = year;
-                    cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid;
+                    cmd.Parameters.Add("@userid", SqlDbType.VarChar).Value = userid ?? "";
                     conn.Open();
                     var Processable = (string)cmd.ExecuteScalar();
                     conn.Close();
