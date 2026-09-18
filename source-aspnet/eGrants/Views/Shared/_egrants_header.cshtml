@@ -129,13 +129,13 @@
             }
         }
 
-        // Perform a FULL sign-out after an inactivity timeout. This hits the
-        // Microsoft.Identity.Web sign-out endpoint, which clears the local
-        // application auth cookie (server-side, so the HttpOnly cookie is handled)
-        // and then redirects to the Entra ID end-session endpoint to clear the
-        // Microsoft SSO session cookie. The next request forces a fresh login.
+        // Perform an APP-ONLY sign-out after an inactivity timeout. This clears
+        // the local application auth cookie and server-side session, but does NOT
+        // perform a federated (Entra ID) sign-out, so the shared Microsoft SSO
+        // session and other apps are left intact. The user is redirected home,
+        // where Entra may silently re-authenticate them via SSO.
         function forceFullSignOut() {
-            window.location.href = "/MicrosoftIdentity/Account/SignOut";
+            window.location.href = "/Account/SignOutLocal";
         }
 
         function toggleleftpanel() {
