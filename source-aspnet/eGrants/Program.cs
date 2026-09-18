@@ -5,6 +5,7 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
@@ -183,6 +184,26 @@ builder.Services.Configure<OpenIdConnectOptions>(
     OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
         options.ResponseType = OpenIdConnectResponseType.Code;
+
+        // Force an interactive login prompt on EVERY authentication redirect
+        // (including after the browser is closed and reopened). Without this,
+        // Entra performs a silent SSO re-login using the still-valid Microsoft
+        // session cookie and the user is never challenged. Setting prompt=login
+        // instructs Entra to ignore the existing SSO session and re-prompt for
+        // credentials.
+        options.Prompt = "login";
+    });
+
+// Make the application authentication cookie a non-persistent (session) cookie so
+// it is discarded when the browser is closed. Combined with prompt=login above,
+// reopening the browser then triggers a fresh interactive login rather than a
+// silent SSO restore.
+builder.Services.Configure<CookieAuthenticationOptions>(
+    CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.Cookie.MaxAge = null;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(2);
+        options.SlidingExpiration = false;
     });
 
 builder.Services.AddAuthorization(options =>

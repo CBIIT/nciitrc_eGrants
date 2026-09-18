@@ -2,7 +2,9 @@ namespace eGrants.Controllers
 {
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.Cookies;
+    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Identity.Web;
 
     public class AccountController : Controller
     {
@@ -18,6 +20,28 @@ namespace eGrants.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             return Redirect("/");
+        }
+
+        // Forced re-authentication after an inactivity timeout.
+        //
+        // Clears the local application cookie/session, then challenges Entra ID
+        // with prompt=login. Unlike a plain sign-out (which allows a silent SSO
+        // re-login), prompt=login instructs Entra to interactively re-prompt the
+        // user for credentials, and any Conditional Access / MFA policies are
+        // re-evaluated. This guarantees eGrants requires fresh authentication.
+        [Route("Account/ReAuthenticate")]
+        public async Task<IActionResult> ReAuthenticate()
+        {
+            HttpContext.Session.Clear();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var properties = new OpenIdConnectChallengeProperties
+            {
+                RedirectUri = "/",
+                Prompt = "login"
+            };
+
+            return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
         }
     }
 }
