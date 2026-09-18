@@ -1,9 +1,10 @@
-﻿using eGrant.Controllers;
+using eGrant.Controllers;
 
 using eGrants.Common.Enums;
 using eGrants.Controllers;
 using eGrants.DAL;
 using eGrants.DTOs;
+using eGrants.Models;
 using eGrants.Repositories;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
@@ -21,13 +22,12 @@ namespace eGrants.Tests.Integration
 {
     public class InstitutionalFilesControllerTests
     {
-        private const string DevConnectionString = @"Data Source=NCIDB-D387-V.nci.nih.gov\\MSSQLEGRANTSQ,52000;Persist Security Info=True;Initial Catalog=EIM;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=45";
 
         // Creates a DbContext using the dev connection string
         private AppDbContext CreateDevDbContext()
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseSqlServer(DevConnectionString)
+                .UseSqlServer(TestDatabase.ConnectionString)
                 .Options;
 
             return new AppDbContext(options);
@@ -59,7 +59,7 @@ namespace eGrants.Tests.Integration
             return controller;
         }
 
-        [Fact(Skip = "Requires seeded dev database (specific org/document rows). Enable when a controlled test database with known data is available.")]
+        [DbFact]
         public async Task Show_Docs_WithValidOrgId_ReturnsCorrectViewAndModel()
         {
             // Arrange
@@ -77,7 +77,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(result);
             Assert.Equal("~/Views/eGrants/InstitutionalFilesIndex.cshtml", result.ViewName);
 
-            var model = result.Model as InstitutionalFilesPageViewModel;
+            var model = result.Model as InstitutionalFilesPage;
             Assert.NotNull(model);
             Assert.Equal(InstitutionalFilesPageAction.ShowDocs, model.Action);
             Assert.NotNull(model.SelectedInstitutionalOrg);
@@ -86,7 +86,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model.DocFiles);
         }
 
-        [Fact(Skip = "Requires seeded dev database (specific org/document rows). Enable when a controlled test database with known data is available.")]
+        [DbFact]
         public async Task Show_Docs_WithValidOrgIdAndName_ReturnsExpectedViewAndModel()
         {
             // Arrange
@@ -102,7 +102,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(result);
             Assert.Equal("~/Views/eGrants/InstitutionalFilesIndex.cshtml", result.ViewName);
 
-            var model = Assert.IsType<InstitutionalFilesPageViewModel>(result.Model);
+            var model = Assert.IsType<InstitutionalFilesPage>(result.Model);
             Assert.Equal(InstitutionalFilesPageAction.ShowDocs, model.Action);
             Assert.NotNull(model.SelectedInstitutionalOrg);
             Assert.Equal(orgId, model.SelectedInstitutionalOrg.OrgId);
@@ -110,7 +110,7 @@ namespace eGrants.Tests.Integration
             Assert.NotNull(model.DocFiles);
         }
 
-        [Fact(Skip = "Requires seeded dev database (specific org/document rows). Enable when a controlled test database with known data is available.")]
+        [DbFact]
         public async Task Show_Docs_WithOrgHavingNoDocs_ReturnsEmptyDocList()
         {
             // Arrange
@@ -123,12 +123,12 @@ namespace eGrants.Tests.Integration
             var result = await controller.Show_Docs(orgId, orgName) as ViewResult;
 
             // Assert
-            var model = Assert.IsType<InstitutionalFilesPageViewModel>(result.Model);
+            var model = Assert.IsType<InstitutionalFilesPage>(result.Model);
             Assert.NotNull(model.DocFiles);
             Assert.Empty(model.DocFiles);
         }
 
-        [Fact(Skip = "Requires seeded dev database (specific org/document rows). Enable when a controlled test database with known data is available.")]
+        [DbFact]
         public async Task Show_Docs_WithMissingCharacterIndices_ReturnsEmptyIndices()
         {
             // Arrange
@@ -141,12 +141,12 @@ namespace eGrants.Tests.Integration
             var result = await controller.Show_Docs(orgId, orgName) as ViewResult;
 
             // Assert
-            var model = Assert.IsType<InstitutionalFilesPageViewModel>(result.Model);
+            var model = Assert.IsType<InstitutionalFilesPage>(result.Model);
             Assert.NotNull(model.CharacterIndices);
             Assert.False(model.CharacterIndices.Count == 0 || model.CharacterIndices.All(i => i == null));
         }
 
-        [Fact]
+        [DbFact]
         public async Task Show_Docs_ReturnsExpectedViewPath()
         {
             // Arrange
@@ -161,6 +161,90 @@ namespace eGrants.Tests.Integration
             // Assert
             Assert.NotNull(result);
             Assert.Equal("~/Views/eGrants/InstitutionalFilesIndex.cshtml", result.ViewName);
+        }
+
+        // Builds the controller with a mocked service and seeded session; no database needed.
+        private static InstitutionalFilesController CreateControllerWithMockedService(
+            IInstitutionalFilesService service, string ic = "NCI", string userId = "testuser")
+        {
+            var session = new TestSession();
+            session.Set("ic", System.Text.Encoding.UTF8.GetBytes(ic));
+            session.Set("userid", System.Text.Encoding.UTF8.GetBytes(userId));
+
+            var controller = new InstitutionalFilesController(service, new SessionInfoService());
+            var httpContext = new DefaultHttpContext { Session = session };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            return controller;
+        }
+
+        [Fact]
+        public async Task Update_Doc_WithValidCategory_CallsServiceWithProvidedValues()
+        {
+            var service = new Mock<IInstitutionalFilesService>();
+            service
+                .Setup(s => s.UpdateDocument(
+                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync("done");
+
+            var controller = CreateControllerWithMockedService(service.Object);
+
+            await controller.Update_Doc(
+                category_id: 5,
+                start_date: "2024-01-01",
+                end_date: "2024-12-31",
+                comments: "some notes",
+                doc_id: 10);
+
+            service.Verify(s => s.UpdateDocument(
+                10, 5, "2024-01-01", "2024-12-31", "NCI", "testuser", "some notes"), Times.Once);
+        }
+
+        [Fact]
+        public async Task Update_Doc_WithNullOptionalStrings_PassesEmptyStringsToService()
+        {
+            var service = new Mock<IInstitutionalFilesService>();
+            service
+                .Setup(s => s.UpdateDocument(
+                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync("done");
+
+            var controller = CreateControllerWithMockedService(service.Object);
+
+            await controller.Update_Doc(
+                category_id: 7,
+                start_date: null,
+                end_date: null,
+                comments: null,
+                doc_id: 42);
+
+            // The controller's ?? "" guards must convert nulls to empty strings before the
+            // values reach the service (and ultimately ADO.NET).
+            service.Verify(s => s.UpdateDocument(
+                42, 7, "", "", "NCI", "testuser", ""), Times.Once);
+        }
+
+        [Fact]
+        public async Task Update_Doc_WithZeroCategory_DoesNotCallServiceAndSetsMessage()
+        {
+            var service = new Mock<IInstitutionalFilesService>();
+
+            var controller = CreateControllerWithMockedService(service.Object);
+
+            await controller.Update_Doc(
+                category_id: 0,
+                start_date: "2024-01-01",
+                end_date: "2024-12-31",
+                comments: "ignored",
+                doc_id: 10);
+
+            service.Verify(s => s.UpdateDocument(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+
+            Assert.Equal("You have not specified information correctly.", controller.ViewData["Message"]);
         }
     }
 }
