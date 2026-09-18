@@ -4,8 +4,8 @@
     Layout = null;
 
     // prod mode
-    string browserTimeout = "90 * 60 * 1000";   // "5400000" 90 * 60 * 1000     // 90 minutes
-    string whenToDisplayTimoutDialog = "15 * 60 * 1000";      // 15 minutes
+    string browserTimeout = "2 * 60 * 1000";   // "5400000" 90 * 60 * 1000     // 90 minutes
+    string whenToDisplayTimoutDialog = "1 * 60 * 1000";      // 15 minutes
 }
 
 <!DOCTYPE html>
@@ -125,7 +125,17 @@
             if (remainingAutoLogoutMS <= 0 && !timedOutDialogCurrentlyVisible) {
                 $("#timeoutModalId").modal('hide');
                 $("#timedoutModalId").modal('show');
+                forceFullSignOut();
             }
+        }
+
+        // Perform a FULL sign-out after an inactivity timeout. This hits the
+        // Microsoft.Identity.Web sign-out endpoint, which clears the local
+        // application auth cookie (server-side, so the HttpOnly cookie is handled)
+        // and then redirects to the Entra ID end-session endpoint to clear the
+        // Microsoft SSO session cookie. The next request forces a fresh login.
+        function forceFullSignOut() {
+            window.location.href = "/MicrosoftIdentity/Account/SignOut";
         }
 
         function toggleleftpanel() {

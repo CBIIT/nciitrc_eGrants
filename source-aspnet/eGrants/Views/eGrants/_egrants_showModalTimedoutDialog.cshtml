@@ -37,7 +37,7 @@
                 <div style="text-align:left">
                     <h3>Timed out</h3>
                 </div>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="timeoutExtended()">
+                <button type="button" class="close" aria-label="Close" onclick="forceFullSignOut()">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -46,10 +46,10 @@
                 <span aria-hidden="true">&times;</span>
             </button>*@
 
-                <div style="margin-top:90px;font-weight:bold;">Your session has been timed out.</div>
+                <div style="margin-top:90px;font-weight:bold;">Your session has been timed out. You will be signed out.</div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-sm eGrantsDocBtn" style="color:white;" onclick="timeoutExtended()">Continue</button>
+                <button class="btn btn-sm eGrantsDocBtn" style="color:white;" onclick="forceFullSignOut()">Sign in again</button>
             </div>
         </div>
     </div>
