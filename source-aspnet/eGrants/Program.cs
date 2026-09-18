@@ -5,6 +5,7 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -198,12 +199,38 @@ builder.Services.Configure<OpenIdConnectOptions>(
 // it is discarded when the browser is closed. Combined with prompt=login above,
 // reopening the browser then triggers a fresh interactive login rather than a
 // silent SSO restore.
+//
+// NOTE: Browser "session restore" (e.g. Chrome/Edge "reopen tabs on startup")
+// can hand session cookies back after a reopen, so we cannot rely on cookie
+// deletion alone. The OnValidatePrincipal event below enforces an absolute
+// server-side lifetime that holds regardless of what the browser does with the
+// cookie.
 builder.Services.Configure<CookieAuthenticationOptions>(
-    CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    CookieAuthenticationDefaults.AuthenticationScheme, (CookieAuthenticationOptions options) =>
     {
         options.Cookie.MaxAge = null;
         options.ExpireTimeSpan = TimeSpan.FromMinutes(2);
         options.SlidingExpiration = false;
+
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            // Enforce an absolute session lifetime based on when the auth ticket
+            // was issued. If the ticket is older than the allowed window, reject
+            // it and sign out so the next request triggers a fresh (interactive,
+            // prompt=login) OIDC challenge. This is immune to browsers restoring
+            // session cookies on reopen.
+            var absoluteLifetime = TimeSpan.FromMinutes(2);
+            var issuedUtc = context.Properties?.IssuedUtc;
+
+            if (issuedUtc == null ||
+                DateTimeOffset.UtcNow - issuedUtc.Value > absoluteLifetime)
+            {
+                context.RejectPrincipal();
+                context.HttpContext.Session.Clear();
+                await context.HttpContext.SignOutAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>
