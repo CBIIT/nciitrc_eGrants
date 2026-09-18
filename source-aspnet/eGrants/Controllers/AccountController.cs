@@ -3,6 +3,7 @@ namespace eGrants.Controllers
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Identity.Web;
 
@@ -13,6 +14,7 @@ namespace eGrants.Controllers
         // sign-out. The shared Microsoft SSO session is left intact, so other
         // apps are unaffected. When the user returns, Entra may silently
         // re-authenticate them via SSO.
+        [AllowAnonymous]
         [Route("Account/SignOutLocal")]
         public async Task<IActionResult> SignOutLocal()
         {
@@ -24,11 +26,18 @@ namespace eGrants.Controllers
 
         // Forced re-authentication after an inactivity timeout.
         //
-        // Clears the local application cookie/session, then challenges Entra ID
-        // with prompt=login. Unlike a plain sign-out (which allows a silent SSO
-        // re-login), prompt=login instructs Entra to interactively re-prompt the
-        // user for credentials, and any Conditional Access / MFA policies are
-        // re-evaluated. This guarantees eGrants requires fresh authentication.
+        // Clears the local application cookie/session, then issues a standard
+        // OIDC challenge. The global OpenIdConnectOptions.Prompt = "login" (see
+        // Program.cs) already forces Entra to interactively re-prompt for
+        // credentials on the resulting authorize request.
+        //
+        // [AllowAnonymous] is REQUIRED: the global authorization FallbackPolicy
+        // requires an authenticated user on every endpoint. Without it, a user
+        // whose cookie has already expired hits this endpoint unauthenticated,
+        // gets challenged once by the fallback policy, and then this action
+        // issues a second challenge — resulting in being prompted to sign in
+        // twice. AllowAnonymous lets the action run its single explicit challenge.
+        [AllowAnonymous]
         [Route("Account/ReAuthenticate")]
         public async Task<IActionResult> ReAuthenticate()
         {
@@ -37,8 +46,7 @@ namespace eGrants.Controllers
 
             var properties = new OpenIdConnectChallengeProperties
             {
-                RedirectUri = "/",
-                Prompt = "login"
+                RedirectUri = "/"
             };
 
             return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
