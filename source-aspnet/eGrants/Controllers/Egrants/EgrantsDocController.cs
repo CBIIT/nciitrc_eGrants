@@ -488,13 +488,29 @@ namespace eGrants.Controllers.Egrants
                         continue;
                     }
 
+                    // PERFORMANCE: Do NOT enumerate the directory with a wildcard
+                    // (e.g. Directory.EnumerateFiles(folder, documentId + ".*")).
+                    // Over an SMB/UNC share containing thousands of files that forces
+                    // a full directory scan and can take minutes. Instead probe each
+                    // known supported extension by exact file name, which is an O(1)
+                    // metadata lookup per candidate and does not scan the directory.
+                    var matches = new List<string>();
+                    foreach (var supportedType in _egrantsCommon.SUPPORTED_FILE_TYPES)
+                    {
+                        var extension = supportedType.StartsWith('.') ? supportedType : "." + supportedType;
+                        var candidatePath = Path.Combine(folder, documentId + extension);
+                        if (System.IO.File.Exists(candidatePath))
+                        {
+                            matches.Add(candidatePath);
+                        }
+                    }
+
                     // Prefer the oldest matching file as the original document.
                     // In debug mode both the original and replacement files may
                     // exist in C:\PdfFileOutput with the same document id and
                     // different extensions (e.g. 123.pdf and 123.docx).
                     // The original is written first, so it has the older timestamp.
-                    var matchedFile = Directory
-                        .EnumerateFiles(folder, documentId + ".*")
+                    var matchedFile = matches
                         .OrderBy(path => new FileInfo(path).LastWriteTimeUtc)
                         .FirstOrDefault();
 
