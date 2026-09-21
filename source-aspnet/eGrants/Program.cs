@@ -302,7 +302,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(
     CookieAuthenticationDefaults.AuthenticationScheme, (CookieAuthenticationOptions options) =>
     {
         options.Cookie.MaxAge = null;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(90);
         options.SlidingExpiration = false;
 
         options.Events.OnValidatePrincipal = async context =>
@@ -312,7 +312,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(
             // it and sign out so the next request triggers a fresh (interactive,
             // prompt=login) OIDC challenge. This is immune to browsers restoring
             // session cookies on reopen.
-            var absoluteLifetime = TimeSpan.FromMinutes(10);
+            var absoluteLifetime = TimeSpan.FromMinutes(90);
             var issuedUtc = context.Properties?.IssuedUtc;
 
             if (issuedUtc == null ||
@@ -641,6 +641,14 @@ app.Use(async (context, next) =>
 
         if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
         {
+            Log.Warning(
+                "Access resolution failed (UserType empty). Redirecting to egrants_default.htm. " +
+                "UserId={UserId}, Ic={Ic}, Path={Path}, TraceId={TraceId}",
+                context.Session.GetString("userid"),
+                context.Session.GetString("ic"),
+                context.Request.Path,
+                context.TraceIdentifier);
+
             context.Response.Redirect("/egrants_default.htm");
             return;
         }
@@ -662,6 +670,16 @@ app.Use(async (context, next) =>
 
         if (context.Session.GetString("Validation")?.ToString() != "OK")
         {
+            Log.Warning(
+                "Access resolution failed (Validation != OK). Redirecting to egrants_default.htm. " +
+                "UserId={UserId}, Ic={Ic}, UserType={UserType}, Validation={Validation}, Path={Path}, TraceId={TraceId}",
+                context.Session.GetString("userid"),
+                context.Session.GetString("ic"),
+                usertype,
+                context.Session.GetString("Validation"),
+                context.Request.Path,
+                context.TraceIdentifier);
+
             context.Response.Redirect("/egrants_default.htm");
             return;
         }
