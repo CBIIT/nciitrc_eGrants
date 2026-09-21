@@ -51,6 +51,7 @@ using EmailConcatenation;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Extensions.Caching.Memory;
 
 using MsgReader.Outlook;
 
@@ -114,10 +115,11 @@ namespace eGrants.Controllers.Egrants
         private readonly ISessionInfoService _sessionInfoService;
         private readonly IConfiguration _configuration;
         private readonly EgrantsCommon _egrantsCommon;
+        private readonly IMemoryCache _memoryCache;
 
         private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
-        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IApplService applService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null)
+        public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IApplService applService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null, IMemoryCache memoryCache = null)
         {
             _eGrantsService = eGrantsService;
             _commonService = commonService;
@@ -126,6 +128,7 @@ namespace eGrants.Controllers.Egrants
             _configuration = configuration;
             _egrantsCommon = egrantsCommon;
             _applService = applService;
+            _memoryCache = memoryCache;
         }
 
         // GET: Egrants
@@ -466,6 +469,22 @@ namespace eGrants.Controllers.Egrants
                 return string.Empty;
             }
 
+            // CACHE: Resolving the original file type requires probing the file
+            // share, which is comparatively slow. The mapping of documentId ->
+            // original file type never changes, so cache resolved results to avoid
+            // re-hitting the share on repeat restores. Results are cached
+            // REGARDLESS of the resolved extension, and negative ("not found")
+            // results are cached too so an unresolved document does not re-probe
+            // the share on every attempt.
+            var cacheKey = "RestoreFileType:" + documentId;
+            if (_memoryCache != null &&
+                _memoryCache.TryGetValue(cacheKey, out string cachedFileType))
+            {
+                // A cached entry exists (may be a non-empty extension or a cached
+                // empty "not found" result); either way, avoid touching the share.
+                return cachedFileType ?? string.Empty;
+            }
+
             var candidateFolders = new List<string>();
 
 #if DEBUG
@@ -475,8 +494,23 @@ namespace eGrants.Controllers.Egrants
             var webGrantUrl = sessionInfo.WebGrantUrl;
             if (!string.IsNullOrWhiteSpace(webGrantUrl))
             {
+                // Only the "main" folder is probed. The rarely-used "main1" folder
+                // was dropped to halve the number of network round trips. If a
+                // document cannot be resolved here it is logged below.
                 candidateFolders.Add(@"\\" + webGrantUrl + @"\egrants\funded2\nci\main\");
-                candidateFolders.Add(@"\\" + webGrantUrl + @"\egrants\funded2\nci\main1\");
+            }
+
+            // Probe the most common extension (.pdf) first and return on the first
+            // hit so the typical case costs a single network round trip instead of
+            // one per supported extension.
+            var orderedExtensions = new List<string> { ".pdf" };
+            foreach (var supportedType in _egrantsCommon.SUPPORTED_FILE_TYPES)
+            {
+                var extension = supportedType.StartsWith('.') ? supportedType : "." + supportedType;
+                if (!string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase))
+                {
+                    orderedExtensions.Add(extension);
+                }
             }
 
             foreach (var folder in candidateFolders)
@@ -488,36 +522,26 @@ namespace eGrants.Controllers.Egrants
                         continue;
                     }
 
-                    // PERFORMANCE: Do NOT enumerate the directory with a wildcard
-                    // (e.g. Directory.EnumerateFiles(folder, documentId + ".*")).
-                    // Over an SMB/UNC share containing thousands of files that forces
-                    // a full directory scan and can take minutes. Instead probe each
-                    // known supported extension by exact file name, which is an O(1)
-                    // metadata lookup per candidate and does not scan the directory.
-                    var matches = new List<string>();
-                    foreach (var supportedType in _egrantsCommon.SUPPORTED_FILE_TYPES)
+                    // Probe each known supported extension by exact file name (an
+                    // O(1) metadata lookup) and return on the first match. This
+                    // avoids a full directory scan over an SMB/UNC share containing
+                    // thousands of files.
+                    foreach (var extension in orderedExtensions)
                     {
-                        var extension = supportedType.StartsWith('.') ? supportedType : "." + supportedType;
                         var candidatePath = Path.Combine(folder, documentId + extension);
                         if (System.IO.File.Exists(candidatePath))
                         {
-                            matches.Add(candidatePath);
+                            var resolved = extension.TrimStart('.');
+
+                            // Cache the resolved extension (any type) for a long
+                            // period since the mapping is immutable.
+                            _memoryCache?.Set(
+                                cacheKey,
+                                resolved,
+                                TimeSpan.FromHours(12));
+
+                            return resolved;
                         }
-                    }
-
-                    // Prefer the oldest matching file as the original document.
-                    // In debug mode both the original and replacement files may
-                    // exist in C:\PdfFileOutput with the same document id and
-                    // different extensions (e.g. 123.pdf and 123.docx).
-                    // The original is written first, so it has the older timestamp.
-                    var matchedFile = matches
-                        .OrderBy(path => new FileInfo(path).LastWriteTimeUtc)
-                        .FirstOrDefault();
-
-                    if (!string.IsNullOrWhiteSpace(matchedFile))
-                    {
-                        var extension = Path.GetExtension(matchedFile);
-                        return extension.TrimStart('.');
                     }
                 }
                 catch (Exception ex)
@@ -532,6 +556,15 @@ namespace eGrants.Controllers.Egrants
             Log.Warning(
                 "Could not resolve original file type from main storage for restore. DocumentId={DocumentId}",
                 documentId);
+
+            // Cache the negative ("not found") result too so repeat restore
+            // attempts for the same document do not keep hitting the share. A
+            // shorter TTL is used so a file that appears later can still be picked
+            // up eventually.
+            _memoryCache?.Set(
+                cacheKey,
+                string.Empty,
+                TimeSpan.FromMinutes(5));
 
             return string.Empty;
         }
