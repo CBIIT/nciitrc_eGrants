@@ -125,7 +125,23 @@
             if (remainingAutoLogoutMS <= 0 && !timedOutDialogCurrentlyVisible) {
                 $("#timeoutModalId").modal('hide');
                 $("#timedoutModalId").modal('show');
+                // Remove only the user's name once the session has timed out so
+                // stale user identity is not displayed. The "Logged in as:" and
+                // "Version:" labels remain visible.
+                var loggedInUserName = document.getElementById('loggedInUserName');
+                if (loggedInUserName) {
+                    loggedInUserName.style.display = "none";
+                }
             }
+        }
+
+        // Force fresh authentication after an inactivity timeout. This clears the
+        // local application session/cookie and then challenges Entra ID with
+        // prompt=login, so the user must re-enter credentials (and satisfy any
+        // Conditional Access / MFA policies) rather than being silently signed
+        // back in via the existing SSO session.
+        function forceFullSignOut() {
+            window.location.href = "/Account/ReAuthenticate";
         }
 
         function toggleleftpanel() {
@@ -322,7 +338,7 @@
             </a>
         </div>
         <div class="col-lg-10" id="loginas" style="line-height: 1;">
-            <p style="margin-top: 4px; margin-bottom: 0">Logged in as:@Context.Session.GetString("UserName")</p>
+            <p style="margin-top: 4px; margin-bottom: 0">Logged in as:<span id="loggedInUserName">@Context.Session.GetString("UserName")</span></p>
             <p style="margin-top: 4px; font-size: 16px;">Version:@Context.Session.GetString("Release")</p>
         </div>
         <!--- <p>Need help? Email to:<a href="mailto:egrantsissues@mail.nih.gov" title="Send email for asking help">egrantsissues@mail.nih.gov</a></p> -->

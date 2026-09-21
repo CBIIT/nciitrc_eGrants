@@ -5,12 +5,14 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -179,6 +181,7 @@ builder.Services.AddScoped<IApplService, ApplService>();
 
 // Session configuration
 builder.Services.AddDistributedMemoryCache(); // Required for session
+builder.Services.AddMemoryCache(); // In-memory cache (IMemoryCache) for lookups such as restore file-type resolution
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
@@ -276,98 +279,51 @@ builder.Services.Configure<OpenIdConnectOptions>(
     OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
         options.ResponseType = OpenIdConnectResponseType.Code;
-        options.UsePkce = true;
-        // Nonce/correlation cookies are used during the cross-site handshake
-        // (login.microsoftonline.com -> /signin-oidc form_post) and must remain
-        // SameSite=None; Secure so they are sent on that cross-site callback.
-        options.NonceCookie.SameSite = SameSiteMode.None;
-        options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.CorrelationCookie.SameSite = SameSiteMode.None;
-        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
-        // OIDC diagnostics for cross-site SSO issues. These handlers capture
-        // protocol inputs and auth failures with request context for tracing.
-        options.Events ??= new OpenIdConnectEvents();
+        // Force an interactive login prompt on EVERY authentication redirect
+        // (including after the browser is closed and reopened). Without this,
+        // Entra performs a silent SSO re-login using the still-valid Microsoft
+        // session cookie and the user is never challenged. Setting prompt=login
+        // instructs Entra to ignore the existing SSO session and re-prompt for
+        // credentials.
+        options.Prompt = "login";
+    });
 
-        // Persist the resulting application auth cookie so it survives browser
-        // restarts and is reliably present on later top-level re-entry.
-        options.Events.OnTicketReceived = context =>
+// Make the application authentication cookie a non-persistent (session) cookie so
+// it is discarded when the browser is closed. Combined with prompt=login above,
+// reopening the browser then triggers a fresh interactive login rather than a
+// silent SSO restore.
+//
+// NOTE: Browser "session restore" (e.g. Chrome/Edge "reopen tabs on startup")
+// can hand session cookies back after a reopen, so we cannot rely on cookie
+// deletion alone. The OnValidatePrincipal event below enforces an absolute
+// server-side lifetime that holds regardless of what the browser does with the
+// cookie.
+builder.Services.Configure<CookieAuthenticationOptions>(
+    CookieAuthenticationDefaults.AuthenticationScheme, (CookieAuthenticationOptions options) =>
+    {
+        options.Cookie.MaxAge = null;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(90);
+        options.SlidingExpiration = false;
+
+        options.Events.OnValidatePrincipal = async context =>
         {
-            context.Properties ??= new Microsoft.AspNetCore.Authentication.AuthenticationProperties();
-            context.Properties.IsPersistent = true;
-            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
-            return Task.CompletedTask;
-        };
+            // Enforce an absolute session lifetime based on when the auth ticket
+            // was issued. If the ticket is older than the allowed window, reject
+            // it and sign out so the next request triggers a fresh (interactive,
+            // prompt=login) OIDC challenge. This is immune to browsers restoring
+            // session cookies on reopen.
+            var absoluteLifetime = TimeSpan.FromMinutes(90);
+            var issuedUtc = context.Properties?.IssuedUtc;
 
-        // Logs inbound prompt/max_age flags that can force re-authentication.
-        options.Events.OnMessageReceived = context =>
-        {
-            var prompt = context.ProtocolMessage?.Prompt;
-            var maxAge = context.ProtocolMessage?.MaxAge;
-
-            if (!string.IsNullOrEmpty(prompt) || !string.IsNullOrEmpty(maxAge))
+            if (issuedUtc == null ||
+                DateTimeOffset.UtcNow - issuedUtc.Value > absoluteLifetime)
             {
-                Log.Warning(
-                    "OIDC message includes prompt/max_age. Path={Path}, Prompt={Prompt}, MaxAge={MaxAge}, TraceId={TraceId}",
-                    context.HttpContext.Request.Path,
-                    prompt,
-                    maxAge,
-                    context.HttpContext.TraceIdentifier);
+                context.RejectPrincipal();
+                context.HttpContext.Session.Clear();
+                await context.HttpContext.SignOutAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme);
             }
-
-            return Task.CompletedTask;
-        };
-
-        options.Events.OnRedirectToIdentityProvider = context =>
-        {
-            var request = context.HttpContext.Request;
-            var hasAuthCookie = request.Cookies.Keys.Any(k =>
-                k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
-
-            Log.Warning(
-                "OIDC challenge initiated. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, IsAuthenticated={IsAuthenticated}, HasAuthCookie={HasAuthCookie}, RedirectUri={RedirectUri}, TraceId={TraceId}",
-                request.Path,
-                request.QueryString.Value,
-                request.Host.Value,
-                request.Headers.Referer.ToString(),
-                context.HttpContext.User?.Identity?.IsAuthenticated == true,
-                hasAuthCookie,
-                context.ProtocolMessage?.RedirectUri,
-                context.HttpContext.TraceIdentifier);
-
-            return Task.CompletedTask;
-        };
-
-        // Logs Entra/OIDC remote failures (for example, correlation/nonce/callback issues).
-        options.Events.OnRemoteFailure = context =>
-        {
-            var request = context.HttpContext.Request;
-            Log.Error(
-                context.Failure,
-                "OIDC remote failure. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, TraceId={TraceId}",
-                request.Path,
-                request.QueryString.Value,
-                request.Host.Value,
-                request.Headers.Referer.ToString(),
-                context.HttpContext.TraceIdentifier);
-
-            return Task.CompletedTask;
-        };
-
-        // Logs local authentication processing failures before sign-in completes.
-        options.Events.OnAuthenticationFailed = context =>
-        {
-            var request = context.HttpContext.Request;
-            Log.Error(
-                context.Exception,
-                "OIDC authentication failed. Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, TraceId={TraceId}",
-                request.Path,
-                request.QueryString.Value,
-                request.Host.Value,
-                request.Headers.Referer.ToString(),
-                context.HttpContext.TraceIdentifier);
-
-            return Task.CompletedTask;
         };
     });
 
@@ -397,6 +353,51 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 var app = builder.Build();
 
+#region IronPdf Initialization & Warm-up
+
+// ====================================================================================
+// IRONPDF STARTUP INITIALIZATION & WARM-UP
+// ====================================================================================
+// WHY: IronPdf uses an embedded Chrome rendering engine. The FIRST render in a process
+// pays a large one-time cost (engine/Chromium initialization). Previously the license
+// and Installation settings were applied lazily inside every conversion call, so this
+// cold-start cost was paid by the first user action (e.g. "Replace document"), which
+// could take minutes in the development environment.
+//
+// By configuring IronPdf once here and performing a tiny warm-up render at startup, the
+// Chrome engine is initialized before any user request, removing that delay from the
+// first document conversion/replace.
+// ====================================================================================
+try
+{
+    IronPdf.License.LicenseKey =
+        "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
+
+    // Disable local disk access or cross-origin requests during rendering.
+    IronPdf.Installation.EnableWebSecurity = true;
+
+    // Keep IronPdf's Chrome/engine temp files on a fast local disk. A slow or network
+    // temp location makes every cold start dramatically slower.
+    var ironPdfTempPath = Path.Combine(AppContext.BaseDirectory, "ironpdf_temp");
+    Directory.CreateDirectory(ironPdfTempPath);
+    IronPdf.Installation.TempFolderPath = ironPdfTempPath;
+
+    // Warm up the Chrome rendering engine with a minimal render so the first real
+    // conversion doesn't pay the initialization cost.
+    var warmupRenderer = new IronPdf.ChromePdfRenderer();
+    using var warmupPdf = warmupRenderer.RenderHtmlAsPdf("<p>warmup</p>");
+
+    Log.Information("IronPdf initialized and warmed up. TempFolderPath={TempPath}", ironPdfTempPath);
+}
+catch (Exception ex)
+{
+    // A warm-up failure should never prevent the application from starting; conversions
+    // will still fall back to lazy initialization on first use.
+    Log.Warning(ex, "IronPdf warm-up failed during startup; conversions will initialize lazily.");
+}
+
+#endregion
+
 #region Middleware Pipeline
 
 // Global exception handling middleware
@@ -420,6 +421,30 @@ if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Local"))
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+#if DEBUG
+// Local debug-only document URL mappings for viewing files from local disk.
+var localPdfOutputPath = @"C:\PdfFileOutput";
+Directory.CreateDirectory(localPdfOutputPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded2/nci/main"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded2/nci/main1"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded/nci/modify"
+});
+#endif
 
 app.UseRouting();
 
@@ -617,6 +642,14 @@ app.Use(async (context, next) =>
 
         if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
         {
+            Log.Warning(
+                "Access resolution failed (UserType empty). Redirecting to egrants_default.htm. " +
+                "UserId={UserId}, Ic={Ic}, Path={Path}, TraceId={TraceId}",
+                context.Session.GetString("userid"),
+                context.Session.GetString("ic"),
+                context.Request.Path,
+                context.TraceIdentifier);
+
             context.Response.Redirect("/egrants_default.htm");
             return;
         }
@@ -638,6 +671,16 @@ app.Use(async (context, next) =>
 
         if (context.Session.GetString("Validation")?.ToString() != "OK")
         {
+            Log.Warning(
+                "Access resolution failed (Validation != OK). Redirecting to egrants_default.htm. " +
+                "UserId={UserId}, Ic={Ic}, UserType={UserType}, Validation={Validation}, Path={Path}, TraceId={TraceId}",
+                context.Session.GetString("userid"),
+                context.Session.GetString("ic"),
+                usertype,
+                context.Session.GetString("Validation"),
+                context.Request.Path,
+                context.TraceIdentifier);
+
             context.Response.Redirect("/egrants_default.htm");
             return;
         }
@@ -645,7 +688,12 @@ app.Use(async (context, next) =>
         // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
         context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
+#if DEBUG
+        var localImageServerUrl = $"{context.Request.Scheme}://{context.Request.Host}/";
+        context.Session.SetString("ImageServerUrl", localImageServerUrl);
+#else
         context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+#endif
         context.Session.SetInt32("dashboard", 0);
         context.Session.SetString("EgrantsDocNewRelativePath", builder.Configuration["AppSettings:egrantsDocNewRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsDocModifyRelativePath", builder.Configuration["AppSettings:egrantsDocModifyRelativePath"] ?? string.Empty);
