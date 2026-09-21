@@ -303,7 +303,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(
     CookieAuthenticationDefaults.AuthenticationScheme, (CookieAuthenticationOptions options) =>
     {
         options.Cookie.MaxAge = null;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(2);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
         options.SlidingExpiration = false;
 
         options.Events.OnValidatePrincipal = async context =>
@@ -313,7 +313,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(
             // it and sign out so the next request triggers a fresh (interactive,
             // prompt=login) OIDC challenge. This is immune to browsers restoring
             // session cookies on reopen.
-            var absoluteLifetime = TimeSpan.FromMinutes(2);
+            var absoluteLifetime = TimeSpan.FromMinutes(90);
             var issuedUtc = context.Properties?.IssuedUtc;
 
             if (issuedUtc == null ||
