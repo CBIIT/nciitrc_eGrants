@@ -313,7 +313,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(
             // it and sign out so the next request triggers a fresh (interactive,
             // prompt=login) OIDC challenge. This is immune to browsers restoring
             // session cookies on reopen.
-            var absoluteLifetime = TimeSpan.FromMinutes(90);
+            var absoluteLifetime = TimeSpan.FromMinutes(10);
             var issuedUtc = context.Properties?.IssuedUtc;
 
             if (issuedUtc == null ||
