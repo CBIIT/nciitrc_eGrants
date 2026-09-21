@@ -180,6 +180,7 @@ builder.Services.AddScoped<IApplService, ApplService>();
 
 // Session configuration
 builder.Services.AddDistributedMemoryCache(); // Required for session
+builder.Services.AddMemoryCache(); // In-memory cache (IMemoryCache) for lookups such as restore file-type resolution
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
