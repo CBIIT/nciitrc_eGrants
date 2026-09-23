@@ -98,14 +98,31 @@ jobs:
           echo "REMOTE_SERVER=${{ vars.REMOTE_SERVER }}" >> $env:GITHUB_OUTPUT
           exit 0
 
-      # Restore NuGet packages and publish the application into a deployment-ready folder.
+      # Restore NuGet packages and compile the application.
       - name: Build project
         shell: powershell
         run: |
           dotnet restore "./source-aspnet/eGrants/eGrants.csproj"
 
+          dotnet build "./source-aspnet/eGrants/eGrants.csproj" `
+            -c Release `
+            --no-restore
+
+      # Run tests and fail the workflow if any test fails.
+      - name: Run tests (pass/fail gate)
+        shell: powershell
+        run: |
+          dotnet test "./source-aspnet/eGrants.Tests/eGrants.Tests.csproj" `
+            -c Release `
+            --logger "trx;LogFileName=test-results.trx"
+
+      # Publish the application only after build + tests pass.
+      - name: Publish project
+        shell: powershell
+        run: |
           dotnet publish "./source-aspnet/eGrants/eGrants.csproj" `
             -c Release `
+            --no-restore `
             -o ./build_output
 
       # Replace the placeholder GitHubToken value inside the published appsettings.json
