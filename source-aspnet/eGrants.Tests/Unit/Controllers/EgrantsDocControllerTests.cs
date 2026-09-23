@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 
 using eGrants.Controllers.Egrants;
+using eGrants.DAL;
+using eGrants.Common;
 using eGrants.Models;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
@@ -10,6 +12,7 @@ using eGrants.ViewModels;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 using Moq;
 
@@ -36,7 +39,7 @@ namespace eGrants.Tests.Unit.Controllers
         /// Uses the real <see cref="SessionInfoService"/> so that session access
         /// behavior (including the null-session path) is exercised faithfully.
         /// </summary>
-        private EgrantsDocController CreateController(ISession session)
+        private EgrantsDocController CreateController(ISession session, EgrantsCommon egrantsCommon = null)
         {
             var sessionInfoService = new SessionInfoService();
 
@@ -45,7 +48,9 @@ namespace eGrants.Tests.Unit.Controllers
                 _commonService.Object,
                 _documentService.Object,
                 sessionInfoService,
-                _applService.Object);
+                _applService.Object,
+                null,
+                egrantsCommon);
 
             var httpContext = new DefaultHttpContext();
             httpContext.Session = session;
@@ -134,6 +139,75 @@ namespace eGrants.Tests.Unit.Controllers
 
             // Assert
             _documentService.Verify(s => s.DocUploadDefaultAsync(555), Times.Once);
+        }
+
+        #endregion
+
+        #region doc_modify
+
+        [Fact]
+        public void doc_modify_WithNonRestoreAction_DelegatesSingleCallToService()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "NCI");
+            session.SetString("userid", "tester");
+
+            var controller = CreateController(session);
+
+            controller.doc_modify("to delete", "101,102");
+
+            _documentService.Verify(s => s.DocModify(
+                "to delete",
+                0,
+                0,
+                string.Empty,
+                string.Empty,
+                "101,102",
+                string.Empty,
+                "NCI",
+                "tester"), Times.Once);
+
+            _documentService.Verify(s => s.UpdateDocumentFileType(It.IsAny<int>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public void doc_modify_ToRestore_WithNoResolvableFileType_StillCallsDocModifyPerDocument()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "NCI");
+            session.SetString("userid", "tester");
+
+            var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
+                .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=egrants_unit_tests;Trusted_Connection=True;TrustServerCertificate=True;")
+                .Options;
+            using var dbContext = new AppDbContext(dbOptions);
+            var egrantsCommon = new EgrantsCommon(dbContext);
+
+            var controller = CreateController(session, egrantsCommon);
+
+            controller.doc_modify("to restore", "missing_doc_a,missing_doc_b");
+
+            _documentService.Verify(s => s.UpdateDocumentFileType(It.IsAny<int>(), It.IsAny<string>()), Times.Never);
+            _documentService.Verify(s => s.DocModify(
+                "to restore",
+                0,
+                0,
+                string.Empty,
+                string.Empty,
+                "missing_doc_a",
+                It.Is<string>(fileType => string.IsNullOrEmpty(fileType)),
+                "NCI",
+                "tester"), Times.Once);
+            _documentService.Verify(s => s.DocModify(
+                "to restore",
+                0,
+                0,
+                string.Empty,
+                string.Empty,
+                "missing_doc_b",
+                It.Is<string>(fileType => string.IsNullOrEmpty(fileType)),
+                "NCI",
+                "tester"), Times.Once);
         }
 
         #endregion
