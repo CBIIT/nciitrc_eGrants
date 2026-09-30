@@ -40,7 +40,7 @@ jobs:
     steps:
       # Pull down the repository source so the runner can build it.
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Load environment-specific values from GitHub environment variables and secrets.
       # This step writes reusable outputs for later steps.
