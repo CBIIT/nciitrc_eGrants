@@ -5,9 +5,17 @@ using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 using Serilog;
 
@@ -42,6 +50,36 @@ var finalConnectionString = raw
 // Use the final connection string
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(finalConnectionString));
+#endregion
+
+#region Setting up the Entra ID client secret
+
+// Pull the Entra ID client secret from an environment variable and replace the
+// "{eGrants_AzureAd_ClientSecret}" placeholder configured in appsettings, mirroring
+// the DB_USER / DB_PASSWORD pattern used for the connection string above.
+var azureAdClientSecret = builder.Configuration["eGrants_AzureAd_ClientSecret"];
+var configuredClientSecret = builder.Configuration["AzureAd:ClientSecret"];
+
+if (!string.IsNullOrEmpty(configuredClientSecret))
+{
+    builder.Configuration["AzureAd:ClientSecret"] =
+        configuredClientSecret.Replace("{eGrants_AzureAd_ClientSecret}", azureAdClientSecret);
+}
+#endregion
+
+#region Setting up the eRA client certificate password
+
+// Pull the client certificate (.pfx) password from an environment variable and replace
+// the "{CERT_PASSWORD}" placeholder configured in appsettings, mirroring the
+// DB_USER / DB_PASSWORD and client secret patterns above.
+var certPassword = builder.Configuration["CERT_PASSWORD"];
+var configuredCertPass = builder.Configuration["AppSettings:certPass"];
+
+if (!string.IsNullOrEmpty(configuredCertPass))
+{
+    builder.Configuration["AppSettings:certPass"] =
+        configuredCertPass.Replace("{CERT_PASSWORD}", certPassword ?? string.Empty);
+}
 #endregion
 
 #region Request Size Limits Configuration
@@ -141,17 +179,163 @@ builder.Services.AddScoped<ISupplementService, SupplementService>();
 builder.Services.AddScoped<IEgrantsFundingService, EgrantsFundingService>();
 builder.Services.AddScoped<IApplService, ApplService>();
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
 // Session configuration
 builder.Services.AddDistributedMemoryCache(); // Required for session
+builder.Services.AddMemoryCache(); // In-memory cache (IMemoryCache) for lookups such as restore file-type resolution
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
+
+// Microsoft Entra ID (OIDC) Authentication
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
+builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.Cookie.HttpOnly = true;
+    // The eGrants application session cookie is first-party (top-level navigation
+    // to its own host). Use Lax so it is reliably sent when users re-enter eGrants
+    // from an external referrer (for example authdev.nih.gov). SameSite=None can be
+    // treated as third-party and dropped by modern browsers on top-level re-entry.
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // Persist the auth cookie across browser restarts. ExpireTimeSpan controls the
+    // ticket lifetime, but the browser only keeps the cookie past close-out when the
+    // cookie itself carries a Max-Age/Expires attribute, which Cookie.MaxAge sets.
+    options.Cookie.MaxAge = TimeSpan.FromDays(14);
+    options.SlidingExpiration = true;
+    options.ExpireTimeSpan = TimeSpan.FromDays(14);
+
+    // Cookie auth diagnostics to determine why a request is redirected to login
+    // even when users report that cookies are present in their browser.
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnSigningIn = context =>
+        {
+            // Authoritative place to force a PERSISTENT cookie. This runs for the
+            // actual cookie being written and is not overridden by Microsoft.Identity.Web's
+            // OIDC wiring. Without this the cookie is issued as a session cookie (no
+            // Expires/Max-Age) and is deleted when the browser is closed, forcing re-login.
+            context.Properties.IsPersistent = true;
+            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
+
+            Log.Information(
+                "Cookie signing in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.Name,
+                context.Properties?.IsPersistent,
+                context.Properties?.ExpiresUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnSignedIn = context =>
+        {
+            Log.Information(
+                "Cookie signed in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.Name,
+                context.Properties?.IsPersistent,
+                context.Properties?.ExpiresUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnValidatePrincipal = context =>
+        {
+            Log.Information(
+                "Cookie validate principal. IsAuthenticated={IsAuthenticated}, Name={Name}, ExpiresUtc={ExpiresUtc}, IssuedUtc={IssuedUtc}, TraceId={TraceId}",
+                context.Principal?.Identity?.IsAuthenticated == true,
+                context.Principal?.Identity?.Name,
+                context.Properties?.ExpiresUtc,
+                context.Properties?.IssuedUtc,
+                context.HttpContext.TraceIdentifier);
+
+            return Task.CompletedTask;
+        },
+        OnRedirectToLogin = context =>
+        {
+            Log.Warning(
+                "Cookie redirect to login. Path={Path}, RedirectUri={RedirectUri}, TraceId={TraceId}",
+                context.Request.Path,
+                context.RedirectUri,
+                context.HttpContext.TraceIdentifier);
+
+            context.Response.Redirect(context.RedirectUri);
+            return Task.CompletedTask;
+        }
+    };
+});
+
+// Use the authorization code flow (back-channel token exchange) rather than the
+// hybrid/implicit flow. This avoids AADSTS700054 ("response_type 'id_token' is not
+// enabled for the application") by requesting "response_type=code" instead of an
+// id_token at the authorize endpoint. The ID token is then returned via the token
+// endpoint using the configured client secret.
+builder.Services.Configure<OpenIdConnectOptions>(
+    OpenIdConnectDefaults.AuthenticationScheme, options =>
+    {
+        options.ResponseType = OpenIdConnectResponseType.Code;
+
+        // Force an interactive login prompt on EVERY authentication redirect
+        // (including after the browser is closed and reopened). Without this,
+        // Entra performs a silent SSO re-login using the still-valid Microsoft
+        // session cookie and the user is never challenged. Setting prompt=login
+        // instructs Entra to ignore the existing SSO session and re-prompt for
+        // credentials.
+        options.Prompt = "login";
+    });
+
+// Make the application authentication cookie a non-persistent (session) cookie so
+// it is discarded when the browser is closed. Combined with prompt=login above,
+// reopening the browser then triggers a fresh interactive login rather than a
+// silent SSO restore.
+//
+// NOTE: Browser "session restore" (e.g. Chrome/Edge "reopen tabs on startup")
+// can hand session cookies back after a reopen, so we cannot rely on cookie
+// deletion alone. The OnValidatePrincipal event below enforces an absolute
+// server-side lifetime that holds regardless of what the browser does with the
+// cookie.
+builder.Services.Configure<CookieAuthenticationOptions>(
+    CookieAuthenticationDefaults.AuthenticationScheme, (CookieAuthenticationOptions options) =>
+    {
+        options.Cookie.MaxAge = null;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(90);
+        options.SlidingExpiration = false;
+
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            // Enforce an absolute session lifetime based on when the auth ticket
+            // was issued. If the ticket is older than the allowed window, reject
+            // it and sign out so the next request triggers a fresh (interactive,
+            // prompt=login) OIDC challenge. This is immune to browsers restoring
+            // session cookies on reopen.
+            var absoluteLifetime = TimeSpan.FromMinutes(90);
+            var issuedUtc = context.Properties?.IssuedUtc;
+
+            if (issuedUtc == null ||
+                DateTimeOffset.UtcNow - issuedUtc.Value > absoluteLifetime)
+            {
+                context.RejectPrincipal();
+                context.HttpContext.Session.Clear();
+                await context.HttpContext.SignOutAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+builder.Services.AddControllersWithViews()
+    .AddMicrosoftIdentityUI();
 
 #endregion
 
@@ -169,13 +353,60 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 var app = builder.Build();
 
+#region IronPdf Initialization & Warm-up
+
+// ====================================================================================
+// IRONPDF STARTUP INITIALIZATION & WARM-UP
+// ====================================================================================
+// WHY: IronPdf uses an embedded Chrome rendering engine. The FIRST render in a process
+// pays a large one-time cost (engine/Chromium initialization). Previously the license
+// and Installation settings were applied lazily inside every conversion call, so this
+// cold-start cost was paid by the first user action (e.g. "Replace document"), which
+// could take minutes in the development environment.
+//
+// By configuring IronPdf once here and performing a tiny warm-up render at startup, the
+// Chrome engine is initialized before any user request, removing that delay from the
+// first document conversion/replace.
+// ====================================================================================
+try
+{
+    IronPdf.License.LicenseKey =
+        "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
+
+    // Disable local disk access or cross-origin requests during rendering.
+    IronPdf.Installation.EnableWebSecurity = true;
+
+    // Keep IronPdf's Chrome/engine temp files on a fast local disk. A slow or network
+    // temp location makes every cold start dramatically slower.
+    var ironPdfTempPath = Path.Combine(AppContext.BaseDirectory, "ironpdf_temp");
+    Directory.CreateDirectory(ironPdfTempPath);
+    IronPdf.Installation.TempFolderPath = ironPdfTempPath;
+
+    // Warm up the Chrome rendering engine with a minimal render so the first real
+    // conversion doesn't pay the initialization cost.
+    var warmupRenderer = new IronPdf.ChromePdfRenderer();
+    using var warmupPdf = warmupRenderer.RenderHtmlAsPdf("<p>warmup</p>");
+
+    Log.Information("IronPdf initialized and warmed up. TempFolderPath={TempPath}", ironPdfTempPath);
+}
+catch (Exception ex)
+{
+    // A warm-up failure should never prevent the application from starting; conversions
+    // will still fall back to lazy initialization on first use.
+    Log.Warning(ex, "IronPdf warm-up failed during startup; conversions will initialize lazily.");
+}
+
+#endregion
+
 #region Middleware Pipeline
 
 // Global exception handling middleware
 app.UseMiddleware<ExceptionHandling>();
 
-// Enforce HSTS in non-development environments
-if (!app.Environment.IsDevelopment())
+// Enforce HSTS in non-development environments.
+// "Local" is treated as a development-like environment so local runs behave the
+// same as Development (no HSTS) even though appsettings.Development.json is not loaded.
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Local"))
 {
     app.UseHsts();
 }
@@ -188,9 +419,157 @@ if (!app.Environment.IsDevelopment())
  app.UseStatusCodePagesWithReExecute("/Error/{0}");
 #endif
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+#if DEBUG
+// Local debug-only document URL mappings for viewing files from local disk.
+var localPdfOutputPath = @"C:\PdfFileOutput";
+Directory.CreateDirectory(localPdfOutputPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded2/nci/main"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded2/nci/main1"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded/nci/modify"
+});
+#endif
+
+app.UseRouting();
+
+// Cross-site diagnostics middleware for requests entering eGrants from other sites.
+// Logs key headers/cookie presence and flags unsuccessful outcomes for correlation.
+app.Use(async (context, next) =>
+{
+    var request = context.Request;
+    var referer = request.Headers.Referer.ToString();
+    var origin = request.Headers.Origin.ToString();
+    var forwardedProto = request.Headers["X-Forwarded-Proto"].ToString();
+    var forwardedHost = request.Headers["X-Forwarded-Host"].ToString();
+    var forwardedFor = request.Headers["X-Forwarded-For"].ToString();
+    var hasAuthCookie = request.Cookies.Keys.Any(k => k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
+    var hasNonceCookie = request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.OpenIdConnect.Nonce", StringComparison.OrdinalIgnoreCase));
+    var hasCorrelationCookie = request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.Correlation.", StringComparison.OrdinalIgnoreCase));
+
+    // Treat request as cross-site when referer host differs from current host.
+    var isCrossSite = !string.IsNullOrWhiteSpace(referer) &&
+                      Uri.TryCreate(referer, UriKind.Absolute, out var refererUri) &&
+                      !string.Equals(refererUri.Host, request.Host.Host, StringComparison.OrdinalIgnoreCase);
+
+    if (isCrossSite)
+    {
+        Log.Information(
+            "Cross-site inbound request. Method={Method}, Path={Path}, Query={Query}, Host={Host}, Referer={Referer}, Origin={Origin}, XForwardedProto={XForwardedProto}, XForwardedHost={XForwardedHost}, XForwardedFor={XForwardedFor}, UserAgent={UserAgent}, RemoteIp={RemoteIp}, IsAuthenticated={IsAuthenticated}, HasAuthCookie={HasAuthCookie}, HasNonceCookie={HasNonceCookie}, HasCorrelationCookie={HasCorrelationCookie}, TraceId={TraceId}",
+            request.Method,
+            request.Path,
+            request.QueryString.Value,
+            request.Host.Value,
+            referer,
+            origin,
+            forwardedProto,
+            forwardedHost,
+            forwardedFor,
+            request.Headers.UserAgent.ToString(),
+            context.Connection.RemoteIpAddress?.ToString(),
+            context.User?.Identity?.IsAuthenticated == true,
+            hasAuthCookie,
+            hasNonceCookie,
+            hasCorrelationCookie,
+            context.TraceIdentifier);
+    }
+
+    var isAuthEndpoint = request.Path.StartsWithSegments("/MicrosoftIdentity") ||
+                         request.Path.StartsWithSegments("/signin-oidc") ||
+                         request.Path.StartsWithSegments("/signout-callback-oidc");
+
+    if (!isCrossSite &&
+        !isAuthEndpoint &&
+        HttpMethods.IsGet(request.Method) &&
+        !hasAuthCookie &&
+        context.User?.Identity?.IsAuthenticated != true)
+    {
+        Log.Warning(
+            "Direct inbound request has no auth cookie and user is unauthenticated. Path={Path}, Query={Query}, Host={Host}, XForwardedProto={XForwardedProto}, XForwardedHost={XForwardedHost}, XForwardedFor={XForwardedFor}, UserAgent={UserAgent}, TraceId={TraceId}",
+            request.Path,
+            request.QueryString.Value,
+            request.Host.Value,
+            forwardedProto,
+            forwardedHost,
+            forwardedFor,
+            request.Headers.UserAgent.ToString(),
+            context.TraceIdentifier);
+    }
+
+    await next.Invoke();
+
+    // Log failures for all requests, plus redirects/errors for cross-site traffic.
+    if (context.Response.StatusCode >= 400 || (isCrossSite && context.Response.StatusCode >= 300))
+    {
+        Log.Warning(
+            "Inbound request completed with notable status. Method={Method}, Path={Path}, Query={Query}, StatusCode={StatusCode}, Host={Host}, Referer={Referer}, Origin={Origin}, IsAuthenticated={IsAuthenticated}, TraceId={TraceId}",
+            request.Method,
+            request.Path,
+            request.QueryString.Value,
+            context.Response.StatusCode,
+            request.Host.Value,
+            referer,
+            origin,
+            context.User?.Identity?.IsAuthenticated == true,
+            context.TraceIdentifier);
+    }
+});
+
 app.UseSession(); // Enable session middleware
 
-// Middleware to initialize and validate the user session.
+app.UseAuthentication();
+
+// Post-auth diagnostics: logs the effective principal state after cookie processing.
+// This helps distinguish between "cookie exists" and "cookie produced an authenticated user".
+app.Use(async (context, next) =>
+{
+    var request = context.Request;
+    var referer = request.Headers.Referer.ToString();
+    var hasAuthCookie = request.Cookies.Keys.Any(k =>
+        k.Contains(".AspNetCore.Cookies", StringComparison.OrdinalIgnoreCase));
+
+    Log.Information(
+        "Post-auth state. Method={Method}, Path={Path}, Host={Host}, Referer={Referer}, IsAuthenticated={IsAuthenticated}, AuthType={AuthType}, Name={Name}, HasAuthCookie={HasAuthCookie}, TraceId={TraceId}",
+        request.Method,
+        request.Path,
+        request.Host.Value,
+        referer,
+        context.User?.Identity?.IsAuthenticated == true,
+        context.User?.Identity?.AuthenticationType,
+        context.User?.Identity?.Name,
+        hasAuthCookie,
+        context.TraceIdentifier);
+
+    if (hasAuthCookie && context.User?.Identity?.IsAuthenticated != true)
+    {
+        Log.Warning(
+            "Auth cookie is present but request is still unauthenticated after cookie auth. Path={Path}, Host={Host}, TraceId={TraceId}",
+            request.Path,
+            request.Host.Value,
+            context.TraceIdentifier);
+    }
+
+    await next.Invoke();
+});
+
+app.UseAuthorization();
+
+// Middleware to initialize and validate the user session from Entra ID claims.
 app.Use(async (context, next) =>
 {
     // Remove unwanted headers
@@ -203,70 +582,46 @@ app.Use(async (context, next) =>
         return Task.CompletedTask;
     });
 
+    // Skip session initialization for auth endpoints
+    if (context.Request.Path.StartsWithSegments("/MicrosoftIdentity") ||
+        context.Request.Path.StartsWithSegments("/signin-oidc") ||
+        context.Request.Path.StartsWithSegments("/signout-callback-oidc"))
+    {
+        await next.Invoke();
+        return;
+    }
+
     if (string.IsNullOrEmpty(context.Session.GetString("userid")))
     {
-        var bypassEnabled = builder.Configuration.GetValue<bool>("SiteMinderBypass:Enabled");
-        var allowedUser = builder.Configuration.GetValue<string>("SiteMinderBypass:AllowedUser") ?? string.Empty;
-
-        string userId = string.Empty;
-
-        if (bypassEnabled)
+        // User must be authenticated via Entra ID OIDC at this point
+        if (context.User?.Identity?.IsAuthenticated != true)
         {
-            // ===================================================================================
-            // BYPASS MODE: Use the configured AllowedUser
-            // ===================================================================================
-            // When bypass is enabled, use the single configured user.
-            // This is intended for development/testing environments only.
-            // ===================================================================================
-            if (string.IsNullOrEmpty(allowedUser))
-            {
-                var logger = context.RequestServices.GetService<ILogger<Program>>();
-                logger?.LogError("SiteMinder bypass is enabled but AllowedUser is not configured.");
-                context.Response.StatusCode = 403;
-                await context.Response.WriteAsync("Access denied: AllowedUser not configured for bypass mode.");
-                return;
-            }
-
-            userId = allowedUser;
-            context.Session.SetString("SiteMinderBypassed", "true");
-
-            var logger2 = context.RequestServices.GetService<ILogger<Program>>();
-            logger2?.LogWarning("SiteMinder bypass active. Using configured user: {UserId}", userId);
+            // Not authenticated — the [Authorize] policy will trigger OIDC challenge
+            await next.Invoke();
+            return;
         }
-        else
-        {
-            // ===================================================================================
-            // NORMAL MODE: Use SiteMinder authentication
-            // ===================================================================================
-            // When running locally in Development and SiteMinder is not available,
-            // fall back to the Windows username from the environment.
-            // ===================================================================================
-            string siteMinderUser = context.GetServerVariable("HEADER_SM_USER");
 
-            if (!string.IsNullOrEmpty(siteMinderUser))
-            {
-                userId = siteMinderUser;
-            }
-            else if (app.Environment.IsDevelopment())
-            {
-                // Local development fallback: use the Windows username
-                userId = Environment.UserName;
-                var logger = context.RequestServices.GetService<ILogger<Program>>();
-                logger?.LogWarning("SiteMinder header not found. Using local Windows username: {UserId}", userId);
-            }
-            else
-            {
-                var logger = context.RequestServices.GetService<ILogger<Program>>();
-                logger?.LogWarning("No user identity found. SiteMinder header missing or empty.");
-                context.Response.Redirect("/egrants_default.htm");
-                return;
-            }
+        // ===================================================================================
+        // Extract user identity from Entra ID OIDC claims
+        // ===================================================================================
+        // The "preferred_username" claim contains the UPN (e.g., "dehuffdc@nih.gov").
+        // We extract the username portion to match the existing person table.
+        // Resolution logic lives in EntraIdUserResolver so it can be unit tested.
+        // ===================================================================================
+        string userId = eGrants.Common.EntraIdUserResolver.ResolveUserId(context.User);
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            var logger = context.RequestServices.GetService<ILogger<Program>>();
+            logger?.LogWarning("No user identity found in Entra ID claims.");
+            context.Response.Redirect("/egrants_default.htm");
+            return;
         }
 
         context.Session.SetString("userid", userId);
 
-        // Capture IC (Institute/Org Code)
-        var ic = context.GetServerVariable("HEADER_USER_SUB_ORG") ?? "NCI";
+        // Determine IC (Institute/Org Code) - default to NCI
+        var ic = eGrants.Common.EntraIdUserResolver.ResolveIc(context.User);
         context.Session.SetString("ic", ic);
 
         // Detect browser
@@ -287,6 +642,14 @@ app.Use(async (context, next) =>
 
         if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
         {
+            Log.Warning(
+                "Access resolution failed (UserType empty). Redirecting to egrants_default.htm. " +
+                "UserId={UserId}, Ic={Ic}, Path={Path}, TraceId={TraceId}",
+                context.Session.GetString("userid"),
+                context.Session.GetString("ic"),
+                context.Request.Path,
+                context.TraceIdentifier);
+
             context.Response.Redirect("/egrants_default.htm");
             return;
         }
@@ -308,6 +671,16 @@ app.Use(async (context, next) =>
 
         if (context.Session.GetString("Validation")?.ToString() != "OK")
         {
+            Log.Warning(
+                "Access resolution failed (Validation != OK). Redirecting to egrants_default.htm. " +
+                "UserId={UserId}, Ic={Ic}, UserType={UserType}, Validation={Validation}, Path={Path}, TraceId={TraceId}",
+                context.Session.GetString("userid"),
+                context.Session.GetString("ic"),
+                usertype,
+                context.Session.GetString("Validation"),
+                context.Request.Path,
+                context.TraceIdentifier);
+
             context.Response.Redirect("/egrants_default.htm");
             return;
         }
@@ -315,7 +688,12 @@ app.Use(async (context, next) =>
         // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
         context.Session.SetString("WebGrantRelativePath", builder.Configuration["AppSettings:webGrantRelativePath"] ?? string.Empty);
+#if DEBUG
+        var localImageServerUrl = $"{context.Request.Scheme}://{context.Request.Host}/";
+        context.Session.SetString("ImageServerUrl", localImageServerUrl);
+#else
         context.Session.SetString("ImageServerUrl", builder.Configuration["AppSettings:imageServerUrl"] ?? string.Empty);
+#endif
         context.Session.SetInt32("dashboard", 0);
         context.Session.SetString("EgrantsDocNewRelativePath", builder.Configuration["AppSettings:egrantsDocNewRelativePath"] ?? string.Empty);
         context.Session.SetString("EgrantsDocModifyRelativePath", builder.Configuration["AppSettings:egrantsDocModifyRelativePath"] ?? string.Empty);
@@ -344,10 +722,6 @@ app.Use(async (context, next) =>
     await next.Invoke();
 });
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-app.UseAuthorization();
 app.UseSystemWebAdapters();
 
 #endregion
@@ -364,3 +738,9 @@ app.MapControllerRoute("Integration", "{controller=Integration}/{action=Trigger}
 #endregion
 
 app.Run();
+
+// Exposes the top-level-statements Program class as public so the integration
+// test project (eGrants.Tests) can reference it via WebApplicationFactory<Program>.
+public partial class Program
+{
+}

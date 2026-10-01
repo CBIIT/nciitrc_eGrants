@@ -145,7 +145,7 @@ namespace eGrants.Services
             _sessionInfoService = sessionInfoService;
             _commonRepository = commonRepository;
             _eGrantsService = eGrantsService;
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _context = context;
         }
 
         /// <summary>
@@ -429,7 +429,11 @@ string admin_code,
 
                     docName = Convert.ToString(document_id) + fileExtension;
 
+#if DEBUG
+                    var fileFolder = @"C:\PdfFileOutput\";
+#else
                     var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded2\\nci\\main\\";
+#endif
 
                     var filePath = Path.Combine(fileFolder, docName);
 
@@ -476,7 +480,11 @@ string admin_code,
                     sessionInfo.Ic,
               sessionInfo.UserId);
 
+ #if DEBUG
+                    var fileFolder = @"C:\PdfFileOutput\";
+ #else
                     var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\modify\\";
+ #endif
                     var filePath = Path.Combine(fileFolder, docName);
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
@@ -531,11 +539,11 @@ string admin_code,
 
                     docName = Convert.ToString(docId) + fileExtension;
 
-#if DEBUG
-                    var fileFolder = "C:\\PdfFileOutput\\";
-#else
+ #if DEBUG
+                    var fileFolder = @"C:\PdfFileOutput\";
+ #else
                     var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\modify\\";
-#endif
+ #endif
 
                     var filePath = Path.Combine(fileFolder, docName);
 
@@ -686,6 +694,11 @@ string admin_code,
         public void DocModify(string act, int applId, int categoryId, string subCategory, string docDate, string docidStr, string fileType, string ic, string userId)
         {
             _documentRepository.DocModify(act, applId, categoryId, subCategory, docDate, docidStr, fileType, ic, userId);
+        }
+
+        public void UpdateDocumentFileType(int documentId, string fileType)
+        {
+            _documentRepository.UpdateDocumentFileType(documentId, fileType);
         }
 
         /// <summary>

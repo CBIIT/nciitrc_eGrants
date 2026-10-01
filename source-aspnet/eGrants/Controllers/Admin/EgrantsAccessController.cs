@@ -427,7 +427,7 @@ namespace eGrants.Controllers.Admin
                 sessionInfo.Ic,
                 sessionInfo.UserId);
 
-            return View("~/Egrants_Admin/Views/EgrantsAccessUpdate.cshtml");
+            return View("~/Views/Admin/EgrantsAccessUpdate.cshtml");
         }
 
         /// <summary>

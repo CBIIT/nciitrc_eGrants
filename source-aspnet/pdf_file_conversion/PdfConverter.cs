@@ -17,10 +17,22 @@ namespace EmailConcatenation
 {
     public class PdfConverter
     {
-        private App _app;
+        // The Ninject kernel and configuration are expensive to build (reads
+        // appsettings.json from disk and registers all converter bindings).
+        // Building them once and sharing them across instances avoids repeating
+        // that work for every file during batch conversions. A fresh App is still
+        // resolved per PdfConverter instance so callers can safely create a
+        // converter per thread/file without sharing mutable state.
+        private static readonly IKernel _kernel = BuildKernel();
 
+        private readonly App _app;
 
         public PdfConverter()
+        {
+            _app = _kernel.Get<App>();
+        }
+
+        private static IKernel BuildKernel()
         {
             IKernel kernel = new StandardKernel();
 
@@ -45,8 +57,7 @@ namespace EmailConcatenation
 
             kernel.Bind<App>().ToSelf();
 
-            var app = kernel.Get<App>();
-            _app = app;
+            return kernel;
         }
 
         public PdfDocument Convert(Storage.Message incomingMessage)

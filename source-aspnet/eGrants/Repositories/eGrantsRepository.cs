@@ -35,6 +35,7 @@ namespace eGrants.Repositories
             using (var cmd = new SqlCommand("dbo.sp_web_egrants", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 60;
 
                 cmd.Parameters.AddWithValue("@str", searchString ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@grant_id", grantId);
@@ -279,7 +280,7 @@ namespace eGrants.Repositories
                                c.email_addr, e.role_type_code, c.addr_type_code
                         FROM person_involvements_mv e
                         JOIN persons_secure d ON d.person_id = e.person_id
-                        LEFT OUTER JOIN person_addresses_mv c ON d.person_id = c.person_id
+                        LEFT OUTER JOIN person_addresses_restricted_vw c ON d.person_id = c.person_id
                             AND c.addr_type_code IN (''HOM'') AND c.preferred_addr_code = ''Y''
                         WHERE e.role_type_code IN (''PI'', ''MPI'', ''CPI'')
                             AND appl_id IN ({applsParam})
@@ -290,6 +291,7 @@ namespace eGrants.Repositories
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    context.Database.SetCommandTimeout(60);
 
                     // Execute the OPENQUERY and return the results.
                     return await context.PersonInvolvements
@@ -415,7 +417,8 @@ namespace eGrants.Repositories
 
             await using var command = new SqlCommand(sqlQuery, connection)
             {
-                CommandType = CommandType.StoredProcedure
+                CommandType = CommandType.StoredProcedure,
+                CommandTimeout = 60
             };
 
             command.Parameters.Add("@term", SqlDbType.VarChar).Value = term;

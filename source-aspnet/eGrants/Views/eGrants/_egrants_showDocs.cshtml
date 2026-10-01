@@ -109,6 +109,9 @@
 
        if (docurl.startsWith("https://services.")) {
          var url = "@Url.Action("show_era_doc", "EgrantsDoc")?docurl=" + docurl;
+      } else if (window.location.hostname === "localhost" && /^https?:\/\/[^/]+\/data\//i.test(docurl)) {
+         var parsed = new URL(docurl);
+         var url = window.location.origin + parsed.pathname + parsed.search;
       } else if (docurl.substring(0, 5) == "/data") {
          var url = ImageServer + docurl.substring(1, docurl.length);
       } else if (docurl.substring(0, 5) == "data/") {

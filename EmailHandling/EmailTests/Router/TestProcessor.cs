@@ -1,6 +1,6 @@
 ﻿using CommonUtilties;
-using Microsoft.Office.Interop.Outlook;
 using Router;
+using CommonUtilties;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -20,11 +20,12 @@ namespace EmailTests
         /// </summary>
         /// <param name="testEmail"></param>
         /// <returns></returns>
-        internal Dictionary<string, string> TestSingleEmail(MailItem testEmail, string sender = null)
+        internal Dictionary<string, string> TestSingleEmail(dynamic testEmail, string sender = null)
         {
-            var dirPath = CommonUtilities.GetConfigVal("logDir");
-            var conStr = CommonUtilities.GetConfigVal("conStr");
-            var verbose = CommonUtilities.GetConfigVal("Verbose");
+            var config = AppConfig.Load();
+            var dirPath = config["AppSettings:LogDir"] ?? @"C:\egrants\apps\log\";
+            var conStr = AppConfig.GetConnectionString(config, "EIM");
+            var verbose = config["AppSettings:Verbose"] ?? "n";
 
             if (!string.IsNullOrWhiteSpace(sender))
             {
@@ -38,21 +39,22 @@ namespace EmailTests
             SqlConnection connection = new SqlConnection(conStr);
             connection.Open();
 
-            HandleSingleEmail(testEmail, testEmail.Subject, testEmail.Body, verbose, connection, debug);
+            HandleSingleEmail(testEmail, (string)testEmail.Subject, (string)testEmail.Body, verbose, connection, debug);
             var result = emailsSentThisSession;
             return result;
         }
 
-        public override string GetSenderId(MailItem testEmail)
+        public override string GetSenderId(dynamic testEmail)
         {
             return _testSender;
         }
 
         internal Dictionary<string, string> TestSingleEmail(string From, string Subject, string Body)
         {
-            var dirPath = CommonUtilities.GetConfigVal("logDir");
-            var conStr = CommonUtilities.GetConfigVal("conStr");
-            var verbose = CommonUtilities.GetConfigVal("Verbose");
+            var config = AppConfig.Load();
+            var dirPath = config["AppSettings:LogDir"] ?? @"C:\egrants\apps\log\";
+            var conStr = AppConfig.GetConnectionString(config, "EIM");
+            var verbose = config["AppSettings:Verbose"] ?? "n";
             var debug = "y";    // NEVER send out emails from these tests
             SqlConnection connection = new SqlConnection(conStr);
             connection.Open();
@@ -65,16 +67,16 @@ namespace EmailTests
             return result;
         }
 
-        protected override Dictionary<string, string> Send(MailItem mailItem)
+        protected override Dictionary<string, string> Send(dynamic mailItem)
         {
             // don't send here because this is the test method, just gather info to be returned to test method
 
             var recipients = new List<string>();
 
-            foreach (Recipient recipient in mailItem.Recipients)
+            foreach (dynamic recipient in mailItem.Recipients)
             {
                 // somehow recipient.Address is always null and the email isn't in the object
-                recipients.Add(recipient.Name);     
+                recipients.Add((string)recipient.Name);     
             }
 
             if (emailsSentThisSession.ContainsKey("recipients"))
@@ -93,7 +95,7 @@ namespace EmailTests
             {
                 emailsSentThisSession["subject"] = mailItem.Subject;
             }
-            
+
 
             return null;
         }
