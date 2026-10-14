@@ -27,10 +27,21 @@ class NoLookup:
 def remove_sp_characters(text: str) -> str:
     """Match the original RemoveSpCharacters substitutions and ordering."""
     for old, new in (
-        ("vbLf", "vbCrLF"), (":", " "), ("/", " "), ("\\", " "),
-        ("&", "and"), (";", " "), ("<", " "), (">", " "),
-        ("<<", " "), (">>", " "), ("^", " "), ("%", " "),
-        ("@", " "), ("'", " "), (" ", ""),
+        ("vbLf", "vbCrLF"),
+        (":", " "),
+        ("/", " "),
+        ("\\", " "),
+        ("&", "and"),
+        (";", " "),
+        ("<", " "),
+        (">", " "),
+        ("<<", " "),
+        (">>", " "),
+        ("^", " "),
+        ("%", " "),
+        ("@", " "),
+        ("'", " "),
+        (" ", ""),
     ):
         text = text.replace(old, new)
     return text.strip()
@@ -46,7 +57,9 @@ def _recipients(text: str) -> list[str]:
 
 
 def route_email(
-    email: IncomingEmail, config: RouterConfig, debug: str,
+    email: IncomingEmail,
+    config: RouterConfig,
+    debug: str,
     lookup: GrantLookup | None = None,
 ) -> RouteResult:
     """Run one ordered branch; the eSNAP branch may produce two forwards."""
@@ -54,24 +67,39 @@ def route_email(
     subject = email.subject
     body = email.body
     production = debug == "n"
-    efile_group = [config.efile_email, config.egrants_dev_email,
-                   config.egrants_test_email, config.egrants_stage_email]
+    efile_group = [
+        config.efile_email,
+        config.egrants_dev_email,
+        config.egrants_test_email,
+        config.egrants_stage_email,
+    ]
     debug_group = [config.debug_email, config.egrants_dev_email]
 
     def result(name: str, forwards: list[tuple[str, list[str]]]) -> RouteResult:
         return RouteResult(
-            matched=True, route_name=name,
+            matched=True,
+            route_name=name,
             outgoing_messages=[
-                OutgoingEmail(subject=title, body=body, recipients=people)
+                OutgoingEmail(
+                    subject=title,
+                    body=body,
+                    recipients=people,
+                    preserve_subject=name == "change_of_institution",
+                )
                 for title, people in forwards
             ],
         )
 
-    def forward(name: str, title: str | None = None,
-                production_recipients: list[str] | None = None,
-                debug_recipients: list[str] | None = None) -> RouteResult:
-        people = (production_recipients or efile_group) if production else (
-            debug_recipients if debug_recipients is not None else debug_group
+    def forward(
+        name: str,
+        title: str | None = None,
+        production_recipients: list[str] | None = None,
+        debug_recipients: list[str] | None = None,
+    ) -> RouteResult:
+        people = (
+            (production_recipients or efile_group)
+            if production
+            else (debug_recipients if debug_recipients is not None else debug_group)
         )
         return result(name, [(subject if title is None else title, people)])
 
@@ -87,12 +115,15 @@ def route_email(
     if "eSNAP Received at NIH" in subject or "eRA Commons: RPPR for Grant" in subject:
         forwards: list[tuple[str, list[str]]] = []
         if "submitted to NIH with a Non-Compliance" in subject:
-            forwards.append((
-                f"category=eRANotification, sub=RPPR Non-Compliance, extract=1,{subject}",
-                efile_group if production else debug_group,
-            ))
-        forwards.append((subject, _recipients(config.public_access_recipients)
-                         if production else debug_group))
+            forwards.append(
+                (
+                    f"category=eRANotification, sub=RPPR Non-Compliance, extract=1,{subject}",
+                    efile_group if production else debug_group,
+                )
+            )
+        forwards.append(
+            (subject, _recipients(config.public_access_recipients) if production else debug_group)
+        )
         return result("esnap", forwards)
 
     if "IC ACTION REQUIRED - Relinquishing Statement" in subject:
@@ -106,14 +137,18 @@ def route_email(
     if " FCOI " in subject and not subject.startswith("Automatic reply:"):
         appl_id = db.appl_id(remove_sp_characters(subject))
         primary, backup = db.officer_emails(appl_id) if appl_id else ("", "")
-        officers = list(dict.fromkeys(
-            address for address in (primary, backup) if address.strip()
-        ))
+        officers: list[str] = []
+        for address in (primary, backup):
+            if address.strip() and not any(
+                existing.casefold() == address.casefold() for existing in officers
+            ):
+                officers.append(address)
         return forward("fcoi", production_recipients=[config.bob_team_email, *officers])
 
     if "No Cost Extension Submitted" in subject:
         return enriched(
-            "no_cost_extension", "category=eRANotification, sub=No Cost Extension, extract=1,",
+            "no_cost_extension",
+            "category=eRANotification, sub=No Cost Extension, extract=1,",
             debug_recipients=[config.egrants_dev_email],
         )
 
@@ -123,7 +158,12 @@ def route_email(
             production_recipients=_recipients(config.relinquishing_recipients),
         )
 
-    if "public" in email.sender.lower():
+    # GetSenderId uses the address alias when @ occurs after the first character.
+    at = email.sender.find("@")
+    sender_id = email.sender[:at] if at > 0 else email.sender
+    if "public" in sender_id.lower():
+        if not subject.strip():
+            return RouteResult(False, "public_access_empty_subject")
         middle = subject.split(": ")[-1].strip().split(" - ")[0]
         appl_id = id_from(middle)
         sub = "Compliant" if "compliant" in subject.lower() else ""
@@ -140,8 +180,11 @@ def route_email(
         )
 
     if "NIH Automated Email: ACTION REQUIRED - Overdue Progress Report for Grant" in subject:
-        title = ("category=eRANotification, sub=Late Progress Report, extract=1, " + subject
-                 if " R15 " in subject else "")
+        title = (
+            "category=eRANotification, sub=Late Progress Report, extract=1, " + subject
+            if " R15 " in subject
+            else ""
+        )
         return forward("late_progress", title)
 
     if "Expiring Funds" in subject or "EXPIRING FUNDS-" in subject:
@@ -156,8 +199,10 @@ def route_email(
         return enriched("ffr_rejected", "category=Notification, sub=FFR Rejection, extract=1, ")
 
     if "eRA Commons: The Final RPPR - Additional Materials for Award" in subject:
-        if ("re: eRA Commons: The Final RPPR " in subject
-            or "fw: eRA Commons: The Final RPPR " in subject):
+        if (
+            "re: eRA Commons: The Final RPPR " in subject
+            or "fw: eRA Commons: The Final RPPR " in subject
+        ):
             return RouteResult(False, "fram_reply")
         return enriched("final_rppr", "category=FRAM: Request, sub=The Final RPPR, extract=1, ")
 
@@ -165,28 +210,33 @@ def route_email(
         grant = subject.strip().split(" ")[7]
         appl_id = id_from(grant) if grant.strip() else ""
         return enriched(
-            "rppr_balance", f"applid={appl_id}, category=Correspondence, "
-            "sub=RPPR Unobligated Balance, extract=1, "
+            "rppr_balance",
+            f"applid={appl_id}, category=Correspondence, sub=RPPR Unobligated Balance, extract=1, ",
         )
 
     if "eRA Commons: PRAM for Grant" in subject:
-        if ("re: eRA Commons: PRAM for Grant" in subject
-            or "fw: eRA Commons: PRAM for Grant" in subject):
+        if (
+            "re: eRA Commons: PRAM for Grant" in subject
+            or "fw: eRA Commons: PRAM for Grant" in subject
+        ):
             return RouteResult(False, "pram_reply")
-        return enriched("pram_grant", "category=PRAM: Requested, sub=PRAM for Grant, extract=1, ",
-                        production_recipients=efile_group[1:])
+        return enriched(
+            "pram_grant",
+            "category=PRAM: Requested, sub=PRAM for Grant, extract=1, ",
+            production_recipients=efile_group[1:],
+        )
 
     if "FRAM Requested" in subject or "PRAM Requested" in subject:
         category = "FRAM" if "FRAM Requested" in subject else "PRAM"
         return enriched(
-            "fram_pram", f"applid={id_from(subject)}, category={category}, "
-            "sub=Request, extract=1, "
+            "fram_pram", f"applid={id_from(subject)}, category={category}, sub=Request, extract=1, "
         )
 
     if "CHANGE_NOTICE_FOR" in subject and "Application is withdrawn request" in subject:
         return enriched(
-            "withdrawn", f"applid={id_from(subject)}, category=eRA Notification, "
-            "sub=Application Withdrawn, extract=1, "
+            "withdrawn",
+            f"applid={id_from(subject)}, category=eRA Notification, "
+            "sub=Application Withdrawn, extract=1, ",
         )
 
     if subject.startswith("RPPR Reminder"):
@@ -203,15 +253,16 @@ def route_email(
     if "urgent: closeout reports overdue" in subject.lower():
         appl_id = id_from(_nth_word(subject, 6))
         return enriched(
-            "closeout_overdue", f"category=closeout, sub=Past Due Documents Reminder, "
-            f"applid={appl_id}, extract=1, "
+            "closeout_overdue",
+            f"category=closeout, sub=Past Due Documents Reminder, applid={appl_id}, extract=1, ",
         )
 
     if "closeout program action required" in subject.lower():
         appl_id = id_from(_nth_word(subject.strip(), 5))
         return enriched(
-            "closeout_program", "category=closeout, sub=F-RPPR Acceptance Past Due Reminder, "
-            f"applid={appl_id}, extract=1, "
+            "closeout_program",
+            "category=closeout, sub=F-RPPR Acceptance Past Due Reminder, "
+            f"applid={appl_id}, extract=1, ",
         )
 
     if "FFR Reminder" in subject and "FFR Past Due" in subject:
@@ -222,8 +273,9 @@ def route_email(
     if "ClinicalTrials.gov Results Reporting for Grant" in subject:
         last_four = subject.split(" ")[-1][-4:]
         return enriched(
-            "clinical_trials", f"applid={id_from(subject)}, category=CT.gov, "
-            f"sub=Results Reporting Reminder NCT{last_four} , extract=1, "
+            "clinical_trials",
+            f"applid={id_from(subject)}, category=CT.gov, "
+            f"sub=Results Reporting Reminder NCT{last_four} , extract=1, ",
         )
 
     if "SBIR/STTR Foreign Risk Management" in subject:
@@ -240,4 +292,11 @@ def apply_prior_approval_rule(
     """Keep the original slice API for standalone rule tests."""
     if PRIOR_APPROVAL_TOKEN not in email.subject:
         return RouteResult(False, "prior_approval")
-    return route_email(email, config, debug)
+    recipients = (
+        [config.nci_grants_post_award_email]
+        if debug == "n"
+        else [config.debug_email, config.egrants_dev_email]
+    )
+    return RouteResult(
+        True, "prior_approval", [OutgoingEmail(email.subject, email.body, recipients)]
+    )

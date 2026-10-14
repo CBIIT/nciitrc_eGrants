@@ -45,8 +45,15 @@ def forward_result(item: Any, result: RouteResult, environment: str) -> None:
         forwarded.Send()
 
 
-def process_folder(app: Any, processor: Processor, config: RouterConfig, debug: str,
-                   *, dry_run: bool = True, sleep: Any = time.sleep) -> int:
+def process_folder(
+    app: Any,
+    processor: Processor,
+    config: RouterConfig,
+    debug: str,
+    *,
+    dry_run: bool = True,
+    sleep: Any = time.sleep,
+) -> int:
     """Process a snapshot, never archive during dry-run or after a routing/send failure."""
     if not config.folder_path:
         raise ValueError("FolderPaths__dirpathRouter is required")
@@ -70,16 +77,24 @@ def process_folder(app: Any, processor: Processor, config: RouterConfig, debug: 
         if count >= 50:
             logger.warning("50-item safety limit reached; remaining messages left in place")
             if not dry_run:
-                notify(app, config.legacy_error_recipient,
-                       environment_prefix(config.environment) + "Router processed 50 mail items",
-                       "Check for duplicate item processing.")
+                notify(
+                    app,
+                    config.legacy_error_recipient,
+                    environment_prefix(config.environment) + "Router processed 50 mail items",
+                    "Check for duplicate item processing.",
+                )
             break
         try:
-            email = IncomingEmail(subject=str(item.Subject or ""),
-                                  body=str(item.Body or ""), sender=sender_id(item))
+            email = IncomingEmail(
+                subject=str(item.Subject or ""), body=str(item.Body or ""), sender=sender_id(item)
+            )
             result = processor.handle_single_email(email, debug=debug)
-            logger.info("Route %s: %s -> %s", result.route_name, email.subject,
-                        [message.recipients for message in result.outgoing_messages])
+            logger.info(
+                "Route %s: %s -> %s",
+                result.route_name,
+                email.subject,
+                [message.recipients for message in result.outgoing_messages],
+            )
             if not dry_run:
                 forward_result(item, result, config.environment)
                 item.Move(archive)
@@ -89,9 +104,12 @@ def process_folder(app: Any, processor: Processor, config: RouterConfig, debug: 
             logger.exception("Failed to process mail item; leaving it in the source folder")
             if not dry_run:
                 try:
-                    notify(app, config.error_recipients,
-                           environment_prefix(config.environment) + "Router processing failure",
-                           "A mail item failed to process. Check router logs and source folder.")
+                    notify(
+                        app,
+                        config.error_recipients,
+                        environment_prefix(config.environment) + "Router processing failure",
+                        "A mail item failed to process. Check router logs and source folder.",
+                    )
                 except Exception:
                     logger.exception("Failed to notify administrators")
     return count

@@ -25,10 +25,41 @@ def test_global_notification_uses_smtp_config(monkeypatch: pytest.MonkeyPatch) -
 
     monkeypatch.setattr("app.notifications.smtplib.SMTP", FakeSmtp)
     config = RouterConfig(
-        smtp_host="relay.example.org", smtp_from_address="router@example.org",
-        error_recipients="admin@example.org;backup@example.org", environment="Development",
+        smtp_host="relay.example.org",
+        smtp_from_address="router@example.org",
+        error_recipients="admin@example.org;backup@example.org",
+        environment="Development",
     )
     send_global_error(config, "Router failed")
     assert delivered[0]["Subject"] == "(Development) Global level email failure."
     assert delivered[0]["To"] == "admin@example.org, backup@example.org"
     assert delivered[0]["From"] == "eGrants Router <router@example.org>"
+
+
+def test_test_recipient_overrides_smtp_admin_recipients(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    delivered: list[EmailMessage] = []
+
+    class FakeSmtp:
+        def __init__(self, host: str, port: int, timeout: int) -> None:
+            pass
+
+        def __enter__(self) -> "FakeSmtp":
+            return self
+
+        def __exit__(self, *args: Any) -> None:
+            pass
+
+        def send_message(self, message: EmailMessage) -> None:
+            delivered.append(message)
+
+    monkeypatch.setattr("app.notifications.smtplib.SMTP", FakeSmtp)
+    config = RouterConfig(
+        smtp_host="relay.example.org",
+        smtp_from_address="router@example.org",
+        error_recipients="admin@example.org;backup@example.org",
+        test_recipient="daryl.dehuff@nih.gov",
+    )
+    send_global_error(config, "Synthetic error")
+    assert delivered[0]["To"] == "daryl.dehuff@nih.gov"

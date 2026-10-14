@@ -1,4 +1,33 @@
-# Router migration handoff (2026-10-12)
+# Router migration handoff (2026-10-13)
+
+## Current staged workflow handoff
+
+The orchestrator's initial pass performed the stages sequentially; subsequent
+specialist runs independently verified the inventory and contract, corrected
+implementation gaps, added mock parity tests, and reran the quality gate.
+The [complete
+source-cited contract](router-contract.md) records the inventory and ordered
+branch/side-effect matrix. Existing uncommitted agent customizations and README
+edits were preserved; no secrets were copied, no mail sent, no production IO,
+no Git commit/push and no `--send` execution occurred.
+
+| Stage | Context and decisions | Artifacts and validation | Open risks / next input |
+|---|---|---|---|
+| Inventory | Upgraded Graph Router and CommonUtilties, not Outlook COM | `router-contract.md` inventory; verified Graph, SMTP, SQL and appsettings schema, no values | Live Graph/SQL/SMTP behavior unknown; contract stage |
+| Contract | C# branch order, debug/production recipients, source failures and 50-item behavior; safety deviations explicit | `router-contract.md` rows 0–26, side effects and overlays | Implement configuration first |
+| Configuration → parity | Case-insensitive JSON/environment keys, signed duration and SMTP fallback | `app/config.py`, `tests/test_config.py`; 6 passed | Test settings in isolated environment; routing unit |
+| Pure routing → parity | Preserve Change of Institution subject and case-insensitive FCOI officer dedupe; dedicated Prior Approval slice | `app/models.py`, `app/routing_rules.py`, `tests/test_router_parity.py`; 73 routing/Graph/slice tests passed | Verify representative sanitized real subjects; SQL unit |
+| SQL → parity | Pass string `@APPLID` as in source; parameterized UDF/SP, last officer row | `app/database.py`, `tests/test_database.py`; 66 SQL/routing tests passed | ODBC 18 and EIM types need isolated test; Graph/SMTP unit |
+| Graph/SMTP → parity | Prevent cross-mailbox paging, source HTML fallback, subject override | `app/graph.py`, `tests/test_graph.py`, existing `tests/test_notifications.py`; 8 Graph/SMTP tests passed | Attachments, Graph permissions and relay unverified; processing unit |
+| Processing/CLI → parity | Forward original on routing error, alert move failures; retain safe no-archive-on-error and 50 hard cap; existing offline CLI untouched | `app/graph.py`, `tests/test_graph.py`; 50-item synthetic cap checked; offline CLI preview succeeded | Partial-send deduplication/operations; quality stage |
+| Quality | Offline tests only; security review: no credentials printed and same-mailbox page constraint, but live dry-run still performs Graph/SQL reads | 121 passed, 3 xfailed; mypy, ruff lint/format and diff check pass | Three deliberate policy deviations; isolated integration required before deployment |
+
+**Quality follow-up:** `pytest -q`: 121 passed, 3 xfailed (source behavior
+differs intentionally for the 50-item cap and two error/archive/count paths);
+`ruff check .`, `ruff format --check .`, `mypy app` and `git diff --check` pass.
+The three expected failures are **not** parity successes: these safety policies
+require operational approval. No live Graph, SQL, SMTP or scheduling validation
+was performed. The mock-covered code is not a verified production replacement.
 
 ## Context and requested source correction
 
@@ -44,10 +73,9 @@ not executable agents, and are still limited to the Prior Approval rule.
 
 ## Validation
 
-- 76 unit tests pass; `ruff check .` and `mypy app` pass.
+- 121 tests pass and 3 source-parity tests xfail; `ruff check .` and `mypy app` pass.
 - Offline Prior Approval CLI preview prints the expected simulated recipient.
-- `ruff format --check .` currently reports 11 files needing formatting; not
-  auto-applied because formatting must go through workspace edit tools.
+- `ruff format --check .` passes after workspace-tool formatting edits.
 - No real SQL Server, Graph, SMTP, or mailbox integration test has been run.
   Production parity is **not established**.
 

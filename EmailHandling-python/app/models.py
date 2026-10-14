@@ -14,6 +14,8 @@ class OutgoingEmail:
     subject: str
     body: str
     recipients: List[str] = field(default_factory=list)
+    # Source explicitly resets the Change of Institution forward to its original subject.
+    preserve_subject: bool = False
 
 
 @dataclass(slots=True)

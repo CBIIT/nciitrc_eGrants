@@ -7,15 +7,25 @@ from app.config import SOURCE_ROUTER_CONFIG, load_config
 
 
 def test_overlays_and_env_take_precedence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    (tmp_path / "appsettings.json").write_text(json.dumps({
-        "EmailRecipients": {"DebugEmail": "base@example.org"},
-        "AppSettings": {"dBug": "n"},
-        "FolderPaths": {"dirpathRouter": "Root\\Mail"},
-        "ConnectionStrings": {"EIM": "User ID=%DB_USER%;Password=%DB_PASSWORD%"},
-    }), encoding="utf-8")
-    (tmp_path / "appsettings.Development.json").write_text(json.dumps({
-        "EmailRecipients": {"DebugEmail": "dev@example.org"},
-    }), encoding="utf-8")
+    (tmp_path / "appsettings.json").write_text(
+        json.dumps(
+            {
+                "EmailRecipients": {"DebugEmail": "base@example.org"},
+                "AppSettings": {"dBug": "n"},
+                "FolderPaths": {"dirpathRouter": "Root\\Mail"},
+                "ConnectionStrings": {"EIM": "User ID=%DB_USER%;Password=%DB_PASSWORD%"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "appsettings.Development.json").write_text(
+        json.dumps(
+            {
+                "EmailRecipients": {"DebugEmail": "dev@example.org"},
+            }
+        ),
+        encoding="utf-8",
+    )
     monkeypatch.setenv("DOTNET_ENVIRONMENT", "Development")
     monkeypatch.setenv("DB_USER", "test-user")
     monkeypatch.setenv("DB_PASSWORD", "test-password")
@@ -28,14 +38,39 @@ def test_overlays_and_env_take_precedence(tmp_path: Path, monkeypatch: pytest.Mo
 
 
 def test_required_database_credential_is_validated(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    (tmp_path / "appsettings.json").write_text(json.dumps({
-        "ConnectionStrings": {"EIM": "Password=%DB_PASSWORD%"},
-    }), encoding="utf-8")
+    (tmp_path / "appsettings.json").write_text(
+        json.dumps(
+            {
+                "ConnectionStrings": {"EIM": "Password=%DB_PASSWORD%"},
+            }
+        ),
+        encoding="utf-8",
+    )
     monkeypatch.delenv("DB_PASSWORD", raising=False)
     with pytest.raises(ValueError, match="DB_PASSWORD"):
         load_config(tmp_path)
+
+
+def test_graph_only_config_does_not_require_database_credentials(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "appsettings.json").write_text(
+        json.dumps(
+            {
+                "ConnectionStrings": {"EIM": "Password=%DB_PASSWORD%"},
+                "Graph": {"Mailbox": "mailbox@example.org"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("DB_PASSWORD", raising=False)
+    config = load_config(tmp_path, resolve_connection=False)
+    assert config.graph_mailbox == "mailbox@example.org"
+    assert config.connection_string == ""
 
 
 def test_upgraded_router_development_settings(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -69,3 +104,32 @@ def test_upgraded_router_production_overlay(monkeypatch: pytest.MonkeyPatch) -> 
 def test_missing_base_config_is_error(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError, match="Required Router settings"):
         load_config(tmp_path)
+
+
+def test_case_insensitive_overlays_and_invalid_numeric_fallback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "appsettings.json").write_text(
+        json.dumps(
+            {
+                "appsettings": {"routingbreakduration": "-1"},
+                "emailrecipients": {"debugemail": "base@example.org"},
+                "smtp": {"port": "invalid"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "appsettings.Development.json").write_text(
+        json.dumps(
+            {
+                "EmailRecipients": {"DebugEmail": "overlay@example.org"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("EMAILRECIPIENTS__DEBUGEMAIL", "override@example.org")
+    config = load_config(tmp_path)
+    assert config.debug_email == "override@example.org"
+    assert config.routing_break_duration == -1
+    assert config.smtp_port == 25

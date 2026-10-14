@@ -32,6 +32,9 @@ class RouterConfig:
     debug: str = "y"
     routing_break_duration: int = 1000
     environment: str = "Development"
+    # None preserves explicitly constructed RouterConfig behavior; loader sets
+    # this to the real process environment (which may be unset).
+    outgoing_environment: str | None = None
     graph_mailbox: str = ""
     graph_tenant_id: str = ""
     graph_client_id: str = ""
@@ -40,7 +43,7 @@ class RouterConfig:
     smtp_port: int = 25
     smtp_from_address: str = ""
     smtp_from_name: str = "eGrants Router"
-
+    test_recipient: str | None = None
 
 
 _RECIPIENT_KEYS = {
@@ -69,19 +72,31 @@ def _read_json(path: Path, *, required: bool = False) -> dict[str, Any]:
     return data
 
 
-def load_config(config_dir: Path | None = None) -> RouterConfig:
+def load_config(config_dir: Path | None = None, *, resolve_connection: bool = True) -> RouterConfig:
     """Read .NET appsettings overlays and __ environment overrides without copying secrets."""
-    environment = os.getenv("DOTNET_ENVIRONMENT") or "Development"
+    raw_environment = os.getenv("DOTNET_ENVIRONMENT")
+    outgoing_environment = raw_environment or ""
+    environment = raw_environment if raw_environment is not None else "Development"
     base = _read_json(config_dir / "appsettings.json", required=True) if config_dir else {}
     overlay = _read_json(config_dir / f"appsettings.{environment}.json") if config_dir else {}
     sections: dict[str, dict[str, Any]] = {}
     for source in (base, overlay):
         for section, values in source.items():
             if isinstance(values, dict):
-                sections.setdefault(section, {}).update(values)
+                sections.setdefault(section.casefold(), {}).update(
+                    {key.casefold(): value for key, value in values.items()}
+                )
 
     def get(section: str, key: str, default: str) -> str:
-        return str(os.getenv(f"{section}__{key}", sections.get(section, {}).get(key, default)))
+        env_key = f"{section}__{key}".casefold()
+        override = next(
+            (value for name, value in os.environ.items() if name.casefold() == env_key), None
+        )
+        return str(
+            override
+            if override is not None
+            else sections.get(section.casefold(), {}).get(key.casefold(), default)
+        )
 
     defaults = RouterConfig()
     recipients = {
@@ -100,7 +115,7 @@ def load_config(config_dir: Path | None = None) -> RouterConfig:
 
     # Resolve credentials only if a live connection is requested; the CLI calls this
     # with the source config only in live mode.
-    connection = re.sub(r"%([^%]+)%", expand, connection)
+    connection = re.sub(r"%([^%]+)%", expand, connection) if resolve_connection else ""
     graph_secret = get("Graph", "ClientSecret", "")
     graph_secret = re.sub(
         r"%([A-Za-z0-9_]+)%", lambda match: os.getenv(match.group(1), ""), graph_secret
@@ -109,20 +124,29 @@ def load_config(config_dir: Path | None = None) -> RouterConfig:
         graph_secret = os.getenv("GRAPH_CLIENT_SECRET") or os.getenv("Graph__ClientSecret") or ""
     duration = get("AppSettings", "RoutingBreakDuration", "1000")
     port = get("SMTP", "Port", "25")
+    try:
+        break_duration = int(duration) if "fail" not in duration.lower() else 1000
+    except ValueError:
+        break_duration = 1000
+    try:
+        smtp_port = int(port)
+    except ValueError:
+        smtp_port = 25
     return RouterConfig(
         **recipients,
         folder_path=get("FolderPaths", "dirpathRouter", ""),
         connection_string=connection,
         verbose=get("AppSettings", "Verbose", "n"),
         debug=get("AppSettings", "dBug", "n"),
-        routing_break_duration=int(duration) if duration.isdecimal() else 1000,
+        routing_break_duration=break_duration,
         environment=environment,
+        outgoing_environment=outgoing_environment,
         graph_mailbox=get("Graph", "Mailbox", ""),
         graph_tenant_id=get("Graph", "TenantId", ""),
         graph_client_id=get("Graph", "ClientId", ""),
         graph_client_secret=graph_secret,
         smtp_host=get("SMTP", "Host", ""),
-        smtp_port=int(port),
+        smtp_port=smtp_port,
         smtp_from_address=get("SMTP", "FromAddress", ""),
         smtp_from_name=get("SMTP", "FromName", "eGrants Router"),
     )
