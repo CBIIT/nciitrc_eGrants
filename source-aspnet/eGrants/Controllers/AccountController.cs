@@ -6,6 +6,7 @@ namespace eGrants.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Identity.Web;
+    using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
     public class AccountController : Controller
     {
@@ -27,9 +28,8 @@ namespace eGrants.Controllers
         // Forced re-authentication after an inactivity timeout.
         //
         // Clears the local application cookie/session, then issues a standard
-        // OIDC challenge. The global OpenIdConnectOptions.Prompt = "login" (see
-        // Program.cs) already forces Entra to interactively re-prompt for
-        // credentials on the resulting authorize request.
+        // OIDC challenge with prompt=login so Entra interactively re-prompts for
+        // credentials for this timeout flow.
         //
         // [AllowAnonymous] is REQUIRED: the global authorization FallbackPolicy
         // requires an authenticated user on every endpoint. Without it, a user
@@ -48,6 +48,7 @@ namespace eGrants.Controllers
             {
                 RedirectUri = "/"
             };
+            properties.Parameters[OpenIdConnectParameterNames.Prompt] = "login";
 
             return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
         }
