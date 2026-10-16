@@ -145,7 +145,7 @@
         var ImageServer = document.getElementById("hidImageServer").value;
         //alert(docurl);
         if (docurl.startsWith("https://services.")) {
-            var url = "@Url.Action("show_era_doc", "EgrantsDoc")?docurl=" + encodeURIComponent(docurl);
+            var url = "@Url.Action("show_era_doc", "EgrantsDoc")?docurl=" + docurl;
         }else if (docurl.substring(0, 5) == "/data") {
             var url = ImageServer + docurl.substring(1, docurl.length);
         }else if (docurl.substring(0, 5) == "data/") {
