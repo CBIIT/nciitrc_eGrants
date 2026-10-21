@@ -39,9 +39,12 @@ namespace EmailConcatenation.Converters
             {
                 bool IsPortrait = DocXIsPortrait(content);
                 docXRenderer.RenderingOptions.PaperOrientation = IsPortrait ? IronPdf.Rendering.PdfPaperOrientation.Portrait : IronPdf.Rendering.PdfPaperOrientation.Landscape;
-            } catch(ArgumentException) { 
-                // MLH : this is an edge case where we read "the end was not found" (?)
-                // Best way to handle is probably to just swallow the exception and take default IronPdf inferred margin
+            }
+            catch (Exception ex)
+            {
+                // We try to read page orientation first. Some DOCX files fail in this
+                // step, so we skip orientation and continue conversion.
+                Console.WriteLine($"DocX orientation probe skipped: {ex.Message}");
             }
 
             PdfDocument pdfDocument = docXRenderer.RenderDocxAsPdf(content.GetBytes());

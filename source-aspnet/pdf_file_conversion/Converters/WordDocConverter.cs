@@ -47,8 +47,10 @@ namespace EmailConcatenation.Converters
 
         public bool SupportsThisFileType(string fileName)
         {
+            // Keep .docx here too so we have a fallback converter when the main
+            // .docx converter fails for certain files.
             if (!string.IsNullOrWhiteSpace(fileName) &&
-                fileName.ToLower().EndsWith(".doc") )
+                (fileName.ToLower().EndsWith(".doc") || fileName.ToLower().EndsWith(".docx")))
                 return true;
             return false;
         }
