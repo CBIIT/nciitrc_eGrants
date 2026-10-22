@@ -184,7 +184,8 @@ builder.Services.AddDistributedMemoryCache(); // Required for session
 builder.Services.AddMemoryCache(); // In-memory cache (IMemoryCache) for lookups such as restore file-type resolution
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(90); // Session inactivity timeout (UI/browser-session behavior)
+    // options.IdleTimeout = TimeSpan.FromMinutes(90); // Disabled strict 90-minute session timeout
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
     options.Cookie.SameSite = SameSiteMode.None;
@@ -204,13 +205,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     // treated as third-party and dropped by modern browsers on top-level re-entry.
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    // Keep a persistent browser cookie so users are not forced to re-login just
-    // because the browser was closed/reopened.
     options.Cookie.MaxAge = TimeSpan.FromDays(14);
-
-    // Keep auth ticket lifetime long enough to survive browser restarts.
-    // Inactivity re-auth is enforced by the browser-session timeout UI flow
-    // (see timeout modal / Account/ReAuthenticate), not by expiring auth daily.
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromDays(14);
 
@@ -220,9 +215,6 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     {
         OnSigningIn = context =>
         {
-            // Authoritative place to force a PERSISTENT cookie. This runs for the
-            // actual cookie being written and is not overridden by Microsoft.Identity.Web's
-            // OIDC wiring.
             context.Properties.IsPersistent = true;
 
             Log.Information(
