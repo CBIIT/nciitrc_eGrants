@@ -184,7 +184,8 @@ builder.Services.AddDistributedMemoryCache(); // Required for session
 builder.Services.AddMemoryCache(); // In-memory cache (IMemoryCache) for lookups such as restore file-type resolution
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+    // options.IdleTimeout = TimeSpan.FromMinutes(90); // Disabled strict 90-minute session timeout
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
     options.Cookie.SameSite = SameSiteMode.None;
@@ -204,9 +205,6 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     // treated as third-party and dropped by modern browsers on top-level re-entry.
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    // Persist the auth cookie across browser restarts. ExpireTimeSpan controls the
-    // ticket lifetime, but the browser only keeps the cookie past close-out when the
-    // cookie itself carries a Max-Age/Expires attribute, which Cookie.MaxAge sets.
     options.Cookie.MaxAge = TimeSpan.FromDays(14);
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromDays(14);
@@ -217,12 +215,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     {
         OnSigningIn = context =>
         {
-            // Authoritative place to force a PERSISTENT cookie. This runs for the
-            // actual cookie being written and is not overridden by Microsoft.Identity.Web's
-            // OIDC wiring. Without this the cookie is issued as a session cookie (no
-            // Expires/Max-Age) and is deleted when the browser is closed, forcing re-login.
             context.Properties.IsPersistent = true;
-            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
 
             Log.Information(
                 "Cookie signing in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
@@ -279,52 +272,6 @@ builder.Services.Configure<OpenIdConnectOptions>(
     OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
         options.ResponseType = OpenIdConnectResponseType.Code;
-
-        // Force an interactive login prompt on EVERY authentication redirect
-        // (including after the browser is closed and reopened). Without this,
-        // Entra performs a silent SSO re-login using the still-valid Microsoft
-        // session cookie and the user is never challenged. Setting prompt=login
-        // instructs Entra to ignore the existing SSO session and re-prompt for
-        // credentials.
-        options.Prompt = "login";
-    });
-
-// Make the application authentication cookie a non-persistent (session) cookie so
-// it is discarded when the browser is closed. Combined with prompt=login above,
-// reopening the browser then triggers a fresh interactive login rather than a
-// silent SSO restore.
-//
-// NOTE: Browser "session restore" (e.g. Chrome/Edge "reopen tabs on startup")
-// can hand session cookies back after a reopen, so we cannot rely on cookie
-// deletion alone. The OnValidatePrincipal event below enforces an absolute
-// server-side lifetime that holds regardless of what the browser does with the
-// cookie.
-builder.Services.Configure<CookieAuthenticationOptions>(
-    CookieAuthenticationDefaults.AuthenticationScheme, (CookieAuthenticationOptions options) =>
-    {
-        options.Cookie.MaxAge = null;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(90);
-        options.SlidingExpiration = false;
-
-        options.Events.OnValidatePrincipal = async context =>
-        {
-            // Enforce an absolute session lifetime based on when the auth ticket
-            // was issued. If the ticket is older than the allowed window, reject
-            // it and sign out so the next request triggers a fresh (interactive,
-            // prompt=login) OIDC challenge. This is immune to browsers restoring
-            // session cookies on reopen.
-            var absoluteLifetime = TimeSpan.FromMinutes(90);
-            var issuedUtc = context.Properties?.IssuedUtc;
-
-            if (issuedUtc == null ||
-                DateTimeOffset.UtcNow - issuedUtc.Value > absoluteLifetime)
-            {
-                context.RejectPrincipal();
-                context.HttpContext.Session.Clear();
-                await context.HttpContext.SignOutAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme);
-            }
-        };
     });
 
 builder.Services.AddAuthorization(options =>
