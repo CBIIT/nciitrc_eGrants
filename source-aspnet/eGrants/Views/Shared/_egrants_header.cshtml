@@ -46,6 +46,14 @@
         var lastActivityMS = Date.now();
         var remainingAutoLogoutMS = autoLogoutMS;
 
+        // Track the wall-clock time of the last activity instead of counting interval
+        // ticks. Background/inactive tabs get their timers throttled (and eventually
+        // frozen) by the browser, so a tick-based countdown stalls when the browser is
+        // left alone and the dialog never appears. Deriving the remaining time from
+        // Date.now() is immune to that throttling.
+        var lastActivityMS = Date.now();
+        var remainingAutoLogoutMS = autoLogoutMS;
+
 
 
         //console.log = function () { };     // MLH disable console log as requested by QA
