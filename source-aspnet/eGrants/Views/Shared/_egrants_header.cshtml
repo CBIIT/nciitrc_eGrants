@@ -4,8 +4,8 @@
     Layout = null;
 
     // prod mode
-    string browserTimeout = "90 * 60 * 1000";   // "5400000" 90 * 60 * 1000     // 90 minutes
-    string whenToDisplayTimoutDialog = "15 * 60 * 1000";      // 15 minutes
+    // string browserTimeout = "90 * 60 * 1000";   // Disabled 90-minute inactivity timeout
+    // string whenToDisplayTimoutDialog = "15 * 60 * 1000";      // Disabled 15-minute warning timer
 }
 
 <!DOCTYPE html>
@@ -34,8 +34,17 @@
         var QuickLinkType = [];
 
         var currentView = "StandardForm";
-        var autoLogoutMS = @browserTimeout;
-        var displayDialogAtRemainingTime = @whenToDisplayTimoutDialog;       // 15000 * 60
+        var enableInactivityTimeout = false;
+        var autoLogoutMS = 0;
+        var displayDialogAtRemainingTime = 0;
+
+        // Track the wall-clock time of the last activity instead of counting interval
+        // ticks. Background/inactive tabs get their timers throttled (and eventually
+        // frozen) by the browser, so a tick-based countdown stalls when the browser is
+        // left alone and the dialog never appears. Deriving the remaining time from
+        // Date.now() is immune to that throttling.
+        var lastActivityMS = Date.now();
+        var remainingAutoLogoutMS = autoLogoutMS;
 
         // Track the wall-clock time of the last activity instead of counting interval
         // ticks. Background/inactive tabs get their timers throttled (and eventually
@@ -75,12 +84,16 @@
             } else QuickLink.style.display = "none";
             }
 
-            document.addEventListener('mousemove', keyAndMouseListener, false);
-            document.addEventListener('keypress', keyAndMouseListener, false);
+            if (enableInactivityTimeout) {
+                document.addEventListener('mousemove', keyAndMouseListener, false);
+                document.addEventListener('keypress', keyAndMouseListener, false);
+            }
 
             updateAuditOrGrantYearModeFromCookie();
 
-            setInterval(updateTimeout, 1000);
+            if (enableInactivityTimeout) {
+                setInterval(updateTimeout, 1000);
+            }
         });
 
         var keyAndMouseListener = function () {
@@ -100,6 +113,10 @@
         }
 
         function updateTimeout() {
+            if (!enableInactivityTimeout) {
+                return;
+            }
+
             // Recompute remaining time from the real clock so a throttled/frozen
             // background timer can't stall the countdown.
             remainingAutoLogoutMS = autoLogoutMS - (Date.now() - lastActivityMS);
@@ -135,13 +152,8 @@
             }
         }
 
-        // Force fresh authentication after an inactivity timeout. This clears the
-        // local application session/cookie and then challenges Entra ID with
-        // prompt=login, so the user must re-enter credentials (and satisfy any
-        // Conditional Access / MFA policies) rather than being silently signed
-        // back in via the existing SSO session.
         function forceFullSignOut() {
-            window.location.href = "/Account/ReAuthenticate";
+            timeoutExtended();
         }
 
         function toggleleftpanel() {
