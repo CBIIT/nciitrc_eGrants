@@ -341,6 +341,23 @@ builder.Services.AddControllersWithViews()
 
 #region Logging (Serilog)
 
+// ====================================================================================
+// LOCAL ERROR NOTIFICATION REDIRECT
+// ====================================================================================
+// When running locally, redirect Serilog error-notification emails from the shared
+// team distribution list (configured in appsettings.json) to the developer running the
+// app, so local exceptions don't spam the whole team. The email sink's recipient is the
+// nested Logger -> Email sink: Serilog:WriteTo:2:Args:configureLogger:WriteTo:0:Args:to.
+// ====================================================================================
+if (builder.Environment.IsEnvironment("Local") || builder.Environment.IsDevelopment())
+{
+    const string emailToConfigKey =
+        "Serilog:WriteTo:2:Args:configureLogger:WriteTo:0:Args:to";
+
+    var localUserEmail = $"{Environment.UserName}@mail.nih.gov";
+    builder.Configuration[emailToConfigKey] = localUserEmail;
+}
+
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration
@@ -621,7 +638,7 @@ app.Use(async (context, next) =>
         context.Session.SetString("userid", userId);
 
         // Determine IC (Institute/Org Code) - default to NCI
-        var ic = eGrants.Common.EntraIdUserResolver.ResolveIc(context.User);
+        var ic = eGrants.Common.EntraIdUserResolver.ResolveIc(context.User) ?? string.Empty;
         context.Session.SetString("ic", ic);
 
         // Detect browser
@@ -638,9 +655,52 @@ app.Use(async (context, next) =>
         // Resolve EgrantsCommon service
         var egrantsCommon = context.RequestServices.GetRequiredService<EgrantsCommon>();
 
+        // ===================================================================================
+        // Cross-IC persona membership (EGRANTS-1361)
+        // ===================================================================================
+        // Determine cross-IC membership BEFORE the NCI-centric UserType/Validation gates.
+        // sp_web_egrants_user_type_check and the standard profile validation are keyed to NCI,
+        // so a non-NCI pilot user (e.g. a NIGMS FOIA/detailee) would otherwise be denied and
+        // redirected to egrants_default.htm before the cross-IC role mapping below ever runs.
+        // Configured cross-IC users are allowed to proceed so they receive their read-only
+        // (or specialist) cross-IC persona.
+        // ===================================================================================
+        var normalizedUserId = (userId ?? string.Empty).Split('@')[0].Trim().ToLowerInvariant();
+
+        var programCrossIcUsers = (builder.Configuration["AccessControl:ProgramCrossIcReadOnlyUsers"] ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(u => u.Split('@')[0].Trim().ToLowerInvariant())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var specialistCrossIcUsers = (builder.Configuration["AccessControl:SpecialistCrossIcUsers"] ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(u => u.Split('@')[0].Trim().ToLowerInvariant())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var isProgramCrossIcUser = programCrossIcUsers.Contains(normalizedUserId);
+        var isSpecialistCrossIcUser = specialistCrossIcUsers.Contains(normalizedUserId);
+        var isCrossIcUser = isProgramCrossIcUser || isSpecialistCrossIcUser;
+
+        // For configured cross-IC pilot users, resolve the profile against their authority IC
+        // (e.g. "nci") rather than their home IC. The legacy app did the equivalent via
+        // CheckUsersException (resetting a non-NCI exception user's IC to "nci") so the
+        // NCI-centric sp_web_egrants_user_type_check / sp_web_egrants_user_profile procedures
+        // return a valid profile instead of hanging on an unresolved (empty) user type.
+        if (isCrossIcUser)
+        {
+            var lookupIc = isSpecialistCrossIcUser
+                ? (builder.Configuration["AccessControl:SpecialistCrossIcAuthorityIc"] ?? eGrants.Common.EntraIdUserResolver.DefaultIc)
+                : (builder.Configuration["AccessControl:ProgramCrossIcAuthorityIc"] ?? eGrants.Common.EntraIdUserResolver.DefaultIc);
+
+            if (!string.IsNullOrEmpty(lookupIc))
+            {
+                context.Session.SetString("ic", lookupIc);
+            }
+        }
+
         var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
 
-        if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
+        if ((string.IsNullOrEmpty(usertype) || usertype == "NULL") && !isCrossIcUser)
         {
             Log.Warning(
                 "Access resolution failed (UserType empty). Redirecting to egrants_default.htm. " +
@@ -659,17 +719,28 @@ app.Use(async (context, next) =>
 
         foreach (var usr in users)
         {
-            context.Session.SetString("Validation", usr.Validation);
-            context.Session.SetString("userid", usr.UserId);
-            context.Session.SetString("ic", usr.ic);
+            context.Session.SetString("Validation", usr.Validation ?? string.Empty);
+            context.Session.SetString("userid", usr.UserId ?? string.Empty);
+            context.Session.SetString("ic", usr.ic ?? string.Empty);
+            context.Session.SetString("home_ic", usr.ic ?? string.Empty);
             context.Session.SetInt32("Personid", usr.personID);
             context.Session.SetInt32("position_id", usr.positionID);
-            context.Session.SetString("UserName", usr.PersonName);
-            context.Session.SetString("UserEmail", usr.PersonEmail);
-            context.Session.SetString("Menus", usr.menulist);
+            context.Session.SetString("UserName", usr.PersonName ?? string.Empty);
+            context.Session.SetString("UserEmail", usr.PersonEmail ?? string.Empty);
+            context.Session.SetString("Menus", usr.menulist ?? string.Empty);
         }
 
-        if (context.Session.GetString("Validation")?.ToString() != "OK")
+        // Override the IC assigned to the current user. The override IC is configurable via
+        // AccessControl:OverrideIc; when blank/absent it defaults to NCI.
+        var overrideIc = builder.Configuration["AccessControl:OverrideIc"];
+        if (string.IsNullOrWhiteSpace(overrideIc))
+        {
+            overrideIc = eGrants.Common.EntraIdUserResolver.DefaultIc;
+        }
+
+        context.Session.SetString("ic", overrideIc);
+
+        if (context.Session.GetString("Validation")?.ToString() != "OK" && !isCrossIcUser)
         {
             Log.Warning(
                 "Access resolution failed (Validation != OK). Redirecting to egrants_default.htm. " +
@@ -683,6 +754,37 @@ app.Use(async (context, next) =>
 
             context.Response.Redirect("/egrants_default.htm");
             return;
+        }
+
+        var authorityIc = context.Session.GetString("ic") ?? string.Empty;
+        var effectiveRole = "ProgramHomeIc";
+        var accessScope = "HomeIcOnly";
+
+        if (isProgramCrossIcUser)
+        {
+            effectiveRole = "ProgramCrossIcReadOnly";
+            accessScope = "CrossIcProgramBaseline";
+            authorityIc = builder.Configuration["AccessControl:ProgramCrossIcAuthorityIc"] ?? authorityIc;
+        }
+        else if (isSpecialistCrossIcUser)
+        {
+            effectiveRole = "SpecialistCrossIc";
+            accessScope = "CrossIcSpecialistBaseline";
+            authorityIc = builder.Configuration["AccessControl:SpecialistCrossIcAuthorityIc"] ?? authorityIc;
+        }
+        else
+        {
+            var positionId = context.Session.GetInt32("position_id") ?? 1;
+            effectiveRole = positionId <= 1 ? "ReadOnlyHomeIc" : "SpecialistHomeIc";
+        }
+
+        context.Session.SetString("effective_role", effectiveRole);
+        context.Session.SetString("access_scope", accessScope);
+        context.Session.SetString("authority_ic", authorityIc);
+
+        if (string.Equals(effectiveRole, "ProgramCrossIcReadOnly", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Session.SetInt32("position_id", 1);
         }
 
         // Load app settings into session

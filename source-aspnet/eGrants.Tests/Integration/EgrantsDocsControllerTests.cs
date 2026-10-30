@@ -332,8 +332,10 @@ namespace eGrants.Tests.Integration
         {
             using var context = CreateDevDbContext();
             var session = new TestSession();
-            session.SetString("UserId", "user123");
-            session.SetString("Ic", "NCI");
+            session.SetString("userid", "user123");
+            session.SetString("ic", "NCI");
+            session.SetInt32("position_id", 2);
+            session.SetString("effective_role", "SpecialistCrossIc");
             session.SetString("WebGrantUrl", "testserver");
             session.SetString("ImageServerUrl", "http://testserver/");
             session.SetString("EgrantsDocModifyRelativePath", "docs/modify/");
@@ -380,8 +382,10 @@ namespace eGrants.Tests.Integration
         {
             using var context = CreateDevDbContext();
             var session = new TestSession();
-            session.SetString("UserId", "user123");
-            session.SetString("Ic", "NCI");
+            session.SetString("userid", "user123");
+            session.SetString("ic", "NCI");
+            session.SetInt32("position_id", 2);
+            session.SetString("effective_role", "SpecialistCrossIc");
 
             var controller = CreateController(context, session);
 
@@ -412,6 +416,8 @@ namespace eGrants.Tests.Integration
             var session = new TestSession();
             session.SetString("ic", "NCI");
             session.SetString("userid", "integration_user");
+            session.SetInt32("position_id", 2);
+            session.SetString("effective_role", "SpecialistCrossIc");
 
             var mockDocumentService = new Mock<IDocumentService>();
             var controller = CreateController(context, session, mockDocumentService.Object);
@@ -438,6 +444,8 @@ namespace eGrants.Tests.Integration
             var session = new TestSession();
             session.SetString("ic", "NCI");
             session.SetString("userid", "integration_user");
+            session.SetInt32("position_id", 2);
+            session.SetString("effective_role", "SpecialistCrossIc");
 
             var mockDocumentService = new Mock<IDocumentService>();
             var egrantsCommon = new EgrantsCommon(context);

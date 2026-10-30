@@ -20,7 +20,14 @@ namespace eGrants.Repositories.Interfaces
         /// <returns>
         /// A list of <see cref="doclayer"/> objects that match the specified application and search criteria.
         /// </returns>
-        List<doclayer> LoadDocs(int aApplId, string aSearchType, string aCategoryList, string aIc, string aUserId);
+        List<doclayer> LoadDocs(
+            int aApplId,
+            string aSearchType,
+            string aCategoryList,
+            string aIc,
+            string aUserId,
+            string accessScope = null,
+            string authorityIc = null);
 
         /// <summary>
         /// Asynchronously retrieves a list of former applications related to a specific grant.

@@ -7,8 +7,10 @@ using eGrants.Repositories;
 using eGrants.Repositories.Interfaces;
 using eGrants.Services;
 using eGrants.Services.Interfaces;
+using eGrants.Tests.Utilities;
 using eGrants.ViewModels;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 
@@ -607,6 +609,73 @@ namespace eGrants.Tests.Unit.Service
                 repo => repo.GetDocID(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(),
                     It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Never);
+        }
+        #endregion
+
+        #region Cross-IC authority resolution tests
+        [Fact]
+        public void LoadDocs_UsesAuthorityIc_WhenPresent()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "specialistx");
+
+            var expectedDocs = new List<doclayer>();
+
+            _mockDocumentRepo
+                .Setup(repo => repo.LoadDocs(10, "normal", "1,2", "nci", "specialistx", null, "nci"))
+                .Returns(expectedDocs);
+
+            var mockSessionInfoService = new Mock<ISessionInfoService>();
+            mockSessionInfoService
+                .Setup(s => s.GetSessionInfo(It.IsAny<ISession>()))
+                .Returns(new SessionInfo
+                {
+                    Ic = "CSR",
+                    AuthorityIc = "nci",
+                    UserId = "specialistx"
+                });
+
+            var documentService = new DocumentService(
+                _mockDocumentRepo.Object,
+                mockSessionInfoService.Object,
+                _mockCommonRepo.Object,
+                _mockService.Object);
+
+            var result = documentService.LoadDocs(10, "normal", "1,2", null, session);
+
+            Assert.Same(expectedDocs, result);
+            _mockDocumentRepo.Verify(repo => repo.LoadDocs(10, "normal", "1,2", "nci", "specialistx", null, "nci"), Times.Once);
+        }
+
+        [Fact]
+        public async Task DocCreateWithoutApplIdAsync_UsesAuthorityIc_ForCategoryLoading()
+        {
+            var sessionInfo = new SessionInfo
+            {
+                Ic = "CSR",
+                AuthorityIc = "nci",
+                UserId = "specialistx"
+            };
+
+            _mockCommonRepo.Setup(repo => repo.LoadAdminCodes()).ReturnsAsync(new List<AdminCodes>());
+            _mockDocumentRepo.Setup(repo => repo.LoadCategories("nci")).ReturnsAsync(new List<CategoriesListDTO>());
+            _mockDocumentRepo.Setup(repo => repo.GetMaxCategoryId("nci")).ReturnsAsync(10);
+            _mockDocumentRepo.Setup(repo => repo.LoadSubCategoryList()).ReturnsAsync(new List<SubCategories>());
+
+            var mockSessionInfoService = new Mock<ISessionInfoService>();
+
+            var documentService = new DocumentService(
+                _mockDocumentRepo.Object,
+                mockSessionInfoService.Object,
+                _mockCommonRepo.Object,
+                _mockService.Object);
+
+            await documentService.DocCreateWithoutApplIdAsync("/Egrants/Index", sessionInfo);
+
+            _mockDocumentRepo.Verify(repo => repo.LoadCategories("nci"), Times.Once);
+            _mockDocumentRepo.Verify(repo => repo.GetMaxCategoryId("nci"), Times.Once);
         }
         #endregion
     }

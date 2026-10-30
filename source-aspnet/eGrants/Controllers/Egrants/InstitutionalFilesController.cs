@@ -65,6 +65,24 @@ namespace eGrant.Controllers
 
         private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
+        private bool HasDocumentWriteAccess()
+        {
+            if (string.Equals(sessionInfo.EffectiveRole, "ProgramCrossIcReadOnly", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.Equals(sessionInfo.EffectiveRole, "SpecialistCrossIc", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            var positionId = HttpContext.Session.GetInt32("position_id") ?? 1;
+            return positionId > 1;
+        }
+
+        private string EffectiveIc => string.IsNullOrWhiteSpace(sessionInfo.AuthorityIc) ? sessionInfo.Ic : sessionInfo.AuthorityIc;
+
         public InstitutionalFilesController(IInstitutionalFilesService institutionalFilesService, ISessionInfoService sessionInfoService)
         {
             _institutionalFilesService = institutionalFilesService;
@@ -211,6 +229,11 @@ namespace eGrant.Controllers
         [HttpGet]
         public async Task<ActionResult> Delete_Doc(string act, int doc_id, int org_id)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             // disable_doc
             await _institutionalFilesService.DisableDoc(doc_id, sessionInfo.UserId);
 
@@ -308,6 +331,11 @@ namespace eGrant.Controllers
      int org_id,
             string comments)
         {
+       if (!HasDocumentWriteAccess())
+       {
+           return Forbid();
+       }
+
        if (dropedfile == null || dropedfile.Length == 0)
        {
    return Json(new { success = false, message = "You have not specified a file." });
@@ -324,7 +352,7 @@ namespace eGrant.Controllers
               fileExtension,
             start_date ?? "",
          end_date ?? "",
-       sessionInfo.Ic,
+       EffectiveIc,
        sessionInfo.UserId,
      comments ?? "");
 
@@ -374,6 +402,11 @@ namespace eGrant.Controllers
             int org_id,
       string comments)
      {
+         if (!HasDocumentWriteAccess())
+         {
+             return Forbid();
+         }
+
          if (file == null || file.Length == 0 || category_id == 0)
             {
         return Json(new { success = false, message = "You have not specified information correctly." });
@@ -390,7 +423,7 @@ namespace eGrant.Controllers
    fileExtension,
     start_date ?? "",
       end_date ?? "",
-        sessionInfo.Ic,
+        EffectiveIc,
              sessionInfo.UserId,
         comments ?? "");
 
@@ -451,6 +484,12 @@ namespace eGrant.Controllers
         [HttpPost]
         public async Task Update_Doc(int category_id, string start_date, string end_date, string comments, int doc_id)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                Response.StatusCode = 403;
+                return;
+            }
+
             try
             {
                 if (category_id != 0)
@@ -459,7 +498,7 @@ namespace eGrant.Controllers
                         category_id,
                         start_date ?? "",
                         end_date ?? "",
-                        sessionInfo.Ic,
+                        EffectiveIc,
                         sessionInfo.UserId,
                         comments ?? "");
                 else

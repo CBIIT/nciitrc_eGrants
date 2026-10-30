@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 using eGrants.Controllers.Egrants;
@@ -151,6 +153,7 @@ namespace eGrants.Tests.Unit.Controllers
             var session = new TestSession();
             session.SetString("ic", "NCI");
             session.SetString("userid", "tester");
+            session.SetInt32("position_id", 2);
 
             var controller = CreateController(session);
 
@@ -176,6 +179,7 @@ namespace eGrants.Tests.Unit.Controllers
             var session = new TestSession();
             session.SetString("ic", "NCI");
             session.SetString("userid", "tester");
+            session.SetInt32("position_id", 2);
 
             var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
                 .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=egrants_unit_tests;Trusted_Connection=True;TrustServerCertificate=True;")
@@ -208,6 +212,173 @@ namespace eGrants.Tests.Unit.Controllers
                 It.Is<string>(fileType => string.IsNullOrEmpty(fileType)),
                 "NCI",
                 "tester"), Times.Once);
+        }
+
+        [Fact]
+        public void doc_modify_ReadOnlyCrossIcUser_ReturnsForbid_AndDoesNotCallService()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "foiauser");
+            session.SetString("effective_role", "ProgramCrossIcReadOnly");
+            session.SetInt32("position_id", 1);
+
+            var controller = CreateController(session);
+
+            var result = controller.doc_modify("to delete", "101");
+
+            Assert.IsType<ForbidResult>(result);
+            _documentService.Verify(s => s.DocModify(
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public void doc_modify_SpecialistCrossIc_UsesAuthorityIc()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "specialistx");
+            session.SetString("effective_role", "SpecialistCrossIc");
+            session.SetInt32("position_id", 2);
+
+            var controller = CreateController(session);
+
+            controller.doc_modify("to delete", "101");
+
+            _documentService.Verify(s => s.DocModify(
+                "to delete",
+                0,
+                0,
+                string.Empty,
+                string.Empty,
+                "101",
+                string.Empty,
+                "nci",
+                "specialistx"), Times.Once);
+        }
+
+        #endregion
+
+        #region Cross-IC write guards
+
+        [Fact]
+        public async Task doc_create_by_file_ReadOnlyCrossIcUser_ReturnsForbid()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "foiauser");
+            session.SetString("effective_role", "ProgramCrossIcReadOnly");
+            session.SetInt32("position_id", 1);
+
+            var controller = CreateController(session);
+
+            var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+            IFormFile file = new FormFile(stream, 0, stream.Length, "file", "test.txt");
+
+            var result = await controller.doc_create_by_file(file, 1, 1, "sub", DateTime.Today, "NCI", 123);
+
+            Assert.IsType<ForbidResult>(result);
+            _documentService.Verify(s => s.DocCreateByFileAsync(
+                It.IsAny<IFormFile>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<SessionInfo>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task doc_upload_by_file_ReadOnlyCrossIcUser_ReturnsForbid()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "foiauser");
+            session.SetString("effective_role", "ProgramCrossIcReadOnly");
+            session.SetInt32("position_id", 1);
+
+            var controller = CreateController(session);
+
+            var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+            IFormFile file = new FormFile(stream, 0, stream.Length, "file", "test.txt");
+
+            var result = await controller.doc_upload_by_file(file, 101);
+
+            Assert.IsType<ForbidResult>(result);
+            _documentService.Verify(s => s.DocUploadByFileAsync(
+                It.IsAny<IFormFile>(),
+                It.IsAny<int>(),
+                It.IsAny<SessionInfo>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task doc_index_modify_ReadOnlyCrossIcUser_ReturnsForbid()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "foiauser");
+            session.SetString("effective_role", "ProgramCrossIcReadOnly");
+            session.SetInt32("position_id", 1);
+
+            var controller = CreateController(session);
+
+            var result = await controller.doc_index_modify(
+                act: "to_update",
+                appl_id: 1,
+                document_id: 2,
+                category_id: 3,
+                sub_category: "sub",
+                document_date: "01/01/2026",
+                previous_url: "/Egrants/Index");
+
+            Assert.IsType<ForbidResult>(result);
+            _documentService.Verify(s => s.DocIndexModifyAsync(
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<SessionInfo>()), Times.Never);
+        }
+
+        [Fact]
+        public void doc_modify_SpecialistCrossIc_FallsBackToIcWhenAuthorityMissing()
+        {
+            var session = new TestSession();
+            session.SetString("ic", "NCI");
+            session.SetString("userid", "specialistx");
+            session.SetString("effective_role", "SpecialistCrossIc");
+            session.SetInt32("position_id", 2);
+
+            var controller = CreateController(session);
+
+            controller.doc_modify("to delete", "101");
+
+            _documentService.Verify(s => s.DocModify(
+                "to delete",
+                0,
+                0,
+                string.Empty,
+                string.Empty,
+                "101",
+                string.Empty,
+                "NCI",
+                "specialistx"), Times.Once);
         }
 
         #endregion

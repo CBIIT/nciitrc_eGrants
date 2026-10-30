@@ -119,6 +119,24 @@ namespace eGrants.Controllers.Egrants
 
         private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
+        private bool HasDocumentWriteAccess()
+        {
+            if (string.Equals(sessionInfo.EffectiveRole, "ProgramCrossIcReadOnly", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.Equals(sessionInfo.EffectiveRole, "SpecialistCrossIc", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            var positionId = HttpContext.Session.GetInt32("position_id") ?? 1;
+            return positionId > 1;
+        }
+
+        private string EffectiveIc => string.IsNullOrWhiteSpace(sessionInfo.AuthorityIc) ? sessionInfo.Ic : sessionInfo.AuthorityIc;
+
         public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IApplService applService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null, IMemoryCache memoryCache = null)
         {
             _eGrantsService = eGrantsService;
@@ -425,8 +443,14 @@ namespace eGrants.Controllers.Egrants
         /// <param name="docids">
         /// The docids.
         /// </param>
-        public void doc_modify(string act, string docids)
+        [HttpPost]
+        public ActionResult doc_modify(string act, string docids)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             ViewBag.Status = "Done";
 
             if (string.Equals(act, "to restore", StringComparison.OrdinalIgnoreCase))
@@ -452,14 +476,15 @@ namespace eGrants.Controllers.Egrants
                         string.Empty,
                         documentId,
                         fileType,
-                        sessionInfo.Ic,
+                        EffectiveIc,
                         sessionInfo.UserId);
                 }
 
-                return;
+                return Ok();
             }
 
-            _documentService.DocModify(act, 0, 0, string.Empty, string.Empty, docids, string.Empty, sessionInfo.Ic, sessionInfo.UserId);
+            _documentService.DocModify(act, 0, 0, string.Empty, string.Empty, docids, string.Empty, EffectiveIc, sessionInfo.UserId);
+            return Ok();
         }
 
         private string ResolveOriginalFileTypeForRestore(string documentId)
@@ -628,9 +653,9 @@ namespace eGrants.Controllers.Egrants
             eDocViewModel.ApplId = appl_id;
             eDocViewModel.PreviousUrl = previous_url;
             eDocViewModel.AdminCodeList = await _commonService.LoadAdminCodes();
-            eDocViewModel.CategoryList = await _documentService.LoadCategories(sessionInfo.Ic); // load categories that could only be upload
+            eDocViewModel.CategoryList = await _documentService.LoadCategories(EffectiveIc); // load categories that could only be upload
             eDocViewModel.SubCategoryList = await _documentService.LoadSubCategoryList();
-            eDocViewModel.MaxCategoryId = await _documentService.GetMaxCategoryid(sessionInfo.Ic);
+            eDocViewModel.MaxCategoryId = await _documentService.GetMaxCategoryid(EffectiveIc);
 
             return this.View("~/Views/Egrants/EgrantsDocCreate.cshtml", eDocViewModel);
         }
@@ -670,6 +695,11 @@ namespace eGrants.Controllers.Egrants
         [HttpPost]
         public async Task<ActionResult> doc_create_by_file(IFormFile file, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             var result = await _documentService.DocCreateByFileAsync(file, appl_id, category_id,
                 sub_category, doc_date, admin_code, serial_num, sessionInfo);
 
@@ -721,6 +751,11 @@ namespace eGrants.Controllers.Egrants
             string admin_code,
             int serial_num)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             var docName = string.Empty;
             string url = null;
             string mssg = null;
@@ -781,7 +816,7 @@ namespace eGrants.Controllers.Egrants
                             sub_category,
                             doc_date,
                             fileExtension,
-                            Convert.ToString(sessionInfo.Ic),
+                            EffectiveIc,
                             Convert.ToString(sessionInfo.UserId));
 
                         docName = Convert.ToString(document_id) + fileExtension;
@@ -889,6 +924,11 @@ namespace eGrants.Controllers.Egrants
             string admin_code,
             int serial_num)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             string url = null;
             string mssg = null;
             string fileExtension = ".pdf";
@@ -1043,7 +1083,7 @@ namespace eGrants.Controllers.Egrants
                     sub_category,
                        doc_date,
                    fileExtension,
-               sessionInfo.Ic,
+                EffectiveIc,
                  sessionInfo.UserId);
 
                     var docName = $"{document_id}.pdf";
@@ -1213,6 +1253,11 @@ namespace eGrants.Controllers.Egrants
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> doc_upload_by_file(IFormFile file, int doc_id)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             var result = await _documentService.DocUploadByFileAsync(file, doc_id, sessionInfo);
 
             return Json(new { url = result.Url, message = result.Message });
@@ -1241,6 +1286,11 @@ namespace eGrants.Controllers.Egrants
         [HttpPost]
         public ActionResult doc_upload_pdf_by_file(IEnumerable<IFormFile> files, int doc_id)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             var docName = string.Empty;
             string url = null;
             string mssg = null;
@@ -1303,7 +1353,7 @@ namespace eGrants.Controllers.Egrants
                             string.Empty,
                    Convert.ToString(doc_id),
                        fileExtension,
-                              sessionInfo.Ic,
+                               EffectiveIc,
                               sessionInfo.UserId);
 
                         // get document id and create new document name     
@@ -1400,6 +1450,11 @@ namespace eGrants.Controllers.Egrants
         [HttpPost]
         public async Task<ActionResult> doc_create_by_ddrop(IFormFile dropedfile, int appl_id, int category_id, string sub_category, DateTime doc_date, string admin_code, int serial_num)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             var result = await _documentService.DocCreateByDdropAsync(dropedfile, appl_id, category_id, sub_category, doc_date, admin_code, serial_num, sessionInfo);
 
             return Json(new { url = result.Url, message = result.Message });
@@ -1427,6 +1482,11 @@ namespace eGrants.Controllers.Egrants
         [RequestFormLimits(MultipartBodyLengthLimit = 2147483648)] // 2GB for multipart form data
         public async Task<ActionResult> doc_upload_pdf_by_ddrop(IEnumerable<IFormFile> dropedfiles, int doc_id)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             string url = null;
             string mssg = null;
             const string fileExtension = ".pdf";
@@ -1571,7 +1631,7 @@ namespace eGrants.Controllers.Egrants
                         string.Empty,
                         Convert.ToString(doc_id),
                         fileExtension,
-                        sessionInfo.Ic,
+                        EffectiveIc,
                         sessionInfo.UserId);
 
                     // ===================================================================================
@@ -1715,6 +1775,11 @@ namespace eGrants.Controllers.Egrants
         public async Task<ActionResult> doc_index_modify(string act = "", int appl_id = 0, int document_id = 0,
             int category_id = 0, string sub_category = "", string document_date = "", string previous_url = "")
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             var docids = Convert.ToString(document_id);
 
             await _documentService.DocIndexModifyAsync(act, appl_id, category_id, sub_category, document_date, docids, sessionInfo);
@@ -1750,8 +1815,8 @@ namespace eGrants.Controllers.Egrants
             eDocViewModel.PreviousUrl = previous_url;
 
             eDocViewModel.AdminCodeList = await _commonService.LoadAdminCodes();
-            eDocViewModel.CategoryList = await _documentService.LoadCategories(sessionInfo.Ic); // load categories that could only be upload
-            eDocViewModel.MaxCategoryId = await _documentService.GetMaxCategoryid(sessionInfo.Ic);
+            eDocViewModel.CategoryList = await _documentService.LoadCategories(EffectiveIc); // load categories that could only be upload
+            eDocViewModel.MaxCategoryId = await _documentService.GetMaxCategoryid(EffectiveIc);
             eDocViewModel.SubCategoryList = await _documentService.LoadSubCategoryList();
 
             return this.View("~/Views/Egrants/EgrantsDocUpdate.cshtml", eDocViewModel);
@@ -1929,6 +1994,11 @@ namespace eGrants.Controllers.Egrants
         [ResponseCache(Duration =0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> doc_upload_by_ddrop(IFormFile dropedfile, int doc_id)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             var result = await _documentService.DocUploadByFileAsync(dropedfile, doc_id, sessionInfo);
             return Json(new { url = result.Url, message = result.Message });
         }

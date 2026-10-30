@@ -148,6 +148,12 @@ namespace eGrants.Services
             _context = context;
         }
 
+        private static string ResolveEffectiveIc(SessionInfo session)
+        {
+            var authorityIc = session.AuthorityIc?.Trim();
+            return string.IsNullOrWhiteSpace(authorityIc) ? (session.Ic ?? string.Empty) : authorityIc;
+        }
+
         /// <summary>
         /// PERFORMANCE OPTIMIZATION: Get or create cached HttpClient for ERA connections
         /// 
@@ -248,6 +254,7 @@ namespace eGrants.Services
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo)
         {
             var session = _sessionInfoService.GetSessionInfo(sessionInfo);
+            var effectiveIc = ResolveEffectiveIc(session);
 
             const int maxRetries = 5;
             int attempt = 0;
@@ -261,17 +268,59 @@ namespace eGrants.Services
                   applId,
                         searchType,
             categoryList,
-                     Convert.ToString(session.Ic),
-                    Convert.ToString(session.UserId));
+                     Convert.ToString(effectiveIc),
+                    Convert.ToString(session.UserId),
+                    session.AccessScope,
+                    session.AuthorityIc);
                 }
-                catch (Exception ex)
+                catch (SqlException ex) when (IsTransient(ex))
                 {
+                    // Only transient SQL faults (timeouts, deadlocks, connection drops) are
+                    // worth retrying. Non-transient errors must surface immediately so real
+                    // problems (e.g. a stored procedure returning an unexpected result shape)
+                    // are not masked by repeated retries.
                     lastException = ex;
                     attempt++;
+                    Log.Warning(
+                        ex,
+                        "Transient SQL error loading documents for ApplId={ApplId} (attempt {Attempt}/{MaxRetries}).",
+                        applId,
+                        attempt,
+                        maxRetries);
                 }
             }
 
             throw lastException ?? new Exception("Unknown error occurred while loading documents.");
+        }
+
+        /// <summary>
+        /// Determines whether a <see cref="SqlException"/> represents a transient fault
+        /// (timeout, deadlock, or a connection-level failure) that is safe to retry.
+        /// </summary>
+        private static bool IsTransient(SqlException ex)
+        {
+            // -2   : timeout expired
+            // 1205 : deadlock victim
+            // 4060, 40197, 40501, 40613, 49918, 49919, 49920, 11001 : connection/availability faults
+            foreach (SqlError error in ex.Errors)
+            {
+                switch (error.Number)
+                {
+                    case -2:
+                    case 1205:
+                    case 4060:
+                    case 40197:
+                    case 40501:
+                    case 40613:
+                    case 49918:
+                    case 49919:
+                    case 49920:
+                    case 11001:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         public async Task<List<former_appls>> loadFormerAppls(int grantId)
@@ -317,8 +366,9 @@ namespace eGrants.Services
 
             int? applId = eDocViewModel.ApplId;
             eDocViewModel.AdminCodeList = await _commonRepository.LoadAdminCodes();
-            eDocViewModel.CategoryList = await _documentRepository.LoadCategories(sessionInfo.Ic);
-            eDocViewModel.MaxCategoryId = await _documentRepository.GetMaxCategoryId(sessionInfo.Ic);
+            var effectiveIc = ResolveEffectiveIc(sessionInfo);
+            eDocViewModel.CategoryList = await _documentRepository.LoadCategories(effectiveIc);
+            eDocViewModel.MaxCategoryId = await _documentRepository.GetMaxCategoryId(effectiveIc);
             eDocViewModel.SubCategoryList = await _documentRepository.LoadSubCategoryList();
 
             eDocViewModel.GrantYearList = await _eGrantsService.LoadApplsByApplid(applId);
@@ -333,8 +383,8 @@ namespace eGrants.Services
             {
                 Act = "Add",
                 AdminCodeList = await _commonRepository.LoadAdminCodes(),
-                CategoryList = await _documentRepository.LoadCategories(sessionInfo.Ic),
-                MaxCategoryId = await _documentRepository.GetMaxCategoryId(sessionInfo.Ic),
+                CategoryList = await _documentRepository.LoadCategories(ResolveEffectiveIc(sessionInfo)),
+                MaxCategoryId = await _documentRepository.GetMaxCategoryId(ResolveEffectiveIc(sessionInfo)),
                 SubCategoryList = await _documentRepository.LoadSubCategoryList(),
                 PreviousUrl = previousUrl
             };
@@ -367,7 +417,7 @@ namespace eGrants.Services
                        subCategory,
                   docDate,
                 fileExtension,
-                         sessionInfo.Ic,
+                         ResolveEffectiveIc(sessionInfo),
                        sessionInfo.UserId);
 
                     docName = Convert.ToString(documentId) + fileExtension;
@@ -425,7 +475,7 @@ string admin_code,
 
                     var document_id = _documentRepository.GetDocID(appl_id, category_id, sub_category,
                     doc_date, fileExtension,
-                      sessionInfo.Ic, sessionInfo.UserId);
+                      ResolveEffectiveIc(sessionInfo), sessionInfo.UserId);
 
                     docName = Convert.ToString(document_id) + fileExtension;
 
@@ -477,7 +527,7 @@ string admin_code,
                  string.Empty,
                     Convert.ToString(docId),
                   fileExtension,
-                    sessionInfo.Ic,
+                    ResolveEffectiveIc(sessionInfo),
               sessionInfo.UserId);
 
  #if DEBUG
@@ -534,7 +584,7 @@ string admin_code,
                       string.Empty,
                               Convert.ToString(docId),
                         fileExtension,
-                             sessionInfo.Ic,
+                             ResolveEffectiveIc(sessionInfo),
                        sessionInfo.UserId);
 
                     docName = Convert.ToString(docId) + fileExtension;
@@ -588,7 +638,7 @@ string admin_code,
         docDate,
             docIds,
             string.Empty,
-      sessionInfo.Ic,
+      ResolveEffectiveIc(sessionInfo),
      sessionInfo.UserId);
                    });
         }

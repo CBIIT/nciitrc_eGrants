@@ -1,5 +1,7 @@
 using eGrant.Controllers;
 
+using eGrant.Controllers;
+
 using eGrants.Common.Enums;
 using eGrants.Controllers;
 using eGrants.DAL;
@@ -170,6 +172,7 @@ namespace eGrants.Tests.Integration
             var session = new TestSession();
             session.Set("ic", System.Text.Encoding.UTF8.GetBytes(ic));
             session.Set("userid", System.Text.Encoding.UTF8.GetBytes(userId));
+            session.SetInt32("position_id", 2);
 
             var controller = new InstitutionalFilesController(service, new SessionInfoService());
             var httpContext = new DefaultHttpContext { Session = session };
@@ -245,6 +248,129 @@ namespace eGrants.Tests.Integration
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
 
             Assert.Equal("You have not specified information correctly.", controller.ViewData["Message"]);
+        }
+
+        [Fact]
+        public async Task Update_Doc_ReadOnlyCrossIcUser_ReturnsForbidden_AndDoesNotCallService()
+        {
+            var service = new Mock<IInstitutionalFilesService>();
+
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "foiauser");
+            session.SetString("effective_role", "ProgramCrossIcReadOnly");
+            session.SetInt32("position_id", 1);
+
+            var controller = new InstitutionalFilesController(service.Object, new SessionInfoService());
+            var httpContext = new DefaultHttpContext { Session = session };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            await controller.Update_Doc(
+                category_id: 5,
+                start_date: "2024-01-01",
+                end_date: "2024-12-31",
+                comments: "blocked",
+                doc_id: 10);
+
+            Assert.Equal(403, controller.Response.StatusCode);
+            service.Verify(s => s.UpdateDocument(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Update_Doc_SpecialistCrossIc_UsesAuthorityIc()
+        {
+            var service = new Mock<IInstitutionalFilesService>();
+            service
+                .Setup(s => s.UpdateDocument(
+                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync("done");
+
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "specialistx");
+            session.SetString("effective_role", "SpecialistCrossIc");
+            session.SetInt32("position_id", 2);
+
+            var controller = new InstitutionalFilesController(service.Object, new SessionInfoService());
+            var httpContext = new DefaultHttpContext { Session = session };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            await controller.Update_Doc(
+                category_id: 5,
+                start_date: "2024-01-01",
+                end_date: "2024-12-31",
+                comments: "allowed",
+                doc_id: 10);
+
+            service.Verify(s => s.UpdateDocument(
+                10, 5, "2024-01-01", "2024-12-31", "nci", "specialistx", "allowed"), Times.Once);
+        }
+
+        [Fact]
+        public async Task Delete_Doc_ReadOnlyCrossIcUser_ReturnsForbid_AndDoesNotCallDisable()
+        {
+            var service = new Mock<IInstitutionalFilesService>();
+
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "foiauser");
+            session.SetString("effective_role", "ProgramCrossIcReadOnly");
+            session.SetInt32("position_id", 1);
+
+            var controller = new InstitutionalFilesController(service.Object, new SessionInfoService());
+            var httpContext = new DefaultHttpContext { Session = session };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = await controller.Delete_Doc("disable_doc", 10, 20);
+
+            Assert.IsType<ForbidResult>(result);
+            service.Verify(s => s.DisableDoc(It.IsAny<int>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Create_Doc_by_File_ReadOnlyCrossIcUser_ReturnsForbid_AndDoesNotCallCreate()
+        {
+            var service = new Mock<IInstitutionalFilesService>();
+
+            var session = new TestSession();
+            session.SetString("ic", "CSR");
+            session.SetString("authority_ic", "nci");
+            session.SetString("userid", "foiauser");
+            session.SetString("effective_role", "ProgramCrossIcReadOnly");
+            session.SetInt32("position_id", 1);
+
+            var controller = new InstitutionalFilesController(service.Object, new SessionInfoService());
+            var httpContext = new DefaultHttpContext { Session = session };
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            await using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+            IFormFile file = new FormFile(stream, 0, stream.Length, "file", "test.txt");
+
+            var result = await controller.Create_Doc_by_File(
+                file,
+                category_id: 1,
+                org_name: "Org",
+                start_date: "",
+                end_date: "",
+                org_id: 10,
+                comments: "");
+
+            Assert.IsType<ForbidResult>(result);
+            service.Verify(s => s.GetDocID(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()), Times.Never);
         }
     }
 }
