@@ -1889,6 +1889,11 @@ namespace eGrants.Controllers.Egrants
             int support_year,
             string suffix_code = "")
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             this.ViewBag.admincode = admin_code;
             this.ViewBag.serialnum = serial_num;
 

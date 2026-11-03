@@ -786,6 +786,18 @@ app.Use(async (context, next) =>
         {
             context.Session.SetInt32("position_id", 1);
         }
+        else if (string.Equals(effectiveRole, "SpecialistCrossIc", StringComparison.OrdinalIgnoreCase))
+        {
+            // Ensure the non-NCI detailee specialist is treated as a specialist (write-capable)
+            // so upload/replace controls are available in the UI and the stored procedure's
+            // can_* flags evaluate to 'y' (AC5). A non-NCI home profile may resolve to a
+            // read-only position_id of 1, which would otherwise suppress specialist actions.
+            var currentPositionId = context.Session.GetInt32("position_id") ?? 1;
+            if (currentPositionId < 2)
+            {
+                context.Session.SetInt32("position_id", 2);
+            }
+        }
 
         // Load app settings into session
         context.Session.SetString("WebGrantUrl", builder.Configuration["AppSettings:webGrantUrl"] ?? string.Empty);
