@@ -372,9 +372,17 @@ namespace eGrants.Repositories
                     {
                         while (await reader.ReadAsync())
                         {
+                            // Skip rows without a category id to avoid casting DBNull
+                            if (reader["category_id"] == DBNull.Value)
+                            {
+                                continue;
+                            }
+
                             // Force cast to int regardless of underlying SQL type
                             int categoryId = Convert.ToInt32(reader["category_id"]);
-                            string categoryName = reader["category_name"].ToString();
+                            string categoryName = reader["category_name"] == DBNull.Value
+                                ? string.Empty
+                                : reader["category_name"].ToString();
 
                             categoryList.Add($"{categoryId}:{categoryName}");
                         }
