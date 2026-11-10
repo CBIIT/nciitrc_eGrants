@@ -1,0 +1,147 @@
+name: Configure GitHub Token of deployed eGrants application
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "Select environment to configure"
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - stage
+          - prod
+        default: dev
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    runs-on: ${{ (inputs.target_branch == 'dev' || inputs.target_branch == 'test') && 'egrants_fcas-oasys_runner' || 'egrants_fcas-oasys_runner_prod' }}
+
+    environment: ${{ inputs.target_branch }}
+
+    steps:
+      - name: Update deployed GitHubToken
+        shell: powershell
+        env:
+          DEPLOY_ENV: ${{ inputs.target_branch }}
+          DEST_PATH_DEV: ${{ vars.DEST_PATH_DEV }}
+          DEST_PATH_TEST: ${{ vars.DEST_PATH_TEST }}
+          DEST_PATH_STAGE: ${{ vars.DEST_PATH_STAGE }}
+          DEST_PATH_PROD: ${{ vars.DEST_PATH_PROD }}
+          GITHUB_TOKEN_VALUE: ${{ secrets._GITHUB_TOKEN }}
+          DEPLOY_USER: ${{ inputs.target_branch == 'test' && secrets.DEPLOY_USER_TEST || (inputs.target_branch == 'prod' && secrets.DEPLOY_USER_PROD) || '' }}
+          DEPLOY_PASS: ${{ inputs.target_branch == 'test' && secrets.DEPLOY_PASS_TEST || (inputs.target_branch == 'prod' && secrets.DEPLOY_PASS_PROD) || '' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $destination = switch ($env:DEPLOY_ENV) {
+            'dev'   { $env:DEST_PATH_DEV }
+            'test'  { $env:DEST_PATH_TEST }
+            'stage' { $env:DEST_PATH_STAGE }
+            'prod'  { $env:DEST_PATH_PROD }
+            default { throw "Unsupported deployment environment." }
+          }
+
+          if ([string]::IsNullOrWhiteSpace($destination)) {
+            throw "Destination path is missing for $env:DEPLOY_ENV."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($env:GITHUB_TOKEN_VALUE)) {
+            throw "_GITHUB_TOKEN is missing or empty."
+          }
+
+          $driveName = 'EGrantsConfig'
+          $driveCreated = $false
+
+          try {
+            if ($env:DEPLOY_ENV -in @('test', 'prod')) {
+              if ([string]::IsNullOrWhiteSpace($env:DEPLOY_USER) -or
+                  [string]::IsNullOrWhiteSpace($env:DEPLOY_PASS)) {
+                throw "DEPLOY_USER or DEPLOY_PASS is missing."
+              }
+
+              $uncMatch = [regex]::Match(
+                $destination,
+                '^(\\\\[^\\]+\\[^\\]+)(?:\\(.*))?$'
+              )
+
+              if (-not $uncMatch.Success) {
+                throw "Destination must be a valid UNC path for test/prod."
+              }
+
+              $shareRoot = $uncMatch.Groups[1].Value
+              $relativePath = $uncMatch.Groups[2].Value
+
+              $securePassword = ConvertTo-SecureString `
+                $env:DEPLOY_PASS -AsPlainText -Force
+
+              $credential = New-Object `
+                System.Management.Automation.PSCredential(
+                  $env:DEPLOY_USER,
+                  $securePassword
+                )
+
+              New-PSDrive `
+                -Name $driveName `
+                -PSProvider FileSystem `
+                -Root $shareRoot `
+                -Credential $credential | Out-Null
+
+              $driveCreated = $true
+              $configDirectory = "${driveName}:\"
+
+              if ($relativePath) {
+                $configDirectory = Join-Path $configDirectory $relativePath
+              }
+            }
+            else {
+              $configDirectory = $destination
+            }
+
+            $file = Join-Path $configDirectory 'appsettings.json'
+
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+              throw "Deployed appsettings.json not found."
+            }
+
+            $json = Get-Content -LiteralPath $file -Raw |
+              ConvertFrom-Json
+
+            $property = $json.PSObject.Properties['GitHubToken']
+
+            if ($null -eq $property) {
+              throw "Top-level GitHubToken property not found."
+            }
+
+            $property.Value = $env:GITHUB_TOKEN_VALUE
+            $updatedJson = ConvertTo-Json -InputObject $json -Depth 100
+
+            $resolvedPath = (
+              Resolve-Path -LiteralPath $file
+            ).ProviderPath
+
+            $utf8 = New-Object System.Text.UTF8Encoding($false)
+            [System.IO.File]::WriteAllText(
+              $resolvedPath,
+              $updatedJson,
+              $utf8
+            )
+
+            $savedJson = Get-Content -LiteralPath $file -Raw |
+              ConvertFrom-Json
+
+            if ($savedJson.GitHubToken -cne $env:GITHUB_TOKEN_VALUE) {
+              throw "GitHubToken verification failed."
+            }
+
+            Write-Host "GitHubToken updated for $env:DEPLOY_ENV."
+          }
+          finally {
+            if ($driveCreated) {
+              Remove-PSDrive -Name $driveName -Force
+            }
+          }
