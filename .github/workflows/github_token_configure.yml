@@ -24,7 +24,7 @@ jobs:
     environment: ${{ inputs.target_branch }}
 
     steps:
-      - name: Update deployed AppSettings.GitHubToken
+      - name: Replace deployed GitHubToken value
         shell: powershell
         env:
           DEPLOY_ENV: ${{ inputs.target_branch }}
@@ -108,41 +108,59 @@ jobs:
               throw "Deployed appsettings.json not found."
             }
 
-            $json = Get-Content -LiteralPath $file -Raw |
-              ConvertFrom-Json
+            $resolvedPath = (Resolve-Path -LiteralPath $file).ProviderPath
 
-            if ($null -eq $json.AppSettings) {
-              throw "AppSettings section not found in appsettings.json."
-            }
+            # Preserve UTF-8 encoding and the existing BOM, if present.
+            $bytes = [System.IO.File]::ReadAllBytes($resolvedPath)
+            $hasBom = $bytes.Length -ge 3 -and
+                      $bytes[0] -eq 0xEF -and
+                      $bytes[1] -eq 0xBB -and
+                      $bytes[2] -eq 0xBF
 
-            $property = $json.AppSettings.PSObject.Properties['GitHubToken']
-
-            if ($null -eq $property) {
-              throw "AppSettings.GitHubToken property not found."
-            }
-
-            $property.Value = $env:GITHUB_TOKEN_VALUE
-            $updatedJson = ConvertTo-Json -InputObject $json -Depth 100
-
-            $resolvedPath = (
-              Resolve-Path -LiteralPath $file
-            ).ProviderPath
-
-            $utf8 = New-Object System.Text.UTF8Encoding($false)
-            [System.IO.File]::WriteAllText(
-              $resolvedPath,
-              $updatedJson,
-              $utf8
+            $encoding = New-Object System.Text.UTF8Encoding($hasBom, $true)
+            $offset = if ($hasBom) { 3 } else { 0 }
+            $content = $encoding.GetString(
+              $bytes,
+              $offset,
+              $bytes.Length - $offset
             )
 
-            $savedJson = Get-Content -LiteralPath $file -Raw |
-              ConvertFrom-Json
+            # Replace only the string value, retaining all surrounding text.
+            $pattern = '("GitHubToken"\s*:\s*)"(?:\\.|[^"\\])*"'
+            $matchesFound = [regex]::Matches($content, $pattern)
 
-            if ($savedJson.AppSettings.GitHubToken -cne $env:GITHUB_TOKEN_VALUE) {
-              throw "AppSettings.GitHubToken verification failed."
+            if ($matchesFound.Count -ne 1) {
+              throw "Expected exactly one GitHubToken setting; found $($matchesFound.Count)."
             }
 
-            Write-Host "AppSettings.GitHubToken updated for $env:DEPLOY_ENV."
+            $serializedToken = ConvertTo-Json `
+              -InputObject $env:GITHUB_TOKEN_VALUE -Compress
+
+            $updatedContent = [regex]::Replace(
+              $content,
+              $pattern,
+              [System.Text.RegularExpressions.MatchEvaluator]{
+                param($match)
+                $match.Groups[1].Value + $serializedToken
+              }
+            )
+
+            [System.IO.File]::WriteAllText(
+              $resolvedPath,
+              $updatedContent,
+              $encoding
+            )
+
+            $savedContent = [System.IO.File]::ReadAllText(
+              $resolvedPath,
+              $encoding
+            )
+
+            if ($savedContent -cne $updatedContent) {
+              throw "GitHubToken file update verification failed."
+            }
+
+            Write-Host "GitHubToken updated for $env:DEPLOY_ENV."
           }
           finally {
             if ($driveCreated) {
