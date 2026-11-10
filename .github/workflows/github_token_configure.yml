@@ -1,4 +1,4 @@
-name: Configure GitHub Token of deployed eGrants application
+name: Configure deployed eGrants GitHub token
 
 on:
   workflow_dispatch:
@@ -24,7 +24,7 @@ jobs:
     environment: ${{ inputs.target_branch }}
 
     steps:
-      - name: Update deployed GitHubToken
+      - name: Update deployed AppSettings.GitHubToken
         shell: powershell
         env:
           DEPLOY_ENV: ${{ inputs.target_branch }}
@@ -111,10 +111,14 @@ jobs:
             $json = Get-Content -LiteralPath $file -Raw |
               ConvertFrom-Json
 
-            $property = $json.PSObject.Properties['GitHubToken']
+            if ($null -eq $json.AppSettings) {
+              throw "AppSettings section not found in appsettings.json."
+            }
+
+            $property = $json.AppSettings.PSObject.Properties['GitHubToken']
 
             if ($null -eq $property) {
-              throw "Top-level GitHubToken property not found."
+              throw "AppSettings.GitHubToken property not found."
             }
 
             $property.Value = $env:GITHUB_TOKEN_VALUE
@@ -134,11 +138,11 @@ jobs:
             $savedJson = Get-Content -LiteralPath $file -Raw |
               ConvertFrom-Json
 
-            if ($savedJson.GitHubToken -cne $env:GITHUB_TOKEN_VALUE) {
-              throw "GitHubToken verification failed."
+            if ($savedJson.AppSettings.GitHubToken -cne $env:GITHUB_TOKEN_VALUE) {
+              throw "AppSettings.GitHubToken verification failed."
             }
 
-            Write-Host "GitHubToken updated for $env:DEPLOY_ENV."
+            Write-Host "AppSettings.GitHubToken updated for $env:DEPLOY_ENV."
           }
           finally {
             if ($driveCreated) {
