@@ -7,6 +7,11 @@
 @{
     ViewBag.Title = "egrants [NCI OGA]";
     Layout = "~/Views/Shared/_egrants_header.cshtml";
+
+    // Escapes a value so it can be safely embedded inside a single-quoted JavaScript string literal
+    // (handles apostrophes, quotation marks, backslashes and other special characters).
+    Func<string, string> JsStringArg = value =>
+        System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(value ?? string.Empty);
 }
 
 @* <!-- Bootstrap Font Icon CSS -->
@@ -296,7 +301,7 @@
                             if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper())
                             {
                                 <span class="p-0">
-                                    <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
+                                    <a href="JavaScript:send_email('@Html.Raw(JsStringArg(pi_email))','@Html.Raw(JsStringArg(grant.latest_full_grant_num))','@Html.Raw(JsStringArg(grant.current_pi_name))')" title="Send email to @grant.current_pi_name">@grant.current_pi_name</a>
                                 </span>
                             }
                             else
@@ -318,17 +323,9 @@
                             {
                                 pi_email = grant.current_pi_email_address;
                             }
-
-                            if (grant.current_pi_name.ToUpper() == grant.SelectedGrantPiName.ToUpper() || string.IsNullOrEmpty(grant.SelectedGrantPiEmail))
-                            {
-                                <span class="p-0">
-                                    <a href="JavaScript:send_email('@pi_email','@grant.latest_full_grant_num','@grant.current_pi_name')" title="Send email to @grant.current_pi_name">@grant.current_pi_name.ToUpper()</a>
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="p-0">@grant.current_pi_name.ToUpper()</span>
-                            }
+                            <span class="p-0">
+                                <a href="JavaScript:send_email('@Html.Raw(JsStringArg(pi_email))','@Html.Raw(JsStringArg(grant.latest_full_grant_num))','@Html.Raw(JsStringArg(grant.current_pi_name))')" title="Send email to @grant.current_pi_name">@grant.current_pi_name.ToUpper()</a>
+                            </span>
                         }
                         else if (!string.IsNullOrEmpty(grant.current_pi_name) && string.IsNullOrEmpty(grant.current_pi_email_address))
                         {

@@ -672,7 +672,7 @@ namespace eGrants.Services
             catch (Exception ex)
             {
                 // Optional: log the error here using your logging framework
-                _logger.LogError(ex, "Error retrieving category list for GrantId: {grantId}, Years: {years}", grantId, years);
+                _logger?.LogError(ex, "Error retrieving category list for GrantId: {grantId}, Years: {years}", grantId, years);
                 throw;
             }
         }
