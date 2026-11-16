@@ -6,6 +6,44 @@
 <script language="JavaScript">
     var currenturl = window.document.location.href;
 
+        // Full list of position types rendered from the server.
+        var allPositions = [
+            @foreach (var position in ViewBag.Positions)
+            {
+                @:{ id: '@position.PositionId', name: '@position.PositionName' },
+            }
+        ];
+
+        // When the Institution is anything other than NCI only "Program Staff" and
+        // "Specialist" position types are allowed. For NCI (or no selection) show all.
+        function filter_positions() {
+            var icSelect = document.getElementById("ddlIC");
+            var icText = icSelect.selectedIndex >= 0
+                ? icSelect.options[icSelect.selectedIndex].text.trim().toUpperCase()
+                : '';
+            var allowAll = (icText === '' || icText === 'NCI');
+
+            var ddlPositions = document.getElementById("ddlPositions");
+            var currentValue = ddlPositions.value;
+            ddlPositions.options.length = 0;
+
+            // Only NCI (or no selection) keeps the leading blank option.
+            if (allowAll) {
+                ddlPositions.add(new Option('', ''));
+            }
+
+            for (var i = 0; i < allPositions.length; i++) {
+                var position = allPositions[i];
+                if (allowAll || position.name === 'Program Staff' || position.name === 'Specialist') {
+                    ddlPositions.add(new Option(position.name, position.id));
+                }
+            }
+
+            ddlPositions.value = currentValue;
+        }
+
+        window.addEventListener('load', filter_positions);
+
         //change user's account status to active or inactive
         function change_status(user_name, user_id) {
             if (document.getElementById("ddlStatus").selectedIndex > 0) {
@@ -137,7 +175,7 @@
             var url = url + "&ic_id=" + document.getElementById("ddlIC").options[document.getElementById("ddlIC").selectedIndex].value;
 
             //check user position
-            if (document.getElementById("ddlPositions").selectedIndex == 0) {
+            if (document.getElementById("ddlPositions").value == '') {
                 alert("Please select user position...");
                 return false;
             } else var posision_name = document.getElementById("ddlPositions").options[document.getElementById("ddlPositions").selectedIndex].text;
@@ -227,7 +265,7 @@
                         </td>
                         <td><lable for="lblIC"><b>Institution:</b></lable></td>
                         <td>
-                            <select name="ic" id="ddlIC" class="form-control" style="height:30px; width:100px;" title="Set IC" @*onChange="goto('ic')"*@>
+                            <select name="ic" id="ddlIC" class="form-control" style="height:30px; width:100px;" title="Set IC" onChange="filter_positions()">
                                 <option></option>
                                 @foreach (var profiles in ViewBag.Profiles)
                                 {

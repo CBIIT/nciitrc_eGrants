@@ -67,21 +67,29 @@ namespace eGrant.Controllers
 
         private bool HasDocumentWriteAccess()
         {
-            if (string.Equals(sessionInfo.EffectiveRole, "ProgramCrossIcReadOnly", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (string.Equals(sessionInfo.EffectiveRole, "SpecialistCrossIc", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
             var positionId = HttpContext.Session.GetInt32("position_id") ?? 1;
             return positionId > 1;
         }
 
-        private string EffectiveIc => string.IsNullOrWhiteSpace(sessionInfo.AuthorityIc) ? sessionInfo.Ic : sessionInfo.AuthorityIc;
+        // For cross-IC personas the acting IC is the authority IC (the IC whose
+        // documents the user is authorized to work on), not the user's home IC.
+        private string EffectiveIc
+        {
+            get
+            {
+                var effectiveRole = HttpContext.Session.GetString("effective_role") ?? string.Empty;
+                if (effectiveRole.Contains("CrossIc", StringComparison.OrdinalIgnoreCase))
+                {
+                    var authorityIc = HttpContext.Session.GetString("authority_ic");
+                    if (!string.IsNullOrEmpty(authorityIc))
+                    {
+                        return authorityIc;
+                    }
+                }
+
+                return sessionInfo.Ic;
+            }
+        }
 
         public InstitutionalFilesController(IInstitutionalFilesService institutionalFilesService, ISessionInfoService sessionInfoService)
         {
@@ -356,13 +364,17 @@ namespace eGrant.Controllers
        sessionInfo.UserId,
      comments ?? "");
 
-          var docName = Convert.ToString(docID) + fileExtension;
+                     var docName = Convert.ToString(docID) + fileExtension;
 
-    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
-     var filePath = Path.Combine(fileFolder, docName);
+          #if DEBUG
+              var fileFolder = @"C:\PdfFileOutput\";
+          #else
+              var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+          #endif
+               var filePath = Path.Combine(fileFolder, docName);
 
-          await using var stream = new FileStream(filePath, FileMode.Create);
-      await dropedfile.CopyToAsync(stream);
+                     await using var stream = new FileStream(filePath, FileMode.Create);
+                 await dropedfile.CopyToAsync(stream);
 
     return Json(new { success = true, message = "Done! Document has been uploaded.", org_id, org_name });
           }
@@ -429,9 +441,13 @@ namespace eGrant.Controllers
 
          var docName = Convert.ToString(docID) + fileExtension;
 
+#if DEBUG
+                var fileFolder = @"C:\PdfFileOutput\";
+#else
                 var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+#endif
       Log.Information("fileFolder: " + fileFolder);
-  var filePath = Path.Combine(fileFolder, docName);
+   var filePath = Path.Combine(fileFolder, docName);
 
      // save file asynchronously
   await using var stream = new FileStream(filePath, FileMode.Create);

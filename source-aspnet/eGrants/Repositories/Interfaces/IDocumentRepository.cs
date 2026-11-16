@@ -25,9 +25,7 @@ namespace eGrants.Repositories.Interfaces
             string aSearchType,
             string aCategoryList,
             string aIc,
-            string aUserId,
-            string accessScope = null,
-            string authorityIc = null);
+            string aUserId);
 
         /// <summary>
         /// Asynchronously retrieves a list of former applications related to a specific grant.

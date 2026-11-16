@@ -150,8 +150,7 @@ namespace eGrants.Services
 
         private static string ResolveEffectiveIc(SessionInfo session)
         {
-            var authorityIc = session.AuthorityIc?.Trim();
-            return string.IsNullOrWhiteSpace(authorityIc) ? (session.Ic ?? string.Empty) : authorityIc;
+            return session.Ic ?? string.Empty;
         }
 
         /// <summary>
@@ -254,7 +253,6 @@ namespace eGrants.Services
         public List<doclayer> LoadDocs(int applId, string searchType, string categoryList, string mode, ISession sessionInfo)
         {
             var session = _sessionInfoService.GetSessionInfo(sessionInfo);
-            var effectiveIc = ResolveEffectiveIc(session);
 
             const int maxRetries = 5;
             int attempt = 0;
@@ -268,10 +266,8 @@ namespace eGrants.Services
                   applId,
                         searchType,
             categoryList,
-                     Convert.ToString(effectiveIc),
-                    Convert.ToString(session.UserId),
-                    session.AccessScope,
-                    session.AuthorityIc);
+                     Convert.ToString(session.Ic),
+                    Convert.ToString(session.UserId));
                 }
                 catch (SqlException ex) when (IsTransient(ex))
                 {

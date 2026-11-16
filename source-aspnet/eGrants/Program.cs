@@ -184,7 +184,8 @@ builder.Services.AddDistributedMemoryCache(); // Required for session
 builder.Services.AddMemoryCache(); // In-memory cache (IMemoryCache) for lookups such as restore file-type resolution
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+    // options.IdleTimeout = TimeSpan.FromMinutes(90); // Disabled strict 90-minute session timeout
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true; // Make session cookie HTTP-only
     options.Cookie.IsEssential = true; // Make session cookie essential
     options.Cookie.SameSite = SameSiteMode.None;
@@ -204,9 +205,6 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     // treated as third-party and dropped by modern browsers on top-level re-entry.
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    // Persist the auth cookie across browser restarts. ExpireTimeSpan controls the
-    // ticket lifetime, but the browser only keeps the cookie past close-out when the
-    // cookie itself carries a Max-Age/Expires attribute, which Cookie.MaxAge sets.
     options.Cookie.MaxAge = TimeSpan.FromDays(14);
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromDays(14);
@@ -217,12 +215,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefa
     {
         OnSigningIn = context =>
         {
-            // Authoritative place to force a PERSISTENT cookie. This runs for the
-            // actual cookie being written and is not overridden by Microsoft.Identity.Web's
-            // OIDC wiring. Without this the cookie is issued as a session cookie (no
-            // Expires/Max-Age) and is deleted when the browser is closed, forcing re-login.
             context.Properties.IsPersistent = true;
-            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
 
             Log.Information(
                 "Cookie signing in. Name={Name}, IsPersistent={IsPersistent}, ExpiresUtc={ExpiresUtc}, TraceId={TraceId}",
@@ -279,52 +272,6 @@ builder.Services.Configure<OpenIdConnectOptions>(
     OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
         options.ResponseType = OpenIdConnectResponseType.Code;
-
-        // Force an interactive login prompt on EVERY authentication redirect
-        // (including after the browser is closed and reopened). Without this,
-        // Entra performs a silent SSO re-login using the still-valid Microsoft
-        // session cookie and the user is never challenged. Setting prompt=login
-        // instructs Entra to ignore the existing SSO session and re-prompt for
-        // credentials.
-        options.Prompt = "login";
-    });
-
-// Make the application authentication cookie a non-persistent (session) cookie so
-// it is discarded when the browser is closed. Combined with prompt=login above,
-// reopening the browser then triggers a fresh interactive login rather than a
-// silent SSO restore.
-//
-// NOTE: Browser "session restore" (e.g. Chrome/Edge "reopen tabs on startup")
-// can hand session cookies back after a reopen, so we cannot rely on cookie
-// deletion alone. The OnValidatePrincipal event below enforces an absolute
-// server-side lifetime that holds regardless of what the browser does with the
-// cookie.
-builder.Services.Configure<CookieAuthenticationOptions>(
-    CookieAuthenticationDefaults.AuthenticationScheme, (CookieAuthenticationOptions options) =>
-    {
-        options.Cookie.MaxAge = null;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(90);
-        options.SlidingExpiration = false;
-
-        options.Events.OnValidatePrincipal = async context =>
-        {
-            // Enforce an absolute session lifetime based on when the auth ticket
-            // was issued. If the ticket is older than the allowed window, reject
-            // it and sign out so the next request triggers a fresh (interactive,
-            // prompt=login) OIDC challenge. This is immune to browsers restoring
-            // session cookies on reopen.
-            var absoluteLifetime = TimeSpan.FromMinutes(90);
-            var issuedUtc = context.Properties?.IssuedUtc;
-
-            if (issuedUtc == null ||
-                DateTimeOffset.UtcNow - issuedUtc.Value > absoluteLifetime)
-            {
-                context.RejectPrincipal();
-                context.HttpContext.Session.Clear();
-                await context.HttpContext.SignOutAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme);
-            }
-        };
     });
 
 builder.Services.AddAuthorization(options =>
@@ -388,7 +335,7 @@ var app = builder.Build();
 try
 {
     IronPdf.License.LicenseKey =
-        "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
+        builder.Configuration["IRONPDF_LICENSE_KEY"];
 
     // Disable local disk access or cross-origin requests during rendering.
     IronPdf.Installation.EnableWebSecurity = true;
@@ -639,6 +586,11 @@ app.Use(async (context, next) =>
 
         // Determine IC (Institute/Org Code) - default to NCI
         var ic = eGrants.Common.EntraIdUserResolver.ResolveIc(context.User) ?? string.Empty;
+
+        // Apply OverrideIc when configured; otherwise fall back to the resolved/default IC
+        var overrideIc = builder.Configuration["AccessControl:OverrideIc"];
+        ic = eGrants.Common.EntraIdUserResolver.ApplyIcOverride(ic, overrideIc);
+
         context.Session.SetString("ic", ic);
 
         // Detect browser
@@ -655,52 +607,9 @@ app.Use(async (context, next) =>
         // Resolve EgrantsCommon service
         var egrantsCommon = context.RequestServices.GetRequiredService<EgrantsCommon>();
 
-        // ===================================================================================
-        // Cross-IC persona membership (EGRANTS-1361)
-        // ===================================================================================
-        // Determine cross-IC membership BEFORE the NCI-centric UserType/Validation gates.
-        // sp_web_egrants_user_type_check and the standard profile validation are keyed to NCI,
-        // so a non-NCI pilot user (e.g. a NIGMS FOIA/detailee) would otherwise be denied and
-        // redirected to egrants_default.htm before the cross-IC role mapping below ever runs.
-        // Configured cross-IC users are allowed to proceed so they receive their read-only
-        // (or specialist) cross-IC persona.
-        // ===================================================================================
-        var normalizedUserId = (userId ?? string.Empty).Split('@')[0].Trim().ToLowerInvariant();
-
-        var programCrossIcUsers = (builder.Configuration["AccessControl:ProgramCrossIcReadOnlyUsers"] ?? string.Empty)
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(u => u.Split('@')[0].Trim().ToLowerInvariant())
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var specialistCrossIcUsers = (builder.Configuration["AccessControl:SpecialistCrossIcUsers"] ?? string.Empty)
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(u => u.Split('@')[0].Trim().ToLowerInvariant())
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var isProgramCrossIcUser = programCrossIcUsers.Contains(normalizedUserId);
-        var isSpecialistCrossIcUser = specialistCrossIcUsers.Contains(normalizedUserId);
-        var isCrossIcUser = isProgramCrossIcUser || isSpecialistCrossIcUser;
-
-        // For configured cross-IC pilot users, resolve the profile against their authority IC
-        // (e.g. "nci") rather than their home IC. The legacy app did the equivalent via
-        // CheckUsersException (resetting a non-NCI exception user's IC to "nci") so the
-        // NCI-centric sp_web_egrants_user_type_check / sp_web_egrants_user_profile procedures
-        // return a valid profile instead of hanging on an unresolved (empty) user type.
-        if (isCrossIcUser)
-        {
-            var lookupIc = isSpecialistCrossIcUser
-                ? (builder.Configuration["AccessControl:SpecialistCrossIcAuthorityIc"] ?? eGrants.Common.EntraIdUserResolver.DefaultIc)
-                : (builder.Configuration["AccessControl:ProgramCrossIcAuthorityIc"] ?? eGrants.Common.EntraIdUserResolver.DefaultIc);
-
-            if (!string.IsNullOrEmpty(lookupIc))
-            {
-                context.Session.SetString("ic", lookupIc);
-            }
-        }
-
         var usertype = egrantsCommon.UserType(context.Session.GetString("ic"), context.Session.GetString("userid"));
 
-        if ((string.IsNullOrEmpty(usertype) || usertype == "NULL") && !isCrossIcUser)
+        if (string.IsNullOrEmpty(usertype) || usertype == "NULL")
         {
             Log.Warning(
                 "Access resolution failed (UserType empty). Redirecting to egrants_default.htm. " +
@@ -730,17 +639,7 @@ app.Use(async (context, next) =>
             context.Session.SetString("Menus", usr.menulist ?? string.Empty);
         }
 
-        // Override the IC assigned to the current user. The override IC is configurable via
-        // AccessControl:OverrideIc; when blank/absent it defaults to NCI.
-        var overrideIc = builder.Configuration["AccessControl:OverrideIc"];
-        if (string.IsNullOrWhiteSpace(overrideIc))
-        {
-            overrideIc = eGrants.Common.EntraIdUserResolver.DefaultIc;
-        }
-
-        context.Session.SetString("ic", overrideIc);
-
-        if (context.Session.GetString("Validation")?.ToString() != "OK" && !isCrossIcUser)
+        if (context.Session.GetString("Validation")?.ToString() != "OK")
         {
             Log.Warning(
                 "Access resolution failed (Validation != OK). Redirecting to egrants_default.htm. " +
@@ -754,49 +653,6 @@ app.Use(async (context, next) =>
 
             context.Response.Redirect("/egrants_default.htm");
             return;
-        }
-
-        var authorityIc = context.Session.GetString("ic") ?? string.Empty;
-        var effectiveRole = "ProgramHomeIc";
-        var accessScope = "HomeIcOnly";
-
-        if (isProgramCrossIcUser)
-        {
-            effectiveRole = "ProgramCrossIcReadOnly";
-            accessScope = "CrossIcProgramBaseline";
-            authorityIc = builder.Configuration["AccessControl:ProgramCrossIcAuthorityIc"] ?? authorityIc;
-        }
-        else if (isSpecialistCrossIcUser)
-        {
-            effectiveRole = "SpecialistCrossIc";
-            accessScope = "CrossIcSpecialistBaseline";
-            authorityIc = builder.Configuration["AccessControl:SpecialistCrossIcAuthorityIc"] ?? authorityIc;
-        }
-        else
-        {
-            var positionId = context.Session.GetInt32("position_id") ?? 1;
-            effectiveRole = positionId <= 1 ? "ReadOnlyHomeIc" : "SpecialistHomeIc";
-        }
-
-        context.Session.SetString("effective_role", effectiveRole);
-        context.Session.SetString("access_scope", accessScope);
-        context.Session.SetString("authority_ic", authorityIc);
-
-        if (string.Equals(effectiveRole, "ProgramCrossIcReadOnly", StringComparison.OrdinalIgnoreCase))
-        {
-            context.Session.SetInt32("position_id", 1);
-        }
-        else if (string.Equals(effectiveRole, "SpecialistCrossIc", StringComparison.OrdinalIgnoreCase))
-        {
-            // Ensure the non-NCI detailee specialist is treated as a specialist (write-capable)
-            // so upload/replace controls are available in the UI and the stored procedure's
-            // can_* flags evaluate to 'y' (AC5). A non-NCI home profile may resolve to a
-            // read-only position_id of 1, which would otherwise suppress specialist actions.
-            var currentPositionId = context.Session.GetInt32("position_id") ?? 1;
-            if (currentPositionId < 2)
-            {
-                context.Session.SetInt32("position_id", 2);
-            }
         }
 
         // Load app settings into session

@@ -122,5 +122,26 @@ namespace eGrants.Common
 
             return !string.IsNullOrEmpty(ResolveUserId(user));
         }
+
+        /// <summary>
+        /// Applies a configured IC override to the resolved IC.
+        /// <para>
+        /// When <paramref name="overrideIc"/> is populated (non-null, non-whitespace), it takes
+        /// precedence and is returned (trimmed). Otherwise the originally <paramref name="resolvedIc"/>
+        /// is returned unchanged (which defaults to <see cref="DefaultIc"/> when empty).
+        /// </para>
+        /// </summary>
+        /// <param name="resolvedIc">The IC resolved from the user's claims.</param>
+        /// <param name="overrideIc">The configured override IC, if any.</param>
+        /// <returns>The effective IC to use for the session.</returns>
+        public static string ApplyIcOverride(string? resolvedIc, string? overrideIc)
+        {
+            if (!string.IsNullOrWhiteSpace(overrideIc))
+            {
+                return overrideIc.Trim();
+            }
+
+            return string.IsNullOrWhiteSpace(resolvedIc) ? DefaultIc : resolvedIc;
+        }
     }
 }

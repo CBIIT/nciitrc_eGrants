@@ -121,21 +121,29 @@ namespace eGrants.Controllers.Egrants
 
         private bool HasDocumentWriteAccess()
         {
-            if (string.Equals(sessionInfo.EffectiveRole, "ProgramCrossIcReadOnly", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (string.Equals(sessionInfo.EffectiveRole, "SpecialistCrossIc", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
             var positionId = HttpContext.Session.GetInt32("position_id") ?? 1;
             return positionId > 1;
         }
 
-        private string EffectiveIc => string.IsNullOrWhiteSpace(sessionInfo.AuthorityIc) ? sessionInfo.Ic : sessionInfo.AuthorityIc;
+        // For cross-IC personas the acting IC is the authority IC (the IC whose
+        // documents the user is authorized to work on), not the user's home IC.
+        private string EffectiveIc
+        {
+            get
+            {
+                var effectiveRole = HttpContext.Session.GetString("effective_role") ?? string.Empty;
+                if (effectiveRole.Contains("CrossIc", StringComparison.OrdinalIgnoreCase))
+                {
+                    var authorityIc = HttpContext.Session.GetString("authority_ic");
+                    if (!string.IsNullOrEmpty(authorityIc))
+                    {
+                        return authorityIc;
+                    }
+                }
+
+                return sessionInfo.Ic;
+            }
+        }
 
         public EgrantsDocController(IeGrantsService eGrantsService, ICommonService commonService, IDocumentService documentService, ISessionInfoService sessionInfoService, IApplService applService, IConfiguration configuration = null, EgrantsCommon egrantsCommon = null, IMemoryCache memoryCache = null)
         {

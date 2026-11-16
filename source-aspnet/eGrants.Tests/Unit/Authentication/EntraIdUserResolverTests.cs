@@ -278,5 +278,60 @@ namespace eGrants.Tests.Unit.Authentication
         }
 
         #endregion
+
+        #region ApplyIcOverride - the AccessControl:OverrideIc behavior used in Program.cs
+
+        [Fact]
+        public void ApplyIcOverride_ReturnsOverride_WhenOverridePopulated()
+        {
+            var result = EntraIdUserResolver.ApplyIcOverride("NCI", "CSR");
+
+            Assert.Equal("CSR", result);
+        }
+
+        [Fact]
+        public void ApplyIcOverride_ReturnsResolvedIc_WhenOverrideNull()
+        {
+            var result = EntraIdUserResolver.ApplyIcOverride("NHLBI", null);
+
+            Assert.Equal("NHLBI", result);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void ApplyIcOverride_ReturnsResolvedIc_WhenOverrideBlank(string overrideIc)
+        {
+            var result = EntraIdUserResolver.ApplyIcOverride("NHLBI", overrideIc);
+
+            Assert.Equal("NHLBI", result);
+        }
+
+        [Fact]
+        public void ApplyIcOverride_DefaultsToNci_WhenResolvedIcEmptyAndNoOverride()
+        {
+            var result = EntraIdUserResolver.ApplyIcOverride(string.Empty, null);
+
+            Assert.Equal(EntraIdUserResolver.DefaultIc, result);
+            Assert.Equal("NCI", result);
+        }
+
+        [Fact]
+        public void ApplyIcOverride_TrimsOverrideValue()
+        {
+            var result = EntraIdUserResolver.ApplyIcOverride("NCI", "  CSR  ");
+
+            Assert.Equal("CSR", result);
+        }
+
+        [Fact]
+        public void ApplyIcOverride_OverrideTakesPrecedence_EvenWhenResolvedIcEmpty()
+        {
+            var result = EntraIdUserResolver.ApplyIcOverride(string.Empty, "CSR");
+
+            Assert.Equal("CSR", result);
+        }
+
+        #endregion
     }
 }

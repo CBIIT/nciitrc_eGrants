@@ -36,9 +36,7 @@ namespace eGrants.Repositories
             string aSearchType,
             string aCategoryList,
             string aIc,
-            string aUserId,
-            string accessScope = null,
-            string authorityIc = null)
+            string aUserId)
         {
             var result = new List<doclayer>();
 
@@ -56,8 +54,6 @@ namespace eGrants.Repositories
                     cmd.Parameters.AddWithValue("@category_list", aCategoryList ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ic", aIc ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@operator", aUserId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@access_scope", accessScope ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@authority_ic", authorityIc ?? (object)DBNull.Value);
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
