@@ -28,10 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Database\Scripts\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="wwwroot\egrants_default.htm" />
     <None Include="wwwroot\images\search.png" />
   </ItemGroup>

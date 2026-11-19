@@ -842,7 +842,39 @@ namespace eGrants.Controllers.Egrants
                         var filePath = Path.Combine(fileFolder, docName);
 
                         var pdfDoc = PdfDocument.Merge(pdfDocs);
-                        pdfDoc.SaveAs(filePath);
+
+                        try
+                        {
+                            pdfDoc.SaveAs(filePath);
+                        }
+                        catch
+                        {
+                            // The document record was already created by GetDocID above.
+                            // If saving the file fails, remove the orphaned record so the
+                            // document list does not show an entry whose file never got
+                            // written (which would 404 when opened).
+                            try
+                            {
+                                _documentService.DocModify(
+                                    "to delete",
+                                    0,
+                                    0,
+                                    string.Empty,
+                                    string.Empty,
+                                    Convert.ToString(document_id),
+                                    string.Empty,
+                                    EffectiveIc,
+                                    sessionInfo.UserId);
+                            }
+                            catch (Exception cleanupEx)
+                            {
+                                Log.Warning(cleanupEx,
+                                    "Failed to delete orphaned document record after save failure. DocId={DocId}",
+                                    document_id);
+                            }
+
+                            throw;
+                        }
 
                         // create review url
                         this.ViewBag.FileUrl = sessionInfo.ImageServerUrl + HttpContext.Session.GetString("EgrantsDocNewRelativePath") + Convert.ToString(docName);
@@ -868,6 +900,10 @@ namespace eGrants.Controllers.Egrants
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex,
+                        "convert_to_pdf failed. ApplId={ApplId}, CategoryId={CategoryId}, FileExtension={FileExtension}",
+                        appl_id, category_id, fileExtension);
+
                     mssg = "ERROR: The file could not be converted!";
 
 
@@ -1114,7 +1150,45 @@ namespace eGrants.Controllers.Egrants
                        .ToList();
 
                     var mergedPdf = PdfDocument.Merge(pdfDocs);
-                    mergedPdf.SaveAs(filePath);
+
+                    try
+                    {
+                        mergedPdf.SaveAs(filePath);
+                    }
+                    catch
+                    {
+                        // The document record was already created by GetDocID above.
+                        // If saving the file fails, remove the orphaned record so the
+                        // document list does not show an entry whose file never got
+                        // written (which would 404 when opened).
+                        try
+                        {
+                            _documentService.DocModify(
+                                "to delete",
+                                0,
+                                0,
+                                string.Empty,
+                                string.Empty,
+                                Convert.ToString(document_id),
+                                string.Empty,
+                                EffectiveIc,
+                                sessionInfo.UserId);
+                        }
+                        catch (Exception cleanupEx)
+                        {
+                            Log.Warning(cleanupEx,
+                                "Failed to delete orphaned document record after save failure. DocId={DocId}",
+                                document_id);
+                        }
+
+                        mergedPdf.Dispose();
+                        foreach (var doc in pdfDocs)
+                        {
+                            doc.Dispose();
+                        }
+
+                        throw;
+                    }
 
                     // Cleanup merged objects
                     mergedPdf.Dispose();

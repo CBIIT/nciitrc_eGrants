@@ -42,6 +42,19 @@ namespace EmailConcatenation
                 .AddEnvironmentVariables()
                 .Build();
 
+            // Apply the IronPdf license here so this library is self-sufficient and
+            // does not rely on the host (e.g. eGrants Program.cs) having set it. The
+            // key is read from the IRONPDF_LICENSE_KEY environment variable (preferred)
+            // or the "IronPdf:LicenseKey" configuration entry, so the secret is never
+            // stored in source. This runs once because the kernel is built once.
+            var ironPdfLicenseKey = configuration["IRONPDF_LICENSE_KEY"]
+                ?? configuration["IronPdf:LicenseKey"];
+
+            if (!string.IsNullOrWhiteSpace(ironPdfLicenseKey))
+            {
+                IronPdf.License.LicenseKey = ironPdfLicenseKey;
+            }
+
             // Register IConfiguration with Ninject
             kernel.Bind<IConfiguration>().ToConstant(configuration);
 

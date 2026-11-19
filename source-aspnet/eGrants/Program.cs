@@ -334,8 +334,20 @@ var app = builder.Build();
 // ====================================================================================
 try
 {
-    IronPdf.License.LicenseKey =
-        builder.Configuration["IRONPDF_LICENSE_KEY"];
+    // The IronPdf license key is provided via the IRONPDF_LICENSE_KEY environment
+    // variable (mirroring the DB_USER / DB_PASSWORD / client-secret pattern above)
+    // so the secret is never stored in source control. It may also be supplied via
+    // the "IronPdf:LicenseKey" configuration entry for non-production/local runs.
+    var ironPdfLicenseKey = builder.Configuration["IRONPDF_LICENSE_KEY"];
+
+    if (!string.IsNullOrWhiteSpace(ironPdfLicenseKey))
+    {
+        IronPdf.License.LicenseKey = ironPdfLicenseKey;
+    }
+    else
+    {
+        Log.Warning("IronPdf license key not configured (IRONPDF_LICENSE_KEY). PDF features may run unlicensed.");
+    }
 
     // Disable local disk access or cross-origin requests during rendering.
     IronPdf.Installation.EnableWebSecurity = true;
@@ -407,6 +419,18 @@ app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(localPdfOutputPath),
     RequestPath = "/data/funded/nci/modify"
+});
+
+// Institutional files are saved locally to the same C:\PdfFileOutput folder in
+// DEBUG (see InstitutionalFilesController). ServeUnknownFileTypes is enabled so
+// non-PDF documents such as .doc/.docx can be opened/downloaded locally; without
+// it the static file middleware returns 404 for unmapped content types.
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded/nci/institutional",
+    ServeUnknownFileTypes = true,
+    DefaultContentType = "application/octet-stream"
 });
 #endif
 

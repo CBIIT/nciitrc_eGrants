@@ -96,6 +96,9 @@ Create, upload, index, modify, delete, and restore grant documents.
 - Index update/modify workflows, including handling of unidentified documents.
 - Delete, restore, and re-index documents, with cross-IC effective-IC handling.
 - Application creation helpers (`appl_create_default`, `create_new_appl`).
+- If saving a converted PDF to disk fails, the orphaned document record created
+  earlier in the workflow is removed so the database is not left in an
+  inconsistent state.
 
 ### Document Download (`EgrantsController`)
 
@@ -121,6 +124,8 @@ Management of institutional (organization-level) files.
 - Show, create, update, and delete institutional documents for an organization
   (`Show_Docs`, `Create_Doc_by_File`, `Create_Doc_by_DDrop`, `Update_Doc`,
   `Delete_Doc`), with cross-IC effective-IC handling.
+- The organization/institution list is ordered by name, and any profiles listed
+  in the `HiddenProfiles` configuration are excluded.
 
 ### Dashboard & Reminders (`DashboardController`, `ReminderController`)
 
@@ -192,12 +197,21 @@ Secrets are **not** stored in configuration files; instead, placeholders in
 | `{DB_PASSWORD}`                 | `DB_PASSWORD`                      | SQL Server password                  |
 | `{eGrants_AzureAd_ClientSecret}`| `eGrants_AzureAd_ClientSecret`     | Entra ID client secret               |
 | `{CERT_PASSWORD}`               | `CERT_PASSWORD`                    | eRA client certificate password      |
+| `IronPdf:LicenseKey` (empty)    | `IRONPDF_LICENSE_KEY`              | IronPdf license key (DOCX?PDF)       |
+
+The IronPdf license key is read from the `IRONPDF_LICENSE_KEY` environment
+variable first, falling back to the `IronPdf:LicenseKey` configuration value. If
+neither is present a warning is logged at startup and DOCX?PDF conversion will
+fail with a licensing exception. The key must never be committed to source
+control.
 
 Other notable configuration sections:
 
 - `ConnectionStrings:DefaultConnection` – SQL Server connection string
 - `AzureAd` – Entra ID instance, tenant, client ID, and callback path
 - `AccessControl:OverrideIc` – optional IC override for testing/pilot scenarios
+- `HiddenProfiles` – array of institution/profile names to hide from the Admin
+  access-control institution dropdowns (for example `[ "NCMHD" ]`)
 - `Serilog` – Console, rolling File, and Email logging sinks
 
 > When running in `Local`/`Development`, Serilog error-notification emails are
@@ -216,6 +230,7 @@ Other notable configuration sections:
    $env:DB_PASSWORD = "<db-password>"
    $env:eGrants_AzureAd_ClientSecret = "<entra-client-secret>"
    $env:CERT_PASSWORD = "<cert-password>"
+   $env:IRONPDF_LICENSE_KEY = "<ironpdf-license-key>"
    ```
 
 3. Restore and build:
@@ -280,9 +295,14 @@ base directory to troubleshoot sink/configuration issues.
 - Large file uploads (up to 2 GB) are supported via tuned Kestrel, IIS, and form
   limits in `Program.cs`.
 - IronPdf is initialized and warmed up at startup so the first document
-  conversion does not pay the one-time Chromium cold-start cost.
+  conversion does not pay the one-time Chromium cold-start cost. A valid license
+  key (see `IRONPDF_LICENSE_KEY` above) is required for DOCX?PDF conversion.
 - The application coexists with the legacy `egrants_new` project during the
   modernization effort.
+- In `DEBUG` builds, uploaded and converted documents are stored locally under
+  `C:\PdfFileOutput` instead of the production UNC share, and `Program.cs` maps
+  the corresponding `/data/...` URL paths to that folder so files can be viewed
+  locally.
 
 ## License
 
