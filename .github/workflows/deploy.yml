@@ -103,6 +103,8 @@ jobs:
       # Run tests and fail the workflow if any test fails.
       - name: Run tests (pass/fail gate)
         shell: powershell
+        env:
+          DOTNET_ROLL_FORWARD: Major
         run: |
           dotnet test "./source-aspnet/eGrants.Tests/eGrants.Tests.csproj" `
             -c Release `
