@@ -42,6 +42,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Install the .NET 10 SDK on the runner.
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'      
+
       # Load environment-specific values from GitHub environment variables.
       # This step writes reusable outputs for later steps.
       - name: Load environment variables
