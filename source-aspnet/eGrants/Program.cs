@@ -567,6 +567,13 @@ app.Use(async (context, next) =>
 
         context.Session.SetString("userid", userId);
 
+        // Earliest point the resolved user id is available in session for this request.
+        Log.Information(
+            "User session initialized. UserId={UserId}, Path={Path}, TraceId={TraceId}",
+            userId,
+            context.Request.Path,
+            context.TraceIdentifier);
+
         // Determine IC (Institute/Org Code) - default to NCI
         var ic = eGrants.Common.EntraIdUserResolver.ResolveIc(context.User);
         context.Session.SetString("ic", ic);

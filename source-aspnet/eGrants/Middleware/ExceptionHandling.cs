@@ -1,4 +1,4 @@
-﻿using eGrants.Common;
+using eGrants.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
@@ -25,7 +25,15 @@ namespace SimpleECommerceCore.Middleware
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Unhandled exception occurred while processing request: " + context.Request.Path);
+                // The session "userid" is populated during authentication; include it so
+                // errors can be correlated to the specific user that triggered them.
+                var userId = context.Session?.GetString("userid");
+
+                Log.Error(
+                    ex,
+                    "Unhandled exception occurred while processing request. Path={Path}, UserId={UserId}",
+                    context.Request.Path,
+                    userId);
 
                 context.Response.StatusCode = 500;
                 context.Response.ContentType = "application/json";
