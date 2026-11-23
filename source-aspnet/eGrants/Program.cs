@@ -288,6 +288,23 @@ builder.Services.AddControllersWithViews()
 
 #region Logging (Serilog)
 
+// ====================================================================================
+// LOCAL ERROR NOTIFICATION REDIRECT
+// ====================================================================================
+// When running locally, redirect Serilog error-notification emails from the shared
+// team distribution list (configured in appsettings.json) to the developer running the
+// app, so local exceptions don't spam the whole team. The email sink's recipient is the
+// nested Logger -> Email sink: Serilog:WriteTo:2:Args:configureLogger:WriteTo:0:Args:to.
+// ====================================================================================
+if (builder.Environment.IsEnvironment("Local") || builder.Environment.IsDevelopment())
+{
+    const string emailToConfigKey =
+        "Serilog:WriteTo:2:Args:configureLogger:WriteTo:0:Args:to";
+
+    var localUserEmail = $"{Environment.UserName}@mail.nih.gov";
+    builder.Configuration[emailToConfigKey] = localUserEmail;
+}
+
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration
@@ -317,8 +334,20 @@ var app = builder.Build();
 // ====================================================================================
 try
 {
-    IronPdf.License.LicenseKey =
-        "IRONPDF.NATIONALINSTITUTESOFHEALTH.IRO240906.3804.91129-DA12E4CBF3-DBQNBY5HLE5VALY-Q5R6HRQZIG3H-QKT3YRHJTBUH-PNRD6KJMHI5C-G7MCDB5LXYT3-Y5V5MI-LNUL6X3VZT6VUA-IRONPDF.DOTNET.PLUS.5YR-P3KMXU.RENEW.SUPPORT.05.SEP.2029";
+    // The IronPdf license key is provided via the IRONPDF_LICENSE_KEY environment
+    // variable (mirroring the DB_USER / DB_PASSWORD / client-secret pattern above)
+    // so the secret is never stored in source control. It may also be supplied via
+    // the "IronPdf:LicenseKey" configuration entry for non-production/local runs.
+    var ironPdfLicenseKey = builder.Configuration["IRONPDF_LICENSE_KEY"];
+
+    if (!string.IsNullOrWhiteSpace(ironPdfLicenseKey))
+    {
+        IronPdf.License.LicenseKey = ironPdfLicenseKey;
+    }
+    else
+    {
+        Log.Warning("IronPdf license key not configured (IRONPDF_LICENSE_KEY). PDF features may run unlicensed.");
+    }
 
     // Disable local disk access or cross-origin requests during rendering.
     IronPdf.Installation.EnableWebSecurity = true;
@@ -390,6 +419,18 @@ app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(localPdfOutputPath),
     RequestPath = "/data/funded/nci/modify"
+});
+
+// Institutional files are saved locally to the same C:\PdfFileOutput folder in
+// DEBUG (see InstitutionalFilesController). ServeUnknownFileTypes is enabled so
+// non-PDF documents such as .doc/.docx can be opened/downloaded locally; without
+// it the static file middleware returns 404 for unmapped content types.
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localPdfOutputPath),
+    RequestPath = "/data/funded/nci/institutional",
+    ServeUnknownFileTypes = true,
+    DefaultContentType = "application/octet-stream"
 });
 #endif
 
@@ -575,7 +616,12 @@ app.Use(async (context, next) =>
             context.TraceIdentifier);
 
         // Determine IC (Institute/Org Code) - default to NCI
-        var ic = eGrants.Common.EntraIdUserResolver.ResolveIc(context.User);
+        var ic = eGrants.Common.EntraIdUserResolver.ResolveIc(context.User) ?? string.Empty;
+
+        // Apply OverrideIc when configured; otherwise fall back to the resolved/default IC
+        var overrideIc = builder.Configuration["AccessControl:OverrideIc"];
+        ic = eGrants.Common.EntraIdUserResolver.ApplyIcOverride(ic, overrideIc);
+
         context.Session.SetString("ic", ic);
 
         // Detect browser
@@ -613,14 +659,15 @@ app.Use(async (context, next) =>
 
         foreach (var usr in users)
         {
-            context.Session.SetString("Validation", usr.Validation);
-            context.Session.SetString("userid", usr.UserId);
-            context.Session.SetString("ic", usr.ic);
+            context.Session.SetString("Validation", usr.Validation ?? string.Empty);
+            context.Session.SetString("userid", usr.UserId ?? string.Empty);
+            context.Session.SetString("ic", usr.ic ?? string.Empty);
+            context.Session.SetString("home_ic", usr.ic ?? string.Empty);
             context.Session.SetInt32("Personid", usr.personID);
             context.Session.SetInt32("position_id", usr.positionID);
-            context.Session.SetString("UserName", usr.PersonName);
-            context.Session.SetString("UserEmail", usr.PersonEmail);
-            context.Session.SetString("Menus", usr.menulist);
+            context.Session.SetString("UserName", usr.PersonName ?? string.Empty);
+            context.Session.SetString("UserEmail", usr.PersonEmail ?? string.Empty);
+            context.Session.SetString("Menus", usr.menulist ?? string.Empty);
         }
 
         if (context.Session.GetString("Validation")?.ToString() != "OK")

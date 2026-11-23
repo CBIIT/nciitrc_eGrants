@@ -12,6 +12,7 @@ namespace eGrants.Services
             return new SessionInfo
             {
                 Ic = session.TryGetValue("ic", out var icBytes) && icBytes != null ? System.Text.Encoding.UTF8.GetString(icBytes) : "",
+                HomeIc = session.TryGetValue("home_ic", out var homeIcBytes) && homeIcBytes != null ? System.Text.Encoding.UTF8.GetString(homeIcBytes) : (session.TryGetValue("ic", out var fallbackHomeIcBytes) && fallbackHomeIcBytes != null ? System.Text.Encoding.UTF8.GetString(fallbackHomeIcBytes) : ""),
                 Browser = session.TryGetValue("browser", out var browserBytes) && browserBytes != null ? System.Text.Encoding.UTF8.GetString(browserBytes) : "",
                 UserId = session.TryGetValue("userid", out var userBytes) && userBytes != null ? System.Text.Encoding.UTF8.GetString(userBytes) : "",
                 WebGrantUrl = session.TryGetValue("WebGrantUrl", out var webGrantUrlBytes) && webGrantUrlBytes != null ? System.Text.Encoding.UTF8.GetString(webGrantUrlBytes) : "",

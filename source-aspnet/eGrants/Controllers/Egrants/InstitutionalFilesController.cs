@@ -65,6 +65,32 @@ namespace eGrant.Controllers
 
         private SessionInfo sessionInfo => _sessionInfoService.GetSessionInfo(HttpContext.Session);
 
+        private bool HasDocumentWriteAccess()
+        {
+            var positionId = HttpContext.Session.GetInt32("position_id") ?? 1;
+            return positionId > 1;
+        }
+
+        // For cross-IC personas the acting IC is the authority IC (the IC whose
+        // documents the user is authorized to work on), not the user's home IC.
+        private string EffectiveIc
+        {
+            get
+            {
+                var effectiveRole = HttpContext.Session.GetString("effective_role") ?? string.Empty;
+                if (effectiveRole.Contains("CrossIc", StringComparison.OrdinalIgnoreCase))
+                {
+                    var authorityIc = HttpContext.Session.GetString("authority_ic");
+                    if (!string.IsNullOrEmpty(authorityIc))
+                    {
+                        return authorityIc;
+                    }
+                }
+
+                return sessionInfo.Ic;
+            }
+        }
+
         public InstitutionalFilesController(IInstitutionalFilesService institutionalFilesService, ISessionInfoService sessionInfoService)
         {
             _institutionalFilesService = institutionalFilesService;
@@ -211,6 +237,11 @@ namespace eGrant.Controllers
         [HttpGet]
         public async Task<ActionResult> Delete_Doc(string act, int doc_id, int org_id)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                return Forbid();
+            }
+
             // disable_doc
             await _institutionalFilesService.DisableDoc(doc_id, sessionInfo.UserId);
 
@@ -308,6 +339,11 @@ namespace eGrant.Controllers
      int org_id,
             string comments)
         {
+       if (!HasDocumentWriteAccess())
+       {
+           return Forbid();
+       }
+
        if (dropedfile == null || dropedfile.Length == 0)
        {
    return Json(new { success = false, message = "You have not specified a file." });
@@ -324,17 +360,21 @@ namespace eGrant.Controllers
               fileExtension,
             start_date ?? "",
          end_date ?? "",
-       sessionInfo.Ic,
+       EffectiveIc,
        sessionInfo.UserId,
      comments ?? "");
 
-          var docName = Convert.ToString(docID) + fileExtension;
+                     var docName = Convert.ToString(docID) + fileExtension;
 
-    var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
-     var filePath = Path.Combine(fileFolder, docName);
+          #if DEBUG
+              var fileFolder = @"C:\PdfFileOutput\";
+          #else
+              var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+          #endif
+               var filePath = Path.Combine(fileFolder, docName);
 
-          await using var stream = new FileStream(filePath, FileMode.Create);
-      await dropedfile.CopyToAsync(stream);
+                     await using var stream = new FileStream(filePath, FileMode.Create);
+                 await dropedfile.CopyToAsync(stream);
 
     return Json(new { success = true, message = "Done! Document has been uploaded.", org_id, org_name });
           }
@@ -374,6 +414,11 @@ namespace eGrant.Controllers
             int org_id,
       string comments)
      {
+         if (!HasDocumentWriteAccess())
+         {
+             return Forbid();
+         }
+
          if (file == null || file.Length == 0 || category_id == 0)
             {
         return Json(new { success = false, message = "You have not specified information correctly." });
@@ -390,15 +435,19 @@ namespace eGrant.Controllers
    fileExtension,
     start_date ?? "",
       end_date ?? "",
-        sessionInfo.Ic,
+        EffectiveIc,
              sessionInfo.UserId,
         comments ?? "");
 
          var docName = Convert.ToString(docID) + fileExtension;
 
+#if DEBUG
+                var fileFolder = @"C:\PdfFileOutput\";
+#else
                 var fileFolder = @"\\" + sessionInfo.WebGrantUrl + "\\egrants\\funded\\nci\\institutional\\";
+#endif
       Log.Information("fileFolder: " + fileFolder);
-  var filePath = Path.Combine(fileFolder, docName);
+   var filePath = Path.Combine(fileFolder, docName);
 
      // save file asynchronously
   await using var stream = new FileStream(filePath, FileMode.Create);
@@ -451,6 +500,12 @@ namespace eGrant.Controllers
         [HttpPost]
         public async Task Update_Doc(int category_id, string start_date, string end_date, string comments, int doc_id)
         {
+            if (!HasDocumentWriteAccess())
+            {
+                Response.StatusCode = 403;
+                return;
+            }
+
             try
             {
                 if (category_id != 0)
@@ -459,7 +514,7 @@ namespace eGrant.Controllers
                         category_id,
                         start_date ?? "",
                         end_date ?? "",
-                        sessionInfo.Ic,
+                        EffectiveIc,
                         sessionInfo.UserId,
                         comments ?? "");
                 else

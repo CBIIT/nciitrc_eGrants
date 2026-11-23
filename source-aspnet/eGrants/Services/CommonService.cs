@@ -15,12 +15,15 @@ namespace eGrants.Services
     {
         private readonly ICommonRepository _commonRepository;
         private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public CommonService(ICommonRepository commonRepository, 
-            AppDbContext context = null)
+        public CommonService(ICommonRepository commonRepository,
+            AppDbContext context = null,
+            IConfiguration configuration = null)
         {
             _commonRepository = commonRepository;
             _context = context;
+            _configuration = configuration;
         }
 
         // Asynchronously retrieves a list of administrative codes from the common repository
@@ -66,9 +69,16 @@ namespace eGrants.Services
         {
             var list = new List<Profiles>();
 
+            // Profiles listed in "HiddenProfiles" are intentionally retained in the
+            // profiles table but hidden from the UI (e.g. NCMHD). The list is
+            // configurable via appsettings.json so it can be changed without a code change.
+            var hiddenProfiles = _configuration?
+                .GetSection("HiddenProfiles")
+                .Get<string[]>() ?? Array.Empty<string>();
+
             using (var conn = new SqlConnection(_context.Database.GetConnectionString()))
             {
-                var cmd = new SqlCommand("select profile_id, [profile], admin_phs_org_code from profiles order by admin_phs_org_code", conn);
+                var cmd = new SqlCommand("select profile_id, [profile], admin_phs_org_code from profiles order by [profile]", conn);
                 cmd.CommandType = CommandType.Text;
                 conn.Open();
 
@@ -77,17 +87,40 @@ namespace eGrants.Services
 
                 while (rdr.Read())
                 {
+                    var profile = rdr["profile"]?.ToString();
+
+                    if (IsHiddenProfile(profile, hiddenProfiles))
+                    {
+                        continue;
+                    }
+
                     list.Add(
                         new Profiles
                         {
                             ProfileId = rdr["profile_id"]?.ToString(),
-                            Profile = rdr["profile"]?.ToString(),
+                            Profile = profile,
                             AdminPhsOrgCode = rdr["admin_phs_org_code"]?.ToString()
                         });
                 }
             }
 
             return list;
+        }
+
+        /// <summary>
+        /// Determines whether the supplied profile name should be hidden from the UI
+        /// based on the configured <c>HiddenProfiles</c> list. Matching is
+        /// case-insensitive. Exposed as an internal helper so the filtering logic can
+        /// be unit-tested without a live database connection.
+        /// </summary>
+        public static bool IsHiddenProfile(string profile, IEnumerable<string> hiddenProfiles)
+        {
+            if (hiddenProfiles == null)
+            {
+                return false;
+            }
+
+            return hiddenProfiles.Any(h => string.Equals(h, profile, StringComparison.OrdinalIgnoreCase));
         }
 
         public List<Position> LoadPositions()

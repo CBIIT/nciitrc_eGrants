@@ -104,6 +104,17 @@
 
 <script language="JavaScript" type="text/javascript">
 
+   function requires_era_proxy(docurl) {
+      if (!docurl) {
+         return false;
+      }
+
+      var urlText = docurl.toLowerCase();
+      return urlText.indexOf("https://services.") === 0
+         || urlText.indexOf("/docservice/") >= 0
+         || urlText.indexOf("documentviewer") >= 0;
+   }
+
    function show_doc(docurl) {
       var ImageServer = document.getElementById("hidImageServer").value;
 
